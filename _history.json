@@ -1,0 +1,10 @@
+[
+    {
+        "role": "user",
+        "content": "hola"
+    },
+    {
+        "role": "assistant",
+        "content": "Hola. Soy el Auditor Senior de Gravity AI. ¿En qué puedo ayudarte con respecto al código de auditoría? Por favor, proporciona el código que deseas que audite, y haré mi trabajo con la mayor profesionalidad. ¡Buena suerte!"
+    }
+]
