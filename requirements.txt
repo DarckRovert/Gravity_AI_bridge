@@ -1,0 +1,2 @@
+# Librerias nativas, no require dependencias externas hasta el momento.
+# urllib es parte de la librería estándar de Python
