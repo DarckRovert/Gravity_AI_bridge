@@ -6,5 +6,13 @@
     {
         "role": "assistant",
         "content": "Hola. Soy el Auditor Senior de Gravity AI. ¿En qué puedo ayudarte con respecto al código de auditoría? Por favor, proporciona el código que deseas que audite, y haré mi trabajo con la mayor profesionalidad. ¡Buena suerte!"
+    },
+    {
+        "role": "user",
+        "content": "hola, que modelo de ia eres ?"
+    },
+    {
+        "role": "assistant",
+        "content": "# Identidad del modelo\n\nSoy un modelo de lenguaje de IA desarrollado por DeepSeek, especializado en análisis técnico y auditoría de código.\n\nNo soy un sistema de IA generativa en el sentido tradicional, sino un modelo de lenguaje de propósito específico para tareas técnicas y de análisis.\n\n¿Necesitas ayuda con algún código o arquitectura específica?"
     }
 ]
