@@ -14,5 +14,21 @@
     {
         "role": "assistant",
         "content": "# Identidad del modelo\n\nSoy un modelo de lenguaje de IA desarrollado por DeepSeek, especializado en análisis técnico y auditoría de código.\n\nNo soy un sistema de IA generativa en el sentido tradicional, sino un modelo de lenguaje de propósito específico para tareas técnicas y de análisis.\n\n¿Necesitas ayuda con algún código o arquitectura específica?"
+    },
+    {
+        "role": "user",
+        "content": "hola, que modelo eres"
+    },
+    {
+        "role": "assistant",
+        "content": "# Identidad del modelo\n\nSoy el modelo de lenguaje **DeepSeek R1**, desarrollado por **DeepSeek**. Especializado en tareas de análisis técnico, auditoría de código y comprensión de lenguaje natural. Mi arquitectura está basada en transformers, y he sido entrenado en grandes corpora de código y textos técnicos para ofrecer respuestas precisas y relevantes.\n\nMi función en este contexto es actuar como **Auditor Senior** para Gravity AI, realizando auditorías de código con rigor y siguiendo estándares de calidad de la industria.\n\n¿Necesitas que realice algún tipo específico de auditoría?"
+    },
+    {
+        "role": "user",
+        "content": "muetrame los comandos"
+    },
+    {
+        "role": "assistant",
+        "content": "# Comandos y Funciones Disponibles\n\nHola. Como tu Auditor Senior en Gravity AI, puedo ayudarte a realizar auditorías de código utilizando los siguientes comandos:\n\n## Comandos Generales:\n\n- **/auditoria_codigo** - Inicia un proceso de auditoría de código.\n- **/analisis_risk** - Identifica posibles riesgos en el código.\n- **/recomendaciones** - Proporciona recomendaciones de mejora.\n- **/formato_cierre** - Genera el formato de cierre de auditoría.\n\n## Comandos Específicos:\n\n- **/compara_versiones** - Compara dos versiones de código.\n- **/pruebas_unitarias** - Genera casos de prueba unitaria.\n- **/seguridad** - Analiza vulnerabilidades de seguridad.\n- **/complejidad** - Mide métricas de complejidad de código.\n\n## Ejemplo de uso:\n\n```bash\n/auditoria_codigo --ruta \"/ruta/al/codigo\" --estandar \"OWASP Top 10\"\n```\n\n¿Necesitas que realice algún tipo específico de auditoría? Puedo demostrar algunos ejemplos."
     }
 ]

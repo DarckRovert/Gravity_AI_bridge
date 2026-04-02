@@ -1,49 +1,44 @@
-# Gravity AI Bridge 🌉🤖 — Auditor Senior V2.0
+# Gravity AI Bridge 🌉🤖 — Auditor Senior V2.2
 
 Este proyecto es un conector avanzado (bridge) diseñado para que tu asistente de IA principal pueda delegar tareas de auditoría técnica a modelos locales respaldados por **Ollama** (específicamente `deepseek-r1:8b`).
 
-La versión 2.0 transforma el bridge en un **Auditor Senior Virtual** con memoria persistente, reglas de aprendizaje y una interfaz de terminal premium.
+La versión 2.2 transforma el bridge en una **Herramienta Global del Sistema**.
 
-## ✨ Novedades de la V2.0
-- **Personalidad Senior:** El Auditor ahora tiene un System Prompt riguroso que se inyecta automáticamente.
-- **Memoria de Aprendizaje:** Usa el comando `!aprende` para que el Auditor nunca olvide tus preferencias técnicas.
-- **Interfaz "Rich":** Resaltado de sintaxis, rendering de Markdown y tablas de estado en la terminal.
-- **Sistema de Pre-vuelo:** Un script de `health_check.py` verifica que Ollama y el modelo estén listos antes de empezar.
-- **Modo Interactivo:** Soporte para leer archivos locales y mantener un hilo conversacional.
+## ✨ Novedades de la V2.2
+- **Despliegue Global:** Instala el comando `gravity` en tu sistema Windows y úsalo desde cualquier terminal.
+- **Modo Agente Bilingüe:** Optimización de comunicación IA-a-IA en inglés técnico para máxima precisión lógica.
+- **Multimodelo Dinámico:** Detecta y usa cualquier modelo de Ollama que tengas instalado (`llama3.1`, `deepseek-r1`, `mistral`, etc.).
+- **Persistencia de Sesión:** El Auditor recuerda tu último modelo usado en `_settings.json`.
 
-## 🚀 Instalación Rápida
-1. Asegúrate de tener [Ollama](https://ollama.com/) corriendo y el modelo descargado:
-   ```bash
-   ollama pull deepseek-r1:8b
-   ```
-2. Instala las dependencias necesarias:
-   ```bash
-   pip install -r requirements.txt
-   ```
+## 🌐 Instalación Global (Recomendado)
+Para usar el poder de Gravity en **cualquier proyecto**, haz doble clic en:
+👉 `INSTALL_GLOBAL.bat`
+
+Este script:
+1.  Añade la carpeta del proyecto a tu **PATH de Windows** de forma segura.
+2.  Verifica dependencias (Python y Ollama).
+3.  Te permite usar el comando `gravity` desde cualquier lugar.
+
+> [!NOTE]
+> Tras la instalación, reinicia tu terminal o VS Code para que el comando `gravity` responda.
 
 ## 🛠️ Uso
 
-### Iniciar el Auditor (Windows)
-Simplemente haz doble clic en `INICIAR_AUDITOR.bat`. Este archivo:
-1. Verifica que tengas Python e instalado `rich`.
-2. Ejecuta un diagnóstico de conexión con Ollama.
-3. Inicia la consola del Auditor.
+### Comandos Globales
+Desde cualquier carpeta de tu disco duro, puedes ejecutar:
+- `gravity "Analiza este código..."`
+- `gravity "!modelos"` (Ver tu catálogo local)
+- `gravity "!usar <nombre>"` (Cambiar de modelo predeterminado)
 
-### Comandos del Chat
-Dentro de la consola del Auditor, puedes usar:
-- `/leer <ruta>`: Carga un archivo de código y pide al Auditor que lo analice.
-- `!aprende <regla>`: Guarda una regla (ej: "Usa PascalCase para clases") en la memoria permanente (`_knowledge.json`).
-- `!reglas`: Muestra todas las reglas que el Auditor ha aprendido.
-- `!olvida`: Borra la memoria de largo plazo.
-- `!limpiar`: Reinicia el historial de la conversación actual.
-- `salir`: Cierra la sesión de forma segura.
+### Integración en Otros Proyectos
+Para que Antigravity (o cualquier IA) sepa que debe usar el bridge en un proyecto nuevo, simplemente copia el archivo **`.antigravityrules`** de este repositorio a tu nueva carpeta. ¡La IA entenderá las instrucciones automáticamente!
 
 ## 📁 Estructura del Proyecto
-- `ask_deepseek.py`: El cerebro y motor del Auditor (V2.0 Refactorizada).
-- `health_check.py`: Script de diagnóstico de sistema.
-- `INICIAR_AUDITOR.bat`: Lanzador automático con controles de seguridad.
-- `_knowledge.json`: Almacén de tus reglas personalizadas.
-- `_history.json`: Memoria de corto plazo de la sesión.
+- `gravity.bat`: Lanzador universal.
+- `ask_deepseek.py`: El cerebro y motor del Auditor (V2.2).
+- `health_check.py`: Diagnóstico dinámico de modelos.
+- `_settings.json`: Persistencia de tus preferencias (modelo, idioma).
+- `_knowledge.json`: Reglas de largo plazo inyectadas al sistema.
 
 ---
 **Gravity AI Bridge** — Elevando la calidad de tu código localmente. 💻🔥
