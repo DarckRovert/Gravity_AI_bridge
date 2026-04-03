@@ -4,7 +4,7 @@ color 0b
 cls
 
 echo.
-echo  Iniciando Graivty Bridge Server...
+echo  Iniciando Gravity Bridge Server...
 python "%~dp0bridge_server.py"
 
 pause

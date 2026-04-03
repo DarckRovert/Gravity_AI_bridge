@@ -1,0 +1,3 @@
+openai-api-base: http://localhost:7860/v1
+model: openai/gravity-bridge-auto
+auto-commits: false

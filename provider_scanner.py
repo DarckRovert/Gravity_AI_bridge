@@ -28,14 +28,17 @@ class ProviderScanner:
     
     @staticmethod
     def _safe_request(url, timeout=1.5):
+        old_timeout = socket.getdefaulttimeout()
         try:
             # Forzamos timeout a nivel socket para Windows por si urlopen bloquea
             socket.setdefaulttimeout(timeout)
-            req = urllib.request.Request(url, headers={"User-Agent": "GravityAI/4.0"})
+            req = urllib.request.Request(url, headers={"User-Agent": "GravityAI/4.1"})
             with urllib.request.urlopen(req, timeout=timeout) as response:
                 return json.loads(response.read().decode('utf-8'))
         except Exception:
             return None
+        finally:
+            socket.setdefaulttimeout(old_timeout)
 
     @staticmethod
     def scan_provider(prov_info):

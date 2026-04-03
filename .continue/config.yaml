@@ -1,0 +1,9 @@
+name: Gravity Local V4
+version: 4.0.0
+schema: v1
+models:
+  - name: "Gravity Bridge"
+    provider: openai
+    model: gravity-bridge-auto
+    apiBase: "http://localhost:7860/v1"
+    apiKey: "gravity"

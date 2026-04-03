@@ -15,8 +15,8 @@ echo.
 set "TARGET_DIR=%~dp0"
 if "%TARGET_DIR:~-1%"=="\" set "TARGET_DIR=%TARGET_DIR:~0,-1%"
 
-REM --- [PASO 1/7] Python ---
-echo  [1/7] Verificando motor de Python 3.10+...
+REM --- [PASO 1/8] Python ---
+echo  [1/8] Verificando motor de Python 3.10+...
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo    [X] ERROR FATAL: Python no esta instalado. Abortando.
@@ -26,28 +26,28 @@ if %errorlevel% neq 0 (
     echo    [OK] Listo.
 )
 
-REM --- [PASO 2/7] Pip ---
-echo  [2/7] Actualizando gestor de paquetes...
+REM --- [PASO 2/8] Pip ---
+echo  [2/8] Actualizando gestor de paquetes...
 python -m pip install --upgrade pip --quiet >nul 2>&1
 echo    [OK] Pip actualizado.
 
-REM --- [PASO 3/7] Dependencias ---
-echo  [3/7] Instalando motor de UI y extensiones (rich, pyfiglet, etc)...
+REM --- [PASO 3/8] Dependencias ---
+echo  [3/8] Instalando motor de UI y extensiones (rich, pyfiglet, etc)...
 python -m pip install rich pyfiglet pyreadline3 urllib3 --quiet >nul 2>&1
 echo    [OK] Bibliotecas core listas.
 
-REM --- [PASO 4/7] Escaneo de IA ---
-echo  [4/7] Escaneando hardware (Ollama, LM Studio)...
+REM --- [PASO 4/8] Escaneo de IA ---
+echo  [4/8] Escaneando hardware (Ollama, LM Studio)...
 python "%TARGET_DIR%\provider_scanner.py" >nul 2>&1
 echo    [OK] Ecosistema indexado.
 
-REM --- [PASO 5/7] Configurando Integraciones (IDE) ---
-echo  [5/7] Auto-generando configuraciones proxy proxy para IDEs...
-python "%TARGET_DIR%\ask_deepseek.py" "!integrar todo" >nul 2>&1
+REM --- [PASO 5/8] Configurando Integraciones (IDE) ---
+echo  [5/8] Auto-generando configuraciones proxy proxy para IDEs...
+python "%TARGET_DIR%\run_integrator.py" "todo" >nul 2>&1
 echo    [OK] Puente OpenAI expuesto para Continue.dev/Cursor/Aider.
 
-REM --- [PASO 6/7] PATH Global ---
-echo  [6/7] Instalando comando universal 'gravity' en CMD/PowerShell...
+REM --- [PASO 6/8] PATH Global ---
+echo  [6/8] Instalando comando universal 'gravity' en CMD/PowerShell...
 echo %PATH% | findstr /i /c:"%TARGET_DIR%" >nul
 if %errorlevel%==0 (
     echo    [OK] Comando ya existia previamente.
@@ -60,15 +60,25 @@ if %errorlevel%==0 (
     )
 )
 
-REM --- [PASO 7/7] Icono ---
-echo  [7/7] Configurando iconografia del Escritorio...
+REM --- [PASO 7/8] Icono ---
+echo  [7/8] Configurando iconografia del Escritorio...
 set "LNK_PATH=%USERPROFILE%\Desktop\Gravity AI Auditor.lnk"
 if not exist "%LNK_PATH%" (
-    powershell -Command "$s=(New-Object -COM WScript.Shell).CreateShortcut('%LNK_PATH%');$s.TargetPath='%TARGET_DIR%\INICIAR_AUDITOR.bat';$s.WorkingDirectory='%TARGET_DIR%';$s.IconLocation='%SystemRoot%\System32\SHELL32.dll,300';$s.Save()"
+    echo $s=^(New-Object -COM WScript.Shell^).CreateShortcut^('%LNK_PATH%'^);$s.TargetPath^='%TARGET_DIR%\INICIAR_AUDITOR.bat';$s.WorkingDirectory^='%TARGET_DIR%';$s.IconLocation^='%SystemRoot%\System32\SHELL32.dll,300';$s.Save^(^) > "%TEMP%\createlink.ps1"
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%TEMP%\createlink.ps1"
+    del "%TEMP%\createlink.ps1"
     echo    [OK] Acceso directo magnetizado.
 ) else (
     echo    [OK] El icono ya estaba en el escritorio.
 )
+
+REM --- [PASO 8/8] Test Inferencia ---
+echo  [8/8] Ejecutando test de inferencia local...
+echo        Pregunta: "Resume tu proposito en 10 palabras"
+echo.
+python "%TARGET_DIR%\ask_deepseek.py" "Resume tu proposito en menos de 10 palabras directo, sin markdown"
+echo.
+echo    [OK] Inferencia completada.
 
 echo.
 echo  ╔══════════════════════════════════════════════════════╗

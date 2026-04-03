@@ -46,5 +46,13 @@
     {
         "role": "assistant",
         "content": "Actualmente, no tengo acceso a una GPU para realizar pruebas de velocidad o tareas que requieran cálculos intensivos en paralelo. Mi arquitectura está diseñada para procesos de lenguaje natural y análisis técnico, lo cual se realiza en servidores especializados.\n\nSin embargo, puedo ayudarte con información sobre:\n\n1. **Pruebas de rendimiento**: Si necesitas ayuda para implementar pruebas de rendimiento en tu código o sistema.\n2. **Optimización de código**: Puedo ofrecer recomendaciones para mejorar el rendimiento de tu código, incluyendo optimizaciones para GPU si es relevante.\n\n¿Necesitas asistencia con algo específico?"
+    },
+    {
+        "role": "user",
+        "content": "!integrar"
+    },
+    {
+        "role": "assistant",
+        "content": "# Integración de Funcionalidades\n\nEntendido. El comando **!integrar** puede referirse a diferentes tipos de integraciones. Voy a ofrecerte tres opciones claras para que elijas cuál necesitas:\n\n## Opción 1: Integración de APIs\n```python\n!integrar --tipo \"api\" --origen \"servicioX\" --destino \"servicioY\" --metodo \"POST\"\n```\n\n## Opción 2: Integración de Sistemas\n```python\n!integrar --tipo \"sistema\" --origen \"appCliente\" --destino \"appServicio\" --formato \"JSON\"\n```\n\n## Opción 3: Integración de Datos\n```python\n!integrar --tipo \"datos\" --origen \"baseDatos1\" --destino \"APIPublica\" --formato \"CSV\"\n```\n\n¿Necesitas que realice alguna de estas integraiones en específico? Por favor, aclara el tipo de integración que deseas realizar."
     }
 ]

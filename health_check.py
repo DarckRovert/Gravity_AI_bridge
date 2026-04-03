@@ -76,7 +76,9 @@ def prompt_menu(results):
         
     console.print(f"  [bold cyan][{len(healthy)+1}][/] Auto-Selección Inteligente (Recomendado)")
     
-    import pyreadline3 # To enable good prompt in windows
+    try:
+        import pyreadline3 # To enable good prompt in windows
+    except: pass
     from rich.prompt import Prompt
     while True:
         try:

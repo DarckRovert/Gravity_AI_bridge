@@ -68,16 +68,24 @@ class SettingsManager:
         self.data = self._load()
 
     def _load(self):
+        merged = self.default_data.copy()
         if os.path.exists(SETTINGS_FILE):
             try:
                 with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                     stored = json.load(f)
                     if "advanced_params" in stored:
                         stored["advanced_params"] = {**self.default_data["advanced_params"], **stored["advanced_params"]}
-                    return {**self.default_data, **stored}
+                    merged = {**self.default_data, **stored}
             except Exception as e:
                 console.print(f"[bold red]⚠ Alerta:[/] {e}. Cargando defaults.")
-        return self.default_data
+        
+        # Auto-heal: Ensure all fields are saved to disk
+        try:
+            with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
+                json.dump(merged, f, indent=4)
+        except: pass
+        
+        return merged
 
     def save_all(self):
         with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
@@ -192,7 +200,9 @@ class OllamaClient(AIClient):
     def chat(self, messages, options=None):
         do_stream = options.get("streaming", True) if options else True
         payload_dict = {"model": self.model, "messages": messages, "stream": do_stream}
-        if options: payload_dict["options"] = options
+        if options:
+            valid_keys = ['num_ctx', 'temperature', 'top_p', 'top_k', 'repeat_penalty', 'seed', 'num_predict']
+            payload_dict["options"] = {k: v for k, v in options.items() if k in valid_keys}
         
         req = urllib.request.Request(f"{self.api_url}/api/chat", data=json.dumps(payload_dict).encode("utf-8"), headers={"Content-Type": "application/json"})
         try:
@@ -305,7 +315,7 @@ class AuditorCLI:
         try:
             f_logo = pyfiglet.figlet_format("GRAVITY AI", font="doom")
             console.print(Align.center(f"[bold bright_cyan]{f_logo}[/]"))
-        except: pass
+        except: console.print("[bold cyan]GRAVITY AI[/]")
             
         header = Panel(Text(f"AUDITOR SENIOR V{APP_VERSION} — GOD TIER", justify="center", style="bold bright_white"), style="on bright_black", box=box.HEAVY_EDGE)
         console.print(header)
@@ -345,6 +355,34 @@ class AuditorCLI:
                 if inp.startswith('!modo '):
                     self.settings.save("mode", inp[6:])
                     console.print(f"[green]Modo '{inp[6:]}' activo.[/]"); continue
+                if inp == '!streaming': 
+                    cur = self.settings.options.get("streaming", True)
+                    self.settings.update_param("streaming", not cur)
+                    console.print(f"[green]Streaming: {'ON' if not cur else 'OFF'}[/]"); continue
+                if inp.startswith('!usar '):
+                    mod = inp[6:].strip()
+                    self.settings.save("last_model", mod)
+                    self.client.model = mod
+                    console.print(f"[green]Completado. Usando {mod}[/]"); continue
+                if inp == '!modelos':
+                    from provider_scanner import ProviderScanner
+                    scans = ProviderScanner.scan_all()
+                    for s in scans:
+                        if s.is_healthy:
+                            console.print(f"[bold cyan]{s.name}[/]: " + ", ".join(m["name"] for m in s.models))
+                    continue
+                if inp.startswith('!aprende '):
+                    regla = inp[9:].strip()
+                    if self.memory.learn(regla):
+                        console.print(f"[green]Regla aprendida y persistida.[/]")
+                    else:
+                        console.print("[yellow]Ya conocía esta regla.[/]")
+                    continue
+                if inp == '!exportar-md':
+                    h = self.memory.history
+                    c = "\n\n".join(f"**{'Usuario' if m['role']=='user' else 'Gravity AI'}**: \n{m['content']}" for m in h)
+                    with open(f"export_{int(time.time())}.md", "w", encoding="utf-8") as f: f.write(c)
+                    console.print("[green]Sesión exportada a archivo Markdown local.[/]"); continue
                 if inp.startswith('!guardar '):
                     self.memory.save_snapshot(inp[9:]); console.print("[green]Snapshot guardado.[/]"); continue
                 if inp.startswith('!cargar '):
@@ -405,11 +443,16 @@ class AuditorCLI:
                 ans = ""
                 console.print(Rule(style="cyan"))
                 
-                with console.status(f"[cyan]✨ {self.client.model}...[/]", spinner="dots"):
+                is_streaming = self.settings.options.get("streaming", True)
+                if is_streaming:
+                    console.print(f"[cyan]✨ {self.client.model}...[/]")
                     ans = self.client.chat(msg, options=self.settings.options)
-
+                else:
+                    with console.status(f"[cyan]✨ {self.client.model}...[/]", spinner="dots"):
+                        ans = self.client.chat(msg, options=self.settings.options)
+                    console.print(Markdown(ans))
+                    
                 elapsed = time.time() - start_time
-                if not self.settings.options.get("streaming", True): console.print(Markdown(ans))
                 
                 self.memory.add_turn(p, ans)
                 bar = f"{self.provider.upper()} │ {self.client.model} │ {self.settings.data.get('mode', 'auditor')} │ {elapsed:.1f}s"

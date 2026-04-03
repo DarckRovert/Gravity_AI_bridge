@@ -1,6 +1,7 @@
-# Dependencias de Gravity AI Bridge V3.1
+# Dependencias de Gravity AI Bridge V4.1
 rich
 pyfiglet
+urllib3
 
 # pyreadline3 provee historial de comandos en Windows
 pyreadline3

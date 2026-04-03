@@ -2,12 +2,16 @@
     "provider": "ollama",
     "api_url": "http://localhost:11434",
     "last_model": "deepseek-r1:8b",
+    "mode": "auditor",
     "agent_language": "en",
     "user_language": "es",
+    "bridge_port": 7860,
     "advanced_params": {
         "num_ctx": 262144,
         "temperature": 0.6,
         "top_p": 0.9,
-        "warning_threshold": 0.95
+        "warning_threshold": 0.95,
+        "streaming": true,
+        "auto_compress": true
     }
 }

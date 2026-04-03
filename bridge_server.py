@@ -14,7 +14,13 @@ import urllib.request
 import urllib.error
 import os
 
+from rich.console import Console
+from rich.table import Table
+from rich import box
+
 from provider_scanner import ProviderScanner
+
+console = Console()
 
 # Config global
 SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "_settings.json")
@@ -144,10 +150,25 @@ API Key:  gravity-local</pre>
                     
                 # Replace model name before proxying
                 payload["model"] = target_model
+                
+                # BUG 4 FIX: Check if target protocol is Ollama to parse paths
+                target_protocol = "openai"
+                for s in cached_scans:
+                    if s.url == target_url:
+                        target_protocol = s.protocol
+                        break
+                        
+                target_path = self.path
+                if target_protocol == "ollama":
+                    if self.path == '/v1/chat/completions':
+                        target_path = '/api/chat'
+                    elif self.path == '/v1/completions':
+                        target_path = '/api/generate'
+
                 proxy_data = json.dumps(payload).encode('utf-8')
                 
-                # Forward to actual provider via OpenAI compatible endpoint
-                req = urllib.request.Request(f"{target_url}{self.path}", data=proxy_data, headers={"Content-Type": "application/json", "Authorization": "Bearer local"})
+                # Forward to actual provider
+                req = urllib.request.Request(f"{target_url}{target_path}", data=proxy_data, headers={"Content-Type": "application/json", "Authorization": "Bearer local"})
                 
                 start_time = time.time()
                 try:
@@ -205,15 +226,15 @@ def run_server():
     
     server = ThreadingHTTPServer(('0.0.0.0', port), GravityBridgeHandler)
     
-    print("\n┌────────────────────────────────────────────────────────┐")
-    print(f"│  GRAVITY BRIDGE SERVER V4.0 — ONLINE                   │")
-    print(f"│  ► Base URL: http://localhost:{port}/v1                  │")
+    console.print(f"\n[bold cyan]┌────────────────────────────────────────────────────────┐[/]")
+    console.print(f"[bold cyan]│[/]  [bold bright_white]GRAVITY BRIDGE SERVER V4.1 — ONLINE[/]                   [bold cyan]│[/]")
+    console.print(f"[bold cyan]│[/]  ► Base URL: [green]http://localhost:{port}/v1[/]                  [bold cyan]│[/]")
     if active_target_url:
-        print(f"│  Enrutador principal: {active_target_url} ({active_target_model}) ")
+        console.print(f"[bold cyan]│[/]  Enrutador principal: [yellow]{active_target_url}[/] ({active_target_model}) ")
     else:
-        print(f"│  No se detectaron proveedores. Esperando...            │")
-    print("│                                                        │")
-    print("│  Log de peticiones (en tiempo real):                   │")
+        console.print(f"[bold cyan]│[/]  [red]No se detectaron proveedores. Esperando...[/]            [bold cyan]│[/]")
+    console.print(f"[bold cyan]│[/]                                                        [bold cyan]│[/]")
+    console.print(f"[bold cyan]│[/]  [dim]Log de peticiones (en tiempo real):[/]                   [bold cyan]│[/]")
     
     try:
         server.serve_forever()
