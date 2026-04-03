@@ -104,8 +104,8 @@ Los Archivos Supremos se extienden a lo largo de este repositorio corporativo pa
    *Cómo conectar efectivamente las extensiones de programación del mercado.*
 2. **⚠️ [Solución de Conflictos: Preguntas Frecuentes (FAQ)](FAQ.md)**  
    *Respuestas frente a problemas de Red, timeout y GPU.*
-3. **🦾 [Workflows Tácticos del Séquito (`.agents`)](.agents/workflows/delegar.md)**  
-   *Instrucciones de Inyección Pura para que Antigravity actúe solo.*
+3. **🦾 [Manual de Delegación Táctica (IA Híbrida)](MANUAL_DELEGACION.md)**  
+   *Instrucciones de Inyección Pura para que Antigravity actúe solo en nuevos proyectos.*
 
 ---
 
