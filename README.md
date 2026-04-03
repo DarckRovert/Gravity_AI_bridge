@@ -28,7 +28,7 @@ Una vez que abras tu Agente (o usando el comando global `gravity`), cuentas con 
 
 | Comando | Acción Exacta |
 |---|---|
-| `!integrar <herramienta>` | Regenera configuraciones de VS Code, Cursor o Aider por nombre o `!integrar todo`. *(Refiere a `MANUAL_IDE.md`)*
+| `!integrar <herramienta>` | Regenera configuraciones de VS Code, Cursor o Aider por nombre o `!integrar todo`. *(Refiere a [MANUAL_IDE.md](MANUAL_IDE.md))* |
 | `/leer <archivo.js>` | Anexa a la memoria central el archivo completo que elijas para un Fix rápido. |
 | `/leer-git` | Trae y lee de manera instantánea todos los archivos sin guardar y Diffs puros que tengas modificados en la carpeta. |
 | `/leer-url <www>` | Descarga una página web plana o log y sométela a la bestia. |
@@ -42,3 +42,13 @@ Una vez que abras tu Agente (o usando el comando global `gravity`), cuentas con 
 Si deseas que tu IDE como Visual Studio Code envíe sus *Copilots* al servidor Gravity AI sin tener una terminal negra molestando en el fondo, haz doble clic en **`MODO_FANTASMA.vbs`**. Todo sucederá silenciosamente y el historial se grabará en `bridge.log`.
 
 *(Para cancelar esta instalación a nivel Enterprise que tocó el sistema y tu PATH, simplemente ejecuta `DESINSTALAR.bat`).*
+
+---
+
+## 📚 Documentación Oficial y Workflows
+
+Consulta los siguientes documentos para dominar al máximo el puente de Inteligencia Artificial:
+
+* **[Manual de Integración IDE](MANUAL_IDE.md):** Instrucciones visuales para vincular Cursor IDE, Aider y VS Code Continue.
+* **[Preguntas Frecuentes (FAQ)](FAQ.md):** Troubleshooting sobre puertos bloqueados y dudas existenciales del sistema.
+* **[Manual de Delegación Táctica](.agents/workflows/delegar.md):** ¿Cómo decirle a otras inteligencias que aprovechen tu sistema Gravity usando comandos y tuberías? *(Revisar carpeta `.agents/workflows`).*
