@@ -288,9 +288,9 @@ class AuditorCLI:
         rules = "\n".join(f"- {r}" for r in self.memory.knowledge) if self.memory.knowledge else "Ninguna"
         
         if self.as_agent: 
-            return (f"Eres el Auditor Senior de Gravity AI. Tu misión es responder de forma DIRECTA, "
-                    f"TÉCNICA y EXCLUSIVAMENTE en ESPAÑOL a la lógica del Agente Externo que te consulta.\n"
-                    f"REGLAS:\n{rules}")
+            return (f"You are the Gravity AI Senior Auditor. Your mission is to respond DIRECTLY, "
+                    f"TECHNICALLY and EXCLUSIVELY in TECHNICAL ENGLISH to the external AI Agent logic.\n"
+                    f"RULES:\n{rules}")
         
         if m == "coder": return f"Eres CTO Experto. Responde SÓLO con código optimizado. Nada de explicaciones largas.\nREGLAS:\n{rules}"
         if m == "creativo": return f"Eres un creativo visionario. Piensa out-of-the-box.\nREGLAS:\n{rules}"
