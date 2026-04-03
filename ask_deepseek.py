@@ -13,6 +13,20 @@ import time
 import subprocess
 from datetime import datetime
 
+# Forzar codificación UTF-8 en Windows para evitar "idiomas extraños" o caracteres rotos
+if sys.stdout.encoding != 'utf-8':
+    import io
+    try:
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+    except: pass
+if sys.stdin and sys.stdin.encoding != 'utf-8':
+    import io
+    try:
+        sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
+    except: pass
+
+
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
@@ -273,7 +287,10 @@ class AuditorCLI:
         m = self.settings.data.get("mode", "auditor")
         rules = "\n".join(f"- {r}" for r in self.memory.knowledge) if self.memory.knowledge else "Ninguna"
         
-        if self.as_agent: return f"Gravity AI Auditor. Respond directly to the external AI Agent logic.\nRULES:\n{rules}"
+        if self.as_agent: 
+            return (f"Eres el Auditor Senior de Gravity AI. Tu misión es responder de forma DIRECTA, "
+                    f"TÉCNICA y EXCLUSIVAMENTE en ESPAÑOL a la lógica del Agente Externo que te consulta.\n"
+                    f"REGLAS:\n{rules}")
         
         if m == "coder": return f"Eres CTO Experto. Responde SÓLO con código optimizado. Nada de explicaciones largas.\nREGLAS:\n{rules}"
         if m == "creativo": return f"Eres un creativo visionario. Piensa out-of-the-box.\nREGLAS:\n{rules}"
@@ -456,6 +473,11 @@ def main():
                 {"role":"system","content":cli._get_system_prompt()},
                 {"role":"user","content":f"{args}\n\n```\n{piped_data}\n```"}
             ], options=cli.settings.options)
+            
+            # Limpiar rastro de razonamiento interno si existe para no ensuciar la terminal del usuario
+            if "<think>" in res and "</think>" in res:
+                res = res.split("</think>")[-1].strip()
+            
             print(res)
         except Exception as e: print(f"ERROR: {e}")
         return
@@ -468,6 +490,10 @@ def main():
                 {"role":"system","content":cli._get_system_prompt()},
                 {"role":"user","content":" ".join(sys.argv[1:])}
             ], options=cli.settings.options)
+            
+            if "<think>" in res and "</think>" in res:
+                res = res.split("</think>")[-1].strip()
+                
             print(res)
         except Exception as e: print(f"ERROR: {e}")
     else:
