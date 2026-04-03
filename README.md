@@ -91,3 +91,8 @@ El conocimiento técnico exhaustivo de todo el ecosistema de IA ha sido dividido
 * ⚖️ [Licencia MIT](LICENSE)
 * 🤝 [Código de Conducta](CODE_OF_CONDUCT.md)
 * 🛠️ [Guía de Contribución](CONTRIBUTING.md)
+
+<br>
+<p align="center">
+  <strong>© 2024-2026 DarckRovert (Elnazzareno) — El Séquito del Terror</strong>
+</p>
