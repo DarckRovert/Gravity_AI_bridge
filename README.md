@@ -1,98 +1,44 @@
-# Gravity AI Bridge 🚀 (V4.0 God-Tier)
+# GRAVITY AI BRIDGE V4.2 — GOD TIER ⚡
+*Un componente élite del Séquito del Terror.*
 
-El **Gravity AI Bridge** ha evolucionado de un Auditor interactivo a un **ecosistema de IA completo y transparente** que auto-descubre, rankea, y enruta todos tus IDEs hacia el cluster de GPUs de tu sistema.
+**Gravity AI Bridge** es tu "puente" perimetral para enlazar tus modelos locales de Inteligencia Artificial pesada (DeepSeek-R1, Ollama, LM Studio, etc.) con herramientas de nivel Enterprise como *Visual Studio Code*, *Cursor*, *Aider* o la consola propia de Auditoría.
 
-![Versión](https://img.shields.io/badge/Versión-4.0-cyan)
-![Arquitectura](https://img.shields.io/badge/Architecture-God_Tier-magenta)
-![Modelo](https://img.shields.io/badge/Model-Agnostic_Multi--Engine-yellow)
+![Gravity Logo](media__1775204686339.png)
 
----
+## 🎯 Arquitectura de Alto Nivel
+Con una reescritura desde cero a Python Puro, Gravity detecta tus motores de IA locales a una velocidad vertiginosa (**1.7s**), determina el más sano e infiere el tráfico sin tocar internet.
 
-## 🔥 Características V4.0 (God-Tier)
+### ✨ Features de la Versión God-Tier:
+* **Autoconfiguración Zero-Touch**: Escaneo de puertos asincrónico agresivo; encuentra y se ata a tu IA local más rápida sin soltarla.
+* **Escritura y Manejo Dinámico IDE**: Configura automáticamente el `config.yaml` de VS Code Continue y clona perfiles de *Aider* y *Cursor IDE*.
+* **Comandos en Crudo (CMD)**: Desde cualquier consola escribe `gravity "Revisar mi archivo.js"` y el Agente se abrirá por ti.
+* **Soporte Streaming Real-Time**: Consume tus respuestas palabra por palabra para que sientas un output veloz, evadiendo la latencia clásica de localhost.
+* **Manejo Contextual Avanzado**: Inyéctale código desde enlaces HTTP, repositorios de git local enteros, o manuales TXT con los comandos nativos de la CLI de Auditoría.
 
-*   **Auto-Descubrimiento Constante:** Nació con la habilidad de rastrear puertos. Si levantas `LM Studio` u `Ollama`, Gravity lo encuentra en < 2s, evalúa qué modelo tienes activamente residiendo en la VRAM para evitar latencias de cold-start, y te conecta al instante.
-*   **Proxy Server Universal (El Bridge):** Contiene un mini-servidor (`bridge_server.py`) que engaña a cualquier editor de código del planeta (VSCode, Cursor, Aider, CodeGPT) creyendo que es la API oficial de OpenAI en `http://localhost:7860/v1`. 
-*   **IDEs Auto-Configurados:** El comando `!integrar todo` escribe, inserta y acopla Gravity automáticamente dentro de los YAMLs de configuración de Continue.dev, Cursor y Aider de tu entorno.
-*   **Inyección CLI Avanzada (Pipe Mode):** ¿Un error en la CMD? Simplemente tira por la tubería de sistema la instrucción: 
-    `git diff | gravity "Analiza estos cambios"`
-*   **Perfiles Temporales de Personalidad:** En caliente transiciona entre: `!modo coder`, `!modo revisor`, `!modo auditor`, `!modo creativo`.
-*   **Compresión de Contexto Algorítmica:** Olvídate del límite de tokens. Cuando tu contexto base exceda el 85%, el Auditor pausa, procesa un resumen denso (`!comprimir`) y purga tu chat sin perder tus ideas, abriendo espacio infinito.
-*   **Snapshots ("Save Games" de Memoria):** Guarda y restaura sesiones exactas para luego (`!guardar sesion_arquitectura`).
+## 🚀 Instalación y Despliegue Inmediato
+Descarga todo el proyecto y dentro corre:
+1. Haz doble clic en **`INSTALAR.bat`**. 
+   - Modificará variables para añadir el comando `gravity`.
+   - Elegirá automáticamente el motor neurálgico detectado en tu PC (Ej. `deepseek-r1:32b`).
+   - Magnetizará el ícono Auditor.
+2. Todo tuyo. Presiona el botón del escritorio.
 
----
+## 🥷 El Arsenal: Inyección e Inteligencia
+Una vez que abras tu Agente (o usando el comando global `gravity`), cuentas con el siguiente nivel de control:
 
-## 🛠️ Instalación rápida de un Toque
+| Comando | Acción Exacta |
+|---|---|
+| `!integrar <herramienta>` | Regenera configuraciones de VS Code, Cursor o Aider por nombre o `!integrar todo`. *(Refiere a `MANUAL_IDE.md`)*
+| `/leer <archivo.js>` | Anexa a la memoria central el archivo completo que elijas para un Fix rápido. |
+| `/leer-git` | Trae y lee de manera instantánea todos los archivos sin guardar y Diffs puros que tengas modificados en la carpeta. |
+| `/leer-url <www>` | Descarga una página web plana o log y sométela a la bestia. |
+| `!aprende <regla>` | Obliga al modelo a respetar una norma (ej: `!aprende Siempre código ES6`). |
+| `!guardar <nombre>` | Guarda la conversación actual en una instantánea llamada "<nombre>". |
+| `!saves` | Lista todas las instantáneas (snapshots).  Escribe tu snapshot para cargar ese contexto. |
+| `!comprimir` | Si llenaste los 128k/8k tokens, presiona aquí y el modelo resumirá su cabeza y borrará la basura reteniendo la sabiduría. |
+| `!version` o `!info` | Revela el estado topológico y conexión actual de Hardware. |
 
-Olvídate de procesos manuales. Hay 10 pasos en 1 solo clic.
+### 👻 Modo Fantasma
+Si deseas que tu IDE como Visual Studio Code envíe sus *Copilots* al servidor Gravity AI sin tener una terminal negra molestando en el fondo, haz doble clic en **`MODO_FANTASMA.vbs`**. Todo sucederá silenciosamente y el historial se grabará en `bridge.log`.
 
-1. Simplemente haz doble clic sobre el script `INSTALAR.bat`.
-2. Verás la secuencia visual en 10 pasos que evalúa hardware, instala dependencias, crea el icono global y configura Windows.
-
-Y listo. Puedes llamarlo diciendo `gravity "hola"` globalmente donde sea.
-
----
-
-## ⚡ Arsenal de Comandos Internos
-
-En cualquier punto durante una sesión activa, el Auditor escucha:
-
-| Inyección Avanzada | Acción de Sistema |
-| :--- | :--- |
-| `!scan` | Actualiza la tabla de mapeo de red de GPUs en caliente. |
-| `/leer-carpeta <ruta>` | Analiza el source-code completo de un folder ignorando binarios. |
-| `/leer-git` | Devora el `git diff HEAD` actual al instante. |
-| `!guardar <nombre>` | Crea un archivo stateful inmutable de toda tu memoria. |
-| `!saves` | Lista los snapshots. (`!cargar <nombre>` para revivirlos). |
-| `!comprimir` | Si tu terminal pide auxilio por mucha charla, lo reseteas a bullet points sintéticos. |
-| `!integrar continue` | Auto-crea el `config.yaml` perfecto dentro de `.continue/` apuntando a tu GPU. |
-
----
-
-## 💻 El Gravity Bridge Server (Para IDEs)
-
-Si te has hartado de configurar LLMs en tus extensiones de Visual Studio Code cada vez que pruebas un CLI de AI, déjaselo al Bridge.
-
-1.  Inicia el **`INICIAR_SERVIDOR.bat`**. Éste se queda minizado en el fondo.
-2.  En **Continue.dev, CodeGPT, Cursor**, la configuración global será esta para siempre:
-
-```json
-"API Base URL": "http://localhost:7860/v1",
-"API Key": "gravity-local",
-"Model": "gravity-bridge-auto"
-```
-
-### ¿Qué ocurre bajo el capó?
-El Server expone los Endpoints `v1/models` y `v1/chat/completions`. Todo el stack local de tus editores es interceptado, procesado y enviado dinámicamente al motor (Ollama o LM Studio) que detecte que está usando la GPU en ese preciso instante ahorrándote 0.5s de latencia. Si cambias de Ollama a LM Studio, **tus editores web/IDEs no se enteran ni debes cambiar settings.** Gravity lo re-enruta sobre la marcha local.
-
----
-
-## 📚 Documentación Avanzada (Deep Dives)
-
-El conocimiento técnico exhaustivo de todo el ecosistema de IA ha sido dividido en secciones enfocadas. Haz clic en cualquiera de las guías abajo para dominar por completo Gravity V4.0.
-
-> [!NOTE]
-> **🚀 Ver [COMMANDS.md](COMMANDS.md)** para la tabla absoluta del Arsenal de Comandos secretos y pipe.
-
-> [!NOTE]
-> **📦 Módulos:** Ver [MODULES.md](MODULES.md) para documentación técnica de arquitectura del Proxy y Scanner.
-
-> [!NOTE]
-> **❓ Preguntas Frecuentes:** Ver [FAQ.md](FAQ.md) para solución de problemas (Troubleshooting) y bugs con puertos.
-
-> [!NOTE]
-> **🔗 Integración IDE:** Ver [INTEGRATION.md](INTEGRATION.md) para el super-manual de configuración en VS Code (CodeGPT), Continue.dev, Cody, Aider y Cursor.
-
-> [!NOTE]
-> **🌍 Localización:** Ver [SPANISH_LOCALIZATION.md](SPANISH_LOCALIZATION.md) para detalles del bias cognitivo del idioma.
-
-<br>
-
-### ⚖️ Gobernanza Open-Source
-* ⚖️ [Licencia MIT](LICENSE)
-* 🤝 [Código de Conducta](CODE_OF_CONDUCT.md)
-* 🛠️ [Guía de Contribución](CONTRIBUTING.md)
-
-<br>
-<p align="center">
-  <strong>© 2024-2026 DarckRovert (Elnazzareno) — El Séquito del Terror</strong>
-</p>
+*(Para cancelar esta instalación a nivel Enterprise que tocó el sistema y tu PATH, simplemente ejecuta `DESINSTALAR.bat`).*

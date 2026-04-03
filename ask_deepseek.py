@@ -33,7 +33,7 @@ except ImportError:
     pass
 
 # ─── Configuración base ──────────────────────────────────────────────────────
-APP_VERSION = "4.0"
+APP_VERSION = "4.2"
 BASE_DIR = os.path.dirname(__file__)
 HISTORY_FILE = os.path.join(BASE_DIR, "_history.json")
 KNOWLEDGE_FILE = os.path.join(BASE_DIR, "_knowledge.json")
@@ -78,11 +78,13 @@ class SettingsManager:
                     merged = {**self.default_data, **stored}
             except Exception as e:
                 console.print(f"[bold red]⚠ Alerta:[/] {e}. Cargando defaults.")
+        return merged
         
-        # Auto-heal: Ensure all fields are saved to disk
+    def heal(self):
+        # Auto-heal: Ensure all fields are saved to disk manually
         try:
             with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
-                json.dump(merged, f, indent=4)
+                json.dump(self.data, f, indent=4)
         except: pass
         
         return merged
@@ -251,29 +253,7 @@ class OpenAIClient(AIClient):
                 return full_content
         except Exception as e: raise ConnectionError(f"OpenAI/LM Studio Error: {e}")
 
-# ─── Integrador de IDEs ──────────────────────────────────────────────────────
-class IDEIntegrator:
-    @staticmethod
-    def integrate(tool):
-        if tool == "continue":
-            os.makedirs(os.path.join(BASE_DIR, ".continue"), exist_ok=True)
-            cfg = """name: Gravity Local V4\nversion: 4.0.0\nschema: v1\nmodels:\n  - name: "Gravity Bridge"\n    provider: openai\n    model: gravity-bridge-auto\n    apiBase: "http://localhost:7860/v1"\n    apiKey: "gravity"\n"""
-            with open(os.path.join(BASE_DIR, ".continue", "config.yaml"), "w") as f: f.write(cfg)
-            console.print("[green]✓ Continue.dev configurado en .continue/config.yaml[/]")
-        elif tool == "aider":
-            cfg = "openai-api-base: http://localhost:7860/v1\nmodel: openai/gravity-bridge-auto\nauto-commits: false\n"
-            with open(os.path.join(BASE_DIR, "aider.conf.yml"), "w") as f: f.write(cfg)
-            console.print("[green]✓ aider.conf.yml creado en la raíz.[/]")
-        elif tool == "cursor":
-            os.makedirs(os.path.join(BASE_DIR, "_integrations"), exist_ok=True)
-            cfg = '{"models": [{"name": "Gravity Bridge", "provider": "openai", "baseUrl": "http://localhost:7860/v1", "apiKey": "gravity"}]}'
-            with open(os.path.join(BASE_DIR, "_integrations", "cursor.json"), "w") as f: f.write(cfg)
-            console.print("[green]✓ Cursor configurado. Instrucciones en _integrations/cursor.json[/]")
-        elif tool == "todo":
-            IDEIntegrator.integrate("continue")
-            IDEIntegrator.integrate("aider")
-            IDEIntegrator.integrate("cursor")
-        else: console.print("[red]Herramientas soportadas: continue, aider, cursor, todo[/]")
+# ─── Integracion movida a ide_integrator.py ────────────────────────────────
 
 # ─── Interfaz del Auditor ────────────────────────────────────────────────────
 class AuditorCLI:
@@ -326,7 +306,7 @@ class AuditorCLI:
 [bold magenta]!guardar <n>[/]  Snapshot.  [bold magenta]!comprimir[/]   Liberar memoria RAM ctx.
 [bold magenta]!saves[/]        Cargar.    [bold green]!integrar[/]    Conectar con VS Code/IDE.
 """
-        console.print(Align.center(Panel(c, title="[bold bright_white]⚡ ARSENAL V4.0 ⚡[/]", border_style="bright_blue", padding=(0, 2))))
+        console.print(Align.center(Panel(c, title="[bold bright_white]⚡ ARSENAL V4.2 ⚡[/]", border_style="bright_blue", padding=(0, 2))))
 
     def run_chat(self):
         self._draw_welcome_ui()
@@ -346,7 +326,12 @@ class AuditorCLI:
                 
                 # Comandos de Sistema
                 if inp == '!info': self.show_info(); continue
-                if inp.startswith('!integrar '): IDEIntegrator.integrate(inp.split(' ')[1]); continue
+                if inp == '!version': console.print(f"[bold cyan]Gravity AI Bridge V{APP_VERSION}[/]"); continue
+                if inp.startswith('!integrar'): 
+                    args = inp.split(' ')
+                    tool = args[1] if len(args) > 1 else 'todo'
+                    from ide_integrator import IDEIntegrator
+                    IDEIntegrator.integrate(tool); continue
                 if inp == '!scan':
                     with console.status("[cyan]Escaneando puertos locales..."):
                         for s in ProviderScanner.scan_all(): 

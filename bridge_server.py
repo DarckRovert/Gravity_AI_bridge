@@ -216,6 +216,16 @@ API Key:  gravity-local</pre>
 def run_server():
     port = get_settings().get("bridge_port", 7860)
     
+    try:
+        global cached_scans, last_scan_time, active_target_url, active_target_model
+        cached_scans = ProviderScanner.scan_all()
+        last_scan_time = time.time()
+        best_prov, best_mod = ProviderScanner.auto_select_best(cached_scans)
+        if best_prov:
+            active_target_url = best_prov.url
+            active_target_model = best_mod
+    except: pass
+    
     # Iniciar scanner background
     t = threading.Thread(target=background_scanner, daemon=True)
     t.start()
@@ -230,7 +240,10 @@ def run_server():
     console.print(f"[bold cyan]│[/]  [bold bright_white]GRAVITY BRIDGE SERVER V4.1 — ONLINE[/]                   [bold cyan]│[/]")
     console.print(f"[bold cyan]│[/]  ► Base URL: [green]http://localhost:{port}/v1[/]                  [bold cyan]│[/]")
     if active_target_url:
-        console.print(f"[bold cyan]│[/]  Enrutador principal: [yellow]{active_target_url}[/] ({active_target_model}) ")
+        target_display = f"{active_target_url} ({active_target_model})"
+        # Padding to keep box aligned visually
+        pad = " " * max(0, 43 - len(target_display))
+        console.print(f"[bold cyan]│[/]  Activo: [yellow]{target_display}[/]{pad} [bold cyan]│[/]")
     else:
         console.print(f"[bold cyan]│[/]  [red]No se detectaron proveedores. Esperando...[/]            [bold cyan]│[/]")
     console.print(f"[bold cyan]│[/]                                                        [bold cyan]│[/]")

@@ -54,5 +54,13 @@
     {
         "role": "assistant",
         "content": "# Integración de Funcionalidades\n\nEntendido. El comando **!integrar** puede referirse a diferentes tipos de integraciones. Voy a ofrecerte tres opciones claras para que elijas cuál necesitas:\n\n## Opción 1: Integración de APIs\n```python\n!integrar --tipo \"api\" --origen \"servicioX\" --destino \"servicioY\" --metodo \"POST\"\n```\n\n## Opción 2: Integración de Sistemas\n```python\n!integrar --tipo \"sistema\" --origen \"appCliente\" --destino \"appServicio\" --formato \"JSON\"\n```\n\n## Opción 3: Integración de Datos\n```python\n!integrar --tipo \"datos\" --origen \"baseDatos1\" --destino \"APIPublica\" --formato \"CSV\"\n```\n\n¿Necesitas que realice alguna de estas integraiones en específico? Por favor, aclara el tipo de integración que deseas realizar."
+    },
+    {
+        "role": "user",
+        "content": "!integrar"
+    },
+    {
+        "role": "assistant",
+        "content": "Para realizar una integración, necesito más detalles sobre el tipo de integración que deseas. Por ejemplo:\n\n1. **Integración de APIs**: ¿Qué servicios o endpoints quieres conectar?\n2. **Integración de sistemas**: ¿Cuáles son los sistemas involucrados?\n3. **Integración de datos**: ¿Qué formatos o bases de datos estás trabajando?\n\nPor favor, proporciona más contexto o especificaciones sobre la integración que necesitas realizar.\n\n¿Estás pensando en alguna de las opciones que te mencioné anteriormente?"
     }
 ]

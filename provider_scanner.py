@@ -2,7 +2,11 @@ import urllib.request
 import json
 import time
 import socket
+import os
 from concurrent.futures import ThreadPoolExecutor
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+LAST_SCAN_FILE = os.path.join(BASE_DIR, "_last_scan.json")
 
 class ProviderResult:
     def __init__(self, name, url, protocol):
@@ -27,12 +31,11 @@ class ProviderScanner:
     ]
     
     @staticmethod
-    def _safe_request(url, timeout=1.5):
+    def _safe_request(url, timeout=0.8):
         old_timeout = socket.getdefaulttimeout()
         try:
-            # Forzamos timeout a nivel socket para Windows por si urlopen bloquea
             socket.setdefaulttimeout(timeout)
-            req = urllib.request.Request(url, headers={"User-Agent": "GravityAI/4.1"})
+            req = urllib.request.Request(url, headers={"User-Agent": "GravityAI/4.2"})
             with urllib.request.urlopen(req, timeout=timeout) as response:
                 return json.loads(response.read().decode('utf-8'))
         except Exception:
@@ -84,13 +87,45 @@ class ProviderScanner:
         return result
 
     @staticmethod
-    def scan_all():
+    def scan_all(use_cache=False):
+        """Escanea todos los proveedores en paralelo. use_cache evita re-escanear si el cache es reciente (<30s)."""
+        if use_cache and os.path.exists(LAST_SCAN_FILE):
+            try:
+                age = time.time() - os.path.getmtime(LAST_SCAN_FILE)
+                if age < 30:
+                    # Cache reciente, devolverlo
+                    with open(LAST_SCAN_FILE, "r", encoding="utf-8") as f:
+                        cached = json.load(f)
+                    results = []
+                    for item in cached:
+                        r = ProviderResult(item["name"], item["url"], item["protocol"])
+                        r.is_healthy = item["is_healthy"]
+                        r.models = item["models"]
+                        r.active_model = item["active_model"]
+                        r.response_ms = item["response_ms"]
+                        results.append(r)
+                    return results
+            except:
+                pass
+
         results = []
         with ThreadPoolExecutor(max_workers=len(ProviderScanner.KNOWN_PROVIDERS)) as executor:
             scans = list(executor.map(ProviderScanner.scan_provider, ProviderScanner.KNOWN_PROVIDERS))
             for res in scans:
-                # Filtrar solo válidos o mantenerlos para el dash? Los devolvemos todos, el dashboard decide.
                 results.append(res)
+
+        # Guardar cache
+        try:
+            serializable = [{
+                "name": r.name, "url": r.url, "protocol": r.protocol,
+                "is_healthy": r.is_healthy, "models": r.models,
+                "active_model": r.active_model, "response_ms": r.response_ms
+            } for r in results]
+            with open(LAST_SCAN_FILE, "w", encoding="utf-8") as f:
+                json.dump(serializable, f)
+        except:
+            pass
+
         return results
 
     @staticmethod

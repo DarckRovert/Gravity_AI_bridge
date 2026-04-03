@@ -1,1 +1,10 @@
-{"models": [{"name": "Gravity Bridge", "provider": "openai", "baseUrl": "http://localhost:7860/v1", "apiKey": "gravity"}]}
+{
+  "models": [
+    {
+      "name": "Gravity Bridge",
+      "provider": "openai",
+      "baseUrl": "http://localhost:7860/v1",
+      "apiKey": "gravity"
+    }
+  ]
+}
