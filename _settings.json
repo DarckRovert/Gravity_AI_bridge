@@ -1,5 +1,11 @@
 {
-    "last_model": "deepseek-r1:8b",
+    "last_model": "deepseek-r1:32b",
     "agent_language": "en",
-    "user_language": "es"
+    "user_language": "es",
+    "advanced_params": {
+        "num_ctx": 262144,
+        "temperature": 0.6,
+        "top_p": 0.9,
+        "warning_threshold": 0.95
+    }
 }

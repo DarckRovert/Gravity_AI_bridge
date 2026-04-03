@@ -30,5 +30,13 @@
     {
         "role": "assistant",
         "content": "# Comandos y Funciones Disponibles\n\nHola. Como tu Auditor Senior en Gravity AI, puedo ayudarte a realizar auditorías de código utilizando los siguientes comandos:\n\n## Comandos Generales:\n\n- **/auditoria_codigo** - Inicia un proceso de auditoría de código.\n- **/analisis_risk** - Identifica posibles riesgos en el código.\n- **/recomendaciones** - Proporciona recomendaciones de mejora.\n- **/formato_cierre** - Genera el formato de cierre de auditoría.\n\n## Comandos Específicos:\n\n- **/compara_versiones** - Compara dos versiones de código.\n- **/pruebas_unitarias** - Genera casos de prueba unitaria.\n- **/seguridad** - Analiza vulnerabilidades de seguridad.\n- **/complejidad** - Mide métricas de complejidad de código.\n\n## Ejemplo de uso:\n\n```bash\n/auditoria_codigo --ruta \"/ruta/al/codigo\" --estandar \"OWASP Top 10\"\n```\n\n¿Necesitas que realice algún tipo específico de auditoría? Puedo demostrar algunos ejemplos."
+    },
+    {
+        "role": "user",
+        "content": "hola"
+    },
+    {
+        "role": "assistant",
+        "content": "# Saludo y Confirmación\n\nHola. Soy tu Auditor Senior en Gravity AI, y estoy aquí para ayudarte con auditorías de código y análisis de calidad.\n\nRecuerda que mi función es analizar y evaluar el código con rigor, siguiendo estándares profesionales de la industria.\n\n¿En qué puedo ayudarte hoy con respecto a las auditorías o análisis de código?"
     }
 ]

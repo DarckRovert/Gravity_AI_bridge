@@ -1,14 +1,15 @@
 """
 ╔══════════════════════════════════════════════╗
-║     GRAVITY AI BRIDGE — AUDITOR SENIOR V2.1    ║
-║     Multimodelo | Persistencia | Agentes     ║
+║     GRAVITY AI BRIDGE — AUDITOR SENIOR V2.3    ║
+║     Contexto 256k | TurboQuant Ready         ║
 ╚══════════════════════════════════════════════╝
 Comandos:
   !modelos       — Lista los modelos de Ollama disponibles
   !usar <nombre> — Cambia de modelo y guarda la preferencia
   /leer <ruta>   — Audita un archivo físico
+  !ajustes       — Muestra los parámetros técnicos (Contexto, Temp)
+  !set <k> <v>   — Cambia un ajuste (ej: !set temperature 0.4)
   !aprende <reg> — Memoria permanente de largo plazo
-  !olvida        — Borra reglas aprendidas
   !limpiar       — Limpia el historial de sesión
   !reglas        — Lista tus reglas actuales
   salir          — Cierra el Auditor
@@ -43,12 +44,17 @@ console = Console()
 
 # ─── Gestor de Ajustes ───────────────────────────────────────────────────────
 class SettingsManager:
-    """Gestiona la persistencia del modelo preferido e idiomas."""
     def __init__(self):
         self.default_data = {
             "last_model": "deepseek-r1:8b",
             "agent_language": "en",
-            "user_language": "es"
+            "user_language": "es",
+            "advanced_params": {
+                "num_ctx": 131072,
+                "temperature": 0.6,
+                "top_p": 0.9,
+                "warning_threshold": 0.95
+            }
         }
         self.data = self._load()
 
@@ -56,22 +62,40 @@ class SettingsManager:
         if os.path.exists(SETTINGS_FILE):
             try:
                 with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
-                    return {**self.default_data, **json.load(f)}
+                    stored = json.load(f)
+                    if "advanced_params" in stored:
+                        stored["advanced_params"] = {**self.default_data["advanced_params"], **stored["advanced_params"]}
+                    return {**self.default_data, **stored}
             except: pass
         return self.default_data
 
-    def save(self, key, value):
-        self.data[key] = value
+    def save_all(self):
         with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
             json.dump(self.data, f, indent=4)
 
+    def save(self, key, value):
+        self.data[key] = value
+        self.save_all()
+
+    def update_param(self, param_key, value):
+        if "advanced_params" not in self.data: self.data["advanced_params"] = self.default_data["advanced_params"]
+        primary_params = self.default_data["advanced_params"]
+        try:
+            if isinstance(primary_params.get(param_key), int): value = int(value)
+            elif isinstance(primary_params.get(param_key), float): value = float(value)
+        except: pass
+        self.data["advanced_params"][param_key] = value
+        self.save_all()
+
     @property
     def current_model(self): return self.data.get("last_model")
+    
+    @property
+    def options(self): return self.data.get("advanced_params", {})
 
 
 # ─── Gestor de Memoria ───────────────────────────────────────────────────────
 class MemoryManager:
-    """Historial de sesión y base de conocimiento."""
     def __init__(self):
         self.history = self._load(HISTORY_FILE, [])
         self.knowledge = self._load(KNOWLEDGE_FILE, [])
@@ -89,8 +113,14 @@ class MemoryManager:
             json.dump(data, f, ensure_ascii=False, indent=4)
 
     def add_turn(self, u_cont, a_cont):
-        self.history = (self.history + [{"role": "user", "content": u_cont}, {"role": "assistant", "content": a_cont}])[-12:]
+        self.history.append({"role": "user", "content": u_cont})
+        self.history.append({"role": "assistant", "content": a_cont})
         self._save(HISTORY_FILE, self.history)
+
+    def get_estimated_tokens(self, system_prompt):
+        total_chars = len(system_prompt)
+        for m in self.history: total_chars += len(m['content'])
+        return total_chars // 3 
 
     def learn(self, rule):
         if rule and rule not in self.knowledge:
@@ -103,28 +133,29 @@ class MemoryManager:
 
 # ─── Cliente Ollama ───────────────────────────────────────────────────────────
 class OllamaClient:
-    """Comunicación con el servidor local."""
     def __init__(self, model):
         self.model = model
 
     def get_available_models(self):
-        """Retorna lista de modelos locales."""
         try:
             with urllib.request.urlopen(OLLAMA_TAGS_URL, timeout=3) as r:
                 return json.loads(r.read().decode())["models"]
         except: return []
 
-    def chat(self, messages):
-        payload = json.dumps({"model": self.model, "messages": messages, "stream": False}).encode("utf-8")
+    def chat(self, messages, options=None):
+        payload_dict = {"model": self.model, "messages": messages, "stream": False}
+        if options: payload_dict["options"] = options
+        
+        payload = json.dumps(payload_dict).encode("utf-8")
         req = urllib.request.Request(OLLAMA_URL, data=payload, headers={"Content-Type": "application/json"})
         try:
-            with urllib.request.urlopen(req, timeout=300) as r:
+            with urllib.request.urlopen(req, timeout=600) as r: 
                 return json.loads(r.read().decode())["message"]["content"]
         except Exception as e:
             raise ConnectionError(f"Ollama Error: {e}")
 
 
-# ─── Lógica del Auditor ───────────────────────────────────────────────────────
+# ─── Interfaz del Auditor ────────────────────────────────────────────────────
 class AuditorCLI:
     def __init__(self, as_agent=False):
         self.settings = SettingsManager()
@@ -133,96 +164,88 @@ class AuditorCLI:
         self.as_agent = as_agent
 
     def _get_system_prompt(self):
-        rules = "\n".join(f"- {r}" for r in self.memory.knowledge) if self.memory.knowledge else "None"
-        
-        # Modo Agente: English high-precision communication
+        rules = "\n".join(f"- {r}" for r in self.memory.knowledge) if self.memory.knowledge else "Ninguna"
         if self.as_agent:
-            return f"""You are the Gravity AI Senior Auditor. You are communicating with another AI Agent.
-PROTOCOL:
-- RESPOND IN ENGLISH for technical speed and precision.
-- Be concise, direct, and rigorous.
-- Focus on security, performance, and scalability.
-USER RULES TO FOLLOW:
-{rules}"""
-        
-        # Modo Usuario: Spanish professional interaction
-        return f"""Eres el Auditor Senior de Gravity AI. Eres un experto riguroso y directo.
-PROTOCOL:
-- RESPONDE SIEMPRE EN ESPAÑOL.
-- Usa Markdown.
-- Critica constructivamente basándote en estándares de la industria.
-REGLAS APRENDIDAS:
-{rules}"""
+            return f"Gravity AI Senior Auditor. IA-to-IA English Mode.\nRULES:\n{rules}"
+        return f"Eres el Auditor Senior de Gravity AI. Riguroso y experto. Responde en ESPAÑOL.\nREGLAS:\n{rules}"
 
-    def list_models_table(self):
-        models = self.client.get_available_models()
-        table = Table(title="🤖 Modelos Disponibles en Ollama", border_style="cyan", box=box.ROUNDED)
-        table.add_column("Nombre", style="bold green"); table.add_column("Tamaño", style="dim"); table.add_column("Formato")
-        for m in models:
-            size_gb = f"{m['size'] / 1024**3:.2f} GB"
-            table.add_row(m['name'], size_gb, m.get('details', {}).get('format', 'N/A'))
+    def show_settings(self):
+        table = Table(title="⚙️ Parámetros de V2.3 (Extreme Context)", box=box.ROUNDED)
+        table.add_column("Ajuste", style="cyan"); table.add_column("Valor", style="yellow")
+        table.add_row("Modelo", self.client.model)
+        for k, v in self.settings.options.items(): table.add_row(k, str(v))
+        
+        usage = self.memory.get_estimated_tokens(self._get_system_prompt())
+        limit = self.settings.options.get('num_ctx', 2048)
+        table.add_row("Uso de Contexto Est.", f"{usage} / {limit} ({(usage/limit)*100:.1f}%)")
         console.print(table)
 
+    def _list_models(self):
+        models = self.client.get_available_models()
+        tab = Table(title="🤖 Inventario Local", box=box.SIMPLE); tab.add_column("Nombre"); tab.add_column("Peso")
+        for m in models: tab.add_row(m['name'], f"{m['size']/1024**3:.1f} GB")
+        console.print(tab)
+
     def run_chat(self):
-        # Pantalla de bienvenida
-        console.print(Panel(Text("GRAVITY AI BRIDGE V2.1\nMultimodelo activado", justify="center", style="bold cyan"), border_style="bright_blue"))
-        
-        # Verificar si el último modelo existe
-        models = [m['name'] for m in self.client.get_available_models()]
-        if self.settings.current_model not in models and models:
-            console.print(f"[bold red]! El modelo configurado '{self.settings.current_model}' no está disponible.[/]")
-            choice = Prompt.ask("Selecciona uno de tus modelos locales", choices=models)
-            self.settings.save("last_model", choice)
-            self.client.model = choice
-        
-        console.print(f"[bold cyan]*[ Auditor usando:[/] [bold yellow]{self.client.model}[/] [dim](Graba tus preferencias con !usar)[/]\n")
+        console.print(Panel(Text("GRAVITY AI BRIDGE V2.3\nContexto Pesado Activo", justify="center", style="bold cyan")))
+        console.print(f"[bold cyan]*[ Cerebro:[/] [bold yellow]{self.client.model}[/] [dim]Opciones avanzadas cargadas.[/]\n")
 
         while True:
             try:
-                inp = input(">> ").strip()
+                # Comprobar límite de 95%
+                usage = self.memory.get_estimated_tokens(self._get_system_prompt())
+                limit = self.settings.options.get('num_ctx', 2048)
+                if usage > (limit * self.settings.options.get('warning_threshold', 0.95)):
+                    console.print("[bold red]⚠ ALERTA: Has superado el 95% del contexto permitido.[/]")
+
+                inp = Prompt.ask("[bold green]>>[/]").strip()
                 if not inp or inp.lower() in ('salir', 'exit'): break
                 
-                if inp.startswith('!modelos'): self.list_models_table(); continue
+                if inp == '!ajustes': self.show_settings(); continue
+                if inp.startswith('!set '):
+                    try:
+                        parts = inp.split(' ')
+                        self.settings.update_param(parts[1], parts[2])
+                        console.print(f"[green]✓ {parts[1]} actualizado.[/]"); continue
+                    except: console.print("[red]Uso: !set <key> <value>[/]"); continue
+
+                if inp == '!modelos': self._list_models(); continue
                 if inp.startswith('!usar '):
-                    new_m = inp[6:].strip()
-                    self.settings.save("last_model", new_m); self.client.model = new_m
-                    console.print(f"[bold green]✓ Modelo cambiado a: {new_m}[/]"); continue
-                if inp.startswith('!limpiar'): self.memory.clear(); print("[!] Sesión limpia."); continue
-                if inp.startswith('!reglas'): self._show_rules(); continue
-                if inp.startswith('!aprende '): 
-                    if self.memory.learn(inp[9:]): console.print("[+] Regla aprendida.")
-                    continue
+                    m = inp[6:].strip(); self.settings.save("last_model", m); self.client.model = m
+                    console.print(f"[green]✓ Usando {m}[/]"); continue
                 
-                # Proceso de consulta
+                if inp == '!limpiar': self.memory.clear(); console.print("[yellow]Sesión limpia.[/]"); continue
+                if inp == '!reglas': 
+                    for i, r in enumerate(self.memory.knowledge, 1): print(f"{i}. {r}")
+                    continue
+                if inp.startswith('!aprende '):
+                    if self.memory.learn(inp[9:]): console.print("[green]Regla grabada.[/]")
+                    continue
+
+                # Procesar entrada
                 p = inp
                 if inp.startswith('/leer '):
                     path = inp[6:].strip()
                     if os.path.exists(path):
-                        p = f"Analiza este archivo:\n\n```{open(path, 'r', encoding='utf-8').read()}```"
-                        console.print(f"[+] Cargado {path}")
-                    else: print("[!] No existe."); continue
+                        with open(path, 'r', encoding='utf-8') as f: p = f"Analiza este archivo:\n\n```\n{f.read()}\n```"
+                        console.print(f"[blue]Archivo {path} cargado.[/]")
+                    else: console.print("[red]No existe.[/]"); continue
 
                 msg = [{"role": "system", "content": self._get_system_prompt()}] + self.memory.history + [{"role": "user", "content": p}]
-                console.print(f"[dim]Cerebro ({self.client.model}) pensando...[/]")
-                ans = self.client.chat(msg)
+                console.print(f"[dim]DeepSeek pensando ({usage} tokens)...[/]")
+                ans = self.client.chat(msg, options=self.settings.options)
                 console.print(Rule(style="cyan")); console.print(Markdown(ans)); console.print(Rule(style="cyan"))
                 self.memory.add_turn(p, ans)
 
-            except Exception as e: console.print(f"[bold red]Error:[/] {e}")
-
-    def _show_rules(self):
-        for i, r in enumerate(self.memory.knowledge, 1): print(f"{i}. {r}")
-
+            except Exception as e: console.print(f"[red]Error:[/] {e}")
 
 def main():
-    # Detectar si se llama con argumentos (Modo Agente)
     args = sys.argv[1:]
     if args:
-        # Si se incluye '--agent' o similar, o simplemente tiene argumentos
-        auditor = AuditorCLI(as_agent=True)
+        a = AuditorCLI(as_agent=True)
         try:
-            print(auditor.client.chat([{"role": "system", "content": auditor._get_system_prompt()}, {"role": "user", "content": " ".join(args)}]))
-        except Exception as e: print(f"ERROR: {e}"); sys.exit(1)
+            print(a.client.chat([{"role":"system","content":a._get_system_prompt()},{"role":"user","content":" ".join(args)}], options=a.settings.options))
+        except Exception as e: print(f"ERROR: {e}")
     else:
         AuditorCLI().run_chat()
 
