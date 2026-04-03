@@ -1,2 +1,6 @@
-# Librerias nativas, no require dependencias externas hasta el momento.
-# urllib es parte de la librería estándar de Python
+# Dependencias de Gravity AI Bridge V3.1
+rich
+pyfiglet
+
+# pyreadline3 provee historial de comandos en Windows
+pyreadline3

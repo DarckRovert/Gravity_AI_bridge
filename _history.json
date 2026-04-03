@@ -38,5 +38,13 @@
     {
         "role": "assistant",
         "content": "# Saludo y Confirmación\n\nHola. Soy tu Auditor Senior en Gravity AI, y estoy aquí para ayudarte con auditorías de código y análisis de calidad.\n\nRecuerda que mi función es analizar y evaluar el código con rigor, siguiendo estándares profesionales de la industria.\n\n¿En qué puedo ayudarte hoy con respecto a las auditorías o análisis de código?"
+    },
+    {
+        "role": "user",
+        "content": "realiza una prueba de velocidad para ver si tienes acceso a la gpu"
+    },
+    {
+        "role": "assistant",
+        "content": "Actualmente, no tengo acceso a una GPU para realizar pruebas de velocidad o tareas que requieran cálculos intensivos en paralelo. Mi arquitectura está diseñada para procesos de lenguaje natural y análisis técnico, lo cual se realiza en servidores especializados.\n\nSin embargo, puedo ayudarte con información sobre:\n\n1. **Pruebas de rendimiento**: Si necesitas ayuda para implementar pruebas de rendimiento en tu código o sistema.\n2. **Optimización de código**: Puedo ofrecer recomendaciones para mejorar el rendimiento de tu código, incluyendo optimizaciones para GPU si es relevante.\n\n¿Necesitas asistencia con algo específico?"
     }
 ]

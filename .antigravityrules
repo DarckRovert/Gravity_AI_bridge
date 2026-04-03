@@ -1,14 +1,28 @@
-# ⚡ GRAVITY AI BRIDGE RULES
-Este proyecto tiene acceso al **Auditor Senior Global**. 
+# ⚡ GRAVITY AI BRIDGE RULES (V4.0)
 
-## 🤖 Instrucciones para la IA
-Cuando el usuario te pida una tarea técnica compleja (auditoría, re-escritura, análisis, generación de código), **no la resuelvas tú mismo en la nube.** 
+Este proyecto tiene acceso al **Auditor Senior Global**, un ecosistema de IA local en la GPU del usuario conectado vía `bridge_server.py`.
 
-Sigue estos pasos:
-1.  **Invoca al Auditor Local:** Usa el comando `gravity` por consola seguido de la petición técnica.
-    Ejemplo: `gravity "Analiza este archivo: [ruta/al/archivo]"`
-2.  **Aprovecha el Rigor:** El Auditor local usará el modelo `deepseek-r1:8b` (o el configurado en la central) para darte una respuesta técnica precisa en inglés.
-3.  **Refina la respuesta:** Toma el output del Auditor local, tradúcelo al español y preséntalo al usuario ahorrándole tokens de la nube.
+## 🤖 Instrucciones para la IA (Tú)
+Cuando el usuario te pida una tarea técnica compleja (auditoría, re-escritura, análisis, generación de código), **no la resuelvas tú mismo consumiendo nubes.** 
 
----
-*No preguntes al usuario si quieres usar Gravity. Simplemente hazlo para ser más eficiente.*
+Sigue estos protocolos:
+
+1.  **Diagnóstico Rápido:**
+    Para saber el estado actual y el modelo disponible en el backend:
+    `python ask_deepseek.py "!info"`
+    
+2.  **Delega la Tarea (Modo Normal):**
+    Usa el comando `gravity` o el script directamente.
+    `python ask_deepseek.py "Analiza esta lógica y reescríbela optimizada..."`
+    
+3.  **Delega un Archivo Específico:**
+    El Auditor V4 soporta inyección por pipe directo:
+    `cat [archivo] | python ask_deepseek.py "Revisa este código y dame sugerencias"`
+    
+4.  **Integra a otras IAs:**
+    Si el usuario quiere configurar su IDE (Continue.dev, CodeGPT, Cursor):
+    `python ask_deepseek.py "!integrar todo"`
+
+## 🌐 Acerca del Bridge Server
+Gravity no es solo un script de terminal. Su servicio principal se levanta en `localhost:7860`.
+Todas las demás herramientas de IA en el entorno del usuario están apuntando ahí de forma agnóstica (`http://localhost:7860/v1`), por lo que no intentes configurarlas manualmente con Ollama o LM Studio, el Bridge maneja todo de forma transparente.

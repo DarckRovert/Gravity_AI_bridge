@@ -1,5 +1,7 @@
 {
-    "last_model": "deepseek-r1:32b",
+    "provider": "ollama",
+    "api_url": "http://localhost:11434",
+    "last_model": "deepseek-r1:8b",
     "agent_language": "en",
     "user_language": "es",
     "advanced_params": {
