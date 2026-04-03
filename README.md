@@ -1,54 +1,122 @@
-# GRAVITY AI BRIDGE V4.2 — GOD TIER ⚡
-*Un componente élite del Séquito del Terror.*
-
-**Gravity AI Bridge** es tu "puente" perimetral para enlazar tus modelos locales de Inteligencia Artificial pesada (DeepSeek-R1, Ollama, LM Studio, etc.) con herramientas de nivel Enterprise como *Visual Studio Code*, *Cursor*, *Aider* o la consola propia de Auditoría.
+<div align="center">
 
 ![Gravity Logo](media__1775204686339.png)
 
-## 🎯 Arquitectura de Alto Nivel
-Con una reescritura desde cero a Python Puro, Gravity detecta tus motores de IA locales a una velocidad vertiginosa (**1.7s**), determina el más sano e infiere el tráfico sin tocar internet.
+# GRAVITY AI BRIDGE V4.2 — MODO GOD-TIER ⚡
+### El Motor de Inteligencia Perimetral Oficial del Séquito del Terror.
 
-### ✨ Features de la Versión God-Tier:
-* **Autoconfiguración Zero-Touch**: Escaneo de puertos asincrónico agresivo; encuentra y se ata a tu IA local más rápida sin soltarla.
-* **Escritura y Manejo Dinámico IDE**: Configura automáticamente el `config.yaml` de VS Code Continue y clona perfiles de *Aider* y *Cursor IDE*.
-* **Comandos en Crudo (CMD)**: Desde cualquier consola escribe `gravity "Revisar mi archivo.js"` y el Agente se abrirá por ti.
-* **Soporte Streaming Real-Time**: Consume tus respuestas palabra por palabra para que sientas un output veloz, evadiendo la latencia clásica de localhost.
-* **Manejo Contextual Avanzado**: Inyéctale código desde enlaces HTTP, repositorios de git local enteros, o manuales TXT con los comandos nativos de la CLI de Auditoría.
+[![Versión](https://img.shields.io/badge/Versión-4.2%20God--Tier-red.svg?style=for-the-badge)](https://github.com/DarckRovert/Gravity_AI_bridge)
+[![Motor](https://img.shields.io/badge/Desarrollo-Python%203.10+-blue.svg?style=for-the-badge)](#)
+[![GPU](https://img.shields.io/badge/Aceleración-Local%20Inferencia-green.svg?style=for-the-badge)](#)
+[![IDE](https://img.shields.io/badge/Integraciones-VSCode%20|%20Cursor%20|%20Aider-blueviolet.svg?style=for-the-badge)](#)
 
-## 🚀 Instalación y Despliegue Inmediato
-Descarga todo el proyecto y dentro corre:
-1. Haz doble clic en **`INSTALAR.bat`**. 
-   - Modificará variables para añadir el comando `gravity`.
-   - Elegirá automáticamente el motor neurálgico detectado en tu PC (Ej. `deepseek-r1:32b`).
-   - Magnetizará el ícono Auditor.
-2. Todo tuyo. Presiona el botón del escritorio.
+*“No envíes tu código al exterior. Forjamos la red dentro de nuestras propias sombras.”*
+</div>
 
-## 🥷 El Arsenal: Inyección e Inteligencia
-Una vez que abras tu Agente (o usando el comando global `gravity`), cuentas con el siguiente nivel de control:
+<br/>
 
-| Comando | Acción Exacta |
-|---|---|
-| `!integrar <herramienta>` | Regenera configuraciones de VS Code, Cursor o Aider por nombre o `!integrar todo`. *(Refiere a [MANUAL_IDE.md](MANUAL_IDE.md))* |
-| `/leer <archivo.js>` | Anexa a la memoria central el archivo completo que elijas para un Fix rápido. |
-| `/leer-git` | Trae y lee de manera instantánea todos los archivos sin guardar y Diffs puros que tengas modificados en la carpeta. |
-| `/leer-url <www>` | Descarga una página web plana o log y sométela a la bestia. |
-| `!aprende <regla>` | Obliga al modelo a respetar una norma (ej: `!aprende Siempre código ES6`). |
-| `!guardar <nombre>` | Guarda la conversación actual en una instantánea llamada "<nombre>". |
-| `!saves` | Lista todas las instantáneas (snapshots).  Escribe tu snapshot para cargar ese contexto. |
-| `!comprimir` | Si llenaste los 128k/8k tokens, presiona aquí y el modelo resumirá su cabeza y borrará la basura reteniendo la sabiduría. |
-| `!version` o `!info` | Revela el estado topológico y conexión actual de Hardware. |
-
-### 👻 Modo Fantasma
-Si deseas que tu IDE como Visual Studio Code envíe sus *Copilots* al servidor Gravity AI sin tener una terminal negra molestando en el fondo, haz doble clic en **`MODO_FANTASMA.vbs`**. Todo sucederá silenciosamente y el historial se grabará en `bridge.log`.
-
-*(Para cancelar esta instalación a nivel Enterprise que tocó el sistema y tu PATH, simplemente ejecuta `DESINSTALAR.bat`).*
+**Gravity AI Bridge** no es un simple script. Es una arquitectura **Enterprise de Enrutamiento Neuronal** diseñada para buscar, afianzar e interceptar la latencia de tu motor de Inteligencia Artificial Local (DeepSeek-R1, Ollama, LM Studio, Jan, etc.) y unificarlo en un hilo directo con todo tu entorno de desarrollo. Actúa como el *"Cerebro"* de tus IDEs y terminales sin soltar un solo byte de datos a internet.
 
 ---
 
-## 📚 Documentación Oficial y Workflows
+## 📜 Tabla de Contenidos
+- [Arquitectura de Alto Nivel](#-arquitectura-de-alto-nivel)
+- [Instalación Rápida "Zero-Touch"](#-instalación-rápida-zero-touch)
+- [El Arsenal del Auditor (CLI)](#-el-arsenal-del-auditor-cli)
+- [Modo Fantasma y Despliegue Silencioso](#-modo-fantasma-y-despliegue-silencioso)
+- [Documentación Técnica Oficial](#-documentación-técnica-oficial)
+- [Desinstalación Limpia](#-desinstalación-limpia)
 
-Consulta los siguientes documentos para dominar al máximo el puente de Inteligencia Artificial:
+---
 
-* **[Manual de Integración IDE](MANUAL_IDE.md):** Instrucciones visuales para vincular Cursor IDE, Aider y VS Code Continue.
-* **[Preguntas Frecuentes (FAQ)](FAQ.md):** Troubleshooting sobre puertos bloqueados y dudas existenciales del sistema.
-* **[Manual de Delegación Táctica](.agents/workflows/delegar.md):** ¿Cómo decirle a otras inteligencias que aprovechen tu sistema Gravity usando comandos y tuberías? *(Revisar carpeta `.agents/workflows`).*
+## 🖧 Arquitectura de Alto Nivel
+
+Gravity V4.2 reemplaza la inestabilidad de los middlewares habituales por un **Scanner Asincrónico** que realiza un profiling de tu computadora. 
+
+```mermaid
+graph TD;
+    A[VS Code / Cursor / Aider] -->|HTTP Localhost:7860| B(Gravity Bridge Server);
+    B -->|Enrutamiento Transparente| C{Algoritmo Auto-Config V4.2};
+    C -->|Detectado en 1.7s| D[Core Ollama / LM Studio];
+    D -->|GPU Infer.| E[DeepSeek-R1 32B / 8B];
+    E -->|Streaming de Vuelta| A;
+```
+
+### ✨ Funciones Centrales:
+1. **Telemetría Zero-Touch (Hardware Scanner):** Su módulo detecta si Ollama o LM Studio están vivos en 1.7 segundos y te "roba" el mejor modelo de la lista automáticamente.
+2. **IDE Inyección:** Se sincroniza nativamente mediante `.continue/config.yaml`, perfiles de *Cursor* y configuraciones CLI de *Aider* sin que tú toques el código JSON.
+3. **Persistencia de Contexto (`_history.json`):** Tu IA local recuerda sus instrucciones anteriores, sus conocimientos (`_knowledge.json`) y sus reglas de formato a lo largo de los reinicios.
+4. **Protección de Efectos Secundarios:** Diseño aislado anti-crashes con encapsulación en Python puro frente a errores en comandos de Windows.
+
+---
+
+## 🚀 Instalación Rápida "Zero-Touch"
+
+Transformar tu computadora en una base estricta del Séquito te lleva un solo clic.
+
+**Paso a Paso:**
+1. Clona el repositorio íntegro en cualquier ubicación definitiva de tu SSD.
+2. Ejecuta **`INSTALAR.bat`**.
+3. El sistema hará lo siguiente **mágicamente**:
+   * Descargará librerías (`rich`, `pyreadline3`, etc.).
+   * Auditará tu anillo de red local y ajustará `_settings.json` al mejor modelo que tengas disponible (Ej. `deepseek-r1:32b`).
+   * Creará el acceso global `gravity` inyectándolo profundamente en tu **PATH** de Windows.
+   * Generará tu engranaje de ícono nativo `Gravity AI Auditor` directamente en tu Escritorio (resolviendo tu OneDrive de forma dinámica).
+4. Dale doble clic al ícono de tu Escritorio o escribe `gravity "!info"` en tu terminal. Estás dentro.
+
+---
+
+## 🥷 El Arsenal del Auditor (CLI)
+
+Gravity provee un cliente directo de consola que sirve como tu "ChatGPT Táctico Local". Abre tu CMD nativo o pulsa en el ícono del escritorio. 
+
+Si escribes tu petición normal, responderá. Pero si invocas sus "comandos en crudo", despertarás sus capacidades de lectura extrema:
+
+| Comando Invocado | Destino Táctico |
+| :--- | :--- |
+| **`!integrar <app>`** | Genera la arquitectura `.json` obligando a `vscode`, `cursor` o `aider` a mirarnos. O usa `!integrar todo`. *(Ver [MANUAL_IDE](MANUAL_IDE.md))* |
+| **`/leer <archivo>`** | Arrastra el código íntegro a su cerebro (Ej: `/leer src/main.py`). Perfecto para enviar errores completos a la IA local. |
+| **`/leer-git`** | Realiza un `git diff` asincrónico instantáneo para que te audite qué has modificado en los últimos 5 minutos sin subir a main. |
+| **`/leer-url <web>`** | Accede al link, raspa su documentación y la somete al límite cognitivo de tu hardware. |
+| **`!aprende <regla>`** | Graba código a nivel BIOS de IA. Por ejemplo: `!aprende Eres un ingeniero Senior agresivo, solo das código exacto`. |
+| **`!comprimir`** | Cuando pases de los 8000 tokens en memoria y tu gráfica sufra, purga tu archivo JSON interno y extrae un resumen del hilo, matando la basura. |
+| **`!guardar <snap>`** | Realiza un backup de sus recuerdos bajo ese nombre. Ej: `!guardar fixing-login`. |
+| **`!saves`** | Lista todas tus cápsulas de memoria y cárgalas instantáneamente escribiendo su nombre. |
+
+---
+
+## 👻 Modo Fantasma y Despliegue Silencioso
+
+Si no deseas tener la consola ejecutándose en la pantalla mientras programas usando tu IDE (Visual Studio Code):
+
+1. Ve a la carpeta madre de tu proyecto.
+2. Da doble clic a **`MODO_FANTASMA.vbs`**.
+3. El script asimilará Python mediante scripts de **Visual Basic**, ejecutando tu puente de datos de forma oculta en segundo plano. Nunca te molestará.
+4. Todo el historial y tráfico de red entre tu IDE y el servidor será documentado en texto plano dentro de **`bridge.log`** para ti.
+
+---
+
+## 📚 Documentación Técnica Oficial
+
+Los Archivos Supremos se extienden a lo largo de este repositorio corporativo para tu beneficio. Léelos aquí:
+
+1. **🛠 [Manual de Integración IDE Exacta (Cursor, VS Code, Aider)](MANUAL_IDE.md)**  
+   *Cómo conectar efectivamente las extensiones de programación del mercado.*
+2. **⚠️ [Solución de Conflictos: Preguntas Frecuentes (FAQ)](FAQ.md)**  
+   *Respuestas frente a problemas de Red, timeout y GPU.*
+3. **🦾 [Workflows Tácticos del Séquito (`.agents`)](.agents/workflows/delegar.md)**  
+   *Instrucciones de Inyección Pura para que Antigravity actúe solo.*
+
+---
+
+## 🗑️ Desinstalación Limpia
+
+Somos un Séquito estructurado y profesional, no malware.
+Si tu núcleo está corrompido, si necesitas migrar y barrer tu `PATH` global de Windows o si deseas destruir la telemetría automática:
+
+Basta con dar doble clic al programa **`DESINSTALAR.bat`**. Éste activará un borrado quirúrgico mediante secuencias condicionales, retirará su nombre del registro informático, aplastará el ícono y te liberará. Tus archivos clave (`_history.json` y `_knowledge.json`) permanecerán pacíficamente congelados en su directorio por si alguna vez deseas revivir el motor.
+
+<br>
+<div align="center">
+<b>Construido bajo fuego. Gravity V4.2.</b>
+</div>
