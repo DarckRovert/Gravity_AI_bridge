@@ -223,11 +223,11 @@ class OllamaClient(AIClient):
         req = urllib.request.Request(f"{self.api_url}/api/chat", data=json.dumps(payload_dict).encode("utf-8"), headers={"Content-Type": "application/json"})
         try:
             if not do_stream:
-                with urllib.request.urlopen(req, timeout=600) as r: 
+                with urllib.request.urlopen(req, timeout=1800) as r: 
                     return json.loads(r.read().decode())["message"]["content"]
             else:
                 full_content = ""
-                with urllib.request.urlopen(req, timeout=600) as r:
+                with urllib.request.urlopen(req, timeout=1800) as r:
                     for line in r:
                         if line:
                             data = safe_parse_json_line(line.decode('utf-8'))
@@ -249,12 +249,12 @@ class OpenAIClient(AIClient):
         req = urllib.request.Request(f"{self.api_url}/v1/chat/completions", data=json.dumps(payload_dict).encode("utf-8"), headers={"Content-Type": "application/json"})
         try:
             if not do_stream:
-                with urllib.request.urlopen(req, timeout=600) as r: 
+                with urllib.request.urlopen(req, timeout=1800) as r: 
                     res = json.loads(r.read().decode())
                     return res["choices"][0]["message"]["content"]
             else:
                 full_content = ""
-                with urllib.request.urlopen(req, timeout=600) as r:
+                with urllib.request.urlopen(req, timeout=1800) as r:
                     for line in r:
                         line_str = line.decode('utf-8').strip()
                         if line_str.startswith("data: ") and line_str != "data: [DONE]":

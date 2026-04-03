@@ -172,7 +172,7 @@ API Key:  gravity-local</pre>
                 
                 start_time = time.time()
                 try:
-                    with urllib.request.urlopen(req) as response:
+                    with urllib.request.urlopen(req, timeout=1800) as response:
                         self.send_response(response.getcode())
                         for header_name, header_value in response.getheaders():
                             if header_name.lower() not in ['transfer-encoding', 'connection']:
