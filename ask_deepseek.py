@@ -400,8 +400,23 @@ class AuditorCLI:
         try:
             f_logo = pyfiglet.figlet_format("GRAVITY AI", font="doom")
             console.print(Align.center(f"[bold bright_cyan]{f_logo}[/]"))
-        except: console.print("[bold cyan]GRAVITY AI[/]")
+        except: 
+            console.print(Align.center("[bold cyan]GRAVITY AI[/]"))
             
+        t = Table(box=box.MINIMAL_DOUBLE_HEAD, show_header=True, header_style="bold bright_white")
+        t.add_column("🚀 Acciones Rápidas", style="cyan")
+        t.add_column("Descripción", style="dim white")
+        
+        t.add_row("Directo al chat", "Simplemente escribe tu duda. Gravity decidirá el mejor modelo.")
+        t.add_row("[yellow]!selector[/] <duda>", "Muestra qué IA se elegiría sin ejecutarla (Test).")
+        t.add_row("[green]/leer[/] <archivo>", "Lee un archivo e inyéctalo en contexto (ej: /leer script.py).")
+        t.add_row("[green]/leer-carpeta[/] <dir>", "Atrapa toda una carpeta en memoria para auditoría global.")
+        t.add_row("[magenta]!info[/]", "Abre el panel de diagnóstico de Hardware y VRAM (ROCm/CUDA).")
+        t.add_row("[magenta]!ayuda[/]", "Lista el arsenal completo de comandos disponibles.")
+        
+        console.print(Align.center(t))
+        console.print(Align.center("[dim italic]Arquitectura de Enrutamiento V5.1 cargada con éxito.[/]\n"))
+
     def handle_input(self, inp):
         """Procesa una entrada (pregunta o comando) y retorna True si debe continuar el chat."""
         if not inp: return True
