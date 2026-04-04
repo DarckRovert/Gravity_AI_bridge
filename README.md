@@ -29,39 +29,32 @@
 
 ## 🖧 Arquitectura V5.1
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    GRAVITY AI BRIDGE V5.1                       │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Tu query                                                       │
-│      │                                                          │
-│      ▼                                                          │
-│  model_selector.py ──► Clasifica: CÓDIGO / RAZONAMIENTO / ANY  │
-│      │                     │                                    │
-│      │                     ▼                                    │
-│      │          Elige modelo óptimo del caché                   │
-│      │          (nunca 2 modelos simultáneos)                   │
-│      │                     │                                    │
-│      ▼                     ▼                                    │
-│  engine_watchdog.py ──────────────────────────────────────────► │
-│  (hilo background)    Detecta: Ollama/Lemonade/LMStudio/Kobold  │
-│  cada 30s             Auto-switch transparente si cambia motor  │
-│      │                                                          │
-│      ▼                                                          │
-│  env_optimizer.py ──► Inyecta env vars óptimas por motor        │
-│      │                OLLAMA_FLASH_ATTENTION, KV_CACHE_TYPE,    │
-│      │                LEMONADE_LLAMACPP=rocm, etc.              │
-│      │                                                          │
-│      ▼                                                          │
-│  hardware_profiler.py ──► Detecta GPU, VRAM, num_ctx óptimo    │
-│      │                    AMD/NVIDIA/Intel, iGPU/dGPU           │
-│      │                                                          │
-│      ▼                                                          │
-│  turbo_kv.py ──────────► q4_0 KV-Cache = 4x menos RAM         │
-│                           (TurboQuant-compatible, Google 2026)  │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD;
+    U[("fa:fa-terminal Tu Query")] --> M(["model_selector.py"]);
+    
+    subgraph "GRAVITY AI V5.1 GOD EMPEROR"
+        M -->|Clasifica| C{"¿Código o Razonamiento?"}
+        C -->|Elige| Cache("Caché de Modelos Activos\n(Nunca 2 simultáneos)")
+        
+        Cache --> W(["engine_watchdog.py"])
+        
+        W -->|"Cada 30s escanea"| D("Ollama / Lemonade / LM Studio")
+        W -->|"Auto Switch"| E(["env_optimizer.py"])
+        
+        E -->|"Inyecta Flags"| HW(["hardware_profiler.py"])
+        HW -->|"Detecta 780M / VRAM"| TK(["turbo_kv.py"])
+    end
+    
+    TK -->|"q4_0 KV-Cache"| F[("Inferencia 4x Menos RAM (TurboQuant)")]
+    
+    style U fill:#1b1b1b,stroke:#0ffff,color:#fff
+    style M fill:#223344,stroke:#3388ff
+    style W fill:#223344,stroke:#3388ff
+    style E fill:#223344,stroke:#3388ff
+    style HW fill:#223344,stroke:#3388ff
+    style TK fill:#223344,stroke:#3388ff
+    style F fill:#0a3a2a,stroke:#00ff55,color:#fff
 ```
 
 ---
