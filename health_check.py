@@ -97,7 +97,7 @@ def main():
     except Exception:
         pass
         
-    console.print(Align.center(Panel(Text("SISTEMA DE DIAGNÓSTICO V4.0", justify="center", style="bold bright_white"), style="on bright_black", box=box.HEAVY_EDGE, padding=(0,2))))
+    console.print(Align.center(Panel(Text("SISTEMA DE DIAGNÓSTICO V5.1", justify="center", style="bold bright_white"), style="on bright_black", box=box.HEAVY_EDGE, padding=(0,2))))
     
     with console.status("[bold cyan]⏳ Escaneando ecosistema de IA local en paralelo...[/]", spinner="dots"):
         scans = ProviderScanner.scan_all()

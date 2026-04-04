@@ -1,4 +1,4 @@
-# Dependencias de Gravity AI Bridge V4.1
+# Dependencias de Gravity AI Bridge V5.1
 rich
 pyfiglet
 urllib3

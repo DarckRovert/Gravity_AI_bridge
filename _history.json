@@ -62,5 +62,21 @@
     {
         "role": "assistant",
         "content": "Para realizar una integración, necesito más detalles sobre el tipo de integración que deseas. Por ejemplo:\n\n1. **Integración de APIs**: ¿Qué servicios o endpoints quieres conectar?\n2. **Integración de sistemas**: ¿Cuáles son los sistemas involucrados?\n3. **Integración de datos**: ¿Qué formatos o bases de datos estás trabajando?\n\nPor favor, proporciona más contexto o especificaciones sobre la integración que necesitas realizar.\n\n¿Estás pensando en alguna de las opciones que te mencioné anteriormente?"
+    },
+    {
+        "role": "user",
+        "content": "Resume tu proposito en menos de 10 palabras analitico, directo. Soy un desarrollador."
+    },
+    {
+        "role": "assistant",
+        "content": "Auditar código, identificar riesgos y mejorar la calidad técnica."
+    },
+    {
+        "role": "user",
+        "content": "hola"
+    },
+    {
+        "role": "assistant",
+        "content": "**Respuesta:**\n\nPara comenzar con el Auditor Senior, seguiremos estos pasos claros y estructurados:\n\n1. **Entender las Capacidad del Auditor Senior:**\n   - Primero, familiarízate con las capacidades del Auditor Senior, como la detección de errores, análisis de rendimiento y revisiones de seguridad.\n   - Revisa la documentación o ejemplos disponibles para obtener una mejor comprensión de sus funcionalidades.\n\n2. **Utilizar Comandos Básicos:**\n   - Empieza con comandos básicos como `/auditoria_codigo` para realizar una auditoría general de tu código.\n   - Ejemplo: `!auditoria_codigo --ruta \"/ruta/al/codigo\" --estandar \"OWASP Top 10\"`.\n\n3. **Elegir un Área Específica para el Análisis:**\n   - Selecciona un aspecto específico, como el análisis de seguridad, utilizando el comando `/analisis_risk`.\n   - Ejemplo: `/analisis_risk --modulo \"autenticacion\"`.\n\n4. **Evaluar el Tipo de Análisis:**\n   - Decide el tipo de análisis que deseas realizar: seguridad, rendimiento, etc.\n   - Asegúrate de que el Auditor Senior soporta el tipo de aplicación que estás desarrollando.\n\n5. **Revisar la Detalles del Informe de Auditoría:**\n   - Analiza el informe generado para identificar problemas específicos.\n   - Si el informe es demasiado genérico, considera ajustar los parámetros o especificar aspectos particulares de tu código.\n\n6. **Explorar Opciones Avanzadas:**\n   - Descubre cómo generar casos de prueba automáticamente con `/pruebas_unitarias`.\n   - Ejemplo: `/pruebas_unitarias --modulo \"login\"`.\n\n7. **Integración en el Proceso de Desarrollo:**\n   - Considera cómo integrar el Auditor Senior en tu flujo de trabajo, como parte del CI/CD.\n   - Ejemplo: Configurar auditorías automáticas en cada despliegue.\n\n8. **Establecer un Plan de Auditorías Regular:**\n   - Decide la frecuencia de auditorías, ya sea diariamente, semanalmente o antes de cada lanzamiento.\n   - Mantén un historial de auditorías para rastrear mejorías y nuevas incidencias.\n\n9. **Manejar Diferentes LENGUAGES y Frameworks:**\n   - Asegúrate de que"
     }
 ]

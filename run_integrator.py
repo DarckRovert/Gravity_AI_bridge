@@ -1,5 +1,5 @@
 """
-run_integrator.py — Gravity AI Bridge V4.2
+run_integrator.py — Gravity AI Bridge V5.1
 Script del instalador para configurar IDEs. Usa ide_integrator.py (sin imports pesados).
 """
 import sys

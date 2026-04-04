@@ -1,4 +1,4 @@
-# ⚔️ Arsenal de Comandos (Gravity AI V4.0)
+# ⚔️ Arsenal de Comandos (Gravity AI V5.1)
 
 Gravity no es un simple chat. Es una terminal interactiva. Abajo se documentan todos los comandos nativos del ecosistema.
 

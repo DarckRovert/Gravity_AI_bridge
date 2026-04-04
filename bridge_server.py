@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════╗
-║     GRAVITY AI BRIDGE SERVER (Proxy V4.0)    ║
+║     GRAVITY AI BRIDGE SERVER (Proxy V5.1)    ║
 ║     Enrutador Universal OpenAI Compatible    ║
 ╚══════════════════════════════════════════════╝
 """
@@ -70,7 +70,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             self.end_headers()
             html = f"""
             <html><body style="font-family:sans-serif; background:#0d1117; color:#c9d1d9; padding:40px;">
-                <h1 style="color:#58a6ff;">Gravity AI Bridge Server V4.0 🚀</h1>
+                <h1 style="color:#58a6ff;">Gravity AI Bridge Server V5.1 🚀</h1>
                 <p>El proxy unificado está <strong>ONLINE</strong>.</p>
                 <h3>Configuración de tu IDE:</h3>
                 <pre style="background:#161b22; padding:15px; border-radius:6px;">
@@ -237,7 +237,7 @@ def run_server():
     server = ThreadingHTTPServer(('0.0.0.0', port), GravityBridgeHandler)
     
     console.print(f"\n[bold cyan]┌────────────────────────────────────────────────────────┐[/]")
-    console.print(f"[bold cyan]│[/]  [bold bright_white]GRAVITY BRIDGE SERVER V4.1 — ONLINE[/]                   [bold cyan]│[/]")
+    console.print(f"[bold cyan]│[/]  [bold bright_white]GRAVITY BRIDGE SERVER V5.1 — ONLINE[/]                   [bold cyan]│[/]")
     console.print(f"[bold cyan]│[/]  ► Base URL: [green]http://localhost:{port}/v1[/]                  [bold cyan]│[/]")
     if active_target_url:
         target_display = f"{active_target_url} ({active_target_model})"

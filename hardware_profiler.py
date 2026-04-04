@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════╗
-║     GRAVITY AI HARDWARE PROFILER V5.0                ║
+║     GRAVITY AI HARDWARE PROFILER V5.1                ║
 ║     Detección de GPU, VRAM y cálculo de contexto     ║
 ╚══════════════════════════════════════════════════════╝
 Detecta el hardware disponible y calcula el num_ctx máximo

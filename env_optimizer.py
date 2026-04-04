@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════╗
-║     GRAVITY AI ENVIRONMENT OPTIMIZER V5.0                ║
+║     GRAVITY AI ENVIRONMENT OPTIMIZER V5.1                ║
 ║     Optimización Automática para TODOS los Motores       ║
 ╚══════════════════════════════════════════════════════════╝
 
@@ -258,7 +258,7 @@ def apply_all(persist=False, verbose=False):
     profile = _load_hardware()
 
     if verbose:
-        print(f"\n[⚡ EnvOptimizer V5.0]")
+        print(f"\n[⚡ EnvOptimizer V5.1]")
         print(f"  GPU    : {profile.get('gpu_name', 'Unknown')}")
         print(f"  VRAM   : {profile['vram_mb']:,} MB")
         print(f"  Ctx    : {profile['optimal_ctx']:,} tokens (KV: {profile['kv_quant']})")

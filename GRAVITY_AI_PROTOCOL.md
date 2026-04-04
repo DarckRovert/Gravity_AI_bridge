@@ -1,4 +1,4 @@
-# 📜 GRAVITY AI PROTOCOL V4.0
+# 📜 GRAVITY AI PROTOCOL V5.1
 
 Este repositorio aloja el **Auditor Senior Global**, un sistema "God-Tier" diseñado para interceptar peticiones, correr en GPUs locales, enrutar a múltiples motores via su Bridge Server y ahorrar miles de tokens de pago.
 
@@ -28,4 +28,4 @@ Puedes disparar comandos de administración interna enviando la orden directamen
 - `python ask_deepseek.py "!integrar todo"` → Exporta ficheros proxy para herramientas de terceros.
 
 ---
-*Protocolo generado por el ecosistema Antigravity y adaptado en V4.0.*
+*Protocolo generado por el ecosistema Antigravity y adaptado en V5.1.*

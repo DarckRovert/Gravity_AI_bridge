@@ -1,6 +1,6 @@
 # 🔗 Guía de Integración con Entornos (IDEs)
 
-Gravity AI V4 contiene el **Gravity Bridge Server**. Este servidor expone una API compatible con OpenAI en el puerto `7860`. Gracias a esto, puedes engañar a cualquier editor del mundo para que use tu hardware local en lugar de pagar.
+Gravity AI V5.1 contiene el **Gravity Bridge Server**. Este servidor expone una API compatible con OpenAI en el puerto `7860`. Gracias a esto, puedes engañar a cualquier editor del mundo para que use tu hardware local en lugar de pagar.
 
 ## 🚀 Requisito Previo (Crucial)
 Antes de configurar cualquier IDE, debes tener el servidor corriendo.

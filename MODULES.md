@@ -1,6 +1,6 @@
 # 📦 Documentación de Módulos (Architecture)
 
-La capa V4.0 God-Tier sigue una filosofía modular pura. Cada sistema se aísla, previendo que en un futuro los módulos puedan usarse como librería `import gravity` en otros proyectos Python.
+La capa V5.1 God-Tier sigue una filosofía modular pura. Cada sistema se aísla, previendo que en un futuro los módulos puedan usarse como librería `import gravity` en otros proyectos Python.
 
 ## Core Modules
 

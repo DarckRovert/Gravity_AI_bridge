@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════╗
-║     GRAVITY AI ENGINE WATCHDOG V5.0                  ║
+║     GRAVITY AI ENGINE WATCHDOG V5.1                  ║
 ║     Auto-Detección, Auto-Switch y Auto-Optimización  ║
 ╚══════════════════════════════════════════════════════╝
 
@@ -265,7 +265,7 @@ def start(interval_seconds=30, verbose=False):
 
 
 if __name__ == "__main__":
-    print("Iniciando Gravity Engine Watchdog V5.0 en modo diagnóstico...")
+    print("Iniciando Gravity Engine Watchdog V5.1 en modo diagnóstico...")
     start(interval_seconds=15, verbose=True)
     while True:
         state = get_active_state()

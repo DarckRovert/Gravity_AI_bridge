@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════╗
-║     GRAVITY AI BRIDGE — AUDITOR SENIOR V4.0    ║
+║     GRAVITY AI BRIDGE — AUDITOR SENIOR V5.1    ║
 ║     Modo God-Tier | Proxy Server Ready       ║
 ╚══════════════════════════════════════════════╝
 """

@@ -1,5 +1,5 @@
 """
-ide_integrator.py — Gravity AI Bridge V4.2
+ide_integrator.py — Gravity AI Bridge V5.1
 Modulo aislado para configurar IDEs. Sin dependencias de Rich ni SettingsManager.
 Se puede importar de forma segura desde el instalador.
 """
@@ -31,8 +31,8 @@ class IDEIntegrator:
         target_dir = os.path.join(BASE_DIR, ".continue")
         os.makedirs(target_dir, exist_ok=True)
         cfg = (
-            "name: Gravity Local V4\n"
-            "version: 4.2.0\n"
+            "name: Gravity Local V5.1\n"
+            "version: 5.1.0\n"
             "schema: v1\n"
             "models:\n"
             "  - name: \"Gravity Bridge\"\n"
