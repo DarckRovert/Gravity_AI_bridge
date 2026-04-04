@@ -1,12 +1,13 @@
 <div align="center">
+<img src="assets/hero_ai.png" width="800" alt="Gravity AI God Emperor Banner">
 
 # GRAVITY AI BRIDGE V5.1 — GOD EMPEROR ⚡
 ### El Motor de Inteligencia Perimetral Oficial del Séquito del Terror.
 
-[![Version](https://img.shields.io/badge/Version-5.1%20God--Emperor-red.svg?style=for-the-badge)](https://github.com/DarckRovert/Gravity_AI_bridge)
-[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg?style=for-the-badge)](#)
-[![GPU](https://img.shields.io/badge/GPU-AMD%20ROCm%20%7C%20NVIDIA%20CUDA%20%7C%20Vulkan-green.svg?style=for-the-badge)](#)
-[![Engines](https://img.shields.io/badge/Engines-Ollama%20%7C%20Lemonade%20%7C%20LM%20Studio%20%7C%20Kobold%20%7C%20Jan-blueviolet.svg?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/Version-5.1_God--Emperor-red?style=for-the-badge)](https://github.com/DarckRovert/Gravity_AI_bridge)
+[![Python](https://img.shields.io/badge/Python-3.10+-blue?style=for-the-badge)](#)
+[![GPU](https://img.shields.io/badge/GPU-AMD_ROCm_|_NVIDIA_CUDA_|_Vulkan-green?style=for-the-badge)](#)
+[![Engines](https://img.shields.io/badge/Engines-Ollama_|_Lemonade_|_LM_Studio_|_Kobold_|_Jan-blueviolet?style=for-the-badge)](#)
 
 *"No envíes tu código al exterior. Forjamos la red dentro de nuestras propias sombras."*
 </div>
@@ -31,7 +32,7 @@
 
 ```mermaid
 graph TD;
-    U[("fa:fa-terminal Tu Query")] --> M(["model_selector.py"]);
+    U[("Tu Query (Terminal)")] --> M(["model_selector.py"]);
     
     subgraph "GRAVITY AI V5.1 GOD EMPEROR"
         M -->|Clasifica| C{"¿Código o Razonamiento?"}
@@ -179,6 +180,10 @@ gravity "!aprende regla"                # Enseñar regla permanente al sistema
 ---
 
 <div align="center">
+<br/>
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![Powered by](https://img.shields.io/badge/Powered_by-Gravity_AI-orange.svg?style=flat-square)](#)
 
 *Gravity AI Bridge — Forjado en las sombras. Ejecutado en local.*
 
