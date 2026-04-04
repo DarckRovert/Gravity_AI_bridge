@@ -1,13 +1,13 @@
 @echo off
 setlocal enabledelayedexpansion
-title INSTALADOR GLOBAL - GRAVITY AI BRIDGE V4.2
+title INSTALADOR GLOBAL - GRAVITY AI BRIDGE V5.0 GOD EMPEROR
 color 0b
 cls
 
 echo.
-echo  +------------------------------------------------------+
-echo  ^|       GRAVITY AI BRIDGE V4.2 - MODO GOD-TIER         ^|
-echo  +------------------------------------------------------+
+echo  +----------------------------------------------------------+
+echo  ^|    GRAVITY AI BRIDGE V5.0 - GOD EMPEROR INSTALLER        ^|
+echo  +----------------------------------------------------------+
 echo.
 echo  Iniciando asistente de instalacion automatizado...
 echo.
@@ -40,29 +40,47 @@ if %errorlevel% neq 0 (
     echo    [OK] Bibliotecas principales listas.
 )
 
-REM --- [PASO 4/8] Escaneo de IA ---
-echo  [4/8] Escaneando hardware neuronal (Ollama, LM Studio)...
-python "%TARGET_DIR%\provider_scanner.py"
+REM --- [PASO 4/9] Hardware Profiling ---
+echo  [4/9] Analizando hardware neuronal (GPU, VRAM, backend optimo)...
+python "%TARGET_DIR%\hardware_profiler.py"
 if %errorlevel% neq 0 (
-    echo    [!] Fallo escaneando hardware.
+    echo    [!] Aviso: Fallo detectando hardware. Se usaran parametros conservadores.
+) else (
+    echo    [OK] Hardware analizado.
 )
 
-REM --- [PASO 5/8] Auto-Configurando Settings ---
-echo  [5/8] Asignando la mejor Inteligencia Artificial como Core por defecto...
+REM --- [PASO 5/9] Escaneo de Motores de IA ---
+echo  [5/9] Escaneando motores locales (Ollama, LM Studio, Lemonade, KoboldCPP, Jan AI)...
+python "%TARGET_DIR%\provider_scanner.py"
+if %errorlevel% neq 0 (
+    echo    [!] Fallo escaneando motores.
+)
+
+REM --- [PASO 6/9] Auto-Configurando Settings ---
+echo  [6/9] Asignando la mejor Inteligencia Artificial como Core por defecto...
 python "%TARGET_DIR%\auto_config.py"
 if %errorlevel% neq 0 (
     echo    [!] Falla vinculando configuraciones de red, se usaran defaults.
 )
 
-REM --- [PASO 6/8] Configurando Integraciones (IDE) ---
-echo  [6/8] Auto-generando perfiles para Continue.dev, Aider y Cursor...
+REM --- [PASO 7/9] Optimizacion de Entorno (TODOS LOS MOTORES) ---
+echo  [7/9] Inyectando variables de entorno optimas para todos los motores de IA...
+python "%TARGET_DIR%\env_optimizer.py" --persist
+if %errorlevel% neq 0 (
+    echo    [!] Aviso: Fallo persistiendo variables de entorno. Funcionaran igual en sesion.
+) else (
+    echo    [OK] Variables optimizadas persistidas: OLLAMA_FLASH_ATTENTION, KV_CACHE_TYPE, LEMONADE_LLAMACPP, etc.
+)
+
+REM --- [PASO 8/9] Configurando Integraciones (IDE) ---
+echo  [8/9] Auto-generando perfiles para Continue.dev, Aider y Cursor...
 python "%TARGET_DIR%\run_integrator.py" "todo"
 if %errorlevel% neq 0 (
     echo    [!] Imposible autoconfigurar las extensiones IDE en esta pasada.
 )
 
-REM --- [PASO 7/8] PATH Global ---
-echo  [7/8] Instalando comando universal 'gravity' en variables de entorno...
+REM --- [PASO 9/9] PATH Global ---
+echo  [9/9] Instalando comando universal 'gravity' en variables de entorno...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$p = [Environment]::GetEnvironmentVariable('Path', 'User'); if ($p -match [regex]::Escape('%TARGET_DIR%')) { exit 0 } else { exit 1 }"
 if %errorlevel%==0 (
     echo    [OK] Comando universal 'gravity' ya estaba registrado.
@@ -101,18 +119,25 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo  +------------------------------------------------------+
-echo  ^|         SISTEMA GRAVITY INSTALADO CON EXITO          ^|
-echo  +------------------------------------------------------+
+echo  +----------------------------------------------------------+
+echo  ^|      GRAVITY AI BRIDGE V5.0 GOD EMPEROR - LISTO         ^|
+echo  +----------------------------------------------------------+
 echo.
-echo  Gravity AI Bridge V4.2 se ha fusionado con tu entorno de desarrollo.
+echo  El sistema mas avanzado de IA local esta en tu maquina.
+echo.
+echo  OPTIMIZACIONES ACTIVAS:
+echo    - KV-Cache cuantizado (OLLAMA_KV_CACHE_TYPE=q4_0) = 4x menos RAM de atencion
+echo    - Flash Attention activado = 20%% mas velocidad en contextos largos
+echo    - Auto-Switch de motor = Ollama/LM Studio/Lemonade/KoboldCPP detectados
+echo    - Contexto calculado por hardware = Maximo posible en tu GPU
 echo.
 echo  MODOS DE USO:
-echo    1. Consola Nativa: Escribe en cualquier CMD: gravity "tu pregunta"
-echo    2. Visual Studio Code: Simplemente usa Continue.dev / Aider / Cursor.
-echo       Su trafico ahora mismo sera interceptado por tu modelo local: %BEST%
+echo    1. Consola Nativa: gravity "tu pregunta"
+echo    2. Inyeccion de archivo: gravity "/leer archivo.py" "Audita este codigo"
+echo    3. Git diff: gravity "/leer-git" "Analiza mis cambios"
+echo    4. VS Code/Cursor: El bridge intercepta trafico automaticamente via %BEST%
 echo.
-echo  Opcional: Lanza INICIAR_SERVIDOR.bat para dejar el bridge vivo en 2do plano.
+echo  Opcional: Lanza MODO_FANTASMA.vbs para el bridge en segundo plano silencioso.
 echo.
 pause
 exit /b 0

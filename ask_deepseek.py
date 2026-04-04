@@ -354,13 +354,46 @@ class AuditorCLI:
         return f"Eres el Auditor Senior de Gravity AI. Riguroso y experto. Responde en ESPAÑOL.\nREGLAS:\n{rules}"
 
     def show_info(self):
-        t = Table(title=f"📊 Estado V{APP_VERSION} ({self.settings.data.get('mode', 'auditor').upper()})", box=box.ROUNDED)
-        t.add_column("Aspecto", style="cyan"); t.add_column("Detalle", style="yellow")
-        t.add_row("Proveedor", f"{self.provider.upper()} ({self.client.api_url})")
-        t.add_row("Modelo Activo", self.client.model)
-        t.add_row("Tokens Estimado", str(self.memory.get_estimated_tokens(self._get_system_prompt())))
-        t.add_row("Server Bridge", f"localhost:{self.settings.data.get('bridge_port', 7860)}")
+        import engine_watchdog
+        from turbo_kv import describe as kv_describe
+        state = engine_watchdog.get_active_state()
+        hw = state.get("hardware", {})
+        opts = state.get("api_opts", {})
+
+        t = Table(
+            title=f"📊 Gravity AI V{APP_VERSION} — Status God Emperor",
+            box=box.ROUNDED, border_style="bright_blue"
+        )
+        t.add_column("Sistema", style="bold cyan", min_width=20)
+        t.add_column("Detalle", style="yellow")
+
+        # Engine
+        t.add_row("Motor Activo", f"{state.get('provider') or self.provider} ({self.client.api_url})")
+        t.add_row("Modelo", self.client.model)
+        t.add_row("Protocolo", (state.get("protocol") or self.provider).upper())
+        t.add_row("Contexto Activo", f"{opts.get('num_ctx', self.settings.options.get('num_ctx', '?')):,} tokens")
+        t.add_row("Tokens Usados", str(self.memory.get_estimated_tokens(self._get_system_prompt())))
+        t.add_row("Bridge Server", f"localhost:{self.settings.data.get('bridge_port', 7860)}")
+        t.add_row(Rule(style="dim"), "")
+
+        # Hardware
+        if hw:
+            t.add_row("GPU", hw.get("gpu_name", "Unknown"))
+            vram_mb = hw.get("vram_mb", 0)
+            t.add_row("VRAM", f"{vram_mb:,} MB ({vram_mb/1024:.1f} GB) | {'iGPU Shared' if hw.get('is_igpu') else 'dGPU Dedicated'}")
+            t.add_row("RAM Total", f"{hw.get('total_ram_mb', 0):,} MB ({hw.get('total_ram_mb',0)//1024} GB)")
+            t.add_row("Backend GPU", hw.get("gpu_type", "cpu").upper())
+            if hw.get("gfx_version"):
+                t.add_row("ROCm GFX", hw["gfx_version"])
+        else:
+            t.add_row("Hardware", "[dim]Ejecuta !scan para detectar[/dim]")
+
+        t.add_row(Rule(style="dim"), "")
+        # KV Optimization
+        t.add_row("KV-Cache (TurboQuant)", kv_describe(state.get("protocol", "ollama")))
+        t.add_row("Modo", self.settings.data.get("mode", "auditor").upper())
         console.print(t)
+
 
     def _draw_welcome_ui(self):
         from rich.align import Align
@@ -470,29 +503,38 @@ class AuditorCLI:
                 console.print(f"[blue]Proyecto completo inyectado (truncado a 50k chars máximos preventivos).[/]")
             else: console.print("[red]Carpeta no existe.[/]"); return True
 
-        # Petición a IA
+        # Petición a IA — usar opciones optimizadas por hardware del Watchdog
         msg = [{"role": "system", "content": self._get_system_prompt()}] + self.memory.history + [{"role": "user", "content": p}]
         
         start_time = time.time()
         console.print(Rule(style="cyan"))
         
-        is_streaming = self.settings.options.get("streaming", True)
+        # Obtener opciones optimizadas por hardware (ctx dinámico, etc.)
+        try:
+            import engine_watchdog
+            live_opts = engine_watchdog.get_optimized_options(self.settings.options)
+        except Exception:
+            live_opts = self.settings.options
+        
+        is_streaming = live_opts.get("streaming", True)
         if is_streaming:
-            console.print(f"[cyan]✨ {self.client.model}...[/]")
-            ans = self.client.chat(msg, options=self.settings.options)
+            console.print(f"[cyan]✨ {self.client.model} | ctx={live_opts.get('num_ctx','?'):,}...[/]")
+            ans = self.client.chat(msg, options=live_opts)
         else:
             with console.status(f"[cyan]✨ {self.client.model}...[/]", spinner="dots"):
-                ans = self.client.chat(msg, options=self.settings.options)
+                ans = self.client.chat(msg, options=live_opts)
             console.print(Markdown(ans))
             
         elapsed = time.time() - start_time
         self.memory.add_turn(p, ans)
         
         if not self.as_agent:
-            bar = f"{self.provider.upper()} │ {self.client.model} │ {self.settings.data.get('mode', 'auditor')} │ {elapsed:.1f}s"
+            ctx_used = live_opts.get('num_ctx', '?')
+            bar = f"{self.provider.upper()} │ {self.client.model} │ ctx={ctx_used:,} │ {elapsed:.1f}s"
             console.print(Panel(Text(bar, justify="center", style="dim white"), border_style="dim white"))
         
         return True
+
 
     def run_chat(self):
         self._draw_welcome_ui()
