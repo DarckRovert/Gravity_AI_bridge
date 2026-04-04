@@ -301,13 +301,42 @@ class AuditorCLI:
         self.settings = SettingsManager()
         self.memory = MemoryManager()
         self.as_agent = as_agent
-        self.provider = self.settings.data.get("provider", "ollama")
-        base_url = self.settings.data.get("api_url", "http://localhost:11434")
         
-        if self.provider in ["openai", "lm_studio", "lemonade"]: self.client = OpenAIClient(self.settings.current_model, base_url)
-        else: self.client = OllamaClient(self.settings.current_model, base_url)
+        # Inicializar Watchdog de auto-switch ANTES de crear el cliente
+        import engine_watchdog
+        engine_watchdog.start(interval_seconds=30, verbose=not as_agent)
+        
+        # Usar el estado del watchdog si ya tiene datos, si no, caer al settings.json
+        watchdog_state = engine_watchdog.get_active_state()
+        if watchdog_state["provider"]:
+            self.provider = watchdog_state["protocol"]
+            base_url = watchdog_state["url"]
+            detected_model = watchdog_state["model"]
+        else:
+            self.provider = self.settings.data.get("provider", "ollama")
+            base_url = self.settings.data.get("api_url", "http://localhost:11434")
+            detected_model = self.settings.current_model
+        
+        if self.provider in ["openai", "lm_studio", "lemonade"]:
+            self.client = OpenAIClient(detected_model, base_url)
+        else:
+            self.client = OllamaClient(detected_model, base_url)
+        
+        # Registrar callback para que cuando el Watchdog detecte un cambio,
+        # el cliente del Auditor se actualice silenciosamente en tiempo real
+        def _on_switch(new_prov, new_model):
+            if new_prov.protocol in ["openai", "lm_studio", "lemonade"]:
+                self.client = OpenAIClient(new_model, new_prov.url)
+            else:
+                self.client = OllamaClient(new_model, new_prov.url)
+            self.provider = new_prov.protocol
+            if os.name == 'nt':
+                os.system(f"title GRAVITY AI ^| {new_model} ^| {new_prov.name.upper()} [AUTO-SWITCH]")
+        
+        engine_watchdog.on_provider_switch(_on_switch)
             
-        if os.name == 'nt': os.system(f"title GRAVITY AI ^| {self.client.model} ^| {self.provider.upper()}")
+        if os.name == 'nt': os.system(f"title GRAVITY AI ^| {self.client.model} ^| {watchdog_state.get('provider', self.provider).upper()}")
+
 
     def _get_system_prompt(self):
         m = self.settings.data.get("mode", "auditor")

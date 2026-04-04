@@ -24,11 +24,15 @@ class ProviderResult:
 
 class ProviderScanner:
     KNOWN_PROVIDERS = [
-        {"name": "Ollama", "port": 11434, "protocol": "ollama"},
-        {"name": "LM Studio", "port": 1234, "protocol": "openai"},
-        {"name": "Lemonade", "port": 8000, "protocol": "openai"},
-        {"name": "Jan AI", "port": 1337, "protocol": "openai"}
+        {"name": "Ollama",      "port": 11434, "protocol": "ollama"},
+        {"name": "LM Studio",   "port": 1234,  "protocol": "openai"},
+        {"name": "LM Studio",   "port": 11434, "protocol": "openai"},  # LM Studio en modo compatibilidad Ollama
+        {"name": "Lemonade",    "port": 8000,  "protocol": "openai"},
+        {"name": "Lemonade",    "port": 8080,  "protocol": "openai"},  # Lemonade alt port
+        {"name": "Jan AI",      "port": 1337,  "protocol": "openai"},
+        {"name": "Kobold CPP",  "port": 5001,  "protocol": "openai"},
     ]
+
     
     @staticmethod
     def _safe_request(url, timeout=0.8):
