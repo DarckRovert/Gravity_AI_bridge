@@ -457,6 +457,33 @@ class AuditorCLI:
             if self.memory.load_snapshot(inp[8:]): console.print("[green]Snapshot restaurado.[/]")
             else: console.print("[red]No existe.[/]"); return True
         if inp == '!saves': console.print(", ".join(self.memory.list_snapshots())); return True
+        if inp.startswith('!selector '):
+            # Show which model would be selected for a given query without executing it
+            test_query = inp[10:].strip()
+            try:
+                from model_selector import classify_task, find_best_model, describe_selection
+                from provider_scanner import ProviderScanner
+                scans = ProviderScanner.scan_all()
+                all_models = []
+                for s in scans:
+                    if s.is_healthy:
+                        all_models.extend(m["name"] for m in s.models)
+                if not all_models:
+                    all_models = [self.client.model]
+                task = classify_task(test_query)
+                best = find_best_model(task, all_models)
+                task_labels = {"code": "Codigo/Auditoria", "reason": "Razonamiento Profundo", "any": "General (cualquiera)"}
+                t = Table(title="Smart Model Selector — Preview", box=box.SIMPLE)
+                t.add_column("Campo", style="cyan"); t.add_column("Valor", style="yellow")
+                t.add_row("Query", test_query[:60])
+                t.add_row("Tarea detectada", task_labels.get(task, task))
+                t.add_row("Modelo elegido", best or "Ninguno disponible")
+                t.add_row("Modelos disponibles", ", ".join(all_models[:5]))
+                console.print(t)
+            except Exception as e:
+                console.print(f"[red]Error en selector: {e}[/]")
+            return True
+
         if inp == '!comprimir': self.memory.compress(self.client, self.settings.options, self._get_system_prompt()); return True
         if inp == '!limpiar': self.memory.clear(); console.print("[yellow]Chat purgado.[/]"); return True
 
@@ -503,19 +530,70 @@ class AuditorCLI:
                 console.print(f"[blue]Proyecto completo inyectado (truncado a 50k chars máximos preventivos).[/]")
             else: console.print("[red]Carpeta no existe.[/]"); return True
 
-        # Petición a IA — usar opciones optimizadas por hardware del Watchdog
+        # ── Smart Model Selection ─────────────────────────────────────────────
+        # Clasificar la tarea y seleccionar el modelo óptimo antes de la petición
+        try:
+            import engine_watchdog
+            import model_selector
+
+            state = engine_watchdog.get_active_state()
+            available = state.get("hardware", {})
+
+            # Obtener lista de modelos disponibles en el motor activo
+            scanner_result = None
+            try:
+                from provider_scanner import ProviderScanner
+                scans = ProviderScanner.scan_all()
+                for s in scans:
+                    if s.is_healthy and s.name == state.get("provider"):
+                        scanner_result = s
+                        break
+                if not scanner_result and scans:
+                    scanner_result = next((s for s in scans if s.is_healthy), None)
+            except Exception:
+                pass
+
+            available_model_names = (
+                [m["name"] for m in scanner_result.models]
+                if scanner_result and scanner_result.models
+                else [self.client.model]
+            )
+
+            # Initialize tracker if fresh start
+            if model_selector.get_active_model() is None:
+                model_selector.set_active_model(self.client.model)
+
+            optimal_model, did_switch = model_selector.get_optimal_model(
+                text=p,
+                protocol=state.get("protocol") or self.provider,
+                provider_name=state.get("provider") or self.provider,
+                available_models=available_model_names,
+                history=self.memory.history,
+                verbose=not self.as_agent
+            )
+
+            # Apply the switch if needed
+            if did_switch and optimal_model:
+                self.client.model = optimal_model
+                if os.name == 'nt':
+                    os.system(f"title GRAVITY AI ^| {optimal_model} ^| {self.provider.upper()} [SMART SELECT]")
+
+        except Exception:
+            pass  # Silencioso: nunca interrumpir el flujo por el selector
+
+        # ── Petición a IA ─────────────────────────────────────────────────────
         msg = [{"role": "system", "content": self._get_system_prompt()}] + self.memory.history + [{"role": "user", "content": p}]
-        
+
         start_time = time.time()
         console.print(Rule(style="cyan"))
-        
-        # Obtener opciones optimizadas por hardware (ctx dinámico, etc.)
+
+        # Opciones optimizadas por hardware (ctx dinámico, etc.)
         try:
             import engine_watchdog
             live_opts = engine_watchdog.get_optimized_options(self.settings.options)
         except Exception:
             live_opts = self.settings.options
-        
+
         is_streaming = live_opts.get("streaming", True)
         if is_streaming:
             console.print(f"[cyan]✨ {self.client.model} | ctx={live_opts.get('num_ctx','?'):,}...[/]")
@@ -524,15 +602,15 @@ class AuditorCLI:
             with console.status(f"[cyan]✨ {self.client.model}...[/]", spinner="dots"):
                 ans = self.client.chat(msg, options=live_opts)
             console.print(Markdown(ans))
-            
+
         elapsed = time.time() - start_time
         self.memory.add_turn(p, ans)
-        
+
         if not self.as_agent:
             ctx_used = live_opts.get('num_ctx', '?')
             bar = f"{self.provider.upper()} │ {self.client.model} │ ctx={ctx_used:,} │ {elapsed:.1f}s"
             console.print(Panel(Text(bar, justify="center", style="dim white"), border_style="dim white"))
-        
+
         return True
 
 

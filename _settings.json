@@ -1,7 +1,7 @@
 {
-    "provider": "ollama",
-    "api_url": "http://localhost:11434",
-    "last_model": "deepseek-r1:32b",
+    "provider": "openai",
+    "api_url": "http://localhost:8000",
+    "last_model": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
     "mode": "auditor",
     "agent_language": "en",
     "user_language": "es",
