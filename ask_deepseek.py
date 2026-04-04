@@ -47,7 +47,7 @@ except ImportError:
     pass
 
 # ─── Configuración base ──────────────────────────────────────────────────────
-APP_VERSION = "4.2"
+APP_VERSION = "5.1"
 BASE_DIR = os.path.dirname(__file__)
 HISTORY_FILE = os.path.join(BASE_DIR, "_history.json")
 KNOWLEDGE_FILE = os.path.join(BASE_DIR, "_knowledge.json")
