@@ -256,6 +256,10 @@ class OpenAIClient(AIClient):
     def chat(self, messages, options=None):
         do_stream = options.get("streaming", True) if options else True
         payload_dict = {"model": self.model, "messages": messages, "stream": do_stream}
+        
+        # Elimina limite de cortes (llama.cpp/Lemonade usan 300 por defecto si no se pasa)
+        payload_dict["max_tokens"] = -1
+        
         if options:
             if "temperature" in options: payload_dict["temperature"] = options["temperature"]
             
@@ -268,30 +272,56 @@ class OpenAIClient(AIClient):
             else:
                 full_content = ""
                 is_thinking = False
+                in_reasoning_field = False
                 with urllib.request.urlopen(req, timeout=1800) as r:
                     for line in r:
                         line_str = line.decode('utf-8').strip()
                         if line_str.startswith("data: ") and line_str != "data: [DONE]":
                             data = safe_parse_json_line(line_str[6:])
                             if data and "choices" in data and len(data["choices"]) > 0:
-                                chunk = data["choices"][0].get("delta", {}).get("content", "")
-                                if not chunk: continue
-                                full_content += chunk
+                                delta = data["choices"][0].get("delta", {})
                                 
-                                if "<think>" in chunk:
-                                    is_thinking = True
-                                    sys.stdout.write("\033[2m")
-                                if is_thinking:
-                                    sys.stdout.write(chunk)
-                                    if "</think>" in chunk:
-                                        is_thinking = False
-                                        sys.stdout.write("\033[0m")
-                                else:
-                                    sys.stdout.write(chunk)
-                                sys.stdout.flush()
+                                # Modelos R1 modernos envían en "reasoning_content"
+                                r_chunk = delta.get("reasoning_content", "")
+                                chunk = delta.get("content", "")
+                                
+                                if r_chunk:
+                                    if not in_reasoning_field:
+                                        sys.stdout.write("\n\033[90m⚙️  Pensando profundamente...\n") # Gris oscuro
+                                        full_content += "<think>\n"
+                                        in_reasoning_field = True
+                                    sys.stdout.write(f"\033[90m{r_chunk}")
+                                    full_content += r_chunk
+                                    sys.stdout.flush()
+                                
+                                if chunk:
+                                    if in_reasoning_field:
+                                        sys.stdout.write("\033[0m\n\n") # Reset color al salir del campo
+                                        full_content += "\n</think>\n\n"
+                                        in_reasoning_field = False
+                                        
+                                    # Fallback para modelos que inyectan <think> en content
+                                    if "<think>" in chunk:
+                                        is_thinking = True
+                                        sys.stdout.write("\n\033[90m⚙️  Pensando profundamente...\n")
+                                        chunk = chunk.replace("<think>", "")
+                                        
+                                    if is_thinking:
+                                        sys.stdout.write(f"\033[90m{chunk}")
+                                        if "</think>" in chunk:
+                                            is_thinking = False
+                                            sys.stdout.write("\033[0m")
+                                            chunk = chunk.replace("</think>", "")
+                                    else:
+                                        sys.stdout.write(chunk)
+                                        
+                                    full_content += chunk
+                                    sys.stdout.flush()
                 print()
+                if in_reasoning_field:
+                    full_content += "\n</think>\n"
                 return full_content
-        except Exception as e: raise ConnectionError(f"OpenAI/LM Studio Error: {e}")
+        except Exception as e: raise ConnectionError(f"OpenAI/LM Studio/Lemonade Error: {e}")
 
 # ─── Integracion movida a ide_integrator.py ────────────────────────────────
 
