@@ -1,12 +1,12 @@
 @echo off
 setlocal enabledelayedexpansion
-title INSTALADOR GLOBAL - GRAVITY AI BRIDGE V5.0 GOD EMPEROR
+title INSTALADOR GLOBAL - GRAVITY AI BRIDGE V5.1 GOD EMPEROR
 color 0b
 cls
 
 echo.
 echo  +----------------------------------------------------------+
-echo  ^|    GRAVITY AI BRIDGE V5.0 - GOD EMPEROR INSTALLER        ^|
+echo  ^|    GRAVITY AI BRIDGE V5.1 - GOD EMPEROR INSTALLER        ^|
 echo  +----------------------------------------------------------+
 echo.
 echo  Iniciando asistente de instalacion automatizado...
@@ -120,7 +120,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo  +----------------------------------------------------------+
-echo  ^|      GRAVITY AI BRIDGE V5.0 GOD EMPEROR - LISTO         ^|
+echo  ^|      GRAVITY AI BRIDGE V5.1 GOD EMPEROR - LISTO         ^|
 echo  +----------------------------------------------------------+
 echo.
 echo  El sistema mas avanzado de IA local esta en tu maquina.
