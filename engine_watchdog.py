@@ -138,6 +138,19 @@ def _watchdog_loop(interval_seconds=30, verbose=False):
             scans = ProviderScanner.scan_all()
             best_prov, best_mod = ProviderScanner.auto_select_best(scans)
 
+            # Always update model_selector cache with ALL available models from ALL engines
+            # This is the ONLY place scan_all() runs (every 30s) — handle_input reads the cache
+            try:
+                from model_selector import update_available_models
+                for scan in scans:
+                    if scan.is_healthy and scan.models:
+                        update_available_models(
+                            scan.name,
+                            [m["name"] for m in scan.models]
+                        )
+            except Exception:
+                pass
+
             if best_prov and best_mod:
                 with _lock:
                     did_switch = (
@@ -164,8 +177,8 @@ def _watchdog_loop(interval_seconds=30, verbose=False):
                         _persist_settings(best_prov, best_mod, api_opts)
 
                         if verbose and old_name is not None:
-                            print(f"\n[⚡ WATCHDOG] Switch: {old_name}/{old_model}"
-                                  f" → {best_prov.name}/{best_mod}"
+                            print(f"\n[WATCHDOG] Switch: {old_name}/{old_model}"
+                                  f" -> {best_prov.name}/{best_mod}"
                                   f" | ctx={api_opts.get('num_ctx', '?')}")
 
                         for cb in _on_switch_callbacks:

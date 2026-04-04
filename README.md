@@ -1,122 +1,192 @@
 <div align="center">
 
-![Gravity Logo](media__1775204686339.png)
-
-# GRAVITY AI BRIDGE V4.2 — MODO GOD-TIER ⚡
+# GRAVITY AI BRIDGE V5.1 — GOD EMPEROR ⚡
 ### El Motor de Inteligencia Perimetral Oficial del Séquito del Terror.
 
-[![Versión](https://img.shields.io/badge/Versión-4.2%20God--Tier-red.svg?style=for-the-badge)](https://github.com/DarckRovert/Gravity_AI_bridge)
-[![Motor](https://img.shields.io/badge/Desarrollo-Python%203.10+-blue.svg?style=for-the-badge)](#)
-[![GPU](https://img.shields.io/badge/Aceleración-Local%20Inferencia-green.svg?style=for-the-badge)](#)
-[![IDE](https://img.shields.io/badge/Integraciones-VSCode%20|%20Cursor%20|%20Aider-blueviolet.svg?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/Version-5.1%20God--Emperor-red.svg?style=for-the-badge)](https://github.com/DarckRovert/Gravity_AI_bridge)
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg?style=for-the-badge)](#)
+[![GPU](https://img.shields.io/badge/GPU-AMD%20ROCm%20%7C%20NVIDIA%20CUDA%20%7C%20Vulkan-green.svg?style=for-the-badge)](#)
+[![Engines](https://img.shields.io/badge/Engines-Ollama%20%7C%20Lemonade%20%7C%20LM%20Studio%20%7C%20Kobold%20%7C%20Jan-blueviolet.svg?style=for-the-badge)](#)
 
-*“No envíes tu código al exterior. Forjamos la red dentro de nuestras propias sombras.”*
+*"No envíes tu código al exterior. Forjamos la red dentro de nuestras propias sombras."*
 </div>
 
 <br/>
 
-**Gravity AI Bridge** no es un simple script. Es una arquitectura **Enterprise de Enrutamiento Neuronal** diseñada para buscar, afianzar e interceptar la latencia de tu motor de Inteligencia Artificial Local (DeepSeek-R1, Ollama, LM Studio, Jan, etc.) y unificarlo en un hilo directo con todo tu entorno de desarrollo. Actúa como el *"Cerebro"* de tus IDEs y terminales sin soltar un solo byte de datos a internet.
+**Gravity AI Bridge** es una arquitectura **Enterprise de Enrutamiento Neuronal** que detecta, optimiza y controla todos los motores de IA local de tu sistema desde un punto único, con selección automática de modelo según el tipo de tarea, cuantización de KV-Cache estilo TurboQuant (Google DeepMind) y optimización automática de hardware.
 
 ---
 
 ## 📜 Tabla de Contenidos
-- [Arquitectura de Alto Nivel](#-arquitectura-de-alto-nivel)
-- [Instalación Rápida "Zero-Touch"](#-instalación-rápida-zero-touch)
-- [El Arsenal del Auditor (CLI)](#-el-arsenal-del-auditor-cli)
-- [Modo Fantasma y Despliegue Silencioso](#-modo-fantasma-y-despliegue-silencioso)
-- [Documentación Técnica Oficial](#-documentación-técnica-oficial)
-- [Desinstalación Limpia](#-desinstalación-limpia)
+- [Arquitectura V5.1](#-arquitectura-v51)
+- [Sistemas Inteligentes](#-sistemas-inteligentes)
+- [Instalación Zero-Touch](#-instalación-zero-touch)
+- [Modelos Recomendados (Lemonade)](#-modelos-recomendados-lemonade)
+- [El Arsenal del Auditor CLI](#-el-arsenal-del-auditor-cli)
+- [Documentación Técnica](#-documentación-técnica)
 
 ---
 
-## 🖧 Arquitectura de Alto Nivel
+## 🖧 Arquitectura V5.1
 
-Gravity V4.2 reemplaza la inestabilidad de los middlewares habituales por un **Scanner Asincrónico** que realiza un profiling de tu computadora. 
-
-```mermaid
-graph TD;
-    A[VS Code / Cursor / Aider] -->|HTTP Localhost:7860| B(Gravity Bridge Server);
-    B -->|Enrutamiento Transparente| C{Algoritmo Auto-Config V4.2};
-    C -->|Detectado en 1.7s| D[Core Ollama / LM Studio];
-    D -->|GPU Infer.| E[DeepSeek-R1 32B / 8B];
-    E -->|Streaming de Vuelta| A;
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    GRAVITY AI BRIDGE V5.1                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Tu query                                                       │
+│      │                                                          │
+│      ▼                                                          │
+│  model_selector.py ──► Clasifica: CÓDIGO / RAZONAMIENTO / ANY  │
+│      │                     │                                    │
+│      │                     ▼                                    │
+│      │          Elige modelo óptimo del caché                   │
+│      │          (nunca 2 modelos simultáneos)                   │
+│      │                     │                                    │
+│      ▼                     ▼                                    │
+│  engine_watchdog.py ──────────────────────────────────────────► │
+│  (hilo background)    Detecta: Ollama/Lemonade/LMStudio/Kobold  │
+│  cada 30s             Auto-switch transparente si cambia motor  │
+│      │                                                          │
+│      ▼                                                          │
+│  env_optimizer.py ──► Inyecta env vars óptimas por motor        │
+│      │                OLLAMA_FLASH_ATTENTION, KV_CACHE_TYPE,    │
+│      │                LEMONADE_LLAMACPP=rocm, etc.              │
+│      │                                                          │
+│      ▼                                                          │
+│  hardware_profiler.py ──► Detecta GPU, VRAM, num_ctx óptimo    │
+│      │                    AMD/NVIDIA/Intel, iGPU/dGPU           │
+│      │                                                          │
+│      ▼                                                          │
+│  turbo_kv.py ──────────► q4_0 KV-Cache = 4x menos RAM         │
+│                           (TurboQuant-compatible, Google 2026)  │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### ✨ Funciones Centrales:
-1. **Telemetría Zero-Touch (Hardware Scanner):** Su módulo detecta si Ollama o LM Studio están vivos en 1.7 segundos y te "roba" el mejor modelo de la lista automáticamente.
-2. **IDE Inyección:** Se sincroniza nativamente mediante `.continue/config.yaml`, perfiles de *Cursor* y configuraciones CLI de *Aider* sin que tú toques el código JSON.
-3. **Persistencia de Contexto (`_history.json`):** Tu IA local recuerda sus instrucciones anteriores, sus conocimientos (`_knowledge.json`) y sus reglas de formato a lo largo de los reinicios.
-4. **Protección de Efectos Secundarios:** Diseño aislado anti-crashes con encapsulación en Python puro frente a errores en comandos de Windows.
+---
+
+## 🧠 Sistemas Inteligentes
+
+### 1. Smart Model Selector (`model_selector.py`)
+Selecciona automáticamente el mejor modelo para cada tipo de tarea. **Nunca carga dos modelos al mismo tiempo.**
+
+| Tipo de Tarea | Palabras Clave Detectadas | Modelo Elegido |
+|---|---|---|
+| **Código** | `audita`, `bug`, `.py`, `/leer`, `función`, `refactor`... | Qwen2.5-Coder |
+| **Razonamiento** | `explica`, `por qué`, `analiza`, `compara`, `arquitectura`... | DeepSeek-R1 |
+| **General** | Cualquier otra consulta | El más rápido disponible |
+
+### 2. Engine Watchdog (`engine_watchdog.py`)
+Hilo demonio que cada 30 segundos:
+- Escanea todos los puertos (Ollama:11434, Lemonade:8000/8080, LM Studio:1234, KoboldCPP:5001, Jan AI:1337)
+- Actualiza el caché de modelos disponibles para el selector
+- Hace auto-switch transparente si un motor nuevo aparece o desaparece
+
+### 3. Environment Optimizer (`env_optimizer.py`)
+Inyecta las variables de entorno óptimas **por motor** sin sobreescribir tu configuración manual:
+
+| Motor | Variables Inyectadas |
+|---|---|
+| **Ollama** | `FLASH_ATTENTION=1`, `KV_CACHE_TYPE=q4_0`, `VULKAN=1` (AMD), `HSA_OVERRIDE_GFX_VERSION=11.0.0` |
+| **Lemonade** | `LEMONADE_LLAMACPP=rocm/cuda/vulkan`, pre-warm via `/api/v1/load` |
+| **LM Studio** | `num_ctx` dinámico desde `/v1/models`, `cache_prompt=true` |
+| **KoboldCPP** | `blasbatchsize` calculado por VRAM, Flash Attention |
+| **Jan AI** | `ngl=-1` (todas las capas en GPU), `ctx_len` por VRAM |
+
+### 4. Hardware Profiler (`hardware_profiler.py`)
+Detecta GPU, VRAM y calcula el contexto máximo posible:
+- **AMD Radeon 780M**: 11GB VRAM estimados (35% de 32GB RAM), GFX 11.0.0, ROCm
+- **KV-Cache formula**: `ctx = (VRAM_MB × 0.45) / (model_B × kv_factor_MB)`
+
+### 5. TurboQuant KV (`turbo_kv.py`)
+Cuantización del KV-Cache basada en el paper de Google DeepMind (Marzo 2026):
+- **Activo hoy**: `q4_0` = 4x reducción de RAM en atención
+- **Preparado para**: TurboQuant real (6x) cuando llegue a Ollama stable — **cero cambios de código requeridos**
 
 ---
 
-## 🚀 Instalación Rápida "Zero-Touch"
+## 🚀 Instalación Zero-Touch
 
-Transformar tu computadora en una base estricta del Séquito te lleva un solo clic.
+```bash
+git clone https://github.com/DarckRovert/Gravity_AI_bridge.git
+cd Gravity_AI_bridge
+INSTALAR.bat
+```
 
-**Paso a Paso:**
-1. Clona el repositorio íntegro en cualquier ubicación definitiva de tu SSD.
-2. Ejecuta **`INSTALAR.bat`**.
-3. El sistema hará lo siguiente **mágicamente**:
-   * Descargará librerías (`rich`, `pyreadline3`, etc.).
-   * Auditará tu anillo de red local y ajustará `_settings.json` al mejor modelo que tengas disponible (Ej. `deepseek-r1:32b`).
-   * Creará el acceso global `gravity` inyectándolo profundamente en tu **PATH** de Windows.
-   * Generará tu engranaje de ícono nativo `Gravity AI Auditor` directamente en tu Escritorio (resolviendo tu OneDrive de forma dinámica).
-4. Dale doble clic al ícono de tu Escritorio o escribe `gravity "!info"` en tu terminal. Estás dentro.
-
----
-
-## 🥷 El Arsenal del Auditor (CLI)
-
-Gravity provee un cliente directo de consola que sirve como tu "ChatGPT Táctico Local". Abre tu CMD nativo o pulsa en el ícono del escritorio. 
-
-Si escribes tu petición normal, responderá. Pero si invocas sus "comandos en crudo", despertarás sus capacidades de lectura extrema:
-
-| Comando Invocado | Destino Táctico |
-| :--- | :--- |
-| **`!integrar <app>`** | Genera la arquitectura `.json` obligando a `vscode`, `cursor` o `aider` a mirarnos. O usa `!integrar todo`. *(Ver [MANUAL_IDE](MANUAL_IDE.md))* |
-| **`/leer <archivo>`** | Arrastra el código íntegro a su cerebro (Ej: `/leer src/main.py`). Perfecto para enviar errores completos a la IA local. |
-| **`/leer-git`** | Realiza un `git diff` asincrónico instantáneo para que te audite qué has modificado en los últimos 5 minutos sin subir a main. |
-| **`/leer-url <web>`** | Accede al link, raspa su documentación y la somete al límite cognitivo de tu hardware. |
-| **`!aprende <regla>`** | Graba código a nivel BIOS de IA. Por ejemplo: `!aprende Eres un ingeniero Senior agresivo, solo das código exacto`. |
-| **`!comprimir`** | Cuando pases de los 8000 tokens en memoria y tu gráfica sufra, purga tu archivo JSON interno y extrae un resumen del hilo, matando la basura. |
-| **`!guardar <snap>`** | Realiza un backup de sus recuerdos bajo ese nombre. Ej: `!guardar fixing-login`. |
-| **`!saves`** | Lista todas tus cápsulas de memoria y cárgalas instantáneamente escribiendo su nombre. |
+El instalador ejecuta **9 pasos automáticos**:
+1. Verifica Python 3.10+
+2. Actualiza pip
+3. Instala dependencias
+4. **Perfila tu hardware** (GPU/VRAM/backend)
+5. Escanea motores de IA disponibles
+6. Auto-configura el mejor motor detectado
+7. **Inyecta variables de entorno optimizadas** permanentemente
+8. Configura integraciones IDE (Continue.dev, Aider, Cursor)
+9. Instala el comando global `gravity`
 
 ---
 
-## 👻 Modo Fantasma y Despliegue Silencioso
+## 🍋 Modelos Recomendados (Lemonade)
 
-Si no deseas tener la consola ejecutándose en la pantalla mientras programas usando tu IDE (Visual Studio Code):
+Para tu hardware (AMD Ryzen 7 8700G, Radeon 780M, 32GB RAM compartida):
 
-1. Ve a la carpeta madre de tu proyecto.
-2. Da doble clic a **`MODO_FANTASMA.vbs`**.
-3. El script asimilará Python mediante scripts de **Visual Basic**, ejecutando tu puente de datos de forma oculta en segundo plano. Nunca te molestará.
-4. Todo el historial y tráfico de red entre tu IDE y el servidor será documentado en texto plano dentro de **`bridge.log`** para ti.
+| Modelo | Tamaño | Para qué | Descargar en Lemonade |
+|---|---|---|---|
+| **Qwen2.5-Coder-14B-Instruct** | ~8.5GB Q4_K_M | Auditoría de código, generación, bugs | `bartowski/Qwen2.5-Coder-14B-Instruct-GGUF` |
+| **DeepSeek-R1-Distill-Qwen-14B** | ~8.5GB Q4_K_M | Razonamiento, análisis, comparaciones | `bartowski/DeepSeek-R1-Distill-Qwen-14B-GGUF` |
 
----
-
-## 📚 Documentación Técnica Oficial
-
-Los Archivos Supremos se extienden a lo largo de este repositorio corporativo para tu beneficio. Léelos aquí:
-
-1. **🛠 [Manual de Integración IDE Exacta (Cursor, VS Code, Aider)](MANUAL_IDE.md)**  
-   *Cómo conectar efectivamente las extensiones de programación del mercado.*
-2. **⚠️ [Solución de Conflictos: Preguntas Frecuentes (FAQ)](FAQ.md)**  
-   *Respuestas frente a problemas de Red, timeout y GPU.*
-3. **🦾 [Manual de Delegación Táctica (IA Híbrida)](MANUAL_DELEGACION.md)**  
-   *Instrucciones de Inyección Pura para que Antigravity actúe solo en nuevos proyectos.*
+> **Selección de cuantización:** Siempre elige **Q4_K_M** en el dropdown de Lemonade. Es el balance óptimo calidad/RAM y el más testeado.
 
 ---
 
-## 🗑️ Desinstalación Limpia
+## ⚔️ El Arsenal del Auditor CLI
 
-Somos un Séquito estructurado y profesional, no malware.
-Si tu núcleo está corrompido, si necesitas migrar y barrer tu `PATH` global de Windows o si deseas destruir la telemetría automática:
+```bash
+gravity "tu pregunta"                    # Consulta directa
+gravity "!info"                          # Panel de hardware + estado del sistema
+gravity "!selector tu pregunta"          # Preview: qué modelo elegiría el sistema
+gravity "!scan"                          # Escanear todos los motores de IA activos
+gravity "!modelos"                       # Listar modelos disponibles por motor
+gravity "/leer archivo.py"               # Inyectar archivo en contexto + auditar
+gravity "/leer-carpeta src/"             # Inyectar proyecto completo (hasta 50k chars)
+gravity "/leer-git"                      # Analizar git diff (cambios sin comitear)
+gravity "/leer-url https://..."          # Extraer y analizar una URL
 
-Basta con dar doble clic al programa **`DESINSTALAR.bat`**. Éste activará un borrado quirúrgico mediante secuencias condicionales, retirará su nombre del registro informático, aplastará el ícono y te liberará. Tus archivos clave (`_history.json` y `_knowledge.json`) permanecerán pacíficamente congelados en su directorio por si alguna vez deseas revivir el motor.
+# Gestión de contexto
+gravity "!comprimir"                     # Comprimir historial cuando se llena el contexto
+gravity "!limpiar"                       # Borrar historial de sesión
+gravity "!guardar nombre"               # Guardar snapshot de la conversación
+gravity "!cargar nombre"                # Restaurar snapshot
 
-<br>
+# Configuración
+gravity "!modo coder"                    # Cambiar modo (auditor/coder/creativo/revisor)
+gravity "!usar modelo:tag"              # Forzar un modelo específico
+gravity "!streaming"                     # Toggle streaming ON/OFF
+gravity "!aprende regla"                # Enseñar regla permanente al sistema
+```
+
+---
+
+## 📋 Documentación Técnica
+
+| Archivo | Función |
+|---|---|
+| `ask_deepseek.py` | CLI principal, AuditorCLI, todos los comandos |
+| `model_selector.py` | Clasificador de tareas y switcher de modelos |
+| `engine_watchdog.py` | Hilo de auto-detección y auto-switch de motores |
+| `hardware_profiler.py` | Detección de GPU, VRAM y cálculo de ctx óptimo |
+| `env_optimizer.py` | Inyección de env vars por motor de IA |
+| `turbo_kv.py` | Cuantización KV-Cache (TurboQuant-compatible) |
+| `provider_scanner.py` | Scanner de puertos y detección de modelos |
+| `auto_config.py` | Actualización automática de `_settings.json` |
+| `bridge_server.py` | Servidor HTTP para integraciones IDE |
+| `_settings.json` | Configuración activa del sistema |
+
+---
+
 <div align="center">
-<b>Construido bajo fuego. Gravity V4.2.</b>
+
+*Gravity AI Bridge — Forjado en las sombras. Ejecutado en local.*
+
 </div>

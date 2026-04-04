@@ -531,35 +531,32 @@ class AuditorCLI:
             else: console.print("[red]Carpeta no existe.[/]"); return True
 
         # ── Smart Model Selection ─────────────────────────────────────────────
-        # Clasificar la tarea y seleccionar el modelo óptimo antes de la petición
+        # Lee el caché del watchdog (0ms) en lugar de scan_all() (1-2s por query)
         try:
             import engine_watchdog
             import model_selector
 
             state = engine_watchdog.get_active_state()
-            available = state.get("hardware", {})
 
-            # Obtener lista de modelos disponibles en el motor activo
-            scanner_result = None
-            try:
-                from provider_scanner import ProviderScanner
-                scans = ProviderScanner.scan_all()
-                for s in scans:
-                    if s.is_healthy and s.name == state.get("provider"):
-                        scanner_result = s
-                        break
-                if not scanner_result and scans:
-                    scanner_result = next((s for s in scans if s.is_healthy), None)
-            except Exception:
-                pass
+            # Obtener modelos del caché (actualizado cada 30s por el watchdog en background)
+            cached = model_selector._available_models_cache
+            all_cached_models = []
+            for model_list in cached.values():
+                all_cached_models.extend(model_list)
 
-            available_model_names = (
-                [m["name"] for m in scanner_result.models]
-                if scanner_result and scanner_result.models
-                else [self.client.model]
-            )
+            # Deduplicar manteniendo orden
+            seen = set()
+            available_model_names = []
+            for m in all_cached_models:
+                if m not in seen:
+                    seen.add(m)
+                    available_model_names.append(m)
 
-            # Initialize tracker if fresh start
+            # Si el caché está vacío (primer arranque), usar el modelo actual
+            if not available_model_names:
+                available_model_names = [self.client.model]
+
+            # Inicializar tracker si es el primer uso
             if model_selector.get_active_model() is None:
                 model_selector.set_active_model(self.client.model)
 
@@ -572,14 +569,15 @@ class AuditorCLI:
                 verbose=not self.as_agent
             )
 
-            # Apply the switch if needed
+            # Aplicar el switch si el selector eligió un modelo diferente
             if did_switch and optimal_model:
                 self.client.model = optimal_model
                 if os.name == 'nt':
-                    os.system(f"title GRAVITY AI ^| {optimal_model} ^| {self.provider.upper()} [SMART SELECT]")
+                    os.system(f"title GRAVITY AI ^| {optimal_model} ^| {self.provider.upper()} [SMART]")
 
         except Exception:
             pass  # Silencioso: nunca interrumpir el flujo por el selector
+
 
         # ── Petición a IA ─────────────────────────────────────────────────────
         msg = [{"role": "system", "content": self._get_system_prompt()}] + self.memory.history + [{"role": "user", "content": p}]
