@@ -227,6 +227,7 @@ class OllamaClient(AIClient):
                     return json.loads(r.read().decode())["message"]["content"]
             else:
                 full_content = ""
+                is_thinking = False
                 with urllib.request.urlopen(req, timeout=1800) as r:
                     for line in r:
                         if line:
@@ -234,7 +235,19 @@ class OllamaClient(AIClient):
                             if data and "message" in data:
                                 chunk = data["message"].get("content", "")
                                 full_content += chunk
-                                sys.stdout.write(chunk); sys.stdout.flush()
+                                
+                                # Detección de bloques de razonamiento (DeepSeek-R1)
+                                if "<think>" in chunk:
+                                    is_thinking = True
+                                    sys.stdout.write("\033[2m") # Dim
+                                if is_thinking:
+                                    sys.stdout.write(chunk)
+                                    if "</think>" in chunk:
+                                        is_thinking = False
+                                        sys.stdout.write("\033[0m") # Reset
+                                else:
+                                    sys.stdout.write(chunk)
+                                sys.stdout.flush()
                 print()
                 return full_content
         except Exception as e: raise ConnectionError(f"Ollama Error: {e}")
@@ -254,6 +267,7 @@ class OpenAIClient(AIClient):
                     return res["choices"][0]["message"]["content"]
             else:
                 full_content = ""
+                is_thinking = False
                 with urllib.request.urlopen(req, timeout=1800) as r:
                     for line in r:
                         line_str = line.decode('utf-8').strip()
@@ -261,8 +275,20 @@ class OpenAIClient(AIClient):
                             data = safe_parse_json_line(line_str[6:])
                             if data and "choices" in data and len(data["choices"]) > 0:
                                 chunk = data["choices"][0].get("delta", {}).get("content", "")
+                                if not chunk: continue
                                 full_content += chunk
-                                sys.stdout.write(chunk); sys.stdout.flush()
+                                
+                                if "<think>" in chunk:
+                                    is_thinking = True
+                                    sys.stdout.write("\033[2m")
+                                if is_thinking:
+                                    sys.stdout.write(chunk)
+                                    if "</think>" in chunk:
+                                        is_thinking = False
+                                        sys.stdout.write("\033[0m")
+                                else:
+                                    sys.stdout.write(chunk)
+                                sys.stdout.flush()
                 print()
                 return full_content
         except Exception as e: raise ConnectionError(f"OpenAI/LM Studio Error: {e}")
@@ -314,190 +340,165 @@ class AuditorCLI:
             console.print(Align.center(f"[bold bright_cyan]{f_logo}[/]"))
         except: console.print("[bold cyan]GRAVITY AI[/]")
             
-        header = Panel(Text(f"AUDITOR SENIOR V{APP_VERSION} — GOD TIER", justify="center", style="bold bright_white"), style="on bright_black", box=box.HEAVY_EDGE)
-        console.print(header)
+    def handle_input(self, inp):
+        """Procesa una entrada (pregunta o comando) y retorna True si debe continuar el chat."""
+        if not inp: return True
+        if inp.lower() in ('salir', 'exit', 'quit'): return False
         
-        c = """[bold yellow]!info[/]         Estado.    [bold cyan]/leer <file>[/] Inyectar txt. 
-[bold yellow]!modo <m>[/]     Personal.  [bold cyan]/leer-git[/]    Inyectar diff actual.
-[bold yellow]!scan[/]         Red local. [bold cyan]/leer-url[/]    Inyectar página web.
-[bold magenta]!guardar <n>[/]  Snapshot.  [bold magenta]!comprimir[/]   Liberar memoria RAM ctx.
-[bold magenta]!saves[/]        Cargar.    [bold green]!integrar[/]    Conectar con VS Code/IDE.
-"""
-        console.print(Align.center(Panel(c, title="[bold bright_white]⚡ ARSENAL V4.2 ⚡[/]", border_style="bright_blue", padding=(0, 2))))
+        # Comandos de Sistema
+        if inp == '!info': self.show_info(); return True
+        if inp == '!version': console.print(f"[bold cyan]Gravity AI Bridge V{APP_VERSION}[/]"); return True
+        if inp.startswith('!integrar'): 
+            args = inp.split(' ')
+            tool = args[1] if len(args) > 1 else 'todo'
+            from ide_integrator import IDEIntegrator
+            IDEIntegrator.integrate(tool); return True
+        if inp == '!scan':
+            with console.status("[cyan]Escaneando puertos locales..."):
+                for s in ProviderScanner.scan_all(): 
+                    console.print(f"[{'X' if s.is_healthy else ' '}] {s.name} ({s.model_count} modelos)")
+            return True
+        if inp.startswith('!modo '):
+            self.settings.save("mode", inp[6:])
+            console.print(f"[green]Modo '{inp[6:]}' activo.[/]"); return True
+        if inp == '!streaming': 
+            cur = self.settings.options.get("streaming", True)
+            self.settings.update_param("streaming", not cur)
+            console.print(f"[green]Streaming: {'ON' if not cur else 'OFF'}[/]"); return True
+        if inp.startswith('!usar '):
+            mod = inp[6:].strip()
+            self.settings.save("last_model", mod)
+            self.client.model = mod
+            console.print(f"[green]Completado. Usando {mod}[/]"); return True
+        if inp == '!modelos':
+            from provider_scanner import ProviderScanner
+            scans = ProviderScanner.scan_all()
+            for s in scans:
+                if s.is_healthy:
+                    console.print(f"[bold cyan]{s.name}[/]: " + ", ".join(m["name"] for m in s.models))
+            return True
+        if inp.startswith('!aprende '):
+            regla = inp[9:].strip()
+            if self.memory.learn(regla):
+                console.print(f"[green]Regla aprendida y persistida.[/]")
+            else:
+                console.print("[yellow]Ya conocía esta regla.[/]")
+            return True
+        if inp == '!exportar-md':
+            h = self.memory.history
+            c = "\n\n".join(f"**{'Usuario' if m['role']=='user' else 'Gravity AI'}**: \n{m['content']}" for m in h)
+            with open(f"export_{int(time.time())}.md", "w", encoding="utf-8") as f: f.write(c)
+            console.print("[green]Sesión exportada a archivo Markdown local.[/]"); return True
+        if inp.startswith('!guardar '):
+            self.memory.save_snapshot(inp[9:]); console.print("[green]Snapshot guardado.[/]"); return True
+        if inp.startswith('!cargar '):
+            if self.memory.load_snapshot(inp[8:]): console.print("[green]Snapshot restaurado.[/]")
+            else: console.print("[red]No existe.[/]"); return True
+        if inp == '!saves': console.print(", ".join(self.memory.list_snapshots())); return True
+        if inp == '!comprimir': self.memory.compress(self.client, self.settings.options, self._get_system_prompt()); return True
+        if inp == '!limpiar': self.memory.clear(); console.print("[yellow]Chat purgado.[/]"); return True
+
+        p = inp
+        
+        # Inyectores de contexto
+        if inp == '/leer-git':
+            try:
+                diff = subprocess.check_output(["git", "diff", "HEAD"], stderr=subprocess.STDOUT).decode('utf-8', errors='ignore')
+                p = f"Analiza mis cambios recientes sin comitear:\n```diff\n{diff}\n```"
+                console.print("[blue]Git diff en memoria.[/]")
+            except: console.print("[red]No hay repositorio git aquí.[/]"); return True
+            
+        elif inp.startswith('/leer-url '):
+            try:
+                html = urllib.request.urlopen(inp[10:], timeout=5).read().decode('utf-8', errors='ignore')
+                p = f"Analiza esta web ({inp[10:]}):\n```\n{html[:15000]}...\n```"
+                console.print("[blue]URL extraída (truncada por seguridad).[/]")
+            except: console.print("[red]Error bajando URL.[/]"); return True
+            
+        elif inp.startswith('/leer '):
+            path = inp[6:].strip()
+            if os.path.exists(path):
+                for c in ['utf-8', 'latin-1']:
+                    try: p = f"Examina ({path}):\n```\n{open(path, 'r', encoding=c).read()}\n```"; break
+                    except: pass
+                console.print("[blue]Archivo en memoria.[/]")
+            else: console.print("[red]No existe.[/]"); return True
+            
+        elif inp.startswith('/leer-carpeta '):
+            folder = inp[14:].strip()
+            if os.path.exists(folder):
+                console.print(f"[cyan]Escaneando carpeta {folder}...[/]")
+                valid_exts = {'.py', '.js', '.ts', '.json', '.md', '.txt', '.yaml', '.toml', '.rs', '.go', '.java', '.c', '.cpp', '.h'}
+                combined = ""
+                for root, _, files in os.walk(folder):
+                    if '.git' in root or 'node_modules' in root or '.venv' in root: continue
+                    for file in files:
+                        if any(file.endswith(ext) for ext in valid_exts):
+                            fp = os.path.join(root, file)
+                            try: combined += f"\n--- Archivo: {fp} ---\n{open(fp, 'r', encoding='utf-8').read()}\n"
+                            except: pass
+                p = f"Analiza la estructura y código de este proyecto:\n{combined[:50000]}"
+                console.print(f"[blue]Proyecto completo inyectado (truncado a 50k chars máximos preventivos).[/]")
+            else: console.print("[red]Carpeta no existe.[/]"); return True
+
+        # Petición a IA
+        msg = [{"role": "system", "content": self._get_system_prompt()}] + self.memory.history + [{"role": "user", "content": p}]
+        
+        start_time = time.time()
+        console.print(Rule(style="cyan"))
+        
+        is_streaming = self.settings.options.get("streaming", True)
+        if is_streaming:
+            console.print(f"[cyan]✨ {self.client.model}...[/]")
+            ans = self.client.chat(msg, options=self.settings.options)
+        else:
+            with console.status(f"[cyan]✨ {self.client.model}...[/]", spinner="dots"):
+                ans = self.client.chat(msg, options=self.settings.options)
+            console.print(Markdown(ans))
+            
+        elapsed = time.time() - start_time
+        self.memory.add_turn(p, ans)
+        
+        if not self.as_agent:
+            bar = f"{self.provider.upper()} │ {self.client.model} │ {self.settings.data.get('mode', 'auditor')} │ {elapsed:.1f}s"
+            console.print(Panel(Text(bar, justify="center", style="dim white"), border_style="dim white"))
+        
+        return True
 
     def run_chat(self):
         self._draw_welcome_ui()
-
         while True:
             try:
                 usage = self.memory.get_estimated_tokens(self._get_system_prompt())
                 limit = self.settings.options.get('num_ctx', 2048)
                 pct = usage/limit if limit > 0 else 0
-                
                 if pct > self.settings.options.get('warning_threshold', 0.85):
                     if self.settings.options.get("auto_compress", True): self.memory.compress(self.client, self.settings.options, self._get_system_prompt())
-                    else: console.print(f"[bold red]⚠ ALERTA: Contexto crítico ({pct*100:.0f}%). Escribe !limpiar o !comprimir.[/]")
-
+                
                 inp = Prompt.ask("[bold green]>>[/]").strip()
-                if not inp or inp.lower() in ('salir', 'exit', 'quit'): break
-                
-                # Comandos de Sistema
-                if inp == '!info': self.show_info(); continue
-                if inp == '!version': console.print(f"[bold cyan]Gravity AI Bridge V{APP_VERSION}[/]"); continue
-                if inp.startswith('!integrar'): 
-                    args = inp.split(' ')
-                    tool = args[1] if len(args) > 1 else 'todo'
-                    from ide_integrator import IDEIntegrator
-                    IDEIntegrator.integrate(tool); continue
-                if inp == '!scan':
-                    with console.status("[cyan]Escaneando puertos locales..."):
-                        for s in ProviderScanner.scan_all(): 
-                            console.print(f"[{'X' if s.is_healthy else ' '}] {s.name} ({s.model_count} modelos)")
-                    continue
-                if inp.startswith('!modo '):
-                    self.settings.save("mode", inp[6:])
-                    console.print(f"[green]Modo '{inp[6:]}' activo.[/]"); continue
-                if inp == '!streaming': 
-                    cur = self.settings.options.get("streaming", True)
-                    self.settings.update_param("streaming", not cur)
-                    console.print(f"[green]Streaming: {'ON' if not cur else 'OFF'}[/]"); continue
-                if inp.startswith('!usar '):
-                    mod = inp[6:].strip()
-                    self.settings.save("last_model", mod)
-                    self.client.model = mod
-                    console.print(f"[green]Completado. Usando {mod}[/]"); continue
-                if inp == '!modelos':
-                    from provider_scanner import ProviderScanner
-                    scans = ProviderScanner.scan_all()
-                    for s in scans:
-                        if s.is_healthy:
-                            console.print(f"[bold cyan]{s.name}[/]: " + ", ".join(m["name"] for m in s.models))
-                    continue
-                if inp.startswith('!aprende '):
-                    regla = inp[9:].strip()
-                    if self.memory.learn(regla):
-                        console.print(f"[green]Regla aprendida y persistida.[/]")
-                    else:
-                        console.print("[yellow]Ya conocía esta regla.[/]")
-                    continue
-                if inp == '!exportar-md':
-                    h = self.memory.history
-                    c = "\n\n".join(f"**{'Usuario' if m['role']=='user' else 'Gravity AI'}**: \n{m['content']}" for m in h)
-                    with open(f"export_{int(time.time())}.md", "w", encoding="utf-8") as f: f.write(c)
-                    console.print("[green]Sesión exportada a archivo Markdown local.[/]"); continue
-                if inp.startswith('!guardar '):
-                    self.memory.save_snapshot(inp[9:]); console.print("[green]Snapshot guardado.[/]"); continue
-                if inp.startswith('!cargar '):
-                    if self.memory.load_snapshot(inp[8:]): console.print("[green]Snapshot restaurado.[/]")
-                    else: console.print("[red]No existe.[/]"); continue
-                if inp == '!saves': console.print(", ".join(self.memory.list_snapshots())); continue
-                if inp == '!comprimir': self.memory.compress(self.client, self.settings.options, self._get_system_prompt()); continue
-                if inp == '!limpiar': self.memory.clear(); console.print("[yellow]Chat purgado.[/]"); continue
-
-                p = inp
-                
-                # Inyectores de contexto
-                if inp == '/leer-git':
-                    try:
-                        diff = subprocess.check_output(["git", "diff", "HEAD"], stderr=subprocess.STDOUT).decode('utf-8', errors='ignore')
-                        p = f"Analiza mis cambios recientes sin comitear:\n```diff\n{diff}\n```"
-                        console.print("[blue]Git diff en memoria.[/]")
-                    except: console.print("[red]No hay repositorio git aquí.[/]"); continue
-                    
-                elif inp.startswith('/leer-url '):
-                    try:
-                        html = urllib.request.urlopen(inp[10:], timeout=5).read().decode('utf-8', errors='ignore')
-                        p = f"Analiza esta web ({inp[10:]}):\n```\n{html[:15000]}...\n```"
-                        console.print("[blue]URL extraída (truncada por seguridad).[/]")
-                    except: console.print("[red]Error bajando URL.[/]"); continue
-                    
-                elif inp.startswith('/leer '):
-                    path = inp[6:].strip()
-                    if os.path.exists(path):
-                        for c in ['utf-8', 'latin-1']:
-                            try: p = f"Examina ({path}):\n```\n{open(path, 'r', encoding=c).read()}\n```"; break
-                            except: pass
-                        console.print("[blue]Archivo en memoria.[/]")
-                    else: console.print("[red]No existe.[/]"); continue
-                    
-                elif inp.startswith('/leer-carpeta '):
-                    folder = inp[14:].strip()
-                    if os.path.exists(folder):
-                        console.print(f"[cyan]Escaneando carpeta {folder}...[/]")
-                        valid_exts = {'.py', '.js', '.ts', '.json', '.md', '.txt', '.yaml', '.toml', '.rs', '.go', '.java', '.c', '.cpp', '.h'}
-                        combined = ""
-                        for root, _, files in os.walk(folder):
-                            if '.git' in root or 'node_modules' in root or '.venv' in root: continue
-                            for file in files:
-                                if any(file.endswith(ext) for ext in valid_exts):
-                                    fp = os.path.join(root, file)
-                                    try: combined += f"\n--- Archivo: {fp} ---\n{open(fp, 'r', encoding='utf-8').read()}\n"
-                                    except: pass
-                        p = f"Analiza la estructura y código de este proyecto:\n{combined[:50000]}"
-                        console.print(f"[blue]Proyecto completo inyectado (truncado a 50k chars máximos preventivos).[/]")
-                    else: console.print("[red]Carpeta no existe.[/]"); continue
-
-
-                # Petición a IA
-                msg = [{"role": "system", "content": self._get_system_prompt()}] + self.memory.history + [{"role": "user", "content": p}]
-                
-                start_time = time.time()
-                ans = ""
-                console.print(Rule(style="cyan"))
-                
-                is_streaming = self.settings.options.get("streaming", True)
-                if is_streaming:
-                    console.print(f"[cyan]✨ {self.client.model}...[/]")
-                    ans = self.client.chat(msg, options=self.settings.options)
-                else:
-                    with console.status(f"[cyan]✨ {self.client.model}...[/]", spinner="dots"):
-                        ans = self.client.chat(msg, options=self.settings.options)
-                    console.print(Markdown(ans))
-                    
-                elapsed = time.time() - start_time
-                
-                self.memory.add_turn(p, ans)
-                bar = f"{self.provider.upper()} │ {self.client.model} │ {self.settings.data.get('mode', 'auditor')} │ {elapsed:.1f}s"
-                console.print(Panel(Text(bar, justify="center", style="dim white"), border_style="dim white"))
-
+                if not self.handle_input(inp): break
             except Exception as e: console.print(f"\n[red]Error fatal:[/] {e}")
 
 def main():
     # Detectamos si se ejecuta por pipe (ej: git diff | gravity "audita")
     if not sys.stdin.isatty():
-        piped_data = sys.stdin.read()
-        args = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else "Analiza esto:"
-        cli = AuditorCLI(as_agent=True)
         try:
-            res = cli.client.chat([
-                {"role":"system","content":cli._get_system_prompt()},
-                {"role":"user","content":f"{args}\n\n```\n{piped_data}\n```"}
-            ], options=cli.settings.options)
-            
-            # Limpiar rastro de razonamiento interno si existe para no ensuciar la terminal del usuario
-            if "<think>" in res and "</think>" in res:
-                res = res.split("</think>")[-1].strip()
-            
-            print(res)
-        except Exception as e: print(f"ERROR: {e}")
+            piped_data = sys.stdin.read()
+            args = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else "Analiza esto:"
+            cli = AuditorCLI(as_agent=True)
+            query = f"{args}\n\n```\n{piped_data}\n```"
+            cli.handle_input(query)
+        except EOFError: pass
         return
 
     # Si se pasan argumentos, modo agente (una respuesta y salir)
     if len(sys.argv) > 1:
         cli = AuditorCLI(as_agent=True)
-        try:
-            res = cli.client.chat([
-                {"role":"system","content":cli._get_system_prompt()},
-                {"role":"user","content":" ".join(sys.argv[1:])}
-            ], options=cli.settings.options)
-            
-            if "<think>" in res and "</think>" in res:
-                res = res.split("</think>")[-1].strip()
-                
-            print(res)
-        except Exception as e: print(f"ERROR: {e}")
+        inp = " ".join(sys.argv[1:])
+        cli.handle_input(inp)
     else:
         AuditorCLI().run_chat()
 
 if __name__ == "__main__":
     main()
+
