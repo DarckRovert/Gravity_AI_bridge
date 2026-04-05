@@ -32,20 +32,20 @@
 
 ```mermaid
 graph TD;
-    U[("Tu IDE (Cursor/Aider) o Terminal")] --> server("Universal SSE Proxy<br>Localhost:7860");
+    U["Tu IDE o Terminal"] --> server["Universal SSE Proxy"]
     
-    subgraph "GRAVITY AI V7 OMNI-TIER"
-        server --> PM{"Provider Manager<br>(Orquestador Principal)"};
+    subgraph GRAVITY_AI["GRAVITY AI V7 OMNI-TIER"]
+        server --> PM["Provider Manager"]
         
-        PM -->|Local Fallback| localNode("Capa Local<br>(Ollama, LM Studio, vLLM)");
-        PM -->|Cloud Routing| cloudNode("Capa Cloud<br>(AWS, OpenAI, Anthropic)");
+        PM -->|Local Fallback| localNode["Capa Local (Ollama)"]
+        PM -->|Cloud Routing| cloudNode["Capa Cloud (OpenAI)"]
         
-        PM --> cost("Cost Tracker<br>(Estimación Diaria USD)");
+        PM --> cost["Cost Tracker"]
         
-        KM("Key Manager DPAPI<br>(Encriptación OS-Level)") -->|Provee Secretos| cloudNode;
+        KM["Key Manager DPAPI"] -->|Provee Secretos| cloudNode
         
-        PM --> tools("Tool Execution Engine<br>(Web, Python, Git)");
-        PM --> rag("Dependency-Free RAG<br>(SQLite + TF-IDF/Chroma)");
+        PM --> tools["Tool Execution Engine"]
+        PM --> rag["Dependency-Free RAG"]
     end
     
     style U fill:#1b1b1b,stroke:#0ffff,color:#fff
