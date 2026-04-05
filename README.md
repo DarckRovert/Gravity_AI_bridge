@@ -32,27 +32,27 @@
 
 ```mermaid
 graph TD;
-    U[("Tu IDE (Cursor/Aider) o Terminal")] --> server("Universal SSE Proxy\nLocalhost:7860");
+    U[("Tu IDE (Cursor/Aider) o Terminal")] --> server("Universal SSE Proxy<br>Localhost:7860");
     
     subgraph "GRAVITY AI V7 OMNI-TIER"
-        server --> PM(["Provider Manager\n(Orquestador Principal)"]);
+        server --> PM{"Provider Manager<br>(Orquestador Principal)"};
         
-        PM -->|Local Fallback| local("Capa Local\n(Ollama, LM Studio, vLLM)")
-        PM -->|Cloud Routing| cloud("Capa Cloud\n(AWS, OpenAI, Anthropic)")
+        PM -->|Local Fallback| localNode("Capa Local<br>(Ollama, LM Studio, vLLM)");
+        PM -->|Cloud Routing| cloudNode("Capa Cloud<br>(AWS, OpenAI, Anthropic)");
         
-        PM --> cost("Cost Tracker\n(Estimación Diaria USD)")
+        PM --> cost("Cost Tracker<br>(Estimación Diaria USD)");
         
-        KM("Key Manager DPAPI\n(Encriptación OS-Level)") -->|Provee Secretos| cloud
+        KM("Key Manager DPAPI<br>(Encriptación OS-Level)") -->|Provee Secretos| cloudNode;
         
-        PM --> tools("Tool Execution Engine\n(Web, Python, Git)")
-        PM --> rag("Dependency-Free RAG\n(SQLite + TF-IDF/Chroma)")
+        PM --> tools("Tool Execution Engine<br>(Web, Python, Git)");
+        PM --> rag("Dependency-Free RAG<br>(SQLite + TF-IDF/Chroma)");
     end
     
     style U fill:#1b1b1b,stroke:#0ffff,color:#fff
     style server fill:#223344,stroke:#ff00ff
     style PM fill:#ff8800,stroke:#ffffff,color:#000
-    style local fill:#0a3a2a,stroke:#00ff55,color:#fff
-    style cloud fill:#3a0a2a,stroke:#ff0055,color:#fff
+    style localNode fill:#0a3a2a,stroke:#00ff55,color:#fff
+    style cloudNode fill:#3a0a2a,stroke:#ff0055,color:#fff
 ```
 
 ---
