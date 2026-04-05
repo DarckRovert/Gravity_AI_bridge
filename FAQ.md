@@ -1,4 +1,4 @@
-# ❓ Preguntas Frecuentes (FAQ) & Troubleshooting
+# ❓ FAQ - Preguntas Frecuentes (Gravity AI V7.1 — Omni-Tier)
 
 **El menú me dice 🔴 Inactivo en todos mis proveedores, pero yo instalé LM Studio / Ollama.**
 Asegúrate de que estás corriendo el servicio local.

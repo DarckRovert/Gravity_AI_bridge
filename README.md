@@ -1,10 +1,10 @@
 <div align="center">
 <img src="assets/hero_ai.png" width="800" alt="Gravity AI Omni Tier Banner">
 
-# GRAVITY AI BRIDGE V7.0 — OMNI-TIER 🌐
+# GRAVITY AI BRIDGE V7.1 — OMNI-TIER Optimized 🌐
 ### El Motor Universal de Orquestación e Inferencia Perimetral.
 
-[![Version](https://img.shields.io/badge/Version-7.0_Omni--Tier-purple?style=for-the-badge)](https://github.com/DarckRovert/Gravity_AI_bridge)
+[![Version](https://img.shields.io/badge/Version-7.1_Omni--Tier-purple?style=for-the-badge)](https://github.com/DarckRovert/Gravity_AI_bridge)
 [![Python](https://img.shields.io/badge/Python-3.10+-blue?style=for-the-badge)](#)
 [![Security](https://img.shields.io/badge/Security-DPAPI_Encrypted-green?style=for-the-badge)](#)
 [![Engines](https://img.shields.io/badge/Engines-Local_&_Cloud-blueviolet?style=for-the-badge)](#)
@@ -14,12 +14,12 @@
 
 <br/>
 
-**Gravity AI Bridge V7.0 (Omni-Tier)** es una arquitectura **Enterprise de Enrutamiento Universal** que detecta, optimiza y controla absolutamente cualquier motor de IA: tanto locales (Ollama, LM Studio, Jan, Kobold) como infraestructuras Cloud (OpenAI, DeepSeek, Anthropic, Gemini, Grok, AWS). Opera desde un punto único con `Zero-Overhead`, proveyendo inyección modular de herramientas, un motor RAG Nativo en SQLite sin dependencias pesadas, y aseguramiento criptográfico DPAPI de credenciales.
+**Gravity AI Bridge V7.1 (Omni-Tier Optimized)** es una arquitectura **Enterprise de Enrutamiento Universal** que detecta, optimiza y controla absolutamente cualquier motor de IA: tanto locales (Ollama, LM Studio, Jan, Kobold) como infraestructuras Cloud (OpenAI, DeepSeek, Anthropic, Gemini, Grok, AWS). La versión 7.1 introduce **Telemetría Dinámica de Hardware**, **Caché Híbrida de Razonamiento** y un motor de **Contexto Deslizante (Sliding Window)** de 128k tokens con purga automática de bloques `<think>`.
 
 ---
 
 ## 📜 Tabla de Contenidos
-- [Arquitectura V7.0 Omni-Tier](#-arquitectura-v70-omni-tier)
+- [Arquitectura V7.1 Omni-Tier](#-arquitectura-v71-omni-tier)
 - [Capa de Proveedores Universales](#-capa-de-proveedores-universales-omni-tier)
 - [Zero-Overhead RAG & Tools](#-zero-overhead-rag--tool-execution)
 - [Instalación Zero-Touch](#-instalación-zero-touch)
@@ -28,7 +28,7 @@
 
 ---
 
-## 🖧 Arquitectura V7.0 Omni-Tier
+## 🖧 Arquitectura V7.1 Omni-Tier
 
 ```mermaid
 graph TD
@@ -64,7 +64,13 @@ graph TD
 ---
 
 ## 🌩 Capa de Proveedores Universales (Omni-Tier)
-A diferencia de versiones anteriores limitadas al perímetro local, la V7.0 unifica **cualquier API** adaptándola al estándar de inyección.
+A diferencia de versiones anteriores limitadas al perímetro local, la V7.1 unifica **cualquier API** adaptándola al estándar de inyección con optimización de tráfico.
+
+### 🚀 Novedades de la V7.1 (Optimized)
+*   **Telemetría CLI 3-Panels:** Monitoreo en tiempo real de VRAM, RAM, GPU y Cache Hit Rate directamente en el banner.
+*   **Métricas de Latencia (TTFT/TPS):** Auditoría de rendimiento "Time To First Token" y tokens por segundo en cada respuesta.
+*   **Reasoning-Aware Cache:** Motor SQLite en modo **WAL** que sanitiza bloques de razonamiento interno (`<think>`) para maximizar los hits de caché.
+*   **Context Stripper:** Poda inteligente de historial (128k tokens) y limpieza reactiva de memoria post-sesión.
 
 * **Locales Detectables (Auto-Port Scanning):** Ollama, LM Studio, KoboldCPP, Jan AI, Xinference, LocalAI, vLLM, TabbyAPI, Lemonade.
 * **Cloud (Vía KeyManager DPAPI):** OpenAI, Anthropic Claude, Google Gemini, xAI (Grok), Mistral, DeepSeek, Firefox, Together, Perplexity, AWS Bedrock, HuggingFace, Azure OpenAI, Cohere.

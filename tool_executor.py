@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — TOOL EXECUTOR V7.0                          ║
+║     GRAVITY AI — TOOL EXECUTOR V7.1                          ║
 ║     Analiza outputs de la IA y ejecuta tools automáticamente ║
 ╚══════════════════════════════════════════════════════════════╝
 """

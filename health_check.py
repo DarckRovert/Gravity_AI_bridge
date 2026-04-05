@@ -98,7 +98,7 @@ def main():
     except Exception:
         pass
         
-    console.print(Align.center(Panel(Text("SISTEMA DE DIAGNÓSTICO V7.0 OMNI-TIER", justify="center", style="bold bright_white"), style="on bright_black", box=box.HEAVY_EDGE, padding=(0,2))))
+    console.print(Align.center(Panel(Text("SISTEMA DE DIAGNÓSTICO V7.1 OMNI-TIER", justify="center", style="bold bright_white"), style="on bright_black", box=box.HEAVY_EDGE, padding=(0,2))))
     
     with console.status("[bold cyan]⏳ Escaneando ecosistema Local y Cloud (RTO)...[/]", spinner="dots"):
         scans = provider_manager.scan_all()

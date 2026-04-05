@@ -1,6 +1,6 @@
 # 🛠️ Guía de Contribución al Core de Gravity AI
 
-¡Gracias por querer aportar al Ecosistema V7.0 Omni-Tier de Gravity! El objetivo principal es mantener la UI de consola ultra-fluida y el Bridge proxy corriendo sin dependencias pesadas.
+¡Gracias por querer aportar al Ecosistema V7.1 Omni-Tier de Gravity! El objetivo principal es mantener la UI de consola ultra-fluida y el Bridge proxy corriendo sin dependencias pesadas.
 
 ## Requisitos de Código (Hard Rules)
 1. **Cero Dependencias Bloqueantes:** El proyecto se enorgullece de usar únicamente `urllib`, `socket` y librerías stdlib de Python para el servidor y llamadas. La única dependencia estética es `rich` y `pyfiglet`. **No se aceptarán frameworks masivos como Flask/FastAPI.**

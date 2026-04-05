@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI PROVIDER SCANNER V7.0 — Compatibility Wrapper║
+║     GRAVITY AI PROVIDER SCANNER V7.1 — Compatibility Wrapper ║
 ║     Delegates to ProviderManager + ProviderRegistry         ║
 ╚══════════════════════════════════════════════════════════════╝
 This file is a BACKWARDS-COMPATIBLE wrapper around the new

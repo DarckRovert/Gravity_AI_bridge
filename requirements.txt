@@ -1,18 +1,18 @@
-# Dependencias de Gravity AI Bridge V7.0 (Omni-Tier)
+# Dependencias de Gravity AI Bridge V7.1 (Omni-Tier Optimized)
 rich
 pyfiglet
 urllib3
 pyreadline3
 
-# V7.0 Key Manager (Windows DPAPI)
+# V7.1 Key Manager (Windows DPAPI)
 pywin32; sys_platform == 'win32'
 
-# V7.0 Cloud Providers
+# V7.1 Cloud Providers
 boto3           # AWS Bedrock
 
-# V7.0 RAG Local
+# V7.1 RAG Local
 sentence-transformers
 pypdf           # Parseo de PDFs
 
-# V7.0 TUI
+# V7.1 TUI
 textual

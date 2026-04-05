@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════╗
-║     GRAVITY AI ENVIROMENT OPTIMIZER V7.0                 ║
+║     GRAVITY AI ENVIROMENT OPTIMIZER V7.1                 ║
 ║     Optimización Automática para TODOS los Motores       ║
 ╚══════════════════════════════════════════════════════════╝
 

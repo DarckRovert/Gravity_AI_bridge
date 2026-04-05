@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════╗
-║     GRAVITY AI TURBO KV OPTIMIZER V7.0 Omni-Tier         ║
+║     GRAVITY AI TURBO KV OPTIMIZER V7.1 Omni-Tier         ║
 ║     Cuantización del KV-Cache — Multi-Engine             ║
 ╚══════════════════════════════════════════════════════════╝
 

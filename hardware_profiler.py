@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════╗
-║     GRAVITY AI HARDWARE PROFILER V6.0                ║
+║     GRAVITY AI — HARDWARE PROFILER V7.1              ║
 ║     Detección multi-GPU, VRAM y cálculo de contexto  ║
 ╚══════════════════════════════════════════════════════╝
 Detecta TODAS las GPUs disponibles (iGPU + dGPU),

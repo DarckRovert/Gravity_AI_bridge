@@ -1,6 +1,6 @@
-# ⚔️ Arsenal de Comandos (Gravity AI V7.0 Omni-Tier)
+# ⚔️ Arsenal de Comandos (Gravity AI V7.1 — Optimized)
 
-Gravity no es un simple chat. Es una terminal interactiva. Abajo se documentan todos los comandos nativos del ecosistema.
+Gravity no es un simple chat. Es una terminal interactiva con telemetría de hardware en tiempo real (VRAM/GPU), métricas de latencia TTFT (Time To First Token) y rendimiento TPS (Tokens/Sec).
 
 ## 🕹️ Comandos de Inyección de Contexto
 

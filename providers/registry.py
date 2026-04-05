@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — PROVIDER REGISTRY V7.0                      ║
+║     GRAVITY AI — PROVIDER REGISTRY V7.1                      ║
 ║     Auto-discovery + hot-reload de todos los plugins        ║
 ╚══════════════════════════════════════════════════════════════╝
 """

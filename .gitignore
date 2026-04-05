@@ -1,0 +1,14 @@
+# Gravity AI Bridge - Ignored Files
+_cache.sqlite*
+_cost_log.json
+_saves/
+_settings.json
+_knowledge.json
+__pycache__/
+venv/
+.venv/
+*.log
+session_*.html
+session_*.md
+node_modules/
+.DS_Store

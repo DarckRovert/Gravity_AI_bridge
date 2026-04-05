@@ -1,5 +1,5 @@
 """
-Gravity AI — Web Search Tool V7.0
+Gravity AI — Web Search Tool V7.1
 Sin API key requerida. Usa DuckDuckGo HTML scraping.
 Opcional: Brave Search API (gratuita, 2000 req/mes).
 """
@@ -18,7 +18,7 @@ def _ddg_search(query: str) -> list[dict]:
     """DuckDuckGo HTML scrape — no API key required."""
     data = urllib.parse.urlencode({"q": query, "kl": "es-es"}).encode()
     req  = urllib.request.Request(DDG_URL, data=data, headers={
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) GravityAI/7.0",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) GravityAI/7.1",
         "Content-Type": "application/x-www-form-urlencoded",
     })
     try:

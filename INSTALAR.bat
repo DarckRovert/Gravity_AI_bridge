@@ -1,12 +1,12 @@
 @echo off
 setlocal enabledelayedexpansion
-title INSTALADOR GLOBAL - GRAVITY AI BRIDGE V7.0 OMNI-TIER
+title INSTALADOR GLOBAL - GRAVITY AI BRIDGE V7.1 OMNI-TIER
 color 0b
 cls
 
 echo.
 echo  +----------------------------------------------------------+
-echo  ^|    GRAVITY AI BRIDGE V7.0 - OMNI-TIER INSTALLER          ^|
+echo  ^|    GRAVITY AI BRIDGE V7.1 - OMNI-TIER INSTALLER          ^|
 echo  +----------------------------------------------------------+
 echo.
 echo  Iniciando asistente de instalacion automatizado...
@@ -120,16 +120,16 @@ if %errorlevel% neq 0 (
 
 echo.
 echo  +----------------------------------------------------------+
-echo  ^|      GRAVITY AI BRIDGE V7.0 OMNI-TIER - LISTO            ^|
+echo  ^|      GRAVITY AI BRIDGE V7.1 OMNI-TIER - LISTO            ^|
 echo  +----------------------------------------------------------+
 echo.
 echo  El sistema mas avanzado de IA local/cloud esta en tu maquina.
 echo.
-echo  NUEVAS CARACTERISTICAS V7.0:
-echo    - Soporte Universal (Local + Cloud OpenAI/Anthropic/Gemini)
-echo    - Key Manager Integrado (DPAPI Secure)
-echo    - RAG Engine Local sin dependencias pesadas
-echo    - Tool Execution Directa (Web Search, File Ops, Code Runner)
+echo  NUEVAS CARACTERISTICAS V7.1:
+echo    - Telemetria de Hardware (VRAM/RAM) en Tiempo Real
+echo    - Latencia TTFT (Time To First Token) visible
+echo    - Motor de Cache WAL (SQLite Ultra-Fast Hashing)
+echo    - Sliding Window (128k context) & Reasoning Purge
 echo.
 echo  MODOS DE USO:
 echo    1. Consola Nativa: gravity "tu pregunta"

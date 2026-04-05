@@ -9,7 +9,7 @@ A diferencia de un script normal de terminal, Gravity es un Ecosistema:
 - **Modo Pipe:** `cat config.json | gravity "explícame qué hace uniendo con..."`
 - **Proxy Server:** Gravity actúa como servidor `OpenAI` transparente en `localhost:7860/v1` para conectar todos los IDEs automáticamente vía `!integrar`.
 
-## 🤖 Protocolo de Delegación (Para Asistentes Cloud)
+## 🌐 Protocolo de Comunicación Gravity AI (G-PROT V7.1)
 
 Como IA, tu deber es evitar gastar tokens resolviendo problemas matemáticos lentos si este Ecosistema puede hacerlo:
 

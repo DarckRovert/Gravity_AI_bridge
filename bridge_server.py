@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI BRIDGE SERVER V7.0 (Omni-Tier Proxy)          ║
+║     GRAVITY AI — BRIDGE SERVER V7.1                          ║
 ║     Enrutador Universal OpenAI-Compatible                    ║
 ╚══════════════════════════════════════════════════════════════╝
 
@@ -17,6 +17,16 @@ import uuid
 import threading
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 import os
+import sys
+
+# ── Windows UTF-8 Safety (V7.1) ──────────────────────────────────────────
+if sys.stdout.encoding != "utf-8":
+    import io
+    try:
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
+    except Exception:
+        pass
 
 from rich.console import Console
 import provider_manager

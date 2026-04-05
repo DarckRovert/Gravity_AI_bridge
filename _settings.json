@@ -1,7 +1,7 @@
 {
     "provider": "LM Studio",
-    "api_url": "http://localhost:11434",
-    "last_model": "gemma4:26b",
+    "api_url": "http://localhost:1234",
+    "last_model": "google/gemma-4-26b-a4b",
     "mode": "auditor",
     "agent_language": "en",
     "user_language": "es",

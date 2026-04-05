@@ -1,4 +1,4 @@
-# Protocolo de Delegación Táctica (IA Híbrida)
+# 🤝 Manual de Delegación (Gravity AI V7.1 — Auditor-to-Local)
 
 Si abres un chat de Inteligencia Artificial para trabajar en un **proyecto computacional completamente distinto** (y la IA en la nube no recuerda nada sobre cómo está estructurado tu sistema de auditoría local), puedes obligarla a canalizar sus algoritmos a través de tu **propia GPU y tu hardware DeepSeek-R1**.
 

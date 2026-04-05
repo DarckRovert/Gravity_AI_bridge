@@ -1,5 +1,5 @@
 """
-ide_integrator.py — Gravity AI Bridge V7.0 Omni-Tier
+ide_integrator.py — Gravity AI Bridge V7.1 Omni-Tier
 Modulo aislado para configurar IDEs. Sin dependencias de Rich ni SettingsManager.
 Se puede importar de forma segura desde el instalador.
 """

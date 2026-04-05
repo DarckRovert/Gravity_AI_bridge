@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — SESSION MANAGER V7.0                        ║
+║     GRAVITY AI — SESSION MANAGER V7.1                        ║
 ║     Sesiones con Fork/Merge + Export                         ║
 ╚══════════════════════════════════════════════════════════════╝
 """
@@ -112,6 +112,55 @@ class SessionManager:
                 if msg["content"] not in current_contents:
                     self._history.append(msg)
         return True
+
+    # ── Token Optimization (V7.1) ─────────────────────────────────────────────
+
+    def trim_history(self, max_tokens: int = 128000) -> int:
+        """
+        Removes oldest messages when context exceeds max_tokens.
+        Preserves the first message (System Prompt).
+        Returns number of messages removed.
+        """
+        if len(self._history) <= 2:
+            return 0
+
+        removed_count = 0
+        while len(self._history) > 1:
+            # Simple heuristic: chars / 4
+            total_tokens = sum(len(m.get("content", "")) // 4 for m in self._history)
+            if total_tokens <= max_tokens:
+                break
+            
+            # Remove the second message (index 1), keeping index 0 (system)
+            self._history.pop(1)
+            removed_count += 1
+            
+        return removed_count
+
+    def cleanup_reasoning(self) -> int:
+        """
+        Permanently removes <think> blocks and internal metadata from history.
+        Used before final save or session exit.
+        """
+        import re
+        removed_chars = 0
+        # Tags to strip: <think>...</think>, <|canal>pensamiento...<channel|>
+        patterns = [
+            r"<think>.*?</think>",
+            r"<\|canal\|>pensamiento.*?<channel\|>",
+            r"<\|canal\|>pensamiento.*" # Greedy fallback if not closed
+        ]
+        
+        for msg in self._history:
+            original_len = len(msg.get("content", ""))
+            content = msg.get("content", "")
+            for pattern in patterns:
+                content = re.sub(pattern, "", content, flags=re.DOTALL)
+            
+            msg["content"] = content.strip()
+            removed_chars += (original_len - len(msg["content"]))
+            
+        return removed_chars // 4 # return approx tokens saved
 
     # ── Export ────────────────────────────────────────────────────────────────
 

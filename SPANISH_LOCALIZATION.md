@@ -1,4 +1,4 @@
-# 🌐 Spanish Localization / Localización Hispana
+# 🌐 Spanish Localization / Localización y Reglas de Idioma (G-PROT V7.1)
 
 Este proyecto ha sido programado con **identidad Latinoamericana/Hispana nativa**.
 A diferencia de todos los envoltorios (Wrappers) genéricos escritos en Inglés anglosajón, el ecosistema de **Gravity AI** usa prompts nativos, UI y control de errores fuertemente adaptados al español técnico.
