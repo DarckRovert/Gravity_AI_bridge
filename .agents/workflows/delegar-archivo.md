@@ -1,15 +1,17 @@
 ---
-description: Delegate the audit of a specific file to the Local Gravity AI
+description: Auditoría de seguridad, bugs o deuda técnica de un archivo específico.
 ---
+// audit-mode: strict
+// zero-trust-security: enabled
 
-This workflow allows Antigravity to automatically send an entire file for the local agent to inspect for vulnerabilities, technical debt, or refactoring, using its memory without consuming cloud quota. Always communicate with the local AI in English for the best results.
+1. **Source Injection**
+   Leer el contenido íntegro del archivo especificado por el usuario. No omitir ninguna línea.
 
-// turbo-all
-1. **Execute Direct File Audit**
-   Inject the file via the pipe injector and ask the local model to perform a thorough review. Replace `<FILE_PATH>` with the actual path.
+2. **Execute Direct Pipe Audit**
+   Generar un prompt de auditoría en Inglés y enviarlo junto con el archivo al modelo local:
    ```bash
-   cat "<FILE_PATH>" | python ask_deepseek.py "Audit this file for hidden bugs and vulnerabilities. Present a structured report."
+   cat "<FILE_PATH>" | python F:\Gravity_AI_bridge\ask_deepseek.py "Perform a deep technical audit of this file. Identify: 1. Logic bugs. 2. Memory leaks. 3. Security vulnerabilities. Present a structured report in English."
    ```
 
-2. **Present Findings**
-   Antigravity will read the resulting console output and present it to the user to decide the next steps (e.g. apply fix, discard false positive error).
+3. **Present Findings**
+   Traducir los hallazgos críticos al Español. Ofrecer al usuario la opción de aplicar los parches sugeridos de forma automática.
