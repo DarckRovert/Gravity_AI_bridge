@@ -347,7 +347,7 @@ class AuditorCLI:
                 opts = self.sm.data.get("advanced_params", {})
                 full_resp = []
                 
-                console.print("\n[bold green]Auditor:[/]", end=" ", flush=True)
+                console.print("\n[bold green]Auditor:[/]", end=" ")
                 
                 t0 = time.time()
                 try:
