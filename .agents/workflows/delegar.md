@@ -1,28 +1,21 @@
 ---
-description: Delegar una tarea técnica agresiva al Auditor Senior Local V4
+description: Delegate an intensive technical task to the Local Senior Auditor
 ---
 
-Este flujo de trabajo es el modo en el que **Antigravity** aprovecha el Gravity Server para realizar un trabajo de Coder duro (ej. escribir módulos enteros) usando el backend de GPU local del humano.
+This workflow is how **Antigravity** leverages the Gravity Server to perform heavy Coder work (e.g. writing entire modules) using the human's local GPU backend. Always communicate with the local AI in English for the best results.
 
 // turbo-all
-1. **Verificar el Ecosistema**
-   Evalúa en qué motor está corriendo el Gravity y qué memoria tiene.
+1. **Verify the Ecosystem**
+   Evaluate which engine Gravity is running on and its available memory.
    ```bash
    python ask_deepseek.py "!info"
    ```
 
-2. **Delegar por Pipe Directo (Ej. Auditoría de Archivos)**
-   Si necesitas que la IA local revise un bloque de código completo (o un error largo), asumes el perfil Coder temporal y se lo mandas por pipe:
+2. **Delegate via Direct Pipe (E.g. File Audit)**
+   If you need the local AI to review a complete code block (or a long error), assume the temporary Coder profile and send it via pipe:
    ```bash
-   python ask_deepseek.py "!modo coder"
-   cat EL_ARCHIVO_CON_PROBLEMAS.py | python ask_deepseek.py "Escribe el fix completo para los errores en este archivo. Sin excusas ni markdown excesivo."
+   cat THE_FILE_WITH_PROBLEMS.py | python ask_deepseek.py "Write the complete fix for the errors in this file. Provide the corrected code without excuses and avoid excessive markdown."
    ```
 
-3. **Restaurar el Perfil (Opcional)**
-   Si usaste `!modo coder`, asegúrate de restaurar el comportamiento si sigues interactuando.
-   ```bash
-   python ask_deepseek.py "!modo auditor"
-   ```
-
-4. **Incorporar la Solución**
-   Lee la salida de consola, corrígela o adáptala si notases alguna deficiencia del modelo local, e impleméntalo para el usuario.
+3. **Incorporate the Solution**
+   Read the console output, correct or adapt it if you notice any deficiency from the local model, and implement it for the user.

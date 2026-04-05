@@ -1,16 +1,19 @@
 {
-    "provider": "openai",
-    "api_url": "http://localhost:8000",
-    "last_model": "user.DeepSeek-R1-Distill-Qwen-14B-GGUF",
+    "provider": "LM Studio",
+    "api_url": "http://localhost:11434",
+    "last_model": "gemma4:26b",
     "mode": "auditor",
     "agent_language": "en",
     "user_language": "es",
     "bridge_port": 7860,
+    "model_locked": false,
+    "locked_model": "",
+    "provider_protocol": "openai",
     "advanced_params": {
         "num_ctx": 131072,
         "temperature": 0.6,
         "top_p": 0.9,
-        "warning_threshold": 0.95,
+        "warning_threshold": 0.85,
         "streaming": true,
         "auto_compress": true
     }

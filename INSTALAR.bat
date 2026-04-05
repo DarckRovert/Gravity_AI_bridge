@@ -1,12 +1,12 @@
 @echo off
 setlocal enabledelayedexpansion
-title INSTALADOR GLOBAL - GRAVITY AI BRIDGE V5.1 GOD EMPEROR
+title INSTALADOR GLOBAL - GRAVITY AI BRIDGE V7.0 OMNI-TIER
 color 0b
 cls
 
 echo.
 echo  +----------------------------------------------------------+
-echo  ^|    GRAVITY AI BRIDGE V5.1 - GOD EMPEROR INSTALLER        ^|
+echo  ^|    GRAVITY AI BRIDGE V7.0 - OMNI-TIER INSTALLER          ^|
 echo  +----------------------------------------------------------+
 echo.
 echo  Iniciando asistente de instalacion automatizado...
@@ -120,16 +120,16 @@ if %errorlevel% neq 0 (
 
 echo.
 echo  +----------------------------------------------------------+
-echo  ^|      GRAVITY AI BRIDGE V5.1 GOD EMPEROR - LISTO         ^|
+echo  ^|      GRAVITY AI BRIDGE V7.0 OMNI-TIER - LISTO            ^|
 echo  +----------------------------------------------------------+
 echo.
-echo  El sistema mas avanzado de IA local esta en tu maquina.
+echo  El sistema mas avanzado de IA local/cloud esta en tu maquina.
 echo.
-echo  OPTIMIZACIONES ACTIVAS:
-echo    - KV-Cache cuantizado (OLLAMA_KV_CACHE_TYPE=q4_0) = 4x menos RAM de atencion
-echo    - Flash Attention activado = 20%% mas velocidad en contextos largos
-echo    - Auto-Switch de motor = Ollama/LM Studio/Lemonade/KoboldCPP detectados
-echo    - Contexto calculado por hardware = Maximo posible en tu GPU
+echo  NUEVAS CARACTERISTICAS V7.0:
+echo    - Soporte Universal (Local + Cloud OpenAI/Anthropic/Gemini)
+echo    - Key Manager Integrado (DPAPI Secure)
+echo    - RAG Engine Local sin dependencias pesadas
+echo    - Tool Execution Directa (Web Search, File Ops, Code Runner)
 echo.
 echo  MODOS DE USO:
 echo    1. Consola Nativa: gravity "tu pregunta"

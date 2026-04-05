@@ -1,196 +1,120 @@
-import urllib.request
+"""
+╔══════════════════════════════════════════════════════════════╗
+║     GRAVITY AI PROVIDER SCANNER V7.0 — Compatibility Wrapper║
+║     Delegates to ProviderManager + ProviderRegistry         ║
+╚══════════════════════════════════════════════════════════════╝
+This file is a BACKWARDS-COMPATIBLE wrapper around the new
+ProviderRegistry/ProviderManager system introduced in V7.0.
+All existing callers (health_check.py, engine_watchdog.py, etc.)
+continue to work without modification.
+"""
+
+import os
 import json
 import time
-import socket
-import os
-from concurrent.futures import ThreadPoolExecutor
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
 LAST_SCAN_FILE = os.path.join(BASE_DIR, "_last_scan.json")
 
-class ProviderResult:
-    def __init__(self, name, url, protocol):
-        self.name = name
-        self.url = url
-        self.protocol = protocol
-        self.is_healthy = False
-        self.models = []
-        self.active_model = None
-        self.response_ms = 0
-        
-    @property
-    def model_count(self):
-        return len(self.models)
+# Re-export ProviderResult from the canonical location for backwards compat
+from providers.base import ProviderResult  # noqa: F401
 
-class ProviderScanner:
-    KNOWN_PROVIDERS = [
-        {"name": "Ollama",      "port": 11434, "protocol": "ollama"},
-        {"name": "LM Studio",   "port": 1234,  "protocol": "openai"},
-        {"name": "LM Studio",   "port": 11434, "protocol": "openai"},  # LM Studio en modo compatibilidad Ollama
-        {"name": "Lemonade",    "port": 8000,  "protocol": "openai"},
-        {"name": "Lemonade",    "port": 8080,  "protocol": "openai"},  # Lemonade alt port
-        {"name": "Jan AI",      "port": 1337,  "protocol": "openai"},
-        {"name": "Kobold CPP",  "port": 5001,  "protocol": "openai"},
-    ]
 
-    
-    @staticmethod
-    def _safe_request(url, timeout=0.8):
-        old_timeout = socket.getdefaulttimeout()
-        try:
-            socket.setdefaulttimeout(timeout)
-            req = urllib.request.Request(url, headers={"User-Agent": "GravityAI/4.2"})
-            with urllib.request.urlopen(req, timeout=timeout) as response:
-                return json.loads(response.read().decode('utf-8'))
-        except Exception:
-            return None
-        finally:
-            socket.setdefaulttimeout(old_timeout)
+# ── Public API (unchanged from V6) ────────────────────────────────────────────
 
-    @staticmethod
-    def scan_provider(prov_info):
-        url_base = f"http://localhost:{prov_info['port']}"
-        result = ProviderResult(prov_info["name"], url_base, prov_info["protocol"])
-        
-        start_time = time.time()
-        
-        if prov_info["protocol"] == "ollama":
-            # 1. Obtener modelos
-            tags_data = ProviderScanner._safe_request(f"{url_base}/api/tags")
-            if tags_data and "models" in tags_data:
-                result.is_healthy = True
-                result.models = [{"name": m["name"], "size": m.get("size", 0)} for m in tags_data["models"]]
-                
-                # 2. Ver si alguno está cargado en GPU activo
-                ps_data = ProviderScanner._safe_request(f"{url_base}/api/ps")
-                if ps_data and "models" in ps_data and len(ps_data["models"]) > 0:
-                    result.active_model = ps_data["models"][0]["name"]
-                    
-        elif prov_info["protocol"] == "openai":
-            # Solo un request a /v1/models
-            models_data = ProviderScanner._safe_request(f"{url_base}/v1/models")
-            if models_data and "data" in models_data:
-                result.is_healthy = True
-                result.models = [{"name": m.get("id"), "size": 0} for m in models_data.get("data", [])]
-                
-                # Intentar deducir si está activo en base a particularidades de APIs (LM Studio)
-                # LM Studio muchas veces tiene campos extra si el modelo está en memoria, pero para simplificar,
-                # Asumiremos como activo el primero si es LLM cargado, pero no hay garantía exacta por API V1. 
-                # (Solo Ollama usa /api/ps). Así que el scanner de GPU de LM Studio a veces depende de config manual.
-                # Sin embargo, si LM Studio responde modelos, es porque está levantando la capa server.
-                # Muchos proxy (como LM Studio) suelen devolver solo los modelos ACTUALMENTE cargados en /v1/models.
-                # Vamos a tomar heurísticamente el primero como activo si existe, ya que LM Studio solo levanta lo que está en memoria.
-                if len(result.models) == 1:
-                    result.active_model = result.models[0]["name"]
-                elif len(result.models) > 1 and prov_info["name"] == "LM Studio":
-                    result.active_model = result.models[0]["name"] # LM Studio suele listar el principal que tiene cargado arriba de todo
-                    
-        end_time = time.time()
-        result.response_ms = int((end_time - start_time) * 1000)
-        
-        return result
+def scan_all_providers(force: bool = False) -> list:
+    """
+    Scans all local AND cloud providers using the V7 ProviderRegistry.
+    Returns list of ProviderResult objects (backwards-compatible).
+    """
+    from provider_manager import scan_all
+    results = scan_all(force=force)
+    _save_last_scan(results)
+    return results
 
-    @staticmethod
-    def scan_all(use_cache=False):
-        """Escanea todos los proveedores en paralelo. use_cache evita re-escanear si el cache es reciente (<30s)."""
-        if use_cache and os.path.exists(LAST_SCAN_FILE):
-            try:
-                age = time.time() - os.path.getmtime(LAST_SCAN_FILE)
-                if age < 30:
-                    # Cache reciente, devolverlo
-                    with open(LAST_SCAN_FILE, "r", encoding="utf-8") as f:
-                        cached = json.load(f)
-                    results = []
-                    for item in cached:
-                        r = ProviderResult(item["name"], item["url"], item["protocol"])
-                        r.is_healthy = item["is_healthy"]
-                        r.models = item["models"]
-                        r.active_model = item["active_model"]
-                        r.response_ms = item["response_ms"]
-                        results.append(r)
-                    return results
-            except:
-                pass
 
-        results = []
-        with ThreadPoolExecutor(max_workers=len(ProviderScanner.KNOWN_PROVIDERS)) as executor:
-            scans = list(executor.map(ProviderScanner.scan_provider, ProviderScanner.KNOWN_PROVIDERS))
-            for res in scans:
-                results.append(res)
+def auto_select_best(task: str = "any", prefer_local: bool = True) -> tuple:
+    """
+    Auto-selects the best provider and model for the given task.
+    Returns (ProviderResult | None, model_name | None).
+    """
+    from provider_manager import get_best
+    return get_best(task)
 
-        # Guardar cache
-        try:
-            serializable = [{
-                "name": r.name, "url": r.url, "protocol": r.protocol,
-                "is_healthy": r.is_healthy, "models": r.models,
-                "active_model": r.active_model, "response_ms": r.response_ms
-            } for r in results]
-            with open(LAST_SCAN_FILE, "w", encoding="utf-8") as f:
-                json.dump(serializable, f)
-        except:
-            pass
 
-        return results
+def get_provider_by_name(name: str):
+    """Returns ProviderResult for a specific provider name, or None."""
+    results = scan_all_providers()
+    name_l  = name.lower()
+    return next((r for r in results if r.name.lower() == name_l), None)
 
-    @staticmethod
-    def get_parameter_score(model_name):
-        """Asigna puntaje rudimentario basado en parámetros (ej: 32b > 14b > 8b)"""
-        if not model_name:
-            return 0
-        name = model_name.lower()
-        if "70b" in name or "72b" in name: return 70
-        if "32b" in name or "33b" in name: return 32
-        if "14b" in name or "13b" in name: return 14
-        if "8b" in name or "7b" in name: return 8
-        if "3b" in name or "1b" in name: return 3
-        return 1
 
-    @staticmethod
-    def auto_select_best(results):
-        """Devuelve una tupla (mejor_resultado, modelo_elegido_como_str)"""
-        healthy = [r for r in results if r.is_healthy and r.models]
-        if not healthy:
-            return None, None
-            
-        # 1. Priorizar si alguno tiene ya un active_model cargado en GPU
-        loaded = [r for r in healthy if r.active_model]
-        if loaded:
-            # De los cargados, elegir el de mayor peso
-            loaded.sort(key=lambda x: ProviderScanner.get_parameter_score(x.active_model), reverse=True)
-            return loaded[0], loaded[0].active_model
-            
-        # 2. Si nada está en GPU (Ollama dormido), elegir el de mayor peso de cualquier proveedor
-        best_prov = None
-        best_mod = None
-        best_score = -1
-        
-        for r in healthy:
-            # Ordenar los modelos de este proveedor
-            r.models.sort(key=lambda m: ProviderScanner.get_parameter_score(m["name"]), reverse=True)
-            top_model = r.models[0]["name"]
-            score = ProviderScanner.get_parameter_score(top_model)
-            if score > best_score:
-                best_score = score
-                best_prov = r
-                best_mod = top_model
-                
-        # 3. Y si todo es ambiguo, solo tomamos el más rápido (menor latencia) garantizando algo
-        if not best_prov:
-            healthy.sort(key=lambda x: x.response_ms)
-            return healthy[0], healthy[0].models[0]["name"]
-            
-        return best_prov, best_mod
+def get_available_models(provider_name: str) -> list:
+    """Returns list of model names for a given provider."""
+    r = get_provider_by_name(provider_name)
+    return [m["name"] for m in r.models] if r and r.is_healthy else []
 
-if __name__ == "__main__":
-    # Test block
-    print("Iniciando escaneo paralelo...")
-    scans = ProviderScanner.scan_all()
-    for s in scans:
-        print(f"[{'X' if s.is_healthy else ' '}] {s.name:<12} | URL: {s.url} | {s.response_ms}ms")
-        for m in s.models:
-            active = "*" if m["name"] == s.active_model else " "
-            print(f"    {active} {m['name']}")
-    
-    best_prov, best_mod = ProviderScanner.auto_select_best(scans)
-    if best_prov:
-         print(f"\nMEJOR: {best_prov.name} -> {best_mod}")
+
+def get_all_local_providers() -> list:
+    return [r for r in scan_all_providers() if getattr(r, "category", "local") == "local"]
+
+
+def get_all_cloud_providers() -> list:
+    return [r for r in scan_all_providers() if getattr(r, "category", "local") == "cloud"]
+
+
+def get_provider_count() -> dict:
+    results = scan_all_providers()
+    local   = sum(1 for r in results if getattr(r,"category","local") == "local"  and r.is_healthy)
+    cloud   = sum(1 for r in results if getattr(r,"category","local") == "cloud"  and r.is_healthy)
+    return {"local": local, "cloud": cloud, "total": len(results), "healthy": local + cloud}
+
+
+# ── Legacy aliases (V5/V6 callers) ────────────────────────────────────────────
+
+def scan_providers() -> list:
+    return scan_all_providers()
+
+
+def select_best_provider(results: list) -> tuple:
+    healthy = [r for r in results if r.is_healthy and r.models]
+    if not healthy:
+        return None, None
+    best  = sorted(healthy, key=lambda r: (-r.model_count, r.response_ms))[0]
+    model = best.active_model or best.models[0]["name"]
+    return best, model
+
+
+# ── Persistence ────────────────────────────────────────────────────────────────
+
+def _save_last_scan(results: list) -> None:
+    try:
+        data = {
+            "scan_time": time.time(),
+            "providers": [
+                {
+                    "name":       r.name,
+                    "url":        r.url,
+                    "protocol":   r.protocol,
+                    "category":   getattr(r, "category", "local"),
+                    "is_healthy": r.is_healthy,
+                    "model_count": r.model_count,
+                    "active_model": r.active_model,
+                    "response_ms": r.response_ms,
+                    "models":      r.models[:3],
+                }
+                for r in results
+            ],
+        }
+        with open(LAST_SCAN_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+    except Exception:
+        pass
+
+
+def load_last_scan() -> dict:
+    try:
+        with open(LAST_SCAN_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}

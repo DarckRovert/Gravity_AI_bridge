@@ -1,15 +1,15 @@
 ---
-description: Enseñar una regla o convención permanente al Gravity AI Local
+description: Teach a permanent rule or convention to the Local Gravity AI
 ---
 
-Usa este workflow cuando el usuario defina en la interfaz principal una convención (ej: "siempre usa TypeScript en frontend") y quieras que el modelo local de apoyo la recuerde en todas sus sesiones futuras. 
+Use this workflow when the user defines a convention in the main interface (e.g. "always use TypeScript in frontend") and you want the supporting local model to remember it in all its future sessions. Always communicate with the local AI in English for the best results.
 
 // turbo-all
-1. **Delegar Aprendizaje**
-   Llamamos al Auditor local en modo silencioso y ejecutamos el comando `!aprende <regla>`. Reemplaza `<REGLA_A_APRENDER>` por el texto de la regla en cuestión.
+1. **Delegate Learning**
+   Call the local Auditor in silent mode and execute the `!aprende <rule>` command. Replace `<RULE_TO_LEARN>` with the rule text in English.
    ```bash
-   python ask_deepseek.py "!aprende <REGLA_A_APRENDER>"
+   python ask_deepseek.py "!aprende <RULE_TO_LEARN>"
    ```
 
-2. **Verificar Aprendizaje**
-   El comando responderá "Regla aprendida y persistida." si se guardó con éxito en `_knowledge.json`. Infórmale al usuario que su IA local ahora comparte ese conocimiento.
+2. **Verify Learning**
+   The command will answer confirming it has learned the rule if it was successfully saved to `_knowledge.json`. Inform the user that their local AI now shares that knowledge.

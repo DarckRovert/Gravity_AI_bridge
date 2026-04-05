@@ -1,5 +1,5 @@
 """
-ide_integrator.py — Gravity AI Bridge V5.1
+ide_integrator.py — Gravity AI Bridge V7.0 Omni-Tier
 Modulo aislado para configurar IDEs. Sin dependencias de Rich ni SettingsManager.
 Se puede importar de forma segura desde el instalador.
 """
@@ -31,15 +31,15 @@ class IDEIntegrator:
         target_dir = os.path.join(BASE_DIR, ".continue")
         os.makedirs(target_dir, exist_ok=True)
         cfg = (
-            "name: Gravity Local V5.1\n"
-            "version: 5.1.0\n"
+            "name: Gravity Local V7.0 Omni-Tier\n"
+            "version: 7.0.0\n"
             "schema: v1\n"
             "models:\n"
             "  - name: \"Gravity Bridge\"\n"
             "    provider: openai\n"
             "    model: gravity-bridge-auto\n"
             "    apiBase: \"http://localhost:7860/v1\"\n"
-            "    apiKey: \"gravity\"\n"
+            "    apiKey: \"gravity-local\"\n"
         )
         path = os.path.join(target_dir, "config.yaml")
         with open(path, "w", encoding="utf-8") as f:
@@ -50,6 +50,7 @@ class IDEIntegrator:
     def _configure_aider():
         cfg = (
             "openai-api-base: http://localhost:7860/v1\n"
+            "openai-api-key: gravity-local\n"
             "model: openai/gravity-bridge-auto\n"
             "auto-commits: false\n"
         )
@@ -67,7 +68,7 @@ class IDEIntegrator:
                 "name": "Gravity Bridge",
                 "provider": "openai",
                 "baseUrl": "http://localhost:7860/v1",
-                "apiKey": "gravity"
+                "apiKey": "gravity-local"
             }]
         }
         path = os.path.join(target_dir, "cursor.json")

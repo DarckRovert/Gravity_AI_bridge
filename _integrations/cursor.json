@@ -4,7 +4,7 @@
       "name": "Gravity Bridge",
       "provider": "openai",
       "baseUrl": "http://localhost:7860/v1",
-      "apiKey": "gravity"
+      "apiKey": "gravity-local"
     }
   ]
 }

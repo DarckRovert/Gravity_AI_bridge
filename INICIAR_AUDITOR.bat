@@ -1,16 +1,18 @@
 @echo off
 setlocal enabledelayedexpansion
+REM BUG-10 FIX: Usar paths absolutos con %~dp0 para todos los scripts Python,
+REM garantizando que funciona independientemente del directorio de trabajo actual.
 cd /d "%~dp0"
 
-title GRAVITY AI -- AUDITOR SENIOR V5.1
+title GRAVITY AI -- AUDITOR SENIOR V6.0
 color 0b
 cls
 
 REM -- Instalar dependencias criticas silenciosamente ---
 python -m pip install rich pyfiglet pyreadline3 --quiet >nul 2>&1
 
-REM -- Ejecutar diagnostico del sistema ---
-python health_check.py
+REM -- Ejecutar diagnostico del sistema (path absoluto) ---
+python "%~dp0health_check.py"
 set CHECK_RESULT=%errorlevel%
 
 if %CHECK_RESULT% NEQ 0 (
@@ -22,10 +24,12 @@ if %CHECK_RESULT% NEQ 0 (
     exit /b 1
 )
 
-REM -- Iniciar el Auditor Principal ---
+REM -- Breve pausa antes de lanzar el auditor ---
 timeout /t 1 /nobreak >nul
 cls
-python ask_deepseek.py
+
+REM -- Iniciar el Auditor Principal (path absoluto) ---
+python "%~dp0ask_deepseek.py"
 
 :END
 echo.

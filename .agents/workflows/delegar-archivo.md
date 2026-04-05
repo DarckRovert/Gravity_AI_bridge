@@ -1,15 +1,15 @@
 ---
-description: Delegar la auditoría de un archivo específico al Gravity AI Local
+description: Delegate the audit of a specific file to the Local Gravity AI
 ---
 
-Este flujo de trabajo permite a Antigravity enviar de forma automatizada un archivo entero para que el agente local lo inspeccione en busca de vulnerabilidades, deudas técnicas o refactorización, usando su memoria sin consumir cuota de la nube.
+This workflow allows Antigravity to automatically send an entire file for the local agent to inspect for vulnerabilities, technical debt, or refactoring, using its memory without consuming cloud quota. Always communicate with the local AI in English for the best results.
 
 // turbo-all
-1. **Ejecutar Auditoría Directa al Archivo**
-   Inyectamos el archivo mediante el inyector del pipe y le pedimos al modelo local que emita una revisión minuciosa. Reemplaza `<RUTA_DEL_ARCHIVO>` con la ruta real.
+1. **Execute Direct File Audit**
+   Inject the file via the pipe injector and ask the local model to perform a thorough review. Replace `<FILE_PATH>` with the actual path.
    ```bash
-   cat "<RUTA_DEL_ARCHIVO>" | python ask_deepseek.py "!modo auditor" "Audita este archivo buscando bugs y vulnerabilidades ocultas. Presenta un informe estructurado."
+   cat "<FILE_PATH>" | python ask_deepseek.py "Audit this file for hidden bugs and vulnerabilities. Present a structured report."
    ```
 
-2. **Presentar Hallazgos**
-   Antigravity leerá el output resultante en consola y se lo presentará al usuario para decidir los próximos pasos (ej: aplicar fix, descartar error falso positivo).
+2. **Present Findings**
+   Antigravity will read the resulting console output and present it to the user to decide the next steps (e.g. apply fix, discard false positive error).

@@ -1,9 +1,9 @@
-name: Gravity Local V4
-version: 4.2.0
+name: Gravity Local V7.0 Omni-Tier
+version: 7.0.0
 schema: v1
 models:
   - name: "Gravity Bridge"
     provider: openai
     model: gravity-bridge-auto
     apiBase: "http://localhost:7860/v1"
-    apiKey: "gravity"
+    apiKey: "gravity-local"

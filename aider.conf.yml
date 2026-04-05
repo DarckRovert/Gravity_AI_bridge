@@ -1,3 +1,4 @@
 openai-api-base: http://localhost:7860/v1
+openai-api-key: gravity-local
 model: openai/gravity-bridge-auto
 auto-commits: false

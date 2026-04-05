@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title DESINSTALADOR GLOBAL - GRAVITY AI BRIDGE V5.1
+title DESINSTALADOR GLOBAL - GRAVITY AI BRIDGE V7.0 Omni-Tier
 color 0c
 cls
 
