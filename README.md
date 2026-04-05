@@ -31,22 +31,28 @@
 ## 🖧 Arquitectura V7.0 Omni-Tier
 
 ```mermaid
-graph TD;
-    U["Tu IDE o Terminal"] --> server["Universal SSE Proxy"]
+graph TD
+    U["Tu IDE o Terminal"]
     
-    subgraph GRAVITY_AI["GRAVITY AI V7 OMNI-TIER"]
-        server --> PM["Provider Manager"]
-        
-        PM -->|Local Fallback| localNode["Capa Local (Ollama)"]
-        PM -->|Cloud Routing| cloudNode["Capa Cloud (OpenAI)"]
-        
-        PM --> cost["Cost Tracker"]
-        
-        KM["Key Manager DPAPI"] -->|Provee Secretos| cloudNode
-        
-        PM --> tools["Tool Execution Engine"]
-        PM --> rag["Dependency-Free RAG"]
+    subgraph GRAVITY_AI ["GRAVITY AI V7 OMNI-TIER"]
+        server["Universal SSE Proxy"]
+        PM["Provider Manager"]
+        localNode["Capa Local (Ollama)"]
+        cloudNode["Capa Cloud (OpenAI)"]
+        cost["Cost Tracker"]
+        KM["Key Manager DPAPI"]
+        tools["Tool Execution Engine"]
+        rag["Dependency-Free RAG"]
     end
+    
+    U --> server
+    server --> PM
+    PM -->|Local Fallback| localNode
+    PM -->|Cloud Routing| cloudNode
+    PM --> cost
+    KM -->|Provee Secretos| cloudNode
+    PM --> tools
+    PM --> rag
     
     style U fill:#1b1b1b,stroke:#0ffff,color:#fff
     style server fill:#223344,stroke:#ff00ff
