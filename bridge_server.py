@@ -158,21 +158,25 @@ API Key:  gravity-local</pre>
 </table>
 </body></html>"""
         body = html.encode("utf-8")
-        self.send_response(200)
-        self.send_header("Content-Type",   "text/html; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.send_response(200)
+            self.send_header("Content-Type",   "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        except ConnectionAbortedError: pass
 
     def _serve_health(self):
         scans = provider_manager.scan_all()
         summary = [{"name": s.name, "healthy": s.is_healthy, "models": len(s.models)} for s in scans]
         body = json.dumps({"status": "ok", "backends": summary}).encode()
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        except (ConnectionAbortedError, BrokenPipeError): pass
 
     def _serve_models(self):
         scans = provider_manager.scan_all()
@@ -185,12 +189,14 @@ API Key:  gravity-local</pre>
                         seen.add(m["name"])
                         all_models.append({"id": m["name"], "object": "model", "owned_by": s.name})
         resp = json.dumps({"object": "list", "data": all_models}).encode()
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(resp)))
-        self._send_cors()
-        self.end_headers()
-        self.wfile.write(resp)
+        try:
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(resp)))
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(resp)
+        except (ConnectionAbortedError, BrokenPipeError): pass
 
     def _serve_status(self):
         best_p, best_m = provider_manager.get_best()
