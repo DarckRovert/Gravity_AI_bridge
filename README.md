@@ -4,59 +4,47 @@
 [![Version](https://img.shields.io/badge/Version-V7.1_Omni--Tier-magenta?style=for-the-badge)](https://claseabc.netlify.app)
 [![Hardware](https://img.shields.io/badge/Hardware-Tri--Hybrid_(CPU/GPU/NPU)-green?style=for-the-badge)](https://claseabc.netlify.app)
 
+---
+
+## 🌎 Overview / Resumen Generales
+
+### [EN] Introduction
+**Gravity AI Bridge** is the ultimate local AI orchestrator. Designed for senior developers who demand absolute privacy, ultra-low latency, and maximum exploitation of modern hardware (NPU/GPU). It intercepts requests from IDEs (Cursor, Aider, Continue) and intelligently routes them to your local hardware or secure clouds.
+
+### [ES] Introducción
 **Gravity AI Bridge** es el orquestador de inteligencia artificial local definitivo. Diseñado para desarrolladores senior que exigen privacidad total, latencia ultra-baja y aprovechamiento máximo del silicio moderno (NPU/GPU). Intercepta peticiones de IDEs (Cursor, Aider, Continue) y las enruta inteligentemente hacia tu hardware local o nubes seguras.
 
 ---
 
-## 🚀 Características God-Tier (V7.1)
+## 🚀 Features / Características God-Tier (V7.1)
 
-- **⚡ Aceleración Tri-Híbrida**: Primer bridge local que utiliza simultáneamente **CPU**, **GPU (ROCm/DirectML)** y el **NPU (Ryzen AI/XDNA)** para offloading de tareas.
-- **🛡️ Protocolo Omni-Audit**: Sistema de auditoría técnica que inyecta instrucciones de razonamiento matemático y detección de vulnerabilidades en cada consulta.
-- **🌐 Proxy Universal**: Emulación perfecta del API de OpenAI en `localhost:7860/v1` para integración instantánea con cualquier herramienta de terceros.
-- **📦 Motor RAG (AI Search)**: Indexación semántica ultra-rápida de repositorios completos utilizando el NPU para generar embeddings sin tocar el rendimiento del chat.
-- **📊 Hardware Profiler**: Telemetría dinámica que calcula el `num_ctx` óptimo basado en tu VRAM real y tipo de cuantización (Q8/Q4).
+- **⚡ Tri-Hybrid Acceleration**: Simultaneous use of **CPU**, **GPU (DirectML)**, and **NPU (Ryzen AI)** for offloading.
+- **🛡️ Omni-Audit Protocol**: Technical audit system that injects reasoning and vulnerability detection.
+- **📦 RAG Engine (AI Search)**: Ultra-fast semantic indexing optimized for NPU embeddings.
 
 ---
 
-## 🛠️ Instalación y Configuración
+## 🛠️ Quick Start / Despliegue Rápido
 
-### 1. Requisitos Previos
-- **AMD Ryzen AI** (7840U/8840HS o superior) o **NVIDIA RTX 30+**.
-- **Python 3.14+** (Configurado para UTF-8 nativo).
-- **Controladores Adrenalin 23.9.1+** (Para soporte de IPU/NPU).
-
-### 2. Despliegue Rápido
 ```powershell
-# Clonar y preparar entorno
+# Clone and prepare / Clonar y preparar
 git clone https://github.com/DarckRovert/Gravity_AI_bridge
 cd Gravity_AI_bridge
 
-# Activar acelerador NPU (Ryzen AI)
-python setup_npu.py
-
-# Iniciar servidor Bridge
+# Start Bridge Server / Iniciar servidor
 python bridge_server.py
 ```
 
-### 3. Integración en IDE (Cursor/Aider)
-Configura tu Base URL como: `http://localhost:7860/v1` y usa el comando `!info` en la terminal de Gravity para ver los modelos activos.
-
 ---
 
-## 📂 Estructura del Ecosistema
+## ⚖️ License & Property / Licencia y Propiedad
 
-- `/providers`: Controladores inteligentes para Ollama, LM Studio y VLLM.
-- `/rag`: Motor de búsqueda semántica optimizado para NPU.
-- `/wiki`: Documentación profunda sobre arquitectura y seguridad.
-- `ask_deepseek.py`: Frontend Senior personalizado con auditoría Omni-Audit.
-- `hardware_profiler.py`: El cerebro de detección de hardware.
+### [EN] PolyForm Non-Commercial 1.0.0
+This project is owned exclusively by **DarckRovert**. You may use, modify, and distribute it for **NON-COMMERCIAL** purposes only. Commercial use for profit is strictly prohibited.
 
----
-
-## 📄 Licencia y Contribución
-
-Este proyecto está bajo la **Licencia MIT**. Si deseas contribuir, por favor revisa nuestro [CONTRIBUTING.md](CONTRIBUTING.md).
+### [ES] PolyForm No-Comercial 1.0.0
+Este proyecto es propiedad exclusiva de **DarckRovert**. Puede usarlo, modificarlo y distribuirlo únicamente para fines **NO COMERCIALES**. El uso comercial con fines de lucro está estrictamente prohibido.
 
 ---
-*Desarrollado por el ecosistema **Antigravity** & **DarckRovert**.*
-*Sitio Oficial:* [claseabc.netlify.app](https://claseabc.netlify.app)
+*Developed by the **Antigravity** & **DarckRovert** ecosystem.*
+*Official Site:* [claseabc.netlify.app](https://claseabc.netlify.app)

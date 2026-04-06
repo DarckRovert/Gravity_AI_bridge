@@ -26,3 +26,10 @@ Sigue estos protocolos:
 ## 🌐 Acerca del Bridge Server
 Gravity no es solo un script de terminal. Su servicio principal se levanta en `localhost:7860`.
 Todas las demás herramientas de IA en el entorno del usuario están apuntando ahí de forma agnóstica (`http://localhost:7860/v1`), por lo que no intentes configurarlas manualmente con Ollama o LM Studio, el Bridge maneja todo de forma transparente.
+
+## 🔒 REGLA DE PROTECCIÓN DE NÚCLEO (CORE PROTECTION)
+Si estás siendo ejecutado en un proyecto **AJENO** a Gravity AI Bridge (ej. desarrollo web, apps externas, scripts) y usas este Bridge como motor de inferencia:
+- **PROHIBIDO** modificar cualquier archivo dentro del repositorio raíz `F:\Gravity_AI_bridge\`.
+- **PROHIBIDO** reconfigurar puertos, proveedores o lógica de hardware del bridge.
+- **SOLO SUGERIR**: Si detectas una mejora necesaria en el Bridge durante tareas externas, limítate a sugerirla en el chat sin ejecutar cambios automáticos. 
+- **ENFOQUE**: Tu rol es de "Consumidor del Bridge", no de "Ingeniero del Bridge". Mantén el foco en la tarea del usuario.

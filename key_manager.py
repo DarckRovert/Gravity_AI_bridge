@@ -38,6 +38,8 @@ KNOWN_CLOUD_PROVIDERS = {
     "bedrock":      {"display": "AWS Bedrock",       "key_prefix": "",     "url": "custom"},
     "huggingface":  {"display": "HuggingFace",       "key_prefix": "hf_",  "url": "https://api-inference.huggingface.co"},
     "perplexity":   {"display": "Perplexity",        "key_prefix": "pplx-","url": "https://api.perplexity.ai"},
+    "openrouter":   {"display": "OpenRouter",        "key_prefix": "sk-or-","url": "https://openrouter.ai/api/v1"},
+    "deepinfra":    {"display": "DeepInfra",         "key_prefix": "",     "url": "https://api.deepinfra.com/v1/openai"},
 }
 
 

@@ -97,19 +97,60 @@ class RAGEmbedder:
     @classmethod
     def _embed_onnx_npu(cls, texts):
         global onnxruntime, tokenizers, numpy
+        import sys
+        
+        # PHASE 3: Gravity Hybrid Delegation (Conda Support)
+        # If current python is 3.14+, we delegate to a 3.11 environment to use NPU
+        if sys.version_info.major == 3 and sys.version_info.minor >= 14:
+            return cls._embed_hybrid_conda(texts)
+
         if not cls._onnx_session:
             import onnxruntime
             from tokenizers import Tokenizer
             import numpy
-            npu_dir = os.path.join(BASE_DIR, "rag", "models", "npu_minilm")
-            # We target Device ID 0 (Radeon 780M / Primary GPU) via DirectML.
-            # While labeled NPU in the bridge branding, using GPU 0 ensures 100% stability 
-            # and real hardware activity until AMD IPU drivers stabilize for MCDM.
-            providers = [('DmlExecutionProvider', {'device_id': 0}), 'CPUExecutionProvider']
-            cls._onnx_session = onnxruntime.InferenceSession(
-                os.path.join(npu_dir, "model.onnx"), 
-                providers=providers
-            )
+            
+            # ENFORCE ABSOLUTE CANONICAL PATHS FOR NPU DRIVER (Awakening V2)
+            install_dir = r"C:\Program Files\RyzenAI\1.7.1"
+            npu_dir     = os.path.join(BASE_DIR, "rag", "models", "npu_minilm")
+            npu_bin     = os.path.join(install_dir, "onnxruntime", "bin")
+            voe_dir     = os.path.join(install_dir, "voe-4.0-win_amd64")
+            xclbin_path = os.path.join(voe_dir, "xclbins", "phoenix", "4x4.xclbin")
+            config_file = os.path.join(voe_dir, "vaip_config.json")
+            cache_dir   = os.path.join(BASE_DIR, "rag", "cache")
+            
+            # 1. Force Silence (Bypass UnicodeDecodeError)
+            os.environ['ORT_LOGGING_LEVEL'] = '3'
+            
+            # 2. Critical NPU Plugin Handshake
+            os.environ['ORT_VITISAI_EP_PATH'] = voe_dir
+            if os.path.exists(npu_bin) and hasattr(os, "add_dll_directory"):
+                os.add_dll_directory(npu_bin)
+                os.add_dll_directory(voe_dir)
+                os.environ["PATH"] = f"{npu_bin};{voe_dir};" + os.environ["PATH"]
+            
+            # 3. Awakening V2: Provider Options Structure
+            provider_options = [{
+                'config_file': config_file,
+                'cacheDir': cache_dir,
+                'cacheKey': 'gravity_v71_npu',
+                'target': 'X1',
+                'xclbin': xclbin_path
+            }, {}, {}]
+            
+            try:
+                model_path = os.path.join(npu_dir, "model_int8.onnx")
+                cls._onnx_session = onnxruntime.InferenceSession(
+                    model_path, 
+                    providers=['VitisAIExecutionProvider', 'DmlExecutionProvider', 'CPUExecutionProvider'],
+                    provider_options=provider_options
+                )
+            except Exception:
+                # Fallback to GPU (DML)
+                cls._onnx_session = onnxruntime.InferenceSession(
+                    os.path.join(npu_dir, "model_int8.onnx"), 
+                    providers=['DmlExecutionProvider', 'CPUExecutionProvider']
+                )
+            
             cls._tokenizer = Tokenizer.from_file(os.path.join(npu_dir, "tokenizer.json"))
 
         results = []
@@ -132,6 +173,50 @@ class RAGEmbedder:
             norm = numpy.linalg.norm(sentence_embedding)
             sentence_embedding = (sentence_embedding / norm).tolist()
             results.append(sentence_embedding)
+        return results
+
+    @classmethod
+    def _embed_hybrid_conda(cls, texts):
+        """
+        Delegates embedding generation to a Python 3.11 Conda environment.
+        This bypasses binary compatibility issues in newer Python versions.
+        """
+        import subprocess
+        import tempfile
+        env_name = "gravity-npu"
+        
+        # 1. Create temporary exchange files
+        with tempfile.NamedTemporaryFile("w", delete=False, suffix=".json") as f_in:
+            json.dump(texts, f_in)
+            in_path = f_in.name
+            
+        out_path = in_path + ".out.json"
+        
+        # 2. Worker script (one-liner version)
+        worker_code = (
+            f"import json, os, sys; "
+            f"sys.path.append(r'{BASE_DIR}'); "
+            f"from rag.retriever import RAGEmbedder; "
+            f"with open(r'{in_path}', 'r') as fi: texts = json.load(fi); "
+            f"vecs = RAGEmbedder._embed_onnx_npu(texts); "
+            f"with open(r'{out_path}', 'w') as fo: json.dump(vecs, fo)"
+        )
+        
+        # 3. Execution
+        cmd = f"conda run -n {env_name} python -c \"{worker_code}\""
+        try:
+            subprocess.run(cmd, shell=True, check=True, capture_output=True)
+            with open(out_path, "r") as f_out:
+                results = json.load(f_out)
+        except Exception as e:
+            # If hybrid fails, fallback to TF-IDF or CPU in current process
+            print(f"[HYBRID ERROR] Fallback to CPU: {e}")
+            return cls._embed_tfidf(texts)
+        finally:
+            # Cleanup
+            for p in [in_path, out_path]:
+                if os.path.exists(p): os.remove(p)
+                
         return results
 
     @classmethod

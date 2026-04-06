@@ -1,0 +1,32 @@
+name: "💡 Feature Request (God-Tier Upgrade)"
+about: "Propuesta de nuevas capacidades, integraciones o mejoras arquitectónicas."
+title: "[FEATURE] "
+labels: ["enhancement", "proposal"]
+assignees: "DarckRovert"
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Toda mejora debe alinearse con la visión de DarckRovert: Privacidad, Hardware Local e Innovación.
+  - type: textarea
+    id: goal
+    attributes:
+      label: "🎯 ¿Cuál es el objetivo?"
+      placeholder: "¿Qué problema estamos resolviendo de forma más eficiente?"
+    validations:
+      required: true
+  - type: textarea
+    id: design
+    attributes:
+      label: "🏗️ Propuesta de Diseño Técnico"
+      placeholder: "Ej. Inyección de xclbin custom, nuevo provider, etc."
+    validations:
+      required: true
+  - type: textarea
+    id: hardware_impact
+    attributes:
+      label: "💻 Impacto en Hardware"
+      placeholder: "¿Cómo afecta a la latencia NPU/GPU o al consumo de VRAM?"
+    validations:
+      required: false

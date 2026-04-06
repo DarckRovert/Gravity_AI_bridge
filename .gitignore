@@ -1,9 +1,23 @@
 # 🌌 Gravity AI Bridge — Ignored Files
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
+# DarckRovert Core Security
+_keystore.bin
+_history.json
+_cache.sqlite*
+_last_scan.json
+*.log
+index.sqlite
+
+# Build & Cache
+**/__pycache__/
+*.pyc
+*.pyo
+
+# RAG & Embeddings Cache
+_rag_index/
+rag/cache/
+*.onnx.compiled
+modelcachekey/
 venv/
 .venv/
 env/
