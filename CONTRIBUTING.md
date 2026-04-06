@@ -20,4 +20,4 @@
 - Uso del objeto `_knowledge.json` para persistencia de lógica de negocio.
 
 ---
-*Si tienes dudas, contacta vía [claseabc.netlify.app](https://claseabc.netlify.app).*
+*Si tienes dudas, contacta vía [twitch.tv/darckrovert](https://www.twitch.tv/darckrovert).*

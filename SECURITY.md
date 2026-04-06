@@ -6,8 +6,8 @@ Tu privacidad es nuestra prioridad absoluta. Este proyecto está diseñado para 
 Si encuentras un fallo de seguridad (ej. Inyección de prompts, bypass de autenticación local), por favor **NO abras un Issue público**.
 
 Envía los detalles técnicos directamente al equipo de seguridad:
-- **Email Técnico**: security@claseabc.netlify.app
-- **Discord**: Comunidad DarckRovert (Canal #security)
+- **Discord**: Comunidad DarckRovert (Canal #security-audit)
+- **Twitch**: Mensaje Directo a [twitch.tv/darckrovert](https://www.twitch.tv/darckrovert)
 
 ## 🏗️ Alcance de Auditoría
 - Desbordamiento de búfer en drivers locales (ROCm/NPU).

@@ -13,4 +13,4 @@ Como parte del ecosistema **DarckRovert**, nos comprometemos a mantener un ambie
 - Publicidad no solicitada de herramientas de terceros fuera del contexto.
 
 ---
-*Más información en: [claseabc.netlify.app](https://claseabc.netlify.app)*
+*Más información en: [twitch.tv/darckrovert](https://www.twitch.tv/darckrovert)*

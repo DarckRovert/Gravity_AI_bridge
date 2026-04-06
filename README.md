@@ -1,8 +1,8 @@
 # 🌌 Gravity AI Bridge V7.1 — Omni-Tier Architecture
 
-[![Status](https://img.shields.io/badge/Status-Official_Release-blue?style=for-the-badge)](https://claseabc.netlify.app)
-[![Version](https://img.shields.io/badge/Version-V7.1_Omni--Tier-magenta?style=for-the-badge)](https://claseabc.netlify.app)
-[![Hardware](https://img.shields.io/badge/Hardware-Tri--Hybrid_(CPU/GPU/NPU)-green?style=for-the-badge)](https://claseabc.netlify.app)
+[![Status](https://img.shields.io/badge/Status-Official_Release-blue?style=for-the-badge)](https://www.twitch.tv/darckrovert)
+[![Version](https://img.shields.io/badge/Version-V7.1_Omni--Tier-magenta?style=for-the-badge)](https://www.twitch.tv/darckrovert)
+[![Hardware](https://img.shields.io/badge/Hardware-Tri--Hybrid_(CPU/GPU/NPU)-green?style=for-the-badge)](https://www.twitch.tv/darckrovert)
 
 ---
 
@@ -47,4 +47,4 @@ Este proyecto es propiedad exclusiva de **DarckRovert**. Puede usarlo, modificar
 
 ---
 *Developed by the **Antigravity** & **DarckRovert** ecosystem.*
-*Official Site:* [claseabc.netlify.app](https://claseabc.netlify.app)
+*Official Streaming Site:* [twitch.tv/darckrovert](https://www.twitch.tv/darckrovert)
