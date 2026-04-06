@@ -1,53 +1,41 @@
-# ⚔️ Arsenal de Comandos (Gravity AI V7.1 — Optimized)
+# 🎮 Gravity Commands / Comandos de Control V7.1
 
-Gravity no es un simple chat. Es una terminal interactiva con telemetría de hardware en tiempo real (VRAM/GPU), métricas de latencia TTFT (Time To First Token) y rendimiento TPS (Tokens/Sec).
+Quick reference for administrative and operational commands. 
+Referencia rápida de órdenes administrativas y operativas.
 
-## 🕹️ Comandos de Inyección de Contexto
+---
 
-Permiten pasar información instantánea al "Cerebro" de la IA.
+## 🛠️ Administrative Commands / Comandos Administrativos
 
-| Comando | Sintaxis | Explicación |
-| :--- | :--- | :--- |
-| **Leer Archivo** | `/leer archivo.py` | Lee cualquier fichero local y lo mete al prompt. Intenta decodificar UTF-8, Latin y UTF-16 automáticamente. |
-| **Leer Carpeta** | `/leer-carpeta src/` | Agrupa TODOS los archivos (.py, .ts, .md, etc) ignorando node_modules y .git, y los inyecta en un solo string gigante para auditorías de macro-arquitectura. |
-| **Leer Git** | `/leer-git` | Ejecuta un `git diff` internamente y envía todos tus cambios sin comitear para revisión. |
-| **Leer URL** | `/leer-url https://...` | Hace un fetch raw del HTML/Texto plano de una web y lo usa de contexto. |
+### [EN] Command Usage
+- `!info`: Shows real-time hardware status (CPU/GPU/NPU usage) and active model.
+- `!scan`: Forces a re-scan of Ollama, LM Studio, and VLLM instances.
+- `!audit [on/off]`: Toggles the Omni-Audit security protocol injection.
+- `!clear`: Clears the local session history.
 
-## ⚙️ Control de Proveedores y Motor
+### [ES] Uso de Comandos
+- `!info`: Muestra el estado del hardware (CPU/GPU/NPU) y el modelo activo.
+- `!scan`: Fuerza el redescubrimiento de Ollama, LM Studio y VLLM.
+- `!modo audit [on/off]`: Activa/Desactiva el protocolo de seguridad Omni-Audit.
+- `!limpiar`: Limpia el historial de la sesión local.
 
-| Comando | Sintaxis | Explicación |
-| :--- | :--- | :--- |
-| **Escanear Red** | `!scan` | Actualiza la lista de proveedores (busca activamente puertos de Ollama, LM Studio, etc). |
-| **Dashboard** | `!info` | Muestra el panel maestro con el proveedor actual, modelo cargado y telemetría de contexto restante. |
-| **Ver Modelos** | `!modelos` | Muestra la tabla de todos los motores que tu GPU/CPU tienen instalados. |
-| **Cambiar Modelo**| `!usar qwen:8b` | Cambia el modelo activo instantáneamente. (Debe coincidir con la lista de `!modelos`). |
-| **Forzar Motor** | `!proveedor id` | Si no quieres la auto-selección, fuerza el motor: `ollama`, `lm_studio`, `lemonade`. |
+---
 
-## 🧠 Memoria y Contexto
+## 📦 RAG Commands / Comandos de Búsqueda (RAG)
 
-| Comando | Sintaxis | Explicación |
-| :--- | :--- | :--- |
-| **Snapshot** | `!guardar refactor1`| Guarda toda la sesión de chat a `_saves/refactor1.json`. |
-| **Listar Saves** | `!saves` | Lista tus juegos guardados de contexto. |
-| **Cargar Save** | `!cargar refactor1`| Sobreescribe la sesión actual con un snapshot de memoria. |
-| **Limpiar** | `!limpiar` | Purga todo el chat efímero actual liberando RAM/VRAM. |
-| **Compresor** | `!comprimir` | Si te acercas al límite de tokens (128K), resume la charla en bullets densos por detrás de escena y reemplaza el historial largo. |
-| **Reglas Duras** | `!aprende regla` | Inserta permanentemente algo en el System Prompt (ej: `!aprende Siempre usa Typescript con interfaces`). |
-| **Reset Reglas** | `!limpiar-reglas`| Borra todas las directrices permanentes. |
+### [EN] Semantic Search
+- `!index [path]`: Indexes the specified directory into the NPU-accelerated RAG engine.
+- `!status`: Shows the number of documents currently in the local knowledge index.
 
-## 🎭 Modos de Comportamiento (Perfiles)
+### [ES] Búsqueda Semántica
+- `!indexar [ruta]`: Indexa el directorio especificado en el motor RAG (Aceleración NPU).
+- `!estado`: Muestra la cantidad de documentos en el índice de conocimiento local.
 
-| Comando | Sintaxis | Explicación |
-| :--- | :--- | :--- |
-| **Modo Auditor** | `!modo auditor` | (Default) Experto cuidadoso, extenso, explica en español detalladamente. |
-| **Modo Coder** | `!modo coder` | Vomita código. 0 charlas de relleno. 100% bloques lógicos para copy-paste. |
-| **Modo Revisor** | `!modo revisor` | Rol destructivo. Busca race-conditions, memory leaks y puertas lógicas rotas. |
-| **Modo Creativo** | `!modo creativo` | Deja de lado la rigidez, ideal para arquitecturas y UX brainstorming. |
+---
 
-## 🔌 Ecosistema / Otros
+## ⚖️ Intellectual Property / Propiedad Intelectual
+This project is owned by **DarckRovert**. Licensed under **PolyForm Non-Commercial 1.0.0**.
 
-| Comando | Sintaxis | Explicación |
-| :--- | :--- | :--- |
-| **Integrador** | `!integrar todo` | Crea los scripts `config.yaml` de tus IDEs para empalmarlos con el Bridge Server de la GPU. |
-| **Ajustes Avan** | `!ajustes` | Te deja ver tus parámetros matemáticos (Temperature, Top P). |
-| **Pipeline CLI** | `cat code | gravity`| Envía tu prompt a través del Pipe nativo de Windows o Bash (sin entrar a la interfaz). |
+Este proyecto es propiedad de **DarckRovert**. Bajo Licencia **PolyForm No-Comercial 1.0.0**.
+
+*Official Support:* [twitch.tv/darckrovert](https://www.twitch.tv/darckrovert)

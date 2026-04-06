@@ -1,73 +1,45 @@
-# Integración de Gravity AI Bridge con IDEs
+# 💻 Gravity IDE Manual / Manual de IDE V7.1
 
-Gravity AI Bridge intercepta de forma transparente el tráfico de Inteligencia Artificial para enviarlo directo a tu modelo local.
-
-Cuando envías el comando `!integrar` desde la consola o ejecutas el instalador, el Bridge crea los "planos de arquitectura" (`.json` y `.yaml`) necesarios para configurar los 3 IDEs principales del mercado. 
-
-La integración funciona a través de un estándar universal compatible con OpenAI, apuntando la IP hacia nuestro Server local (`http://localhost:7860/v1`).
-
-Sigue estas sencillas instrucciones para conectar tu IDE preferido:
+Integrate Gravity AI Bridge with your favorite coding tools. 
+Integra Gravity AI Bridge con tus herramientas de código favoritas.
 
 ---
 
-## 1. VS Code + Continue.dev
+## 🛠️ Configuration / Configuración
 
-Continue.dev es la extensión líder de inteligencia artificial para VS Code.
+### [EN] Universal Settings
+For any IDE (Cursor, Aider, Continue):
+- **Base URL**: `http://localhost:7860/v1`
+- **Model Name**: `gravity` (Auto-mapped).
+- **API Key**: `any-token` (Required but ignored if local).
 
-**Paso a paso:**
-1. Instala la extensión **Continue** en Visual Studio Code.
-2. Haz clic en el ícono de Continue en la barra lateral izquierda.
-3. Haz clic en la rueda de engranaje (⚙️ Settings) abajo a la derecha de Continue para abrir su `config.json`.
-4. Busca la sección `"models": [` y pega nuestro bloque de configuración. El resultado debe verse parecido a esto:
+### [ES] Ajustes Universales
+Para cualquier IDE (Cursor, Aider, Continue):
+- **Base URL**: `http://localhost:7860/v1`
+- **Nombre de Modelo**: `gravity` (Mapeado automático).
+- **Llave API**: `cualquier-token` (Requerida pero ignorada localmente).
 
-```json
-  "models": [
-    {
-      "title": "Gravity Bridge",
-      "provider": "openai",
-      "model": "gravity-bridge-auto",
-      "apiBase": "http://localhost:7860/v1",
-      "apiKey": "gravity"
-    }
-  ]
+---
+
+## 🚀 Optimized Tools / Herramientas Optimizadas
+
+### [EN] Aider
+Run Aider pointing to the Bridge:
+```powershell
+aider --openai-api-base http://localhost:7860/v1 --model openai/gravity
 ```
-5. Guarda el archivo. Selecciona "Gravity Bridge" en el desplegable de Continue y voilá, ya estás conectado.
 
->*Nota técnica: Nuestro comando te genera un archivo de referencia en `Gravity_AI_bridge/.continue/config.yaml`, puedes copiar la información directamente de allí si prefieres usar su nuevo formato YAML.*
-
----
-
-## 2. Cursor IDE
-
-Cursor es un editor de código inteligente diseñado desde cero alrededor de IA.
-
-**Paso a paso:**
-1. Abre **Cursor IDE**.
-2. Dale a la rueda de engranaje (⚙️ Cursor Settings) ubicada en la esquina superior derecha o mediante el menú.
-3. Ve a la pestaña **Models**.
-4. Dirígete a la sección inferior llamada **OpenAI API Key** y marca el toggle:
-   * **Base URL:** `http://localhost:7860/v1`
-   * **API Key:** `gravity`
-5. Arriba, en la lista de modelos de Cursor, asegúrate de activar un modelo personalizado y llamarlo explícitamente `gravity-bridge-auto`.
-6. Selecciona el modelo. La pantalla mostrará que la conexión ha sido enrutada a través del Gravity Server.
-
----
-
-## 3. Aider (CLI Coder)
-
-Aider es la mejor herramienta de terminal para refactoring guiado por IA. Funciona ejecutándose desde cualquier consola apuntando al backend.
-
-**Paso a paso:**
-1. Instala aider: `pip install aider-chat`
-2. Si prefieres la configuración automática, nuestro puente crea un archivo `aider.conf.yml` en la carpeta `Gravity_AI_bridge`.
-3. Alternativamente, simplemente lanza Aider desde la misma terminal que Gravity con el siguiente comando expreso:
-```bash
-aider --openai-api-base http://localhost:7860/v1 --model openai/gravity-bridge-auto --openai-api-key gravity
+### [ES] Aider
+Ejecuta Aider apuntando al Bridge:
+```powershell
+aider --openai-api-base http://localhost:7860/v1 --model openai/gravity
 ```
 
 ---
 
-### ¿Cómo sé si funciona?
+## ⚖️ Intellectual Property / Propiedad Intelectual
+This project is owned by **DarckRovert**. Licensed under **PolyForm Non-Commercial 1.0.0**.
 
-Abre nuestro **Gravity Bridge Server** haciendo doble clic en `INICIAR_SERVIDOR.bat`.
-Debes dejar la pantalla negra abierta de fondo. Cada vez que le pidas algo a VS Code o Cursor, verás la solicitud imprimiéndose en verde atravesando la "malla interna" del servidor en vivo.
+Este proyecto es propiedad de **DarckRovert**. Bajo Licencia **PolyForm No-Comercial 1.0.0**.
+
+*Official Support:* [twitch.tv/darckrovert](https://www.twitch.tv/darckrovert)

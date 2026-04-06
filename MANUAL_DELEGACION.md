@@ -1,35 +1,38 @@
-# 🤝 Manual de Delegación (Gravity AI V7.1 — Auditor-to-Local)
+# 🧠 Gravity Delegation Guide / Manual de Delegación V7.1
 
-Si abres un chat de Inteligencia Artificial para trabajar en un **proyecto computacional completamente distinto** (y la IA en la nube no recuerda nada sobre cómo está estructurado tu sistema de auditoría local), puedes obligarla a canalizar sus algoritmos a través de tu **propia GPU y tu hardware DeepSeek-R1**.
+Delegation is the core strength of Gravity AI Bridge. It offloads expensive reasoning tasks to your high-performance hardware.
 
-Siguiendo este manual conectarás la inteligencia de tu IDE o de un chat fresco (como Antigravity) directamente a tu terminal.
-
----
-
-## 🏗️ Preparación (Una sola vez por proyecto)
-
-La Inteligencia Artificial en la nube sabe qué herramientas usar porque lee las variables de entorno de sus áreas de trabajo. Debes darle "las instrucciones".
-
-1. Dirígete a la carpeta raíz de tu software **Gravity_AI_bridge**.
-2. Copia la carpeta oculta **`.agents`** (completa, con sus flujos de trabajo adentros).
-3. Pégala en la carpeta raíz de tu **Nuevo Proyecto** (el que vayas a programar).
+La delegación es la fuerza central de Gravity AI Bridge. Descarga tareas de razonamiento costosas a tu hardware de alto rendimiento.
 
 ---
 
-## 🎯 Testeo: Qué decirle al Nuevo Chat
+## 🚀 How to Delegate / Cómo Delegar
 
-Abre la conversación en tu nuevo entorno de trabajo. Todo lo que tienes que escribirle es lo siguiente usando tu slash-command activador:
+### [EN] Terminal Delegation
+- **Direct Query**: `python ask_deepseek.py "Review this logic..."`
+- **File Pipe**: `cat [file] | python ask_deepseek.py "Add error handling to this."`
 
-> `/delegar Revisa las fallas de mi código actual en network.py, y entrégame la solución directamente desde mi máquina.`
+### [ES] Delegación por Terminal
+- **Consulta Directa**: `python ask_deepseek.py "Revisa esta lógica..."`
+- **Tubería de Archivos**: `cat [archivo] | python ask_deepseek.py "Añade manejo de errores."`
 
-**¿Qué sucederá tras bambalinas?**
-* El Chat interceptará el comando `/delegar` y leerá silenciosamente el manual oculto en `.agents/workflows/delegar.md`.
-* Conocerá la existencia de un comando global llamado `gravity`.
-* Ejecutará una línea de CMD como: `type network.py | gravity "Busca errores de sintaxis y retorna la refactorización"`.
-* Tu propio equipo físico (Ollama / DeepSeek) tomará la antorcha, pensará la solución y la escupirá de vuelta hacia el puente.
-* El Chat finalmente formateará la respuesta y te la entregará visualmente perfecta.
+---
 
-### Método Alternativo (Si no quieres copiar archivos)
-Si simplemente no deseas arrastrar la carpeta `.agents` a tus nuevos proyectos, también puedes darnos la orden directa e imperativa en tu primer prompt:
+## 🏢 Workflow Integration / Integración de Flujos
 
-> *"Usa tu terminal integrada para inyectar este archivo a mi inteligencia de escritorio. Usa el comando: `type src\main.js | gravity "corrige las importaciones de React"` y muéstrame exactamente lo que te responda."*
+### [EN] Agentic Tools
+Gravity integrates with **Cursor, Aider, and Continue**. All tools point to:
+- **`http://localhost:7860/v1`**
+
+### [ES] Herramientas Agénticas
+Gravity se integra con **Cursor, Aider y Continue**. Todas apuntan a:
+- **`http://localhost:7860/v1`**
+
+---
+
+## ⚖️ Intellectual Property / Propiedad Intelectual
+This project is owned by **DarckRovert**. Licensed under **PolyForm Non-Commercial 1.0.0**.
+
+Este proyecto es propiedad de **DarckRovert**. Bajo Licencia **PolyForm No-Comercial 1.0.0**.
+
+*Official Support:* [twitch.tv/darckrovert](https://www.twitch.tv/darckrovert)

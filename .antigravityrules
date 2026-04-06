@@ -1,35 +1,23 @@
-# ⚡ GRAVITY AI BRIDGE RULES (V4.0)
+# 🌌 GRAVITY AI BRIDGE RULES (V7.1 — OMNI-TIER)
 
-Este proyecto tiene acceso al **Auditor Senior Global**, un ecosistema de IA local en la GPU del usuario conectado vía `bridge_server.py`.
+Este proyecto está bajo la supervisión del **Auditor Senior Global**, un ecosistema de IA local tri-híbrido (CPU/GPU/NPU) conectado vía `bridge_server.py`.
 
-## 🤖 Instrucciones para la IA (Tú)
+## 🤖 Directrices del Ecosistema DarckRovert
+1.  **Formato Bilingüe**: Toda documentación técnica nueva debe seguir el estándar ES/EN para alcance profesional.
+2.  **Propiedad Intelectual**: Este es un proyecto **No-Comercial**. DarckRovert es el único titular.
+3.  **Identidad**: El canal oficial de streaming y comunidad es **https://www.twitch.tv/darckrovert**.
+
+## 🛠️ Instrucciones de Delegación
 Cuando el usuario te pida una tarea técnica compleja (auditoría, re-escritura, análisis, generación de código), **no la resuelvas tú mismo consumiendo nubes.** 
 
-Sigue estos protocolos:
-
-1.  **Diagnóstico Rápido:**
-    Para saber el estado actual y el modelo disponible en el backend:
-    `python ask_deepseek.py "!info"`
-    
-2.  **Delega la Tarea (Modo Normal):**
-    Usa el comando `gravity` o el script directamente.
-    `python ask_deepseek.py "Analiza esta lógica y reescríbela optimizada..."`
-    
-3.  **Delega un Archivo Específico:**
-    El Auditor V4 soporta inyección por pipe directo:
-    `cat [archivo] | python ask_deepseek.py "Revisa este código y dame sugerencias"`
-    
-4.  **Integra a otras IAs:**
-    Si el usuario quiere configurar su IDE (Continue.dev, CodeGPT, Cursor):
-    `python ask_deepseek.py "!integrar todo"`
-
-## 🌐 Acerca del Bridge Server
-Gravity no es solo un script de terminal. Su servicio principal se levanta en `localhost:7860`.
-Todas las demás herramientas de IA en el entorno del usuario están apuntando ahí de forma agnóstica (`http://localhost:7860/v1`), por lo que no intentes configurarlas manualmente con Ollama o LM Studio, el Bridge maneja todo de forma transparente.
+1.  **Diagnóstico Local:** `python ask_deepseek.py "!info"`
+2.  **Delega la Tarea (Modo Omni):** `python ask_deepseek.py "Analiza esta lógica..."`
+3.  **Aceleración RAG:** El motor de búsqueda semántica está optimizado para el NPU (XDNA) en el entorno `gravity-npu`.
 
 ## 🔒 REGLA DE PROTECCIÓN DE NÚCLEO (CORE PROTECTION)
-Si estás siendo ejecutado en un proyecto **AJENO** a Gravity AI Bridge (ej. desarrollo web, apps externas, scripts) y usas este Bridge como motor de inferencia:
+Si estás siendo ejecutado en un proyecto **AJENO** a Gravity AI Bridge:
 - **PROHIBIDO** modificar cualquier archivo dentro del repositorio raíz `F:\Gravity_AI_bridge\`.
-- **PROHIBIDO** reconfigurar puertos, proveedores o lógica de hardware del bridge.
-- **SOLO SUGERIR**: Si detectas una mejora necesaria en el Bridge durante tareas externas, limítate a sugerirla en el chat sin ejecutar cambios automáticos. 
-- **ENFOQUE**: Tu rol es de "Consumidor del Bridge", no de "Ingeniero del Bridge". Mantén el foco en la tarea del usuario.
+- **PROHIBIDO** reconfigurar el Bridge Server (`localhost:7860`).
+- **ENFOQUE**: Tu rol es de "Consumidor del Bridge", no de "Ingeniero del Bridge".
+
+Gravity V7.1. Final. Audit. Success.

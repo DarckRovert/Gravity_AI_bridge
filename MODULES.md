@@ -1,48 +1,41 @@
-# 📦 Documentación de Módulos (Architecture V7.1 Omni-Tier Optimized)
+# 📦 Gravity Module Map / Mapa de Módulos V7.1
 
-La capa V7.1 Omni-Tier Optimized introduce telemetría de hardware en tiempo real, gestión de latencia avanzada y un motor de caché concurrente basado en WAL.
+Understand the project's internal structure and file responsibilities.
+Entiende la estructura interna del proyecto y las responsabilidades de los archivos.
 
-## Núcleo Desacoplado 
+---
 
-### 1. `provider_manager.py` & `providers/` (El Orquestador Neuronal)
-Reemplaza el antiguo _scanner_ centralizando todo el ecosistema.
-**Responsabilidad:** Importa automáticamente cada clase hija bajo de `ProviderPlugin` en `providers/local/` o `providers/cloud/`. Gestiona enrutamiento inteligente (Latencia/Caché), y delega el I/O.
-**Superpoder:** Autoselección de modelos y fallo en cascada *Local fallback -> Cloud*.
+## 🏗️ Core Architecture / Arquitectura Central
 
-### 2. `bridge_server.py` (Universal SSE Proxy)
-Servidor minimalista en CPython que inyecta en pipelines `localhost` para integraciones IDE.
-**Responsabilidad:** Recibir JSON estilo OpenAI puro de un IDE y triangularlo transparentemente al orquestador.
-**Superpoder:** Es capaz de ingerir *streams puros* irregulares o asíncronos y empaquetarlos obligadamente bajo formato *OpenAI Chunk SSE*, garantizando que Cursor/Aider/Continue.dev funcionarán fluidamente consumiendo a *Mistral*, *Grok*, o *LLama3* sin importar el host.
+### [EN] Files
+- `bridge_server.py`: The heart. OpenAI-compatible API server.
+- `hardware_profiler.py`: Hardware discovery (CPU/GPU/NPU).
+- `key_manager.py`: Secure API key encryption (DPAPI).
+- `model_selector.py`: Logic for choosing the best provider.
 
-### 3. `key_manager.py` (Seguridad Activa)
-Motor integrado DPAPI en Microsoft Windows (con fallback de XOR).  
-**Responsabilidad:** Evita el almacenamiento en texto plano en repositorios de cualquier API key. Las claves residen cifradas para AWS, OpenAI, Anthropic, GCP y otras.
+### [ES] Archivos
+- `bridge_server.py`: El corazón. Servidor API compatible con OpenAI.
+- `hardware_profiler.py`: Descubrimiento de hardware (CPU/GPU/NPU).
+- `key_manager.py`: Cifrado seguro de llaves API (DPAPI).
+- `model_selector.py`: Lógica para elegir el mejor proveedor.
 
-### 4. `tools/` y `rag/` (Ejecución Cognitiva y Acceso Lógico)
-La "Habilidad" otorgada al motor.
-- `rag/`: Utiliza una simpleza cruda para inyectar vectores de indexación usando `TF-IDF` y/o embeddings Chroma encapsulados sobre SQLite para no desbordar latencias de arranque.
-- `tools/`: Capa perimetral de scripts Python. Le da agencia autónoma (Tool Execution) para analizar Git, leer y modificar variables crudas interactivamente, ejecutar Bash, y buscar en DuckDuckGo/Brave.
+---
 
-### 5. `cache_engine.py` (Persistence Layer V7.1)
-Motor de persistencia basado en SQLite con modo **WAL (Write-Ahead Logging)** habilitado para acceso concurrente ultra-rápido.
-**Responsabilidad:** Almacenar pares Prompt/Respuesta utilizando un hashing determinista que ignora bloques de razonamiento interno (`<think>`) para maximizar los *Cache Hits*.
-**Superpoder:** Reduce la latencia a <5ms en respuestas repetitivas o auditorías incrementales.
+## 📦 Search & RAG / Búsqueda y RAG
 
-### 6. `session_manager.py` (Context Optimizer)
-Gestor de historial de conversación con lógica de **Sliding Window**.
-**Responsabilidad:** Limitar el historial a 128,000 tokens (configurable) y purgar permanentemente los bloques de razonamiento al finalizar la sesión para optimizar el consumo de tokens en cargas futuras.
+### [EN] Engine
+- `rag/retriever.py`: Semantic search and NPU acceleration (XDNA).
+- `rag/chunker.py`: Intelligent code splitting.
 
-### 7. `ask_deepseek.py` (Frontend AuditorCLI V7.1)
-**Responsabilidades:**
-- **Telemetría Dinámica:** Despliega un banner de 3 columnas (Hardware, Sesión, Estado) con VRAM/RAM/GPU en tiempo real.
-- **Métricas de Performance:** Captura y muestra TTFT (Time To First Token) y TPS (Tokens por segundo).
-- **Control Directo:** Engranaje con comandos de sesión (`/model`, `/cost`, `/rag`, `/search`).
+### [ES] Motor
+- `rag/retriever.py`: Búsqueda semántica y aceleración NPU (XDNA).
+- `rag/chunker.py`: Fragmentación inteligente de código.
 
-### 6. `cost_tracker.py` 
-Calcula y estima los token/ms por dólar, actualizando cuotas consumidas diariamente en los proveedores Cloud a fin de evitar sorpresas y facturaciones cruzadas.
+---
 
-## Componentes de Almacenamiento Cifrado (State)
-- `_settings.json`: La verdad universal del entorno.
-- `_keystore.bin`: Certificados de clave asimétrica para Cloud APIs.
-- `_knowledge.json`: Reglas duras de la red y el sistema.
-- `_saves/`: El multi-verso donde se guardan sesiones enteras archivadas y listas para bifurcar (Forks).
+## ⚖️ Intellectual Property / Propiedad Intelectual
+This project is owned by **DarckRovert**. Licensed under **PolyForm Non-Commercial 1.0.0**.
+
+Este proyecto es propiedad de **DarckRovert**. Bajo Licencia **PolyForm No-Comercial 1.0.0**.
+
+*Official Support:* [twitch.tv/darckrovert](https://www.twitch.tv/darckrovert)
