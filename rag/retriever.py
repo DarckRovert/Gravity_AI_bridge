@@ -11,6 +11,9 @@ PDF/DOCX parser extracts text for indexing.
 """
 
 import os
+import re
+import json
+import math
 import hashlib
 import urllib.request
 from collections import Counter
@@ -99,10 +102,10 @@ class RAGEmbedder:
             from tokenizers import Tokenizer
             import numpy
             npu_dir = os.path.join(BASE_DIR, "rag", "models", "npu_minilm")
-            # Using DirectML provider which can target the NPU device on Windows
-            # Device ID 0 is usually the primary GPU, Device ID 1 is often the NPU Accelerator Device
-            # We use DML to bridge to the Compute Accelerator Device.
-            providers = ['DmlExecutionProvider', 'CPUExecutionProvider']
+            # We target Device ID 0 (Radeon 780M / Primary GPU) via DirectML.
+            # While labeled NPU in the bridge branding, using GPU 0 ensures 100% stability 
+            # and real hardware activity until AMD IPU drivers stabilize for MCDM.
+            providers = [('DmlExecutionProvider', {'device_id': 0}), 'CPUExecutionProvider']
             cls._onnx_session = onnxruntime.InferenceSession(
                 os.path.join(npu_dir, "model.onnx"), 
                 providers=providers

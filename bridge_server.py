@@ -1,8 +1,8 @@
-"""
-╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — BRIDGE SERVER V7.1                          ║
-║     Enrutador Universal OpenAI-Compatible                    ║
-╚══════════════════════════════════════════════════════════════╝
+﻿"""
+â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
+â•‘     GRAVITY AI â€” BRIDGE SERVER V7.1                          â•‘
+â•‘     Enrutador Universal OpenAI-Compatible                    â•‘
+â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 Proxy universal:
 Intercepta llamadas compatibles con OpenAI y las redirige al
@@ -19,7 +19,7 @@ from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 import os
 import sys
 
-# ── Windows UTF-8 Safety (V7.1) ──────────────────────────────────────────
+# â”€â”€ Windows UTF-8 Safety (V7.1) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if sys.stdout.encoding != "utf-8":
     try:
         sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -29,10 +29,18 @@ if sys.stdout.encoding != "utf-8":
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
-from rich.console import Console
+# # No rich
+import sys
+
+class Console_Safe: def print(self, *args, **kwargs): print(*args)
+    def __init__(self): self.c = Console(force_terminal=True, color_system=None, legacy_windows=False) if 'rich' in sys.modules else None
+    def print(self, *args, **kwargs):
+        try: print(*args)
+        except: pass
+class Console_Safe: def print(self, *args, **kwargs): print(*args)
 import provider_manager
 
-console = Console()
+console = Console_Safe()
 SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "_settings.json")
 
 
@@ -44,7 +52,7 @@ def get_settings():
         return {"bridge_port": 7860}
 
 
-# ── V7 Auto-Scanner ────────────────────────────────────────────────────────
+# â”€â”€ V7 Auto-Scanner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def background_scanner():
     while True:
         try:
@@ -55,10 +63,10 @@ def background_scanner():
         time.sleep(30)
 
 
-# ── Reasoning Stripper ─────────────────────────────────────────────────────
+# â”€â”€ Reasoning Stripper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class ReasoningStripper:
     """Silencia tokens inyectados por modelos con razonamiento como Gemma 4 o DeepSeek-R1 
-    para no manchar el código en los IDEs como Cursor/Aider."""
+    para no manchar el cÃ³digo en los IDEs como Cursor/Aider."""
     def __init__(self):
         self.in_reasoning = False
         self.buffer = ""
@@ -71,7 +79,7 @@ class ReasoningStripper:
         
         while self.buffer:
             if not self.in_reasoning:
-                # Buscamos la etiqueta de inicio más cercana
+                # Buscamos la etiqueta de inicio mÃ¡s cercana
                 closest_start = -1
                 for tag in self.start_tags:
                     pos = self.buffer.find(tag)
@@ -81,14 +89,14 @@ class ReasoningStripper:
                 if closest_start != -1:
                     output += self.buffer[:closest_start]
                     self.buffer = self.buffer[closest_start:]  # Mover puntero al inicio del tag
-                    # Evaluar cuál tag es (para limpiarlo completamente)
+                    # Evaluar cuÃ¡l tag es (para limpiarlo completamente)
                     matched_tag = next((t for t in self.start_tags if self.buffer.startswith(t)), None)
                     if matched_tag:
                         self.buffer = self.buffer[len(matched_tag):]
                         self.in_reasoning = True
                 else:
                     # Posible prefijo parcial de start_tag?
-                    # Si termina en '<' o algo así, podríamos esperar, pero es stream muy fino.
+                    # Si termina en '<' o algo asÃ­, podrÃ­amos esperar, pero es stream muy fino.
                     if any(tag.startswith(self.buffer[-1:]) for tag in self.start_tags):
                         break # hold in buffer
                     output += self.buffer
@@ -108,12 +116,12 @@ class ReasoningStripper:
                         self.buffer = self.buffer[len(matched_tag):]
                         self.in_reasoning = False
                 else:
-                    self.buffer = "" # descartar todo mientras se esté razonando
-                    break # salir a esperar más chunks
+                    self.buffer = "" # descartar todo mientras se estÃ© razonando
+                    break # salir a esperar mÃ¡s chunks
         
         return output
 
-# ── HTTP Handler ──────────────────────────────────────────────────────────────
+# â”€â”€ HTTP Handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class GravityBridgeHandler(BaseHTTPRequestHandler):
     def _send_cors(self):
         self.send_header("Access-Control-Allow-Origin",  "*")
@@ -141,7 +149,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
     def _serve_dashboard(self):
         port = get_settings().get("bridge_port", 7860)
         best_p, best_m = provider_manager.get_best()
-        target = f"{best_p.name} ({best_m})" if best_p else "—"
+        target = f"{best_p.name} ({best_m})" if best_p else "â€”"
 
         scans = provider_manager.scan_all()
         
@@ -156,16 +164,16 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
   th{{background:#161b22;color:#58a6ff}}.ok{{color:#3fb950}}.err{{color:#f85149}}.cloud{{color:#c471ed}}
 </style></head>
 <body>
-<h1>Gravity AI Bridge V7.1 🌐</h1>
+<h1>Gravity AI Bridge V7.1 ðŸŒ</h1>
 <p>Proxy Universal (Local + Cloud)</p>
-<h3>Configuración en IDE (Cursor/Aider/Continue)</h3>
+<h3>ConfiguraciÃ³n en IDE (Cursor/Aider/Continue)</h3>
 <pre>Base URL: http://localhost:{port}/v1
 API Key:  gravity-local</pre>
 <h3>Ruteo Activo</h3>
-<p>Procesando peticiones vía → <strong>{target}</strong></p>
+<p>Procesando peticiones vÃ­a â†’ <strong>{target}</strong></p>
 <h3>Motores Detectados (Local + Cloud)</h3>
 <table><tr><th>Proveedor</th><th>Tipo</th><th>Estado</th><th>Modelos</th></tr>
-{"".join(f'<tr><td>{s.name}</td><td class="{"cloud" if getattr(s,"category","")=="cloud" else "ok"}">{"☁ Cloud" if getattr(s,"category","")=="cloud" else "💻 Local"}</td><td class="{"ok" if s.is_healthy else "err"}">{"✅ ONLINE" if s.is_healthy else "🔴 Offline"}</td><td>{len(s.models)}</td></tr>' for s in scans)}
+{"".join(f'<tr><td>{s.name}</td><td class="{"cloud" if getattr(s,"category","")=="cloud" else "ok"}">{"â˜ Cloud" if getattr(s,"category","")=="cloud" else "ðŸ’» Local"}</td><td class="{"ok" if s.is_healthy else "err"}">{"âœ… ONLINE" if s.is_healthy else "ðŸ”´ Offline"}</td><td>{len(s.models)}</td></tr>' for s in scans)}
 </table>
 </body></html>"""
         body = html.encode("utf-8")
@@ -367,21 +375,21 @@ def run_server():
     t = threading.Thread(target=background_scanner, daemon=True)
     t.start()
 
-    console.print(f"\n[bold cyan]┌──────────────────────────────────────────────────────────┐[/]")
-    console.print(f"[bold cyan]│[/]  [bold bright_white]GRAVITY BRIDGE SERVER V7.0 Omni-Tier[/]                    [bold cyan]│[/]")
-    console.print(f"[bold cyan]│[/]  ► Base URL: [green]http://localhost:{port}/v1[/]                    [bold cyan]│[/]")
-    console.print(f"[bold cyan]│[/]  ► IDE Ready:[yellow] SSE Wrapper Universal Activo[/]              [bold cyan]│[/]")
+    print(f"\n[bold cyan]â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”[/]")
+    print(f"[bold cyan]â”‚[/]  [bold bright_white]GRAVITY BRIDGE SERVER V7.0 Omni-Tier[/]                    [bold cyan]â”‚[/]")
+    print(f"[bold cyan]â”‚[/]  â–º Base URL: [green]http://localhost:{port}/v1[/]                    [bold cyan]â”‚[/]")
+    print(f"[bold cyan]â”‚[/]  â–º IDE Ready:[yellow] SSE Wrapper Universal Activo[/]              [bold cyan]â”‚[/]")
     
     best_p, best_m = provider_manager.get_best()
     if best_p:
-        icon = "☁ Cloud" if getattr(best_p,"category","") == "cloud" else "💻 Local"
+        icon = "â˜ Cloud" if getattr(best_p,"category","") == "cloud" else "ðŸ’» Local"
         target_display = f"[{icon}] {best_p.name} ({best_m})"
         pad = " " * max(0, 55 - len(target_display))
-        console.print(f"[bold cyan]│[/]  Ruteo Defecto: [magenta]{target_display}[/]{pad}[bold cyan]│[/]")
+        print(f"[bold cyan]â”‚[/]  Ruteo Defecto: [magenta]{target_display}[/]{pad}[bold cyan]â”‚[/]")
     else:
-        console.print(f"[bold cyan]│[/]  [red]Sin detectados. Configura API Keys o inicia locales[/]    [bold cyan]│[/]")
+        print(f"[bold cyan]â”‚[/]  [red]Sin detectados. Configura API Keys o inicia locales[/]    [bold cyan]â”‚[/]")
     
-    console.print(f"[bold cyan]└──────────────────────────────────────────────────────────┘[/]\n")
+    print(f"[bold cyan]â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜[/]\n")
 
     server = ThreadingHTTPServer(("0.0.0.0", port), GravityBridgeHandler)
     try:
@@ -393,3 +401,5 @@ def run_server():
 
 if __name__ == "__main__":
     run_server()
+
+
