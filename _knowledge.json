@@ -1,1 +1,26 @@
-[]
+{
+  "project": "Gravity AI Bridge",
+  "version": "7.1",
+  "status": "Official Release",
+  "architecture": "Omni-Tier / Tri-Hardware (CPU, GPU, NPU)",
+  "vulnerability_fixes": [
+    {
+      "id": "SEC-01",
+      "description": "Port 7860 self-detection loop with Oobabooga",
+      "resolution": "Excluded port 7860 from Oobabooga search in openai_compat_provider.py"
+    },
+    {
+      "id": "ERR-01",
+      "description": "UnicodeEncodeError on Windows terminals",
+      "resolution": "Reconfigured sys.stdout/stderr to UTF-8 in bridge_server.py and ask_deepseek.py"
+    }
+  ],
+  "hardware_logic": {
+    "primary_accelerator": "AMD Radeon 780M (DirectML/ROCm)",
+    "npu_target": "AMD Ryzen AI (XDNA)",
+    "rag_embedder": "ONNX Runtime (onnx_npu)",
+    "optimal_ctx_calc": "45% of total VRAM allocated to KV-cache"
+  },
+  "last_audit": "2026-04-06",
+  "author": "Antigravity Senior Agent"
+}

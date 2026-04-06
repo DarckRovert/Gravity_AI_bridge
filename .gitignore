@@ -1,14 +1,32 @@
-# Gravity AI Bridge - Ignored Files
-_cache.sqlite*
-_cost_log.json
-_saves/
-_settings.json
-_knowledge.json
+# 🌌 Gravity AI Bridge — Ignored Files
+
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
 venv/
 .venv/
+env/
+.env
+
+# Models & Heavy Data (Important)
+rag/models/*
+!rag/models/.keep
+*.gguf
+*.onnx
+*.safetensors
+
+# Local Configuration
+_settings.json
+_knowledge.json
+settings_local.json
+
+# Logs & Temp
+logs/
 *.log
-session_*.html
-session_*.md
-node_modules/
+temp/
+/tmp/
+
+# OS
 .DS_Store
+Thumbs.db

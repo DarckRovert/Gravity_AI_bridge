@@ -1,11 +1,11 @@
 """
 ╔══════════════════════════════════════════════════════════╗
-║     GRAVITY AI ENGINE WATCHDOG V7.0                      ║
+║     GRAVITY AI ENGINE WATCHDOG V7.1                      ║
 ║     Auto-Detección, Auto-Switch y Auto-Optimización      ║
 ╚══════════════════════════════════════════════════════════╝
 
 Corre en segundo plano como hilo demonio.
-Delega toda la lógica de detección y routing al V7.0 ProviderManager.
+Delega toda la lógica de detección y routing al V7.1 ProviderManager.
 Persiste la selección en _settings.json.
 """
 

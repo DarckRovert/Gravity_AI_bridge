@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — PROVIDER BASE CLASSES V7.0                  ║
+║     GRAVITY AI — PROVIDER BASE CLASSES V7.1                  ║
 ║     ProviderResult + ProviderPlugin ABC                      ║
 ╚══════════════════════════════════════════════════════════════╝
 All providers (local and cloud) implement ProviderPlugin.

@@ -64,7 +64,7 @@ def _score_provider(result: ProviderResult, task: str) -> float:
             score += 30.0   # Claude strong reasoner
 
     # Model parameter size bonus
-    for size, bonus in [("70b", 25), ("72b", 25), ("32b", 20), ("14b", 10),
+    for size, bonus in [("70b", 25), ("72b", 25), ("32b", 20), ("26b", 18), ("14b", 10),
                         ("8b", 5), ("7b", 5)]:
         if size in active:
             score += bonus

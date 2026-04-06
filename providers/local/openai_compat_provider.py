@@ -1,4 +1,4 @@
-"""Gravity AI — OpenAI-Compatible Local Providers V7.0
+"""Gravity AI — OpenAI-Compatible Local Providers V7.1
 Includes: LM Studio, vLLM, TabbyAPI, Oobabooga, LocalAI, Xinference, Llamafile, Jan AI
 All share the same OpenAI-compatible /v1/chat/completions endpoint.
 """
@@ -111,7 +111,7 @@ class TabbyAPIProvider(_OpenAICompatLocalProvider):
 class OobaboogaProvider(_OpenAICompatLocalProvider):
     name         = "Oobabooga"
     default_port = 5000
-    _alt_ports   = [5000, 7860, 5001]
+    _alt_ports   = [5000, 5001]
 
     def check_health(self) -> ProviderResult:
         for port in self._alt_ports:

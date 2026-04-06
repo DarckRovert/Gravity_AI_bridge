@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — MULTI-AGENT ORCHESTRATOR V7.0               ║
+║     GRAVITY AI — MULTI-AGENT ORCHESTRATOR V7.1               ║
 ║     Parallel, Sequential y Vote-based multi-model queries    ║
 ╚══════════════════════════════════════════════════════════════╝
 """

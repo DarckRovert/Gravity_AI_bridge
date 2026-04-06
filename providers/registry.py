@@ -171,7 +171,7 @@ class ProviderRegistry:
 
 
 if __name__ == "__main__":
-    print("Provider Registry V7.0 — Discovery test\n")
+    print("Provider Registry V7.1 — Discovery test\n")
     ProviderRegistry.discover(force=True)
     names = ProviderRegistry.get_names()
     print(f"  Discovered {len(names)} plugin(s): {', '.join(names)}\n")

@@ -1,5 +1,5 @@
 """
-providers/local/_base_local.py — Shared HTTP helper for local providers.
+providers/local/_base_local.py — Shared HTTP helper for local providers V7.1
 Internal — not auto-discovered by registry (filename starts with _).
 """
 
@@ -14,14 +14,9 @@ from typing import Generator
 def _http_get(url: str, timeout: float = 1.0) -> dict | None:
     """GET request returning parsed JSON, or None on any error."""
     try:
-        old = socket.getdefaulttimeout()
-        socket.setdefaulttimeout(timeout)
         req = urllib.request.Request(url, headers={"User-Agent": "GravityAI/7.0"})
-        try:
-            with urllib.request.urlopen(req, timeout=timeout) as r:
-                return json.loads(r.read().decode("utf-8"))
-        finally:
-            socket.setdefaulttimeout(old)
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read().decode("utf-8"))
     except Exception:
         return None
 

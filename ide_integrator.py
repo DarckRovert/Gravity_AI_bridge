@@ -31,8 +31,8 @@ class IDEIntegrator:
         target_dir = os.path.join(BASE_DIR, ".continue")
         os.makedirs(target_dir, exist_ok=True)
         cfg = (
-            "name: Gravity Local V7.0 Omni-Tier\n"
-            "version: 7.0.0\n"
+            "name: Gravity Local V7.1 Omni-Tier\n"
+            "version: 7.1.0\n"
             "schema: v1\n"
             "models:\n"
             "  - name: \"Gravity Bridge\"\n"

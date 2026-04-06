@@ -26,7 +26,7 @@ try:
         with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
             
-        print(f"[OK] Settings V7.0 Omni-Tier actualizados para usar -> {best_prov.name} ({best_mod})")
+        print(f"[OK] Settings V7.1 Omni-Tier actualizados para usar -> {best_prov.name} ({best_mod})")
         
         with open(TEMP_BEST_MODEL_TXT, "w", encoding="utf-8") as f:
             f.write(best_mod)

@@ -1,19 +1,16 @@
-# 🛡️ Código de Conducta - Gravity AI Ecosystem
+# 🤝 Código de Conducta de Contribución
 
-## Nuestro Compromiso
-Nos comprometemos a hacer de la participación en este proyecto y en nuestra comunidad una experiencia libre de acoso para todos, independientemente de la edad, tamaño corporal, discapacidad, origen étnico, características sexuales, identidad y expresión de género, nivel de experiencia, educación, estatus socioeconómico, nacionalidad, apariencia personal, raza, religión o identidad sexual.
+Como parte del ecosistema **DarckRovert**, nos comprometemos a mantener un ambiente de respeto mutuo, profesionalismo y excelencia técnica.
 
-## Nuestros Estándares
-Ejemplos de comportamiento que contribuyen a crear un entorno positivo:
-- Uso de lenguaje amable e inclusivo.
-- Respeto a los diferentes puntos de vista y experiencias.
-- Aceptación de críticas constructivas a tus Pull Requests (PR).
+## 👋 Nuestros Estándares
+- **Respeto**: Trata a todos con cortesía, independientemente de su nivel de experiencia.
+- **Excelencia**: Buscamos soluciones eficientes e innovadoras ("God-Tier").
+- **Privacidad**: Nunca solicites datos personales o llaves de API en canales públicos.
 
-Ejemplos de comportamiento inaceptable incluyen:
-- El uso de lenguaje o imágenes sexualizadas.
-- Comentarios despectivos, insultantes o ataques personales (flame tools).
-- El acoso público o privado a otros miembros.
-- Alteración irresponsable del código del "Bridge Server" para propósitos destructivos.
+## 🚫 Comportamientos Inaceptables
+- Lenguaje o imágenes sexuales.
+- Trolling, insultos o ataques personales.
+- Publicidad no solicitada de herramientas de terceros fuera del contexto.
 
-## Aplicación
-Las personas responsables de mantener el núcleo de Gravity AI Bridge tienen la responsabilidad y el derecho de eliminar, editar o rechazar Pull Requests que violen este Código y de sancionar cualquier tipo de comportamiento hostil.
+---
+*Más información en: [claseabc.netlify.app](https://claseabc.netlify.app)*

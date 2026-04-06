@@ -1,4 +1,4 @@
-# 📜 GRAVITY AI PROTOCOL V7.0 (Omni-Tier)
+# 📜 GRAVITY AI PROTOCOL V7.1 (Omni-Tier)
 
 Este repositorio aloja el **Auditor Senior Global**, un sistema "God-Tier" diseñado para interceptar peticiones, correr en GPUs locales, enrutar a múltiples motores via su Bridge Server y ahorrar miles de tokens de pago.
 

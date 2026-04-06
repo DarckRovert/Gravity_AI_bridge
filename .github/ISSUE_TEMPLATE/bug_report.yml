@@ -1,0 +1,46 @@
+name: "🐞 Bug Report (Standard Senior)"
+about: "Reporta un error técnico, bug de hardware o fallo de lógica."
+title: "[BUG] "
+labels: ["bug", "triage"]
+assignees: "DarckRovert"
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ¡Gracias por reportar! Por favor, sé lo más técnico posible. 
+  - type: textarea
+    id: description
+    attributes:
+      label: "📌 Descripción del Problema"
+      placeholder: "¿Qué está pasando?"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: "🏷️ Versión de Gravity"
+      placeholder: "Ej. V7.1 Omni-Tier"
+    validations:
+      required: true
+  - type: textarea
+    id: hardware
+    attributes:
+      label: "💻 Especificaciones de Hardware"
+      placeholder: "Ej. Ryzen 7 7840U, 32GB RAM, iGPU 780M (NPU Activo)"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: "🛠️ Pasos para Reproducir"
+      placeholder: "1. Ejecutar gravity... 2. Enviar prompt..."
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: "📄 Logs de Error / Terminal"
+      placeholder: "Copia y pega el stack trace aquí."
+    validations:
+      required: false

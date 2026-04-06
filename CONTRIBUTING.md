@@ -1,24 +1,23 @@
-# 🛠️ Guía de Contribución al Core de Gravity AI
+# 🤝 Contribución — Gravity AI Bridge
 
-¡Gracias por querer aportar al Ecosistema V7.1 Omni-Tier de Gravity! El objetivo principal es mantener la UI de consola ultra-fluida y el Bridge proxy corriendo sin dependencias pesadas.
+¡Gracias por querer contribuir al ecosistema **DarckRovert**! Este es un proyecto de alto nivel técnico y esperamos contribuciones de igual calibre.
 
-## Requisitos de Código (Hard Rules)
-1. **Cero Dependencias Bloqueantes:** El proyecto se enorgullece de usar únicamente `urllib`, `socket` y librerías stdlib de Python para el servidor y llamadas. La única dependencia estética es `rich` y `pyfiglet`. **No se aceptarán frameworks masivos como Flask/FastAPI.**
-2. **Compatibilidad Universal:** Todo el código CLI debe utilizar escapes ANSII transparentes y compatibilidad con `Cmd/PowerShell`. (Usar `os.name == 'nt'` inteligentemente).
-3. **Resiliencia de JSON:** Nunca añadas mutaciones directas a JSON sin empaquetarlas en bloques de `try/except`. ¡La salvaguarda de datos es prioritaria!
+## 🛠️ Entorno de Desarrollo
+1. Clona el repositorio.
+2. Asegúrate de tener **Python 3.14+**.
+3. Ejecuta `python setup_npu.py` para validar la compatibilidad del hardware.
+4. Usa el `bridge_server.py` para testing de integración.
 
-## Añadir un Nuevo Motor a `provider_scanner.py`
-Si ha surgido una nueva app en el mercado (como LM Studio o Jan), puedes añadirla rápidamente al escáner:
+## 🚦 Flujo de Pull Requests
+- Crea una rama descriptiva: `feature/npu-acceleration` o `fix/provider-timeout`.
+- Sigue el estándar de **V7.1 Omni-Audit** en tus comentarios de código.
+- Asegúrate de actualizar el `CHANGELOG.md` con tus cambios.
+- No realices `git push` a la rama `main` directamente.
 
-Simplemente dirígete a la clase `ProviderScanner` y fíjate en el array constante `KNOWN_PROVIDERS`. Añade un nuevo bloque de diccionario con el puerto oficial de esa herramienta, y si soporta la API de OpenAI pon su protocolo en `openai`. El puente enrutará y detectará ese motor de inmediato.
+## 📝 Estándares de Código
+- Tipado estricto en Python (Type hints).
+- Documentación interna en los headers de los archivos.
+- Uso del objeto `_knowledge.json` para persistencia de lógica de negocio.
 
-```python
-    KNOWN_PROVIDERS = [
-        {"name": "Ollama", "port": 11434, "protocol": "ollama"},
-        {"name": "LM Studio", "port": 1234, "protocol": "openai"},
-        {"name": "Tu Nueva App", "port": 9999, "protocol": "openai"}
-    ]
-```
-
-## Sistema de Reporte de Errores (Issues)
-Abre un ticket con tu stack (Ej: Ryzen 8700G, Windows 11, LM Studio versión X). Adjuntar el output del log del servidor Bridge que puedes capturar ejecutando `bridge_server.py` manualmente es esencial para rastrear el fallo en el proxy.
+---
+*Si tienes dudas, contacta vía [claseabc.netlify.app](https://claseabc.netlify.app).*

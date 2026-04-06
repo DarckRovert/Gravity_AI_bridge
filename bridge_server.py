@@ -21,12 +21,13 @@ import sys
 
 # ── Windows UTF-8 Safety (V7.1) ──────────────────────────────────────────
 if sys.stdout.encoding != "utf-8":
-    import io
     try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        import io
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
-    except Exception:
-        pass
 
 from rich.console import Console
 import provider_manager
@@ -147,7 +148,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
         html = f"""<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8">
-<title>Gravity AI Bridge V7.0 Omni-Tier</title>
+<title>Gravity AI Bridge V7.1 Omni-Tier</title>
 <style>
   body{{font-family:system-ui,sans-serif;background:#0d1117;color:#c9d1d9;padding:40px;max-width:800px;margin:auto}}
   h1{{color:#58a6ff}}pre{{background:#161b22;padding:15px;border-radius:6px;color:#7ee787}}
@@ -155,7 +156,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
   th{{background:#161b22;color:#58a6ff}}.ok{{color:#3fb950}}.err{{color:#f85149}}.cloud{{color:#c471ed}}
 </style></head>
 <body>
-<h1>Gravity AI Bridge V7.0 🌐</h1>
+<h1>Gravity AI Bridge V7.1 🌐</h1>
 <p>Proxy Universal (Local + Cloud)</p>
 <h3>Configuración en IDE (Cursor/Aider/Continue)</h3>
 <pre>Base URL: http://localhost:{port}/v1

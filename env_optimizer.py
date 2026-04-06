@@ -258,7 +258,7 @@ def apply_all(persist=False, verbose=False):
     profile = _load_hardware()
 
     if verbose:
-        print(f"\n[⚡ EnvOptimizer V7.0]")
+        print(f"\n[⚡ EnvOptimizer V7.1]")
         print(f"  GPU    : {profile.get('gpu_name', 'Unknown')}")
         print(f"  VRAM   : {profile['vram_mb']:,} MB")
         print(f"  Ctx    : {profile['optimal_ctx']:,} tokens (KV: {profile['kv_quant']})")

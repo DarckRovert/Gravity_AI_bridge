@@ -105,6 +105,15 @@ def _parse_ram_windows():
         return 32768  # fallback 32GB
 
 
+def _parse_npu_windows():
+    """Detects NPU (AMD Ryzen AI) on Windows using Get-PnpDevice."""
+    cmd = "powershell -NoProfile -Command \"Get-PnpDevice -FriendlyName '*NPU*' | Select-Object -ExpandProperty FriendlyName -First 1\""
+    out = _run_cmd(cmd, timeout=5)
+    if out and "NPU" in out:
+        return out.strip()
+    return None
+
+
 def _parse_gpu_linux():
     """Parses GPU info on Linux using lspci."""
     gpus = []
@@ -276,8 +285,11 @@ def get_full_profile():
     kv_quant    = "q4_0" if gpu["vram_mb"] < 10000 else "q8_0"
     optimal_ctx = calculate_optimal_ctx(gpu["vram_mb"], model_size_b, kv_quant)
 
+    npu_name = _parse_npu_windows() if platform.system() == "Windows" else None
+
     return {
         **gpu,
+        "npu_name":     npu_name,
         "model_size_b": model_size_b,
         "kv_quant":     kv_quant,
         "optimal_ctx":  optimal_ctx,
@@ -287,9 +299,9 @@ def get_full_profile():
 
 
 if __name__ == "__main__":
-    print("\n╔══════════════════════════════════╗")
-    print("║  GRAVITY AI HARDWARE PROFILER V6 ║")
-    print("╚══════════════════════════════════╝\n")
+    print("\n╔════════════════════════════════════╗")
+    print("║  GRAVITY AI HARDWARE PROFILER V7.1 ║")
+    print("╚════════════════════════════════════╝\n")
 
     p = get_full_profile()
     print(f"  GPU (Primary)  : {p['gpu_name']}")
@@ -300,6 +312,8 @@ if __name__ == "__main__":
     print(f"  GPU Backend    : {p['gpu_type'].upper()}")
     if p.get("gfx_version"):
         print(f"  GFX Version    : {p['gfx_version']} (ROCm compat)")
+    if p.get("npu_name"):
+        print(f"  NPU Acelerador : [ACTIVO] {p['npu_name']}")
 
     if len(p.get("all_gpus", [])) > 1:
         print(f"\n  Todas las GPUs detectadas ({len(p['all_gpus'])}):")

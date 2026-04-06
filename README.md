@@ -1,135 +1,62 @@
-<div align="center">
-<img src="assets/hero_ai.png" width="800" alt="Gravity AI Omni Tier Banner">
+# 🌌 Gravity AI Bridge V7.1 — Omni-Tier Architecture
 
-# GRAVITY AI BRIDGE V7.1 — OMNI-TIER Optimized 🌐
-### El Motor Universal de Orquestación e Inferencia Perimetral.
+[![Status](https://img.shields.io/badge/Status-Official_Release-blue?style=for-the-badge)](https://claseabc.netlify.app)
+[![Version](https://img.shields.io/badge/Version-V7.1_Omni--Tier-magenta?style=for-the-badge)](https://claseabc.netlify.app)
+[![Hardware](https://img.shields.io/badge/Hardware-Tri--Hybrid_(CPU/GPU/NPU)-green?style=for-the-badge)](https://claseabc.netlify.app)
 
-[![Version](https://img.shields.io/badge/Version-7.1_Omni--Tier-purple?style=for-the-badge)](https://github.com/DarckRovert/Gravity_AI_bridge)
-[![Python](https://img.shields.io/badge/Python-3.10+-blue?style=for-the-badge)](#)
-[![Security](https://img.shields.io/badge/Security-DPAPI_Encrypted-green?style=for-the-badge)](#)
-[![Engines](https://img.shields.io/badge/Engines-Local_&_Cloud-blueviolet?style=for-the-badge)](#)
-
-*"No envíes tu código al exterior ciegamente. Forjamos la red dentro de nuestras propias sombras, expandiendo el horizonte a nuestro mando."*
-</div>
-
-<br/>
-
-**Gravity AI Bridge V7.1 (Omni-Tier Optimized)** es una arquitectura **Enterprise de Enrutamiento Universal** que detecta, optimiza y controla absolutamente cualquier motor de IA: tanto locales (Ollama, LM Studio, Jan, Kobold) como infraestructuras Cloud (OpenAI, DeepSeek, Anthropic, Gemini, Grok, AWS). La versión 7.1 introduce **Telemetría Dinámica de Hardware**, **Caché Híbrida de Razonamiento** y un motor de **Contexto Deslizante (Sliding Window)** de 128k tokens con purga automática de bloques `<think>`.
+**Gravity AI Bridge** es el orquestador de inteligencia artificial local definitivo. Diseñado para desarrolladores senior que exigen privacidad total, latencia ultra-baja y aprovechamiento máximo del silicio moderno (NPU/GPU). Intercepta peticiones de IDEs (Cursor, Aider, Continue) y las enruta inteligentemente hacia tu hardware local o nubes seguras.
 
 ---
 
-## 📜 Tabla de Contenidos
-- [Arquitectura V7.1 Omni-Tier](#-arquitectura-v71-omni-tier)
-- [Capa de Proveedores Universales](#-capa-de-proveedores-universales-omni-tier)
-- [Zero-Overhead RAG & Tools](#-zero-overhead-rag--tool-execution)
-- [Instalación Zero-Touch](#-instalación-zero-touch)
-- [El Arsenal del Auditor CLI](#-el-arsenal-del-auditor-cli)
-- [Integración IDE Unificada (Cursor/Aider)](#-integración-ide-unificada-cursor-aider)
+## 🚀 Características God-Tier (V7.1)
+
+- **⚡ Aceleración Tri-Híbrida**: Primer bridge local que utiliza simultáneamente **CPU**, **GPU (ROCm/DirectML)** y el **NPU (Ryzen AI/XDNA)** para offloading de tareas.
+- **🛡️ Protocolo Omni-Audit**: Sistema de auditoría técnica que inyecta instrucciones de razonamiento matemático y detección de vulnerabilidades en cada consulta.
+- **🌐 Proxy Universal**: Emulación perfecta del API de OpenAI en `localhost:7860/v1` para integración instantánea con cualquier herramienta de terceros.
+- **📦 Motor RAG (AI Search)**: Indexación semántica ultra-rápida de repositorios completos utilizando el NPU para generar embeddings sin tocar el rendimiento del chat.
+- **📊 Hardware Profiler**: Telemetría dinámica que calcula el `num_ctx` óptimo basado en tu VRAM real y tipo de cuantización (Q8/Q4).
 
 ---
 
-## 🖧 Arquitectura V7.1 Omni-Tier
+## 🛠️ Instalación y Configuración
 
-```mermaid
-graph TD
-    U["Tu IDE o Terminal"]
-    
-    subgraph GRAVITY_AI ["GRAVITY AI V7 OMNI-TIER"]
-        server["Universal SSE Proxy"]
-        PM["Provider Manager"]
-        localNode["Capa Local (Ollama)"]
-        cloudNode["Capa Cloud (OpenAI)"]
-        cost["Cost Tracker"]
-        KM["Key Manager DPAPI"]
-        tools["Tool Execution Engine"]
-        rag["Dependency-Free RAG"]
-    end
-    
-    U --> server
-    server --> PM
-    PM -->|Local Fallback| localNode
-    PM -->|Cloud Routing| cloudNode
-    PM --> cost
-    KM -->|Provee Secretos| cloudNode
-    PM --> tools
-    PM --> rag
-    
-    style U fill:#1b1b1b,stroke:#0ffff,color:#fff
-    style server fill:#223344,stroke:#ff00ff
-    style PM fill:#ff8800,stroke:#ffffff,color:#000
-    style localNode fill:#0a3a2a,stroke:#00ff55,color:#fff
-    style cloudNode fill:#3a0a2a,stroke:#ff0055,color:#fff
-```
+### 1. Requisitos Previos
+- **AMD Ryzen AI** (7840U/8840HS o superior) o **NVIDIA RTX 30+**.
+- **Python 3.14+** (Configurado para UTF-8 nativo).
+- **Controladores Adrenalin 23.9.1+** (Para soporte de IPU/NPU).
 
----
-
-## 🌩 Capa de Proveedores Universales (Omni-Tier)
-A diferencia de versiones anteriores limitadas al perímetro local, la V7.1 unifica **cualquier API** adaptándola al estándar de inyección con optimización de tráfico.
-
-### 🚀 Novedades de la V7.1 (Optimized)
-*   **Telemetría CLI 3-Panels:** Monitoreo en tiempo real de VRAM, RAM, GPU y Cache Hit Rate directamente en el banner.
-*   **Métricas de Latencia (TTFT/TPS):** Auditoría de rendimiento "Time To First Token" y tokens por segundo en cada respuesta.
-*   **Reasoning-Aware Cache:** Motor SQLite en modo **WAL** que sanitiza bloques de razonamiento interno (`<think>`) para maximizar los hits de caché.
-*   **Context Stripper:** Poda inteligente de historial (128k tokens) y limpieza reactiva de memoria post-sesión.
-
-* **Locales Detectables (Auto-Port Scanning):** Ollama, LM Studio, KoboldCPP, Jan AI, Xinference, LocalAI, vLLM, TabbyAPI, Lemonade.
-* **Cloud (Vía KeyManager DPAPI):** OpenAI, Anthropic Claude, Google Gemini, xAI (Grok), Mistral, DeepSeek, Firefox, Together, Perplexity, AWS Bedrock, HuggingFace, Azure OpenAI, Cohere.
-
-## 🛠 Zero-Overhead RAG & Tool Execution
-El sistema posee ahora la capacidad explícita de buscar en internet o ejecutar código aisladamente, con **dependencias mínimas reales** inyectadas directamente al modelo cargado:
-
-1. **RAG Local:** Chunking de archivos (PDF/TXT/Code) inyectable de manera paralela. Usa TF-IDF (0 dependencias pesadas) como salvavidas o `sentence-transformers` en caso de existir la biblioteca.
-2. **Bash & Code:** Ejecuta bloques de Python, PowerShell, Javascript directamente durante la inferencia y nutre la respuesta de vuelta al Auditor.
-3. **Web Search:** Integración con DuckDuckGo API sin claves. Búsqueda semántica in-line en la consola.
-
----
-
-## 🚀 Instalación Zero-Touch
-
-```bash
-git clone https://github.com/DarckRovert/Gravity_AI_bridge.git
+### 2. Despliegue Rápido
+```powershell
+# Clonar y preparar entorno
+git clone https://github.com/DarckRovert/Gravity_AI_bridge
 cd Gravity_AI_bridge
-INSTALAR.bat
+
+# Activar acelerador NPU (Ryzen AI)
+python setup_npu.py
+
+# Iniciar servidor Bridge
+python bridge_server.py
 ```
 
-1. Perfila tu hardware y tu ecosistema neuronal Local/Cloud.
-2. Asegura localmente tu motor DPAPI (`pywin32` requerido).
-3. Levanta el Bridge en segundo plano (`MODO_FANTASMA.vbs` o Server CLI).
-4. Auto-configura tus extensiones IDE de desarrollo.
+### 3. Integración en IDE (Cursor/Aider)
+Configura tu Base URL como: `http://localhost:7860/v1` y usa el comando `!info` en la terminal de Gravity para ver los modelos activos.
 
 ---
 
-## ⚔️ El Arsenal del Auditor CLI
+## 📂 Estructura del Ecosistema
 
-El comando unificado es tu punto de control sin salir de la consola:
-
-```bash
-gravity "/model"             # Panel UI interactivo para forzar modelo o saltar entre LMStudio/Ollama/DeepSeek.
-gravity "/providers"         # Radar Ping/Latencia de nodos locales y cloud saludables.
-gravity "/cost"              # Monitor de costes consumidos en APIs SaaS en USD hoy.
-gravity "/search quantum"    # Inyecta los resultados de una búsqueda de web viva.
-gravity "/rag variable"      # RAG inmediato sobre la documentación guardada en SQLite local.
-gravity "/branch tesis"      # Crea un entorno de memoria forked para no manchar el contexto original.
-gravity "/export"            # Exporta tu chat de código local a un index.html estilizado.
-```
-
-## 🔌 Integración IDE Unificada (Cursor, Aider)
-Gravity V7 incluye el **Universal SSE Proxy** (`bridge_server.py`). Sin importar si el motor trasero es *Mistral-Local* vía LM Studio o Claude 3.5 Sonnet, el puente convierte cualquier token y payload stream en el estándar estructural **OpenAI**. 
-Los IDEs recibirán tokens a 100~+ T/s con latencias ultra bajas y flush en tiempo real. 
-
-Configuración general para cualquier IDE/Terminal:
-* Base URL: `http://localhost:7860/v1`
-* API Key: `gravity-local`
-* Model: `gravity-bridge-auto`
+- `/providers`: Controladores inteligentes para Ollama, LM Studio y VLLM.
+- `/rag`: Motor de búsqueda semántica optimizado para NPU.
+- `/wiki`: Documentación profunda sobre arquitectura y seguridad.
+- `ask_deepseek.py`: Frontend Senior personalizado con auditoría Omni-Audit.
+- `hardware_profiler.py`: El cerebro de detección de hardware.
 
 ---
 
-<div align="center">
-<br/>
+## 📄 Licencia y Contribución
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-[![Powered by](https://img.shields.io/badge/Powered_by-Gravity_AI-purple.svg?style=flat-square)](#)
+Este proyecto está bajo la **Licencia MIT**. Si deseas contribuir, por favor revisa nuestro [CONTRIBUTING.md](CONTRIBUTING.md).
 
-*Gravity AI Bridge — Forjado en las sombras. Enrutando el cosmos.*
-
-</div>
+---
+*Desarrollado por el ecosistema **Antigravity** & **DarckRovert**.*
+*Sitio Oficial:* [claseabc.netlify.app](https://claseabc.netlify.app)

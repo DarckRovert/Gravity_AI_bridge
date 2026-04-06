@@ -129,7 +129,7 @@ echo  NUEVAS CARACTERISTICAS V7.1:
 echo    - Telemetria de Hardware (VRAM/RAM) en Tiempo Real
 echo    - Latencia TTFT (Time To First Token) visible
 echo    - Motor de Cache WAL (SQLite Ultra-Fast Hashing)
-echo    - Sliding Window (128k context) & Reasoning Purge
+echo    - Sliding Window (128k context) ^& Reasoning Purge
 echo.
 echo  MODOS DE USO:
 echo    1. Consola Nativa: gravity "tu pregunta"

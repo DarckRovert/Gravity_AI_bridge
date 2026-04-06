@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — BENCHMARK V7.0                              ║
+║     GRAVITY AI — BENCHMARK V7.1                              ║
 ║     Comparador de modelos: velocidad, calidad, costo        ║
 ╚══════════════════════════════════════════════════════════════╝
 """

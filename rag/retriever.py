@@ -11,12 +11,14 @@ PDF/DOCX parser extracts text for indexing.
 """
 
 import os
-import re
-import json
-import math
 import hashlib
 import urllib.request
 from collections import Counter
+
+# NPU/ONNX dependencies (lazy loaded inside methods)
+onnxruntime = None
+tokenizers = None
+numpy = None
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -29,7 +31,11 @@ class RAGEmbedder:
 
     @classmethod
     def _detect_backend(cls):
-        if cls._backend:
+        # Try NPU (ONNX + DirectML)
+        npu_dir = os.path.join(BASE_DIR, "rag", "models", "npu_minilm")
+        if os.path.exists(os.path.join(npu_dir, "model.onnx")):
+            cls._backend = "onnx_npu"
+            cls._model   = "all-MiniLM-L6-v2"
             return cls._backend
         # Try Ollama nomic-embed-text
         try:
@@ -71,7 +77,9 @@ class RAGEmbedder:
     def embed(cls, texts: list[str]) -> list[list[float]]:
         """Returns a list of embedding vectors for the given texts."""
         backend = cls._detect_backend()
-        if backend == "ollama":
+        if backend == "onnx_npu":
+            return cls._embed_onnx_npu(texts)
+        elif backend == "ollama":
             return cls._embed_ollama(texts)
         elif backend == "sentence_transformers":
             return cls._embed_sentence_transformers(texts)
@@ -79,6 +87,49 @@ class RAGEmbedder:
             return cls._embed_openai(texts)
         else:
             return cls._embed_tfidf(texts)
+
+    _onnx_session = None
+    _tokenizer    = None
+
+    @classmethod
+    def _embed_onnx_npu(cls, texts):
+        global onnxruntime, tokenizers, numpy
+        if not cls._onnx_session:
+            import onnxruntime
+            from tokenizers import Tokenizer
+            import numpy
+            npu_dir = os.path.join(BASE_DIR, "rag", "models", "npu_minilm")
+            # Using DirectML provider which can target the NPU device on Windows
+            # Device ID 0 is usually the primary GPU, Device ID 1 is often the NPU Accelerator Device
+            # We use DML to bridge to the Compute Accelerator Device.
+            providers = ['DmlExecutionProvider', 'CPUExecutionProvider']
+            cls._onnx_session = onnxruntime.InferenceSession(
+                os.path.join(npu_dir, "model.onnx"), 
+                providers=providers
+            )
+            cls._tokenizer = Tokenizer.from_file(os.path.join(npu_dir, "tokenizer.json"))
+
+        results = []
+        for text in texts:
+            encoded = cls._tokenizer.encode(text)
+            input_ids = numpy.array([encoded.ids], dtype=numpy.int64)
+            attn_mask = numpy.array([encoded.attention_mask], dtype=numpy.int64)
+            type_ids  = numpy.array([encoded.type_ids], dtype=numpy.int64)
+            
+            inputs = {
+                "input_ids": input_ids,
+                "attention_mask": attn_mask,
+                "token_type_ids": type_ids
+            }
+            outputs = cls._onnx_session.run(None, inputs)
+            # Perform mean pooling on the output
+            embeddings = outputs[0][0]
+            sentence_embedding = numpy.mean(embeddings, axis=0)
+            # L2 normalize
+            norm = numpy.linalg.norm(sentence_embedding)
+            sentence_embedding = (sentence_embedding / norm).tolist()
+            results.append(sentence_embedding)
+        return results
 
     @classmethod
     def _embed_ollama(cls, texts):

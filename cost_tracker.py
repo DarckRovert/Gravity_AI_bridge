@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — COST TRACKER V7.0                           ║
+║     GRAVITY AI — COST TRACKER V7.1                           ║
 ║     Tracking de costes cloud en tiempo real                  ║
 ╚══════════════════════════════════════════════════════════════╝
 Registra tokens consumidos y coste estimado por proveedor.
