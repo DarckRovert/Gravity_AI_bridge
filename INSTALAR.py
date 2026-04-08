@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI BRIDGE — INSTALADOR STANDALONE V8.0           ║
+║     GRAVITY AI BRIDGE — INSTALADOR STANDALONE V9.0 PRO [Diamond-Tier Edition]           ║
 ║     Instalador TUI premium con elección de directorio        ║
 ╚══════════════════════════════════════════════════════════════╝
 
@@ -54,7 +54,7 @@ from rich           import box
 import pyfiglet
 
 console    = Console()
-APP_VER    = "8.0 PRO"
+APP_VER    = "9.0 PRO"
 SOURCE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ── Archivos/Dirs a EXCLUIR de la distribución ────────────────────────────────

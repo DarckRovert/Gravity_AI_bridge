@@ -1,4 +1,4 @@
-# Arquitectura — Gravity AI Bridge V8.0 PRO
+# Arquitectura — Gravity AI Bridge V9.0 PRO [Diamond-Tier Edition]
 
 ## Visión General
 

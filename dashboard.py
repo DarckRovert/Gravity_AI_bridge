@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI BRIDGE V8.0 — DASHBOARD WEB CON CHAT          ║
+║     GRAVITY AI BRIDGE V9.0 PRO [Diamond-Tier Edition] — DASHBOARD WEB CON CHAT          ║
 ║     SPA interactiva: Estado + Chat + Gestión de modelos       ║
 ╚══════════════════════════════════════════════════════════════╝
 Servidor Flask-less: HTTP puro para cero dependencias extra.
@@ -226,7 +226,7 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
       <div class="chat-messages" id="messages">
         <div class="msg ai">
           <div class="msg-bubble">
-            <strong>👋 Bienvenido a Gravity AI Bridge V8.0 PRO</strong><br><br>
+            <strong>👋 Bienvenido a Gravity AI Bridge V9.0 PRO [Diamond-Tier Edition]</strong><br><br>
             Puedo analizar código, responder preguntas técnicas, buscar en la web o ejecutar herramientas.<br><br>
             <strong>Atajos disponibles:</strong><br>
             &nbsp;• <code>/keys set openai</code> — configurar API keys<br>

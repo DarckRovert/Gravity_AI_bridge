@@ -1,4 +1,4 @@
-# Guía de API — Gravity AI Bridge V8.0 PRO
+# Guía de API — Gravity AI Bridge V9.0 PRO [Diamond-Tier Edition]
 
 > La API es 100% compatible con el protocolo OpenAI. Cualquier cliente que soporte OpenAI funciona sin modificaciones.
 

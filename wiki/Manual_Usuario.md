@@ -1,4 +1,4 @@
-# Manual de Usuario — Gravity AI Bridge V8.0 PRO
+# Manual de Usuario — Gravity AI Bridge V9.0 PRO [Diamond-Tier Edition]
 
 ## Índice
 
@@ -49,7 +49,7 @@ La primera vez que ejecutes `gravity`, aparecerá el wizard de bienvenida:
 ```
 ⚡ GRAVITY AI
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Bienvenido a Gravity AI Bridge V8.0 PRO
+Bienvenido a Gravity AI Bridge V9.0 PRO [Diamond-Tier Edition]
 Primera ejecución detectada. Configuración inicial.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — BRIDGE SERVER V8.0 PRO                      ║
+║     GRAVITY AI — BRIDGE SERVER V9.0 PRO [Diamond-Tier Edition]                      ║
 ║     Enrutador Universal OpenAI-Compatible                    ║
 ╚══════════════════════════════════════════════════════════════╝
 """
@@ -126,7 +126,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             from dashboard import DASHBOARD_HTML
             body = DASHBOARD_HTML.encode("utf-8")
         except Exception:
-            body = b"<h1>Gravity AI Bridge V8.0</h1><p>Ejecuta: python dashboard.py</p>"
+            body = b"<h1>Gravity AI Bridge V9.0 PRO [Diamond-Tier Edition]</h1><p>Ejecuta: python dashboard.py</p>"
         try:
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -378,7 +378,7 @@ def run_server():
     port = config.get("server.port", 7860)
     provider_manager.scan_all()
     threading.Thread(target=background_scanner, daemon=True).start()
-    log.info(f"Gravity Bridge V8.0 — http://localhost:{port} | Dashboard: / | API: /v1")
+    log.info(f"Gravity Bridge V9.0 PRO [Diamond-Tier Edition] — http://localhost:{port} | Dashboard: / | API: /v1")
     server = ThreadingHTTPServer(("0.0.0.0", port), GravityBridgeHandler)
     try:
         server.serve_forever()

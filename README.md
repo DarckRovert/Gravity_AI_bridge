@@ -1,7 +1,7 @@
-# Gravity AI Bridge V8.0 PRO 🌐
+# Gravity AI Bridge V9.0 PRO [Diamond-Tier Edition] 🌐
 
-[![Versión](https://img.shields.io/badge/Versión-8.0_PRO-4f46e5.svg)](CHANGELOG.md)
-[![Licencia: MIT](https://img.shields.io/badge/Licencia-MIT_2026-22c55e.svg)](LICENSE)
+[![Versión](https://img.shields.io/badge/Versión-9.0_PRO-4f46e5.svg)](CHANGELOG.md)
+[![Licencia: PolyForm Non-Commercial 1.0.0](https://img.shields.io/badge/Licencia-PolyForm_NC-22c55e.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://python.org)
 [![DarckRovert](https://img.shields.io/badge/Desarrollado_por-DarckRovert-7c3aed.svg)](https://twitch.tv/darckrovert)
 [![GitHub](https://img.shields.io/badge/GitHub-DarckRovert-181717.svg)](https://github.com/DarckRovert)
@@ -197,7 +197,7 @@ Para vulnerabilidades de seguridad, consulta [SECURITY.md](SECURITY.md).
 
 ## 📜 Licencia
 
-Distribuido bajo la **Licencia MIT** (2026). Ver [LICENSE](LICENSE) para detalles.
+Distribuido bajo la **Licencia PolyForm Non-Commercial 1.0.0** (2026). Ver [LICENSE](LICENSE) para detalles.
 
 ---
 
