@@ -167,12 +167,13 @@ Gravity_AI_bridge/
 
 ---
 
-## 🛠 Requisitos del Sistema
+## 🛠️ Requisitos del Sistema
 
 - **Python** 3.10 o superior
 - **Sistema Operativo**: Windows 10/11, Linux, macOS
-- **Motor de IA local** (opcional): Ollama, LM Studio, vLLM
-- **RAM mínima**: 8 GB (recomendado 16 GB+)
+- **Motor de IA**: **Requerido** (Local: Ollama/LM Studio -o- Cloud: OpenAI/Anthropic/Groq)
+- **RAM mínima**: 8 GB (Recomendado 16 GB+)
+- **GPU**: Recomendada para modelos locales (NVIDIA 8GB+ VRAM), no necesaria para Cloud.
 
 ---
 
