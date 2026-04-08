@@ -21,6 +21,53 @@ def _http_get(url: str, timeout: float = 1.0) -> dict | None:
         return None
 
 
+# Patrones de nombre que identifican modelos NO aptos para chat.
+# Corresponden a modelos de embeddings, rerankers, clasificadores o moderación.
+_NON_CHAT_PATTERNS = (
+    "embed", "embedding", "rerank", "reranker", "classifier",
+    "moderation", "nomic-embed", "text-embedding", "bge-",
+    "e5-", "gte-", "instructor-", "sentence-", "all-minilm",
+    "clip", "whisper", "tts", "vision-encoder",
+)
+
+
+def is_chat_model(model_id: str) -> bool:
+    """
+    Retorna True si el modelo es apto para chat/completion.
+    Retorna False si es un modelo de embeddings, reranker u otro no-chat.
+    Comparación insensible a mayúsculas y -/_ .
+    """
+    normalized = model_id.lower().replace("-", "").replace("_", "").replace(".", "")
+    for pat in _NON_CHAT_PATTERNS:
+        pat_norm = pat.lower().replace("-", "").replace("_", "")
+        if pat_norm in normalized:
+            return False
+    return True
+
+
+def filter_chat_models(models: list[dict]) -> list[dict]:
+    """
+    Filtra una lista de {name, size} devolviendo solo los modelos aptos para chat.
+    Si NINGUNO es apto (situación improbable), devuelve la lista original completa
+    para no dejar el provider sin modelos.
+    """
+    chat_only = [m for m in models if is_chat_model(m.get("name", ""))]
+    return chat_only if chat_only else models
+
+
+def pick_active_model(models: list[dict]) -> str | None:
+    """
+    Elige el mejor modelo activo de una lista priorizando modelos de chat.
+    Retorna el name del primero apto o None si la lista está vacía.
+    """
+    if not models:
+        return None
+    chat = filter_chat_models(models)
+    return chat[0]["name"] if chat else models[0]["name"]
+
+
+
+
 def _http_post_stream(
     url: str,
     payload: dict,
@@ -32,9 +79,15 @@ def _http_post_stream(
         url, data=data,
         headers={"Content-Type": "application/json", "User-Agent": "GravityAI/7.0"}
     )
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        for line in r:
-            yield line
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            for line in r:
+                yield line
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode("utf-8", errors="ignore")
+        yield f"[Gravity Error] HTTP {e.code}: {error_body}".encode("utf-8")
+    except Exception as e:
+        yield f"[Gravity Error] {str(e)}".encode("utf-8")
 
 
 def _http_post(url: str, payload: dict, timeout: float = 1800) -> bytes:
@@ -78,7 +131,10 @@ def _openai_compat_stream(
             chunk = delta.get("content", "")
             r_chunk = delta.get("reasoning_content", "")
             if r_chunk:
-                yield f"\x1b[90m{r_chunk}\x1b[0m"   # dim gray for reasoning
+                # Usar <think> en lugar de ANSI: los codigos ANSI se muestran
+                # como texto crudo en HTML. ReasoningStripper los elimina en
+                # bridge_server (web) y en ask_deepseek (CLI).
+                yield "<think>" + r_chunk + "</think>"
             if chunk:
                 yield chunk
 
@@ -104,7 +160,17 @@ def _build_openai_payload(
     stream:   bool,
 ) -> dict:
     payload: dict = {"model": model, "messages": messages, "stream": stream}
-    for key in ("temperature", "top_p", "max_tokens"):
-        if key in options:
-            payload[key] = options[key]
+    
+    # Surgical parameter injection for LM Studio / OpenAI compatibility
+    if "temperature" in options:
+        payload["temperature"] = float(options["temperature"])
+    if "top_p" in options:
+        payload["top_p"] = float(options["top_p"])
+    if "max_tokens" in options and options["max_tokens"] > 0:
+        payload["max_tokens"] = int(options["max_tokens"])
+    
+    # NEVER send empty stop list (causes 400 in many providers)
+    if "stop" in options and options["stop"]:
+        payload["stop"] = options["stop"]
+        
     return payload

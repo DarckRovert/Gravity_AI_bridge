@@ -1,55 +1,213 @@
-# Gravity AI Bridge V8.5 [Claw Edition] 🌏
+# Gravity AI Bridge V8.0 PRO 🌐
 
-[![Version](https://img.shields.io/badge/Version-8.5_Claw-4f46e5.svg)](CHANGELOG.md)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![DarckRovert](https://img.shields.io/badge/Developer-DarckRovert-purple.svg)](https://twitch.tv/darckrovert)
+[![Versión](https://img.shields.io/badge/Versión-8.0_PRO-4f46e5.svg)](CHANGELOG.md)
+[![Licencia: MIT](https://img.shields.io/badge/Licencia-MIT_2026-22c55e.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://python.org)
+[![DarckRovert](https://img.shields.io/badge/Desarrollado_por-DarckRovert-7c3aed.svg)](https://twitch.tv/darckrovert)
+[![GitHub](https://img.shields.io/badge/GitHub-DarckRovert-181717.svg)](https://github.com/DarckRovert)
 
-> [!IMPORTANT]
-> **Gravity AI Bridge V8.5** integra la arquitectura avanzada de **Claude Code (Claw)**, ofreciendo edición quirúrgica de archivos, auditoría adversarial mediante agentes de verificación y soporte nativo para **MCP (Model Context Protocol)**.
+> **El puente de IA más avanzado para uso local y cloud**, con arquitectura Omni-Tier, enrutamiento dinámico por latencia, interfaz de línea de comandos premium, MCP, RAG híbrido, auditoría de código adversarial y dashboard web interactivo. Comparable y superior en funcionalidades a herramientas como Claude Code, Aider y Continue.
 
 ---
 
-## 🚀 Características Principales (Features)
+## ✨ Características Principales
 
-- **Claw Persona**: Comportamiento minimalista, veraz y técnico (inspirado en Anthropic).
-- **Herramientas de Edición Quirúrgica**: Reemplazo de bloques por coincidencia exacta (V2).
-- **Verification Agent**: Escaneo adversarial automático antes de cada cambio crítico.
-- **Protocolo MCP**: Integración con servidores de herramientas estandarizados.
-- **Modo Planificación**: Comando `/plan` para investigación profunda antes de la ejecución.
-- **V8.0 PRO Core**: Ruteo inteligente por latencia y ruteador dinámico.
+| Categoría | Funcionalidad |
+|-----------|--------------|
+| 🔌 **Local** | Ollama · LM Studio · vLLM · KoboldCPP · Jan AI · Lemonade |
+| ☁️ **Cloud** | OpenAI · Anthropic · Google Gemini · Groq · Cohere · AWS |
+| 🧠 **Enrutamiento** | Dinámico por latencia TTFT + especialización de tareas |
+| 🛡️ **Seguridad** | API Keys cifradas DPAPI · Rate Limiting · Audit Log inmutable |
+| 📡 **Observabilidad** | Dashboard SPA · Prometheus `/metrics` · Streaming SSE |
+| 🔬 **RAG** | Embeddings NPU/GPU/CPU · BM25 + vectorial · PDFs |
+| 🤖 **MCP** | Model Context Protocol · Herramientas externas stdio |
+| 🔍 **Verificación** | VerificationAgent adversarial antes de cada cambio |
+| 💻 **CLI** | 20+ comandos · Sesiones · Branches · Export MD/HTML |
+| ⚡ **Cache** | SQLite WAL · Hash-aware reasoning · TTL configurable |
 
-## 🛠 Instalación Rápida (Quick Start)
+---
 
-```bash
+## 🚀 Instalación Rápida
+
+### Opción A — Instalador TUI interactivo (recomendado)
+```cmd
+git clone https://github.com/DarckRovert/Gravity_AI_bridge.git
+cd Gravity_AI_bridge
+INSTALAR.bat
+```
+El instalador detecta automáticamente tu hardware, motores de IA locales, configura el modelo óptimo, registra el comando `gravity` en tu PATH y crea un acceso directo en el Escritorio.
+
+### Opción B — Instalación manual
+```cmd
 git clone https://github.com/DarckRovert/Gravity_AI_bridge.git
 cd Gravity_AI_bridge
 pip install -r requirements.txt
 python bridge_server.py
 ```
 
-## 📖 Documentación (Wiki)
+---
 
-Hemos habilitado una **Wiki Corporativa** detallada para facilitar la implementación:
-- [Arquitectura del Sistema](wiki/Arquitectura.md)
-- [Guía de Referencia de la API](wiki/Guia_API.md)
-- [Manual de Usuario](wiki/Manual_Usuario.md)
-- [Preguntas Frecuentes (FAQ)](wiki/FAQ.md)
+## 💻 Uso del CLI
 
-## 🎨 Integración con IDEs
+```cmd
+# Modo interactivo con onboarding
+gravity
 
-Configura tu IDE favorito (Cursor, Aider, Continue) con los siguientes datos:
-- **Base URL**: `http://localhost:7860/v1`
-- **API Key**: `gravity-local`
-- **Model**: `gravity-bridge-auto` (recomendado)
+# Pregunta directa desde terminal
+gravity "explica la arquitectura de este proyecto"
+
+# Comandos especiales
+gravity --server      # Iniciar bridge server
+gravity --status      # Estado de todos los motores
+gravity --install     # Lanzar instalador TUI
+gravity --help        # Ayuda rápida
+```
+
+### Comandos del Auditor (dentro del CLI)
+
+| Comando | Descripción |
+|---------|-------------|
+| `/help` | Lista todos los comandos |
+| `/model` | Cambiar motor/modelo activo |
+| `/mode` | Cambiar modo: production / development / Omni-Audit |
+| `/providers` | Estado real-time de todos los backends |
+| `/keys set \|list\|del` | Gestión de API Keys cifradas |
+| `/search <query>` | Búsqueda web inyectada como contexto |
+| `/rag <query>` | Búsqueda en índice local de documentos |
+| `/index <ruta>` | Indexar archivos/carpetas al RAG |
+| `/verify <archivo>` | Auditar código con VerificationAgent |
+| `/plan <tarea>` | Modo planificación antes de codificar |
+| `/mcp <ruta>` | Conectar servidor MCP externo |
+| `/save [nombre]` | Guardar sesión actual |
+| `/load <nombre>` | Cargar sesión guardada |
+| `/sessions` | Listar todas las sesiones |
+| `/cost` | Desglose de costes por modelo |
+| `/branch <nombre>` | Fork de la sesión actual |
+| `/export md` | Exportar sesión a Markdown |
+| `/export` | Exportar sesión a HTML |
+| `/clear` | Limpiar contexto |
+| `!aprende <texto>` | Persiste una regla en el knowledge base |
+| `/exit` | Salir limpiamente |
 
 ---
 
-## 📜 Licencia & Créditos
+## 🌐 Integración con IDEs
 
-Este proyecto se distribuye bajo la **Licencia MIT**. Todo el desarrollo es cortesía de **DarckRovert**.
+Configura **Cursor, VS Code (Continue), Aider, OpenWebUI** con:
 
-Sigue el desarrollo en vivo: [twitch.tv/darckrovert](https://twitch.tv/darckrovert)  
-Explora el ecosistema: [github.com/DarckRovert](https://github.com/DarckRovert)
+```
+Base URL: http://localhost:7860/v1
+API Key:  gravity-local
+Modelo:   gravity-bridge-auto
+```
+
+### Archivos de configuración incluidos
+- `.continue/config.json` — Continue.dev
+- `aider.conf.yml` — Aider CLI
+- `.vscode/settings.json` — VS Code
 
 ---
-*Gravity AI Bridge - Empowering local and cloud AI synergy.*
+
+## 🖥️ Dashboard Web
+
+Accede al dashboard interactivo en `http://localhost:7860` tras iniciar el servidor:
+
+- **Chat en tiempo real** con streaming y renderizado Markdown
+- **Estado de proveedores** con latencia en vivo
+- **Audit Log** con tokens, costes y latencia por llamada
+- **Configuración** de API Keys directamente desde el browser
+
+---
+
+## 📊 API Compatible OpenAI
+
+El bridge expone una API 100% compatible con el protocolo OpenAI:
+
+```bash
+# Chat Completions
+POST http://localhost:7860/v1/chat/completions
+
+# Modelos disponibles
+GET http://localhost:7860/v1/models
+
+# Estado del sistema
+GET http://localhost:7860/v1/status
+
+# Audit Log JSON
+GET http://localhost:7860/v1/audit
+
+# Métricas Prometheus
+GET http://localhost:7860/metrics
+```
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+Gravity_AI_bridge/
+├── ask_deepseek.py        ← CLI principal (Auditor Senior)
+├── bridge_server.py       ← Servidor HTTP OpenAI-compatible
+├── dashboard.py           ← Dashboard SPA Web interactivo
+├── INSTALAR.py            ← Instalador TUI premium
+├── gravity.bat            ← Comando global 'gravity'
+├── core/                  ← Módulos de infraestructura
+│   ├── config_manager.py  ← YAML config + migración
+│   ├── audit_log.py       ← Audit log JSONL inmutable
+│   ├── metrics.py         ← Prometheus metrics
+│   ├── rate_limiter.py    ← Rate limiting por IP/Key
+│   ├── mcp_adapter.py     ← Adaptador MCP (stdio)
+│   └── verification_agent.py ← Auditoría adversarial
+├── providers/             ← Plugins de proveedores
+├── rag/                   ← Motor RAG híbrido
+├── tools/                 ← Herramientas del agente
+├── wiki/                  ← Documentación técnica detallada
+└── config.yaml            ← Configuración principal
+```
+
+---
+
+## 🛠 Requisitos del Sistema
+
+- **Python** 3.10 o superior
+- **Sistema Operativo**: Windows 10/11, Linux, macOS
+- **Motor de IA local** (opcional): Ollama, LM Studio, vLLM
+- **RAM mínima**: 8 GB (recomendado 16 GB+)
+
+---
+
+## 📖 Documentación Completa
+
+| Documento | Descripción |
+|-----------|-------------|
+| [Arquitectura](wiki/Arquitectura.md) | Diagrama y decisiones de diseño |
+| [Guía de API](wiki/Guia_API.md) | Referencia completa de endpoints |
+| [Manual de Usuario](wiki/Manual_Usuario.md) | Tutorial paso a paso |
+| [FAQ](wiki/FAQ.md) | Preguntas frecuentes |
+
+---
+
+## 🤝 Contribuir
+
+Lee [CONTRIBUTING.md](CONTRIBUTING.md) para las guías de contribución.  
+Revisa el [Código de Conducta](CODE_OF_CONDUCT.md) antes de abrir un issue.  
+Para vulnerabilidades de seguridad, consulta [SECURITY.md](SECURITY.md).
+
+---
+
+## 📜 Licencia
+
+Distribuido bajo la **Licencia MIT** (2026). Ver [LICENSE](LICENSE) para detalles.
+
+---
+
+<div align="center">
+
+Desarrollado con ❤️ por **DarckRovert**
+
+[![Twitch](https://img.shields.io/badge/Twitch-darckrovert-9146FF?logo=twitch)](https://twitch.tv/darckrovert)
+[![GitHub](https://img.shields.io/badge/GitHub-DarckRovert-181717?logo=github)](https://github.com/DarckRovert)
+
+*Gravity AI Bridge — Orquestando la inteligencia local y cloud.*
+
+</div>

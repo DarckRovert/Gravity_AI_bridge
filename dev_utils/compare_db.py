@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sys
 
 path_en = r"E:\Turtle Wow\Interface\AddOns\pfQuest\db\enUS\quests.lua"

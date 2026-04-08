@@ -89,15 +89,15 @@ class AnthropicProvider(ProviderPlugin):
                         block_type = d.get("content_block", {}).get("type", "")
                         if block_type == "thinking":
                             thinking_open = True
-                            yield "\x1b[90m⚙ Pensando profundamente...\n"
+                            yield "<think>⚙ Pensando profundamente...\n"
                     elif etype == "content_block_stop":
                         if thinking_open:
                             thinking_open = False
-                            yield "\x1b[0m\n\n"
+                            yield "</think>\n\n"
                     elif etype == "content_block_delta":
                         delta = d.get("delta", {})
                         if delta.get("type") == "thinking_delta":
-                            yield f"\x1b[90m{delta.get('thinking', '')}\x1b[0m"
+                            yield delta.get('thinking', '')
                         elif delta.get("type") == "text_delta":
                             yield delta.get("text", "")
                 except Exception:

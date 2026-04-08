@@ -11,6 +11,12 @@ import shutil
 import copy
 from datetime import datetime
 
+try:
+    import data_guardian as _guardian
+except ImportError:
+    _guardian = None
+
+
 BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
 SAVES_DIR  = os.path.join(BASE_DIR, "_saves")
 os.makedirs(SAVES_DIR, exist_ok=True)
@@ -50,11 +56,32 @@ class SessionManager:
         path = os.path.join(SAVES_DIR, f"{name}.json")
         if not os.path.exists(path):
             return False
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        self._history.clear()
-        self._history.extend(data.get("history", []))
+
+        if _guardian:
+            # Validación y saneamiento completo
+            history, warnings = _guardian.load_history_file(path)
+            if warnings:
+                # Imprimir advertencias sin depender de Rich (puede no estar cargado)
+                for w in warnings:
+                    print(f"  [Guardian] {w}")
+            if not history and os.path.exists(path):
+                # Si el archivo existía pero no se pudo cargar, reportar error
+                print(f"  [Guardian] WARN: No se pudo recuperar la sesión '{name}'. Archivo posiblemente vacío o corrupto.")
+                return False
+            self._history.clear()
+            self._history.extend(history)
+        else:
+            # Fallback sin guardian
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                self._history.clear()
+                self._history.extend(data.get("history", []))
+            except Exception as e:
+                print(f"  [Guardian] Error cargando sesión: {e}")
+                return False
         return True
+
 
     def list_saves(self) -> list[dict]:
         saves = []

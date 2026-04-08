@@ -6,4 +6,4 @@ Set WshShell = CreateObject("WScript.Shell")
 ' Toda la salida y los logs de las intercepciones de VS Code quedaran en bridge.log
 WshShell.Run "cmd /c ""python """ & strFolder & "\bridge_server.py"" > """ & strFolder & "\bridge.log"" 2>&1""", 0, False
 
-MsgBox "Gravity Bridge Server V7.1 Omni-Tier iniciado en modo fantasma.", 64, "Gravity AI"
+MsgBox "Gravity Bridge Server V8.0 Pro iniciado en modo fantasma. Logs en bridge.log", 64, "Gravity AI"

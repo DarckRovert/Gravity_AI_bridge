@@ -1,4 +1,4 @@
-﻿import json
+import json
 import os
 
 input_json = r"E:\Turtle Wow\Interface\AddOns\pfQuest\turtle_quests_batch1.json"

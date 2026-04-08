@@ -31,7 +31,7 @@ def _cloud_request_stream(url: str, payload: dict, headers: dict) -> Generator[s
                     r_chunk = delta.get("reasoning_content", "")
                     chunk   = delta.get("content", "")
                     if r_chunk:
-                        yield f"\x1b[90m{r_chunk}\x1b[0m"
+                        yield "<think>" + r_chunk + "</think>"
                     if chunk:
                         yield chunk
             except Exception:

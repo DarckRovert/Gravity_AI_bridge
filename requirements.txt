@@ -1,14 +1,34 @@
-httpx
-anthropic
-google-generativeai
-numpy
+# ── Gravity AI Bridge V8.0 — Dependencias ────────────────────────────────────
+# CLI / UI
 rich
 pyfiglet
 pyreadline3
+
+# HTTP / Proveedores cloud
+httpx
 requests
+anthropic
+google-generativeai
+
+# Configuración
 pyyaml
+
+# Métricas Prometheus
 prometheus_client
+
+# RAG — Embeddings locales (opcional: instala si no tienes Ollama)
+# sentence-transformers
+# pypdf
+
+# Seguridad — cifrado de API keys con DPAPI en Windows (opcional)
+# pywin32
+
+# Tests
 pytest
 pytest-mock
-flake8
+
+# MCP (Model Context Protocol)
 mcp
+
+# Linting
+flake8

@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 sys.path.append(r"F:\Gravity_AI_bridge")
 from ask_deepseek import process_query
 

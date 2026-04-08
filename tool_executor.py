@@ -8,6 +8,7 @@ import re
 from tools.code_runner import CodeRunner
 from tools.web_search  import WebSearch
 from tools.git_tool    import GitTool, FileOpsTool
+from tools.file_edit_v2 import FileEditV2
 
 
 class ToolExecutor:
@@ -20,6 +21,7 @@ class ToolExecutor:
             "web_search":  WebSearch(),
             "git_tool":    GitTool(),
             "file_ops":    FileOpsTool(),
+            "file_edit":   FileEditV2(),
         }
 
     def execute_tool(self, tool_name: str, **kwargs) -> tuple[bool, str]:

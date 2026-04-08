@@ -8,8 +8,9 @@ from typing import Generator
 from providers.base import ProviderPlugin, ProviderResult
 from providers.local._base_local import (
     _http_get, _openai_compat_stream, _openai_compat_complete,
-    _build_openai_payload,
+    _build_openai_payload, filter_chat_models, pick_active_model,
 )
+
 
 
 class _OpenAICompatLocalProvider(ProviderPlugin):
@@ -31,10 +32,11 @@ class _OpenAICompatLocalProvider(ProviderPlugin):
         r.response_ms = int((time.time() - t0) * 1000)
         if data and "data" in data:
             r.is_healthy = True
-            r.models     = [{"name": m.get("id", ""), "size": 0} for m in data["data"] if m.get("id")]
-            if len(r.models) >= 1:
-                r.active_model = r.models[0]["name"]
+            all_models   = [{"name": m.get("id", ""), "size": 0} for m in data["data"] if m.get("id")]
+            r.models     = filter_chat_models(all_models)
+            r.active_model = pick_active_model(r.models)
         return r
+
 
     def chat_stream(self, messages, model, options) -> Generator[str, None, None]:
         p = _build_openai_payload(messages, model, options, True)
@@ -61,14 +63,15 @@ class LMStudioProvider(_OpenAICompatLocalProvider):
             url  = f"http://localhost:{port}"
             data = _http_get(f"{url}{self._health_path}", timeout=0.8)
             if data and "data" in data:
-                r            = self._make_result(url)
-                r.is_healthy = True
+                r             = self._make_result(url)
+                r.is_healthy  = True
                 r.response_ms = int((time.time() - t0) * 1000)
-                r.models     = [{"name": m.get("id",""), "size": 0} for m in data["data"] if m.get("id")]
-                if r.models:
-                    r.active_model = r.models[0]["name"]
+                all_models    = [{"name": m.get("id",""), "size": 0} for m in data["data"] if m.get("id")]
+                r.models      = filter_chat_models(all_models)
+                r.active_model = pick_active_model(r.models)
                 return r
         return self._make_result(f"http://localhost:{self.default_port}")
+
 
     def _base_url(self):
         # Pick the port that responded last time
@@ -120,9 +123,9 @@ class OobaboogaProvider(_OpenAICompatLocalProvider):
             if data and "data" in data:
                 r             = self._make_result(url)
                 r.is_healthy  = True
-                r.models      = [{"name": m.get("id",""), "size": 0} for m in data["data"] if m.get("id")]
-                if r.models:
-                    r.active_model = r.models[0]["name"]
+                all_models    = [{"name": m.get("id",""), "size": 0} for m in data["data"] if m.get("id")]
+                r.models      = filter_chat_models(all_models)
+                r.active_model = pick_active_model(r.models)
                 return r
             # Also check native /api/v1/model endpoint
             model_data = _http_get(f"{url}/api/v1/model", timeout=0.5)
@@ -134,6 +137,7 @@ class OobaboogaProvider(_OpenAICompatLocalProvider):
                 r._chat_path  = "/v1/chat/completions"
                 return r
         return self._make_result(f"http://localhost:{self.default_port}")
+
 
 
 class LocalAIProvider(_OpenAICompatLocalProvider):
@@ -177,11 +181,12 @@ class LlamafileProvider(_OpenAICompatLocalProvider):
             if data and "data" in data:
                 r             = self._make_result(url)
                 r.is_healthy  = True
-                r.models      = [{"name": m.get("id",""), "size": 0} for m in data["data"] if m.get("id")]
-                if r.models:
-                    r.active_model = r.models[0]["name"]
+                all_models    = [{"name": m.get("id",""), "size": 0} for m in data["data"] if m.get("id")]
+                r.models      = filter_chat_models(all_models)
+                r.active_model = pick_active_model(r.models)
                 return r
         return self._make_result(f"http://localhost:{self.default_port}")
+
 
 
 class JanAIProvider(_OpenAICompatLocalProvider):
@@ -270,8 +275,9 @@ class LemonadeProvider(_OpenAICompatLocalProvider):
             if data and "data" in data:
                 r             = self._make_result(url)
                 r.is_healthy  = True
-                r.models      = [{"name": m.get("id",""), "size": 0} for m in data["data"] if m.get("id")]
-                if r.models:
-                    r.active_model = r.models[0]["name"]
+                all_models    = [{"name": m.get("id",""), "size": 0} for m in data["data"] if m.get("id")]
+                r.models      = filter_chat_models(all_models)
+                r.active_model = pick_active_model(r.models)
                 return r
         return self._make_result(f"http://localhost:{self.default_port}")
+
