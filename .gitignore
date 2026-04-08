@@ -1,46 +1,26 @@
-# 🌌 Gravity AI Bridge — Ignored Files
-
-# DarckRovert Core Security
-_keystore.bin
-_history.json
-_cache.sqlite*
-_last_scan.json
-*.log
-index.sqlite
-
-# Build & Cache
-**/__pycache__/
-*.pyc
-*.pyo
-
-# RAG & Embeddings Cache
-_rag_index/
-rag/cache/
-*.onnx.compiled
-modelcachekey/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
 venv/
-.venv/
 env/
 .env
 
-# Models & Heavy Data (Important)
-rag/models/*
-!rag/models/.keep
-*.gguf
-*.onnx
-*.safetensors
+# Gravity AI Specific
+_audit_log.jsonl
+bridge.log
+_settings.json.bak
+config.yaml.bak
+_history.json
+_cache.sqlite*
+_last_scan.json
+_cost_log.json
+_saves/
+_rag_index/
+config.yaml
 
-# Local Configuration
-_settings.json
-_knowledge.json
-settings_local.json
-
-# Logs & Temp
-logs/
-*.log
-temp/
-/tmp/
-
-# OS
+# IDE & OS
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db

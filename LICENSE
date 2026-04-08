@@ -1,23 +1,21 @@
-PolyForm Non-Commercial License 1.0.0
+MIT License
 
-<LICENSE OWNER: DarckRovert>
+Copyright (c) 2026 DarckRovert
 
-This license allows you to use, modify, and distribute the software for non-commercial purposes only. Commercial use is strictly prohibited.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-1. **Permitted Use**: You may use the software for personal, educational, research, and charitable purposes.
-2. **Non-Commercial**: You may NOT use the software for any activity directed toward commercial advantage or private monetary compensation.
-3. **Attribution**: You must include this license and the copyright notice "Copyright (c) 2026 DarckRovert" in all copies or substantial portions of the software.
-4. **Proprietary**: This software and its intellectual property are owned exclusively by DarckRovert.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
----
-
-Licencia PolyForm No-Comercial 1.0.0 (Versión en Español)
-
-<TITULAR: DarckRovert>
-
-Esta licencia le permite usar, modificar y distribuir el software únicamente para fines no comerciales. El uso comercial está estrictamente prohibido.
-
-1. **Uso Permitido**: Puede usar el software con fines personales, educativos, de investigación y caritativos.
-2. **No Comercial**: NO puede utilizar el software para ninguna actividad dirigida a obtener una ventaja comercial o compensación monetaria privada.
-3. **Atribución**: Debe incluir esta licencia y el aviso de derechos de autor "Copyright (c) 2026 DarckRovert" en todas las copias o partes sustanciales del software.
-4. **Propiedad**: Este software y su propiedad intelectual son propiedad exclusiva de DarckRovert.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

@@ -1,18 +1,14 @@
-# 🛡️ Política de Seguridad — Gravity AI Bridge
+# Política de Seguridad - Gravity AI Bridge
 
-Tu privacidad es nuestra prioridad absoluta. Este proyecto está diseñado para funcionar en hardware local (Offline-First) para evitar la fuga de datos confidenciales.
+## Divulgación Responsable
+Si encuentras una vulnerabilidad en este proyecto, te agradecemos que la reportes de forma privada escribiendo a [darckrovert@example.com] (o vía GitHub Private Vulnerability Reporting).
 
-## ⚠️ Reporte de Vulnerabilidades
-Si encuentras un fallo de seguridad (ej. Inyección de prompts, bypass de autenticación local), por favor **NO abras un Issue público**.
+## Versiones Soportadas
+| Versión | Soportada |
+| ------- | --------- |
+| 8.x     | ✅ Sí      |
+| 7.x     | 🟡 Parches críticos |
+| < 7.0   | ❌ No      |
 
-Envía los detalles técnicos directamente al equipo de seguridad:
-- **Discord**: Comunidad DarckRovert (Canal #security-audit)
-- **Twitch**: Mensaje Directo a [twitch.tv/darckrovert](https://www.twitch.tv/darckrovert)
-
-## 🏗️ Alcance de Auditoría
-- Desbordamiento de búfer en drivers locales (ROCm/NPU).
-- Fuga de tokens en el Bridge Server.
-- Persistencia de datos en `_knowledge.json`.
-
----
-*Gracias por ayudarnos a mantener a Gravity seguro.*
+## Prioridad de Parche
+Cualquier vulnerabilidad relacionada con la exposición de **API Keys** o **Bypass de Inferencia** será tratada con prioridad inmediata (Hotfix).

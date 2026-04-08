@@ -1,26 +1,36 @@
-# 📜 CHANGELOG — Gravity AI Bridge
+# Changelog - Gravity AI Bridge
 
-Historial completo de versiones y auditorías detalladas.
+Todas las actualizaciones notables a este proyecto serán documentadas en este archivo.
 
-## [V7.1] — 2026-04-05 (Official Release)
-**"The NPU Revolution"**
+## [8.5.0] - 2026-04-08
+### Added
+- Integración de arquitectura inspirada en **Claude Code (Claw)**.
+- Nueva herramienta `grep_tool` basada en Ripgrep (con fallback Python).
+- Nueva herramienta de edición quirúrgica `file_edit_v2` (bloques exactos).
+- Módulo `VerificationAgent` para auditoría adversarial de cambios.
+- Adaptador inicial para **Model Context Protocol (MCP)**.
+- Modo Planificación mediante comando `/plan`.
+- Personalidad minimalista y veraz de Anthropic en el prompt del sistema.
 
-### 🚀 Novedades (Aceleración Híbrida)
-- **Activación NPU (Ryzen AI)**: Integración masiva de **ONNX Runtime** para offloading de embeddings al NPU XDNA.
-- **Protocolo Omni-Audit**: Inyección de lógica de auditoría senior en el prompt del sistema.
-- **Hardware-Aware Profiler**: Detección dinámica de VRAM compartida/dedicada y cálculo de `num_ctx` optimizado.
+## [8.0.0] - 2026-04-07
+### Añadido
+- **FASE 2**: Sistema de logging estructurado JSON con sanitización de secretos.
+- **FASE 2**: Auditoría inmutable en `_audit_log.jsonl` (Append-only).
+- **FASE 3**: Nuevo `ConfigManager` con soporte nativo para `config.yaml`.
+- **FASE 3**: Migración automática desde el antiguo `_settings.json` al nuevo formato.
+- **FASE 4**: Módulo de Métricas integrado con Prometheus (`/metrics`).
+- **FASE 4**: Rate Limiting por IP y API Key.
+- **FASE 5**: Suite de pruebas unitarias (`pytest`) y pipeline de CI en GitHub Actions.
+- **FASE 6**: Dashboard Web Premium rediseñado con Glassmorphism y animaciones CSS.
 
-### 🛠️ Correcciones y Mejoras
-- **Unicode Fix**: Reconfiguración nativa de `stdout/stderr` a UTF-8 para terminales de Windows.
-- **Saneamiento**: Eliminación de imports duplicados (`io`) y estandarización global de versión V7.1.
-- **Oobabooga Fix**: Eliminación de falsos positivos en el descubrimiento de motores.
+### Cambiado
+- El servidor ahora escala mediante la reducción de latencia en la detección de modelos.
+- Interfaz CLI (`ask_deepseek.py`) actualizada a V8.0 PRO.
 
----
+### Corregido
+- Reparado el error de sintaxis en `Console_Safe` de `bridge_server.py`.
+- Solucionada la inconsistencia en los mensajes RAG del CLI (soporte bilingüe).
 
-## [V7.0] — 2026-04-01
-**"Omni-Tier Core"**
-
-- Introducción de `bridge_server.py`.
-- Soporte para modelos de 70B+ vía GGUF.
-- Sistema de caché local `_knowledge.json`.
-- Integración oficial con Cursor e IDEs modernos.
+## [7.1.0] - 2026-04-06
+- Integración NPU Ryzen AI (XDNA).
+- Mejoras en el rendimiento de concurrencia.

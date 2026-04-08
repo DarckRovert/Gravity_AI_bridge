@@ -1,23 +1,21 @@
-# 🤝 Contribución — Gravity AI Bridge
+# Guía de Contribución - Gravity AI Bridge
 
-¡Gracias por querer contribuir al ecosistema **DarckRovert**! Este es un proyecto de alto nivel técnico y esperamos contribuciones de igual calibre.
+¡Gracias por tu interés en mejorar este proyecto!
 
-## 🛠️ Entorno de Desarrollo
-1. Clona el repositorio.
-2. Asegúrate de tener **Python 3.14+**.
-3. Ejecuta `python setup_npu.py` para validar la compatibilidad del hardware.
-4. Usa el `bridge_server.py` para testing de integración.
+## Requisitos
+- Python 3.10+
+- `pytest` para las pruebas unitarias.
+- `flake8` para el linting de código.
 
-## 🚦 Flujo de Pull Requests
-- Crea una rama descriptiva: `feature/npu-acceleration` o `fix/provider-timeout`.
-- Sigue el estándar de **V7.1 Omni-Audit** en tus comentarios de código.
-- Asegúrate de actualizar el `CHANGELOG.md` con tus cambios.
-- No realices `git push` a la rama `main` directamente.
+## Cómo contribuir
+1. Haz un fork del repositorio.
+2. Crea una rama para tu característica (`git checkout -b feature/nueva-idea`).
+3. Realiza tus cambios y asegúrate de que pasen los tests: `pytest`.
+4. Haz push de tu rama (`git push origin feature/nueva-idea`).
+5. Abre un Pull Request.
 
-## 📝 Estándares de Código
-- Tipado estricto en Python (Type hints).
-- Documentación interna en los headers de los archivos.
-- Uso del objeto `_knowledge.json` para persistencia de lógica de negocio.
-
----
-*Si tienes dudas, contacta vía [twitch.tv/darckrovert](https://www.twitch.tv/darckrovert).*
+## Estándares de Código
+- Sigue PEP 8 siempre que sea posible.
+- Añade docstrings a las nuevas funciones.
+- No uses `print` en producción; usa el logger estructurado (`core/logger.py`).
+- Mantén la compatibilidad bilingüe (ES/EN) en la documentación.

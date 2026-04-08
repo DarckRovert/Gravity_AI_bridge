@@ -1,0 +1,61 @@
+{
+  "project": "Gravity AI Bridge",
+  "version": "8.5 [Claw Edition]",
+  "status": "Official Release",
+  "architecture": "Omni-Tier / Tri-Hardware / Claw-Inspired (Agentic Search & Surgical Edit)",
+  "vulnerability_fixes": [
+    {
+      "id": "SEC-01",
+      "description": "Port 7860 self-detection loop with Oobabooga",
+      "resolution": "Excluded port 7860 from Oobabooga search in openai_compat_provider.py"
+    },
+    {
+      "id": "ERR-01",
+      "description": "UnicodeEncodeError on Windows terminals",
+      "resolution": "Reconfigured sys.stdout/stderr to UTF-8 in bridge_server.py and ask_deepseek.py"
+    },
+    {
+      "id": "ERR-02",
+      "description": "EOFError infinite loop during sys.stdin pipe operations",
+      "resolution": "Implemented sys.stdin.isatty() validation and explicit EOFError handler in ask_deepseek.py"
+    },
+    {
+      "id": "V8.5-CLAW",
+      "description": "Sincronización con patrones de Claude Code (Claw)",
+      "resolution": "Implementación de VerificationAgent y edición quirúrgica de bloques en file_edit_v2.py"
+    }
+  ],
+  "hardware_logic": {
+    "primary_accelerator": "AMD Radeon 780M (DirectML/ROCm)",
+    "npu_target": "AMD Ryzen AI (XDNA)",
+    "rag_embedder": "ONNX Runtime (onnx_npu)",
+    "optimal_ctx_calc": "45% of total VRAM allocated to KV-cache",
+    "mcp_support": "Habilitado vía core/mcp_adapter.py"
+  },
+  "core_protection": {
+    "active": true,
+    "policy": "read-only-in-external-context",
+    "description": "Prohibido modificar archivos de F:\\Gravity_AI_bridge\\ si el proyecto activo es ajeno al bridge."
+  },
+  "global_standards": {
+    "documentation_format": "Bilingual (Spanish/English)",
+    "license_type": "PolyForm Non-Commercial 1.0.0",
+    "intellectual_property_owner": "DarckRovert",
+    "commercial_use": "Strictly Prohibited for Profit",
+    "official_streaming_site": "https://www.twitch.tv/darckrovert",
+    "base_files_required": [
+      "README",
+      "LICENSE",
+      "CONTRIBUTING",
+      "CODE_OF_CONDUCT",
+      "SECURITY",
+      "CHANGELOG",
+      ".gitignore",
+      "ISSUE_TEMPLATES"
+    ],
+    "wiki_minimum_depth": 4,
+    "persona_style": "Minimalist / Technical / Non-conversational (Claw Standard)"
+  },
+  "last_audit": "2026-04-08",
+  "author": "DarckRovert"
+}

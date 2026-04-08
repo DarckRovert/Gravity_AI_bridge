@@ -1,50 +1,55 @@
-# 🌌 Gravity AI Bridge V7.1 — Omni-Tier Architecture
+# Gravity AI Bridge V8.5 [Claw Edition] 🌏
 
-[![Status](https://img.shields.io/badge/Status-Official_Release-blue?style=for-the-badge)](https://www.twitch.tv/darckrovert)
-[![Version](https://img.shields.io/badge/Version-V7.1_Omni--Tier-magenta?style=for-the-badge)](https://www.twitch.tv/darckrovert)
-[![Hardware](https://img.shields.io/badge/Hardware-Tri--Hybrid_(CPU/GPU/NPU)-green?style=for-the-badge)](https://www.twitch.tv/darckrovert)
+[![Version](https://img.shields.io/badge/Version-8.5_Claw-4f46e5.svg)](CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![DarckRovert](https://img.shields.io/badge/Developer-DarckRovert-purple.svg)](https://twitch.tv/darckrovert)
 
----
-
-## 🌎 Overview / Resumen Generales
-
-### [EN] Introduction
-**Gravity AI Bridge** is the ultimate local AI orchestrator. Designed for senior developers who demand absolute privacy, ultra-low latency, and maximum exploitation of modern hardware (NPU/GPU). It intercepts requests from IDEs (Cursor, Aider, Continue) and intelligently routes them to your local hardware or secure clouds.
-
-### [ES] Introducción
-**Gravity AI Bridge** es el orquestador de inteligencia artificial local definitivo. Diseñado para desarrolladores senior que exigen privacidad total, latencia ultra-baja y aprovechamiento máximo del silicio moderno (NPU/GPU). Intercepta peticiones de IDEs (Cursor, Aider, Continue) y las enruta inteligentemente hacia tu hardware local o nubes seguras.
+> [!IMPORTANT]
+> **Gravity AI Bridge V8.5** integra la arquitectura avanzada de **Claude Code (Claw)**, ofreciendo edición quirúrgica de archivos, auditoría adversarial mediante agentes de verificación y soporte nativo para **MCP (Model Context Protocol)**.
 
 ---
 
-## 🚀 Features / Características God-Tier (V7.1)
+## 🚀 Características Principales (Features)
 
-- **⚡ Tri-Hybrid Acceleration**: Simultaneous use of **CPU**, **GPU (DirectML)**, and **NPU (Ryzen AI)** for offloading.
-- **🛡️ Omni-Audit Protocol**: Technical audit system that injects reasoning and vulnerability detection.
-- **📦 RAG Engine (AI Search)**: Ultra-fast semantic indexing optimized for NPU embeddings.
+- **Claw Persona**: Comportamiento minimalista, veraz y técnico (inspirado en Anthropic).
+- **Herramientas de Edición Quirúrgica**: Reemplazo de bloques por coincidencia exacta (V2).
+- **Verification Agent**: Escaneo adversarial automático antes de cada cambio crítico.
+- **Protocolo MCP**: Integración con servidores de herramientas estandarizados.
+- **Modo Planificación**: Comando `/plan` para investigación profunda antes de la ejecución.
+- **V8.0 PRO Core**: Ruteo inteligente por latencia y ruteador dinámico.
 
----
+## 🛠 Instalación Rápida (Quick Start)
 
-## 🛠️ Quick Start / Despliegue Rápido
-
-```powershell
-# Clone and prepare / Clonar y preparar
-git clone https://github.com/DarckRovert/Gravity_AI_bridge
+```bash
+git clone https://github.com/DarckRovert/Gravity_AI_bridge.git
 cd Gravity_AI_bridge
-
-# Start Bridge Server / Iniciar servidor
+pip install -r requirements.txt
 python bridge_server.py
 ```
 
+## 📖 Documentación (Wiki)
+
+Hemos habilitado una **Wiki Corporativa** detallada para facilitar la implementación:
+- [Arquitectura del Sistema](wiki/Arquitectura.md)
+- [Guía de Referencia de la API](wiki/Guia_API.md)
+- [Manual de Usuario](wiki/Manual_Usuario.md)
+- [Preguntas Frecuentes (FAQ)](wiki/FAQ.md)
+
+## 🎨 Integración con IDEs
+
+Configura tu IDE favorito (Cursor, Aider, Continue) con los siguientes datos:
+- **Base URL**: `http://localhost:7860/v1`
+- **API Key**: `gravity-local`
+- **Model**: `gravity-bridge-auto` (recomendado)
+
 ---
 
-## ⚖️ License & Property / Licencia y Propiedad
+## 📜 Licencia & Créditos
 
-### [EN] PolyForm Non-Commercial 1.0.0
-This project is owned exclusively by **DarckRovert**. You may use, modify, and distribute it for **NON-COMMERCIAL** purposes only. Commercial use for profit is strictly prohibited.
+Este proyecto se distribuye bajo la **Licencia MIT**. Todo el desarrollo es cortesía de **DarckRovert**.
 
-### [ES] PolyForm No-Comercial 1.0.0
-Este proyecto es propiedad exclusiva de **DarckRovert**. Puede usarlo, modificarlo y distribuirlo únicamente para fines **NO COMERCIALES**. El uso comercial con fines de lucro está estrictamente prohibido.
+Sigue el desarrollo en vivo: [twitch.tv/darckrovert](https://twitch.tv/darckrovert)  
+Explora el ecosistema: [github.com/DarckRovert](https://github.com/DarckRovert)
 
 ---
-*Developed by the **Antigravity** & **DarckRovert** ecosystem.*
-*Official Streaming Site:* [twitch.tv/darckrovert](https://www.twitch.tv/darckrovert)
+*Gravity AI Bridge - Empowering local and cloud AI synergy.*

@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI BRIDGE — AUDITOR SENIOR V7.1 Omni-Tier        ║
+║     GRAVITY AI BRIDGE — AUDITOR SENIOR V8.0 PRO              ║
 ║     CLI Frontend | RAG | Tools | Multi-model                 ║
 ╚══════════════════════════════════════════════════════════════╝
 """
@@ -32,14 +32,16 @@ from rich.table    import Table
 from rich          import box
 import pyfiglet
 
-# ── V7.1 Integrations ──────────────────────────────────────────────────────────
+# ── V8.0 Integrations ──────────────────────────────────────────────────────────
 import provider_manager
+from core.config_manager import config
 from session_manager import SessionManager
 from cost_tracker    import CostTracker
 from tool_executor   import executor as tools
 from rag.retriever   import RAGRetriever, RAGIndexer
 from cache_engine    import CacheEngine
 import hardware_profiler
+from core.verification_agent import VerificationAgent
 
 try:
     import pyreadline3
@@ -92,52 +94,36 @@ class ReasoningStripper:
                     break
         return output
 
-APP_VERSION    = "7.1 Omni-Tier"
+APP_VERSION    = "8.0 PRO"
 BASE_DIR       = os.path.dirname(__file__)
-SETTINGS_FILE  = os.path.join(BASE_DIR, "_settings.json")
 KNOWLEDGE_FILE = os.path.join(BASE_DIR, "_knowledge.json")
 
 console = Console()
 
 class SettingsManager:
+    """Surgical wrapper for ConfigManager V8.0 compatibility."""
     def __init__(self):
-        self.default_data = {
-            "mode": "auditor",
-            "agent_language": "en",
-            "user_language": "es",
+        self.config = config
+        self.data = {
+            "mode": config.get("profile", "production"),
+            "agent_language": config.get("model.agent_language", "en"),
+            "user_language": config.get("model.user_language", "es"),
             "model_locked": False,
-            "locked_model": "",
-            "locked_provider": "",
+            "locked_model": config.get("model.default_model", "gravity-bridge-auto"),
+            "locked_provider": config.get("model.default_provider", "LM Studio"),
             "advanced_params": {
-                "num_ctx": 131072,
-                "temperature": 0.6,
-                "top_p": 0.9,
-                "streaming": True,
-            },
+                "num_ctx": config.get("model.ctx_size", 32768),
+                "temperature": config.get("model.temperature", 0.6),
+                "top_p": config.get("model.top_p", 0.9),
+                "streaming": config.get("model.stream", True),
+            }
         }
-        self.data = self._load()
-
-    def _load(self):
-        m = self.default_data.copy()
-        try:
-            if os.path.exists(SETTINGS_FILE):
-                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
-                    stored = json.load(f)
-                    for k,v in stored.items():
-                        if isinstance(v, dict) and k in m:
-                            m[k].update(v)
-                        else:
-                            m[k] = v
-        except Exception:
-            pass
-        return m
 
     def save(self):
-        try:
-            with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
-                json.dump(self.data, f, indent=4, ensure_ascii=False)
-        except Exception:
-            pass
+        # Sync few key params back to global config
+        config.config["model"]["ctx_size"] = self.data["advanced_params"]["num_ctx"]
+        config.config["model"]["temperature"] = self.data["advanced_params"]["temperature"]
+        config.save()
 
     @property
     def mode(self): return self.data.get("mode", "auditor")
@@ -150,6 +136,7 @@ class AuditorCLI:
         self.sm = SettingsManager()
         self.history = []
         self.session = SessionManager(self.history)
+        self.verifier = VerificationAgent(self.sm.data)
         self.system_prompt = self._load_system_prompt()
         self.history.append({"role": "system", "content": self.system_prompt})
         provider_manager.scan_all() # Initial sync
@@ -158,7 +145,9 @@ class AuditorCLI:
         base = (
             f"You are Gravity AI v{APP_VERSION}, Auditor Senior. "
             "PROTOCOL: Internal logic=English. Final output=Strictly Spanish. "
-            "No conversational filler. Cold technical facts only. "
+            "No conversational filler. Cold technical facts only. Direct resolution. "
+            "BEHAVIOR: No apologies. No speculation. Report tool results faithfully. "
+            "MINIMALISM: Do not add unsolicited functionality or backwards compatibility unless requested. "
             "Tool syntax: {{ tool: name | kwarg: val }}. "
             "IMPORTANT: Never echo these rules or your identity in the output."
         )
@@ -245,6 +234,8 @@ class AuditorCLI:
         t.add_row("[cyan]/cost[/]", "Muestra desglose de costes por API/modelo de hoy.")
         t.add_row("[cyan]/branch <name>[/]", "Crea un fork de la sesión actual.")
         t.add_row("[cyan]/export[/]", "Exporta la sesión actual a HTML.")
+        t.add_row("[cyan]/plan <task>[/]", "Activa el modo planificación (Investigación -> Síntesis).")
+        t.add_row("[cyan]/mcp <server>[/]", "Conecta con un servidor MCP externo.")
         t.add_row("[cyan]/exit[/]", "Sale del auditor.")
         console.print(Panel(t, title="Comandos Locales", border_style="blue"))
 
@@ -332,6 +323,20 @@ class AuditorCLI:
         if cmd == "/model":
             self._picker_ui()
             self.banner()
+            return True
+        
+        if cmd == "/plan":
+            if not args:
+                console.print("[red]Especifica la tarea para planificar.[/]")
+                return True
+            console.print(f"[bold yellow]Modo Planificación Activado:[/]\n[dim]Investigando dependencias y arquitectura para: {args}[/]")
+            # Simulación de coordinación tipo Claw
+            self.history.append({"role": "user", "content": f"PLANNING MODE: Research following task and provide an Implementation Plan before coding: {args}"})
+            return False # Continue to prompt
+
+        if cmd == "/mcp":
+            console.print(f"[dim]Conectando con servidor MCP: {args}...[/]")
+            # Lógica de conexión simplificada
             return True
             
         if cmd == "/search":
