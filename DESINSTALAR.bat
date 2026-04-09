@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 cd /d "%~dp0"
-title DESINSTALADOR — GRAVITY AI BRIDGE V9.0 PRO PRO
+title DESINSTALADOR — GRAVITY AI BRIDGE V9.0 PRO
 color 0c
 cls
 

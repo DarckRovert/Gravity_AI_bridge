@@ -65,7 +65,7 @@ class RAGEmbedder:
             pass
         # Try OpenAI embeddings
         try:
-            from key_manager import KeyManager
+            from core.key_manager import KeyManager
             if KeyManager.has_key("openai"):
                 cls._backend = "openai"
                 cls._model   = "text-embedding-3-small"
@@ -243,7 +243,7 @@ class RAGEmbedder:
 
     @classmethod
     def _embed_openai(cls, texts):
-        from key_manager import KeyManager
+        from core.key_manager import KeyManager
         key = KeyManager.get_key("openai")
         payload = json.dumps({"input": texts, "model": cls._model}).encode()
         headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}

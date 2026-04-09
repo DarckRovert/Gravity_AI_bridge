@@ -187,7 +187,7 @@ def first_run_check():
                 prov = sel
             key = Prompt.ask(f"API Key para [cyan]{prov}[/]", password=True)
             if key.strip():
-                from key_manager import KeyManager
+                from core.key_manager import KeyManager
                 KeyManager.set_key(prov, key.strip())
                 _console.print(f"[green]✓ Clave guardada cifrada.[/]")
         _console.print()

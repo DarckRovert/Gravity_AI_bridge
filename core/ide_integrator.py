@@ -1,5 +1,5 @@
 """
-ide_integrator.py — Gravity AI Bridge V7.1 Omni-Tier
+ide_integrator.py — Gravity AI Bridge V9.0 PRO [Diamond-Tier Edition]
 Modulo aislado para configurar IDEs. Sin dependencias de Rich ni SettingsManager.
 Se puede importar de forma segura desde el instalador.
 """
@@ -31,8 +31,8 @@ class IDEIntegrator:
         target_dir = os.path.join(BASE_DIR, ".continue")
         os.makedirs(target_dir, exist_ok=True)
         cfg = (
-            "name: Gravity Local V7.1 Omni-Tier\n"
-            "version: 7.1.0\n"
+            "name: Gravity Local V9.0 PRO [Diamond-Tier Edition]\n"
+            "version: 9.0.0\n"
             "schema: v1\n"
             "models:\n"
             "  - name: \"Gravity Bridge\"\n"

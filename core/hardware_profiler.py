@@ -19,7 +19,7 @@ import re
 import csv
 import io
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Mapa de modelos AMD iGPU conocidos → versión GFX para ROCm
 AMD_GFX_MAP = {

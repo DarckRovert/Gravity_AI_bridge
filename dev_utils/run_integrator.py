@@ -1,5 +1,9 @@
+import os, sys
+# Asegurar que el directorio raíz esté en el PYTHONPATH
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 """
-run_integrator.py — Gravity AI Bridge V7.1 Omni-Tier
+run_integrator.py — Gravity AI Bridge V9.0 PRO [Diamond-Tier Edition]
 Script del instalador para configurar IDEs. Usa ide_integrator.py (sin imports pesados).
 """
 import sys

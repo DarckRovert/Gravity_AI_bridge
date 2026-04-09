@@ -41,10 +41,10 @@ def draw_dashboard(results):
         tier = "☁ Cloud" if getattr(r, "category", "local") == "cloud" else "💻 Local"
         
         if r.is_healthy:
-            status = f"[bold green]✅ ACTIVO ({r.model_count}M)[/]"
+            status = f"[bold green][OK] ACTIVO ({r.model_count}M)[/]"
             ping = f"{r.response_ms}ms"
             if r.active_model:
-                motor_name = f"⚡ {r.name}"
+                motor_name = f"[OPTIMIZER] {r.name}"
                 model_str = f"[bold yellow]{r.active_model} (Loaded)[/]"
             elif r.model_count > 0:
                 motor_name = r.name
@@ -135,7 +135,7 @@ def main():
             chosen_prov = user_choice
             chosen_mod = user_choice.active_model or user_choice.models[0]['name']
     elif not current_prov:
-        console.print(f"\n[dim yellow]⚡ Proveedor actual no encontrado. Cambiando a {best_prov.name}...[/]")
+        console.print(f"\n[dim yellow][OPTIMIZER] Proveedor actual no encontrado. Cambiando a {best_prov.name}...[/]")
         chosen_prov = best_prov
         chosen_mod = best_mod
         
@@ -150,7 +150,7 @@ def main():
         settings["last_model"] = chosen_mod
         save_settings(settings)
         
-        console.print(f"\n[bold green]✅ LISTO:[/] Sistema conectado a [bold cyan]{chosen_prov.name}[/] usando [bold yellow]{chosen_mod}[/].")
+        console.print(f"\n[bold green][OK] LISTO:[/] Sistema conectado a [bold cyan]{chosen_prov.name}[/] usando [bold yellow]{chosen_mod}[/].")
     else:
         console.print("\n[bold red]Error al determinar proveedor.[/]")
         sys.exit(1)

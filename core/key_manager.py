@@ -19,7 +19,7 @@ import hashlib
 import platform
 import subprocess
 
-BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KEYSTORE_FILE = os.path.join(BASE_DIR, "_keystore.bin")
 
 # Proveedores cloud conocidos con sus metadatos de display

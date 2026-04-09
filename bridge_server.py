@@ -225,7 +225,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
                 prov   = data.get("provider", "").strip().lower()
                 key    = data.get("key", "").strip()
                 if prov and key:
-                    from key_manager import KeyManager
+                    from core.key_manager import KeyManager
                     KeyManager.set_key(prov, key)
                     body = json.dumps({"ok": True, "provider": prov}).encode()
                     self.send_response(200)
@@ -353,7 +353,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
 
             elapsed = time.time() - start_time
             record_latency(target_prov, target_mod, elapsed)
-            from cost_tracker import CostTracker
+            from core.cost_tracker import CostTracker
             plugin = provider_manager.get_plugin(target_prov)
             usd    = 0.0
             if plugin and getattr(plugin, "category", "") == "cloud":

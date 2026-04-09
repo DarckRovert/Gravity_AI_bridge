@@ -1,3 +1,7 @@
+import os, sys
+# Asegurar que el directorio raíz esté en el PYTHONPATH
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import sys
 import json
 import os
@@ -26,7 +30,7 @@ try:
         with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
             
-        print(f"[OK] Settings V7.1 Omni-Tier actualizados para usar -> {best_prov.name} ({best_mod})")
+        print(f"[OK] Settings V9.0 PRO [Diamond-Tier Edition] actualizados para usar -> {best_prov.name} ({best_mod})")
         
         with open(TEMP_BEST_MODEL_TXT, "w", encoding="utf-8") as f:
             f.write(best_mod)

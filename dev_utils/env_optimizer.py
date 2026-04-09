@@ -1,3 +1,7 @@
+import os, sys
+# Asegurar que el directorio raíz esté en el PYTHONPATH
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 """
 ╔══════════════════════════════════════════════════════════╗
 ║     GRAVITY AI ENVIROMENT OPTIMIZER V7.1                 ║
@@ -87,7 +91,7 @@ def _load_hardware():
 
 def apply_ollama(profile, persist=False):
     """Injects optimal Ollama env vars. Does NOT overwrite user-set variables."""
-from core.turbo_kv import get_ollama_kv_options
+    from core.turbo_kv import get_ollama_kv_options
 
     kv_opts = get_ollama_kv_options(profile["vram_mb"], profile["model_size_b"])
 
@@ -258,7 +262,7 @@ def apply_all(persist=False, verbose=False):
     profile = _load_hardware()
 
     if verbose:
-        print(f"\n[⚡ EnvOptimizer V7.1]")
+        print(f"\n[[OPTIMIZER] EnvOptimizer V7.1]")
         print(f"  GPU    : {profile.get('gpu_name', 'Unknown')}")
         print(f"  VRAM   : {profile['vram_mb']:,} MB")
         print(f"  Ctx    : {profile['optimal_ctx']:,} tokens (KV: {profile['kv_quant']})")
@@ -308,6 +312,6 @@ if __name__ == "__main__":
         print(f"    {k}: {v}")
 
     if persist:
-        print("\n  [✅] Variables persistidas permanentemente via setx (reinicia Ollama para que tome efecto).")
+        print("\n  [[OK]] Variables persistidas permanentemente via setx (reinicia Ollama para que tome efecto).")
     else:
         print("\n  Tip: Usa 'python env_optimizer.py --persist' para guardar permanentemente.")
