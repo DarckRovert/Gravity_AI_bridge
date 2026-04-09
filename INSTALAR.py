@@ -59,7 +59,7 @@ EXCLUDE_FILES = {
     # Artefactos del instalador mismo
     "_install_manifest.json",
     # Archivos del entorno del desarrollador (no distribuir)
-    "%VBS_PATH%", ".antigravityrules", "_check_dist.py",
+    "%VBS_PATH%", "_check_dist.py",
 }
 
 EXCLUDE_DIRS = {
