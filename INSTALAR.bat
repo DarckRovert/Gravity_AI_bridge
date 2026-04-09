@@ -5,10 +5,10 @@ color 0b
 cls
 
 echo.
-echo  +--------------------------------------------------------------+
-echo  ^|         GRAVITY AI BRIDGE V9.0 PRO [Diamond-Tier Edition] - Instalador              ^|
-echo  ^|         github.com/DarckRovert/Gravity_AI_bridge              ^|
-echo  +--------------------------------------------------------------+
+echo  +------------------------------------------------------------------------------+
+echo  ^|        GRAVITY AI BRIDGE V9.0 PRO [Diamond-Tier Edition] - Instalador        ^|
+echo  ^|                   github.com/DarckRovert/Gravity_AI_bridge                   ^|
+echo  +------------------------------------------------------------------------------+
 echo.
 
 REM ── Verificar Python ──────────────────────────────────────────────────────────
