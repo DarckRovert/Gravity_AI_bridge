@@ -51,7 +51,7 @@ except Exception as e:
 
 # ── BUG-07: model_selector tarea 'any' no fuerza switch ───────────────────────
 try:
-    import model_selector
+    from core import model_selector
     model_selector.set_active_model("deepseek-r1:32b")
     m, did = model_selector.get_optimal_model(
         text="hola como estas",
@@ -67,7 +67,7 @@ except Exception as e:
 
 # ── BUG-06: deduplicacion en model_selector cache ─────────────────────────────
 try:
-    import model_selector as ms
+    from core import model_selector as ms
     ms._available_models_cache = {}
     ms.update_available_models("LM Studio", ["model-a", "model-b"])
     ms.update_available_models("LM Studio", ["model-b", "model-c"])

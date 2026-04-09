@@ -1,7 +1,7 @@
 import sys
 import json
 import os
-import provider_manager
+from core import provider_manager
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SETTINGS_FILE = os.path.join(BASE_DIR, "_settings.json")

@@ -5,7 +5,7 @@
 ╚══════════════════════════════════════════════════════════════╝
 """
 import time
-from provider_manager import get_plugin, scan_all
+from core.provider_manager import get_plugin, scan_all
 
 BENCHMARK_SUITE = {
     "speed": "Di solamente: 'Listo'",

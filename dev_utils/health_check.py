@@ -11,7 +11,7 @@ from rich.text import Text
 from rich.align import Align
 import pyfiglet
 
-import provider_manager
+from core import provider_manager
 
 console = Console()
 SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "_settings.json")

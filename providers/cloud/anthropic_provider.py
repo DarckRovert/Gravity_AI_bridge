@@ -10,7 +10,7 @@ import json
 import urllib.request
 from typing import Generator
 from providers.base import ProviderPlugin, ProviderResult
-from key_manager import KeyManager
+from core.key_manager import KeyManager
 
 ANTHROPIC_API  = "https://api.anthropic.com/v1/messages"
 ANTHROPIC_VER  = "2023-06-01"

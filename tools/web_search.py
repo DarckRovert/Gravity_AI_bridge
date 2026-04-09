@@ -7,7 +7,7 @@ import re
 import urllib.request
 import urllib.parse
 from tools.base_tool import Tool, ToolResult
-from key_manager import KeyManager
+from core.key_manager import KeyManager
 
 DDG_URL   = "https://html.duckduckgo.com/html/"
 BRAVE_URL = "https://api.search.brave.com/res/v1/web/search"

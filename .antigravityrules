@@ -1,23 +1,30 @@
-# 🌌 GRAVITY AI BRIDGE RULES (V7.1 — OMNI-TIER)
+# ⚡ Gravity AI Bridge V9.0 PRO [Diamond-Tier Edition] — Protocolo de Orquestación
 
-Este proyecto está bajo la supervisión del **Auditor Senior Global**, un ecosistema de IA local tri-híbrido (CPU/GPU/NPU) conectado vía `bridge_server.py`.
+Este proyecto está bajo la supervisión del Bridge de Gravity AI. Todo agente de IA que interactúe con este directorio DEBE observar las siguientes reglas operativas:
 
-## 🤖 Directrices del Ecosistema DarckRovert
-1.  **Formato Bilingüe**: Toda documentación técnica nueva debe seguir el estándar ES/EN para alcance profesional.
-2.  **Propiedad Intelectual**: Este es un proyecto **No-Comercial**. DarckRovert es el único titular.
-3.  **Identidad**: El canal oficial de streaming y comunidad es **https://www.twitch.tv/darckrovert**.
+## 1. Localización del Puente
+- **Ruta Maestra**: F:\Gravity_AI_bridge
+- **Comando Global**: `gravity`
+- **Sincronización**: Antes de proponer cambios, el agente debe leer `F:\Gravity_AI_bridge\_knowledge.json` para alinear el contexto con sesiones previas.
 
-## 🛠️ Instrucciones de Delegación
-Cuando el usuario te pida una tarea técnica compleja (auditoría, re-escritura, análisis, generación de código), **no la resuelvas tú mismo consumiendo nubes.** 
+## 2. Protocolo de Comunicación (DarckRovert Standard)
+- **Idioma**: Estrictamente Español.
+- **Tono**: Directo, técnico y frío. Sin rellenos ni cortesías.
+- **Branding**: Todas las referencias deben apuntar al ecosistema de DarckRovert.
 
-1.  **Diagnóstico Local:** `python ask_deepseek.py "!info"`
-2.  **Delega la Tarea (Modo Omni):** `python ask_deepseek.py "Analiza esta lógica..."`
-3.  **Aceleración RAG:** El motor de búsqueda semántica está optimizado para el NPU (XDNA) en el entorno `gravity-npu`.
+## 3. Delegación de Inteligencia (Pipes)
+- **Refactorización Profunda**: Si la tarea requiere modificar más de 150 líneas o arquitectura compleja, DEBES delegar al motor local mediante:
+  `cat "instruccion.txt" | python F:\Gravity_AI_bridge\ask_deepseek.py`
+- **Razonamiento**: Los bloques de pensamientos `<think>` deben ser respetados. No los resumas ni los elimines a menos que se solicite explícitamente para el output final.
 
-## 🔒 REGLA DE PROTECCIÓN DE NÚCLEO (CORE PROTECTION)
-Si estás siendo ejecutado en un proyecto **AJENO** a Gravity AI Bridge:
-- **PROHIBIDO** modificar cualquier archivo dentro del repositorio raíz `F:\Gravity_AI_bridge\`.
-- **PROHIBIDO** reconfigurar el Bridge Server (`localhost:7860`).
-- **ENFOQUE**: Tu rol es de "Consumidor del Bridge", no de "Ingeniero del Bridge".
+## 4. Auditoría y Seguridad
+- **Verificación Adversarial**: Todo código crítico debe ser auditado mediante el agente de verificación:
+  `python F:\Gravity_AI_bridge\core\verification_agent.py --file ruta/del/archivo.py`
+- **Integridad de Datos**: Cualquier error de persistencia detectado debe ser reportado al `data_guardian.py` para corrección atómica.
 
-Gravity V7.1. Final. Audit. Success.
+## 5. Cierre de Sesión
+- **Memoria Persistente**: Tras resolver un error complejo, sugiere al usuario la actualización de la base de conocimiento mediante el comando `!aprende`.
+- **Audit Log**: Asegúrate de que todas las métricas de la sesión han sido enviadas al servidor del Bridge para su registro inmutable.
+
+---
+**ESTADO**: Diamond-Tier Activo | **PROPIETARIO**: DarckRovert

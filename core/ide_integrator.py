@@ -6,7 +6,7 @@ Se puede importar de forma segura desde el instalador.
 import os
 import json
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class IDEIntegrator:

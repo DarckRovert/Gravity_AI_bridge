@@ -9,7 +9,7 @@ import urllib.error
 from typing import Generator
 
 from providers.base import ProviderPlugin, ProviderResult
-from key_manager import KeyManager
+from core.key_manager import KeyManager
 
 
 def _cloud_request_stream(url: str, payload: dict, headers: dict) -> Generator[str, None, None]:

@@ -7,7 +7,7 @@
 import time
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from provider_manager import get_plugin, get_all_model_names
+from core.provider_manager import get_plugin, get_all_model_names
 
 
 # ── Parallel multi-model comparison ──────────────────────────────────────────

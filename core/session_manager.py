@@ -12,12 +12,13 @@ import copy
 from datetime import datetime
 
 try:
-    import data_guardian as _guardian
+    from . import data_guardian as _guardian
 except ImportError:
     _guardian = None
 
 
-BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
+# Subimos un nivel para que la base sea la raíz de F:\Gravity_AI_bridge
+BASE_DIR   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SAVES_DIR  = os.path.join(BASE_DIR, "_saves")
 os.makedirs(SAVES_DIR, exist_ok=True)
 

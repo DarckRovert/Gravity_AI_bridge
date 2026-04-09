@@ -36,17 +36,17 @@ import pyfiglet
 
 
 # ── V9.0 PRO [Diamond-Tier Edition] Integrations ──────────────────────────────────────────────────────────
-import provider_manager
+from core import provider_manager
 from core.config_manager import config
-from session_manager import SessionManager
-from cost_tracker    import CostTracker
-from tool_executor   import executor as tools
+from core.session_manager import SessionManager
+from core.cost_tracker    import CostTracker
+from core.tool_executor   import executor as tools
 from rag.retriever   import RAGRetriever, RAGIndexer
-from cache_engine    import CacheEngine
-import hardware_profiler
+from core.cache_engine    import CacheEngine
+from core import hardware_profiler
 from core.verification_agent import VerificationAgent
-from key_manager import KeyManager
-import data_guardian as guardian
+from core import key_manager
+from core import data_guardian as guardian
 
 
 try:

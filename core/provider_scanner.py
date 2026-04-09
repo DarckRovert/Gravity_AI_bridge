@@ -13,7 +13,7 @@ import os
 import json
 import time
 
-BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR       = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LAST_SCAN_FILE = os.path.join(BASE_DIR, "_last_scan.json")
 
 # Re-export ProviderResult from the canonical location for backwards compat
@@ -27,7 +27,7 @@ def scan_all_providers(force: bool = False) -> list:
     Scans all local AND cloud providers using the V7 ProviderRegistry.
     Returns list of ProviderResult objects (backwards-compatible).
     """
-    from provider_manager import scan_all
+    from core.provider_manager import scan_all
     results = scan_all(force=force)
     _save_last_scan(results)
     return results
@@ -38,7 +38,7 @@ def auto_select_best(task: str = "any", prefer_local: bool = True) -> tuple:
     Auto-selects the best provider and model for the given task.
     Returns (ProviderResult | None, model_name | None).
     """
-    from provider_manager import get_best
+    from core.provider_manager import get_best
     return get_best(task)
 
 

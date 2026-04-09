@@ -13,7 +13,8 @@ import time
 import threading
 from datetime import date
 
-BASE_DIR        = os.path.dirname(os.path.abspath(__file__))
+# Subimos un nivel para que la base sea la raíz de F:\Gravity_AI_bridge
+BASE_DIR        = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 COST_LOG_FILE   = os.path.join(BASE_DIR, "_cost_log.json")
 SETTINGS_FILE   = os.path.join(BASE_DIR, "_settings.json")
 

@@ -11,7 +11,7 @@ import json
 import urllib.request
 from typing import Generator
 from providers.base import ProviderPlugin, ProviderResult
-from key_manager import KeyManager
+from core.key_manager import KeyManager
 
 GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 

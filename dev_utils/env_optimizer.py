@@ -87,7 +87,7 @@ def _load_hardware():
 
 def apply_ollama(profile, persist=False):
     """Injects optimal Ollama env vars. Does NOT overwrite user-set variables."""
-    from turbo_kv import get_ollama_kv_options
+from core.turbo_kv import get_ollama_kv_options
 
     kv_opts = get_ollama_kv_options(profile["vram_mb"], profile["model_size_b"])
 

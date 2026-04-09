@@ -14,7 +14,7 @@ import os
 from typing import Generator
 
 from providers.base import ProviderPlugin, ProviderResult
-from key_manager import KeyManager
+from core.key_manager import KeyManager
 from providers.cloud._openai_compat_cloud import OpenAICompatCloudProvider
 
 
