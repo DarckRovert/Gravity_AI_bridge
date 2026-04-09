@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI BRIDGE — INSTALADOR STANDALONE V9.0 PRO [Diamond-Tier Edition]           ║
+║     GRAVITY AI BRIDGE - INSTALADOR STANDALONE V9.0 PRO [Diamond-Tier Edition]           ║
 ║     Instalador TUI premium con elección de directorio        ║
 ╚══════════════════════════════════════════════════════════════╝
 
@@ -94,7 +94,7 @@ COMPONENTS = {
         "default": True,
     },
     "mcp": {
-        "label": "MCP — Model Context Protocol",
+        "label": "MCP - Model Context Protocol",
         "desc":  "Conexión a servidores de herramientas externos",
         "pkgs":  ["mcp"],
         "default": False,
@@ -140,7 +140,7 @@ def phase_welcome():
 
     console.print(Panel(
         feat_table,
-        title=f"[bold bright_white] Gravity AI Bridge {APP_VER} — Instalador [/]",
+        title=f"[bold bright_white] Gravity AI Bridge {APP_VER} - Instalador [/]",
         subtitle="[dim]github.com/DarckRovert/Gravity_AI_bridge[/]",
         border_style="cyan",
         box=box.DOUBLE,
@@ -460,7 +460,7 @@ def _generate_config(target_dir: str, hw: dict, engines: dict):
     else:
         ctx = 16384
 
-    config = f"""# Gravity AI Bridge V{APP_VER} — Configuración generada automáticamente
+    config = f"""# Gravity AI Bridge V{APP_VER} - Configuración generada automáticamente
 # Generado: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 # Edita este archivo para personalizar el comportamiento.
 # NOTA: El modelo activo se detecta automáticamente del motor de IA en ejecución.
@@ -502,13 +502,13 @@ def _generate_gravity_bat(target_dir: str):
 cd /d "{target_dir}"
 setlocal enabledelayedexpansion
 
-REM ── Gravity AI Bridge V{APP_VER} — Comando Global ──────────────────────────────
+REM ── Gravity AI Bridge V{APP_VER} - Comando Global ──────────────────────────────
 REM Instalado en: {target_dir}
 REM ────────────────────────────────────────────────────────────────────────────
 
 if "%~1"=="--help" (
     echo.
-    echo  GRAVITY AI BRIDGE V{APP_VER} — Ayuda Rapida
+    echo  GRAVITY AI BRIDGE V{APP_VER} - Ayuda Rapida
     echo  ─────────────────────────────────────────
     echo  gravity                  Modo interactivo
     echo  gravity "pregunta"       Respuesta directa por pipe
@@ -573,13 +573,13 @@ def _generate_desinstalar(target_dir: str):
     content = f"""@echo off
 setlocal enabledelayedexpansion
 cd /d "{target_dir}"
-title DESINSTALADOR — GRAVITY AI BRIDGE V{APP_VER}
+title DESINSTALADOR - GRAVITY AI BRIDGE V{APP_VER}
 color 0c
 cls
 
 echo.
 echo  +--------------------------------------------------------------+
-echo  ^|         DESINSTALACION LIMPIA — GRAVITY AI BRIDGE V{APP_VER}       ^|
+echo  ^|         DESINSTALACION LIMPIA - GRAVITY AI BRIDGE V{APP_VER}       ^|
 echo  +--------------------------------------------------------------+
 echo.
 echo  Directorio de instalacion: {target_dir}

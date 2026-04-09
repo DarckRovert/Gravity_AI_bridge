@@ -1,12 +1,12 @@
 @echo off
 setlocal enabledelayedexpansion
-title GRAVITY AI BRIDGE — Instalador
+title GRAVITY AI BRIDGE - Instalador
 color 0b
 cls
 
 echo.
 echo  +--------------------------------------------------------------+
-echo  ^|         GRAVITY AI BRIDGE V8.0 PRO — Instalador              ^|
+echo  ^|         GRAVITY AI BRIDGE V9.0 PRO [Diamond-Tier Edition] - Instalador              ^|
 echo  ^|         github.com/DarckRovert/Gravity_AI_bridge              ^|
 echo  +--------------------------------------------------------------+
 echo.

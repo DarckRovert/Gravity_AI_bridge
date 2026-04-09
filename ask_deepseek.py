@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI BRIDGE — AUDITOR SENIOR V9.0 PRO [Diamond-Tier Edition]              ║
+║     GRAVITY AI BRIDGE - AUDITOR SENIOR V9.0 PRO [Diamond-Tier Edition]              ║
 ║     CLI Frontend | RAG | Tools | Multi-model                 ║
 ╚══════════════════════════════════════════════════════════════╝
 """
@@ -352,7 +352,7 @@ class AuditorCLI:
         t.add_row("/mcp <ruta>", "Conecta con un servidor MCP externo (stdio).")
         t.add_row("!aprende <texto>", "Persiste una regla en el knowledge base local.")
         t.add_row("/exit", "Sale del auditor guardando el historial de razonamiento.")
-        console.print(Panel(t, title="[bold cyan]Comandos Disponibles — Gravity AI V9.0 PRO [Diamond-Tier Edition][/]", border_style="blue"))
+        console.print(Panel(t, title="[bold cyan]Comandos Disponibles - Gravity AI V9.0 PRO [Diamond-Tier Edition][/]", border_style="blue"))
 
     def cmd_providers(self):
         scans = provider_manager.scan_all()
@@ -398,7 +398,7 @@ class AuditorCLI:
                 t.add_column("Nombre", style="white")
                 t.add_column("Estado")
                 for i, (pid, meta) in enumerate(all_known.items(), 1):
-                    st = "[green]✓[/]" if meta["has_key"] else "[dim]—[/]"
+                    st = "[green]✓[/]" if meta["has_key"] else "[dim]-[/]"
                     t.add_row(str(i), pid, meta["display"], st)
                 console.print(t)
                 target = Prompt.ask("Proveedor (id exacto)").strip().lower()
@@ -504,7 +504,7 @@ class AuditorCLI:
         if tools_available:
             console.print(f"[green]✓ Conectado. {len(tools_available)} herramientas disponibles:[/]")
             for tool in tools_available:
-                console.print(f"  [cyan]{tool.get('name', '?')}[/] — {tool.get('description', '')}")
+                console.print(f"  [cyan]{tool.get('name', '?')}[/] - {tool.get('description', '')}")
         else:
             console.print("[yellow]Conectado pero sin herramientas listadas.[/]")
         console.print("[dim]Sesión MCP activa. Escribe '/mcp-exit' para desconectar.[/]")
