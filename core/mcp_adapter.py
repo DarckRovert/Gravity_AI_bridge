@@ -1,5 +1,5 @@
 """
-Gravity AI — MCP Adapter V8.5 (Claw Edition)
+Gravity AI — MCP Adapter V9.0 PRO (Claw Edition)
 Puente de comunicación para el Model Context Protocol (MCP).
 Permite integrar herramientas y recursos de servidores MCP externos.
 """

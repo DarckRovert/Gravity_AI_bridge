@@ -1,8 +1,8 @@
 """
-╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — BRIDGE SERVER V9.0 PRO [Diamond-Tier Edition]                      ║
-║     Enrutador Universal OpenAI-Compatible                    ║
-╚══════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════╗
+║          GRAVITY AI - BRIDGE SERVER V9.0 PRO [Diamond-Tier Edition]          ║
+║                    Enrutador Universal OpenAI-Compatible                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
 import json

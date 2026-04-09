@@ -1,8 +1,8 @@
 """
-╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI BRIDGE - AUDITOR SENIOR V9.0 PRO [Diamond-Tier Edition]              ║
-║     CLI Frontend | RAG | Tools | Multi-model                 ║
-╚══════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════╗
+║      GRAVITY AI BRIDGE - AUDITOR SENIOR V9.0 PRO [Diamond-Tier Edition]      ║
+║                   CLI Frontend | RAG | Tools | Multi-model                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 """
 import sys
 import io

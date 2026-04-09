@@ -1,17 +1,8 @@
 """
-╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI BRIDGE - INSTALADOR STANDALONE V9.0 PRO [Diamond-Tier Edition]           ║
-║     Instalador TUI premium con elección de directorio        ║
-╚══════════════════════════════════════════════════════════════╝
-
-Este instalador puede ejecutarse desde CUALQUIER ubicación.
-Pregunta al usuario dónde desea instalar Gravity AI Bridge
-y copia los archivos necesarios al destino elegido.
-
-Uso:
-    python INSTALAR.py                  → instalación interactiva
-    python INSTALAR.py --dir "C:\\AI"   → instalar en directorio específico
-    python INSTALAR.py --in-place       → instalar en directorio actual (dev)
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  GRAVITY AI BRIDGE - INSTALADOR STANDALONE V9.0 PRO [Diamond-Tier Edition]   ║
+║              Instalador TUI premium con elección de directorio               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
 import sys
@@ -79,7 +70,7 @@ EXCLUDE_DIRS = {
 EXCLUDE_EXTENSIONS = {".pyc", ".pyo", ".bak", ".tmp"}
 EXCLUDE_PATTERNS   = ("*.bak_*", "*.sqlite-*")
 
-# ── Componentes opcionales ─────────────────────────────────────────────────────
+# ── Componentes obligatorioes ─────────────────────────────────────────────────────
 COMPONENTS = {
     "rag_pdf": {
         "label": "Soporte PDF en RAG",
@@ -236,7 +227,7 @@ def phase_components() -> dict:
     """Muestra selector de componentes. Retorna {component_id: bool}."""
     console.print(Panel(
         "[bold white]Selecciona los componentes a instalar.[/]\n"
-        "[dim]El núcleo (Core) siempre se instala. Los demás son opcionales.[/]",
+        "[dim]El núcleo (Core) siempre se instala. Los demás son obligatorioes.[/]",
         title="[bold cyan]Componentes[/]",
         border_style="blue",
         padding=(1, 2),

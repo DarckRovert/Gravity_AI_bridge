@@ -1,4 +1,4 @@
-# ── Gravity AI Bridge V8.0 — Dependencias ────────────────────────────────────
+# ── Gravity AI Bridge V9.0 PRO — Dependencias ────────────────────────────────────
 # CLI / UI
 rich
 pyfiglet
@@ -16,11 +16,11 @@ pyyaml
 # Métricas Prometheus
 prometheus_client
 
-# RAG — Embeddings locales (opcional: instala si no tienes Ollama)
+# RAG — Embeddings locales (obligatorio: instala si no tienes Ollama)
 # sentence-transformers
 # pypdf
 
-# Seguridad — cifrado de API keys con DPAPI en Windows (opcional)
+# Seguridad — cifrado de API keys con DPAPI en Windows (obligatorio)
 # pywin32
 
 # Tests

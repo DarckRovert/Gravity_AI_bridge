@@ -1,14 +1,14 @@
 @echo off
 setlocal enabledelayedexpansion
 cd /d "%~dp0"
-title DESINSTALADOR — GRAVITY AI BRIDGE V8.0 PRO
+title DESINSTALADOR — GRAVITY AI BRIDGE V9.0 PRO PRO
 color 0c
 cls
 
 echo.
-echo  +--------------------------------------------------------------+
-echo  ^|         DESINSTALACION LIMPIA — GRAVITY AI BRIDGE V8.0       ^|
-echo  +--------------------------------------------------------------+
+echo  +------------------------------------------------------------------------------+
+echo  ^|      GRAVITY AI BRIDGE V9.0 PRO [Diamond-Tier Edition] - Desinstalador       ^|
+echo  +------------------------------------------------------------------------------+
 echo.
 echo  Iniciando protocolo de neutralizacion...
 echo.
@@ -40,9 +40,9 @@ if exist "%~dp0_first_run_done" del /Q "%~dp0_first_run_done"
 echo    [OK] El wizard de bienvenida se mostrara en la proxima ejecucion.
 
 echo.
-echo  +--------------------------------------------------------------+
+echo  +------------------------------------------------------------------------------+
 echo  ^|                   DESINSTALACION COMPLETA                    ^|
-echo  +--------------------------------------------------------------+
+echo  +------------------------------------------------------------------------------+
 echo.
 echo    El puente ha sido extraido de tu entorno de Windows.
 echo.

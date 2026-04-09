@@ -1,10 +1,8 @@
 """
-╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — COST TRACKER V7.1                           ║
-║     Tracking de costes cloud en tiempo real                  ║
-╚══════════════════════════════════════════════════════════════╝
-Registra tokens consumidos y coste estimado por proveedor.
-Persistencia en _cost_log.json. Límites diarios configurables.
+╔══════════════════════════════════════════════════════════════════════════════╗
+║          GRAVITY AI - COST TRACKER V9.0 PRO [Diamond-Tier Edition]           ║
+║                   Tracking de costes cloud en tiempo real                    ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
 import json

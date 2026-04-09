@@ -1,21 +1,8 @@
 """
-╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — DATA GUARDIAN V8.0                          ║
-║     Validación, reparación y saneamiento de archivos datos   ║
-╚══════════════════════════════════════════════════════════════╝
-
-Responsabilidades:
-  - Validar integridad de _knowledge.json / _audit_log.jsonl / sesiones
-  - Reparar lo que sea reparable (backup atómico + reconstrucción)
-  - Reportar problemas sin crashear el sistema
-  - Eliminar entradas malformadas, duplicadas o peligrosas
-
-REGLAS DE DISEÑO:
-  1. Nunca lanza excepciones al llamador.
-  2. repair_audit_log es LAZY: solo repara si detecta corrupción.
-  3. Los backups se auto-rotan: máximo MAX_BACKUPS por archivo.
-  4. save_knowledge siempre valida antes de escribir.
-  5. startup_check carga knowledge UNA sola vez y reutiliza el resultado.
+╔══════════════════════════════════════════════════════════════════════════════╗
+║          GRAVITY AI - DATA GUARDIAN V9.0 PRO [Diamond-Tier Edition]          ║
+║          Validación, reparación y saneamiento de archivos de datos           ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
 import json

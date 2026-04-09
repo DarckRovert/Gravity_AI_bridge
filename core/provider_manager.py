@@ -1,16 +1,8 @@
 """
-╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — PROVIDER MANAGER V7.1                       ║
-║     Orquestador universal: local + cloud                     ║
-╚══════════════════════════════════════════════════════════════╝
-
-ProviderManager es el punto único de verdad para:
-  - Qué providers están disponibles (local + cloud)
-  - Cuál es el mejor para una tarea dada
-  - El routing inteligente multi-proveedor
-  - El fallback local→cloud cuando todo local está offline
-
-No instancia clientes de chat: los ProviderPlugin lo hacen.
+╔══════════════════════════════════════════════════════════════════════════════╗
+║        GRAVITY AI - PROVIDER MANAGER V9.0 PRO [Diamond-Tier Edition]         ║
+║                     Orquestador universal: local + cloud                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
 import time
