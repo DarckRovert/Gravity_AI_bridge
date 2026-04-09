@@ -347,3 +347,19 @@ aider --openai-api-base http://localhost:7860/v1 --openai-api-key gravity-local
 
 *Gravity AI Bridge — [github.com/DarckRovert/Gravity_AI_bridge](https://github.com/DarckRovert/Gravity_AI_bridge)*  
 *Stream en vivo: [twitch.tv/darckrovert](https://twitch.tv/darckrovert)*
+
+---
+
+## 13. Orquestación de Agentes (AI-to-AI)
+
+Esta función permite que asistentes de IA externos (Antigravity, Claude, sub-agentes) se conecten al Bridge de forma autónoma.
+
+### Cómo habilitarlo
+1. Localiza el archivo .antigravityrules.example en la carpeta de instalación de Gravity.
+2. Cópialo a la raíz de tu proyecto de trabajo y cámbiale el nombre a .antigravityrules.
+3. La próxima vez que un agente abra esa carpeta, leerá el archivo y sabrá:
+    - Cómo invocar al Bridge (<code>ask_deepseek.py</code>).
+    - Dónde encontrar el conocimiento persistente (<code>_knowledge.json</code>).
+    - Cómo realizar auditorías adversariales antes de sugerir código.
+
+Esto asegura que todas las IAs trabajen bajo un mismo estándar de calidad y memoria compartida.

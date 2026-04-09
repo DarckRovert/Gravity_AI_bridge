@@ -167,6 +167,18 @@ Gravity_AI_bridge/
 
 ---
 
+## 🤖 Orquestación de Agentes (AI-to-AI)
+
+Gravity AI Bridge permite que otros asistentes de IA (como Antigravity, Claude o agentes de Cursor) se sincronicen con el repositorio local. 
+
+Para habilitar la orquestación automática, copia el archivo de ejemplo en la raíz de tu proyecto:
+```cmd
+cp F:\Gravity_AI_bridge\.antigravityrules.example .antigravityrules
+```
+Esto permitirá que cualquier agente lea las reglas de este proyecto, sepa dónde está el Bridge y use automáticamente sus herramientas de auditoría y conocimiento persistente.
+
+---
+
 ## 🛠️ Requisitos del Sistema
 
 - **Python** 3.10 o superior
