@@ -1,4 +1,4 @@
-# Guía de API — Gravity AI Bridge V9.0 PRO [Diamond-Tier Edition]
+# Guía de API — Gravity AI Bridge V9.1 PRO [Diamond-Tier Edition]
 
 > La API es 100% compatible con el protocolo OpenAI. Cualquier cliente que soporte OpenAI funciona sin modificaciones.
 
@@ -93,24 +93,24 @@ Estado del sistema con todos los backends y métricas.
 **Response:**
 ```json
 {
-  "version": "8.0",
+  "version": "9.1",
   "bridge_online": true,
-  "active_provider": "ollama",
-  "active_model": "deepseek-r1:14b",
+  "active_provider": "LM Studio",
+  "active_model": "google/gemma-4-e2b",
   "backends": [
     {
-      "name": "ollama",
+      "name": "LM Studio",
       "category": "local",
       "healthy": true,
-      "models": 5,
-      "latency_ms": 124
+      "models": 3,
+      "latency_ms": 817
     },
     {
-      "name": "openai",
-      "category": "cloud",
+      "name": "Ollama",
+      "category": "local",
       "healthy": false,
       "models": 0,
-      "latency_ms": 0
+      "latency_ms": 1814
     }
   ]
 }
@@ -128,10 +128,10 @@ Estado del sistema con todos los backends y métricas.
   "object": "list",
   "data": [
     {
-      "timestamp": "2026-04-08T21:00:00.000Z",
+      "timestamp": "2026-04-13T04:54:06.000Z",
       "session_id": "chatcmpl-abc123",
-      "provider": "ollama",
-      "model": "deepseek-r1:14b",
+      "provider": "LM Studio",
+      "model": "google/gemma-4-e2b",
       "input_tokens": 45,
       "output_tokens": 128,
       "total_tokens": 173,
@@ -144,9 +144,36 @@ Estado del sistema con todos los backends y métricas.
 
 ---
 
+### `GET /v1/images`
+
+Lista de imágenes generadas por ComfyUI disponibles en la galería.
+
+**Response:**
+```json
+{
+  "images": [
+    "/static/output/Gravity_Gen_00001_.png",
+    "/static/output/Gravity_Gen_00002_.png"
+  ]
+}
+```
+
+---
+
+### `GET /static/output/<filename>`
+
+Sirve una imagen generada directamente desde el directorio de output de ComfyUI.
+
+**Ejemplo:**
+```
+GET http://localhost:7860/static/output/Gravity_Gen_00001_.png
+```
+
+---
+
 ### `POST /v1/keys`
 
-Guardar una API Key cifrada (desde el Dashboard web).
+Guardar una API Key cifrada (DPAPI).
 
 **Request:**
 ```json
@@ -172,7 +199,7 @@ Health check simple para balanceadores de carga.
 {
   "status": "ok",
   "backends": [
-    {"name": "ollama", "healthy": true, "models": 5}
+    {"name": "LM Studio", "healthy": true, "models": 3}
   ]
 }
 ```
@@ -186,24 +213,24 @@ Métricas en formato Prometheus (text/plain).
 ```
 # HELP gravity_requests_total Total de peticiones procesadas
 # TYPE gravity_requests_total counter
-gravity_requests_total{provider="ollama",model="deepseek-r1:14b"} 42
+gravity_requests_total{provider="LM Studio",model="google/gemma-4-e2b"} 42
 
 # HELP gravity_tokens_total Total de tokens procesados
 # TYPE gravity_tokens_total counter
-gravity_tokens_total{direction="input",provider="ollama"} 1890
-gravity_tokens_total{direction="output",provider="ollama"} 5312
+gravity_tokens_total{direction="input",provider="LM Studio"} 1890
+gravity_tokens_total{direction="output",provider="LM Studio"} 5312
 
 # HELP gravity_latency_seconds Latencia de respuesta en segundos
 # TYPE gravity_latency_seconds histogram
-gravity_latency_seconds_bucket{provider="ollama",le="1.0"} 15
-gravity_latency_seconds_bucket{provider="ollama",le="5.0"} 38
+gravity_latency_seconds_bucket{provider="LM Studio",le="1.0"} 15
+gravity_latency_seconds_bucket{provider="LM Studio",le="5.0"} 38
 ```
 
 ---
 
 ### `GET /` o `GET /dashboard`
 
-Dashboard SPA interactivo (HTML).
+Dashboard SPA interactivo (HTML). Sirve `web/dashboard.html`.
 
 ---
 

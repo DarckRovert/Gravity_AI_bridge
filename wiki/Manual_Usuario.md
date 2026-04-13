@@ -1,44 +1,46 @@
-# Manual de Usuario — Gravity AI Bridge V9.0 PRO [Diamond-Tier Edition]
+# Manual de Usuario — Gravity AI Bridge V9.1 PRO [Diamond-Tier Edition]
 
 ## Índice
 
 1. [Instalación](#1-instalación)
 2. [Primer Arranque](#2-primer-arranque)
-3. [Uso del CLI](#3-uso-del-cli)
+3. [Launchers — Cómo Arrancar el Sistema](#3-launchers--cómo-arrancar-el-sistema)
 4. [Dashboard Web](#4-dashboard-web)
-5. [Gestión de API Keys](#5-gestión-de-api-keys)
-6. [Sistema RAG](#6-sistema-rag)
-7. [Verificación de Código](#7-verificación-de-código)
-8. [MCP — Herramientas Externas](#8-mcp--herramientas-externas)
-9. [Sesiones](#9-sesiones)
-10. [Bridge Server](#10-bridge-server)
-11. [Integración con IDEs](#11-integración-con-ides)
-12. [Atajos y Tips](#12-atajos-y-tips)
+5. [Uso del CLI](#5-uso-del-cli)
+6. [Gestión de API Keys](#6-gestión-de-api-keys)
+7. [Generación de Imágenes (Vision Studio)](#7-generación-de-imágenes-vision-studio)
+8. [Sistema RAG](#8-sistema-rag)
+9. [Verificación de Código](#9-verificación-de-código)
+10. [MCP — Herramientas Externas](#10-mcp--herramientas-externas)
+11. [Sesiones](#11-sesiones)
+12. [Integración con IDEs](#12-integración-con-ides)
+13. [Atajos y Tips](#13-atajos-y-tips)
+14. [Orquestación de Agentes (AI-to-AI)](#14-orquestación-de-agentes-ai-to-ai)
 
 ---
 
 ## 1. Instalación
 
-### Con motor de IA local (recomendado)
+### Requisitos previos
 
-**Paso 1**: Instala [Ollama](https://ollama.ai):
-```cmd
-winget install Ollama.Ollama
-ollama pull deepseek-r1:14b
-```
+**Motor de IA (obligatorio uno):**
+- [LM Studio](https://lmstudio.ai) — recomendado (activo en tu sistema actualmente)
+- [Ollama](https://ollama.ai) — alternativa open source
 
-**Paso 2**: Instala Gravity AI Bridge:
+**Para generación de imágenes (AMD GPU):**
+1. Descarga `AMD-Software-PRO-Edition-26.Q1-Win11-For-HIP.exe` de [amd.com/en/support](https://www.amd.com/en/support)
+2. Instala como Administrador
+3. **Reinicia Windows** (obligatorio para que `amdhip64.dll` quede disponible)
+
+### Instalación del Bridge
+
 ```cmd
 git clone https://github.com/DarckRovert/Gravity_AI_bridge.git
 cd Gravity_AI_bridge
-INSTALAR.bat
+launchers\INSTALAR.bat
 ```
 
-El instalador hará todo automáticamente. Al terminar, el comando `gravity` estará disponible en toda tu terminal.
-
-### Sin motor local (solo cloud)
-
-Sigue el instalador y configura tu API Key cuando te lo pida. Soporta OpenAI, Anthropic, Google Gemini, Groq y más.
+El instalador detecta tu hardware, configura el modelo óptimo y registra el comando `gravity` en tu PATH.
 
 ---
 
@@ -49,11 +51,11 @@ La primera vez que ejecutes `gravity`, aparecerá el wizard de bienvenida:
 ```
 ⚡ GRAVITY AI
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Bienvenido a Gravity AI Bridge V9.0 PRO [Diamond-Tier Edition]
+Bienvenido a Gravity AI Bridge V9.1 PRO [Diamond-Tier Edition]
 Primera ejecución detectada. Configuración inicial.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-✓ Motores locales detectados: Ollama
+✓ Motores locales detectados: LM Studio
 
 ┌─ Comandos esenciales ─────────────────────┐
 │ /help    Lista todos los comandos          │
@@ -66,13 +68,76 @@ Primera ejecución detectada. Configuración inicial.
 
 ---
 
-## 3. Uso del CLI
+## 3. Launchers — Cómo Arrancar el Sistema
+
+Todos los launchers están en la carpeta `launchers\`. **No hay duplicados en la raíz.**
+
+### Para uso diario (recomendado)
+
+Doble click en:
+```
+launchers\INICIAR_TODO.bat
+```
+
+Este archivo hace automáticamente:
+1. Libera los puertos 7860 y 7861 si quedaron ocupados
+2. Verifica si ComfyUI ya corre (no lo reinicia si ya está activo)
+3. Arranca el Bridge Server en `http://localhost:7860`
+4. Arranca Fooocus Studio en `http://127.0.0.1:7861`
+
+### Launchers individuales
+
+| Archivo | Puerto | Cuándo usarlo |
+|---------|--------|---------------|
+| `INICIAR_TODO.bat` ⭐ | 7860 + 7861 + 8188 | Uso normal diario |
+| `INICIAR_SERVIDOR.bat` | 7860 | Solo chat/dashboard, sin imágenes |
+| `GRAVITY_VISION_PRO.bat` | 7861 + 8188 | Solo generación de imágenes |
+| `INICIAR_AUDITOR.bat` | — | Solo CLI de terminal |
+| `INSTALAR.bat` | — | Primera instalación o reinstalación |
+| `DESINSTALAR.bat` | — | Limpiar el sistema |
+| `Deploy_GravityBridge.bat` | — | Sincronizar con GitHub |
+| `MODO_FANTASMA.vbs` | — | Auditor sin ventana visible |
+
+---
+
+## 4. Dashboard Web
+
+Accede a `http://localhost:7860` tras ejecutar `INICIAR_SERVIDOR.bat` o `INICIAR_TODO.bat`.
+
+### Pestañas disponibles
+
+**💬 Chat**
+- Chat en tiempo real con streaming y renderizado Markdown.
+- Accesos rápidos a comandos frecuentes (`/search`, `/verify`, `!aprende`, `/cost`).
+- Historial de conversación en sesión.
+
+**📡 System Status**
+- Estado de todos los backends con latencia en tiempo real.
+- Gráfica RTO de latencia de los últimos 60 segundos.
+- Tabla completa de proveedores con ping y modelos disponibles.
+- Se actualiza automáticamente cada 10 segundos.
+
+**🎨 Vision Studio**
+- iFrame integrado del Fooocus Studio (puerto 7861).
+- Panel lateral con estado del motor ComfyUI-ZLUDA.
+- Galería de las últimas imágenes generadas (polling cada 5s).
+
+**📋 Audit Log**
+- Historial de las últimas 20 inferencias con tokens, latencia y coste.
+- Exportación en JSONL desde el botón "Exportar JSONL".
+
+**⚙️ Configuración**
+- Gestión de API Keys directamente desde el browser (cifrado DPAPI).
+- Links directos a endpoints de observabilidad.
+
+---
+
+## 5. Uso del CLI
 
 ### Modo Interactivo
 ```cmd
 gravity
 ```
-Abre el Auditor Senior con banner completo mostrando GPU, modelo activo y estadísticas.
 
 ### Modo Pipe (para scripts)
 ```cmd
@@ -85,14 +150,14 @@ cat error.log | gravity "analiza este log"
 #### Cambiar modelo
 ```
 Gravity> /model
-  [0] ollama (5 modelos)
-  [1] lmstudio (3 modelos)
+  [0] LM Studio (3 modelos)
+  [1] Ollama (0 modelos)
   [A] Automático
 Selección: 0
-  [0] deepseek-r1:14b
-  [1] qwen2.5:32b
+  [0] google/gemma-4-e2b
+  [1] deepseek-r1:14b
 Selecciona modelo: 0
-✓ Forzado a ollama → deepseek-r1:14b
+✓ Forzado a LM Studio → google/gemma-4-e2b
 ```
 
 #### Cambiar modo de operación
@@ -109,9 +174,9 @@ Selecciona modo: 2
 ```
 Gravity> /providers
 ┌──────────────────────────────────────────────┐
-│ Proveedor │ Cat.  │ Latencia │ Modelos │Estado│
-│ ollama    │ LOCAL │  124ms   │    5    │ONLINE│
-│ openai    │ CLOUD │    -     │    0    │OFFLIN│
+│ Proveedor  │ Cat.  │ Latencia │ Modelos │Estado│
+│ LM Studio  │ LOCAL │  817ms   │    3    │ONLINE│
+│ Ollama     │ LOCAL │ 1814ms   │    0    │OFFLIN│
 └──────────────────────────────────────────────┘
 ```
 
@@ -126,53 +191,25 @@ Gravity> /search últimos modelos de Mistral AI
 ```
 Gravity> /plan refactorizar el sistema de caché para usar Redis
 → Modo Planificación Activado
-→ El modelo investigará y proveerá un plan detallado antes de codificar.
 ```
 
 ---
 
-## 4. Dashboard Web
-
-Inicia el bridge y accede a `http://localhost:7860`:
-
-```cmd
-gravity --server
-# o
-INICIAR_SERVIDOR.bat
-```
-
-### Pestañas disponibles:
-
-**💬 Chat**: Chat en tiempo real con streaming. Acepta Markdown. Accesos rápidos a comandos frecuentes.
-
-**📡 Estado**: Estado de todos los backends con latencia en vivo. Se actualiza cada 15 segundos.
-
-**📋 Audit Log**: Historial de las últimas 100 inferencias con tokens, latencia y coste.
-
-**⚙️ Configuración**: Gestión de API Keys directamente desde el browser.
-
----
-
-## 5. Gestión de API Keys
+## 6. Gestión de API Keys
 
 ### Desde el CLI
 ```
-# Listar keys configuradas
 Gravity> /keys list
-
-# Añadir una key
 Gravity> /keys set openai
 API Key para openai: ****
-
-# Eliminar una key
 Gravity> /keys del openai
 ```
 
 ### Desde el Dashboard Web
 1. Ve a la pestaña **⚙️ Configuración**.
-2. Escribe el nombre del proveedor (`openai`, `anthropic`, `groq`, etc.).
+2. Escribe el nombre del proveedor (`openai`, `anthropic`, etc.).
 3. Pega tu API Key.
-4. Haz clic en **Guardar Key Cifrada**.
+4. Haz clic en **Guardar en Bóveda**.
 
 ### Proveedores soportados
 
@@ -187,14 +224,57 @@ Gravity> /keys del openai
 
 ---
 
-## 6. Sistema RAG
+## 7. Generación de Imágenes (Vision Studio)
+
+### Requisito: AMD HIP SDK
+
+La generación de imágenes requiere `amdhip64.dll` en el sistema:
+1. Instala `AMD-Software-PRO-Edition-26.Q1-Win11-For-HIP.exe`
+2. Reinicia Windows
+3. La variable `HIP_PATH` se configurará automáticamente
+
+### Arrancar el Studio
+
+```
+launchers\GRAVITY_VISION_PRO.bat
+```
+
+O usa `INICIAR_TODO.bat` para arrancarlo junto con todo lo demás.
+
+### Generar una imagen
+
+1. Abre `http://127.0.0.1:7861` (se abre automáticamente)
+2. Escribe tu prompt en el campo inferior
+3. Ajusta los parámetros en el panel derecho (Settings / Styles / Models / Advanced)
+4. Haz clic en **Generate**
+5. **⚠️ Primera vez:** ZLUDA compila los kernels de AMD. Espera **3-5 minutos sin presionar nada más**
+6. La imagen aparecerá automáticamente al completarse
+
+### Parámetros disponibles
+
+| Parámetro | Opciones | Default |
+|-----------|----------|---------|
+| Performance | Quality, Speed, Lightning, Hyper-SD | Quality |
+| Aspect Ratio | 1:1, 9:7, 7:9, 19:13, 7:4, 12:5 y más | 9:7 (1152x896) |
+| Image Number | 1-4 | 1 |
+| Output Format | png, jpeg, webp | png |
+| Styles | Fooocus V2, Enhance, Sharp | V2 + Enhance |
+| CFG Scale | 1.0-30.0 | 7.0 |
+| Steps | 10-60 | 30 |
+| Sampler | dpmpp_2m | dpmpp_2m |
+| Scheduler | karras | karras |
+
+### Ver imágenes generadas
+
+Las imágenes aparecen automáticamente en la **galería del Dashboard Web** (`localhost:7860` → pestaña Vision Studio).
+
+---
+
+## 8. Sistema RAG
 
 ### Indexar documentos
 ```
-# Indexar un archivo
 Gravity> /index F:\proyecto\main.py
-
-# Indexar una carpeta completa
 Gravity> /index F:\proyecto\src
 
 ✓ Indexación completa. (142 chunks añadidos)
@@ -210,11 +290,11 @@ def verify_jwt_token(token: str) -> dict:
 ```
 
 ### Inyección automática
-Cuando tu mensaje contiene frases como "busca en mi código", "del contexto" o "en mi código", el RAG inyecta automáticamente los fragmentos más relevantes como contexto.
+Cuando tu mensaje contiene "busca en mi código", "del contexto" o "en mi código", el RAG inyecta automáticamente los fragmentos más relevantes.
 
 ---
 
-## 7. Verificación de Código
+## 9. Verificación de Código
 
 ```
 Gravity> /verify F:\proyecto\api.py
@@ -232,12 +312,12 @@ El VerificationAgent detecta:
 
 ---
 
-## 8. MCP — Herramientas Externas
+## 10. MCP — Herramientas Externas
 
 ```
 Gravity> /mcp C:\ruta\mcp-git\server.py
 
-Conectando con servidor MCP: C:\ruta\mcp-git\server.py...
+Conectando con servidor MCP...
 ✓ Conectado. 4 herramientas disponibles:
   git_status    — Current repository status
   git_log       — Recent commits
@@ -253,55 +333,22 @@ Sesión MCP cerrada.
 
 ---
 
-## 9. Sesiones
+## 11. Sesiones
 
 ```
-# Guardar sesión actual
 Gravity> /save revision-api-jwt
-
-# Listar sesiones
 Gravity> /sessions
-┌─────────────────────┬────────┬──────────────────┐
-│ Nombre              │ Tamaño │ Modificado       │
-│ revision-api-jwt    │ 12 KB  │ 2026-04-08 21:00 │
-└─────────────────────┴────────┴──────────────────┘
-
-# Cargar sesión
 Gravity> /load revision-api-jwt
 ✓ Sesión cargada. (24 mensajes)
-
-# Fork de sesión
 Gravity> /branch alternativa
 ✓ Fork creado: alternativa
-
-# Exportar a Markdown
 Gravity> /export md
-✓ Markdown exportado: F:\Gravity_AI_bridge\session_20260408_210000.md
+✓ Markdown exportado.
 ```
 
 ---
 
-## 10. Bridge Server
-
-```cmd
-# Iniciar (modo ventana visible)
-INICIAR_SERVIDOR.bat
-
-# Iniciar en modo fantasma (segundo plano, sin ventana)
-MODO_FANTASMA.vbs
-```
-
-### Información al arrancar:
-```
-Dashboard Web:  http://localhost:7860/
-API Endpoint:   http://localhost:7860/v1/chat/completions
-Métricas:       http://localhost:7860/metrics
-Estado:         http://localhost:7860/v1/status
-```
-
----
-
-## 11. Integración con IDEs
+## 12. Integración con IDEs
 
 ### Cursor
 En `Settings → AI → OpenAI API`:
@@ -323,43 +370,39 @@ Edita `~/.continue/config.json`:
 }
 ```
 
-### Aider
-Usa el archivo `aider.conf.yml` incluido o ejecuta:
-```cmd
-aider --openai-api-base http://localhost:7860/v1 --openai-api-key gravity-local
-```
-
 ---
 
-## 12. Atajos y Tips
+## 13. Atajos y Tips
 
 | Tip | Descripción |
 |-----|-------------|
-| `!aprende <regla>` | Persiste una regla permanente al sistema (se añade al system prompt) |
+| `!aprende <regla>` | Persiste una regla permanente al sistema |
 | `gravity --status` | Ver estado de todos los motores sin entrar al CLI |
-| `gravity --dashboard` | Abrir el dashboard directamente en el browser |
-| `Ctrl+C` dentro del CLI | No cierra — escribe `/exit` para salir correctamente |
-| Banner solo al inicio | El banner no se redibuja en cada respuesta para no saturar la pantalla |
-| Cache automático | Las respuestas idénticas se cachean 24h en SQLite WAL |
-| Sliding Window | El contexto se recorta automáticamente al superar 128k tokens |
+| `Ctrl+C` dentro del CLI | No cierra — escribe `/exit` para salir |
+| Cache automático | Respuestas idénticas cacheadas 24h en SQLite WAL |
+| Sliding Window | El contexto se recorta al superar 128k tokens |
+| Bridge Server previo al Studio | `INICIAR_TODO.bat` garantiza el orden correcto de arranque |
+| Puerto ocupado | El launcher mata automáticamente procesos en 7860/7861 antes de arrancar |
 
 ---
 
-*Gravity AI Bridge — [github.com/DarckRovert/Gravity_AI_bridge](https://github.com/DarckRovert/Gravity_AI_bridge)*  
-*Stream en vivo: [twitch.tv/darckrovert](https://twitch.tv/darckrovert)*
+## 14. Orquestación de Agentes (AI-to-AI)
 
----
-
-## 13. Orquestación de Agentes (AI-to-AI)
-
-Esta función permite que asistentes de IA externos (Antigravity, Claude, sub-agentes) se conecten al Bridge de forma autónoma.
+Gravity AI Bridge permite que asistentes externos (Antigravity, Claude, agentes de Cursor) se conecten automáticamente al Bridge.
 
 ### Cómo habilitarlo
-1. Localiza el archivo .antigravityrules.example en la carpeta de instalación de Gravity.
-2. Cópialo a la raíz de tu proyecto de trabajo y cámbiale el nombre a .antigravityrules.
-3. La próxima vez que un agente abra esa carpeta, leerá el archivo y sabrá:
-    - Cómo invocar al Bridge (<code>ask_deepseek.py</code>).
-    - Dónde encontrar el conocimiento persistente (<code>_knowledge.json</code>).
-    - Cómo realizar auditorías adversariales antes de sugerir código.
 
-Esto asegura que todas las IAs trabajen bajo un mismo estándar de calidad y memoria compartida.
+1. El archivo `.antigravityrules` ya existe en la raíz de `Gravity_AI_bridge`.
+2. Para usar este mecanismo en otro proyecto, cópialo a su raíz:
+```cmd
+copy F:\Gravity_AI_bridge\.antigravityrules F:\tu_proyecto\.antigravityrules
+```
+3. El agente que abra esa carpeta leerá las reglas y sabrá:
+   - Cómo invocar al Bridge (`ask_deepseek.py`).
+   - Dónde está el conocimiento persistente (`_knowledge.json`).
+   - Cómo realizar auditorías adversariales antes de sugerir código.
+
+---
+
+*Gravity AI Bridge — [github.com/DarckRovert/Gravity_AI_bridge](https://github.com/DarckRovert/Gravity_AI_bridge)*
+*Stream en vivo: [twitch.tv/darckrovert](https://twitch.tv/darckrovert)*

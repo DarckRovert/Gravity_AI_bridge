@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-cd /d "%~dp0"
+cd /d "%~dp0.."
 title DESINSTALADOR — GRAVITY AI BRIDGE V9.0 PRO
 color 0c
 cls
@@ -14,7 +14,7 @@ echo  Iniciando protocolo de neutralizacion...
 echo.
 
 REM Capturar directorio sin barra final (necesario para el regex de PowerShell)
-set "TARGET_DIR=%~dp0"
+set "TARGET_DIR=%~dp0.."
 if "%TARGET_DIR:~-1%"=="\" set "TARGET_DIR=%TARGET_DIR:~0,-1%"
 
 REM ── [PASO 1/4] Limpiar PATH del usuario ──────────────────────────────────────
@@ -29,14 +29,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 
 REM ── [PASO 3/4] Eliminar rastros en IDEs ──────────────────────────────────────
 echo  [3/4] Limpiando configuraciones de IDEs...
-if exist "%~dp0.continue\config.yaml"    del /Q "%~dp0.continue\config.yaml"
-if exist "%~dp0aider.conf.yml"           del /Q "%~dp0aider.conf.yml"
-if exist "%~dp0_integrations\cursor.json" del /Q "%~dp0_integrations\cursor.json"
+if exist "%~dp0...continue\config.yaml"    del /Q "%~dp0...continue\config.yaml"
+if exist "%~dp0..aider.conf.yml"           del /Q "%~dp0..aider.conf.yml"
+if exist "%~dp0.._integrations\cursor.json" del /Q "%~dp0.._integrations\cursor.json"
 echo    [OK] Configuraciones de Cursor, Aider y VS Code eliminadas.
 
 REM ── [PASO 4/4] Limpiar estado de primera ejecucion ───────────────────────────
 echo  [4/4] Resetear estado de primera ejecucion...
-if exist "%~dp0_first_run_done" del /Q "%~dp0_first_run_done"
+if exist "%~dp0.._first_run_done" del /Q "%~dp0.._first_run_done"
 echo    [OK] El wizard de bienvenida se mostrara en la proxima ejecucion.
 
 echo.
@@ -57,3 +57,4 @@ echo    Para eliminar el proyecto completo: borra la carpeta manualmente.
 echo.
 pause
 exit /b 0
+

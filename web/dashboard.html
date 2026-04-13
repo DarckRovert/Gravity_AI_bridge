@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gravity AI — V9.1 PRO Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #090c10;
+    --surface:  #0f1117;
+    --card:     #161b22;
+    --border:   #21262d;
+    --accent:   #4f46e5;
+    --accent2:  #7c3aed;
+    --glow:     rgba(79,70,229,0.35);
+    --text:     #e6edf3;
+    --muted:    #8b949e;
+    --success:  #3fb950;
+    --warning:  #f0883e;
+    --error:    #f85149;
+    --user-bg:  #1c2128;
+    --ai-bg:    #13131a;
+    --glass:    rgba(22, 27, 34, 0.7);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow:hidden}
+
+  /* ── Animaciones ── */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(79,70,229,0.4); } 70% { box-shadow: 0 0 0 10px rgba(79,70,229,0); } 100% { box-shadow: 0 0 0 0 rgba(79,70,229,0); } }
+
+  /* ── Layout Principal ── */
+  .shell{display:flex;height:100vh;flex-direction:column}
+  .topbar{background:var(--surface);border-bottom:1px solid var(--border);height:60px;
+          display:flex;align-items:center;padding:0 24px;gap:16px;z-index:20;box-shadow:0 4px 12px rgba(0,0,0,0.5)}
+  .content-wrapper{display:flex;flex:1;overflow:hidden}
+  .sidebar{width:260px;background:var(--surface);border-right:1px solid var(--border);
+           display:flex;flex-direction:column;padding:20px 0;overflow-y:auto;transition:width 0.3s cubic-bezier(0.4, 0, 0.2, 1)}
+  .sidebar.collapsed{width:70px}
+  .sidebar.collapsed .sidebar-label, .sidebar.collapsed .nav-text, .sidebar.collapsed .model-card{display:none}
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+  /* ── Topbar ── */
+  .hamburger{background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;padding:8px;border-radius:6px;transition:0.2s}
+  .hamburger:hover{background:var(--card)}
+  .logo{font-size:20px;font-weight:800;letter-spacing:-0.5px;
+        background:linear-gradient(90deg,#818cf8,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .badge-online{background:rgba(63,185,80,0.15);border:1px solid rgba(63,185,80,0.3);
+                color:var(--success);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;
+                display:flex;align-items:center;gap:6px;box-shadow:0 0 10px rgba(63,185,80,0.1)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--success);
+       box-shadow:0 0 8px var(--success);animation:blink 2s infinite}
+  @keyframes blink{0%,100%{opacity:.6}50%{opacity:1}}
+  .top-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+  .btn-icon{background:var(--card);border:1px solid var(--border);color:var(--text);
+            padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;font-weight:500;
+            transition:.2s;display:flex;align-items:center;gap:6px}
+  .btn-icon:hover{border-color:var(--accent);background:rgba(79,70,229,0.1);box-shadow:0 0 8px var(--glow)}
+
+  /* ── Sidebar ── */
+  .sidebar-section{padding:0 16px;margin-bottom:12px}
+  .sidebar-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);
+                  padding:8px 8px 6px;font-weight:700}
+  .nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;
+            cursor:pointer;font-size:14px;font-weight:500;color:var(--muted);transition:.2s;margin-bottom:4px}
+  .nav-item:hover{background:var(--card);color:var(--text)}
+  .nav-item.active{background:linear-gradient(90deg, rgba(79,70,229,0.15), transparent);color:var(--text);border-left:3px solid var(--accent)}
+  .nav-icon{font-size:16px;width:24px;text-align:center}
+  
+  .model-card{background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:12px;
+              margin:0 16px 12px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
+  .model-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;
+              white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .model-meta{font-size:12px;color:var(--muted)}
+  .provider-status{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);
+                   padding:8px 12px;margin:0 16px 4px;border-radius:8px;background:var(--card);transition:0.2s}
+  .provider-status:hover{background:var(--border)}
+  .provider-status .dot-sm{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .dot-online{background:var(--success)}
+  .dot-offline{background:var(--error)}
+
+  /* ── Paneles Comunes ── */
+  .panel{flex:1;display:none;flex-direction:column;overflow:hidden;animation:fadeIn 0.3s ease}
+  .panel.active{display:flex}
+  .panel-header{padding:24px 32px 16px;border-bottom:1px solid var(--border);background:var(--surface)}
+  .panel-title{font-size:24px;font-weight:700;color:var(--text);letter-spacing:-0.5px}
+  .panel-subtitle{font-size:14px;color:var(--muted);margin-top:4px}
+  .panel-content{flex:1;overflow-y:auto;padding:32px}
+
+  /* ── 1. Chat ── */
+  .chat-messages{flex:1;overflow-y:auto;padding:32px 40px;display:flex;flex-direction:column;gap:20px}
+  .msg{display:flex;flex-direction:column;gap:8px;max-width:85%;animation:fadeIn .3s ease}
+  .msg.user{align-self:flex-end}
+  .msg.ai{align-self:flex-start}
+  .msg-bubble{padding:16px 20px;border-radius:16px;line-height:1.6;font-size:15px;white-space:pre-wrap;word-break:break-word;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+  .msg.user .msg-bubble{background:var(--user-bg);border:1px solid var(--border);border-bottom-right-radius:4px}
+  .msg.ai .msg-bubble{background:var(--ai-bg);border:1px solid var(--border);border-bottom-left-radius:4px}
+  .msg-meta{font-size:12px;color:var(--muted)}
+  .msg.user .msg-meta{text-align:right}
+  .code-block{background:#0d1117;border:1px solid var(--border);border-radius:8px;
+              font-family:'JetBrains Mono',monospace;font-size:13px;padding:16px;
+              overflow-x:auto;margin:12px 0;white-space:pre}
+  .cursor-blink{display:inline-block;width:2px;height:16px;background:var(--accent);
+                margin-left:2px;animation:cur .7s infinite;vertical-align:text-bottom}
+  
+  .chat-input-area{border-top:1px solid var(--border);padding:20px 40px;background:var(--surface)}
+  .input-wrapper{position:relative;display:flex;align-items:flex-end;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:8px 12px;transition:0.2s}
+  .input-wrapper:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px rgba(79,70,229,0.2)}
+  #chat-input{flex:1;background:transparent;border:none;color:var(--text);
+              padding:8px;font-size:15px;font-family:'Inter',sans-serif;
+              resize:none;outline:none;max-height:200px;min-height:24px;line-height:1.5}
+  #send-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;
+            width:40px;height:40px;border-radius:12px;cursor:pointer;font-size:18px;
+            display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.2s}
+  #send-btn:hover:not(:disabled){transform:scale(1.05);box-shadow:0 0 12px var(--glow)}
+  #send-btn:disabled{opacity:.5;cursor:not-allowed}
+  .input-hints{font-size:12px;color:var(--muted);margin-top:12px;display:flex;gap:12px;flex-wrap:wrap}
+  .hint{cursor:pointer;padding:4px 10px;border-radius:6px;background:var(--card);border:1px solid var(--border);transition:.2s}
+  .hint:hover{border-color:var(--accent);color:var(--text);background:var(--surface)}
+
+  /* ── 2. Status ── */
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin-bottom:32px}
+  .stat-card{background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:16px;padding:24px;
+             transition:.3s;position:relative;overflow:hidden}
+  .stat-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--accent);opacity:0;transition:0.3s}
+  .stat-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+  .stat-card:hover::before{opacity:1}
+  .stat-card .label{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;font-weight:600}
+  .stat-card .value{font-size:28px;font-weight:800;letter-spacing:-0.5px}
+  .chart-container{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:32px;height:250px;position:relative}
+  .chart-title{font-size:14px;font-weight:600;margin-bottom:16px}
+  canvas#latencyChart{width:100%;height:100%}
+
+  .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:24px}
+  .table-title{padding:16px 24px;font-size:14px;font-weight:600;background:var(--surface);border-bottom:1px solid var(--border)}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;padding:14px 24px;font-size:12px;text-transform:uppercase;font-weight:600;
+     letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border)}
+  td{padding:14px 24px;font-size:14px;border-bottom:1px solid var(--border)}
+  tr:hover td{background:rgba(255,255,255,0.02)}
+  tr:last-child td{border:none}
+  .badge{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:0.5px}
+  .badge-cloud{background:rgba(167,139,250,.15);color:#a78bfa;border:1px solid rgba(167,139,250,.3)}
+  .badge-local{background:rgba(96,165,250,.15);color:#60a5fa;border:1px solid rgba(96,165,250,.3)}
+
+  /* ── 3. Vision ── */
+  .vision-grid{display:grid;grid-template-columns:1fr 350px;gap:24px;height:calc(100% - 40px)}
+  .vision-main{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+  .vision-header{padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  iframe.studio-frame{width:100%;flex:1;border:none;background:#1a1b26}
+  .vision-side{display:flex;flex-direction:column;gap:20px}
+  .vision-status-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px}
+  .gallery{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+  .gallery-title{font-size:14px;font-weight:600;margin-bottom:8px}
+  .gallery-img{width:100%;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:0.2s}
+  .gallery-img:hover{transform:scale(1.02);border-color:var(--accent)}
+  .empty-gallery{color:var(--muted);font-size:13px;text-align:center;padding:40px 0;font-style:italic}
+
+  /* ── 4. Audit ── */
+  .audit-actions{display:flex;justify-content:flex-end;margin-bottom:16px}
+  
+  /* ── 5. Config ── */
+  .config-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .config-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px}
+  .config-section h3{font-size:16px;font-weight:600;margin-bottom:20px;color:var(--text);display:flex;align-items:center;gap:8px}
+  .form-group{margin-bottom:16px}
+  .form-label{display:block;font-size:13px;color:var(--muted);margin-bottom:8px;font-weight:500}
+  .form-input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);
+              padding:10px 14px;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:0.2s}
+  .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(79,70,229,0.2)}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:10px 24px;
+               border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;transition:.2s;width:100%}
+  .btn-primary:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 12px var(--glow)}
+  .link-list{display:flex;flex-direction:column;gap:12px}
+  .cfg-link{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);text-decoration:none;transition:0.2s}
+  .cfg-link:hover{border-color:var(--accent);color:var(--accent)}
+
+</style>
+</head>
+<body>
+<div class="shell">
+  <!-- Topbar -->
+  <header class="topbar">
+    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <span class="logo">GRAVITY v9.1 PRO</span>
+    
+    <div class="top-right">
+      <div class="badge-online" id="global-status"><div class="dot"></div>BRIDGE ONLINE</div>
+      <button class="btn-icon" onclick="refreshAll()"><span style="font-size:16px">⟳</span> Refrescar</button>
+    </div>
+  </header>
+
+  <div class="content-wrapper">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Navegación</div>
+        <div class="nav-item active" onclick="switchTab('chat',this)"><span class="nav-icon">💬</span><span class="nav-text">Chat Auditor</span></div>
+        <div class="nav-item" onclick="switchTab('vision',this)"><span class="nav-icon">🎨</span><span class="nav-text">Vision Studio</span></div>
+        <div class="nav-item" onclick="switchTab('status',this)"><span class="nav-icon">📡</span><span class="nav-text">System Status</span></div>
+        <div class="nav-item" onclick="switchTab('audit',this)"><span class="nav-icon">📋</span><span class="nav-text">Audit Log</span></div>
+        <div class="nav-item" onclick="switchTab('config',this)"><span class="nav-icon">⚙️</span><span class="nav-text">Configuración</span></div>
+      </div>
+
+      <div class="sidebar-section" style="margin-top:auto">
+        <div class="sidebar-label">Modelo Activo</div>
+        <div class="model-card">
+          <div class="model-name" id="sb-model" title="...">Detectando...</div>
+          <div class="model-meta" id="sb-provider">--</div>
+        </div>
+        <div class="sidebar-label">Motores</div>
+        <div id="sb-providers"></div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      
+      <!-- Panel 1: Chat -->
+      <div id="panel-chat" class="panel active">
+        <div class="chat-messages" id="messages">
+          <div class="msg ai">
+            <div class="msg-bubble">
+              <strong>👋 Bienvenido a Gravity AI Bridge V9.1 PRO [Diamond-Tier Edition]</strong><br><br>
+              Sistema de orquestación inicializado. Interfaz web reconstruida.<br>
+              <strong>Atajos rápidos:</strong><br>
+              <code>/help</code> — Comandos CLI disponibles<br>
+              <code>/search</code> — Búsqueda web en vivo<br>
+              <code>/verify</code> — Auditoría de código
+            </div>
+            <span class="msg-meta">Sistema</span>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <div class="input-wrapper">
+            <textarea id="chat-input" placeholder="Pregunta al Auditor... (Enter = enviar, Shift+Enter = nueva línea)" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+            <button id="send-btn" onclick="sendMessage()">➤</button>
+          </div>
+          <div class="input-hints">
+            <span class="hint" onclick="injectHint('/search ')">🔍 Buscar web</span>
+            <span class="hint" onclick="injectHint('/verify ')">🔬 Verificar archivo</span>
+            <span class="hint" onclick="injectHint('!aprende ')">🧠 Persistir regla</span>
+            <span class="hint" onclick="injectHint('/cost')">💰 Ver consumo</span>
+            <span class="hint" style="margin-left:auto;border-color:transparent" onclick="clearChat()">🗑 Limpiar</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 2: Status -->
+      <div id="panel-status" class="panel">
+        <div class="panel-header">
+          <div class="panel-title">System Status</div>
+          <div class="panel-subtitle">Telemetría de proveedores y modelos de inferencia</div>
+        </div>
+        <div class="panel-content">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="label">Motor Activo</div>
+              <div class="value" id="st-prov" style="color:var(--accent)">--</div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Modelo en VRAM</div>
+              <div class="value" id="st-mod" style="font-size:18px">--</div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Nodos Online</div>
+              <div class="value" id="st-nodes">--</div>
+            </div>
+          </div>
+          
+          <div class="chart-container">
+            <div class="chart-title">Latencia RTO (ms) últ. 60s</div>
+            <canvas id="latencyChart"></canvas>
+          </div>
+
+          <div class="table-wrap">
+            <div class="table-title">Mapa de Proveedores Registrados</div>
+            <table>
+              <thead><tr><th>Proveedor</th><th>Tier</th><th>Estado</th><th>Ping</th><th>Modelos Disp.</th></tr></thead>
+              <tbody id="tb-providers">
+                <tr><td colspan="5" style="text-align:center;color:var(--muted)">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 3: Vision -->
+      <div id="panel-vision" class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Vision Studio</div>
+          <div class="panel-subtitle">Generación de imágenes acelerada por ComfyUI-ZLUDA</div>
+        </div>
+        <div class="panel-content" style="overflow:hidden;padding:24px">
+          <div class="vision-grid">
+            <div class="vision-main">
+              <div class="vision-header">
+                <span id="vision-iframe-status" style="font-size:13px;font-weight:600;color:var(--muted)">Conectando al puerto 7861...</span>
+                <button class="btn-icon" onclick="reloadStudio()" style="padding:4px 8px;font-size:11px">⟳ Recargar UI</button>
+              </div>
+              <iframe id="studio-frame" class="studio-frame" src="http://127.0.0.1:7861"></iframe>
+            </div>
+            <div class="vision-side">
+              <div class="vision-status-card">
+                <div style="font-size:12px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:8px">Motor Backend</div>
+                <div style="font-size:18px;font-weight:700;margin-bottom:4px">ComfyUI ZLUDA</div>
+                <div style="display:flex;align-items:center;gap:6px;font-size:13px">
+                  <div class="dot" id="comfy-dot"></div> <span id="comfy-status">Analizando...</span>
+                </div>
+              </div>
+              <div class="gallery">
+                <div class="gallery-title">Últimas Generaciones</div>
+                <div id="gallery-container">
+                  <div class="empty-gallery">Las imágenes generadas aparecerán aquí.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 4: Audit -->
+      <div id="panel-audit" class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Audit Log</div>
+          <div class="panel-subtitle">Registro inmutable de transacciones de inferencia</div>
+        </div>
+        <div class="panel-content">
+          <div class="audit-actions">
+            <button class="btn-icon" onclick="window.open('/v1/audit','_blank')">⬇ Exportar JSONL</button>
+          </div>
+          <div class="table-wrap">
+            <div class="table-title">Últimas inferencias</div>
+            <table>
+              <thead><tr><th>Timestamp</th><th>Motor / Modelo</th><th>Tokens (In / Out)</th><th>T. Respuesta</th><th>Coste (USD)</th></tr></thead>
+              <tbody id="tb-audit">
+                <tr><td colspan="5" style="text-align:center;color:var(--muted)">No hay registros</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 5: Config -->
+      <div id="panel-config" class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Configuración</div>
+          <div class="panel-subtitle">Gestión de secretos y telemetría</div>
+        </div>
+        <div class="panel-content">
+          <div class="config-grid">
+            <div class="config-section">
+              <h3>🔑 API Keys</h3>
+              <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.5">Las claves se cifran mediante DPAPI a nivel de Sistema Operativo. El Bridge nunca las expone.</p>
+              <div class="form-group">
+                <label class="form-label">Identificador de Proveedor</label>
+                <input type="text" id="cfg-provider" class="form-input" placeholder="ej. openai, anthropic, groq">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Secret Key</label>
+                <input type="password" id="cfg-key" class="form-input" placeholder="sk-...">
+              </div>
+              <button class="btn-primary" onclick="saveKey()">Guardar en Bóveda</button>
+            </div>
+            
+            <div class="config-section">
+              <h3>📡 Observabilidad Externas</h3>
+              <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Endpoints raw directos al Bridge Server.</p>
+              <div class="link-list">
+                <a href="/metrics" target="_blank" class="cfg-link">
+                  <span>📊 /metrics (Formato Prometheus)</span>
+                  <span style="color:var(--muted)">↗</span>
+                </a>
+                <a href="/v1/status" target="_blank" class="cfg-link">
+                  <span>📡 /v1/status (JSON)</span>
+                  <span style="color:var(--muted)">↗</span>
+                </a>
+                <a href="/v1/models" target="_blank" class="cfg-link">
+                  <span>🧠 /v1/models (OpenAI Compat)</span>
+                  <span style="color:var(--muted)">↗</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+// ── Estado ──
+let currentTab = 'chat';
+let chatHistory = [];
+let isStreaming = false;
+let latencyHistory = [];
+let chart = null;
+
+// ── UI Básica ──
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+function switchTab(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if (el) el.classList.add('active');
+  currentTab = name;
+  if(name==='status') renderChart();
+}
+function autoResize(el) { el.style.height='auto'; el.style.height = Math.min(el.scrollHeight,200)+'px'; }
+function handleKey(e) { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+function injectHint(t) { const inp = document.getElementById('chat-input'); inp.value = t; inp.focus(); autoResize(inp); }
+function clearChat() { chatHistory=[]; document.getElementById('messages').innerHTML=''; addAIMessage("¡Contexto limpiado! ¿Nueva tarea?"); }
+
+// ── Helpers Texto ──
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function formatMd(s) {
+  s = s.replace(/```(\w*)\n?([\s\S]*?)```/g, (_,l,c)=>`<div class="code-block">${esc(c).trim()}</div>`);
+  s = s.replace(/`([^`]+)`/g,'<code style="background:#0d1117;padding:2px 6px;border-radius:4px;font-family:\'JetBrains Mono\'">$1</code>');
+  s = s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  return s.replace(/\n/g,'<br>');
+}
+
+// ── Chat Logic ──
+function addUserMessage(text) {
+  const box = document.getElementById('messages');
+  box.insertAdjacentHTML('beforeend', `<div class="msg user"><div class="msg-bubble">${esc(text)}</div><span class="msg-meta">Tú</span></div>`);
+  box.scrollTop = box.scrollHeight;
+}
+function addAIMessage(text) {
+  const box = document.getElementById('messages');
+  box.insertAdjacentHTML('beforeend', `<div class="msg ai"><div class="msg-bubble">${formatMd(text)}</div><span class="msg-meta">Auditor</span></div>`);
+  box.scrollTop = box.scrollHeight;
+}
+function addStreamBubble() {
+  const box = document.getElementById('messages');
+  const id = 'bubble-'+Date.now();
+  box.insertAdjacentHTML('beforeend', `<div class="msg ai"><div class="msg-bubble" id="${id}"><span class="cursor-blink"></span></div><span class="msg-meta">Auditor</span></div>`);
+  box.scrollTop = box.scrollHeight;
+  return document.getElementById(id);
+}
+
+async function sendMessage() {
+  if (isStreaming) return;
+  const inp = document.getElementById('chat-input');
+  const text = inp.value.trim();
+  if (!text) return;
+
+  inp.value = ''; inp.style.height = 'auto';
+  document.getElementById('send-btn').disabled = true;
+  isStreaming = true;
+
+  addUserMessage(text);
+  chatHistory.push({ role: 'user', content: text });
+  const bubble = addStreamBubble();
+  let accum = '';
+
+  try {
+    const resp = await fetch('/v1/chat/completions', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'gravity-bridge-auto', messages: chatHistory, stream: true })
+    });
+    if (!resp.ok) { bubble.innerHTML = `<span style="color:var(--error)">Error HTTP ${resp.status}</span>`; }
+    else {
+      const reader = resp.body.getReader();
+      const dec = new TextDecoder();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        dec.decode(value).split('\n').filter(l=>l.startsWith('data: ')).forEach(line => {
+          const d = line.slice(6);
+          if (d!=='[DONE]') {
+            try { accum += JSON.parse(d).choices[0]?.delta?.content || ''; bubble.innerHTML = formatMd(accum) + '<span class="cursor-blink"></span>'; document.getElementById('messages').scrollTop = 9999; }catch{}
+          }
+        });
+      }
+      bubble.innerHTML = formatMd(accum);
+      chatHistory.push({ role: 'assistant', content: accum });
+    }
+  } catch(e) { bubble.innerHTML = `<span style="color:var(--error)">Error de red: ${e.message}</span>`; }
+  
+  isStreaming = false; document.getElementById('send-btn').disabled = false; inp.focus();
+  refreshAll(); // Auto-refrescar datos tras iteración
+}
+
+// ── Status & Fetching ──
+async function refreshAll() {
+  await Promise.all([fetchStatus(), fetchAudit(), fetchImages()]);
+}
+
+async function fetchStatus() {
+  try {
+    const st = await fetch('/v1/status').then(r=>r.json());
+    
+    // Header & Cards
+    const modStr = st.active_model || 'Ninguno';
+    document.getElementById('st-prov').textContent = st.active_provider || '--';
+    document.getElementById('st-mod').textContent  = modStr.length>22 ? modStr.slice(0,22)+'…' : modStr;
+    document.getElementById('sb-model').textContent = modStr.length>18 ? modStr.slice(0,18)+'…' : modStr;
+    document.getElementById('sb-provider').textContent = st.active_provider || '--';
+    
+    const online = (st.backends||[]).filter(b=>b.healthy).length;
+    document.getElementById('st-nodes').textContent = `${online} / ${(st.backends||[]).length}`;
+
+    // Table
+    document.getElementById('tb-providers').innerHTML = (st.backends||[]).map(b => `
+      <tr>
+        <td><strong>${b.name}</strong></td>
+        <td><span class="badge ${b.category==='cloud'?'badge-cloud':'badge-local'}">${b.category.toUpperCase()}</span></td>
+        <td><span style="color:var(--${b.healthy?'success':'error'})">${b.healthy?'● Activo':'○ Inactivo'}</span></td>
+        <td style="font-family:'JetBrains Mono'">${b.healthy? Math.round(b.latency_ms)+'ms' : '—'}</td>
+        <td>${b.models}</td>
+      </tr>
+    `).join('') || '<tr><td colspan="5">Sin motores.</td></tr>';
+
+    // Sidebar providers
+    document.getElementById('sb-providers').innerHTML = (st.backends||[]).map(b => `
+      <div class="provider-status">
+        <div class="dot-sm ${b.healthy?'dot-online':'dot-offline'}"></div>
+        <span style="opacity:${b.healthy?1:0.5}">${b.name}</span>
+      </div>`).join('');
+
+    // Gráfica latencia
+    if (st.active_provider) {
+      const active = st.backends.find(b=>b.name === st.active_provider);
+      if(active && active.healthy) {
+        latencyHistory.push(active.latency_ms);
+        if(latencyHistory.length>20) latencyHistory.shift();
+        if(currentTab==='status') renderChart();
+      }
+    }
+  }catch(e){console.error(e);}
+}
+
+async function fetchAudit() {
+  try {
+    const data = await fetch('/v1/audit').then(r=>r.json());
+    const ents = (data.data||[]).slice(-20).reverse();
+    document.getElementById('tb-audit').innerHTML = ents.map(e => `
+      <tr>
+        <td style="font-family:'JetBrains Mono';font-size:12px;color:var(--muted)">${e.timestamp.replace('T',' ').slice(0,19)}</td>
+        <td><strong>${e.provider}</strong><br><span style="font-size:11px;color:var(--muted)">${e.model}</span></td>
+        <td style="font-family:'JetBrains Mono'"><span style="color:#60a5fa">${e.input_tokens}</span> ↓ <span style="color:#a78bfa">${e.output_tokens}</span> ↑</td>
+        <td style="font-family:'JetBrains Mono'">${Math.round(e.latency_ms)}ms</td>
+        <td style="font-family:'JetBrains Mono';color:var(--warning)">$${e.cost_usd.toFixed(6)}</td>
+      </tr>
+    `).join('') || '<tr><td colspan="5" style="text-align:center">Sin transacciones recientes</td></tr>';
+  }catch(e){}
+}
+
+// ── Vision Gallery ──
+async function fetchImages() {
+  if (currentTab !== 'vision') return;
+  try {
+    const imgs = await fetch('/v1/images').then(r=>r.json());
+    const c = document.getElementById('gallery-container');
+    if(!imgs.images || imgs.images.length===0) { c.innerHTML='<div class="empty-gallery">Las imágenes generadas por ComfyUI aparecerán aquí automáticamente.</div>'; }
+    else {
+      // Mostrar solo las últimas 10 para no saturar UI
+      c.innerHTML = imgs.images.slice(-10).reverse().map(url => `
+        <a href="${url}" target="_blank"><img src="${url}" class="gallery-img" loading="lazy" title="${url.split('/').pop()}"></a>
+      `).join('');
+    }
+  }catch(e){}
+}
+
+function reloadStudio() {
+  document.getElementById('studio-frame').src += '';
+  document.getElementById('vision-iframe-status').textContent = 'Recargando IFRAME...';
+  setTimeout(()=>document.getElementById('vision-iframe-status').textContent = 'iFrame local (:7861)', 1000);
+}
+
+// Detectar load de iframe simple (CORS impide leer iframes locales, pero onerror ayuda)
+document.getElementById('studio-frame').onload = function(){ document.getElementById('vision-iframe-status').textContent = 'Studio Listo (:7861)'; }
+document.getElementById('studio-frame').onerror = function(){ document.getElementById('vision-iframe-status').innerHTML = '<span style="color:var(--error)">Studio Offline (Lanza GRAVITY_VISION_PRO.bat)</span>'; }
+
+// ── Gráfica minimalista ──
+function renderChart() {
+  const canvas = document.getElementById('latencyChart');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  // Ajuste DPI
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width; canvas.height = rect.height - 40; // restamos title
+  
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(latencyHistory.length < 2) return;
+  
+  const pW = canvas.width / (20 - 1);
+  const max = Math.max(...latencyHistory, 100); // 100ms base
+  
+  ctx.beginPath();
+  ctx.moveTo(0, canvas.height);
+  latencyHistory.forEach((v,i) => {
+    const h = (v/max)*canvas.height*0.8; 
+    ctx.lineTo(i*pW, canvas.height - h);
+  });
+  ctx.lineTo(canvas.width, canvas.height);
+  ctx.fillStyle = 'rgba(79,70,229,0.15)';
+  ctx.fill();
+
+  ctx.beginPath();
+  latencyHistory.forEach((v,i) => {
+    const h = (v/max)*canvas.height*0.8; 
+    if(i===0) ctx.moveTo(i*pW, canvas.height-h); else ctx.lineTo(i*pW, canvas.height-h);
+  });
+  ctx.strokeStyle = '#4f46e5';
+  ctx.lineWidth = 3;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+}
+
+// ── Config ──
+async function saveKey() {
+  const prov = document.getElementById('cfg-provider').value.trim();
+  const key  = document.getElementById('cfg-key').value.trim();
+  if (!prov || !key) { alert('Completar campos.'); return; }
+  try {
+    const r = await fetch('/v1/keys', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ provider: prov, key }) });
+    if (r.ok) { document.getElementById('cfg-key').value = ''; alert('OK: Key encriptada y guardada.'); }
+    else { alert('Error: ' + r.statusText); }
+  } catch(e) { alert('Error red.'); }
+}
+
+// ── Bucle Principal ──
+refreshAll();
+setInterval(refreshAll, 10000);
+setInterval(fetchImages, 5000); // Poll más rápido para imágenes
+</script>
+</body>
+</html>

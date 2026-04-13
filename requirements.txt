@@ -1,5 +1,9 @@
 # ── Gravity AI Bridge V9.0 PRO — Dependencias ────────────────────────────────────
 # CLI / UI
+aiohttp==3.10.10
+colorama==0.4.6
+PyYAML==6.0.2
+gradio>=4.0.0
 rich
 pyfiglet
 pyreadline3

@@ -10,7 +10,7 @@ class ConfigManager:
     Supports profiles (dev, prod, test).
     """
     DEFAULT_CONFIG = {
-        "version": "8.0",
+        "version": "9.0",
         "profile": "production",
         "server": {
             "host": "0.0.0.0",

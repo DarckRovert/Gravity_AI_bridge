@@ -57,7 +57,7 @@ echo  Lanzando instalador...
 echo.
 
 REM ── Lanzar INSTALAR.py pasando todos los argumentos ──────────────────────────
-python "%~dp0INSTALAR.py" %*
+python "%~dp0..\INSTALAR.py" %*
 
 if %errorlevel% neq 0 (
     echo.

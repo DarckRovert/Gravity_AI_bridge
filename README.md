@@ -1,12 +1,12 @@
-# Gravity AI Bridge V9.0 PRO [Diamond-Tier Edition] 🌐
+# Gravity AI Bridge V9.1 PRO [Diamond-Tier Edition] 🌐
 
-[![Versión](https://img.shields.io/badge/Versión-9.0_PRO-4f46e5.svg)](CHANGELOG.md)
-[![Licencia: PolyForm Non-Commercial 1.0.0](https://img.shields.io/badge/Licencia-PolyForm_NC-22c55e.svg)](LICENSE)
+[![Versión](https://img.shields.io/badge/Versión-9.1_PRO-4f46e5.svg)](CHANGELOG.md)
+[![Licencia: MIT](https://img.shields.io/badge/Licencia-MIT-22c55e.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://python.org)
 [![DarckRovert](https://img.shields.io/badge/Desarrollado_por-DarckRovert-7c3aed.svg)](https://twitch.tv/darckrovert)
 [![GitHub](https://img.shields.io/badge/GitHub-DarckRovert-181717.svg)](https://github.com/DarckRovert)
 
-> **El puente de IA más avanzado para uso local y cloud**, con arquitectura Omni-Tier, enrutamiento dinámico por latencia, interfaz de línea de comandos premium, MCP, RAG híbrido, auditoría de código adversarial y dashboard web interactivo. Comparable y superior en funcionalidades a herramientas como Claude Code, Aider y Continue.
+> **El puente de IA más avanzado para uso local y cloud**, con arquitectura Omni-Tier, enrutamiento dinámico por latencia, interfaz de línea de comandos premium, MCP, RAG híbrido, auditoría de código adversarial, Dashboard Web SPA y generación de imágenes via ComfyUI-ZLUDA.
 
 ---
 
@@ -15,10 +15,11 @@
 | Categoría | Funcionalidad |
 |-----------|--------------|
 | 🔌 **Local** | Ollama · LM Studio · vLLM · KoboldCPP · Jan AI · Lemonade |
-| ☁️ **Cloud** | OpenAI · Anthropic · Google Gemini · Groq · Cohere · AWS |
+| ☁️ **Cloud** | OpenAI · Anthropic · Google Gemini · Groq · Cohere |
 | 🧠 **Enrutamiento** | Dinámico por latencia TTFT + especialización de tareas |
 | 🛡️ **Seguridad** | API Keys cifradas DPAPI · Rate Limiting · Audit Log inmutable |
-| 📡 **Observabilidad** | Dashboard SPA · Prometheus `/metrics` · Streaming SSE |
+| 📡 **Observabilidad** | Dashboard SPA V9.1 · Prometheus `/metrics` · Streaming SSE |
+| 🎨 **Visión** | ComfyUI-ZLUDA · Fooocus Studio UI · JuggernautXL SDXL |
 | 🔬 **RAG** | Embeddings NPU/GPU/CPU · BM25 + vectorial · PDFs |
 | 🤖 **MCP** | Model Context Protocol · Herramientas externas stdio |
 | 🔍 **Verificación** | VerificationAgent adversarial antes de cada cambio |
@@ -29,13 +30,19 @@
 
 ## 🚀 Instalación Rápida
 
+### Requisito previo para generación de imágenes (AMD GPU)
+Si usas una GPU AMD (Radeon 780M / RX series), instala el runtime HIP:
+```
+AMD-Software-PRO-Edition-26.Q1-Win11-For-HIP.exe
+```
+Disponible en [amd.com/en/support](https://www.amd.com/en/support). Reinicia Windows tras instalar.
+
 ### Opción A — Instalador TUI interactivo (recomendado)
 ```cmd
 git clone https://github.com/DarckRovert/Gravity_AI_bridge.git
 cd Gravity_AI_bridge
-INSTALAR.bat
+launchers\INSTALAR.bat
 ```
-El instalador detecta automáticamente tu hardware, motores de IA locales, configura el modelo óptimo, registra el comando `gravity` en tu PATH y crea un acceso directo en el Escritorio.
 
 ### Opción B — Instalación manual
 ```cmd
@@ -47,23 +54,45 @@ python bridge_server.py
 
 ---
 
+## ▶️ Cómo Usar
+
+### Flujo normal (recomendado)
+
+Abre **un solo archivo** para arrancar todo el ecosistema:
+```
+launchers\INICIAR_TODO.bat
+```
+Esto levanta automáticamente:
+1. ComfyUI-ZLUDA (motor de imágenes, puerto 8188)
+2. Bridge Server + Dashboard Web (puerto 7860)
+3. Fooocus Studio UI (generador de imágenes, puerto 7861)
+
+### Launchers disponibles en `launchers\`
+
+| Archivo | Función |
+|---------|---------|
+| `INICIAR_TODO.bat` ⭐ | **Arranque completo** — uso diario |
+| `INICIAR_SERVIDOR.bat` | Solo Bridge Server + Dashboard (`localhost:7860`) |
+| `GRAVITY_VISION_PRO.bat` | Solo ComfyUI + Fooocus Studio (`localhost:7861`) |
+| `INICIAR_AUDITOR.bat` | Solo CLI de terminal |
+| `INSTALAR.bat` | Instalador TUI |
+| `DESINSTALAR.bat` | Desinstalador |
+| `Deploy_GravityBridge.bat` | Sync a GitHub |
+| `MODO_FANTASMA.vbs` | Auditor sin ventana |
+
+---
+
 ## 💻 Uso del CLI
 
 ```cmd
-# Modo interactivo con onboarding
-gravity
-
-# Pregunta directa desde terminal
-gravity "explica la arquitectura de este proyecto"
-
-# Comandos especiales
-gravity --server      # Iniciar bridge server
-gravity --status      # Estado de todos los motores
-gravity --install     # Lanzar instalador TUI
-gravity --help        # Ayuda rápida
+gravity                              # Modo interactivo
+gravity "explica esta función"       # Pregunta directa
+gravity --server                     # Iniciar bridge server
+gravity --status                     # Estado de todos los motores
+gravity --install                    # Lanzar instalador TUI
 ```
 
-### Comandos del Auditor (dentro del CLI)
+### Comandos del Auditor
 
 | Comando | Descripción |
 |---------|-------------|
@@ -71,7 +100,7 @@ gravity --help        # Ayuda rápida
 | `/model` | Cambiar motor/modelo activo |
 | `/mode` | Cambiar modo: production / development / Omni-Audit |
 | `/providers` | Estado real-time de todos los backends |
-| `/keys set \|list\|del` | Gestión de API Keys cifradas |
+| `/keys set\|list\|del` | Gestión de API Keys cifradas |
 | `/search <query>` | Búsqueda web inyectada como contexto |
 | `/rag <query>` | Búsqueda en índice local de documentos |
 | `/index <ruta>` | Indexar archivos/carpetas al RAG |
@@ -84,60 +113,49 @@ gravity --help        # Ayuda rápida
 | `/cost` | Desglose de costes por modelo |
 | `/branch <nombre>` | Fork de la sesión actual |
 | `/export md` | Exportar sesión a Markdown |
-| `/export` | Exportar sesión a HTML |
 | `/clear` | Limpiar contexto |
 | `!aprende <texto>` | Persiste una regla en el knowledge base |
 | `/exit` | Salir limpiamente |
 
 ---
 
-## 🌐 Integración con IDEs
+## 🌐 Dashboard Web — `localhost:7860`
 
-Configura **Cursor, VS Code (Continue), Aider, OpenWebUI** con:
+Accede tras ejecutar `INICIAR_SERVIDOR.bat` o `INICIAR_TODO.bat`:
 
-```
-Base URL: http://localhost:7860/v1
-API Key:  gravity-local
-Modelo:   gravity-bridge-auto
-```
-
-### Archivos de configuración incluidos
-- `.continue/config.json` — Continue.dev
-- `aider.conf.yml` — Aider CLI
-- `.vscode/settings.json` — VS Code
+- **💬 Chat** — Chat en tiempo real con streaming y renderizado Markdown
+- **📡 Status** — Estado de proveedores con latencia en vivo y gráfica RTO
+- **🎨 Vision Studio** — iFrame integrado del Fooocus Studio + galería de imágenes generadas
+- **📋 Audit Log** — Historial de inferencias con tokens, coste y latencia
+- **⚙️ Configuración** — Gestión de API Keys directamente desde el browser
 
 ---
 
-## 🖥️ Dashboard Web
+## 🎨 Generación de Imágenes (Vision Studio)
 
-Accede al dashboard interactivo en `http://localhost:7860` tras iniciar el servidor:
+Arquitectura de dos capas:
 
-- **Chat en tiempo real** con streaming y renderizado Markdown
-- **Estado de proveedores** con latencia en vivo
-- **Audit Log** con tokens, costes y latencia por llamada
-- **Configuración** de API Keys directamente desde el browser
+```
+Fooocus Studio UI (7861) ──→ comfyui_client.py ──→ ComfyUI-ZLUDA (8188)
+         ↑                                                    ↓
+  Interfaz Gradio                                   Radeon 780M iGPU
+  (Prompt, Aspect Ratio,                            JuggernautXL SDXL
+   Performance, Styles)                             Output → /output/
+```
+
+**Primera generación:** ZLUDA compila kernels AMD la primera vez. Espera 3-5 minutos sin cerrar las ventanas.
 
 ---
 
 ## 📊 API Compatible OpenAI
 
-El bridge expone una API 100% compatible con el protocolo OpenAI:
-
 ```bash
-# Chat Completions
-POST http://localhost:7860/v1/chat/completions
-
-# Modelos disponibles
-GET http://localhost:7860/v1/models
-
-# Estado del sistema
-GET http://localhost:7860/v1/status
-
-# Audit Log JSON
-GET http://localhost:7860/v1/audit
-
-# Métricas Prometheus
-GET http://localhost:7860/metrics
+POST http://localhost:7860/v1/chat/completions    # Chat con streaming
+GET  http://localhost:7860/v1/models              # Modelos disponibles
+GET  http://localhost:7860/v1/status              # Estado del sistema
+GET  http://localhost:7860/v1/audit               # Audit Log JSON
+GET  http://localhost:7860/v1/images              # Imágenes generadas
+GET  http://localhost:7860/metrics                # Métricas Prometheus
 ```
 
 ---
@@ -146,46 +164,57 @@ GET http://localhost:7860/metrics
 
 ```
 Gravity_AI_bridge/
+├── launchers/             ← Todos los scripts de arranque
+│   ├── INICIAR_TODO.bat   ← Arranque completo (recomendado)
+│   ├── INICIAR_SERVIDOR.bat
+│   ├── GRAVITY_VISION_PRO.bat
+│   ├── INICIAR_AUDITOR.bat
+│   ├── INSTALAR.bat
+│   ├── DESINSTALAR.bat
+│   ├── Deploy_GravityBridge.bat
+│   └── MODO_FANTASMA.vbs
+├── core/                  ← Módulos de infraestructura (22 módulos)
+├── providers/             ← Plugins de proveedores IA
+├── tools/                 ← Herramientas del agente + Vision Studio
+│   ├── comfyui_client.py  ← Cliente ComfyUI-ZLUDA
+│   └── fooocus_studio_ui.py ← Interfaz Gradio de generación
+├── web/dashboard.html     ← SPA Dashboard V9.1 PRO
+├── rag/                   ← Motor RAG híbrido
+├── wiki/                  ← Documentación técnica detallada
 ├── ask_deepseek.py        ← CLI principal (Auditor Senior)
 ├── bridge_server.py       ← Servidor HTTP OpenAI-compatible
-├── dashboard.py           ← Dashboard SPA Web interactivo
+├── dashboard.py           ← Servidor del Dashboard SPA
+├── health_check.py        ← Herramienta de diagnóstico
 ├── INSTALAR.py            ← Instalador TUI premium
 ├── gravity.bat            ← Comando global 'gravity'
-├── core/                  ← Módulos de infraestructura
-│   ├── config_manager.py  ← YAML config + migración
-│   ├── audit_log.py       ← Audit log JSONL inmutable
-│   ├── metrics.py         ← Prometheus metrics
-│   ├── rate_limiter.py    ← Rate limiting por IP/Key
-│   ├── mcp_adapter.py     ← Adaptador MCP (stdio)
-│   └── verification_agent.py ← Auditoría adversarial
-├── providers/             ← Plugins de proveedores
-├── rag/                   ← Motor RAG híbrido
-├── tools/                 ← Herramientas del agente
-├── wiki/                  ← Documentación técnica detallada
 └── config.yaml            ← Configuración principal
 ```
 
 ---
 
-## 🤖 Orquestación de Agentes (AI-to-AI)
+## 🛠️ Requisitos del Sistema
 
-Gravity AI Bridge permite que otros asistentes de IA (como Antigravity, Claude o agentes de Cursor) se sincronicen con el repositorio local. 
-
-Para habilitar la orquestación automática, copia el archivo de ejemplo en la raíz de tu proyecto:
-```cmd
-cp F:\Gravity_AI_bridge\.antigravityrules.example .antigravityrules
-```
-Esto permitirá que cualquier agente lea las reglas de este proyecto, sepa dónde está el Bridge y use automáticamente sus herramientas de auditoría y conocimiento persistente.
+| Componente | Mínimo | Recomendado |
+|-----------|--------|-------------|
+| Python | 3.10 | 3.11+ |
+| RAM | 8 GB | 16 GB+ |
+| OS | Windows 10 | Windows 11 |
+| Motor IA | LM Studio / Ollama | LM Studio (activo en tu sistema) |
+| GPU Imágenes | AMD con HIP SDK | Radeon 780M + AMD PRO 26.Q1 |
 
 ---
 
-## 🛠️ Requisitos del Sistema
+## 🌐 Integración con IDEs
 
-- **Python** 3.10 o superior
-- **Sistema Operativo**: Windows 10/11, Linux, macOS
-- **Motor de IA**: **Requerido** (Local: Ollama/LM Studio -o- Cloud: OpenAI/Anthropic/Groq)
-- **RAM mínima**: 8 GB (Recomendado 16 GB+)
-- **GPU**: Recomendada para modelos locales (NVIDIA 8GB+ VRAM), no necesaria para Cloud.
+```
+Base URL: http://localhost:7860/v1
+API Key:  gravity-local
+Modelo:   gravity-bridge-auto
+```
+
+Archivos de configuración incluidos:
+- `.continue/config.json` — Continue.dev
+- `.vscode/settings.json` — VS Code
 
 ---
 
@@ -202,15 +231,13 @@ Esto permitirá que cualquier agente lea las reglas de este proyecto, sepa dónd
 
 ## 🤝 Contribuir
 
-Lee [CONTRIBUTING.md](CONTRIBUTING.md) para las guías de contribución.  
-Revisa el [Código de Conducta](CODE_OF_CONDUCT.md) antes de abrir un issue.  
-Para vulnerabilidades de seguridad, consulta [SECURITY.md](SECURITY.md).
+Lee [CONTRIBUTING.md](CONTRIBUTING.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) · [SECURITY.md](SECURITY.md)
 
 ---
 
 ## 📜 Licencia
 
-Distribuido bajo la **Licencia PolyForm Non-Commercial 1.0.0** (2026). Ver [LICENSE](LICENSE) para detalles.
+Distribuido bajo la **Licencia MIT** (2026). Ver [LICENSE](LICENSE) para detalles.
 
 ---
 

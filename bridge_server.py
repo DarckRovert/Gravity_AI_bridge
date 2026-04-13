@@ -12,6 +12,8 @@ import threading
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 import os
 import sys
+import mimetypes
+import glob
 
 # ── Windows UTF-8 Safety ──────────────────────────────────────────────────────
 if sys.stdout.encoding != "utf-8":
@@ -112,10 +114,13 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             "/v1/models":    self._serve_models,
             "/v1/status":    self._serve_status,
             "/v1/audit":     self._serve_audit,
+            "/v1/images":    self._serve_images,
             "/metrics":      self._serve_metrics,
         }
         if self.path in routes:
             routes[self.path]()
+        elif self.path.startswith("/static/output/"):
+            self._serve_static_output()
         else:
             self.send_response(404)
             self.end_headers()
@@ -135,6 +140,66 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             self.wfile.write(body)
         except ConnectionAbortedError:
             pass
+
+    def _serve_static_output(self):
+        filename = self.path[len("/static/output/"):]
+        if not filename or ".." in filename:
+            self.send_response(403)
+            self.end_headers()
+            return
+            
+        # Hardcoded to ComfyUI-Zluda output dir as per knowledge.json
+        comfy_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_integrations", "ComfyUI-Zluda", "output")
+        filepath = os.path.join(comfy_dir, filename)
+        
+        if not os.path.exists(filepath):
+            self.send_response(404)
+            self.end_headers()
+            return
+            
+        mime, _ = mimetypes.guess_type(filepath)
+        mime = mime or "application/octet-stream"
+        
+        try:
+            with open(filepath, "rb") as f:
+                body = f.read()
+            self.send_response(200)
+            self.send_header("Content-Type", mime)
+            self.send_header("Content-Length", str(len(body)))
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception:
+            self.send_response(500)
+            self.end_headers()
+
+    def _serve_images(self):
+        try:
+            comfy_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_integrations", "ComfyUI-Zluda", "output")
+            if not os.path.exists(comfy_dir):
+                resp = {"images": []}
+            else:
+                # Find all png/jpg/webp
+                files = []
+                for ext in ("*.png", "*.jpg", "*.jpeg", "*.webp"):
+                    files.extend(glob.glob(os.path.join(comfy_dir, ext)))
+                
+                # Sort by modification time (newest first)
+                files.sort(key=os.path.getmtime, reverse=True)
+                
+                # Return paths relative to static
+                img_urls = [f"/static/output/{os.path.basename(f)}" for f in files]
+                resp = {"images": img_urls}
+                
+            body = json.dumps(resp).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
 
     # ── API endpoints GET ─────────────────────────────────────────────────────
     def _serve_health(self):
@@ -176,7 +241,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
         best_p, best_m = provider_manager.get_best()
         scans  = provider_manager.scan_all()
         status = {
-            "version":         "8.0",
+            "version":         "9.1",
             "bridge_online":   True,
             "active_provider": best_p.name if best_p else None,
             "active_model":    best_m,

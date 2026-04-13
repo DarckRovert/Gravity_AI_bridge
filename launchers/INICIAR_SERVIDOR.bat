@@ -1,5 +1,5 @@
 @echo off
-cd /d "%~dp0"
+cd /d "%~dp0.."
 title GRAVITY BRIDGE SERVER V9.0 PRO [Diamond-Tier Edition]
 color 0b
 cls
@@ -18,7 +18,7 @@ echo.
 echo  [Iniciando el servidor. Ctrl+C para detener]
 echo.
 
-python "%~dp0bridge_server.py"
+python bridge_server.py
 
 echo.
 echo  [Servidor detenido]
