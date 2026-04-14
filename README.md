@@ -25,6 +25,7 @@
 | 🔍 **Verificación** | VerificationAgent adversarial antes de cada cambio |
 | 💻 **CLI** | 20+ comandos · Sesiones · Branches · Export MD/HTML |
 | ⚡ **Cache** | SQLite WAL · Hash-aware reasoning · TTL configurable |
+| 🌐 **Web** | FabricaWeb (Next.js + Web3) integrado en el anillo |
 
 ---
 
@@ -77,6 +78,7 @@ Esto levanta automáticamente:
 | `INICIAR_AUDITOR.bat` | Solo CLI de terminal |
 | `INSTALAR.bat` | Instalador TUI |
 | `DESINSTALAR.bat` | Desinstalador |
+| `INICIAR_FABRICAWEB.bat` | Lanzador motor Web3 / Frontend (Next.js) |
 | `Deploy_GravityBridge.bat` | Sync a GitHub |
 | `MODO_FANTASMA.vbs` | Auditor sin ventana |
 
