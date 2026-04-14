@@ -33,6 +33,9 @@ _saves/
 _rag_index/
 _first_run_done
 %VBS_PATH%
+_integrations/
+fooocus_boot.log
+fooocus_boot_err.log
 
 # Configuración (la genera INSTALAR.py automáticamente)
 config.yaml

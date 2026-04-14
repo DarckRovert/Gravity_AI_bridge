@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║      GRAVITY AI BRIDGE - AUDITOR SENIOR V9.0 PRO [Diamond-Tier Edition]      ║
+║      GRAVITY AI BRIDGE - AUDITOR SENIOR V9.2 PRO [Diamond-Tier Edition]      ║
 ║                   CLI Frontend | RAG | Tools | Multi-model                   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """

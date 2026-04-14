@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gravity AI — V9.1 PRO Dashboard</title>
+<title>Gravity AI — V9.3 PRO Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -176,14 +176,29 @@
   .cfg-link{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);text-decoration:none;transition:0.2s}
   .cfg-link:hover{border-color:var(--accent);color:var(--accent)}
 
+  /* ── 6. Toast Notifications ── */
+  #toast-container { position:fixed; bottom:24px; right:24px; display:flex; flex-direction:column; gap:10px; z-index:9999; }
+  .toast { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px 20px;
+           color:var(--text); font-size:14px; font-weight:500; box-shadow:0 8px 24px rgba(0,0,0,0.3);
+           display:flex; align-items:center; gap:12px; transform:translateX(120%); opacity:0;
+           transition:all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); min-width:280px; }
+  .toast.show { transform:translateX(0); opacity:1; }
+  .toast-icon { font-size:18px; }
+  .toast.success .toast-icon { color:var(--success); }
+  .toast.error .toast-icon { color:var(--error); }
+  .toast.info .toast-icon { color:var(--accent); }
+
 </style>
 </head>
 <body>
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
 <div class="shell">
   <!-- Topbar -->
   <header class="topbar">
     <button class="hamburger" onclick="toggleSidebar()">☰</button>
-    <span class="logo">GRAVITY v9.1 PRO</span>
+    <span class="logo" id="topbar-logo">GRAVITY v9.2 PRO</span>
     
     <div class="top-right">
       <div class="badge-online" id="global-status"><div class="dot"></div>BRIDGE ONLINE</div>
@@ -222,7 +237,7 @@
         <div class="chat-messages" id="messages">
           <div class="msg ai">
             <div class="msg-bubble">
-              <strong>👋 Bienvenido a Gravity AI Bridge V9.1 PRO [Diamond-Tier Edition]</strong><br><br>
+              <strong>👋 Bienvenido a Gravity AI Bridge V9.3 PRO [Diamond-Tier Edition]</strong><br><br>
               Sistema de orquestación inicializado. Interfaz web reconstruida.<br>
               <strong>Atajos rápidos:</strong><br>
               <code>/help</code> — Comandos CLI disponibles<br>
@@ -290,21 +305,26 @@
       <div id="panel-vision" class="panel">
         <div class="panel-header">
           <div class="panel-title">Vision Studio</div>
-          <div class="panel-subtitle">Generación de imágenes acelerada por ComfyUI-ZLUDA</div>
+          <div class="panel-subtitle">Generación de imágenes con Fooocus CPU (sin crash, modo --always-cpu)</div>
         </div>
         <div class="panel-content" style="overflow:hidden;padding:24px">
           <div class="vision-grid">
             <div class="vision-main">
               <div class="vision-header">
-                <span id="vision-iframe-status" style="font-size:13px;font-weight:600;color:var(--muted)">Conectando al puerto 7861...</span>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <span id="vision-iframe-status" style="font-size:13px;font-weight:600;color:var(--muted)">Conectando a UI Studio (:7862)...</span>
+                  <a href="http://127.0.0.1:7862" target="_blank" class="badge" style="background:var(--surface);border:1px solid var(--border);color:var(--text);text-decoration:none;display:flex;align-items:center;gap:4px" title="Abrir en nueva pestaña">
+                    <span style="font-size:12px">↗</span>
+                  </a>
+                </div>
                 <button class="btn-icon" onclick="reloadStudio()" style="padding:4px 8px;font-size:11px">⟳ Recargar UI</button>
               </div>
-              <iframe id="studio-frame" class="studio-frame" src="http://127.0.0.1:7861"></iframe>
+              <iframe id="studio-frame" class="studio-frame" src="http://127.0.0.1:7862"></iframe>
             </div>
             <div class="vision-side">
               <div class="vision-status-card">
                 <div style="font-size:12px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:8px">Motor Backend</div>
-                <div style="font-size:18px;font-weight:700;margin-bottom:4px">ComfyUI ZLUDA</div>
+                <div style="font-size:18px;font-weight:700;margin-bottom:4px" id="fooocus-title">Fooocus CPU</div>
                 <div style="display:flex;align-items:center;gap:6px;font-size:13px">
                   <div class="dot" id="comfy-dot"></div> <span id="comfy-status">Analizando...</span>
                 </div>
@@ -312,7 +332,7 @@
               <div class="gallery">
                 <div class="gallery-title">Últimas Generaciones</div>
                 <div id="gallery-container">
-                  <div class="empty-gallery">Las imágenes generadas aparecerán aquí.</div>
+                  <div class="empty-gallery">Las imágenes generadas por Fooocus aparecerán aquí.</div>
                 </div>
               </div>
             </div>
@@ -397,6 +417,28 @@ let chatHistory = [];
 let isStreaming = false;
 let latencyHistory = [];
 let chart = null;
+
+// ── Toast System ──
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  let icon = 'ℹ️';
+  if(type === 'success') icon = '✓';
+  if(type === 'error') icon = '×';
+  
+  toast.innerHTML = `<span class="toast-icon">${icon}</span><span>${esc(message)}</span>`;
+  container.appendChild(toast);
+  
+  // Trigger animation
+  setTimeout(() => toast.classList.add('show'), 10);
+  
+  // Remove after 3s
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400); // Wait for transition
+  }, 3000);
+}
 
 // ── UI Básica ──
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
@@ -493,6 +535,11 @@ async function fetchStatus() {
   try {
     const st = await fetch('/v1/status').then(r=>r.json());
     
+    // Configurar logo
+    if (st.version) {
+      document.getElementById('topbar-logo').textContent = 'GRAVITY V' + st.version + ' PRO';
+    }
+
     // Header & Cards
     const modStr = st.active_model || 'Ninguno';
     document.getElementById('st-prov').textContent = st.active_provider || '--';
@@ -555,11 +602,11 @@ async function fetchImages() {
   try {
     const imgs = await fetch('/v1/images').then(r=>r.json());
     const c = document.getElementById('gallery-container');
-    if(!imgs.images || imgs.images.length===0) { c.innerHTML='<div class="empty-gallery">Las imágenes generadas por ComfyUI aparecerán aquí automáticamente.</div>'; }
+    if(!imgs.images || imgs.images.length===0) { c.innerHTML='<div class="empty-gallery">Las imágenes generadas por Fooocus aparecerán aquí automáticamente.</div>'; }
     else {
       // Mostrar solo las últimas 10 para no saturar UI
-      c.innerHTML = imgs.images.slice(-10).reverse().map(url => `
-        <a href="${url}" target="_blank"><img src="${url}" class="gallery-img" loading="lazy" title="${url.split('/').pop()}"></a>
+      c.innerHTML = imgs.images.slice(0, 10).map(url => `
+        <a href="${url}" target="_blank"><img src="${url}" class="gallery-img" loading="lazy" title="${url.split('/').pop()}" onerror="this.style.display='none'"></a>
       `).join('');
     }
   }catch(e){}
@@ -568,14 +615,36 @@ async function fetchImages() {
 function reloadStudio() {
   document.getElementById('studio-frame').src += '';
   document.getElementById('vision-iframe-status').textContent = 'Recargando IFRAME...';
-  setTimeout(()=>document.getElementById('vision-iframe-status').textContent = 'iFrame local (:7861)', 1000);
+  setTimeout(()=>document.getElementById('vision-iframe-status').innerHTML = '<span style="color:var(--success)">Studio Activo (:7862)</span>', 1500);
 }
 
-// Detectar load de iframe simple (CORS impide leer iframes locales, pero onerror ayuda)
-document.getElementById('studio-frame').onload = function(){ document.getElementById('vision-iframe-status').textContent = 'Studio Listo (:7861)'; }
-document.getElementById('studio-frame').onerror = function(){ document.getElementById('vision-iframe-status').innerHTML = '<span style="color:var(--error)">Studio Offline (Lanza GRAVITY_VISION_PRO.bat)</span>'; }
+// Detectar load de iframe (UI Studio Gradio)
+document.getElementById('studio-frame').onload = function(){ document.getElementById('vision-iframe-status').innerHTML = '<span style="color:var(--success)">Studio Activo (:7862)</span>'; }
+document.getElementById('studio-frame').onerror = function(){ document.getElementById('vision-iframe-status').innerHTML = '<span style="color:var(--error)">Studio Offline (Lanza INICIAR_TODO.bat)</span>'; }
 
-// ── Gráfica minimalista ──
+// Health Check real para el backend Fooocus via Bridge API
+async function checkFooocusBackend() {
+  if (currentTab !== 'vision') return;
+  try {
+    const st = await fetch('/v1/fooocus/status').then(r => r.json());
+    if (st.online) {
+      document.getElementById('comfy-status').textContent = `Activo · ${st.images_generated ?? 0} imgs`;
+      document.getElementById('comfy-status').style.color = 'var(--success)';
+      document.getElementById('comfy-dot').className = 'dot dot-online';
+      const ver = st.version ? `Fooocus ${st.version} (CPU)` : 'Fooocus CPU (Activo)';
+      document.getElementById('fooocus-title').textContent = ver;
+    } else {
+      document.getElementById('comfy-status').textContent = 'Offline — Esperando arranque (~60s)';
+      document.getElementById('comfy-status').style.color = 'var(--error)';
+      document.getElementById('comfy-dot').className = 'dot dot-offline';
+    }
+  } catch(e) {
+    document.getElementById('comfy-status').textContent = 'Bridge sin respuesta';
+    document.getElementById('comfy-status').style.color = 'var(--muted)';
+  }
+}
+
+// ── Gráfica Catmull-Rom (Bezier suavizada) ──
 function renderChart() {
   const canvas = document.getElementById('latencyChart');
   if(!canvas) return;
@@ -601,10 +670,24 @@ function renderChart() {
   ctx.fill();
 
   ctx.beginPath();
-  latencyHistory.forEach((v,i) => {
-    const h = (v/max)*canvas.height*0.8; 
-    if(i===0) ctx.moveTo(i*pW, canvas.height-h); else ctx.lineTo(i*pW, canvas.height-h);
-  });
+  const P = latencyHistory.map((v,i) => ({x: i*pW, y: canvas.height - (v/max)*canvas.height*0.8}));
+  
+  if (P.length === 2) {
+    ctx.moveTo(P[0].x, P[0].y);
+    ctx.lineTo(P[1].x, P[1].y);
+  } else {
+    ctx.moveTo(P[0].x, P[0].y);
+    // Beziers para aproximar Catmull-Rom logic simplificada
+    for (let i = 0; i < P.length - 1; i++) {
+      const xc = (P[i].x + P[i+1].x) / 2;
+      const yc = (P[i].y + P[i+1].y) / 2;
+      // Curva cuadratica por default hacia el medio
+      ctx.quadraticCurveTo(P[i].x, P[i].y, xc, yc);
+    }
+    // Conectar el ultimo punto
+    ctx.lineTo(P[P.length-1].x, P[P.length-1].y);
+  }
+  
   ctx.strokeStyle = '#4f46e5';
   ctx.lineWidth = 3;
   ctx.lineJoin = 'round';
@@ -615,18 +698,19 @@ function renderChart() {
 async function saveKey() {
   const prov = document.getElementById('cfg-provider').value.trim();
   const key  = document.getElementById('cfg-key').value.trim();
-  if (!prov || !key) { alert('Completar campos.'); return; }
+  if (!prov || !key) { showToast('Completar campos proveedor y key.', 'warning'); return; }
   try {
     const r = await fetch('/v1/keys', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ provider: prov, key }) });
-    if (r.ok) { document.getElementById('cfg-key').value = ''; alert('OK: Key encriptada y guardada.'); }
-    else { alert('Error: ' + r.statusText); }
-  } catch(e) { alert('Error red.'); }
+    if (r.ok) { document.getElementById('cfg-key').value = ''; showToast('Key protegida y guardada correctamente.', 'success'); }
+    else { showToast('Error al guardar: ' + r.statusText, 'error'); }
+  } catch(e) { showToast('Error de conexión al Bridge.', 'error'); }
 }
 
 // ── Bucle Principal ──
 refreshAll();
 setInterval(refreshAll, 10000);
 setInterval(fetchImages, 5000); // Poll más rápido para imágenes
+setInterval(checkFooocusBackend, 7000); // Health check de Fooocus CPU
 </script>
 </body>
 </html>

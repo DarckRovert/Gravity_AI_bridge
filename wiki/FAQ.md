@@ -7,7 +7,7 @@ Abre el archivo:
 ```
 launchers\INICIAR_TODO.bat
 ```
-Arranca automáticamente el Bridge Server (7860), Fooocus Studio (7861) y ComfyUI-ZLUDA (8188).
+Arranca automáticamente el Bridge Server (7860), Fooocus Motor API (7861) y Vision Studio UI (7862).
 
 ### ¿Tengo que abrir varios launchers?
 No. `INICIAR_TODO.bat` lo hace todo. Solo usa launchers individuales si quieres arrancar componentes específicos por separado.
@@ -38,8 +38,8 @@ launchers\INSTALAR.bat
 
 ### La imagen no aparece después de pulsar Generate
 Tres causas posibles:
-1. **ComfyUI no está corriendo** — Abre `launchers\GRAVITY_VISION_PRO.bat` o `INICIAR_TODO.bat`
-2. **Primera compilación ZLUDA** — La primera imagen tarda 3-5 minutos. No presiones Generate de nuevo.
+1. **Fooocus no está corriendo** — Abre `launchers\GRAVITY_VISION_PRO.bat` o `INICIAR_TODO.bat`
+2. **Descarga del modelo Base** — La primera imagen puede tardar 3-5 minutos. No presiones Generate de nuevo.
 3. **amdhip64.dll no encontrado** — Necesitas instalar el AMD HIP SDK (ver abajo)
 
 ### Error: `amdhip64.dll no encontrado`
@@ -56,16 +56,16 @@ for /f "tokens=5" %p in ('netstat -ano ^| findstr :7861 ^| findstr LISTENING') d
 ```
 
 ### ¿Cuánto tiempo tarda en generar una imagen?
-- **Primera imagen de la sesión**: 3-5 minutos (compilación ZLUDA)
+- **Primera imagen de la sesión**: 3-5 minutos (arranque de motor)
 - **Imágenes siguientes**: 30-90 segundos dependiendo de resolución y steps
 - **Resolución 1024x1024, 30 steps**: ~45-60 segundos en Radeon 780M
 
 ### Las pestañas Styles, Models y Advanced están vacías
-Son paneles informativos de solo lectura. Los valores reales están fijados (JuggernautXL, dpmpp_2m, karras) y se inyectan automáticamente al workflow de ComfyUI.
+Son paneles informativos de solo lectura. Los valores reales están fijados y se inyectan automáticamente a la API de Fooocus CPU.
 
 ### ¿Dónde se guardan las imágenes generadas?
 ```
-F:\Gravity_AI_bridge\_integrations\ComfyUI-Zluda\output\
+F:\Gravity_AI_bridge\_integrations\Fooocus\Fooocus\outputs\
 ```
 Prefijo de archivo: `Gravity_Gen_XXXXX_.png`
 

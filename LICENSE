@@ -1,30 +1,21 @@
-PolyForm Non-Commercial License 1.0.0
+MIT License
 
-<https://polyformproject.org/licenses/non-commercial/1.0.0>
+Copyright (c) 2026 DarckRovert
 
-## Acceptance
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-By using the software, you agree to its terms.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-## Copyright License
-
-The licensor grants you a non-exclusive, royalty-free, worldwide, non-sublicensable, non-transferable license to do everything with the software that would otherwise infringe that person's copyright in it, except for Commercial Use.
-
-## Notices
-
-You must ensure that any person who receives a copy of any part of the software from you also receives a copy of this license or the text of the hyperlinked page.
-
-## Non-Commercial Use
-
-You may not use the software for Commercial Use.
-
-## Commercial Use
-
-"Commercial Use" means any use of the software by a person or entity, or any use of the software that is intended for or directed toward commercial advantage or monetary compensation.
-
-## Warranty Disclaimer
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
----
-Copyright (c) 2026 DarckRovert. All rights reserved.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

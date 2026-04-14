@@ -81,7 +81,7 @@ launchers\INICIAR_TODO.bat
 
 Este archivo hace automáticamente:
 1. Libera los puertos 7860 y 7861 si quedaron ocupados
-2. Verifica si ComfyUI ya corre (no lo reinicia si ya está activo)
+2. Verifica si Fooocus CPU ya corre (no lo reinicia si ya está activo)
 3. Arranca el Bridge Server en `http://localhost:7860`
 4. Arranca Fooocus Studio en `http://127.0.0.1:7861`
 
@@ -119,7 +119,7 @@ Accede a `http://localhost:7860` tras ejecutar `INICIAR_SERVIDOR.bat` o `INICIAR
 
 **🎨 Vision Studio**
 - iFrame integrado del Fooocus Studio (puerto 7861).
-- Panel lateral con estado del motor ComfyUI-ZLUDA.
+- Panel lateral con estado del motor Fooocus CPU.
 - Galería de las últimas imágenes generadas (polling cada 5s).
 
 **📋 Audit Log**

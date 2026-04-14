@@ -1,88 +1,78 @@
-﻿{
+{
     "project":  "Gravity AI Bridge",
-    "version":  "9.0 PRO [Diamond-Tier Edition]",
+    "version":  "9.3.1 PRO [Diamond-Tier Edition]",
     "status":  "Official Release",
-    "architecture":  "Omni-Tier / Tri-Hardware / Claw-Inspired (Agentic Search \u0026 Surgical Edit)",
+    "architecture":  "Omni-Tier / Tri-Hardware / Claw-Inspired (Agentic Search & Surgical Edit)",
     "vulnerability_fixes":  [
-                                {
-                                    "id":  "SEC-01",
-                                    "description":  "Port 7860 self-detection loop with Oobabooga",
-                                    "resolution":  "Excluded port 7860 from Oobabooga search in openai_compat_provider.py"
-                                },
-                                {
-                                    "id":  "ERR-01",
-                                    "description":  "UnicodeEncodeError on Windows terminals",
-                                    "resolution":  "Reconfigured sys.stdout/stderr to UTF-8 in bridge_server.py and ask_deepseek.py"
-                                },
-                                {
-                                    "id":  "ERR-02",
-                                    "description":  "EOFError infinite loop during sys.stdin pipe operations",
-                                    "resolution":  "Implemented sys.stdin.isatty() validation and explicit EOFError handler in ask_deepseek.py"
-                                },
-                                {
-                                    "id":  "V8.5-CLAW",
-                                    "description":  "Sincronización con patrones de Claude Code (Claw)",
-                                    "resolution":  "Implementación de VerificationAgent y edición quirúrgica de bloques en file_edit_v2.py"
-                                },
-                                {
-                                    "id":  "PATCH-9.0.1",
-                                    "description":  "Auditoria Diamond-Tier: 7 bugs corregidos + reorganizacion estructural V9.1 PRO",
-                                    "resolution":  "Bug fixes: import sys.path, OUTPUT_DIR, default_model embedding, raiohttp typo, version consistency, bat guards"
-                                }
-                            ],
+        {
+            "id":  "SEC-01",
+            "description":  "Port 7860 self-detection loop with Oobabooga",
+            "resolution":  "Excluded port 7860 from Oobabooga search in openai_compat_provider.py"
+        },
+        {
+            "id":  "ERR-01",
+            "description":  "UnicodeEncodeError on Windows terminals",
+            "resolution":  "Reconfigured sys.stdout/stderr to UTF-8 in bridge_server.py and ask_deepseek.py"
+        },
+        {
+            "id":  "ERR-02",
+            "description":  "EOFError infinite loop during sys.stdin pipe operations",
+            "resolution":  "Implemented sys.stdin.isatty() validation and explicit EOFError handler in ask_deepseek.py"
+        },
+        {
+            "id":  "V8.5-CLAW",
+            "description":  "Sincronización con patrones de Claude Code (Claw)",
+            "resolution":  "Implementación de VerificationAgent y edición quirúrgica de bloques en file_edit_v2.py"
+        },
+        {
+            "id":  "PATCH-9.3.1",
+            "description":  "Reestructuración Arquitectural Diamond-Tier V9.3.1: API Unificada y Motor Monitorizado",
+            "resolution":  "Se reemplazó la API REST inexistente de Fooocus 2.5.5 por monitoreo local del directorio OUTPUT_DIR. Se desplegó dashboard unificado con salud real de motor y endpoint centralizado de imágenes."
+        }
+    ],
     "hardware_logic":  {
-                           "primary_accelerator":  "AMD Radeon 780M (DirectML/ROCm)",
-                           "npu_target":  "AMD Ryzen AI (XDNA)",
-                           "rag_embedder":  "ONNX Runtime (onnx_npu)",
-                           "optimal_ctx_calc":  "45% of total VRAM allocated to KV-cache",
-                           "mcp_support":  "Habilitado vía core/mcp_adapter.py"
-                       },
+        "primary_accelerator":  "AMD Radeon/Ryzen (CPU-Safe Compute puro)",
+        "npu_target":  "AMD Ryzen AI (XDNA)",
+        "rag_embedder":  "ONNX Runtime (onnx_cpu)",
+        "optimal_ctx_calc":  "45% of total VRAM allocated to KV-cache",
+        "mcp_support":  "Habilitado vía core/mcp_adapter.py"
+    },
     "core_protection":  {
-                            "active":  true,
-                            "policy":  "read-only-in-external-context",
-                            "description":  "Prohibido modificar archivos de F:\\Gravity_AI_bridge\\ si el proyecto activo es ajeno al bridge."
-                        },
+        "active":  true,
+        "policy":  "read-only-in-external-context",
+        "description":  "Prohibido modificar archivos de F:\\Gravity_AI_bridge\\ si el proyecto activo es ajeno al bridge."
+    },
     "global_standards":  {
-                             "documentation_format":  "Bilingual (Spanish/English)",
-                             "license_type":  "PolyForm Non-Commercial 1.0.0",
-                             "intellectual_property_owner":  "DarckRovert",
-                             "commercial_use":  "Strictly Prohibited for Profit",
-                             "official_streaming_site":  "https://www.twitch.tv/darckrovert",
-                             "base_files_required":  [
-                                                         "README",
-                                                         "LICENSE",
-                                                         "CONTRIBUTING",
-                                                         "CODE_OF_CONDUCT",
-                                                         "SECURITY",
-                                                         "CHANGELOG",
-                                                         ".gitignore",
-                                                         "ISSUE_TEMPLATES"
-                                                     ],
-                             "wiki_minimum_depth":  4,
-                             "persona_style":  "Minimalist / Technical / Non-conversational (Claw Standard)"
-                         },
-    "comfyui_satellite":  {
-                              "status":  "active",
-                              "version":  "0.18.1 (ZLUDA 3.9.5 Nightly)",
-                              "install_path":  "F:\\Gravity_AI_bridge\\_integrations\\ComfyUI-Zluda",
-                              "python_env":  "F:\\Gravity_AI_bridge\\_integrations\\ComfyUI-Zluda\\pyenv\\python.exe",
-                              "api_url":  "http://127.0.0.1:8188",
-                              "backend":  "ZLUDA (AMD Radeon 780M RDNA3, 16GB UMA VRAM)",
-                              "launch_script":  "F:\\Gravity_AI_bridge\\_integrations\\ComfyUI-Zluda\\comfyui-user.bat",
-                              "gravity_tool":  "tools/comfyui_client.py",
-                              "output_dir":  "_integrations/ComfyUI-Zluda/output",
-                              "patch_applied":  "ZLUDA CUDA Hijack + HIP_PATH Injection (2026-04-13)",
-                              "prompt_config":  {
-                                                    "source":  "Prompts Influencer IA.pdf",
-                                                    "performance":  "Quality/SDXL",
-                                                    "default_styles":  [
-                                                                           "Comfy Workflow"
-                                                                       ],
-                                                    "language":  "English"
-                                                },
-                              "integration_mode":  "HTTP REST API. Grafo de tensores puenteados vía extra_model_paths.yaml",
-                              "notes":  "ComfyUI corre nativamente sobre kernels de GPU vía transpilación HIP. Mayor escalabilidad y estabilidad respecto a DirectML."
-                          },
+        "documentation_format":  "Bilingual (Spanish/English)",
+        "license_type":  "MIT License",
+        "intellectual_property_owner":  "DarckRovert",
+        "commercial_use":  "Permitted under MIT guidelines",
+        "official_streaming_site":  "https://www.twitch.tv/darckrovert",
+        "base_files_required":  [
+            "README",
+            "LICENSE",
+            "CONTRIBUTING",
+            "CODE_OF_CONDUCT",
+            "SECURITY",
+            "CHANGELOG",
+            ".gitignore",
+            "ISSUE_TEMPLATES"
+        ],
+        "wiki_minimum_depth":  4,
+        "persona_style":  "Minimalist / Technical / Non-conversational (Claw Standard)"
+    },
+    "fooocus_satellite":  {
+        "status":  "active",
+        "version":  "2.5.5",
+        "install_path":  "F:\\Gravity_AI_bridge\\_integrations\\Fooocus",
+        "api_url":  "http://127.0.0.1:7861",
+        "backend":  "CPU-Safe Computation (fp32 euler)",
+        "launch_script":  "F:\\Gravity_AI_bridge\\_integrations\\Fooocus\\run_amd.bat",
+        "gravity_tool":  "tools/fooocus_client.py (Monitorea el status vía health check /)",
+        "dashboard_ui":  "tools/fooocus_studio_ui.py (Arquitectura de polling de disco local)",
+        "output_dir":  "_integrations/Fooocus/Fooocus/outputs",
+        "notes":  "Fooocus se corre estrictamente bajo flags --always-cpu. El API HTTP Rest no está activo, la comunicación entre Bridge y Fooocus es a través del sistema de archivos local para imágenes generadas."
+    },
     "last_audit":  "2026-04-13",
     "author":  "DarckRovert"
 }

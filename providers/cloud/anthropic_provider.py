@@ -14,7 +14,9 @@ from core.key_manager import KeyManager
 
 ANTHROPIC_API  = "https://api.anthropic.com/v1/messages"
 ANTHROPIC_VER  = "2023-06-01"
-BETAS          = "interleaved-thinking-2025-05-14"   # extended thinking beta
+# Beta: interleaved-thinking permite <think> blocks en respuesta
+# output-128k-2025-02-19 habilita ventana de salida extendida para Claude Sonnet
+BETAS          = "interleaved-thinking-2025-01-05,output-128k-2025-02-19"
 
 
 class AnthropicProvider(ProviderPlugin):
@@ -27,8 +29,11 @@ class AnthropicProvider(ProviderPlugin):
     default_context   = 200000
     _key_id           = "anthropic"
     _available_models = [
-        "claude-opus-4-5", "claude-sonnet-4-5",
-        "claude-3-5-haiku-20241022", "claude-3-5-sonnet-20241022",
+        "claude-opus-4-5",
+        "claude-sonnet-4-5",
+        "claude-3-7-sonnet-20250219",
+        "claude-3-5-haiku-20241022",
+        "claude-3-5-sonnet-20241022",
         "claude-3-opus-20240229",
     ]
 

@@ -26,9 +26,9 @@ class GeminiProvider(ProviderPlugin):
     default_context   = 1000000
     _key_id           = "gemini"
     _available_models = [
-        "gemini-2.5-pro-preview-03-25",
+        "gemini-2.5-pro-exp-03-25",
         "gemini-2.0-flash",
-        "gemini-2.0-flash-thinking-exp",
+        "gemini-2.0-flash-thinking-exp-01-21",
         "gemini-1.5-pro-latest",
         "gemini-1.5-flash-latest",
     ]
@@ -122,9 +122,9 @@ class GeminiProvider(ProviderPlugin):
 
     def get_cost_per_million_tokens(self, model: str) -> dict:
         costs = {
-            "gemini-2.5-pro-preview-03-25": {"input": 1.25, "output": 10.00},
-            "gemini-2.0-flash":             {"input": 0.075, "output": 0.30},
-            "gemini-1.5-pro-latest":        {"input": 1.25,  "output": 5.00},
-            "gemini-1.5-flash-latest":      {"input": 0.075, "output": 0.30},
+            "gemini-2.5-pro-exp-03-25": {"input": 1.25, "output": 10.00},
+            "gemini-2.0-flash":         {"input": 0.075, "output": 0.30},
+            "gemini-1.5-pro-latest":    {"input": 1.25,  "output": 5.00},
+            "gemini-1.5-flash-latest":  {"input": 0.075, "output": 0.30},
         }
         return costs.get(model, {"input": 1.25, "output": 5.00})

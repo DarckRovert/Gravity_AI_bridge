@@ -2,6 +2,7 @@ import logging
 import json
 import re
 import os
+import sys
 from logging.handlers import RotatingFileHandler
 
 class SanitizedJSONFormatter(logging.Formatter):
@@ -65,6 +66,12 @@ def setup_logger(name: str = "gravity", log_file: str = "bridge.log", level: int
             return formatter.sanitize(msg)
             
     console_handler.setFormatter(SanitizeConsoleFormatter('%(asctime)s - %(levelname)s - %(message)s'))
+    # Forzar UTF-8 en la consola de Windows (evita UnicodeEncodeError con cp1252)
+    if hasattr(sys.stdout, 'reconfigure'):
+        try:
+            sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        except Exception:
+            pass
     logger.addHandler(console_handler)
     
     # 2. File Handler (JSON Format)
@@ -80,3 +87,20 @@ def setup_logger(name: str = "gravity", log_file: str = "bridge.log", level: int
 
 # Instancia global por defecto
 log = setup_logger()
+
+
+def sanitize_json(data: dict) -> dict:
+    """
+    Sanitiza un dict redactando valores que sean API keys.
+    Usada en tests y en cualquier modulo que necesite limpiar datos sensibles.
+    """
+    sanitizer = SanitizedJSONFormatter()
+    result = {}
+    for k, v in data.items():
+        if isinstance(v, str):
+            result[k] = sanitizer.sanitize(v)
+        elif isinstance(v, dict):
+            result[k] = sanitize_json(v)
+        else:
+            result[k] = v
+    return result

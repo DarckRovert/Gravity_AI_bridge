@@ -12,7 +12,7 @@
 
 ### 1. Fork y Clonación
 ```bash
-git clone https://github.com/TU_USUARIO/Gravity_AI_bridge.git
+git clone https://github.com/DarckRovert/Gravity_AI_bridge.git
 cd Gravity_AI_bridge
 pip install -r requirements.txt
 ```

@@ -1,4 +1,4 @@
-# Arquitectura — Gravity AI Bridge V9.1 PRO [Diamond-Tier Edition]
+# Arquitectura — Gravity AI Bridge V9.3.1 PRO [Diamond-Tier Edition]
 
 ## Visión General
 
@@ -13,13 +13,13 @@ Gravity AI Bridge es un **enrutador universal de IA** que actúa como capa de ab
                │ HTTP / stdin / OpenAI   │ Gradio / HTTP
 ┌──────────────▼─────────────────────┐  ┌──────────────────────────┐
 │     BRIDGE SERVER (bridge_server.py)│  │  VISION STUDIO            │
-│  • Enrutamiento dinámico latencia   │  │  fooocus_studio_ui.py     │
-│  • Rate Limiting IP + API Key       │  │  comfyui_client.py        │
+│  • Enrutamiento dinámico latencia   │  │  fooocus_studio_ui.py (7862) │
+│  • Rate Limiting IP + API Key       │  │  fooocus_client.py        │
 │  • Streaming SSE / JSON             │  └────────────┬─────────────┘
 │  • Sirve web/dashboard.html en /    │               │ HTTP JSON
 │  • /static/output/ (imágenes)       │  ┌────────────▼─────────────┐
-│  • /v1/images (listado galería)     │  │  ComfyUI-ZLUDA (8188)     │
-└──────────────┬──────────────────────┘  │  Radeon 780M iGPU         │
+│  • /v1/images (listado galería)     │  │  Fooocus Motor CPU (7861) │
+└──────────────┬──────────────────────┘  │  AMD Ryzen CPU (fp32)     │
                │                         │  JuggernautXL SDXL        │
       ┌─────────▼──────────┐             └──────────────────────────┘
       │  Provider Manager  │
@@ -49,14 +49,15 @@ Gravity AI Bridge es un **enrutador universal de IA** que actúa como capa de ab
 ### `bridge_server.py` — Servidor HTTP
 - `ThreadingHTTPServer` con soporte CORS completo.
 - Sirve `web/dashboard.html` en `/` y `/dashboard`.
-- Sirve imágenes desde `_integrations/ComfyUI-Zluda/output/` en `/static/output/`.
+- Sirve imágenes desde `_integrations/Fooocus/Fooocus/outputs/` en `/static/output/`.
 - Endpoints: `/v1/chat/completions`, `/v1/models`, `/v1/status`, `/v1/audit`, `/v1/keys`, `/v1/images`, `/metrics`, `/health`.
 
 ### `dashboard.py` — Servidor SPA
 - Servidor HTTP minimalista que sirve `web/dashboard.html`.
 - Puerto independiente (7862) para uso standalone sin bridge server.
+- SPA Frontend sin dependencias. Conecta al Bridge API mediante SSE y `/v1/`. V9.3.1 PRO incluye Vision Studio embebido y gráficos Catmull-Rom.
 
-### `web/dashboard.html` — SPA V9.1
+### `web/dashboard.html` — SPA V9.3.1
 - HTML/CSS/JS puro, sin dependencias externas.
 - Chat con streaming SSE en tiempo real.
 - Tabs: Chat · Status · Vision Studio (iFrame) · Audit Log · Configuración.
@@ -64,14 +65,13 @@ Gravity AI Bridge es un **enrutador universal de IA** que actúa como capa de ab
 
 ### `tools/fooocus_studio_ui.py` — Vision Studio
 - Interfaz Gradio que replica la UX de Fooocus.
-- Puerto 7861 (configurable via `GRADIO_SERVER_PORT`).
+- Puerto 7862 (configurable via `GRADIO_SERVER_PORT`).
 - `get_all_images()` + `get_newest_image()`: Detección correcta de imágenes nuevas por set-difference de paths absolutos.
-- Timeout de 360 segundos para la primera compilación ZLUDA.
+- Cold-Start detection: timeouts incrementados y polling resiliente a 15 min en modo CPU.
 
-### `tools/comfyui_client.py` — Cliente ComfyUI
-- Comunicación HTTP con ComfyUI en `127.0.0.1:8188`.
-- Workflow SDXL con KSampler, VAEDecode, SaveImage.
-- Checkpoint: `juggernautXL_v8Rundiffusion.safetensors`.
+### `tools/fooocus_client.py` — Cliente Fooocus
+- Comunicación HTTP con el motor en `127.0.0.1:7861`.
+- Workflow SDXL puro en CPU usando sampler `euler` que previene el system crash de DirectML.
 
 ### `provider_manager.py` — Orquestador
 - `scan_all()`: Escanea todos los backends en paralelo.
@@ -131,11 +131,11 @@ Cada proveedor implementa:
 ## Flujo de Generación de Imagen
 
 ```
-1. Usuario escribe prompt en Fooocus Studio UI (7861)
+1. Usuario escribe prompt en Vision Studio UI (7862)
 2. fooocus_studio_ui.py: snapshot del output dir (set de paths absolutos)
-3. comfyui_client.py: POST /prompt → ComfyUI 8188 con workflow SDXL
-4. ComfyUI acepta job → devuelve prompt_id
-5. Poll cada 2s: get_newest_image() = current_set - snapshot
+3. fooocus_client.py: POST generation → Fooocus Motor en puerto 7861
+4. Fooocus acepta job → devuelve job_id
+5. Poll cada 4s: verifica API query-job y fallback a get_newest_image()
 6. Cuando aparece imagen nueva → se muestra en Gradio
 7. Bridge Server sirve imagen vía /static/output/
 8. Dashboard Web actualiza galería vía /v1/images
@@ -178,7 +178,7 @@ rate_limit:
 | `7860` | `bridge_server.py` | API OpenAI-compatible + Dashboard Web |
 | `7861` | `fooocus_studio_ui.py` | Fooocus Studio UI (Gradio) |
 | `7862` | `dashboard.py` | Dashboard standalone (sin bridge) |
-| `8188` | ComfyUI-ZLUDA | Motor de inferencia de imágenes |
+| `7861` | Fooocus Motor CPU | Motor de inferencia de imágenes |
 
 ---
 
@@ -186,8 +186,7 @@ rate_limit:
 
 | Hardware | Motor de Texto | Motor de Imágenes |
 |----------|---------------|-------------------|
-| NVIDIA GPU | Ollama / LM Studio | ComfyUI (CUDA) |
-| AMD GPU + HIP SDK | LM Studio / Ollama | ComfyUI-ZLUDA |
+| CPU / AMD GPU | LM Studio / Ollama | Fooocus CPU --all-in-fp32 |
 | CPU solamente | Ollama (CPU) | No disponible |
 | Cloud | OpenAI / Anthropic / Gemini | No aplica |
 
@@ -204,4 +203,4 @@ rate_limit:
 | BM25 + vectorial | Mejor recall que solo semántico en código |
 | ThreadingHTTPServer | Concurrencia sin async, compatible con Python 3.10+ |
 | Gradio para Vision UI | Interfaz interactiva sin frontend custom |
-| ZLUDA sobre DirectML | Mayor estabilidad en AMD sin drivers CUDA nativos |
+| Fooocus CPU-mode | DirectML/ZLUDA causaban crashes de hardware nativo por incompatibilidad de Kernels de Pytorch-AMD. CPU Mode (euler) garantiza 100% fail-safe execution. |

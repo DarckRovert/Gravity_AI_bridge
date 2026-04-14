@@ -146,7 +146,7 @@ Estado del sistema con todos los backends y métricas.
 
 ### `GET /v1/images`
 
-Lista de imágenes generadas por ComfyUI disponibles en la galería.
+Lista de imágenes generadas por Fooocus disponibles en la galería.
 
 **Response:**
 ```json
@@ -162,7 +162,7 @@ Lista de imágenes generadas por ComfyUI disponibles en la galería.
 
 ### `GET /static/output/<filename>`
 
-Sirve una imagen generada directamente desde el directorio de output de ComfyUI.
+Sirve una imagen generada directamente desde el directorio de outputs de Fooocus.
 
 **Ejemplo:**
 ```

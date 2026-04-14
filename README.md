@@ -1,12 +1,12 @@
-# Gravity AI Bridge V9.1 PRO [Diamond-Tier Edition] 🌐
+# Gravity AI Bridge V9.3.1 PRO [Diamond-Tier Edition] 🌐
 
-[![Versión](https://img.shields.io/badge/Versión-9.1_PRO-4f46e5.svg)](CHANGELOG.md)
+[![Versión](https://img.shields.io/badge/Versión-9.3.1_PRO-4f46e5.svg)](CHANGELOG.md)
 [![Licencia: MIT](https://img.shields.io/badge/Licencia-MIT-22c55e.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://python.org)
 [![DarckRovert](https://img.shields.io/badge/Desarrollado_por-DarckRovert-7c3aed.svg)](https://twitch.tv/darckrovert)
 [![GitHub](https://img.shields.io/badge/GitHub-DarckRovert-181717.svg)](https://github.com/DarckRovert)
 
-> **El puente de IA más avanzado para uso local y cloud**, con arquitectura Omni-Tier, enrutamiento dinámico por latencia, interfaz de línea de comandos premium, MCP, RAG híbrido, auditoría de código adversarial, Dashboard Web SPA y generación de imágenes via ComfyUI-ZLUDA.
+> **El puente de IA más avanzado para uso local y cloud**, con arquitectura Omni-Tier, enrutamiento dinámico por latencia, interfaz de línea de comandos premium, MCP, RAG híbrido, auditoría de código adversarial, Dashboard Web SPA y generación de imágenes via Fooocus CPU.
 
 ---
 
@@ -18,9 +18,9 @@
 | ☁️ **Cloud** | OpenAI · Anthropic · Google Gemini · Groq · Cohere |
 | 🧠 **Enrutamiento** | Dinámico por latencia TTFT + especialización de tareas |
 | 🛡️ **Seguridad** | API Keys cifradas DPAPI · Rate Limiting · Audit Log inmutable |
-| 📡 **Observabilidad** | Dashboard SPA V9.1 · Prometheus `/metrics` · Streaming SSE |
-| 🎨 **Visión** | ComfyUI-ZLUDA · Fooocus Studio UI · JuggernautXL SDXL |
-| 🔬 **RAG** | Embeddings NPU/GPU/CPU · BM25 + vectorial · PDFs |
+| 📡 **Observabilidad** | Dashboard SPA V9.3.1 · Prometheus `/metrics` · Streaming SSE |
+| 🎨 **Visión** | Fooocus CPU mode · Vision Studio UI · JuggernautXL SDXL |
+| 🔬 **RAG** | Embeddings CPU/ONNX · BM25 + vectorial · PDFs |
 | 🤖 **MCP** | Model Context Protocol · Herramientas externas stdio |
 | 🔍 **Verificación** | VerificationAgent adversarial antes de cada cambio |
 | 💻 **CLI** | 20+ comandos · Sesiones · Branches · Export MD/HTML |
@@ -63,9 +63,9 @@ Abre **un solo archivo** para arrancar todo el ecosistema:
 launchers\INICIAR_TODO.bat
 ```
 Esto levanta automáticamente:
-1. ComfyUI-ZLUDA (motor de imágenes, puerto 8188)
-2. Bridge Server + Dashboard Web (puerto 7860)
-3. Fooocus Studio UI (generador de imágenes, puerto 7861)
+1. Bridge Server + Dashboard Web (puerto 7860)
+2. Motor Fooocus modo CPU (API imágenes, puerto 7861)
+3. Vision Studio UI (interfaz de imágenes, puerto 7862)
 
 ### Launchers disponibles en `launchers\`
 
@@ -73,7 +73,7 @@ Esto levanta automáticamente:
 |---------|---------|
 | `INICIAR_TODO.bat` ⭐ | **Arranque completo** — uso diario |
 | `INICIAR_SERVIDOR.bat` | Solo Bridge Server + Dashboard (`localhost:7860`) |
-| `GRAVITY_VISION_PRO.bat` | Solo ComfyUI + Fooocus Studio (`localhost:7861`) |
+| `GRAVITY_VISION_PRO.bat` | Arranca todo el Ecosistema Visión independiente |
 | `INICIAR_AUDITOR.bat` | Solo CLI de terminal |
 | `INSTALAR.bat` | Instalador TUI |
 | `DESINSTALAR.bat` | Desinstalador |
@@ -133,17 +133,17 @@ Accede tras ejecutar `INICIAR_SERVIDOR.bat` o `INICIAR_TODO.bat`:
 
 ## 🎨 Generación de Imágenes (Vision Studio)
 
-Arquitectura de dos capas:
+Arquitectura de dos capas unificadas en CPU:
 
 ```
-Fooocus Studio UI (7861) ──→ comfyui_client.py ──→ ComfyUI-ZLUDA (8188)
+Vision Studio UI (7862) ──→ fooocus_client.py ──→ Fooocus API (7861)
          ↑                                                    ↓
-  Interfaz Gradio                                   Radeon 780M iGPU
+  Interfaz Gradio                                   Ryzen 7 8700G (CPU/fp32)
   (Prompt, Aspect Ratio,                            JuggernautXL SDXL
-   Performance, Styles)                             Output → /output/
+   Performance, Styles)                             Output → /outputs/
 ```
 
-**Primera generación:** ZLUDA compila kernels AMD la primera vez. Espera 3-5 minutos sin cerrar las ventanas.
+**Generación CPU-safe:** El modo CPU previene crashes de DirectML. Espera 60-90 segundos para inicialización del motor, luego las generaciones toman entre 3 a 8 minutos.
 
 ---
 
@@ -176,9 +176,9 @@ Gravity_AI_bridge/
 ├── core/                  ← Módulos de infraestructura (22 módulos)
 ├── providers/             ← Plugins de proveedores IA
 ├── tools/                 ← Herramientas del agente + Vision Studio
-│   ├── comfyui_client.py  ← Cliente ComfyUI-ZLUDA
+│   ├── fooocus_client.py  ← Cliente Fooocus HTTP Bridge
 │   └── fooocus_studio_ui.py ← Interfaz Gradio de generación
-├── web/dashboard.html     ← SPA Dashboard V9.1 PRO
+├── web/dashboard.html     ← SPA Dashboard V9.3.1 PRO
 ├── rag/                   ← Motor RAG híbrido
 ├── wiki/                  ← Documentación técnica detallada
 ├── ask_deepseek.py        ← CLI principal (Auditor Senior)
@@ -200,7 +200,8 @@ Gravity_AI_bridge/
 | RAM | 8 GB | 16 GB+ |
 | OS | Windows 10 | Windows 11 |
 | Motor IA | LM Studio / Ollama | LM Studio (activo en tu sistema) |
-| GPU Imágenes | AMD con HIP SDK | Radeon 780M + AMD PRO 26.Q1 |
+| CPU solamente | Ollama (CPU) | Fooocus (CPU --all-in-fp32) |
+| AMD GPU / iGPU | LM Studio / Ollama | Fooocus (CPU --all-in-fp32) |
 
 ---
 

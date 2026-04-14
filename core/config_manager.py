@@ -7,10 +7,10 @@ from typing import Any, Dict
 class ConfigManager:
     """
     Manages application configuration with YAML support and auto-migration from JSON.
-    Supports profiles (dev, prod, test).
+    Supports profiles (dev, prod, test). V9.3.1 PRO.
     """
     DEFAULT_CONFIG = {
-        "version": "9.0",
+        "version": "9.3.1",
         "profile": "production",
         "server": {
             "host": "0.0.0.0",

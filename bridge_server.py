@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║          GRAVITY AI - BRIDGE SERVER V9.0 PRO [Diamond-Tier Edition]          ║
+║          GRAVITY AI - BRIDGE SERVER V9.3 PRO [Diamond-Tier Edition]          ║
 ║                    Enrutador Universal OpenAI-Compatible                     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
@@ -114,6 +114,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             "/v1/models":    self._serve_models,
             "/v1/status":    self._serve_status,
             "/v1/audit":     self._serve_audit,
+            "/v1/fooocus/status": self._serve_fooocus_status,
             "/v1/images":    self._serve_images,
             "/metrics":      self._serve_metrics,
         }
@@ -127,11 +128,12 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
 
     # ── Dashboard SPA ─────────────────────────────────────────────────────────
     def _serve_dashboard(self):
+        # DASHBOARD_HTML ahora es bytes constante en dashboard.py — import directo
         try:
             from dashboard import DASHBOARD_HTML
-            body = DASHBOARD_HTML.encode("utf-8")
+            body = DASHBOARD_HTML
         except Exception:
-            body = b"<h1>Gravity AI Bridge V9.0 PRO [Diamond-Tier Edition]</h1><p>Ejecuta: python dashboard.py</p>"
+            body = b"<h1>Gravity AI Bridge V9.2 PRO</h1><p>No se encontro web/dashboard.html. Restaura la carpeta web/.</p>"
         try:
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -142,24 +144,38 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             pass
 
     def _serve_static_output(self):
-        filename = self.path[len("/static/output/"):]
-        if not filename or ".." in filename:
+        # Permite subdirectorios de fecha: /static/output/2026-04-13/filename.png
+        raw = self.path[len("/static/output/"):]
+        if not raw or ".." in raw:
             self.send_response(403)
             self.end_headers()
             return
-            
-        # Hardcoded to ComfyUI-Zluda output dir as per knowledge.json
-        comfy_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_integrations", "ComfyUI-Zluda", "output")
-        filepath = os.path.join(comfy_dir, filename)
-        
-        if not os.path.exists(filepath):
+
+        BASE = os.path.dirname(os.path.abspath(__file__))
+        fooocus_out = os.path.join(BASE, "_integrations", "Fooocus", "Fooocus", "outputs")
+
+        filepath = None
+        # 1. Intento ruta completa (con subcarpeta incluida en raw)
+        candidate = os.path.join(fooocus_out, raw.replace("/", os.sep))
+        if os.path.isfile(candidate):
+            filepath = candidate
+        else:
+            # 2. Busqueda recursiva por basename (compatibilidad con URLs sin subcarpeta)
+            basename = os.path.basename(raw)
+            for ext in ("*.png", "*.jpg", "*.jpeg", "*.webp"):
+                matches = glob.glob(os.path.join(fooocus_out, "**", basename), recursive=True)
+                if matches:
+                    filepath = matches[0]
+                    break
+
+        if not filepath:
             self.send_response(404)
             self.end_headers()
             return
-            
+
         mime, _ = mimetypes.guess_type(filepath)
         mime = mime or "application/octet-stream"
-        
+
         try:
             with open(filepath, "rb") as f:
                 body = f.read()
@@ -174,23 +190,25 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
     def _serve_images(self):
+        """Sirve lista de imagenes generadas por Fooocus con URLs correctas incluyendo subcarpeta de fecha."""
         try:
-            comfy_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_integrations", "ComfyUI-Zluda", "output")
-            if not os.path.exists(comfy_dir):
-                resp = {"images": []}
-            else:
-                # Find all png/jpg/webp
-                files = []
+            BASE = os.path.dirname(os.path.abspath(__file__))
+            fooocus_out = os.path.join(BASE, "_integrations", "Fooocus", "Fooocus", "outputs")
+            files = []
+            if os.path.isdir(fooocus_out):
                 for ext in ("*.png", "*.jpg", "*.jpeg", "*.webp"):
-                    files.extend(glob.glob(os.path.join(comfy_dir, ext)))
-                
-                # Sort by modification time (newest first)
-                files.sort(key=os.path.getmtime, reverse=True)
-                
-                # Return paths relative to static
-                img_urls = [f"/static/output/{os.path.basename(f)}" for f in files]
-                resp = {"images": img_urls}
-                
+                    files.extend(glob.glob(os.path.join(fooocus_out, "**", ext), recursive=True))
+
+            # Ordenar por fecha de modificacion (mas nuevas primero)
+            files.sort(key=os.path.getmtime, reverse=True)
+
+            # Construir URLs con subcarpeta de fecha incluida para que _serve_static_output las encuentre
+            img_urls = []
+            for f in files[:50]:
+                rel = os.path.relpath(f, fooocus_out).replace(os.sep, "/")
+                img_urls.append(f"/static/output/{rel}")
+
+            resp = {"images": img_urls, "count": len(img_urls)}
             body = json.dumps(resp).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
@@ -198,6 +216,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
         except Exception as e:
+            log.error(f"Error sirviendo imagenes: {e}")
             self.send_response(500)
             self.end_headers()
 
@@ -241,7 +260,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
         best_p, best_m = provider_manager.get_best()
         scans  = provider_manager.scan_all()
         status = {
-            "version":         "9.1",
+            "version":         "9.2",
             "bridge_online":   True,
             "active_provider": best_p.name if best_p else None,
             "active_model":    best_m,
@@ -279,8 +298,73 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    # ── Fooocus Motor Status ───────────────────────────────────────────────────
+    def _serve_fooocus_status(self):
+        """Health check real del motor Fooocus en puerto 7861."""
+        import sys, os
+        BASE = os.path.dirname(os.path.abspath(__file__))
+        tools_dir = os.path.join(BASE, "tools")
+        if tools_dir not in sys.path:
+            sys.path.insert(0, tools_dir)
+        try:
+            from fooocus_client import health_check, OUTPUT_DIR
+            status = health_check()
+            # Contar imagenes generadas
+            import glob
+            imgs = []
+            for ext in ("*.png", "*.jpg", "*.jpeg", "*.webp"):
+                imgs.extend(glob.glob(os.path.join(OUTPUT_DIR, "**", ext), recursive=True))
+            status["images_generated"] = len(imgs)
+            status["output_dir"] = OUTPUT_DIR
+            status["port"] = 7861
+        except Exception as e:
+            status = {"online": False, "message": str(e), "port": 7861}
+        body = json.dumps(status, indent=2).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self._send_cors()
+        self.end_headers()
+        self.wfile.write(body)
+
     # ── POST ──────────────────────────────────────────────────────────────────
     def do_POST(self):
+
+        # /v1/generate — Generar imagen via Fooocus desde API REST
+        if self.path == "/v1/generate":
+            try:
+                import sys, os
+                BASE = os.path.dirname(os.path.abspath(__file__))
+                tools_dir = os.path.join(BASE, "tools")
+                if tools_dir not in sys.path:
+                    sys.path.insert(0, tools_dir)
+                from fooocus_client import generate_image, ImageGenRequest
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                req: ImageGenRequest = {
+                    "prompt":          data.get("prompt", "a beautiful landscape"),
+                    "negative_prompt": data.get("negative_prompt", ""),
+                    "width":           int(data.get("width", 1024)),
+                    "height":          int(data.get("height", 1024)),
+                    "num_images":      int(data.get("num_images", 1)),
+                    "performance":     data.get("performance", "Speed"),
+                    "style_selections": data.get("style_selections", ["Fooocus V2"]),
+                }
+                result = generate_image(req)
+                body = json.dumps(result).encode("utf-8")
+                code = 200 if result.get("success") else 500
+                self.send_response(code)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode())
+            return
+
 
         # /v1/keys — guardar API key desde el Dashboard web
         if self.path == "/v1/keys":
@@ -443,7 +527,7 @@ def run_server():
     port = config.get("server.port", 7860)
     provider_manager.scan_all()
     threading.Thread(target=background_scanner, daemon=True).start()
-    log.info(f"Gravity Bridge V9.0 PRO [Diamond-Tier Edition] — http://localhost:{port} | Dashboard: / | API: /v1")
+    log.info(f"Gravity Bridge V9.3 PRO [Diamond-Tier Edition] — http://localhost:{port} | Dashboard: / | API: /v1")
     server = ThreadingHTTPServer(("0.0.0.0", port), GravityBridgeHandler)
     try:
         server.serve_forever()
