@@ -23,10 +23,10 @@ if "%~1"=="--help" (
     echo  gravity --start          Iniciar TODO el ecosistema (Recomendado)
     echo  gravity --server         Iniciar solo Bridge Server backend
     echo  gravity --studio         Iniciar motor completo de Vision UI
-    echo  gravity --fabrica        Iniciar motor Web3 de FabricaWeb local (React)
-    echo  gravity --dashboard      Abrir dashboard ^(http://localhost:7860^)
-    echo  gravity --status         Estado de los motores de IA offline/online
-    echo  gravity --version        Versión actual
+    echo  gravity fabrica          Iniciar motor Web3 de FabricaWeb local (React)
+    echo  gravity dashboard        Abrir dashboard ^(http://localhost:7860^)
+    echo  gravity status           Estado de los motores de IA offline/online
+    echo  gravity version          Versión actual
     echo.
     exit /b 0
 )

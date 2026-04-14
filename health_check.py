@@ -60,6 +60,19 @@ def draw_dashboard(results):
         table.add_row(motor_name, tier, status, ping, model_str)
         
     console.print(Align.center(table))
+    
+    # --- Modulo FabricaWeb (Port 3000) ---
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(0.5)
+    fw_status = "[bold red]offline[/]"
+    try:
+        if s.connect_ex(('127.0.0.1', 3000)) == 0:
+            fw_status = "[bold green]ONLINE[/]"
+    except: pass
+    finally: s.close()
+    
+    console.print(Align.center(Panel(f"💎 [bold white]Estatus de Módulos Especiales:[/] FabricaWeb (Next.js): {fw_status}", border_style="dim", padding=(0,2))))
 
 def prompt_menu(results):
     healthy = [r for r in results if r.is_healthy and r.models]
@@ -98,7 +111,7 @@ def main():
     except Exception:
         pass
         
-    console.print(Align.center(Panel(Text("SISTEMA DE DIAGNÓSTICO V9.3 PRO", justify="center", style="bold bright_white"), style="on bright_black", box=box.HEAVY_EDGE, padding=(0,2))))
+    console.print(Align.center(Panel(Text("SISTEMA DE DIAGNÓSTICO V9.3.1 PRO", justify="center", style="bold bright_white"), style="on bright_black", box=box.HEAVY_EDGE, padding=(0,2))))
     
     with console.status("[bold cyan]⏳ Escaneando ecosistema Local y Cloud (RTO)...[/]", spinner="dots"):
         scans = provider_manager.scan_all()
