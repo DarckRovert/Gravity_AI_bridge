@@ -1,10 +1,10 @@
-# ⚡ Gravity AI Bridge V9.0 PRO [Diamond-Tier Edition] — Protocolo de Orquestación
+# ⚡ Gravity AI Bridge V9.3.1 PRO [Diamond-Tier Edition] — Protocolo de Orquestación
 
 Este proyecto está bajo la supervisión del Bridge de Gravity AI. Todo agente de IA que interactúe con este directorio DEBE observar las siguientes reglas operativas:
 
 ## 1. Localización del Puente
 - **Ruta Maestra**: F:\Gravity_AI_bridge
-- **Comando Global**: `gravity`
+- **Comando Global**: `gravity --start` (Lanza todo el ecosistema), `gravity --studio` (Lanza solo Fooocus Vision).
 - **Sincronización**: Antes de proponer cambios, el agente debe leer `F:\Gravity_AI_bridge\_knowledge.json` para alinear el contexto con sesiones previas.
 
 ## 2. Protocolo de Comunicación (DarckRovert Standard)
@@ -17,12 +17,16 @@ Este proyecto está bajo la supervisión del Bridge de Gravity AI. Todo agente d
   `cat "instruccion.txt" | python F:\Gravity_AI_bridge\ask_deepseek.py`
 - **Razonamiento**: Los bloques de pensamientos `<think>` deben ser respetados. No los resumas ni los elimines a menos que se solicite explícitamente para el output final.
 
-## 4. Auditoría y Seguridad
+## 4. Arquitectura de Motores Visuales (Fooocus)
+- **Modo CPU Obligatorio**: Fooocus 2.5.5 opera sin REST API nativa en este build y bajo estricto modo CPU (`--always-cpu`).
+- **Orquestación**: La comunicación Puente-Motor (`fooocus_studio_ui` / `fooocus_client`) es vía lectura iterativa del sistema de archivos (`_integrations/Fooocus/Fooocus/outputs`), NO endpoints HTTP. Prohibido escribir peticiones HTTP a rutas `/v1/generation`.
+
+## 5. Auditoría y Seguridad
 - **Verificación Adversarial**: Todo código crítico debe ser auditado mediante el agente de verificación:
   `python F:\Gravity_AI_bridge\core\verification_agent.py --file ruta/del/archivo.py`
 - **Integridad de Datos**: Cualquier error de persistencia detectado debe ser reportado al `data_guardian.py` para corrección atómica.
 
-## 5. Cierre de Sesión
+## 6. Cierre de Sesión
 - **Memoria Persistente**: Tras resolver un error complejo, sugiere al usuario la actualización de la base de conocimiento mediante el comando `!aprende`.
 - **Audit Log**: Asegúrate de que todas las métricas de la sesión han sido enviadas al servidor del Bridge para su registro inmutable.
 

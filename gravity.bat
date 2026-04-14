@@ -41,20 +41,23 @@ if "%~1"=="--install" (
     exit /b 0
 )
 
-if "%~1"=="--start" (
+if "%~1"=="--start" goto DO_START
+if "%~1"=="start" goto DO_START
+:DO_START
     start "" "%~dp0launchers\INICIAR_TODO.bat"
     exit /b 0
-)
 
-if "%~1"=="--studio" (
+if "%~1"=="--studio" goto DO_STUDIO
+if "%~1"=="studio" goto DO_STUDIO
+:DO_STUDIO
     start "" "%~dp0launchers\GRAVITY_VISION_PRO.bat"
     exit /b 0
-)
 
-if "%~1"=="--server" (
+if "%~1"=="--server" goto DO_SERVER
+if "%~1"=="server" goto DO_SERVER
+:DO_SERVER
     start "" "%~dp0launchers\INICIAR_SERVIDOR.bat"
     exit /b 0
-)
 
 if "%~1"=="--dashboard" (
     start "" "http://localhost:7860"

@@ -1,12 +1,12 @@
 @echo off
 cd /d "%~dp0.."
-title GRAVITY BRIDGE SERVER V9.0 PRO [Diamond-Tier Edition]
+title GRAVITY BRIDGE SERVER V9.3.1 PRO [Diamond-Tier Edition]
 color 0b
 cls
 
 echo.
 echo  +------------------------------------------------------------------------------+
-echo  ^|          GRAVITY AI - BRIDGE SERVER V9.0 PRO [Diamond-Tier Edition]          ^|
+echo  ^|          GRAVITY AI - BRIDGE SERVER V9.3.1 PRO [Diamond-Tier Edition]          ^|
 echo  ^|                  Enrutador Local + Cloud OpenAI-Compatible                   ^|
 echo  +------------------------------------------------------------------------------+
 echo.

@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI BRIDGE - INSTALADOR STANDALONE V9.0 PRO [Diamond-Tier Edition]   ║
+║  GRAVITY AI BRIDGE - INSTALADOR STANDALONE V9.3.1 PRO [Diamond-Tier Edition]   ║
 ║              Instalador TUI premium con elección de directorio               ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """

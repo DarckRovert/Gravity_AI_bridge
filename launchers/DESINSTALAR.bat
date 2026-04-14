@@ -1,13 +1,13 @@
 @echo off
 setlocal enabledelayedexpansion
 cd /d "%~dp0.."
-title DESINSTALADOR — GRAVITY AI BRIDGE V9.0 PRO
+title DESINSTALADOR — GRAVITY AI BRIDGE V9.3.1 PRO
 color 0c
 cls
 
 echo.
 echo  +------------------------------------------------------------------------------+
-echo  ^|      GRAVITY AI BRIDGE V9.0 PRO [Diamond-Tier Edition] - Desinstalador       ^|
+echo  ^|      GRAVITY AI BRIDGE V9.3.1 PRO [Diamond-Tier Edition] - Desinstalador       ^|
 echo  +------------------------------------------------------------------------------+
 echo.
 echo  Iniciando protocolo de neutralizacion...

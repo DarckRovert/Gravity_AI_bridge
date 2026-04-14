@@ -6,7 +6,7 @@ cls
 
 echo.
 echo  +------------------------------------------------------------------------------+
-echo  ^|        GRAVITY AI BRIDGE V9.0 PRO [Diamond-Tier Edition] - Instalador        ^|
+echo  ^|        GRAVITY AI BRIDGE V9.3.1 PRO [Diamond-Tier Edition] - Instalador        ^|
 echo  ^|                   github.com/DarckRovert/Gravity_AI_bridge                   ^|
 echo  +------------------------------------------------------------------------------+
 echo.

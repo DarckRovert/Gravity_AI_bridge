@@ -133,7 +133,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             from dashboard import DASHBOARD_HTML
             body = DASHBOARD_HTML
         except Exception:
-            body = b"<h1>Gravity AI Bridge V9.2 PRO</h1><p>No se encontro web/dashboard.html. Restaura la carpeta web/.</p>"
+            body = b"<h1>Gravity AI Bridge V9.3.1 PRO</h1><p>No se encontro web/dashboard.html. Restaura la carpeta web/.</p>"
         try:
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")

@@ -1,4 +1,4 @@
-# 🌌 Gravity AI Protocol / Protocolo Gravity AI V7.1
+# 📄 Gravity AI Protocol V9.3.1 PRO/ Protocolo Gravity AI V7.1
 
 The Gravity AI Protocol defines the technical and ethical standards for autonomous local AI systems.
 
@@ -27,8 +27,8 @@ Ningún dato del usuario se almacenará en logs externos ni se enviará a provee
 ---
 
 ## ⏳ Intellectual Property / Propiedad Intelectual
-This project is owned by **DarckRovert**. Licensed under **PolyForm Non-Commercial 1.0.0**.
+This project is owned by **DarckRovert**. Licensed under **MIT License**.
 
-Este proyecto es propiedad de **DarckRovert**. Bajo Licencia **PolyForm No-Comercial 1.0.0**.
+Este proyecto es propiedad de **DarckRovert**. Bajo Licencia **MIT License**.
 
 *Official Support:* [twitch.tv/darckrovert](https://www.twitch.tv/darckrovert)

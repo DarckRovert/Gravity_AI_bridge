@@ -26,13 +26,13 @@ description: Auditoría total, Generación de Documentación, Wiki y Despliegue 
 3. **Auditoría y Verificación de Rutas**
    Confirmar que todos los archivos (Suite + Wiki) existen en la raíz y en /wiki. Validar que los enlaces internos funcionen.
 
-4. **Despliegue Git**
-   Ejecutar secuencia de comandos:
+4. **Despliegue Git (V9.3.1 PRO)**
+   NO ejecutes comandos git manuales. El entorno Diamond-Tier requiere auditoría automática de despliegue y timestamps nativos en Powershell.
+   Ejecutar el script de despliegue maestro:
    ```bash
-   git add .
-   git commit -m "Official Release: Full Documentation Suite and Technical Wiki included"
-   git push origin main
+   F:\Gravity_AI_bridge\launchers\Deploy_GravityBridge.bat
    ```
+   *Nota: Si estás en modo automático, pasa el argumento si es necesario, o pide al usuario que lo ejecute manual para confirmar.*
 
 5. **Reporte Final**
    Entregar al usuario en Español el resumen del despliegue y el enlace al repositorio: https://github.com/DarckRovert/Gravity_AI_bridge

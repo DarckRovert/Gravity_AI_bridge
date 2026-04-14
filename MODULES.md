@@ -1,4 +1,4 @@
-# 📦 Gravity Module Map / Mapa de Módulos V7.1
+# 📦 Gravity Module Map / Mapa de Módulos V9.3.1 PRO
 
 Understand the project's internal structure and file responsibilities.
 Entiende la estructura interna del proyecto y las responsabilidades de los archivos.
@@ -34,8 +34,8 @@ Entiende la estructura interna del proyecto y las responsabilidades de los archi
 ---
 
 ## ⚖️ Intellectual Property / Propiedad Intelectual
-This project is owned by **DarckRovert**. Licensed under **PolyForm Non-Commercial 1.0.0**.
+This project is owned by **DarckRovert**. Licensed under **MIT License**.
 
-Este proyecto es propiedad de **DarckRovert**. Bajo Licencia **PolyForm No-Comercial 1.0.0**.
+Este proyecto es propiedad de **DarckRovert**. Bajo Licencia **MIT License**.
 
 *Official Support:* [twitch.tv/darckrovert](https://www.twitch.tv/darckrovert)

@@ -4,7 +4,7 @@ REM BUG-10 FIX: Usar paths absolutos con %~dp0 para todos los scripts Python,
 REM garantizando que funciona independientemente del directorio de trabajo actual.
 cd /d "%~dp0.."
 
-title GRAVITY AI -- AUDITOR SENIOR V9.0 PRO
+title GRAVITY AI -- AUDITOR SENIOR V9.3.1 PRO
 color 0b
 cls
 

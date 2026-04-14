@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║      GRAVITY AI BRIDGE - AUDITOR SENIOR V9.2 PRO [Diamond-Tier Edition]      ║
+║      GRAVITY AI BRIDGE - AUDITOR SENIOR V9.3.1 PRO [Diamond-Tier Edition]      ║
 ║                   CLI Frontend | RAG | Tools | Multi-model                   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
@@ -35,7 +35,7 @@ from rich          import box
 import pyfiglet
 
 
-# ── V9.0 PRO [Diamond-Tier Edition] Integrations ──────────────────────────────────────────────────────────
+# ── V9.3.1 PRO [Diamond-Tier Edition] Integrations ──────────────────────────────────────────────────────────
 from core import provider_manager
 from core.config_manager import config
 from core.session_manager import SessionManager
@@ -107,7 +107,7 @@ KNOWLEDGE_FILE = os.path.join(BASE_DIR, "_knowledge.json")
 console = Console()
 
 class SettingsManager:
-    """Surgical wrapper for ConfigManager V9.0 PRO [Diamond-Tier Edition] compatibility."""
+    """Surgical wrapper for ConfigManager V9.3.1 PRO [Diamond-Tier Edition] compatibility."""
     def __init__(self):
         self.config = config
         self.data = {
@@ -149,7 +149,7 @@ def first_run_check():
     _console.print(f"[bold bright_cyan]{fig.renderText('GRAVITY AI').rstrip()}[/]")
     _console.print(Panel(
         Align.center(
-            "[bold white]Bienvenido a Gravity AI Bridge V9.0 PRO [Diamond-Tier Edition][/]\n"
+            "[bold white]Bienvenido a Gravity AI Bridge V9.3.1 PRO [Diamond-Tier Edition][/]\n"
             "[dim]Primera ejecución detectada. Configuración inicial.[/]"
         ),
         border_style="cyan", box=box.DOUBLE, padding=(1, 6)
@@ -250,7 +250,7 @@ class AuditorCLI:
         mode = self.sm.mode
         if mode == "Omni-Audit":
             base += (
-                "\nMODO: Omni-Audit (V9.0 PRO [Diamond-Tier Edition] Premium). "
+                "\nMODO: Omni-Audit (V9.3.1 PRO [Diamond-Tier Edition] Premium). "
                 "CRÍTICO: Análisis de arquitectura zero-trust. Alta precisión matemática. "
                 "Detecta race conditions, memory leaks y fallos de lógica con 99% de precisión. "
                 "Provee razonamiento técnico detallado para cada cambio propuesto. "
@@ -352,7 +352,7 @@ class AuditorCLI:
         t.add_row("/mcp <ruta>", "Conecta con un servidor MCP externo (stdio).")
         t.add_row("!aprende <texto>", "Persiste una regla en el knowledge base local.")
         t.add_row("/exit", "Sale del auditor guardando el historial de razonamiento.")
-        console.print(Panel(t, title="[bold cyan]Comandos Disponibles - Gravity AI V9.0 PRO [Diamond-Tier Edition][/]", border_style="blue"))
+        console.print(Panel(t, title="[bold cyan]Comandos Disponibles - Gravity AI V9.3.1 PRO [Diamond-Tier Edition][/]", border_style="blue"))
 
     def cmd_providers(self):
         scans = provider_manager.scan_all()
