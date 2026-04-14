@@ -33,6 +33,14 @@ Entiende la estructura interna del proyecto y las responsabilidades de los archi
 
 ---
 
+## 🧩 Integrations / Anillo de Integraciones
+Módulos externos absorbidos por el Bridge.
+
+- `_integrations/Fooocus/`: Motor de generación de imágenes (CPU Optimized).
+- `_integrations/FabricaWeb/`: Framework de desarrollo Web3 y Frontend (Next.js).
+
+---
+
 ## ⚖️ Intellectual Property / Propiedad Intelectual
 This project is owned by **DarckRovert**. Licensed under **MIT License**.
 

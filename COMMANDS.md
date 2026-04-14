@@ -21,6 +21,16 @@ Referencia rápida de órdenes administrativas y operativas.
 
 ---
 
+## 🚀 Terminal Orchestration / Orquestación por Terminal
+Accesos rápidos desde CMD para lanzadores centralizados.
+
+- `gravity --start`: Inicialización completa (Server + Fooocus + Dashboard).
+- `gravity --studio`: Lanzar exclusivamente el motor de visión (Fooocus).
+- `gravity --fabrica`: Lanzar servidor de desarrollo **FabricaWeb** (Next.js).
+- `gravity --server`: Lanzar solo el Bridge Server (Backend).
+
+---
+
 ## 📦 RAG Commands / Comandos de Búsqueda (RAG)
 
 ### [EN] Semantic Search

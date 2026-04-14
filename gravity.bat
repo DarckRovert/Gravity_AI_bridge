@@ -23,6 +23,7 @@ if "%~1"=="--help" (
     echo  gravity --start          Iniciar TODO el ecosistema (Recomendado)
     echo  gravity --server         Iniciar solo Bridge Server backend
     echo  gravity --studio         Iniciar motor completo de Vision UI
+    echo  gravity --fabrica        Iniciar motor Web3 de FabricaWeb local (React)
     echo  gravity --dashboard      Abrir dashboard ^(http://localhost:7860^)
     echo  gravity --status         Estado de los motores de IA offline/online
     echo  gravity --version        Versión actual
@@ -57,6 +58,12 @@ if "%~1"=="--server" goto DO_SERVER
 if "%~1"=="server" goto DO_SERVER
 :DO_SERVER
     start "" "%~dp0launchers\INICIAR_SERVIDOR.bat"
+    exit /b 0
+
+if "%~1"=="--fabrica" goto DO_FABRICA
+if "%~1"=="fabrica" goto DO_FABRICA
+:DO_FABRICA
+    start "" "%~dp0launchers\INICIAR_FABRICAWEB.bat"
     exit /b 0
 
 if "%~1"=="--dashboard" (
