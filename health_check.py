@@ -13,6 +13,16 @@ import pyfiglet
 
 from core import provider_manager
 
+# ── Windows UTF-8 Safety ──────────────────────────────────────────────────────
+if sys.stdout.encoding != "utf-8":
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
+
 console = Console()
 SETTINGS_FILE = os.path.join(os.path.dirname(__file__), "_settings.json")
 

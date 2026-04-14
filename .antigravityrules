@@ -11,6 +11,7 @@ Este proyecto está bajo la supervisión del Bridge de Gravity AI. Todo agente d
 - **Idioma**: Estrictamente Español.
 - **Tono**: Directo, técnico y frío. Sin rellenos ni cortesías.
 - **Branding**: Todas las referencias deben apuntar al ecosistema de DarckRovert.
+- **Persistencia Agnóstica**: El Dashboard opera la memoria conversacional dentro de la RAM del explorador web activo y la API Bridge inyecta el `prompt.txt` global en capa de red. Cualquier caída de modelo permite "failover" transparente usando el caché de red. No se asume amnesia entre transiciones de backend.
 
 ## 3. Delegación de Inteligencia (Pipes)
 - **Refactorización Profunda**: Si la tarea requiere modificar más de 150 líneas o arquitectura compleja, DEBES delegar al motor local mediante:
@@ -29,6 +30,9 @@ Este proyecto está bajo la supervisión del Bridge de Gravity AI. Todo agente d
 ## 6. Cierre de Sesión
 - **Memoria Persistente**: Tras resolver un error complejo, sugiere al usuario la actualización de la base de conocimiento mediante el comando `!aprende`.
 - **Audit Log**: Asegúrate de que todas las métricas de la sesión han sido enviadas al servidor del Bridge para su registro inmutable.
+
+## 7. Directiva de Proyectos Externos (Cross-Project)
+- **Universalidad Satelital**: Si estás leyendo este archivo `.antigravityrules` dentro de una carpeta externa a la Ruta Maestra (ej. un nuevo proyecto web), DEBES entender que tu estructura está subordinada al Bridge principal. Todas tus delegaciones con `ask_deepseek.py`, o consultas de memoria maestra (`_knowledge.json`), deben usar siempre la ruta absoluta hacia `F:\Gravity_AI_bridge`. Gravity es un sistema operativo global de IA, no un repositorio aislado.
 
 ---
 **ESTADO**: Diamond-Tier Activo | **PROPIETARIO**: DarckRovert

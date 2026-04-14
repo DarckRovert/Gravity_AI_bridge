@@ -1,6 +1,15 @@
-﻿# CHANGELOG — Gravity AI Bridge
+# CHANGELOG — Gravity AI Bridge
 
 Todos los cambios notables se documentan en este archivo siguiendo [Keep a Changelog](https://keepachangelog.com/es/).
+
+---
+
+## [V9.3.1 PRO] -- 2026-04-14 [Orquestación de Fooocus y Unificación Web]
+
+### Correcciones Críticas (P0)
+- **tools/fooocus_client.py**: Resolución definitiva del error `ValueError: needed: 153, got: 0` y la desconexión vía WebSockets (`Unknown protocol: ws`). El trigger ahora realiza un escaneo dinámico de los IDs del cliente de Fooocus y utiliza peticiones REST (HTTP POST) en lugar de sockets, asegurando inmunidad a futuras actualizaciones en la cantidad de parámetros.
+- **bridge_server.py / INICIAR_TODO.bat**: Fin de los errores CORS y estado "offline" de la interfaz gráfica. El servidor del Bridge ahora expone un host web local nativo en el puerto 7860 y sirve el Dashboard como Single Page Application local. `INICIAR_TODO.bat` abre el navegador automáticamente a `http://127.0.0.1:7860/` eliminando las llamadas `file:///`.
+- **health_check.py**: Se parcheó un vector de debilidad (`UnicodeEncodeError`) en consolas de Windows estándar que no soportaban los Emojis y artes ASCII (`cp1252`), forzando `utf-8` sobre `sys.stdout` nativamente.
 
 ---
 

@@ -2,5 +2,5 @@
     "provider": "LM Studio",
     "provider_protocol": "openai",
     "api_url": "http://localhost:1234",
-    "last_model": "google/gemma-4-e4b"
+    "last_model": "google/gemma-4-e2b"
 }

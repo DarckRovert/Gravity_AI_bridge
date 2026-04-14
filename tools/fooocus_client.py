@@ -21,6 +21,11 @@ from typing import TypedDict, Literal
 
 FOOOCUS_BASE_URL: str = os.getenv("FOOOCUS_URL", "http://127.0.0.1:7861")
 
+try:
+    from gradio_client import Client as GradioClient
+except ImportError:
+    GradioClient = None
+
 # Output dir de Fooocus: donde graba las imagenes generadas
 OUTPUT_DIR: str = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "_integrations", "Fooocus", "Fooocus", "outputs")
@@ -139,18 +144,61 @@ def generate_image(request: ImageGenRequest) -> ImageGenResponse:
 
     payload_data = json.dumps(payload).encode("utf-8")
 
+    # 1. Intentar API REST (v1/generation) - Para compatibilidad futura
     try:
         req = urllib.request.Request(
             f"{FOOOCUS_BASE_URL}/v1/generation/text-to-image",
             data=payload_data,
             headers={"Content-Type": "application/json"}
         )
-        with urllib.request.urlopen(req, timeout=30) as response:
+        with urllib.request.urlopen(req, timeout=5) as response:
             res_data = json.loads(response.read())
             job_id = res_data.get("job_id")
             return {"success": True, "images": [], "error": None, "job_id": job_id}
+    except Exception:
+        # 2. Si falla (404), intentar disparo Gradio directo (Automation Bridge)
+        return trigger_gradio_generation(prompt_text, performance, f"{width}\u00d7{height}")
+
+
+def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ratio: str = "1024x1024") -> ImageGenResponse:
+    """
+    Disparador de alta precision via REST API.
+    Mapea dinamicamente los parametros de Fooocus buscando por etiquetas (labels).
+    """
+    import random
+    import string
+
+    try:
+        print(f"[FooocusClient] Iniciando disparo dinamico para: {prompt[:30]}...")
+        
+        import subprocess
+        import os
+        
+        # Ruta al ejecutable de Python de Fooocus
+        fooocus_python = os.path.join(os.path.dirname(__file__), "..", "_integrations", "Fooocus", "python_embeded", "python.exe")
+        trigger_script = os.path.join(os.path.dirname(__file__), "native_trigger.py")
+        
+        if not os.path.exists(fooocus_python):
+            return {"success": False, "images": [], "error": "Python de Fooocus no encontrado. ¿Está en _integrations/Fooocus?", "job_id": None}
+            
+        # Llamada en subprocess al agente con gradio_client local (bypass colas de ws)
+        try:
+            result = subprocess.run([fooocus_python, trigger_script, prompt, performance, aspect_ratio], capture_output=True, text=True, timeout=20)
+            print(f"[FooocusClient] Wrapper Nativo STDOUT: {result.stdout.strip()}")
+            
+            if "✔" in result.stdout or "success" in result.stdout.lower():
+                print("[FooocusClient] Trigger nativo exitoso. Generacion en curso...")
+                return {"success": True, "images": [], "error": None, "job_id": "native_queue_trigger"}
+            else:
+                return {"success": False, "images": [], "error": f"Fallo en Wrapper: {result.stderr}", "job_id": None}
+                
+        except Exception as se:
+            print(f"[FooocusClient] ERROR en Llamada Nativa: {se}")
+            return {"success": False, "images": [], "error": str(se), "job_id": None}
+            
     except Exception as e:
-        return {"success": False, "images": [], "error": f"API Error: {e}", "job_id": None}
+        print(f"[FooocusClient] ERROR general en Trigger: {e}")
+        return {"success": False, "images": [], "error": str(e), "job_id": None}
 
 
 # ─── Job Status Polling ───────────────────────────────────────────────────────

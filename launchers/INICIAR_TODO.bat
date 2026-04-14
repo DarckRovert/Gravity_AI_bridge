@@ -59,4 +59,6 @@ echo  ^|   [!] NO cierres la ventana del motor Fooocus mientras trabajas        
 echo  ^|                                                                          ^|
 echo  +--------------------------------------------------------------------------+
 echo.
+echo  Abriendo el Dashboard principal en tu navegador...
+start http://127.0.0.1:7860/
 pause

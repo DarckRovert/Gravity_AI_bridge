@@ -24,7 +24,7 @@ if _TOOLS_DIR not in sys.path:
     sys.path.insert(0, _TOOLS_DIR)
 
 import gradio as gr
-from fooocus_client import health_check, get_latest_outputs, OUTPUT_DIR, FOOOCUS_BASE_URL
+from fooocus_client import health_check, get_latest_outputs, OUTPUT_DIR, FOOOCUS_BASE_URL, trigger_gradio_generation
 
 
 # ─── Cold-start detection ─────────────────────────────────────────────────────
@@ -102,11 +102,15 @@ def on_open_fooocus_and_wait(prompt: str, performance: str, aspect_ratio: str):
     before_set = set(get_all_images())
     before_count = len(before_set)
 
-    # Instruccion visual al usuario
-    gr.Info(
-        f"Motor activo. Prompt copiado. Abre http://127.0.0.1:7861, "
-        f"pega el prompt y presiona Generate. Esta ventana mostrara el resultado automaticamente."
-    )
+    # DISPARO AUTOMÁTICO (V9.3.1 PRO Upgrade)
+    gr.Info(f"🎨 Enviando comando de generación al motor (CPU)...")
+    trigger_result = trigger_gradio_generation(prompt, performance, aspect_ratio)
+    
+    if trigger_result["success"]:
+        gr.Info("🚀 Motor disparado con éxito. Generación iniciada en segundo plano.")
+    else:
+        gr.Warning(f"⚠️ No se pudo disparar el motor automáticamente: {trigger_result['error']}")
+        gr.Info("Por favor, inicia la generación manualmente en http://127.0.0.1:7861")
 
     print(f"[VisionStudio] Esperando imagen nueva en {OUTPUT_DIR}...")
     print(f"[VisionStudio] Archivos existentes: {before_count}")

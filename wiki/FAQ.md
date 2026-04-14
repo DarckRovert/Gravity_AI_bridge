@@ -92,6 +92,17 @@ Gravity> !aprende Siempre usa type hints explícitos en Python. Prohibido 'Any'.
 ✓ Regla persistida en _knowledge.json (5 total)
 ```
 
+## 🧠 Memoria y Persistencia de Sesión
+
+### ¿Cómo recuerda la IA de qué estábamos hablando si cambia de modelo?
+El ecosistema implementa **Agnosticismo de Modelos y Memoria Acumulativa**. El historial completo de la charla no vive en el backend, vive en tu navegador (Dashboard). Esto asegura que al cambiar de un modelo OLLAMA a uno de API o de LM Studio, el nuevo modelo recibe mágicamente TODO el contexto que el modelo anterior dejó escrito. Para ellos, es la misma conversación continua.
+
+### ¿Qué pasa si refresco (F5) la página web del Dashboard principal?
+Al recargar la web de Gravity (puerto 7860), **la sesión conversacional activa (RAM) se borra**. Úsalo a tu favor cuando quieras limpiar todo el contexto sin cerrar subprocesos del servidor. 
+
+### ¿La inyección de personalidad ('Soberanía Idioma local', etc.) funciona si cambio de motor?
+Sí, el mecanismo `bridge_server.py` inyecta silenciosamente al inicio de todas las comunicaciones tu archivo `prompt.txt`. La IA no perderá tus normas sin importar cual motor utilices en el backend.
+
 ---
 
 ## 🌐 Bridge Server y Dashboard

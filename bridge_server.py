@@ -418,6 +418,16 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             is_streaming   = payload.get("stream", True)
             options        = {k: payload[k] for k in ("temperature", "top_p", "max_tokens", "stop") if k in payload}
 
+            # ── Auto-inyección de Personalidad (prompt.txt) ──
+            if not any(m.get("role") == "system" for m in messages):
+                try:
+                    with open(os.path.join(os.path.dirname(__file__), "prompt.txt"), "r", encoding="utf-8") as _f:
+                        _sys_prompt = _f.read().strip()
+                        if _sys_prompt:
+                            messages.insert(0, {"role": "system", "content": _sys_prompt})
+                except Exception:
+                    pass
+
             target_prov = None
             target_mod  = req_model
             if req_model == "gravity-bridge-auto":
