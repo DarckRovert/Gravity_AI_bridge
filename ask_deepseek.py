@@ -100,7 +100,7 @@ class ReasoningStripper:
                     break
         return output
 
-APP_VERSION    = "9.0 PRO"
+APP_VERSION    = "9.3.1 PRO"
 BASE_DIR       = os.path.dirname(__file__)
 KNOWLEDGE_FILE = os.path.join(BASE_DIR, "_knowledge.json")
 

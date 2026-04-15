@@ -1,5 +1,5 @@
 """
-Gravity AI Bridge V9.3 PRO — Dashboard Web Server
+Gravity AI Bridge V9.3.1 PRO — Dashboard Web Server
 SPA interactiva: Estado + Chat + Vision Studio + Gestion de modelos
 Servidor HTTP puro — cero dependencias extra.
 Sirve web/dashboard.html en / con CORS habilitado.

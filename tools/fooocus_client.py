@@ -175,22 +175,24 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
         import os
         
         # Ruta al ejecutable de Python de Fooocus
-        fooocus_python = os.path.join(os.path.dirname(__file__), "..", "_integrations", "Fooocus", "python_embeded", "python.exe")
-        trigger_script = os.path.join(os.path.dirname(__file__), "native_trigger.py")
+        fooocus_python = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "_integrations", "Fooocus", "python_embeded", "python.exe"))
+        trigger_script = os.path.abspath(os.path.join(os.path.dirname(__file__), "native_trigger.py"))
         
         if not os.path.exists(fooocus_python):
             return {"success": False, "images": [], "error": "Python de Fooocus no encontrado. ¿Está en _integrations/Fooocus?", "job_id": None}
             
-        # Llamada en subprocess al agente con gradio_client local (bypass colas de ws)
+        # Llamada asíncrona redirigiendo la salida a log para tener trazabilidad.
         try:
-            result = subprocess.run([fooocus_python, trigger_script, prompt, performance, aspect_ratio], capture_output=True, text=True, timeout=20)
-            print(f"[FooocusClient] Wrapper Nativo STDOUT: {result.stdout.strip()}")
+            log_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "fooocus_trigger_debug.log"))
+            with open(log_file, "a") as f:
+                f.write(f"\n--- Disparando {prompt} ---\n")
             
-            if "✔" in result.stdout or "success" in result.stdout.lower():
-                print("[FooocusClient] Trigger nativo exitoso. Generacion en curso...")
-                return {"success": True, "images": [], "error": None, "job_id": "native_queue_trigger"}
-            else:
-                return {"success": False, "images": [], "error": f"Fallo en Wrapper: {result.stderr}", "job_id": None}
+            # Pasamos stdout y stderr al log para no perder el error si explota.
+            out_file = open(log_file, "a")
+            subprocess.Popen([fooocus_python, trigger_script, prompt, performance, aspect_ratio], stdout=out_file, stderr=out_file)
+            
+            print("[FooocusClient] Trigger nativo disparado en background absoluto...")
+            return {"success": True, "images": [], "error": None, "job_id": "native_queue_trigger"}
                 
         except Exception as se:
             print(f"[FooocusClient] ERROR en Llamada Nativa: {se}")

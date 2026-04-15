@@ -87,12 +87,21 @@ def main():
 
         # 3. Disparo con cliente de Gradio de la misma JVM/Python (Bypass Queues y WS)
         client = Client(fooocus_url)
-        res = client.submit(*args, fn_index=fn_index)
+        job = client.submit(*args, fn_index=fn_index)
         
-        # El submit encolas, res es un generador asíncrono, pero lo lanzamos y nos desconectamos.
-        # Imprimir JSON para que el Bridge lo recoja.
+        # Debemos esperar a que empiece a procesar para no desconectar el socket, 
+        # Si cerramos Inmediatamente, Gradio detecta desconexión y cancela la generación.
+        # Imprimimos de inmediato para el stdout del Bridge, pero el script se queda vivo esperando.
         print(json.dumps({"success": True}))
+        sys.stdout.flush()
         
+        # Bloquea hasta que la generación acabe (mantiene vivo el socket)
+        try:
+            res_val = job.result()
+            print(f"JOB RESULT: {res_val}", file=sys.stderr)
+        except Exception as err:
+            print(f"JOB ERROR: {err}", file=sys.stderr)
+            
     except Exception as e:
         print(json.dumps({"success": False, "error": str(e)}))
 

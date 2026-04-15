@@ -1,5 +1,5 @@
 @echo off
-title Gravity AI Bridge V9.3 PRO -- Arranque Completo
+title Gravity AI Bridge V9.3.1 PRO -- Arranque Completo
 cd /d "F:\Gravity_AI_bridge"
 color 0B
 cls

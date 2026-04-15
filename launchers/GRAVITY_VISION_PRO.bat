@@ -11,14 +11,10 @@ echo  ^|          Motor: Fooocus 2.5.5 CPU-Mode (Estable sin crash)             
 echo  +--------------------------------------------------------------------------+
 echo.
 
-REM ── Matar procesos previos en puertos 7861/7862 si quedaron colgados ─────────
-echo  [1/3] Liberando puertos 7861 y 7862...
+REM ── Matar procesos previos en puerto 7861 si quedaron colgados ─────────
+echo  [1/3] Liberando puerto 7861...
 for /f "tokens=5" %%p in ('netstat -ano ^| findstr :7861 ^| findstr LISTENING') do (
     echo        Matando PID %%p en 7861...
-    taskkill /F /PID %%p >nul 2>&1
-)
-for /f "tokens=5" %%p in ('netstat -ano ^| findstr :7862 ^| findstr LISTENING') do (
-    echo        Matando PID %%p en 7862...
     taskkill /F /PID %%p >nul 2>&1
 )
 echo  [OK]
@@ -34,11 +30,10 @@ if not exist "F:\Gravity_AI_bridge\_integrations\Fooocus\python_embeded\python.e
 )
 echo  [OK] Fooocus encontrado.
 
-REM ── Lanzar Fooocus y Studio UI ───────────────────────────────────────────────
+REM ── Lanzar Fooocus ───────────────────────────────────────────────
 echo  [3/3] Iniciando Ecosistema Vision...
 start "Gravity Motor [Fooocus CPU]" /d "F:\Gravity_AI_bridge\_integrations\Fooocus" cmd /c "run_amd.bat"
 timeout /t 5 /nobreak > nul
-start "Gravity Vision Studio UI" cmd /c "python tools\fooocus_studio_ui.py"
 
 echo.
 echo  +--------------------------------------------------------------------------+

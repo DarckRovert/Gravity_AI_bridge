@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║          GRAVITY AI - BRIDGE SERVER V9.3 PRO [Diamond-Tier Edition]          ║
+║          GRAVITY AI - BRIDGE SERVER V9.3.1 PRO [Diamond-Tier Edition]          ║
 ║                    Enrutador Universal OpenAI-Compatible                     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
@@ -260,7 +260,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
         best_p, best_m = provider_manager.get_best()
         scans  = provider_manager.scan_all()
         status = {
-            "version":         "9.2",
+            "version":         "9.3.1 PRO",
             "bridge_online":   True,
             "active_provider": best_p.name if best_p else None,
             "active_model":    best_m,
@@ -332,7 +332,6 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
         # /v1/generate — Generar imagen via Fooocus desde API REST
         if self.path == "/v1/generate":
             try:
-                import sys, os
                 BASE = os.path.dirname(os.path.abspath(__file__))
                 tools_dir = os.path.join(BASE, "tools")
                 if tools_dir not in sys.path:
@@ -418,15 +417,22 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             is_streaming   = payload.get("stream", True)
             options        = {k: payload[k] for k in ("temperature", "top_p", "max_tokens", "stop") if k in payload}
 
-            # ── Auto-inyección de Personalidad (prompt.txt) ──
+            # ── Auto-inyección de Personalidad (Knowledge Base) ──
             if not any(m.get("role") == "system" for m in messages):
                 try:
-                    with open(os.path.join(os.path.dirname(__file__), "prompt.txt"), "r", encoding="utf-8") as _f:
-                        _sys_prompt = _f.read().strip()
-                        if _sys_prompt:
-                            messages.insert(0, {"role": "system", "content": _sys_prompt})
-                except Exception:
-                    pass
+                    from core import data_guardian
+                    _base_dir = os.path.dirname(__file__)
+                    kb_data, _ = data_guardian.load_knowledge(os.path.join(_base_dir, "_knowledge.json"))
+                    _sys_prompt = (
+                        "Eres Gravity AI V9.3.1 PRO, Auditor Senior. "
+                        "PROTOCOLO: Lógica interna en inglés. Salida final en español estrictamente. "
+                        "Sin rellenos conversacionales. Solo hechos técnicos fríos. Resolución directa."
+                    )
+                    if kb_data and "persistent_rules" in kb_data and kb_data["persistent_rules"]:
+                        _sys_prompt += "\n\nCONOCIMIENTO CRÍTICO:\n" + "\n".join(kb_data["persistent_rules"])
+                    messages.insert(0, {"role": "system", "content": _sys_prompt})
+                except Exception as e:
+                    log.error(f"Error cargando personalidad para el bridge: {e}")
 
             target_prov = None
             target_mod  = req_model
@@ -537,7 +543,7 @@ def run_server():
     port = config.get("server.port", 7860)
     provider_manager.scan_all()
     threading.Thread(target=background_scanner, daemon=True).start()
-    log.info(f"Gravity Bridge V9.3 PRO [Diamond-Tier Edition] — http://localhost:{port} | Dashboard: / | API: /v1")
+    log.info(f"Gravity Bridge V9.3.1 PRO [Diamond-Tier Edition] — http://localhost:{port} | Dashboard: / | API: /v1")
     server = ThreadingHTTPServer(("0.0.0.0", port), GravityBridgeHandler)
     try:
         server.serve_forever()
