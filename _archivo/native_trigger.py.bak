@@ -1,5 +1,4 @@
 import urllib.request
-import urllib.error
 import json
 import sys
 import io
@@ -87,16 +86,6 @@ def main():
                 val = 1
             args.append(val)
 
-        # Ajuste dinámico de argumentos (Fix: Expected 153, got 154)
-        expected_len = len(input_ids)
-        if len(args) > expected_len:
-            print(f"[NativeTrigger] AJUSTE: Recortando de {len(args)} a {expected_len} argumentos.", file=sys.stderr)
-            args = args[:expected_len]
-        elif len(args) < expected_len:
-            print(f"[NativeTrigger] AJUSTE: Rellenando de {len(args)} a {expected_len} con None.", file=sys.stderr)
-            while len(args) < expected_len:
-                args.append(None)
-
         # 3. Disparo via REST puro (Bypass Gradio Client y WebSockets)
         session_hash = "gravity_" + "".join(random.choices(string.ascii_lowercase + string.digits, k=10))
         payload = {
@@ -123,8 +112,6 @@ def main():
             
         print(json.dumps({"success": True, "data": res_json}))
         
-    except urllib.error.URLError as e:
-        print(json.dumps({"success": False, "error": f"URLError (timeout o conexion): {e.reason}"}))
     except Exception as e:
         print(json.dumps({"success": False, "error": str(e)}))
 

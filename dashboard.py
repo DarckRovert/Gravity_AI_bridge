@@ -1,8 +1,7 @@
 """
-Gravity AI Bridge V9.3.1 PRO — Dashboard Web Server
-SPA interactiva: Estado + Chat + Vision Studio + Gestion de modelos
-Servidor HTTP puro — cero dependencias extra.
-Sirve web/dashboard.html en / con CORS habilitado.
+Gravity AI Bridge V9.4 PRO — Dashboard Web Server
+Lee web/dashboard.html desde disco en cada request (hot-reload real).
+Sirve el HTML actualizado sin necesidad de reiniciar el proceso.
 """
 import json
 import os
@@ -17,7 +16,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def get_dashboard_html() -> bytes:
-    """Lee el SPA premium desde disco. Fallback a HTML de error si no existe."""
+    """Lee el dashboard desde disco en tiempo real (hot-reload)."""
     html_path = os.path.join(BASE_DIR, "web", "dashboard.html")
     if os.path.exists(html_path):
         try:
@@ -26,21 +25,21 @@ def get_dashboard_html() -> bytes:
         except Exception as e:
             print(f"[Dashboard] Error leyendo web/dashboard.html: {e}")
 
-    # Fallback: HTML minimalista si se borra la carpeta web/
-    return b"""<!DOCTYPE html><html><head><title>Gravity AI Bridge V9.3</title></head>
+    return b"""<!DOCTYPE html><html><head><title>Gravity AI Bridge V9.4</title></head>
     <body style="background:#090c10;color:white;font-family:sans-serif;padding:40px;text-align:center">
-    <h2>Gravity AI Bridge V9.3 PRO</h2><p>No se encontro <code>web/dashboard.html</code>.</p>
+    <h2>Gravity AI Bridge V9.4 PRO</h2><p>No se encontro <code>web/dashboard.html</code>.</p>
     <p>Restaura la carpeta web/ del repositorio.</p>
     </body></html>"""
 
 
-# Constante de modulo — importable directamente desde bridge_server.py
-# Se evalua en el primer import (lazy-load real en disco)
+# Compatibilidad con bridge_server.py que importa DASHBOARD_HTML como bytes.
+# Ahora es una propiedad lazy: siempre lee del disco en el momento del import.
+# Para hot-reload real, usar get_dashboard_html() directamente.
 DASHBOARD_HTML: bytes = get_dashboard_html()
 
 
 def _reload_dashboard() -> None:
-    """Recarga la constante DASHBOARD_HTML desde disco sin reiniciar el proceso."""
+    """Recarga DASHBOARD_HTML desde disco (llamar tras editar web/dashboard.html sin reiniciar)."""
     global DASHBOARD_HTML
     DASHBOARD_HTML = get_dashboard_html()
 
@@ -48,7 +47,8 @@ def _reload_dashboard() -> None:
 class DashboardHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path in ("/", "/dashboard"):
-            body = DASHBOARD_HTML
+            # Lectura dinámica en cada request = hot-reload automático
+            body = get_dashboard_html()
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))

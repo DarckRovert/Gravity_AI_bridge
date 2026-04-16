@@ -1,31 +1,30 @@
-# Arquitectura — Gravity AI Bridge V9.3.1 PRO [Diamond-Tier Edition]
+# Arquitectura — Gravity AI Bridge V10.0 [Ecosistema Total]
 
 ## Visión General
 
-Gravity AI Bridge es un **enrutador universal de IA** que actúa como capa de abstracción entre el usuario/IDE y múltiples motores de IA (locales y cloud). Expone una API 100% compatible con OpenAI y agrega un módulo de generación de imágenes acelerado por hardware AMD vía ZLUDA.
+Gravity AI Bridge es un **enrutador universal de IA** que actúa como capa de abstracción entre el usuario/IDE, múltiples motores de IA (locales y cloud), y el entorno local (gestión de servidores, archivos estáticos, despliegues y seguridad).
 
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│                        CAPA DE PRESENTACIÓN                          │
-│  CLI (ask_deepseek.py) │ Dashboard SPA (web/) │ IDEs (Cursor/VSCode) │
-│                        │ Fooocus Studio UI    │                      │
-└──────────────┬─────────────────────────┬───────────────────────────┘
-               │ HTTP / stdin / OpenAI   │ Gradio / HTTP
-┌──────────────▼─────────────────────┐  ┌──────────────────────────┐
-│     BRIDGE SERVER (bridge_server.py)│  │  VISION STUDIO            │
-│  • Enrutamiento dinámico latencia   │  │  fooocus_studio_ui.py (7862) │
-│  • Rate Limiting IP + API Key       │  │  fooocus_client.py        │
-│  • Streaming SSE / JSON             │  └────────────┬─────────────┘
-│  • Sirve web/dashboard.html en /    │               │ HTTP JSON
-│  • /static/output/ (imágenes)       │  ┌────────────▼─────────────┐
-│  • /v1/images (listado galería)     │  │  Fooocus Motor CPU (7861) │
-└──────────────┬──────────────────────┘  │  AMD Ryzen CPU (fp32)     │
-               │                         │  JuggernautXL SDXL        │
-      ┌─────────▼──────────┐             └──────────────────────────┘
-      │  Provider Manager  │
-      │  scan_all()        │
-      │  get_best()        │
-      └──────┬─────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│                          CAPA DE PRESENTACIÓN                          │
+│ CLI (ask_deepseek.py) │ Dashboard SPA (web/) │ IDEs (Cursor/VSCode/etc)│
+│                        │ Fooocus Studio UI    │                        │
+└──────────────┬─────────────────────────┬───────────────────────────────┘
+               │ HTTP / stdin / OpenAI   │ Gradio / HTTP / SSE
+┌──────────────▼─────────────────────────┴───────────────────────────────┐
+│                    BRIDGE SERVER (bridge_server.py)                    │
+│ • Enrutamiento latencia TTFT       • Model Context Protocol (MCP)      │
+│ • Rate Limiting IP + API Key       • Streaming SSE / JSON              │
+│ ┌────────────────┐ ┌──────────────┐ ┌───────────────┐ ┌──────────────┐ │
+│ │Security Monitor│ │ Image Queue  │ │Deploy Manager │ │ Game Server  │ │
+│ │(puertos/hashes)│ │ (SQLite DB)  │ │ (npm/netlify) │ │ (WoW MaNGOS) │ │
+│ └────────────────┘ └─────┬────────┘ └───────────────┘ └──────┬───────┘ │
+└──────────────┬───────────│───────────────────────────────────│─────────┘
+               │           │                                   │
+      ┌────────▼────────┐  │  ┌──────────────────────────┐  ┌──▼──────────┐
+      │ Provider Manager│  └──► Fooocus Motor CPU (7861) │  │ mangosd.exe │
+      │ get_best()      │     │ JuggernautXL SDXL        │  │ realmd.exe  │
+      └──────┬──────────┘     └──────────────────────────┘  └─────────────┘
    ┌─────────┼─────────────────┐
    │         │                 │
 ┌──▼──┐  ┌──▼──┐         ┌────▼────┐
@@ -52,16 +51,14 @@ Gravity AI Bridge es un **enrutador universal de IA** que actúa como capa de ab
 - Sirve imágenes desde `_integrations/Fooocus/Fooocus/outputs/` en `/static/output/`.
 - Endpoints: `/v1/chat/completions`, `/v1/models`, `/v1/status`, `/v1/audit`, `/v1/keys`, `/v1/images`, `/metrics`, `/health`.
 
-### `dashboard.py` — Servidor SPA
-- Servidor HTTP minimalista que sirve `web/dashboard.html`.
-- Puerto independiente (7862) para uso standalone sin bridge server.
-- SPA Frontend sin dependencias. Conecta al Bridge API mediante SSE y `/v1/`. V9.3.1 PRO incluye Vision Studio embebido y gráficos Catmull-Rom.
+### `dashboard.py` — Servidor de Hot-Reload (Opcional)
+- Servidor HTTP de utilería (reemplazado en V10 por el interno de Bridge Server).
+- Lee `web/dashboard.html` dinámicamente desde disco sin reiniciar el Bridge.
 
-### `web/dashboard.html` — SPA V9.3.1
-- HTML/CSS/JS puro, sin dependencias externas.
-- Chat con streaming SSE en tiempo real.
-- Tabs: Chat · Status · Vision Studio (iFrame) · Audit Log · Configuración.
-- Galería de imágenes con polling automático cada 5s a `/v1/images`.
+### `web/dashboard.html` — SPA V10.0
+- HTML/CSS/JS puro en un solo archivo.
+- 9 paneles: Chat, Vision, Queue, Deploy, Game Servers, Status, Security, Audit Log, Config.
+- Polling optimizado (sólo escanea los endpoints del panel activo).
 
 ### `tools/fooocus_studio_ui.py` — Vision Studio
 - Interfaz Gradio que replica la UX de Fooocus.
@@ -78,11 +75,15 @@ Gravity AI Bridge es un **enrutador universal de IA** que actúa como capa de ab
 - `get_best()`: Selecciona el proveedor con menor latencia TTFT.
 - `stream()` / `complete()`: Interfaz unificada.
 
-### `core/` — Infraestructura (22 módulos)
+### `core/` — Infraestructura (26 módulos)
 
 | Módulo | Responsabilidad |
 |--------|----------------|
-| `config_manager.py` | Lee/escribe `config.yaml`. Migración desde `_settings.json`. |
+| `config_manager.py` | Lee/escribe `config.yaml`. |
+| `security_monitor.py` | (V10) Monitoreo de procesos, puertos permitidos e integridad SHA-256. |
+| `image_queue.py` | (V10) Cola SQLite de generación de imágenes sin bloqueo. |
+| `game_server_manager.py` | (V10) Gestión de servidores de juego (WoW MaNGOS). |
+| `deploy_manager.py` | (V10) CI/CD local npm → Netlify. |
 | `audit_log.py` | Audit log JSONL append-only. |
 | `logger.py` | Logger estructurado JSON. Sanitización de keys. |
 | `metrics.py` | Contadores Prometheus. |
@@ -93,8 +94,7 @@ Gravity AI Bridge es un **enrutador universal de IA** que actúa como capa de ab
 | `key_manager.py` | Cifrado/descifrado DPAPI de API Keys. |
 | `session_manager.py` | Guardar/cargar/exportar sesiones de chat. |
 | `hardware_profiler.py` | Detección CPU/GPU/NPU/RAM. |
-| `model_selector.py` | Lógica de selección de modelo óptimo. |
-| `multi_agent.py` | Coordinación de agentes AI-to-AI. |
+| `model_selector.py` | Selección del modelo óptimo por capacidad/hardware. |
 
 ### `providers/` — Sistema de Plugins
 

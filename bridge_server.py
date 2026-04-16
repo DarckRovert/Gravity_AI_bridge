@@ -31,6 +31,10 @@ from core.audit_log   import audit_logger
 from core.config_manager import config
 from core.rate_limiter   import check_access
 from core.metrics import record_request, record_tokens, record_latency, record_error, get_metrics_data
+from core import security_monitor
+from core import image_queue
+from core import deploy_manager
+from core import game_server_manager
 
 
 class Console_Safe:
@@ -108,17 +112,27 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         routes = {
-            "/":             self._serve_dashboard,
-            "/dashboard":    self._serve_dashboard,
-            "/health":       self._serve_health,
-            "/v1/models":    self._serve_models,
-            "/v1/status":    self._serve_status,
-            "/v1/audit":     self._serve_audit,
-            "/v1/fooocus/status": self._serve_fooocus_status,
-            "/v1/images":    self._serve_images,
-            "/metrics":      self._serve_metrics,
+            "/":                    self._serve_dashboard,
+            "/dashboard":           self._serve_dashboard,
+            "/health":              self._serve_health,
+            "/v1/models":           self._serve_models,
+            "/v1/status":           self._serve_status,
+            "/v1/audit":            self._serve_audit,
+            "/v1/fooocus/status":   self._serve_fooocus_status,
+            "/v1/images":           self._serve_images,
+            "/metrics":             self._serve_metrics,
+            "/v1/security":         self._serve_security,
+            "/v1/queue":            self._serve_queue,
+            "/v1/deploy/status":    self._serve_deploy_status,
+            "/v1/gameserver/status":self._serve_gameserver_status,
+            "/v1/gameserver/log":   self._serve_gameserver_log,
+            "/v1/gameserver/players":self._serve_gameserver_players,
         }
-        if self.path in routes:
+        # Rutas con query string (?server=&lines=)
+        path_clean = self.path.split("?")[0]
+        if path_clean in routes:
+            routes[path_clean]()
+        elif self.path in routes:
             routes[self.path]()
         elif self.path.startswith("/static/output/"):
             self._serve_static_output()
@@ -130,10 +144,10 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
     def _serve_dashboard(self):
         # DASHBOARD_HTML ahora es bytes constante en dashboard.py — import directo
         try:
-            from dashboard import DASHBOARD_HTML
-            body = DASHBOARD_HTML
+            from dashboard import get_dashboard_html
+            body = get_dashboard_html()
         except Exception:
-            body = b"<h1>Gravity AI Bridge V9.3.1 PRO</h1><p>No se encontro web/dashboard.html. Restaura la carpeta web/.</p>"
+            body = b"<h1>Gravity AI Bridge V10.0</h1><p>No se encontro web/dashboard.html. Restaura la carpeta web/.</p>"
         try:
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -260,7 +274,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
         best_p, best_m = provider_manager.get_best()
         scans  = provider_manager.scan_all()
         status = {
-            "version":         "9.3.1 PRO",
+            "version":         "10.0",
             "bridge_online":   True,
             "active_provider": best_p.name if best_p else None,
             "active_model":    best_m,
@@ -298,6 +312,101 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    # ── Game Server Manager ──────────────────────────────────────────────────────
+    def _serve_gameserver_status(self):
+        try:
+            body = json.dumps(game_server_manager.get_all_status(), indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_gameserver_log(self):
+        try:
+            import urllib.parse
+            params = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(self.path).query))
+            server_id = params.get("server", "wow_vanilla")
+            lines     = int(params.get("lines", 100))
+            body = json.dumps(game_server_manager.get_log(server_id, lines), indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_gameserver_players(self):
+        try:
+            import urllib.parse
+            params    = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(self.path).query))
+            server_id = params.get("server", "wow_vanilla")
+            body      = json.dumps(game_server_manager.get_players(server_id), indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    # ── Security Monitor ────────────────────────────────────────────────────────
+    def _serve_security(self):
+        """Estado del Security Monitor: procesos, puertos, integridad de archivos."""
+        try:
+            state = security_monitor.get_state()
+            body  = json.dumps(state, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    # ── Image Queue ─────────────────────────────────────────────────────────────
+    def _serve_queue(self):
+        """Estado actual de la cola de generación de imágenes."""
+        try:
+            status = image_queue.get_queue_status()
+            body   = json.dumps(status, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    # ── Deploy Manager ───────────────────────────────────────────────────────────
+    def _serve_deploy_status(self):
+        """Estado del último pipeline de deploy."""
+        try:
+            status = deploy_manager.get_status()
+            body   = json.dumps(status, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
     # ── Fooocus Motor Status ───────────────────────────────────────────────────
     def _serve_fooocus_status(self):
         """Health check real del motor Fooocus en puerto 7861."""
@@ -328,6 +437,146 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
 
     # ── POST ──────────────────────────────────────────────────────────────────
     def do_POST(self):
+
+        # /v1/gameserver/start
+        if self.path == "/v1/gameserver/start":
+            try:
+                length    = int(self.headers.get("Content-Length", 0))
+                data      = json.loads(self.rfile.read(length)) if length else {}
+                server_id = data.get("server", "wow_vanilla")
+                result    = game_server_manager.start(server_id)
+                body      = json.dumps(result).encode()
+                code      = 200 if result.get("ok", False) else 400
+                self.send_response(code)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/gameserver/stop
+        if self.path == "/v1/gameserver/stop":
+            try:
+                length    = int(self.headers.get("Content-Length", 0))
+                data      = json.loads(self.rfile.read(length)) if length else {}
+                server_id = data.get("server", "wow_vanilla")
+                result    = game_server_manager.stop(server_id)
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps(result).encode())
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/gameserver/restart
+        if self.path == "/v1/gameserver/restart":
+            try:
+                length    = int(self.headers.get("Content-Length", 0))
+                data      = json.loads(self.rfile.read(length)) if length else {}
+                server_id = data.get("server", "wow_vanilla")
+                threading.Thread(target=game_server_manager.restart, args=(server_id,), daemon=True).start()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": True, "note": "Reinicio en proceso...", "server": server_id}).encode())
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/gameserver/command
+        if self.path == "/v1/gameserver/command":
+            try:
+                length    = int(self.headers.get("Content-Length", 0))
+                data      = json.loads(self.rfile.read(length)) if length else {}
+                server_id = data.get("server", "wow_vanilla")
+                command   = data.get("command", "")
+                result    = game_server_manager.send_command(server_id, command)
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps(result).encode())
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/security/scan — Fuerza un escaneo de seguridad inmediato
+        if self.path == "/v1/security/scan":
+            try:
+                state = security_monitor.force_scan()
+                body  = json.dumps(state, indent=2).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/queue/add — Añadir trabajo a la cola de imágenes
+        if self.path == "/v1/queue/add":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                prompt = data.get("prompt", "").strip()
+                if not prompt:
+                    self.send_response(400)
+                    self.end_headers()
+                    self.wfile.write(b'{"error":"prompt requerido"}')
+                    return
+                job_id = image_queue.add_job(
+                    prompt      = prompt,
+                    performance = data.get("performance", "Speed"),
+                    width       = int(data.get("width", 1024)),
+                    height      = int(data.get("height", 1024)),
+                )
+                body = json.dumps({"ok": True, "job_id": job_id}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/deploy — Inicia el pipeline build + netlify
+        if self.path == "/v1/deploy":
+            try:
+                length       = int(self.headers.get("Content-Length", 0))
+                data         = json.loads(self.rfile.read(length)) if length else {}
+                project_path = data.get("project_path")
+                result       = deploy_manager.start_deploy(project_path)
+                body         = json.dumps(result).encode()
+                code         = 200 if result.get("started") else 400
+                self.send_response(code)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
 
         # /v1/generate — Generar imagen via Fooocus desde API REST
         if self.path == "/v1/generate":
@@ -424,7 +673,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
                     _base_dir = os.path.dirname(__file__)
                     kb_data, _ = data_guardian.load_knowledge(os.path.join(_base_dir, "_knowledge.json"))
                     _sys_prompt = (
-                        "Eres Gravity AI V9.3.1 PRO, Auditor Senior. "
+                        "Eres Gravity AI V10.0, Auditor Senior. "
                         "PROTOCOLO: Lógica interna en inglés. Salida final en español estrictamente. "
                         "Sin rellenos conversacionales. Solo hechos técnicos fríos. Resolución directa."
                     )
@@ -482,7 +731,8 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
                     try:
                         self.wfile.write(f"data: {json.dumps(chunk)}\n\n".encode("utf-8"))
                         self.wfile.flush()
-                    except Exception:
+                    except Exception as write_err:
+                        log.debug(f"[Streaming] Socket cerrado durante escritura: {write_err}")
                         break
                 # Final [DONE]
                 final = {
@@ -543,7 +793,13 @@ def run_server():
     port = config.get("server.port", 7860)
     provider_manager.scan_all()
     threading.Thread(target=background_scanner, daemon=True).start()
-    log.info(f"Gravity Bridge V9.3.1 PRO [Diamond-Tier Edition] — http://localhost:{port} | Dashboard: / | API: /v1")
+
+    # Arrancar módulos nuevos V10.0
+    security_monitor.start()
+    image_queue.start()
+    log.info("[V10.0] Security Monitor, Image Queue y Game Server Manager iniciados.")
+
+    log.info(f"Gravity Bridge V10.0 — http://localhost:{port} | Dashboard: / | API: /v1")
     server = ThreadingHTTPServer(("0.0.0.0", port), GravityBridgeHandler)
     try:
         server.serve_forever()

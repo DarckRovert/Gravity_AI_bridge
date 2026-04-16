@@ -27,8 +27,9 @@ except ImportError:
     GradioClient = None
 
 # Output dir de Fooocus: donde graba las imagenes generadas
-OUTPUT_DIR: str = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "_integrations", "Fooocus", "Fooocus", "outputs")
+_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR: str = os.path.normpath(
+    os.path.join(_THIS_DIR, "..", "_integrations", "Fooocus", "Fooocus", "outputs")
 )
 
 PERFORMANCE_MAP: dict = {

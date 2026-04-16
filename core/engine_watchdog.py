@@ -84,7 +84,10 @@ def _persist_settings(provider_result, model_name, api_opts):
 
 def _apply_engine_optimization(provider_name, protocol):
     try:
-        from env_optimizer import apply_all, build_api_options
+        try:
+            from env_optimizer import apply_all, build_api_options
+        except ImportError:
+            return {}, {}
         profile, _ = apply_all(persist=False, verbose=False)
 
         engine_key = protocol
@@ -177,9 +180,12 @@ def start(interval_seconds=30, verbose=False):
     _started = True
 
     try:
-        from env_optimizer import apply_all
-        profile, _ = apply_all(persist=False, verbose=verbose)
-        _hardware_profile = profile
+        try:
+            from env_optimizer import apply_all
+            profile, _ = apply_all(persist=False, verbose=verbose)
+            _hardware_profile = profile
+        except ImportError:
+            profile = {}
     except Exception:
         profile = {}
 

@@ -1,4 +1,4 @@
-# Guía de API — Gravity AI Bridge V9.1 PRO [Diamond-Tier Edition]
+# Guía de API — Gravity AI Bridge V10.0 [Ecosistema Total]
 
 > La API es 100% compatible con el protocolo OpenAI. Cualquier cliente que soporte OpenAI funciona sin modificaciones.
 
@@ -187,6 +187,39 @@ Guardar una API Key cifrada (DPAPI).
 ```json
 {"ok": true, "provider": "openai"}
 ```
+
+---
+
+### Endpoints de Security Monitor
+
+- `GET /v1/security`: Retorna el estado actual del demonio de seguridad (archivos monitoreados, puertos bloqueados, procesos sospechosos).
+- `POST /v1/security/scan`: Fuerza un escaneo inmediato de procesos, puertos e integridad SHA-256.
+
+---
+
+### Endpoints de Image Queue
+
+- `GET /v1/queue`: Muestra el estado global de la cola, últimos 50 trabajos y estadísticas de procesados/errores.
+- `POST /v1/queue/add`: Encola un trabajo de generación. (Mismos parámetros que `/v1/generate`). Retorna el ID del trabajo.
+
+---
+
+### Endpoints de Deploy Manager
+
+- `GET /v1/deploy/status`: Estado del último despliegue (duración, éxito/error, link de Netlify).
+- `POST /v1/deploy`: Inicia un pipeline asíncrono de build (`npm install && npm run build`) y posterior volcado a Netlify.
+
+---
+
+### Endpoints de Game Server Manager
+
+- `GET /v1/gameserver/status`: Estado detallado de todos los servidores registrados en `config.yaml` (PID, uptime, autorestart).
+- `GET /v1/gameserver/log?server=wow_vanilla&lines=100`: Obtiene las N últimas líneas (tail) del log en crudo del servidor.
+- `GET /v1/gameserver/players?server=wow_vanilla`: Consulta la base de datos MySQL asociada y retorna lista de jugadores online.
+- `POST /v1/gameserver/start`: Arranca el servidor (body: `{"server": "wow_vanilla"}`). Lanza scripts de base de datos y exes.
+- `POST /v1/gameserver/stop`: Detiene o mata (kill) los procesos asociados de forma segura.
+- `POST /v1/gameserver/restart`: Wrapper automatizado stop -> start.
+- `POST /v1/gameserver/command`: Inyecta comandos de consola (Game Master) al proceso activo.
 
 ---
 

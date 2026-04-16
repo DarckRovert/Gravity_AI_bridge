@@ -4,6 +4,23 @@ Todos los cambios notables se documentan en este archivo siguiendo [Keep a Chang
 
 ---
 
+## [V10.0] -- 2026-04-16 [Gravity Ecosistema Total]
+
+### Nuevos Módulos Core
+- **Game Server Manager** (`core/game_server_manager.py`): Gestión nativa de servidores PvP/PvE. Soporte inicial para WoW Vanilla (MaNGOS / AzerothCore). Control de procesos de realm/world, arranque automático (Watchdog), lectura en vivo de logs y consulta a MySQL para lista de jugadores online.
+- **Security Monitor** (`core/security_monitor.py`): Daemon de vigilancia perimetral. Escanea puertos TCP activos contra una lista blanca, detecta procesos nuevos y verifica la integridad estática de los archivos del core vía SHA-256. Alertas registradas en `_audit_log.jsonl`.
+- **Image Queue** (`core/image_queue.py`): Sistema de cola persistente basada en SQLite (`_image_queue.sqlite`). Permite encolar múltiples peticiones de generación de imágenes por API sin colapsar el servidor HTTP. Worker daemon procesa secuencialmente para CPU-safety.
+- **Deploy Manager** (`core/deploy_manager.py`): Pipeline CI/CD local integrado. Detecta binarios `npm` y `netlify`, ejecuta el build `next build` en una ruta definida y hace el deploy automáticamente mediante la Netlify CLI capturando stdout en tiempo real.
+
+### Mejoras Globales
+- **Dashboard V10.0 (SPA)**: Incorporados 4 paneles nuevos (Game Servers, Deploy Manager, Security, Image Queue). Los paneles consultan por polling inteligente sólo cuando están activos.
+- **Dashboard Hot-Reload**: Refactorización de `dashboard.py` para leer el archivo `web/dashboard.html` del SO durante peticiones HTTP. Desacoplado de la memoria RAM del servidor puente web.
+- **ConfigManager Update**: Nueva opción `game_servers` en el `.yaml` central con configuraciones dinámicas. 
+- Refactorización de versiones: Limpieza de string patterns pasados (`9.3.1 PRO PRO`).
+- API expone 9 nuevos endpoints.
+
+---
+
 ## [V9.3.1 PRO] -- 2026-04-14 [Orquestación de Fooocus y Unificación Web]
 
 ### Correcciones Críticas (P0)

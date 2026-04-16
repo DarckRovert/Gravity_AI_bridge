@@ -1,4 +1,4 @@
-# Manual de Usuario — Gravity AI Bridge V9.1 PRO [Diamond-Tier Edition]
+# Manual de Usuario — Gravity AI Bridge V10.0 [Ecosistema Total]
 
 ## Índice
 
@@ -51,7 +51,7 @@ La primera vez que ejecutes `gravity`, aparecerá el wizard de bienvenida:
 ```
 ⚡ GRAVITY AI
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Bienvenido a Gravity AI Bridge V9.1 PRO [Diamond-Tier Edition]
+Bienvenido a Gravity AI Bridge V10.0
 Primera ejecución detectada. Configuración inicial.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -111,16 +111,29 @@ Accede a `http://localhost:7860` tras ejecutar `INICIAR_SERVIDOR.bat` o `INICIAR
 - Accesos rápidos a comandos frecuentes (`/search`, `/verify`, `!aprende`, `/cost`).
 - Historial de conversación en sesión.
 
+**🎨 Vision Studio**
+- iFrame integrado de Fooocus (puerto 7861).
+- Generación de imágenes avanzada en CPU Mode (Speed/Quality).
+
+**🖼️ Image Queue**
+- Sistema de cola persistente para generación de cientos de imágenes.
+- Observa el progreso de lotes completos de API sin bloquear la inferencia web.
+
+**🚀 Deploy**
+- Gestor CI/CD integrado.
+- Construye y despliega con Next.js/Netlify apretando un solo botón, observando la terminal en directo.
+
+**⚔️ Game Servers**
+- Control nativo del módulo `game_server_manager` (WoW Vanilla MaNGOS o afines).
+- Arranca, detiene, visualiza el log del core y monitorea a los jugadores en tiempo real en la base de datos MySQL.
+
 **📡 System Status**
 - Estado de todos los backends con latencia en tiempo real.
 - Gráfica RTO de latencia de los últimos 60 segundos.
-- Tabla completa de proveedores con ping y modelos disponibles.
-- Se actualiza automáticamente cada 10 segundos.
 
-**🎨 Vision Studio**
-- iFrame integrado del Fooocus Studio (puerto 7861).
-- Panel lateral con estado del motor Fooocus CPU.
-- Galería de las últimas imágenes generadas (polling cada 5s).
+**🛡️ Security**
+- Panel del watchdog defensivo de Gravity.
+- Lista los procesos recientes, advierte si un puerto no está en lista blanca, y alerta si se modifican binarios no autorizados del núcleo de Gravity mediante firmas SHA-256 integradas.
 
 **📋 Audit Log**
 - Historial de las últimas 20 inferencias con tokens, latencia y coste.
@@ -128,7 +141,7 @@ Accede a `http://localhost:7860` tras ejecutar `INICIAR_SERVIDOR.bat` o `INICIAR
 
 **⚙️ Configuración**
 - Gestión de API Keys directamente desde el browser (cifrado DPAPI).
-- Links directos a endpoints de observabilidad.
+- Variables de entorno e historial base.
 
 ---
 
