@@ -36,6 +36,7 @@ from core import image_queue
 from core import deploy_manager
 from core import game_server_manager
 from core import ai_process_manager
+from core import engine_watchdog
 
 
 class Console_Safe:
@@ -92,6 +93,8 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             "/v1/hardware":         self._serve_hardware,
             "/v1/cost":             self._serve_cost,
             "/v1/watchdog":         self._serve_watchdog,
+            "/v1/sessions":         self._serve_sessions,
+            "/v1/rag/status":       self._serve_rag_status,
         }
         # Rutas con query string (?server=&lines=)
         path_clean = self.path.split("?")[0]
@@ -449,6 +452,79 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
         self._send_cors()
         self.end_headers()
         self.wfile.write(HTML.encode("utf-8"))
+
+    # ── Session Manager ──────────────────────────────────────────────────────
+    def _serve_sessions(self):
+        """Lista sesiones guardadas en _saves/."""
+        try:
+            BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+            saves_dir = os.path.join(BASE_DIR, "_saves")
+            sessions = []
+            if os.path.isdir(saves_dir):
+                for fname in sorted(os.listdir(saves_dir)):
+                    if fname.endswith(".json"):
+                        fpath = os.path.join(saves_dir, fname)
+                        try:
+                            with open(fpath, "r", encoding="utf-8") as f:
+                                meta = json.load(f)
+                            sessions.append({
+                                "name":      meta.get("name", fname.replace(".json", "")),
+                                "saved_at":  meta.get("saved_at", ""),
+                                "branch":    meta.get("branch", "main"),
+                                "turns":     len(meta.get("history", [])),
+                            })
+                        except Exception:
+                            pass
+            body = json.dumps({"sessions": sessions, "count": len(sessions)}, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    # ── RAG Status ──────────────────────────────────────────────────────────────
+    def _serve_rag_status(self):
+        """Estado del índice RAG: documentos indexados, tamaño, carpeta."""
+        try:
+            BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+            rag_dir  = os.path.join(BASE_DIR, "_rag_index")
+            doc_count = 0
+            chunk_count = 0
+            size_bytes = 0
+            if os.path.isdir(rag_dir):
+                for fname in os.listdir(rag_dir):
+                    fpath = os.path.join(rag_dir, fname)
+                    if os.path.isfile(fpath):
+                        size_bytes += os.path.getsize(fpath)
+                        if fname.endswith(".json"):
+                            try:
+                                with open(fpath, "r", encoding="utf-8") as f:
+                                    data = json.load(f)
+                                if isinstance(data, list):
+                                    chunk_count += len(data)
+                                    doc_count += 1
+                            except Exception:
+                                pass
+            body = json.dumps({
+                "rag_dir":     rag_dir,
+                "doc_count":   doc_count,
+                "chunk_count": chunk_count,
+                "size_mb":     round(size_bytes / (1024**2), 2),
+                "online":      doc_count > 0,
+            }, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
 
     # ── Hardware Profiler ────────────────────────────────────────────────────
     def _serve_hardware(self):
@@ -1014,11 +1090,12 @@ def run_server():
     provider_manager.scan_all()
     threading.Thread(target=background_scanner, daemon=True).start()
 
-    # Arrancar módulos nuevos V10.0
+    # Arrancar módulos background V10.0
     security_monitor.start()
     image_queue.start()
+    engine_watchdog.start(verbose=True)   # Fix: el watchdog ahora arranca con el bridge
     ai_process_manager.discover_apps()
-    log.info("[V10.0] Security Monitor, Image Queue y Game Server Manager iniciados.")
+    log.info("[V10.0] Security Monitor, Image Queue, Engine Watchdog y AI Process Manager iniciados.")
 
     log.info(f"Gravity Bridge V10.0 — http://localhost:{port} | Dashboard: / | API: /v1")
     server = ThreadingHTTPServer(("0.0.0.0", port), GravityBridgeHandler)

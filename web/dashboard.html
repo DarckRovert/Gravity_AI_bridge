@@ -328,6 +328,11 @@
         <div class="nav-item"        id="nav-hardware"   onclick="switchTab('hardware',this)">  <span class="nav-icon">🖥️</span><span class="nav-text">Hardware</span></div>
         <div class="nav-item"        id="nav-cost"       onclick="switchTab('cost',this)">      <span class="nav-icon">💰</span><span class="nav-text">Cost Center</span></div>
         <div class="nav-item"        id="nav-watchdog"   onclick="switchTab('watchdog',this)">  <span class="nav-icon">⚡</span><span class="nav-text">Watchdog</span></div>
+        <div class="sidebar-label" style="margin-top:12px">Herramientas</div>
+        <div class="nav-item"        id="nav-sessions"   onclick="switchTab('sessions',this)"><span class="nav-icon">💾</span><span class="nav-text">Sessions</span></div>
+        <div class="nav-item"        id="nav-rag"        onclick="switchTab('rag',this)">      <span class="nav-icon">📚</span><span class="nav-text">RAG</span></div>
+        <div class="nav-item"        id="nav-mcp"        onclick="switchTab('mcp',this)">      <span class="nav-icon">🔌</span><span class="nav-text">MCP Servers</span></div>
+        <div class="nav-item"        id="nav-tools"      onclick="switchTab('tools',this)">    <span class="nav-icon">🛠️</span><span class="nav-text">Tools</span></div>
         <div class="sidebar-label" style="margin-top:12px">Monitoreo</div>
         <div class="nav-item"        id="nav-status"   onclick="switchTab('status',this)">  <span class="nav-icon">📡</span><span class="nav-text">System Status</span></div>
         <div class="nav-item"        id="nav-security" onclick="switchTab('security',this)"><span class="nav-icon">🛡️</span><span class="nav-text">Security</span></div>
@@ -894,6 +899,132 @@
               Si el modelo está en modo <strong style="color:var(--error)">LOCKED</strong>, el auto-switch está desactivado y el motor fue seleccionado manualmente desde el CLI o el Dashboard.
               Usa el botón <strong>Forzar Unlock</strong> para reactivar la selección automática.
             </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Session Manager -->
+      <div id="panel-sessions" class="panel">
+        <div class="panel-header">
+          <div class="panel-title">💾 Session Manager</div>
+          <div class="panel-subtitle">Sesiones guardadas desde el CLI con soporte de fork y branches</div>
+        </div>
+        <div class="panel-content">
+          <div class="table-wrap">
+            <div class="table-title">Sesiones Guardadas en _saves/</div>
+            <table>
+              <thead><tr><th>Nombre</th><th>Branch</th><th>Turnos</th><th>Guardado</th></tr></thead>
+              <tbody id="tb-sessions"><tr><td colspan="4" style="text-align:center;color:var(--muted)">Cargando...</td></tr></tbody>
+            </table>
+          </div>
+          <div class="sec-card" style="margin-top:20px">
+            <h3>📖 ¿Cómo guardar una sesión?</h3>
+            <p style="font-size:13px;color:var(--muted);line-height:1.8">
+              Desde la terminal del Bridge: escribe <code style="background:var(--bg);padding:2px 6px;border-radius:4px">/guardar nombre_sesion</code>
+              para persistir el historial completo. Usa <code style="background:var(--bg);padding:2px 6px;border-radius:4px">/cargar nombre_sesion</code> para restaurarla.
+              El fork de branches se gestiona con <code style="background:var(--bg);padding:2px 6px;border-radius:4px">/fork nombre_rama</code>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: RAG -->
+      <div id="panel-rag" class="panel">
+        <div class="panel-header">
+          <div class="panel-title">📚 RAG — Retrieval Augmented Generation</div>
+          <div class="panel-subtitle">Búsqueda semántica en documentos indexados localmente</div>
+        </div>
+        <div class="panel-content">
+          <div class="hw-grid" style="margin-bottom:24px">
+            <div class="hw-card"><div class="hw-label">Documentos Indexados</div><div class="hw-value" id="rag-docs" style="color:var(--accent)">0</div></div>
+            <div class="hw-card"><div class="hw-label">Chunks Totales</div><div class="hw-value" id="rag-chunks">0</div></div>
+            <div class="hw-card"><div class="hw-label">Tamaño del Índice</div><div class="hw-value" id="rag-size" style="font-size:18px">0 MB</div></div>
+            <div class="hw-card"><div class="hw-label">Estado</div><div class="hw-value" id="rag-status" style="font-size:16px">—</div></div>
+          </div>
+          <div class="sec-card">
+            <h3>📖 Indexar Documentos</h3>
+            <p style="font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:12px">
+              Para indexar documentos usa el CLI: <code style="background:var(--bg);padding:2px 6px;border-radius:4px">/rag indexar ruta/al/documento.pdf</code>
+              Formatos soportados: PDF, TXT, MD, DOCX, HTML. El motor usa embeddings locales (sentence-transformers) sin enviar datos a la nube.
+            </p>
+            <p style="font-size:13px;color:var(--muted);line-height:1.8">
+              Para consultar el índice desde el Chat Auditor, activa el modo RAG con el prefijo
+              <code style="background:var(--bg);padding:2px 6px;border-radius:4px">/rag: tu pregunta</code>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: MCP Servers -->
+      <div id="panel-mcp" class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🔌 MCP Servers</div>
+          <div class="panel-subtitle">Model Context Protocol — Integración con herramientas externas vía JSON-RPC</div>
+        </div>
+        <div class="panel-content">
+          <div class="sec-card" style="margin-bottom:20px">
+            <h3>ℹ️ ¿Qué es MCP?</h3>
+            <p style="font-size:13px;color:var(--muted);line-height:1.8">
+              El <strong>Model Context Protocol</strong> permite que el Bridge se conecte a servidores externos que exponen herramientas (tools) como sistemas de archivos,
+              bases de datos, APIs, navigadores, etc. via JSON-RPC sobre stdio o HTTP.
+              Compatible con Continue.dev, Claude Desktop, y cualquier cliente MCP estándar.
+            </p>
+          </div>
+          <div class="sec-card">
+            <h3>⚙️ Configurar Servidor MCP</h3>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.8">
+              Edita <code style="background:var(--bg);padding:2px 6px;border-radius:4px">config.yaml</code> y añade:
+            </p>
+            <pre style="background:var(--bg);padding:16px;border-radius:10px;font-size:12px;color:#a78bfa;overflow-x:auto">mcp_servers:
+  filesystem:
+    path: npx
+    args: [-y, "@modelcontextprotocol/server-filesystem", /tu/ruta]
+  github:
+    path: npx
+    args: [-y, "@modelcontextprotocol/server-github"]</pre>
+            <p style="font-size:12px;color:var(--muted);margin-top:8px">Reinicia el bridge para activar los servidores configurados.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Tools -->
+      <div id="panel-tools" class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🛠️ Tools</div>
+          <div class="panel-subtitle">Herramientas integradas: code runner, git, web search, file edit</div>
+        </div>
+        <div class="panel-content">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
+            <div class="sc-card hw-card">
+              <div class="hw-label">🧠 Code Runner</div>
+              <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-top:8px">Ejecuta snippets Python/Bash de forma aislada. Accede desde el CLI con <code style="background:var(--bg);padding:2px 5px;border-radius:4px">/run</code> o /ejecutar.</div>
+              <div class="hw-badge cpu" style="margin-top:10px">ACTIVO</div>
+            </div>
+            <div class="hw-card">
+              <div class="hw-label">📂 File Edit V2</div>
+              <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-top:8px">Edición de archivos con patch diff. Usado internamente por el agente de refactorización.</div>
+              <div class="hw-badge cuda" style="margin-top:10px">ACTIVO</div>
+            </div>
+            <div class="hw-card">
+              <div class="hw-label">🔎 Web Search</div>
+              <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-top:8px">Búsqueda web DuckDuckGo sin API key. Activar con <code style="background:var(--bg);padding:2px 5px;border-radius:4px">/buscar</code> desde el CLI.</div>
+              <div class="hw-badge rocm" style="margin-top:10px">ACTIVO</div>
+            </div>
+            <div class="hw-card">
+              <div class="hw-label">🪵 Git Tool</div>
+              <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-top:8px">Operaciones git programáticas (diff, log, commit, push). Usado por el agente de deploy.</div>
+              <div class="hw-badge cuda" style="margin-top:10px">ACTIVO</div>
+            </div>
+            <div class="hw-card">
+              <div class="hw-label">🪟 Grep Tool</div>
+              <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-top:8px">Búsqueda de patrones en código. Acelera auditorías y debugging con regex sobre el filesystem.</div>
+              <div class="hw-badge cuda" style="margin-top:10px">ACTIVO</div>
+            </div>
+            <div class="hw-card">
+              <div class="hw-label">🖥️ Native Trigger</div>
+              <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-top:8px">Disparadores nativos del SO (notificaciones, sonidos, popups). Extensible para automatizaciones.</div>
+              <div class="hw-badge rocm" style="margin-top:10px">ACTIVO</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1582,7 +1713,35 @@ async function watchdogUnlock(){
   }catch(e){ showToast('Error de conexión.','error'); }
 }
 
-// ── Loop Maestro Unificado ──────────────────────────────────────────────────────
+// ── Session Manager ───────────────────────────────────────────────────────────
+async function fetchSessions(){
+  try{
+    const d=await fetch('/v1/sessions').then(r=>r.json());
+    document.getElementById('tb-sessions').innerHTML=(d.sessions||[]).length
+      ?(d.sessions||[]).map(s=>`<tr>
+          <td><strong>${esc(s.name)}</strong></td>
+          <td><span class="badge badge-local">${esc(s.branch||'main')}</span></td>
+          <td style="font-family:'JetBrains Mono'">${s.turns}</td>
+          <td style="font-size:12px;color:var(--muted)">${s.saved_at?s.saved_at.slice(0,19).replace('T',' '):'—'}</td>
+        </tr>`).join('')
+      :'<tr><td colspan="4" style="text-align:center;color:var(--muted)">Sin sesiones guardadas. Usa /guardar desde el CLI.</td></tr>';
+  }catch(e){ console.error('[Sessions]',e); }
+}
+
+// ── RAG Status ──────────────────────────────────────────────────────────────
+async function fetchRAG(){
+  try{
+    const d=await fetch('/v1/rag/status').then(r=>r.json());
+    document.getElementById('rag-docs').textContent=d.doc_count||0;
+    document.getElementById('rag-chunks').textContent=d.chunk_count||0;
+    document.getElementById('rag-size').textContent=(d.size_mb||0).toFixed(2)+' MB';
+    const st=document.getElementById('rag-status');
+    st.textContent=d.online?'● Online':'○ Sin Índice';
+    st.style.color=d.online?'var(--success)':'var(--muted)';
+  }catch(e){ console.error('[RAG]',e); }
+}
+
+// ── Loop Maestro Unificado ────────────────────────────────────────────────────
 async function refreshAll(){
   await Promise.all([fetchStatus(), fetchAudit()]);
   if(currentTab==='queue')       fetchQueue();
@@ -1593,14 +1752,18 @@ async function refreshAll(){
   if(currentTab==='hardware')    fetchHardware();
   if(currentTab==='cost')        fetchCost();
   if(currentTab==='watchdog')    fetchWatchdog();
+  if(currentTab==='sessions')    fetchSessions();
+  if(currentTab==='rag')         fetchRAG();
 }
-// switchTab actualizado para nuevos paneles
+// switchTab actualizado para todos los paneles
 const _origSwitch = switchTab;
 function switchTab(name,el){
   _origSwitch(name,el);
   if(name==='hardware')   fetchHardware();
   if(name==='cost')       fetchCost();
   if(name==='watchdog')   fetchWatchdog();
+  if(name==='sessions')   fetchSessions();
+  if(name==='rag')        fetchRAG();
 }
 
 // Arranque

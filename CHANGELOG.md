@@ -1,3 +1,38 @@
+# CHANGELOG — Gravity AI Bridge
+
+## [10.0.0] — 2026-04-17 [Diamond-Tier Edition]
+
+### Added
+- Dashboard 17 paneles: Sessions, RAG, MCP Servers, Tools (completando cobertura de todos los módulos core)
+- Panel Hardware Monitor: GPU/VRAM/NPU detection, tabla de todas las GPUs, badge ROCm/CUDA/iGPU
+- Panel Multi-Agent Orchestrator: comparativa paralela/vote, N modelos, result cards con elapsed
+- Panel Cost Center: dial de sesión, barra de límite diario, breakdown por proveedor
+- Panel Engine Watchdog: estado LOCKED/AUTO, botón Forzar Unlock, info de hardware del motor
+- Panel Session Manager: lista de sesiones guardadas desde `_saves/` con branch y turnos
+- Panel RAG: estado del índice (docs, chunks, tamaño, online/offline)
+- Panel MCP Servers: documentación interactiva para configurar servidores MCP
+- Panel Tools: inventario de 6 herramientas integradas (Code Runner, Git, Web Search, Grep, File Edit, Native Trigger)
+- Endpoints: `GET /v1/hardware`, `GET /v1/cost`, `GET /v1/watchdog`, `GET /v1/sessions`, `GET /v1/rag/status`
+- Endpoints: `POST /v1/agent/compare`, `POST /v1/watchdog/unlock`
+- `gravity_tray.py`: icono de bandeja del sistema con pulso durante arranque
+- `gravity_launcher.pyw`: launcher silencioso sin consola con single-instance guard
+- `installer/gravity_setup.iss`: asistente Inno Setup 6 con autostart, desktop icon, uninstaller
+- `installer/build_installer.bat`: build automatizado PyInstaller → exe → Inno Setup → Setup.exe
+- Wiki completa: Arquitectura, Guia-API, Manual-Usuario, FAQ, Game-Server-Guide
+- `engine_watchdog.start()` añadido a `run_server()` (fix: watchdog ahora arranca con el bridge)
+
+### Fixed
+- `exposeWan()`: reemplazado `prompt()` nativo del navegador por modal HTML con backdrop-filter
+- `dashboard.py`: docstring actualizado de V9.4 PRO a V10.0
+- `ide_integrator.py`: versión actualizada de V9.3.1 PRO a V10.0 en config y header
+- `build_installer.bat`: pip más robusto con `--trusted-host` y output de error visible
+- Gráfico de latencia: fill con gradiente, glow stroke, punto indicador y label de valor
+
+### Dependencies
+- Añadidos: `pystray`, `Pillow`, `pyinstaller`, `psutil`
+
+---
+
 # Registro de Cambios — Gravity AI Bridge
 
 Todos los cambios notables en este proyecto serán documentados en este archivo. El formato se basa en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) y este proyecto adhiere a la versión técnica presente en el archivo `.toc` local.

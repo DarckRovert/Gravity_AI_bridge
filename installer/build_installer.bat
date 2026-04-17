@@ -23,9 +23,13 @@ echo  [2/5] Verificando PyInstaller...
 pip show pyinstaller >nul 2>&1
 if %errorlevel% neq 0 (
     echo  [!] PyInstaller no encontrado. Instalando...
-    pip install pyinstaller --quiet
+    pip install pyinstaller --trusted-host pypi.org --trusted-host files.pythonhosted.org
     if %errorlevel% neq 0 (
+        echo.
         echo  [ERROR] No se pudo instalar PyInstaller.
+        echo  [ERROR] Verifica tu conexion a internet y los permisos de pip.
+        echo  [ERROR] Intenta manualmente: pip install pyinstaller
+        echo.
         pause
         exit /b 1
     )

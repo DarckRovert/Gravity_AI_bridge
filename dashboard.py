@@ -1,5 +1,5 @@
 """
-Gravity AI Bridge V9.4 PRO — Dashboard Web Server
+Gravity AI Bridge V10.0 [Diamond-Tier Edition] — Dashboard Web Server
 Lee web/dashboard.html desde disco en cada request (hot-reload real).
 Sirve el HTML actualizado sin necesidad de reiniciar el proceso.
 """

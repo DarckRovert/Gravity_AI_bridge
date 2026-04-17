@@ -1,124 +1,228 @@
-# 📡 Guía de API (REST) — Gravity AI Bridge V10.0
+# Guía de API — Gravity AI Bridge V10.0
 
-Gravity AI Bridge expone una API RESTful asíncrona que permite tanto al Dashboard oficial como a aplicaciones de terceros interactuar con el ecosistema. Es **100% compatible** con el protocolo de OpenAI.
-
-**Base URL**: `http://localhost:7860`  
-**Auth**: `Authorization: Bearer gravity-local`
+Base URL: `http://localhost:7860`
 
 ---
 
-## 📍 Endpoints Principales
+## Endpoints GET
 
-### `POST /v1/chat/completions`
-Inferencia de chat con soporte de streaming SSE (Server-Sent Events).
+### `GET /health`
+Verificación de estado mínima. Retorna 200 si el bridge está online.
 
-**Ejemplo de Request (JSON):**
+### `GET /v1/status`
+Estado completo del sistema.
 ```json
 {
-  "model": "gravity-bridge-auto",
-  "messages": [
-    {"role": "system", "content": "Eres un auditor técnico."},
-    {"role": "user", "content": "Analiza el estado del bridge."}
-  ],
-  "stream": true,
-  "temperature": 0.6
+  "providers": [{"name": "ollama", "healthy": true, "latency_ms": 45, "models": [...]}],
+  "active_provider": "ollama",
+  "active_model": "qwen2.5-coder:32b",
+  "uptime_s": 3600
 }
 ```
 
-### `GET /v1/status`
-Estado detallado del sistema, backends activos y métricas de latencia.
-
-**Ejemplo de Respuesta:**
+### `GET /v1/hardware`
+Perfil de hardware. Usado por el panel Hardware Monitor.
 ```json
 {
-  "version": "10.0",
-  "bridge_online": true,
-  "active_provider": "LM Studio",
-  "active_model": "deepseek-r1:14b",
-  "backends": [
-    {
-      "name": "LM Studio",
-      "category": "local",
-      "healthy": true,
-      "models": 3,
-      "latency_ms": 817
-    }
+  "gpu_name": "Radeon RX 6800 XT",
+  "gpu_type": "rocm",
+  "is_igpu": false,
+  "vram_mb": 16384,
+  "total_ram_mb": 32768,
+  "optimal_ctx": 65536,
+  "kv_quant": "q4_0",
+  "model_size_b": 32,
+  "npu_name": null,
+  "all_gpus": [...]
+}
+```
+
+### `GET /v1/cost`
+Costes de sesión y diarios.
+```json
+{
+  "session_cost": 0.0012,
+  "daily_cost": 0.0048,
+  "daily_limit": 10.0,
+  "over_limit": false,
+  "session_tokens": {"input": 1200, "output": 800},
+  "daily_breakdown": {
+    "anthropic": {"calls": 3, "input_tokens": 1200, "output_tokens": 800, "total_cost": 0.0048}
+  }
+}
+```
+
+### `GET /v1/watchdog`
+Estado del Engine Watchdog.
+```json
+{
+  "active_provider": "ollama",
+  "active_model": "qwen2.5-coder:32b",
+  "model_locked": false,
+  "hardware": {"gpu_name": "...", "vram_mb": 16384, "gpu_type": "rocm"}
+}
+```
+
+### `GET /v1/sessions`
+Lista sesiones guardadas en `_saves/`.
+```json
+{
+  "count": 3,
+  "sessions": [
+    {"name": "sesion-debug", "branch": "main", "turns": 24, "saved_at": "2026-04-17 01:00:00"}
   ]
 }
 ```
 
+### `GET /v1/rag/status`
+Estado del índice RAG.
+```json
+{
+  "rag_dir": "F:/Gravity_AI_bridge/_rag_index",
+  "doc_count": 5,
+  "chunk_count": 142,
+  "size_mb": 0.38,
+  "online": true
+}
+```
+
+### `GET /v1/security`
+Resultado del último escaneo de seguridad.
+
+### `GET /v1/audit`
+Últimas 100 entradas del audit log.
+
+### `GET /v1/models`
+Lista de modelos disponibles (compatible OpenAI).
+
+### `GET /v1/queue`
+Estado de la cola de generación de imágenes.
+
+### `GET /v1/deploy/status`
+Estado del último pipeline de deploy.
+
+### `GET /v1/gameserver/status`
+Estado de los servidores de juego configurados.
+
 ---
 
-## 🎮 Game Server Manager
+## Endpoints POST
 
-| Método | Endpoint | Descripción |
-| :--- | :--- | :--- |
-| **GET** | `/v1/gameserver/status` | Estado de worldserver/realmd (PID, uptime, autorestart). |
-| **GET** | `/v1/gameserver/log?server=wow_vanilla&lines=150` | Tail del log en crudo del servidor. |
-| **GET** | `/v1/gameserver/players?server=wow_vanilla` | Lista de jugadores online (Nombre, Nivel, Clase, Zona). |
-| **POST** | `/v1/gameserver/start` | Inicia el servidor `{"server": "wow_vanilla"}`. |
-| **POST** | `/v1/gameserver/command` | Envía comandos GM (SOAP) `{"command": ".announce Hola"}`. |
+### `POST /v1/chat/completions`
+**Compatible OpenAI.** Acepta `stream: true` (por defecto) y `stream: false`.
+```json
+{
+  "model": "gravity-bridge-auto",
+  "messages": [{"role": "user", "content": "Hola"}],
+  "stream": true,
+  "temperature": 0.7
+}
+```
 
----
+### `POST /v1/agent/compare`
+Multi-Agent Orchestrator.
+```json
+{
+  "prompt": "Explica el teorema de Bayes",
+  "mode": "parallel",
+  "n_models": 3
+}
+```
+Respuesta:
+```json
+{
+  "ok": true,
+  "mode": "parallel",
+  "results": [
+    {"provider": "ollama", "model": "...", "response": "...", "elapsed": "1.2s"},
+    ...
+  ]
+}
+```
 
-## 🚀 Despliegue y Cola de Imágenes
+### `POST /v1/watchdog/unlock`
+Desbloquea el modelo forzado manualmente y reactiva el auto-switch.
+```json
+{}
+```
+Respuesta: `{"ok": true, "message": "Modelo desbloqueado. Auto-switch reactivo."}`
 
-### Deploy Pipeline
-- `GET /v1/deploy/status`: Estado del último despliegue (duración, éxito/error, link Netlify).
-- `POST /v1/deploy`: Inicia pipeline `npm install && npm run build`.
+### `POST /v1/keys`
+Guarda API keys cifradas con DPAPI.
+```json
+{"provider": "anthropic", "key": "sk-ant-..."}
+```
 
-### Image Queue
-- `GET /v1/queue`: Estado global de la cola persistente.
-- `POST /v1/queue/add`: Encola un trabajo de generación de imagen.
+### `POST /v1/ai/start`
+Inicia un motor de IA local.
+```json
+{"provider": "LM Studio"}
+```
 
----
+### `POST /v1/ai/stop`
+Detiene un motor de IA local.
+```json
+{"provider": "Ollama"}
+```
 
-## 📊 Métricas de Prometheus (`/metrics`)
+### `POST /v1/security/scan`
+Fuerza un escaneo de seguridad inmediato.
 
-El bridge exporta métricas en formato estándar Prometheus (text/plain) para su ingesta en Grafana:
+### `POST /v1/deploy`
+Inicia el pipeline de deploy.
+```json
+{"project_path": "C:/Users/.../mi-proyecto"}
+```
 
-```text
-# HELP gravity_requests_total Total de peticiones procesadas
-# TYPE gravity_requests_total counter
-gravity_requests_total{provider="LM Studio",model="gemma-2"} 42
+### `POST /v1/queue/add`
+Añade un trabajo a la cola de generación de imágenes.
+```json
+{
+  "prompt": "A cyberpunk city at night",
+  "performance": "Speed",
+  "width": 1024,
+  "height": 1024
+}
+```
 
-# HELP gravity_tokens_total Total de tokens procesados
-# TYPE gravity_tokens_total counter
-gravity_tokens_total{direction="input",provider="LM Studio"} 1890
-gravity_tokens_total{direction="output",provider="LM Studio"} 5312
+### `POST /v1/gameserver/start`
+```json
+{"server": "wow_vanilla"}
+```
 
-# HELP gravity_latency_seconds Latencia de respuesta en segundos
-# TYPE gravity_latency_seconds histogram
-gravity_latency_seconds_bucket{provider="LM Studio",le="1.0"} 15
+### `POST /v1/gameserver/stop`
+```json
+{"server": "wow_vanilla"}
+```
+
+### `POST /v1/gameserver/command`
+Envía comando SOAP al servidor.
+```json
+{"server": "wow_vanilla", "command": ".server info"}
+```
+
+### `POST /v1/gameserver/register`
+Registra una cuenta.
+```json
+{"server": "wow_vanilla", "username": "player1", "password": "Pass123!"}
+```
+
+### `POST /v1/gameserver/expose`
+Configura el servidor para acceso WAN.
+```json
+{"server": "wow_vanilla", "public_address": "203.0.113.45"}
 ```
 
 ---
 
-## 🛠️ Integración con SDKs
+## Autenticación
 
-### Python (OpenAI Library)
-```python
-from openai import OpenAI
-client = OpenAI(base_url="http://localhost:7860/v1", api_key="gravity-local")
+El bridge acepta cualquier API key en el header `Authorization: Bearer <key>` si no se configura whitelist.
+Para configurar API keys de acceso al bridge, editar `config.yaml`:
+
+```yaml
+security:
+  allowed_keys:
+    - "mi-key-personal"
+    - "key-de-continue"
 ```
-
-### JavaScript / TypeScript
-```typescript
-import OpenAI from 'openai';
-const client = new OpenAI({ baseURL: 'http://localhost:7860/v1', apiKey: 'gravity-local' });
-```
-
----
-
-## 📝 Tabla de Códigos de Error
-
-| Código | Significado | Acción Sugeridada |
-| :--- | :--- | :--- |
-| `200` | OK | Operación exitosa. |
-| `400` | Bad Request | Verifica el esquema del JSON enviado. |
-| `429` | Rate Limit | Reduce la frecuencia de peticiones en `config.yaml`. |
-| `500` | Internal Error | Revisa `bridge_server.log` para stacktraces. |
-| `503` | Service Unavailable | No hay proveedores de IA online (Ollama/LM Studio). |
-
----
-*Referencia Técnica Exhaustiva V10.0.*
