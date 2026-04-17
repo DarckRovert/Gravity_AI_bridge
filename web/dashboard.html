@@ -1068,6 +1068,11 @@ function switchTab(name, el) {
   if(name==='deploy')   fetchDeployStatus();
   if(name==='gameserver') fetchGameServer();
   if(name==='vision')   checkFooocusBackend();
+  if(name==='hardware') fetchHardware();
+  if(name==='cost')     fetchCost();
+  if(name==='watchdog') fetchWatchdog();
+  if(name==='sessions') fetchSessions();
+  if(name==='rag')      fetchRAG();
 }
 function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,200)+'px'; }
 function handleKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
@@ -1754,16 +1759,6 @@ async function refreshAll(){
   if(currentTab==='watchdog')    fetchWatchdog();
   if(currentTab==='sessions')    fetchSessions();
   if(currentTab==='rag')         fetchRAG();
-}
-// switchTab actualizado para todos los paneles
-const _origSwitch = switchTab;
-function switchTab(name,el){
-  _origSwitch(name,el);
-  if(name==='hardware')   fetchHardware();
-  if(name==='cost')       fetchCost();
-  if(name==='watchdog')   fetchWatchdog();
-  if(name==='sessions')   fetchSessions();
-  if(name==='rag')        fetchRAG();
 }
 
 // Arranque
