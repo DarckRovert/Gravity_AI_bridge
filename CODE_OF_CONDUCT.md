@@ -1,32 +1,55 @@
-# Código de Conducta — Comunidad Gravity AI Bridge
+# Código de Conducta — Gravity AI Bridge
 
-## 🤝 Nuestro Compromiso
+## Nuestro Compromiso
 
-Con el fin de fomentar un entorno abierto y acogedor, nosotros como colaboradores y mantenedores nos comprometemos a hacer de la participación en nuestro proyecto y nuestra comunidad una experiencia libre de acoso para todos, independientemente de la edad, dimensión corporal, discapacidad, etnia, identidad y expresión de género, nivel de experiencia, nacionalidad, apariencia personal, raza, religión o identidad y orientación sexual.
-
-## ⚖️ Nuestros Estándares
-
-Ejemplos de comportamiento que contribuyen a crear un ambiente positivo:
-- El uso de lenguaje acogedor e inclusivo.
-- Ser respetuoso con los diferentes puntos de vista y experiencias.
-- Aceptar con gracia las críticas constructivas.
-- Enfocarse en lo que es mejor para la comunidad.
-- Mostrar empatía hacia otros miembros de la comunidad.
-
-Ejemplos de comportamiento inaceptable por parte de los participantes:
-- El uso de lenguaje o imágenes sexuales y atención sexual no deseada.
-- Comentarios insultantes o despectivos y ataques personales o políticos.
-- El acoso público o privado.
-- Publicar información privada de otras personas, como direcciones físicas o electrónicas, sin permiso explícito.
-- Otra conducta que razonablemente pueda considerarse inapropiada en un entorno profesional.
-
-## 🚀 Responsabilidades de los Mantenedores
-
-Los mantenedores del proyecto son responsables de aclarar los estándares de comportamiento aceptable y se espera que tomen medidas correctivas apropiadas y justas en respuesta a cualquier instancia de comportamiento inaceptable.
-
-## 🛡️ Aplicación
-
-Las instancias de comportamiento abusivo, acosador o inaceptable de otro modo pueden ser reportadas contactando al equipo del proyecto en [soporte@darckrovert.com]. Todas las quejas serán revisadas e investigadas y darán lugar a una respuesta que se considere necesaria y apropiada a las circunstancias.
+Gravity AI Bridge es un proyecto técnico de código abierto. Nos comprometemos a mantener un espacio de colaboración donde el foco sea la excelencia técnica y el respeto mutuo, sin importar el nivel de experiencia, origen o identidad de los participantes.
 
 ---
-*Este código de conducta está adaptado del [Contributor Covenant], versión 1.4.*
+
+## Comportamiento Esperado
+
+- **Comunicación técnica y directa** — las discusiones deben centrarse en el código, los datos y los hechos
+- **Crítica constructiva** — señala problemas con propuestas de solución cuando sea posible
+- **Respeto al tiempo ajeno** — los issues y PRs bien documentados se procesan más rápido
+- **Reconocimiento honesto** — si usas trabajo de otro como base, cítalo en el commit o el PR
+
+---
+
+## Comportamiento Inaceptable
+
+- Ataques personales, insultos o lenguaje despectivo en cualquier canal del proyecto (Issues, PRs, Discussions)
+- Spam, autopromoción no solicitada o mensajes fuera de tema repetidos
+- Publicar información privada de otras personas sin su consentimiento explícito
+- Acoso en cualquiera de sus formas
+
+---
+
+## Alcance
+
+Este código de conducta aplica a:
+- Issues y Pull Requests en GitHub
+- Comentarios en commits y code reviews
+- Discussions del repositorio
+- El canal de Twitch durante streamings relacionados con el proyecto ([twitch.tv/darckrovert](https://twitch.tv/darckrovert))
+
+---
+
+## Reporte e Intervención
+
+Si observas comportamiento que viola este código de conducta, repórtalo directamente a **DarckRovert** via mensaje en [Twitch](https://twitch.tv/darckrovert) o la función de reporte de GitHub.
+
+Los reportes se tratarán con confidencialidad. Las acciones posibles incluyen:
+1. **Advertencia** — explicación privada del comportamiento problemático
+2. **Silenciamiento temporal** — bloqueo de participación por tiempo definido
+3. **Ban permanente** — en casos graves o reincidentes
+
+---
+
+## Principio Final
+
+El objetivo de este proyecto es construir software de calidad. Cualquier comportamiento que obstaculice ese objetivo — sea técnico o interpersonal — no tiene lugar aquí.
+
+---
+
+*Adaptado del [Contributor Covenant v2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct/)*
+*Mantenido por [DarckRovert](https://github.com/DarckRovert)*
