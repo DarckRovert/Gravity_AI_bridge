@@ -10,6 +10,24 @@ echo  ^|        PyInstaller + Inno Setup                                        
 echo  +--------------------------------------------------------------------------+
 echo.
 
+echo  [0/5] Verificando / Generando icono...
+if not exist "assets\gravity_icon.ico" (
+    echo  [!] Icono no encontrado. Generando con Pillow...
+    pip show Pillow >nul 2>&1
+    if %errorlevel% neq 0 (
+        pip install Pillow --trusted-host pypi.org --trusted-host files.pythonhosted.org
+    )
+    python make_icon.py
+    if %errorlevel% neq 0 (
+        echo  [ERROR] No se pudo generar el icono.
+        pause
+        exit /b 1
+    )
+) else (
+    echo  [OK] Icono existente encontrado.
+)
+echo.
+
 REM ── PASO 1: Limpiar builds anteriores ────────────────────────────────────────
 echo  [1/5] Limpiando builds anteriores...
 if exist "dist\GravityBridge.exe"  del /f /q "dist\GravityBridge.exe"

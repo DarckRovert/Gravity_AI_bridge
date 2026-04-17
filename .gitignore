@@ -54,3 +54,9 @@ $RECYCLE.BIN/
 temp_images/
 output/
 _first_run_done
+
+# PyInstaller artifacts
+GravityBridge.spec
+build/
+dist/*.exe
+dist/GravityBridge.exe
