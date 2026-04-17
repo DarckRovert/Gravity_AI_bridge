@@ -151,6 +151,6 @@ Usa la plantilla de **Feature Request**. Describe:
 
 ---
 
-*Al contribuir, aceptas que tu código quedará bajo la [Licencia MIT](LICENSE) del proyecto.*
+*Al contribuir, cedes los derechos de tus modificaciones para el proyecto principal y aceptas que tu código quedará bajo el [Acuerdo de Licencia Propietario / Uso Estrictamente No-Comercial](LICENSE) del proyecto.*
 
 **Autor:** [DarckRovert](https://github.com/DarckRovert) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)

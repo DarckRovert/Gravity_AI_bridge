@@ -35,7 +35,7 @@ UninstallDisplayName={#AppName} V{#AppVersion}
 VersionInfoVersion={#AppVersion}
 VersionInfoCompany={#AppPublisher}
 VersionInfoDescription={#AppName} â€” Orquestador de IA Local de Alto Rendimiento
-VersionInfoCopyright=Copyright (C) 2026 {#AppPublisher}. Licencia MIT.
+VersionInfoCopyright=Copyright (C) 2026 {#AppPublisher}. Strictly Non-Commercial.
 
 [Languages]
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"

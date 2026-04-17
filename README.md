@@ -6,7 +6,7 @@
 
 **Orquestador de IA local-first. Un punto de entrada. Todos tus modelos.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-7c3aed.svg)](LICENSE)
+[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-10.0-4f46e5.svg)](CHANGELOG.md)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-0078D4.svg)]()
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB.svg)]()
@@ -202,6 +202,10 @@ Para vulnerabilidades de seguridad, sigue el protocolo en [SECURITY.md](SECURITY
 
 <div align="center">
 
-MIT © 2026 [DarckRovert](https://github.com/DarckRovert) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
+**Strictly Non-Commercial**: This software is owned by DarckRovert. Commercial use for profit is prohibited. <br>
+**Estrictamente No-Comercial**: Este software es propiedad de DarckRovert. El uso comercial con fines de lucro está prohibido.
+
+<br>
+© 2026 [DarckRovert](https://github.com/DarckRovert) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
 
 </div>
