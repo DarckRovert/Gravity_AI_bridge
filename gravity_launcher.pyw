@@ -51,33 +51,58 @@ def _run_as_server():
     """Entry point cuando se ejecuta con --server-only."""
     log_path = LOG_FILE
     try:
-        # Asegurar que el cwd sea el directorio del exe para encontrar config.yaml, web/, etc.
-        os.chdir(BASE_DIR)
+        # Calcular _MEIPASS del SUBPROCESO actual (no del launcher padre)
+        meipass = getattr(sys, "_MEIPASS", None)
 
-        # En modo frozen, _MEIPASS tiene los módulos Python; BASE_DIR tiene los datos
-        if getattr(sys, "_MEIPASS", None):
-            meipass = sys._MEIPASS
-            if meipass not in sys.path:
-                sys.path.insert(0, meipass)
-        if BASE_DIR not in sys.path:
-            sys.path.insert(0, BASE_DIR)
+        # El directorio del exe instalado
+        exe_dir = os.path.dirname(os.path.abspath(sys.executable))
+
+        # Cambiar al directorio del exe para que config.yaml y web/ sean accesibles
+        os.chdir(exe_dir)
+
+        # Construir sys.path con todas las rutas necesarias
+        paths_to_add = [exe_dir]
+        if meipass:
+            paths_to_add.insert(0, meipass)
+
+        for p in paths_to_add:
+            if p not in sys.path:
+                sys.path.insert(0, p)
 
         # Redirigir stdout/stderr al log
-        import io
         log_f = open(log_path, "w", encoding="utf-8", errors="replace")
         sys.stdout = log_f
         sys.stderr = log_f
 
-        print(f"[GRAVITY SERVER] Iniciando bridge_server desde {BASE_DIR}")
-        print(f"[GRAVITY SERVER] sys.path: {sys.path[:4]}")
-        print(f"[GRAVITY SERVER] config.yaml exists: {os.path.exists(os.path.join(BASE_DIR, 'config.yaml'))}")
-        print(f"[GRAVITY SERVER] web/dashboard.html exists: {os.path.exists(os.path.join(BASE_DIR, 'web', 'dashboard.html'))}")
+        print(f"[GRAVITY SERVER] exe_dir:  {exe_dir}")
+        print(f"[GRAVITY SERVER] meipass:  {meipass}")
+        print(f"[GRAVITY SERVER] sys.path: {sys.path[:6]}")
+        print(f"[GRAVITY SERVER] config.yaml: {os.path.exists(os.path.join(exe_dir, 'config.yaml'))}")
+        print(f"[GRAVITY SERVER] web/dashboard.html: {os.path.exists(os.path.join(exe_dir, 'web', 'dashboard.html'))}")
         log_f.flush()
 
-        import bridge_server
-        bridge_server.run_server()
+        # Importar y ejecutar bridge_server
+        # Primero intentar import normal (si está en sys.path via _MEIPASS o exe_dir)
+        # Si falla, cargar el archivo directamente con importlib
+        try:
+            import bridge_server as _bs
+            print("[GRAVITY SERVER] bridge_server importado via sys.path")
+        except ImportError:
+            # Último recurso: cargar desde ruta absoluta
+            import importlib.util
+            bs_path = os.path.join(meipass or exe_dir, "bridge_server.py")
+            if not os.path.exists(bs_path):
+                bs_path = os.path.join(exe_dir, "bridge_server.py")
+            print(f"[GRAVITY SERVER] Cargando bridge_server desde: {bs_path}")
+            spec = importlib.util.spec_from_file_location("bridge_server", bs_path)
+            _bs = importlib.util.module_from_spec(spec)
+            sys.modules["bridge_server"] = _bs
+            spec.loader.exec_module(_bs)
 
-    except Exception as exc:
+        log_f.flush()
+        _bs.run_server()
+
+    except Exception:
         import traceback
         try:
             with open(log_path, "a", encoding="utf-8", errors="replace") as f:
