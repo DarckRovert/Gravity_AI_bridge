@@ -1,6 +1,6 @@
 ---
-name: "Reporte de Error \U0001F41E"
-about: Reporta algo que no funciona correctamente en Gravity AI Bridge.
+name: "🐞 Bug Report"
+about: Reportar un error técnico en Gravity AI Bridge
 title: "[BUG] "
 labels: bug
 assignees: DarckRovert
@@ -8,25 +8,24 @@ assignees: DarckRovert
 ---
 
 **Descripción del Error**
-Una descripción clara y concisa del error.
+Una descripción clara y concisa de lo que sucede.
 
 **Pasos para Reproducir**
-1. Iniciar LM Studio con [Modelo]
-2. Ejecutar `INSTALAR.bat`
-3. Ejecutar `gravity "test"`
-4. Ver error en consola: ...
+1. Iniciar el bridge mediante `python bridge_server.py`
+2. Ir a '...'
+3. Hacer click en '....'
+4. Ver el error
 
 **Comportamiento Esperado**
-¿Qué debería haber pasado?
+¿Qué debería haber sucedido?
 
-**Capturas de Pantalla**
-Si aplica, añade capturas para ayudar a entender el problema.
+**Capturas de Pantalla / Logs**
+Si es posible, adjunta el fragmento relevante de `bridge_server.log` o una captura del Dashboard.
 
-**Entorno (Hardware/Software):**
-- SO: Windows [Versión]
-- Motor IA: [Ollama / LM Studio / etc]
-- Modelo: [Nombre del modelo]
-- Versión de Python: [Ej. 3.10.11]
+**Entorno:**
+- Sistema Operativo: (ej. Windows 11)
+- Versión de Python: (ej. 3.10)
+- Versión del Bridge: V10.0 Stable
 
-**Contexto Adicional**
-Añade cualquier otro contexto sobre el problema aquí.
+**Información Adicional**
+Cualquier otro contexto sobre el problema aquí.

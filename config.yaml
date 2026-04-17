@@ -1,0 +1,53 @@
+profile: production
+server:
+  host: 0.0.0.0
+  port: 7860
+  log_level: INFO
+model:
+  default_provider: LM Studio
+  default_model: auto
+  ctx_size: 32768
+  temperature: 0.6
+  top_p: 0.9
+  stream: true
+  agent_language: en
+  user_language: es
+cache:
+  enabled: true
+  ttl_hours: 24
+rate_limit:
+  enabled: true
+  requests_per_minute: 60
+fooocus:
+  mode: cpu
+  port: 7861
+  sampler: euler
+  scheduler: normal
+  steps: 30
+  width: 832
+  height: 1216
+  performance: Speed
+  base_model: juggernautXL_v8Rundiffusion.safetensors
+game_servers:
+  wow_vanilla:
+    enabled: true
+    display_name: WoW Vanilla (MaNGOS)
+    type: mangos
+    server_dir: F:\Project_Anarchy_Core\MaNGOS
+    worldserver_exe: mangosd.exe
+    realmd_exe: realmd.exe
+    mysql_start_bat: F:\Project_Anarchy_Core\MaNGOS\Start MySQL.bat
+    mysql_stop_bat: F:\Project_Anarchy_Core\MaNGOS\Stop MySQL.bat
+    log_file: F:\Project_Anarchy_Core\MaNGOS\logs\Server.log
+    auto_restart: true
+    restart_delay_seconds: 15
+    db_host: 127.0.0.1
+    db_port: 3306
+    db_name: characters
+    db_user: root
+    db_pass: root
+    db_name_auth: realmd
+ai_engines:
+  LM Studio: C:\Users\darck\AppData\Local\Programs\LM Studio\LM Studio.exe
+  Ollama: C:\Users\darck\AppData\Local\Programs\Ollama\ollama app.exe
+  Fooocus: F:\Gravity_AI_bridge\_integrations\Fooocus\run.bat

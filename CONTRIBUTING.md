@@ -1,71 +1,38 @@
 # Guía de Contribución — Gravity AI Bridge
 
-¡Gracias por tu interés en contribuir a **Gravity AI Bridge**!
+¡Gracias por tu interés en mejorar Gravity AI Bridge! Para mantener la calidad "Diamond-Tier" de este proyecto, solicitamos que todas las contribuciones sigan estos estándares estrictos.
 
-## 📋 Antes de Empezar
+## ⚖️ Principios Fundamentales
 
-1. Lee el [Código de Conducta](CODE_OF_CONDUCT.md).
-2. Revisa los [Issues abiertos](https://github.com/DarckRovert/Gravity_AI_bridge/issues) para evitar trabajo duplicado.
-3. Para cambios grandes, abre primero un Issue para discutir el enfoque.
+1.  **Directo y Técnico:** No agregues comentarios superfluos ni código redundante.
+2.  **Soberanía Local-First:** El código debe priorizar la ejecución local y la privacidad de los secretos del usuario (DPAPI).
+3.  **Integridad de Marca:** Todo enlace externo debe apuntar a dominios oficiales de DarckRovert o documentación técnica de confianza.
 
-## 🔧 Proceso de Contribución
+## 🛠️ Estándares Técnicos
 
-### 1. Fork y Clonación
-```bash
-git clone https://github.com/DarckRovert/Gravity_AI_bridge.git
-cd Gravity_AI_bridge
-pip install -r requirements.txt
-```
+### Python
+- Utiliza **type hinting** en todas las funciones y clases.
+- Estilo de código PEP 8 (estricto).
+- Manejo de excepciones específico; evita los bloques `try: except: pass` a menos que sea una captura de log controlada.
 
-### 2. Crear una Rama
-```bash
-git checkout -b feature/mi-nueva-funcionalidad
-# o
-git checkout -b fix/descripcion-del-bug
-```
+### WoW Lua (Addons asociados)
+- Estricto cumplimiento de **Lua 5.0**.
+- Prohibido el uso de operadores de Lua 5.1+ (ej: `#` para longitud, `math.huge`).
 
-### 3. Estándares de Código
+### Web Dashboard
+- Vanilla JavaScript y Vanilla CSS únicamente.
+- Prohibida la adición de librerías externas pesadas (como Tailwind o React) sin aprobación previa.
 
-- **Python 3.10+** con type hints explícitos. Prohibido `Any`.
-- Formato: `black` / `flake8`.
-- Sin placeholders en el código (`# ... resto del código`).
-- Bloques completos siempre.
-- Comentarios en español.
-- Docstrings en inglés (convención interna del proyecto).
+## 🔄 Proceso de Pull Request
 
-### 4. Proveedores Nuevos
+1.  **Fork del Proyecto:** Crea una rama descriptiva (ej: `fix/srp6-auth` o `feat/new-monitor`).
+2.  **Auditoría Local:** Asegúrate de ejecutar el comando `/verify` en el Chat Auditor del Dashboard antes de enviar.
+3.  **Documentación:** Si tu cambio añade una nueva funcionalidad, debes actualizar la `/wiki` correspondiente.
+4.  **Commit Messages:** Usa convenios de commits semánticos (ej: `feat:`, `fix:`, `refactor:`, `docs:`).
 
-Para añadir un nuevo proveedor de IA:
-1. Crea `providers/cloud/mi_proveedor.py` heredando de `providers.base.BaseProvider`.
-2. Implementa `scan()`, `stream()`, `complete()`.
-3. Registra en `providers/registry.py`.
-4. Añade tests en `tests/`.
+## 🛡️ Reporte de Errores
 
-### 5. Tests
+Si encuentras un bug, abre un **Issue** utilizando la plantilla de "Bug Report" y adjunta los logs relevantes del archivo `bridge_server.log`.
 
-```bash
-pytest tests/ -v
-```
-
-### 6. Pull Request
-
-- Título claro: `[feat] Añadir soporte Mistral AI` o `[fix] Corregir TTFT en cache hit`.
-- Describe el problema que resuelve.
-- Adhunde cambios al CHANGELOG.md bajo `[Unreleased]`.
-- Asegúrate de que los tests pasen.
-
-## 🏷️ Tipos de Cambio
-
-| Prefijo | Uso |
-|---------|-----|
-| `feat` | Nueva funcionalidad |
-| `fix` | Corrección de bug |
-| `docs` | Solo documentación |
-| `refactor` | Refactorización sin cambio de API |
-| `perf` | Mejora de rendimiento |
-| `test` | Añadir o corregir tests |
-
-## 📬 Contacto
-
-- Issues: [github.com/DarckRovert/Gravity_AI_bridge/issues](https://github.com/DarckRovert/Gravity_AI_bridge/issues)
-- Stream en vivo: [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
+---
+*Al contribuir, aceptas que tu código estará bajo la Licencia MIT del proyecto.*

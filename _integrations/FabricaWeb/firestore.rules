@@ -1,0 +1,82 @@
+// ================================================================
+// 🔐 Firestore Security Rules — Dulces Momentos
+// ================================================================
+// Desplegar con: firebase deploy --only firestore:rules
+// ================================================================
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper Functions ─────────────────────────────────────────────────────
+
+    // ¿El usuario está autenticado y tiene el claim de admin?
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    // ¿Es una solicitud válida de creación de pedido (sin autenticación)?
+    function isValidOrder() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['customer', 'phone', 'items', 'total', 'status', 'createdAt'])
+        && data.status == 'nuevo'
+        && data.total is number
+        && data.total > 0
+        && data.items is list
+        && data.items.size() > 0
+        && data.customer is string
+        && data.customer.size() > 0
+        && data.phone is string
+        && data.phone.size() > 0;
+    }
+
+    // ── Colección: orders ────────────────────────────────────────────────────
+    match /orders/{orderId} {
+      // Cualquier visitante puede CREAR un pedido (sin autenticación)
+      allow create: if isValidOrder();
+
+      // Solo admins pueden leer, actualizar o listar pedidos
+      allow read, update: if isAdmin();
+
+      // Nadie puede borrar pedidos desde el cliente (solo admin puede marcar cancelado)
+      allow delete: if false;
+    }
+
+    // ── Colección: reviews ───────────────────────────────────────────────────
+    match /reviews/{reviewId} {
+      // Cualquiera puede crear una reseña (validamos formato)
+      allow create: if request.resource.data.keys().hasAll(['orderId', 'rating', 'comment', 'product', 'createdAt'])
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() <= 1000;
+
+      // Cualquiera puede leer reseñas (son públicas)
+      allow read: if true;
+
+      // Solo admins pueden administrar reseñas
+      allow update, delete: if isAdmin();
+    }
+
+    // ── Colección: loyalty_points ────────────────────────────────────────────
+    match /loyalty_points/{phoneHash} {
+      // Solo el propio usuario o admin puede leer sus puntos
+      allow read: if isAdmin();
+      // Solo el servidor (admin auth) puede escribir puntos
+      allow write: if isAdmin();
+    }
+
+    // ── Colección: admin_config ──────────────────────────────────────────────
+    match /admin_config/{docId} {
+      // Solo admins pueden leer/escribir configuración administrativa
+      allow read, write: if isAdmin();
+    }
+
+    // ── Deny everything else ─────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

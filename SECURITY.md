@@ -1,51 +1,26 @@
 # Política de Seguridad — Gravity AI Bridge
 
-## Versiones Soportadas
+## 🛡️ Nuestro Compromiso con la Seguridad
 
-| Versión | Soporte de Seguridad |
-|---------|---------------------|
-| 8.0.x   | ✅ Soporte activo    |
-| 7.x     | ⚠️ Solo críticos     |
-| < 7.0   | ❌ Sin soporte       |
+En Gravity AI Bridge, la seguridad de tus datos y la integridad de tu infraestructura son nuestra máxima prioridad. Dado que este software maneja credenciales críticas y acceso a procesos del sistema, aplicamos una arquitectura de **Confianza Cero** en el desarrollo de nuestras APIs internas.
 
-## Reportar una Vulnerabilidad
+## 🚀 Reporte de Vulnerabilidades
 
-**No reportes vulnerabilidades de seguridad en Issues públicos.**
+Si descubres una vulnerabilidad de seguridad en este proyecto, te pedimos que NO abras un Issue público. En su lugar, sigue este protocolo:
 
-### Proceso de Reporte
+1.  **Envío Privado:** Envía un correo electrónico detallado a [seguridad@darckrovert.com].
+2.  **Detalles:** Incluye una descripción del fallo, los pasos para reproducirlo y, si es posible, un script de prueba (PoC).
+3.  **Respuesta:** Recibirás una respuesta de nuestro equipo en menos de 24 horas confirmando la recepción.
 
-1. Describe la vulnerabilidad en detalle con pasos de reproducción.
-2. Incluye la versión afectada y sistema operativo.
-3. Indica el impacto potencial (confidencialidad, integridad, disponibilidad).
-4. Envía el reporte como **Issue privado** en GitHub o mediante mensaje directo en [twitch.tv/darckrovert](https://twitch.tv/darckrovert).
+## 💎 Características de Seguridad de la V10.0
 
-### Tiempos de Respuesta
+- **Cifrado DPAPI:** Todos los secretos (API Keys, tokens) se cifran mediante la Data Protection API nativa de Windows, vinculada a tu cuenta de usuario del sistema operativo.
+- **Whitelist de Puertos:** El monitor de seguridad bloquea cualquier socket no autorizado explícitamente en la configuración.
+- **Aislamiento de Procesos:** Los agentes operan con los privilegios mínimos necesarios para interactuar con los procesos de juego.
 
-- **Acuse de recibo**: 48 horas.
-- **Evaluación inicial**: 5 días hábiles.
-- **Parche en versión soportada**: 30 días (crítico: 7 días).
+## 🏁 Alcance
 
-## Consideraciones de Seguridad del Proyecto
-
-### API Keys
-- Las API Keys se almacenan cifradas con **DPAPI** (Windows) o en archivo `.keystore` con permisos 600 (Linux/macOS).
-- **Nunca** se loggean en texto plano. El logger sanitiza cualquier token con patrón `sk-`/`key-`.
-- Usa `/keys del` para eliminar claves del almacén cifrado.
-
-### Bridge Server
-- Por defecto solo escucha en `localhost` (configura `server.host` en `config.yaml` para exponer al exterior).
-- Rate Limiting activo por IP y API Key.
-- CORS restrictivo en producción; permisivo solo en desarrollo.
-
-### Audit Log
-- El archivo `_audit_log.jsonl` es **append-only** y no contiene contenido de mensajes, solo métricas.
-- Elimina con precaución — es la única fuente de verdad para el seguimiento de costes.
-
-### Recomendaciones de Despliegue
-- No expongas el puerto 7860 directamente a Internet sin un proxy inverso (nginx/Caddy) con HTTPS.
-- Configura `rate_limit.requests_per_minute` adecuado a tu uso en `config.yaml`.
-- Revisa el audit log periódicamente para detectar uso anómalo.
+Esta política cubre todos los archivos contenidos en este repositorio, incluyendo el servidor Bridge, el Dashboard Web y los gestores de procesos en la carpeta `core/`.
 
 ---
-
-*Gravity AI Bridge — [github.com/DarckRovert/Gravity_AI_bridge](https://github.com/DarckRovert/Gravity_AI_bridge)*
+*Gracias por ayudarnos a mantener Gravity AI Bridge seguro para todos.*

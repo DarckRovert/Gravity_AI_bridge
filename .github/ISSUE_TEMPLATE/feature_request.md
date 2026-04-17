@@ -1,20 +1,20 @@
 ---
-name: "Solicitud de Funcionalidad \U0001F680"
-about: Sugiere una idea para Gravity AI Bridge.
-title: "[FEATURE] "
+name: "🚀 Feature Request"
+about: Sugerir una nueva funcionalidad o mejora
+title: "[FEAT] "
 labels: enhancement
 assignees: DarckRovert
 
 ---
 
-**¿Tu solicitud está relacionada con un problema?**
-Una descripción clara y concisa de cuál es el problema. Ej. Siempre me frustra cuando [...]
+**¿Tu sugerencia está relacionada con un problema?**
+Una descripción clara y concisa de lo que sucede (ej: "Me resulta molesto que...").
 
-**Descripción de la Solución**
-Una descripción clara y concisa de lo que quieres que suceda.
+**Descripción de la Mejora**
+Una descripción informativa de lo que quieres que suceda.
 
 **Alternativas Consideradas**
-Una descripción clara y concisa de cualquier solución alternativa o funcionalidad que hayas considerado.
+Una descripción de cualquier solución alternativa o características que hayas considerado.
 
 **Contexto Adicional**
-Añade cualquier otro contexto o capturas de pantalla sobre la solicitud de funcionalidad aquí.
+Añade aquí cualquier otra captura, diagrama o lógica que explique la necesidad de esta función.
