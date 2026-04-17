@@ -23,7 +23,13 @@ import webbrowser
 import threading
 import atexit
 
-BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
+if getattr(sys, "frozen", False):
+    # Ejecutable compilado: el exe está en el directorio de instalación
+    BASE_DIR = os.path.dirname(os.path.abspath(sys.executable))
+else:
+    # Modo desarrollo: directorio del script
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 PID_FILE   = os.path.join(BASE_DIR, "_gravity_launcher.pid")
 BRIDGE_PY  = os.path.join(BASE_DIR, "bridge_server.py")
 DASHBOARD  = "http://127.0.0.1:7860"
@@ -154,11 +160,16 @@ def main():
     # Iniciar el servidor bridge
     _start_bridge()
 
-    # Esperar a que el bridge esté listo
+    # Esperar a que el bridge esté listo (siempre, no solo en primer run)
     online = _wait_for_bridge(timeout=90.0)
 
-    # Abrir dashboard en el navegador
-    if online or _is_first_run():
+    if online:
+        # Marcar primer run como completado
+        marker = os.path.join(BASE_DIR, "_first_run_done")
+        try:
+            open(marker, "w").close()
+        except Exception:
+            pass
         webbrowser.open(DASHBOARD)
 
     # Iniciar el icono de bandeja (bloqueante)

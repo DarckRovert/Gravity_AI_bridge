@@ -25,6 +25,15 @@ if sys.stdout.encoding != "utf-8":
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
+# ── PyInstaller frozen-path fix ───────────────────────────────────────────────
+# Cuando corre como exe compilado, __file__ apunta al .exe; los datos
+# (core/, rag/, etc.) se extraen a sys._MEIPASS.
+_BUNDLE_DIR = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+if _BUNDLE_DIR not in sys.path:
+    sys.path.insert(0, _BUNDLE_DIR)
+# Forzar cwd al directorio del exe para que config.yaml/_knowledge.json sean encontrados
+os.chdir(os.path.dirname(os.path.abspath(sys.executable if getattr(sys, 'frozen', False) else __file__)))
+
 from core import provider_manager
 from core.logger      import log
 from core.audit_log   import audit_logger
@@ -1103,6 +1112,11 @@ def run_server():
         server.serve_forever()
     except KeyboardInterrupt:
         server.server_close()
+
+
+def main():
+    """Entry point para gravity_launcher.pyw en modo frozen (PyInstaller)."""
+    run_server()
 
 
 if __name__ == "__main__":
