@@ -26,13 +26,22 @@ if sys.stdout.encoding != "utf-8":
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 # ── PyInstaller frozen-path fix ───────────────────────────────────────────────
-# Cuando corre como exe compilado, __file__ apunta al .exe; los datos
-# (core/, rag/, etc.) se extraen a sys._MEIPASS.
-_BUNDLE_DIR = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-if _BUNDLE_DIR not in sys.path:
-    sys.path.insert(0, _BUNDLE_DIR)
-# Forzar cwd al directorio del exe para que config.yaml/_knowledge.json sean encontrados
-os.chdir(os.path.dirname(os.path.abspath(sys.executable if getattr(sys, 'frozen', False) else __file__)))
+# En modo frozen (exe compilado):
+#   - sys.executable = D:\Gravity AI Bridge\GravityBridge.exe
+#   - sys._MEIPASS   = C:\Users\xxx\AppData\Local\Temp\_MEIxxx\ (módulos Python)
+#   - Los datos (web/, config.yaml, etc.) están en el directorio del exe (copiados por Inno Setup)
+if getattr(sys, "frozen", False):
+    _BASE = os.path.dirname(os.path.abspath(sys.executable))
+    _MEIPASS = getattr(sys, "_MEIPASS", _BASE)
+    # _MEIPASS: donde PyInstaller descomprime los módulos Python (.pyc)
+    if _MEIPASS not in sys.path:
+        sys.path.insert(0, _MEIPASS)
+    # Directorio del exe: donde están los datos (config.yaml, web/, _knowledge.json)
+    if _BASE not in sys.path:
+        sys.path.insert(0, _BASE)
+    os.chdir(_BASE)
+else:
+    _BASE = os.path.dirname(os.path.abspath(__file__))
 
 from core import provider_manager
 from core.logger      import log
