@@ -1,53 +1,56 @@
-# 🧱 Arquitectura Deep-Dive — Gravity AI Bridge
+# 🧱 Arquitectura Técnica — Gravity AI Bridge V10.0
 
-Gravity AI Bridge V10.0 está diseñado bajo un paradigma de **Orquestación Asíncrona basada en Servicios**. A diferencia de los servidores web tradicionales, el Bridge actúa como un kernel que gestiona la comunicación entre la lógica local (Python) y los estados volátiles del sistema (Procesos de juego, APIs externas).
+Gravity AI Bridge no es solo un servidor proxy; es una capa de orquestación reactiva que sincroniza múltiples estados del sistema. Aquí se detallan los pilares técnicos de su funcionamiento.
 
-## 📊 Diagrama de Arquitectura Global
+## 📊 Flujo de Datos Global
 
 ```mermaid
 graph TD
-    User((Usuario/Dashboard)) -->|HTTP/REST| Server[bridge_server.py]
+    Dashboard[Dashboard Web / CLI] -->|REST/JSON| Bridge[bridge_server.py]
     
-    subgraph Core ["Núcleo Gravity Core"]
-        Server -->|Control| GSM[GameServerManager]
-        Server -->|Audit| AL[AuditLog - SQLite]
-        Server -->|Check| VA[VerificationAgent]
-        Server -->|Sync| DG[DataGuardian]
+    subgraph Core ["Orquestador Core"]
+        Bridge -->|Admin| GSM[GameServerManager]
+        Bridge -->|Inferencia| PA[ProviderAdapter]
+        Bridge -->|Integridad| VA[VerificationAgent]
     end
     
-    subgraph Security ["Agentes de Seguridad"]
-        SM[SecurityMonitor] -->|Watch| Ports[Puertos TCP/UDP]
-        SM -->|Watch| Files[Hashes SHA-256]
-        RL[RateLimiter] -->|Throttle| Server
+    subgraph Persistence ["Capa de Persistencia"]
+        AL[AuditLog]
+        CE[Cache - SQLite WAL]
+        GK[Knowledge Management]
     end
     
-    subgraph External ["Entorno Externo"]
-        GSM -->|SOAP/CLI| WoW[Servidor WoW]
-        Server -->|Build| Netlify[Cloud Deploy]
-        Server -->|Inferencia| AI[Proveedores de IA]
+    subgraph Security ["Seguridad Nativa"]
+        DP[Cifrado DPAPI]
+        SM[SecurityMonitor]
     end
+    
+    PA -->|API| Providers[Ollama/Cloud/LM Studio]
+    Bridge --- CE
+    Bridge --- AL
 ```
 
-## 🔹 Componentes del Núcleo
+## 🔐 Seguridad y Cifrado (DPAPI)
+A diferencia de otros puentes que guardan llaves en `.env` (texto plano), Gravity utiliza la **Data Protection API (DPAPI)** de Windows.
+- Las API Keys se cifran utilizando la entropía del usuario logueado.
+- Los secretos son ilegibles incluso para otros usuarios administradores del mismo PC.
+- Esto elimina el riesgo de fuga accidental de llaves en commits de Git o volcados de memoria genéricos.
 
-### 1. Servidor de Enlace (bridge_server.py)
-Es el único punto de entrada autorizado. Utiliza `http.server` de Python de forma asíncrona para manejar peticiones de inferencia chat, auditoría y control de sistema.Centraliza las cabeceras CORS y el manejo de errores global (HTTP 500 saneado).
+## 💾 Persistencia y Modo WAL
+Para soportar el monitoreo en tiempo real del dashboard sin degradar el rendimiento, el archivo `_cache.sqlite` opera en **Write-Ahead Logging (WAL) Mode**:
+- Permite que múltiples hilos de lectura (Dashboard) y un hilo de escritura (IA Backend) trabajen simultáneamente.
+- Garantiza **Atomicidad y Durabilidad (ACID)** incluso ante apagones repentinos del sistema.
 
-### 2. Guardián de Datos (DataGuardian)
-Gestiona la "memoria" del sistema a través del archivo `_knowledge.json`. Se encarga de la sincronización de versiones y asegura que el Bridge siempre tenga una personalidad unitaria.
+## 🧠 Gestión de Contexto (Sliding Window)
+El bridge gestiona la memoria de las sesiones mediante un algoritmo de **Ventana Deslizante**:
+- Cuando el historial supera el límite de tokens del modelo (ej: 128k para Claude), el bridge recorta los mensajes más antiguos, manteniendo siempre el *System Prompt* y los mensajes más recientes.
+- Esto previene errores de `context_length_exceeded` y mantiene la fluidez de la conversación.
 
-### 3. Verification Agent
-Actúa como un linter dinámico. Antes de ejecutar cambios críticos (ej: editar archivos Lua de WoW o configurar APIs), el `VerificationAgent` audita la sintaxis y el balanceo de bloques para evitar estados inconsistentes.
-
-## 🔒 Modelo de Seguridad
-
-Gravity Bridge utiliza el modelo **Diamond-Tier Security**:
-- **Cifrado en Reposo:** Las API Keys nunca se guardan en texto plano. Se delegan al subsistema `cryptography` que llama a la API **DPAPI** de Windows. Esto vincula la seguridad al usuario físico de la máquina.
-- **Micro-Auditoría:** Cada token generado por la IA es registrado en el `AuditLog` (SQLite), permitiendo un desglose de costos y latencias milimétrico.
-- **Modo WAL (Write-Ahead Logging):** La base de datos SQLite opera en modo WAL para permitir lectura/escritura simultánea sin bloqueos de archivo, vital para el monitoreo en tiempo real del dashboard.
-
-## ⚡ Manejo de Concurrencia
-El sistema utiliza un pool de hilos (`ThreadedHTTPServer`) para evitar que consultas largas de IA (que pueden tardar segundos) bloqueen las métricas de monitoreo de seguridad, las cuales se ejecutan en intervalos de 10 segundos de forma independiente.
+## 🛡️ Watchdog System
+El `SecurityMonitor` opera en un bucle asíncrono cada 10 segundos:
+- Realiza verificaciones de hashes SHA-256 en archivos críticos.
+- Audita la tabla de sockets abiertos de Windows para asegurar que solo los puertos definidos en la `WHITELIST_PORTS` estén en escucha.
+- Emite eventos al Dashboard mediante el canal de auditoría interno.
 
 ---
-*Documento Técnico V10.0 - DarckRovert.*
+*Documentación Arquitectónica Diamond-Tier.*

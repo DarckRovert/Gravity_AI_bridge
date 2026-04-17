@@ -1,48 +1,108 @@
 # 📖 Manual de Usuario — Gravity AI Bridge V10.0
 
-Este manual guía a los administradores en la operación diaria del ecosistema Gravity Bridge a través de su Dashboard Web unificado.
+Este manual exhaustivo cubre la instalación, operación y optimización de Gravity AI Bridge para administradores y desarrolladores.
 
-## 🏁 Inicio Rápido
-
-1.  Asegúrate de haber ejecutado `launchers/INICIAR_TODO.bat` o tener el servidor corriendo.
-2.  Accede mediante tu navegador a `http://localhost:7860`.
-3.  Verifica que el indicador superior derecho muestre **"BRIDGE ONLINE"** en verde.
-
-## 💬 Chat Auditor (Análisis de Sistema)
-
-El **Chat Auditor** es tu interfaz directa con la inteligencia del Bridge.
-- **Consultas de Sistema:** Puedes preguntar sobre el estado de los juegos, procesos o logs.
-- **Acceso a Conocimiento:** El auditor utiliza el `_knowledge.json` para darte respuestas coherentes con la historia del proyecto.
-- **Verificación:** Usa el comando `/verify` antes de aplicar cambios estructurales para que el agente audite tu plan.
-
-## ⚔️ Panel Game Servers (WoW)
-
-Desde esta sección gestionas tu infraestructura de World of Warcraft:
-1.  **Controles de Proceso:** Usa los botones de **Iniciar**, **Detener** y **Reiniciar** para manejar `mangosd` y `realmd`. Las notificaciones (Toasts) te confirmarán el éxito de la operación.
-2.  **Consola GM:** Escribe comandos nativos directamente (ej: `.announce`, `.account create`).
-3.  **Exposición WAN:** El botón "Exponer a Internet" te pedirá tu IP pública para configurar automáticamente las rutas de acceso externo en las tablas de `realmd`.
-4.  **Monitoreo de Jugadores:** Consulta en tiempo real quién está online, su nivel, raza y clase.
-
-## 🎨 Vision Studio e Image Queue
-
-Diseñado para la generación masiva de assets (ej: menús de comida o iconos de items):
-1.  **Dashboard de Vision:** Visualiza la instancia de Fooocus integrada.
-2.  **Cola de Imágenes:** Añade prompts a la cola interna. El Bridge gestionará la generación secuencial para no saturar tu GPU.
-3.  **Estado de Generación:** Monitorea el progreso y el performance (it/s) de cada trabajo.
-
-## 🚀 Panel de Despliegue (Deploy)
-
-Centraliza el despliegue de tus aplicaciones web (como portales de cuentas o webs de guilds):
-1.  **Ruta del Proyecto:** Ingresa la ruta local donde se encuentra tu proyecto web (ej: una app de Next.js).
-2.  **Iniciar Deploy:** El botón iniciará un proceso de `npm install` -> `npm run build` -> `netlify deploy`.
-3.  **Logs de Build:** Observa los errores de compilación directamente en la caja de logs integrada para diagnósticos rápidos.
-
-## 🛡️ Monitor de Seguridad
-
-Consulta regularmente este panel para asegurar la integridad de tu servidor:
-- **Integridad:** Una marca verde en archivos clave significa que no han sido alterados.
-- **Puertos:** Verifica que solo los puertos autorizados (7860, 8085, 3724, etc.) estén activos.
-- **Alertas:** Revisa la lista de alertas recientes para detectar intentos de fuerza bruta o escaneos de puertos externos.
+## 🧭 Índice
+1. [Instalación](#instalación)
+2. [Launchers y Arranque](#launchers-y-arranque)
+3. [Dashboard Web](#dashboard-web)
+4. [Uso del CLI](#uso-del-cli)
+5. [Generación de Imágenes (Vision)](#generación-de-imágenes-vision)
+6. [Sistema RAG](#sistema-rag)
+7. [Integración con IDEs](#integración-con-ides)
+8. [Atajos y Tips](#atajos-y-tips)
 
 ---
-*Manual de Operación Diamond-Tier Edition.*
+
+## 🛠️ Instalación
+
+### Requisitos previos
+- **Python 3.9+** instalado en el PATH.
+- **Motor de IA Local:** Se recomienda [LM Studio](https://lmstudio.ai) u [Ollama](https://ollama.ai).
+- **GPU AMD (Opcional para Vision):** Requiere instalar `AMD-Software-PRO-Edition-26.Q1-Win11-For-HIP.exe` y **reiniciar Windows**.
+
+### Instalación de Dependencias
+```cmd
+launchers\INSTALAR.bat
+```
+El instalador configura el entorno virtual automáticamente y registra el comando `gravity`.
+
+---
+
+## 🚀 Launchers y Arranque
+
+Todos los ejecutables se encuentran en `launchers/`. **Usa `INICIAR_TODO.bat` para el flujo normal diario.**
+
+| Archivo | Función | Puerto |
+| :--- | :--- | :--- |
+| `INICIAR_TODO.bat` ⭐ | Arranca Bridge Server + Fooocus Studio | 7860 + 7861 |
+| `INICIAR_SERVIDOR.bat` | Solo Bridge Server (Chat/Audit/Game) | 7860 |
+| `GRAVITY_VISION_PRO.bat` | Solo Vision Studio (Generación Imágenes) | 7861 |
+| `INICIAR_AUDITOR.bat` | Inicia el CLI en modo interactivo | — |
+
+---
+
+## 💬 Uso del CLI
+
+### Modos de Ejecución
+- **Interactivo:** Escribe `gravity` en tu terminal para entrar al prompt de comandos.
+- **Modo Pipe:** `cat error.log | gravity "analiza este log"` para procesar archivos directamente.
+
+### Comandos Esenciales
+- `/help`: Lista todos los comandos disponibles.
+- `/model`: Abre el menú interactivo para cambiar de motor o modelo.
+- `/mode`: Cambia entre `production`, `development` y `Omni-Audit`.
+- `/search <query>`: Realiza una búsqueda web rápida mediante Brave Search e inyecta el contexto.
+- `/verify <path>`: Audita un archivo en busca de errores de sintaxis o riesgos de seguridad.
+
+---
+
+## 🎨 Generación de Imágenes (Vision)
+
+Para usar la GPU AMD, asegúrate de tener configurado el **HIP SDK**. 
+1. Abre el Dashboard en la pestaña **Vision Studio**.
+2. **Primera Ejecución:** El sistema compilará los kernels mediante ZLUDA. **Espera 3-5 minutos** hasta que aparezca la primera imagen.
+3. **Parámetros:** Puedes ajustar `Performance` (Quality/Speed/Lightning), `Aspect Ratio` y `Styles` directamente desde la interfaz.
+
+---
+
+## 📂 Sistema RAG
+
+Gravity permite indexar tus propios archivos para responder con contexto local.
+- **Indexar:** `Gravity> /index F:\mi_proyecto\src`
+- **Consultar:** `Gravity> /rag busca la función de login`
+- **Inyección Automática:** El sistema detectará términos como "en mi código" o "según mis archivos" y buscará automáticamente en el índice RAG antes de responder.
+
+---
+
+## 💻 Integración con IDEs
+
+### Cursor
+En `Settings → AI → OpenAI API`:
+- **Base URL:** `http://localhost:7860/v1`
+- **API Key:** `gravity-local`
+- **Model:** `gravity-bridge-auto`
+
+### VS Code (Continue)
+```json
+{
+  "title": "Gravity AI",
+  "provider": "openai",
+  "model": "gravity-bridge-auto",
+  "apiBase": "http://localhost:7860/v1"
+}
+```
+
+---
+
+## 💡 Atajos y Tips
+
+| Tip | Función |
+| :--- | :--- |
+| `!aprende <regla>` | Persiste una instrucción en el `_knowledge.json` permanente. |
+| `CTRL+C` | Cancela la generación actual en el CLI sin cerrarlo. |
+| `/save <id>` | Guarda la sesión actual para retomarla más tarde con `/load <id>`. |
+| `/mcp <path>` | Conecta con un servidor subyacente de Model Context Protocol. |
+
+---
+*Manual de Usuario Exhaustivo V10.0.*

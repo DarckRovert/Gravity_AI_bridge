@@ -5,86 +5,91 @@
 ![Python](https://img.shields.io/badge/Python-3.9+-yellow?style=for-the-badge&logo=python)
 ![OS](https://img.shields.io/badge/OS-Windows_Direct-blue?style=for-the-badge&logo=windows)
 
-**Gravity AI Bridge** es una plataforma de orquestación de IA y gestión de infraestructura de alto rendimiento, diseñada específicamente para el ecosistema de servidores privados (WoW) y automatización de despliegues web. Desarrollado por **DarckRovert**, esta versión 10.0 representa el pináculo de la estabilidad y la integración "Local-First".
+**Gravity AI Bridge** es la vanguardia en orquestación de IA y gestión de infraestructura local-first. Diseñado por **DarckRovert**, este puente actúa como el núcleo inteligente que conecta tus procesos de juego (WoW), despliegues web (Netlify) y modelos de IA (Ollama/Cloud) en un entorno unificado, seguro y de alta latencia.
 
 ---
 
 ## 💎 Características Principales
 
 ### ⚔️ Game Server Manager (MaNGOS/vMaNGOS)
-Control absoluto sobre tu infraestructura de juego con soporte nativo para **SRP-6a**.
-- **Gestión de Cuentas:** Registro y auditoría de cuentas con firewall integrado.
-- **Exposure WAN:** Exposición segura a internet mediante reglas nativas y monitorización de IP pública.
-- **Control SOAP:** Consola GM integrada para envío de comandos remotos.
-- **Auto-Restart:** Vigilancia de procesos `mangosd` y `realmd` con autorecuperación en ms.
+- **Control Unificado:** Arranca, detiene y monitoriza worldserver/realmd (MaNGOS/vMaNGOS/TrinityCore).
+- **SRP-6a:** Portal de registro seguro integrado.
+- **Exposure WAN:** Exposición automática a internet con balanceo de IPs públicas.
+- **Monitoreo MySQL:** Observa jugadores online, niveles y clases en tiempo real.
 
-### 🛡️ Security Monitor (Vigilancia Activa)
-Un agente de seguridad incesante que protege la integridad del entorno.
-- **Whitelist de Puertos:** Monitoreo en tiempo real de sockets abiertos (TCP/UDP), detectando intrusiones inmediatamente.
-- **File Integrity:** Hash-checking (SHA-256) de archivos críticos para prevenir manipulaciones.
-- **Process Guard:** Detección de procesos sospechosos y monitoreo de consumo anómalo de recursos.
+### 🛡️ Security Monitor (Watchdog Zero-Trust)
+- **Whitelists:** Monitoreo estricto de puertos TCP/UDP y procesos autorizados.
+- **Integridad:** Verificación SHA-256 de binarios críticos.
+- **Anti-Intrusión:** Notificaciones instantáneas (Toasts) ante accesos no autorizados.
 
-### 🚀 Deploy Manager (CICD Integrado)
-Automatización del ciclo de vida de tus aplicaciones web.
-- **Pipeline Netlify:** npm build → auditoría → despliegue automático con un solo click.
-- **Logging Real-time:** Seguimiento visual del progreso de compilación directamente en el Dashboard.
-
-### 📊 Dashboard Holístico
-Interfaz web premium construida con Vanilla JS/CSS para máxima velocidad y sin dependencias pesadas.
-- **Chat Auditor:** Interacción directa con el motor de IA para análisis del sistema.
-- **Vision Studio:** Integración directa con Fooocus/Ollama para generación de assets.
-- **Métricas de Latencia:** Gráficos dinámicos de respuesta del proveedor de IA.
+### 🚀 Deploy Manager (CI/CD Local)
+- **Pipeline Automatizado:** `npm build` → `Netlify deploy` con un solo click.
+- **Streaming de Logs:** Depuración en tiempo real del proceso de build desde el Dashboard.
 
 ---
 
-## 🏗️ Arquitectura del Sistema
+## 🛠️ Guía de Inicio Rápido
 
-El sistema opera bajo un modelo de **Micro-Kernel de Orquestación**, donde el `bridge_server.py` centraliza la lógica y delega a agentes autónomos:
+### Instalación
+```cmd
+git clone https://github.com/DarckRovert/Gravity_AI_bridge.git
+cd Gravity_AI_bridge
+launchers\INSTALAR.bat
+```
 
-1.  **Core Internal:** Gestión de persistencia (SQLite con WAL mode), caché inteligente y limitadores de tasa.
-2.  **Hardware Layer (DPAPI):** Cifrado de nivel militar de Windows para secretos y llaves de API.
-3.  **Web Interface:** Servidor dinámico asíncrono que sirve el Dashboard con capacidades de *Hot-Reload*.
+### Uso mediante CLI
+```cmd
+# Iniciar modo interactivo
+gravity
+
+# Procesar consulta directa
+gravity "analiza este log: AttributeError: ..."
+
+# Analizar archivos mediante Pipe
+cat server.log | gravity "identifica errores críticos"
+```
+
+### Integración con Python SDK
+```python
+from openai import OpenAI
+client = OpenAI(base_url="http://localhost:7860/v1", api_key="gravity-local")
+
+response = client.chat.completions.create(
+    model="gravity-bridge-auto",
+    messages=[{"role": "user", "content": "Estado del bridge?"}]
+)
+print(response.choices[0].message.content)
+```
 
 ---
 
-## 🛠️ Instalación Rápida
+## 🖥️ Requisitos de Hardware y Software
 
-1. **Clonar Repositorio:**
-   ```bash
-   git clone https://github.com/DarckRovert/Gravity_AI_bridge.git
-   ```
-2. **Dependencias:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. **Lanzamiento:**
-   Ejecutar `launchers/INICIAR_TODO.bat` o iniciar manualmente:
-   ```bash
-   python bridge_server.py
-   ```
+- **S.O:** Windows 10/11 (Optimizado para DPAPI).
+- **Python:** 3.9 o superior.
+- **GPU (Opcional - Imagen):** Recomendado AMD con **HIP SDK** instalado.
+    - **IMPORTANTE:** Instala `AMD-Software-PRO-Edition-26.Q1-Win11-For-HIP.exe` y **reinicia Windows** para habilitar la generación de imágenes por GPU.
 
 ---
 
-## 📋 Requisitos del Sistema
+## 📚 Documentación Técnica (Wiki)
 
-- **SRE:** Python 3.9 o superior.
-- **Servidor:** Windows 10/11 (Optimizado para latencia nativa).
-- **IA:** Acceso a proveedores locales (Ollama/LM Studio) o Cloud (Anthropic/OpenAI).
+Para detalles exhaustivos, consulta nuestra Wiki local:
+- [**📖 Manual de Usuario**](wiki/Manual-Usuario.md): Instalación, Launchers, CLI y RAG.
+- [**📡 Guía de API**](wiki/Guia-API.md): Referencia técnica de endpoints, JSON y métricas.
+- [**🧱 Arquitectura**](wiki/Arquitectura.md): Deep-dive sobre DPAPI, WAL y orquestación.
+- [**⚔️ Game Server Guide**](wiki/Game-Server-Guide.md): Configuración de WoW MaNGOS.
 
 ---
 
-## 🤝 Contribución y Soporte
+## 🤝 Contribución y Marca
 
-Las contribuciones son bienvenidas. Por favor, revisa [CONTRIBUTING.md](CONTRIBUTING.md) antes de abrir un Pull Request.
-
-- **Autor:** [DarckRovert](https://github.com/DarckRovert)
+Este proyecto sigue los lineamientos de **DarckRovert**.
 - **Twitch:** [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
+- **GitHub:** [DarckRovert](https://github.com/DarckRovert)
 
 ---
 
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia **MIT**. Consulta el archivo [LICENSE](LICENSE) para más detalles.
-
----
-*Gravity AI Bridge: El futuro de la orquestación inteligente está aquí.*
+Este proyecto está bajo la Licencia **MIT** (2026). Consulta el archivo [LICENSE](LICENSE) para más detalles.
