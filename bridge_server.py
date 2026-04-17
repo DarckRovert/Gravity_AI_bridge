@@ -88,6 +88,10 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             "/v1/gameserver/log":   self._serve_gameserver_log,
             "/v1/gameserver/players":self._serve_gameserver_players,
             "/registro":            self._serve_registro,
+            # ── V10.0 New Endpoints ────────────────────────────────────────
+            "/v1/hardware":         self._serve_hardware,
+            "/v1/cost":             self._serve_cost,
+            "/v1/watchdog":         self._serve_watchdog,
         }
         # Rutas con query string (?server=&lines=)
         path_clean = self.path.split("?")[0]
@@ -446,8 +450,128 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(HTML.encode("utf-8"))
 
+    # ── Hardware Profiler ────────────────────────────────────────────────────
+    def _serve_hardware(self):
+        """Perfil completo de hardware: GPUs, VRAM, NPU, num_ctx óptimo."""
+        try:
+            from core.hardware_profiler import get_full_profile
+            profile = get_full_profile()
+            body = json.dumps(profile, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    # ── Cost Tracker ─────────────────────────────────────────────────────────
+    def _serve_cost(self):
+        """Resumen de costes: sesión, diario, breakdown por proveedor, límite."""
+        try:
+            from core.cost_tracker import CostTracker, _get_daily_limit
+            over_limit, daily = CostTracker.check_limit()
+            data = {
+                "session_cost":    CostTracker.get_session_cost(),
+                "session_tokens":  CostTracker.get_session_tokens(),
+                "daily_cost":      daily,
+                "daily_limit":     _get_daily_limit(),
+                "over_limit":      over_limit,
+                "daily_breakdown": CostTracker.get_daily_breakdown(),
+            }
+            body = json.dumps(data, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    # ── Engine Watchdog ───────────────────────────────────────────────────────
+    def _serve_watchdog(self):
+        """Estado del Engine Watchdog: proveedor activo, lock de modelo y hardware."""
+        try:
+            from core import engine_watchdog
+            import json as _json
+            BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+            settings_path = os.path.join(BASE_DIR, "_settings.json")
+            try:
+                with open(settings_path, "r", encoding="utf-8") as f:
+                    settings = _json.load(f)
+            except Exception:
+                settings = {}
+            state = engine_watchdog.get_active_state()
+            data = {
+                "active_provider": state.get("provider"),
+                "active_model":    state.get("model"),
+                "model_locked":    settings.get("model_locked", False),
+                "hardware":        state.get("hardware", {}),
+            }
+            body = json.dumps(data, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
     # ── POST ──────────────────────────────────────────────────────────────────
     def do_POST(self):
+
+        # /v1/agent/compare — Multi-Agent Orchestrator
+        if self.path == "/v1/agent/compare":
+            try:
+                length   = int(self.headers.get("Content-Length", 0))
+                data     = json.loads(self.rfile.read(length)) if length else {}
+                messages = data.get("messages", [{"role": "user", "content": data.get("prompt", "")}])
+                n_models = int(data.get("n_models", 3))
+                mode     = data.get("mode", "parallel")
+                from core import multi_agent
+                if mode == "vote":
+                    result = multi_agent.vote(messages, n_models=n_models)
+                    results = [result]
+                else:
+                    results = multi_agent.compare(messages, n_models=n_models)
+                body = json.dumps({"ok": True, "mode": mode, "results": results}).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/watchdog/unlock
+        if self.path == "/v1/watchdog/unlock":
+            try:
+                BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+                settings_path = os.path.join(BASE_DIR, "_settings.json")
+                with open(settings_path, "r", encoding="utf-8") as f:
+                    settings = json.load(f)
+                settings["model_locked"] = False
+                with open(settings_path, "w", encoding="utf-8") as f:
+                    json.dump(settings, f, indent=4, ensure_ascii=False)
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": True, "message": "Modelo desbloqueado. Auto-switch reactivo."}).encode())
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
 
         # /v1/gameserver/start
         if self.path == "/v1/gameserver/start":

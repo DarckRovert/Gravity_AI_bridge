@@ -1,4 +1,4 @@
-# ── Gravity AI Bridge V9.0 PRO — Dependencias ────────────────────────────────────
+# ── Gravity AI Bridge V10.0 [Diamond-Tier Edition] — Dependencias ────────────────
 # CLI / UI
 aiohttp==3.10.10
 colorama==0.4.6
@@ -35,5 +35,8 @@ pytest-mock
 # MCP (Model Context Protocol)
 mcp
 
-# Linting
-flake8
+# Empaquetado Comercial (Fase 2 — Build Instalable)
+pyinstaller
+pystray
+Pillow
+psutil

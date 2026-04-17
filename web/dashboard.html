@@ -221,16 +221,86 @@
 
   /* Toast */
   #toast-container{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:9999}
-  .toast{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;color:var(--text);font-size:14px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.3);display:flex;align-items:center;gap:12px;transform:translateX(120%);opacity:0;transition:all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);min-width:280px}
+  .toast{background:var(--glass);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px 20px;color:var(--text);font-size:14px;font-weight:500;box-shadow:0 8px 32px rgba(0,0,0,0.4);display:flex;align-items:center;gap:12px;transform:translateX(120%);opacity:0;transition:all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);min-width:280px}
   .toast.show{transform:translateX(0);opacity:1}
   .toast-icon{font-size:18px}
   .toast.success .toast-icon{color:var(--success)}
   .toast.error   .toast-icon{color:var(--error)}
   .toast.info    .toast-icon{color:var(--accent)}
+
+  /* Modal WAN */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:10000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s ease}
+  .modal-overlay.open{opacity:1;pointer-events:all}
+  .modal-box{background:var(--surface);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px;width:420px;max-width:90vw;transform:scale(0.95);transition:transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275);box-shadow:0 24px 64px rgba(0,0,0,0.5)}
+  .modal-overlay.open .modal-box{transform:scale(1)}
+  .modal-title{font-size:18px;font-weight:700;margin-bottom:8px;color:var(--text)}
+  .modal-desc{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5}
+  .modal-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:0.2s;box-sizing:border-box}
+  .modal-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,70,229,0.2)}
+  .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+  .modal-btn-cancel{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:10px 20px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;transition:.2s}
+  .modal-btn-cancel:hover{border-color:var(--error);color:var(--error)}
+  .modal-btn-apply{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;transition:.2s}
+  .modal-btn-apply:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 12px var(--glow)}
+
+  /* Hardware Monitor */
+  .hw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px}
+  .hw-card{background:var(--glass);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:20px;position:relative;overflow:hidden}
+  .hw-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+  .hw-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:700;margin-bottom:10px}
+  .hw-value{font-size:22px;font-weight:800;letter-spacing:-0.5px;color:var(--text)}
+  .hw-sub{font-size:12px;color:var(--muted);margin-top:4px}
+  .hw-badge{display:inline-block;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:0.5px;margin-top:8px}
+  .hw-badge.rocm{background:rgba(240,136,62,0.15);color:var(--warning);border:1px solid rgba(240,136,62,0.3)}
+  .hw-badge.cuda{background:rgba(63,185,80,0.15);color:var(--success);border:1px solid rgba(63,185,80,0.3)}
+  .hw-badge.cpu{background:rgba(139,148,158,0.15);color:var(--muted);border:1px solid rgba(139,148,158,0.3)}
+  .hw-gpu-table{width:100%;border-collapse:collapse;font-size:13px}
+  .hw-gpu-table th{color:var(--muted);font-size:11px;text-transform:uppercase;padding:8px;border-bottom:1px solid var(--border)}
+  .hw-gpu-table td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.03)}
+
+  /* Multi-Agent */
+  .agent-grid{display:grid;grid-template-columns:300px 1fr;gap:20px;height:calc(100vh - 180px)}
+  .agent-config{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:16px}
+  .agent-results{display:flex;flex-direction:column;gap:16px;overflow-y:auto}
+  .agent-result-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;animation:fadeIn .3s ease}
+  .agent-result-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .agent-provider-name{font-size:14px;font-weight:700;color:var(--text)}
+  .agent-elapsed{font-size:12px;color:var(--muted);font-family:'JetBrains Mono'}
+  .agent-response{font-size:14px;line-height:1.7;color:var(--text);white-space:pre-wrap;word-break:break-word;max-height:300px;overflow-y:auto}
+  .agent-placeholder{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--muted);background:var(--card);border:1px dashed var(--border);border-radius:16px}
+
+  /* Cost Center */
+  .cost-hero{background:var(--glass);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:28px;margin-bottom:24px;display:flex;align-items:center;gap:32px}
+  .cost-dial{text-align:center;min-width:160px}
+  .cost-dial-value{font-size:40px;font-weight:800;letter-spacing:-1px}
+  .cost-dial-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+  .cost-limit-bar{flex:1}
+  .cost-limit-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px}
+  .cost-bar-track{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+  .cost-bar-fill{height:100%;border-radius:4px;transition:width 0.5s ease;background:linear-gradient(90deg,var(--success),var(--accent))}
+  .cost-bar-fill.over{background:linear-gradient(90deg,var(--warning),var(--error))}
+
+  /* Watchdog */
+  .wd-lock-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:700;border:1px solid}
+  .wd-lock-badge.locked{background:rgba(248,81,73,0.1);color:var(--error);border-color:rgba(248,81,73,0.3)}
+  .wd-lock-badge.auto{background:rgba(63,185,80,0.1);color:var(--success);border-color:rgba(63,185,80,0.3)}
 </style>
 </head>
 <body>
 <div id="toast-container"></div>
+
+<!-- Modal WAN -->
+<div class="modal-overlay" id="wan-modal">
+  <div class="modal-box">
+    <div class="modal-title">🌐 Exponer Servidor a Internet</div>
+    <div class="modal-desc">Ingresa la IP Pública o Dominio DDNS. El sistema configurará las reglas de firewall y los archivos de MaNGOS automáticamente.</div>
+    <input type="text" id="wan-ip-input" class="modal-input" placeholder="ej. 203.0.113.45 o mi.ddns.net" onkeydown="if(event.key==='Enter')applyWan()">
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeWanModal()">Cancelar</button>
+      <button class="modal-btn-apply" id="wan-apply-btn" onclick="applyWan()">Aplicar Reglas</button>
+    </div>
+  </div>
+</div>
 
 <div class="shell">
   <!-- Topbar -->
@@ -253,7 +323,12 @@
         <div class="nav-item"        id="nav-queue"    onclick="switchTab('queue',this)">   <span class="nav-icon">🖼️</span><span class="nav-text">Image Queue</span></div>
         <div class="nav-item"        id="nav-deploy"   onclick="switchTab('deploy',this)">  <span class="nav-icon">🚀</span><span class="nav-text">Deploy</span></div>
         <div class="nav-item"        id="nav-gameserver" onclick="switchTab('gameserver',this)"><span class="nav-icon">⚔️</span><span class="nav-text">Game Servers</span></div>
-        <div class="sidebar-label" style="margin-top:12px">Sistema</div>
+        <div class="sidebar-label" style="margin-top:12px">IA & Sistema</div>
+        <div class="nav-item"        id="nav-multiagent" onclick="switchTab('multiagent',this)"><span class="nav-icon">🤖</span><span class="nav-text">Multi-Agent</span></div>
+        <div class="nav-item"        id="nav-hardware"   onclick="switchTab('hardware',this)">  <span class="nav-icon">🖥️</span><span class="nav-text">Hardware</span></div>
+        <div class="nav-item"        id="nav-cost"       onclick="switchTab('cost',this)">      <span class="nav-icon">💰</span><span class="nav-text">Cost Center</span></div>
+        <div class="nav-item"        id="nav-watchdog"   onclick="switchTab('watchdog',this)">  <span class="nav-icon">⚡</span><span class="nav-text">Watchdog</span></div>
+        <div class="sidebar-label" style="margin-top:12px">Monitoreo</div>
         <div class="nav-item"        id="nav-status"   onclick="switchTab('status',this)">  <span class="nav-icon">📡</span><span class="nav-text">System Status</span></div>
         <div class="nav-item"        id="nav-security" onclick="switchTab('security',this)"><span class="nav-icon">🛡️</span><span class="nav-text">Security</span></div>
         <div class="nav-item"        id="nav-audit"    onclick="switchTab('audit',this)">   <span class="nav-icon">📋</span><span class="nav-text">Audit Log</span></div>
@@ -678,6 +753,151 @@
         </div>
       </div>
 
+      <!-- Panel: Hardware Monitor -->
+      <div id="panel-hardware" class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🖥️ Hardware Monitor</div>
+          <div class="panel-subtitle">Perfil completo de GPUs, VRAM, NPU y contexto óptimo de inferencia</div>
+        </div>
+        <div class="panel-content">
+          <div class="hw-grid" id="hw-cards">
+            <div class="hw-card"><div class="hw-label">GPU Primaria</div><div class="hw-value" id="hw-gpu-name" style="font-size:16px">—</div><div id="hw-gpu-badge"></div></div>
+            <div class="hw-card"><div class="hw-label">VRAM Disponible</div><div class="hw-value" id="hw-vram">—</div><div class="hw-sub">Memoria de GPU</div></div>
+            <div class="hw-card"><div class="hw-label">RAM del Sistema</div><div class="hw-value" id="hw-ram">—</div><div class="hw-sub">Total instalada</div></div>
+            <div class="hw-card"><div class="hw-label">Contexto Óptimo</div><div class="hw-value" id="hw-ctx" style="color:var(--accent)">—</div><div class="hw-sub" id="hw-kv">KV-Cache</div></div>
+            <div class="hw-card"><div class="hw-label">NPU / Acelerador</div><div class="hw-value" id="hw-npu" style="font-size:14px">—</div><div class="hw-sub">Ryzen AI NPU</div></div>
+          </div>
+          <div class="table-wrap">
+            <div class="table-title">Todas las GPUs Detectadas</div>
+            <table class="hw-gpu-table">
+              <thead><tr><th>#</th><th>Nombre</th><th>Tipo</th><th>VRAM</th><th>Vendor</th><th>Backend</th><th>GFX (ROCm)</th></tr></thead>
+              <tbody id="tb-hw-gpus"><tr><td colspan="7" style="text-align:center;color:var(--muted)">Cargando...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Multi-Agent Orchestrator -->
+      <div id="panel-multiagent" class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🤖 Multi-Agent Orchestrator</div>
+          <div class="panel-subtitle">Comparativa paralela y votación por consenso entre múltiples modelos de IA</div>
+        </div>
+        <div class="panel-content" style="overflow:hidden;padding:20px 32px">
+          <div class="agent-grid">
+            <div class="agent-config">
+              <div>
+                <div class="form-label">Modo de Operación</div>
+                <select id="agent-mode" class="form-input">
+                  <option value="parallel">⚡ Paralelo — Comparativa libre</option>
+                  <option value="vote">🗳️ Vote — Consenso automático</option>
+                </select>
+              </div>
+              <div>
+                <div class="form-label">Número de Modelos (N)</div>
+                <select id="agent-n" class="form-input">
+                  <option value="2">2 modelos</option>
+                  <option value="3" selected>3 modelos</option>
+                  <option value="4">4 modelos</option>
+                </select>
+              </div>
+              <div style="flex:1">
+                <div class="form-label">Prompt</div>
+                <textarea id="agent-prompt" class="form-input" rows="8" placeholder="Escribe tu pregunta para enviar a múltiples modelos en paralelo..." style="resize:none;height:160px"></textarea>
+              </div>
+              <button class="btn-primary" id="agent-send-btn" onclick="runMultiAgent()">🚀 Ejecutar</button>
+            </div>
+            <div id="agent-results-area">
+              <div class="agent-placeholder" id="agent-placeholder">
+                <div style="font-size:40px">🤖</div>
+                <div style="font-size:14px">Envía un prompt para comparar respuestas de múltiples modelos.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Cost Center -->
+      <div id="panel-cost" class="panel">
+        <div class="panel-header">
+          <div class="panel-title">💰 Cost Center</div>
+          <div class="panel-subtitle">Tracking de costes USD en tiempo real por proveedor y sesión</div>
+        </div>
+        <div class="panel-content">
+          <div class="cost-hero">
+            <div class="cost-dial">
+              <div class="cost-dial-value" id="cost-session" style="color:var(--accent)">$0.0000</div>
+              <div class="cost-dial-label">Sesión actual</div>
+            </div>
+            <div class="cost-dial" style="border-left:1px solid var(--border);padding-left:32px">
+              <div class="cost-dial-value" id="cost-daily" style="color:var(--text)">$0.0000</div>
+              <div class="cost-dial-label">Hoy (total)</div>
+            </div>
+            <div class="cost-limit-bar">
+              <div class="cost-limit-label">
+                <span>Límite Diario</span>
+                <span id="cost-limit-text">$0.00 / $10.00</span>
+              </div>
+              <div class="cost-bar-track"><div class="cost-bar-fill" id="cost-bar" style="width:0%"></div></div>
+              <div style="margin-top:8px;font-size:12px;color:var(--muted)" id="cost-tokens-summary">—</div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <div class="table-title">Breakdown por Proveedor (Hoy)</div>
+            <table>
+              <thead><tr><th>Proveedor</th><th>Llamadas</th><th>Tokens ↓</th><th>Tokens ↑</th><th>Coste Total</th></tr></thead>
+              <tbody id="tb-cost-breakdown"><tr><td colspan="5" style="text-align:center;color:var(--muted)">Sin datos de coste aún (solo proveedores cloud generan costes).</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Engine Watchdog -->
+      <div id="panel-watchdog" class="panel">
+        <div class="panel-header">
+          <div class="panel-title">⚡ Engine Watchdog</div>
+          <div class="panel-subtitle">Auto-detección, auto-switch y estado del lock de modelo activo</div>
+        </div>
+        <div class="panel-content">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+            <div>
+              <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Estado del Modelo</div>
+              <div id="wd-lock-badge" class="wd-lock-badge auto">● AUTO-SWITCH ACTIVO</div>
+            </div>
+            <button class="btn-icon" id="wd-unlock-btn" onclick="watchdogUnlock()" style="display:none;color:var(--error);border-color:rgba(248,81,73,0.3)">🔓 Forzar Unlock</button>
+            <button class="btn-icon" onclick="fetchWatchdog()">⟳ Actualizar</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+            <div class="sec-card">
+              <h3>🔌 Motor Activo</h3>
+              <div class="stat-card" style="margin:0">
+                <div class="label">Proveedor</div>
+                <div class="value" id="wd-provider" style="color:var(--accent);font-size:20px">—</div>
+              </div>
+              <div style="margin-top:12px;font-size:13px;color:var(--muted)">
+                Modelo: <span id="wd-model" style="color:var(--text);font-family:'JetBrains Mono';font-size:12px">—</span>
+              </div>
+            </div>
+            <div class="sec-card">
+              <h3>🖥️ Hardware Detectado</h3>
+              <div style="font-size:13px;line-height:2;color:var(--muted)">
+                GPU: <span id="wd-hw-gpu" style="color:var(--text)">—</span><br>
+                VRAM: <span id="wd-hw-vram" style="color:var(--text)">—</span><br>
+                Tipo: <span id="wd-hw-type" style="color:var(--accent)">—</span>
+              </div>
+            </div>
+          </div>
+          <div class="sec-card">
+            <h3>📖 ¿Qué hace el Watchdog?</h3>
+            <p style="font-size:13px;color:var(--muted);line-height:1.8">
+              El Watchdog corre como hilo demonio (cada 30s) y selecciona automáticamente el mejor motor de IA disponible (LM Studio, Ollama, Kobold, etc.) basándose en latencia y disponibilidad.
+              Si el modelo está en modo <strong style="color:var(--error)">LOCKED</strong>, el auto-switch está desactivado y el motor fue seleccionado manualmente desde el CLI o el Dashboard.
+              Usa el botón <strong>Forzar Unlock</strong> para reactivar la selección automática.
+            </p>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -883,22 +1103,38 @@ async function sendGsCmd(serverId){
   out.scrollTop = out.scrollHeight;
 }
 
-async function exposeWan(serverId){
-  const ip = prompt("Ingresa la IP Pública o Dominio DDNS para el servidor:");
-  if(!ip) return;
-  showToast("Aplicando reglas nativas... Revisa la terminal.", "info");
+// ── Modal WAN (reemplaza prompt() nativo) ──────────────────────────────────────
+let _wanServerId = null;
+function exposeWan(serverId){
+  _wanServerId = serverId;
+  document.getElementById('wan-ip-input').value = '';
+  document.getElementById('wan-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('wan-ip-input').focus(), 100);
+}
+function closeWanModal(){
+  document.getElementById('wan-modal').classList.remove('open');
+  _wanServerId = null;
+}
+async function applyWan(){
+  const ip = document.getElementById('wan-ip-input').value.trim();
+  if(!ip){ showToast('Ingresa una IP o dominio válido.','error'); return; }
+  const btn = document.getElementById('wan-apply-btn');
+  btn.disabled = true; btn.textContent = 'Aplicando...';
+  closeWanModal();
+  showToast('Aplicando reglas de firewall... Revisa la terminal.', 'info');
   try{
     const r = await fetch('/v1/gameserver/expose',{
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({server: serverId, public_address: ip})
+      body: JSON.stringify({server: _wanServerId, public_address: ip})
     });
     const data = await r.json();
-    if(data.message) showToast(data.message, "success");
-    else showToast(data.error, "error");
+    if(data.message) showToast(data.message, 'success');
+    else showToast(data.error || 'Error desconocido.', 'error');
   }catch(e){
-    showToast("Error conectando con el puente: " + e.message, "error");
-  }
+    showToast('Error conectando con el puente: ' + e.message, 'error');
+  } finally { btn.disabled=false; btn.textContent='Aplicar Reglas'; }
 }
+document.getElementById('wan-modal').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeWanModal(); });
 
 // ── Status ──
 async function fetchStatus(){
@@ -1192,7 +1428,7 @@ async function saveProjectPath(){
   showToast('Ruta guardada. Usa Deploy Manager para iniciar.','success');
 }
 
-// ── Chart (Latencia) ──
+// ── Chart (Latencia) — Diamond Edition ──────────────────────────────────────────
 function renderChart(){
   const canvas=document.getElementById('latencyChart');
   if(!canvas) return;
@@ -1201,28 +1437,170 @@ function renderChart(){
   canvas.width=rect.width; canvas.height=rect.height-40;
   ctx.clearRect(0,0,canvas.width,canvas.height);
   if(latencyHistory.length<2) return;
-  const pW=canvas.width/(20-1);
+  const pW=canvas.width/Math.max(latencyHistory.length-1,1);
   const max=Math.max(...latencyHistory,100);
-  ctx.beginPath(); ctx.moveTo(0,canvas.height);
-  latencyHistory.forEach((v,i)=>ctx.lineTo(i*pW,canvas.height-(v/max)*canvas.height*0.8));
-  ctx.lineTo(canvas.width,canvas.height);
-  ctx.fillStyle='rgba(79,70,229,0.15)'; ctx.fill();
-  ctx.beginPath();
   const P=latencyHistory.map((v,i)=>({x:i*pW,y:canvas.height-(v/max)*canvas.height*0.8}));
-  ctx.moveTo(P[0].x,P[0].y);
+  // Gradient fill
+  const grad=ctx.createLinearGradient(0,0,0,canvas.height);
+  grad.addColorStop(0,'rgba(79,70,229,0.35)');
+  grad.addColorStop(1,'rgba(79,70,229,0)');
+  ctx.beginPath(); ctx.moveTo(P[0].x,canvas.height);
+  P.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.lineTo(P[P.length-1].x,canvas.height);
+  ctx.fillStyle=grad; ctx.fill();
+  // Glow stroke
+  ctx.shadowColor='rgba(124,58,237,0.6)'; ctx.shadowBlur=8;
+  ctx.beginPath(); ctx.moveTo(P[0].x,P[0].y);
   for(let i=0;i<P.length-1;i++){ const xc=(P[i].x+P[i+1].x)/2,yc=(P[i].y+P[i+1].y)/2; ctx.quadraticCurveTo(P[i].x,P[i].y,xc,yc); }
   ctx.lineTo(P[P.length-1].x,P[P.length-1].y);
-  ctx.strokeStyle='#4f46e5'; ctx.lineWidth=3; ctx.lineJoin='round'; ctx.stroke();
+  ctx.strokeStyle='#7c3aed'; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.stroke();
+  // Indicator dot (last value)
+  ctx.shadowBlur=0;
+  const last=P[P.length-1];
+  ctx.beginPath(); ctx.arc(last.x,last.y,5,0,Math.PI*2);
+  ctx.fillStyle='#a78bfa'; ctx.fill();
+  // Last value label
+  const lastMs=Math.round(latencyHistory[latencyHistory.length-1]);
+  ctx.fillStyle='#e6edf3'; ctx.font='bold 12px Inter,sans-serif';
+  ctx.fillText(lastMs+'ms',last.x-18,last.y-10);
 }
 
-// ── Loop Maestro Unificado ──
+// ── Hardware Monitor ────────────────────────────────────────────────────────────
+async function fetchHardware(){
+  try{
+    const d=await fetch('/v1/hardware').then(r=>r.json());
+    const truncate=(s,n=22)=>s&&s.length>n?s.slice(0,n)+'…':s||'—';
+    document.getElementById('hw-gpu-name').textContent=truncate(d.gpu_name,24);
+    document.getElementById('hw-vram').textContent=d.vram_mb>0?`${(d.vram_mb/1024).toFixed(1)} GB`:'—';
+    document.getElementById('hw-ram').textContent=d.total_ram_mb?`${Math.round(d.total_ram_mb/1024)} GB`:'—';
+    document.getElementById('hw-ctx').textContent=d.optimal_ctx?d.optimal_ctx.toLocaleString()+' tokens':'—';
+    document.getElementById('hw-kv').textContent=`KV-Cache: ${(d.kv_quant||'—').toUpperCase()} · Modelo ~${d.model_size_b||'?'}B`;
+    document.getElementById('hw-npu').textContent=d.npu_name||'No detectado';
+    document.getElementById('hw-npu').style.color=d.npu_name?'var(--success)':'var(--muted)';
+    const badgeMap={rocm:'rocm',cuda:'cuda',cpu:'cpu',vulkan:'cpu'};
+    document.getElementById('hw-gpu-badge').innerHTML=d.gpu_type?`<span class="hw-badge ${badgeMap[d.gpu_type]||'cpu'}">${d.gpu_type.toUpperCase()} ${d.is_igpu?'iGPU':'dGPU'}${d.gfx_version?' · GFX '+d.gfx_version:''}</span>`:'';
+    document.getElementById('tb-hw-gpus').innerHTML=(d.all_gpus||[]).map((g,i)=>`
+      <tr>
+        <td style="font-family:'JetBrains Mono';color:var(--muted)">${i}</td>
+        <td><strong>${esc(g.name)}</strong></td>
+        <td><span class="badge ${g.is_igpu?'badge-local':'badge-cloud'}">${g.is_igpu?'iGPU':'dGPU'}</span></td>
+        <td style="font-family:'JetBrains Mono'">${g.vram_mb>0?(g.vram_mb/1024).toFixed(1)+' GB':'Shared'}</td>
+        <td>${(g.vendor||'—').toUpperCase()}</td>
+        <td>${(g.gpu_type||'—').toUpperCase()}</td>
+        <td style="font-family:'JetBrains Mono';color:var(--muted)">${g.gfx_version||'—'}</td>
+      </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--muted)">Sin GPUs detectadas</td></tr>';
+  }catch(e){ console.error('[Hardware]',e); }
+}
+
+// ── Multi-Agent Orchestrator ────────────────────────────────────────────────────
+async function runMultiAgent(){
+  const prompt=document.getElementById('agent-prompt').value.trim();
+  if(!prompt){ showToast('Escribe un prompt primero.','error'); return; }
+  const btn=document.getElementById('agent-send-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Consultando modelos...';
+  const area=document.getElementById('agent-results-area');
+  area.innerHTML='<div style="text-align:center;color:var(--muted);padding:40px"><span class="spinner"></span> Enviando a múltiples modelos en paralelo...</div>';
+  try{
+    const r=await fetch('/v1/agent/compare',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt,mode:document.getElementById('agent-mode').value,n_models:Number(document.getElementById('agent-n').value)})
+    });
+    const data=await r.json();
+    if(!data.ok){ showToast(data.error||'Error en Multi-Agent.','error'); area.innerHTML='<div class="agent-placeholder" id="agent-placeholder"><div style="font-size:40px">⚠️</div><div>Error al consultar los modelos.</div></div>'; return; }
+    const results=data.results||[];
+    area.innerHTML=results.map(res=>{
+      const isOk=!res.response.startsWith('[');
+      return `<div class="agent-result-card">
+        <div class="agent-result-header">
+          <div class="agent-provider-name">⚡ ${esc(res.provider)} <span style="font-size:12px;color:var(--muted);font-weight:400">/ ${esc(res.model||'—')}</span>${res.vote_score!==undefined?` <span class="badge badge-local" style="font-size:11px">🏆 Ganador · score ${res.vote_score}</span>`:''}</div>
+          <div class="agent-elapsed">${res.elapsed||'—'}s</div>
+        </div>
+        <div class="agent-response" style="color:${isOk?'var(--text)':'var(--error)'}">${formatMd(res.response)}</div>
+      </div>`;
+    }).join('')||'<div class="agent-placeholder"><div>Sin resultados.</div></div>';
+    showToast(`${results.length} modelo(s) respondieron.`,'success');
+  }catch(e){ showToast('Error de conexión: '+e.message,'error'); }
+  btn.disabled=false; btn.textContent='🚀 Ejecutar';
+}
+
+// ── Cost Center ─────────────────────────────────────────────────────────────────
+async function fetchCost(){
+  try{
+    const d=await fetch('/v1/cost').then(r=>r.json());
+    document.getElementById('cost-session').textContent='$'+(d.session_cost||0).toFixed(4);
+    document.getElementById('cost-session').style.color=d.session_cost>0?'var(--warning)':'var(--accent)';
+    document.getElementById('cost-daily').textContent='$'+(d.daily_cost||0).toFixed(4);
+    document.getElementById('cost-daily').style.color=d.over_limit?'var(--error)':'var(--text)';
+    const pct=d.daily_limit>0?Math.min((d.daily_cost/d.daily_limit)*100,100):0;
+    document.getElementById('cost-bar').style.width=pct+'%';
+    document.getElementById('cost-bar').className='cost-bar-fill'+(d.over_limit?' over':'');
+    document.getElementById('cost-limit-text').textContent=`$${(d.daily_cost||0).toFixed(4)} / $${(d.daily_limit||10).toFixed(2)}`;
+    const tok=d.session_tokens||{};
+    document.getElementById('cost-tokens-summary').textContent=`Sesión: ${(tok.input||0).toLocaleString()} tokens ↓ entrada · ${(tok.output||0).toLocaleString()} tokens ↑ salida`;
+    const bd=d.daily_breakdown||{};
+    document.getElementById('tb-cost-breakdown').innerHTML=Object.entries(bd).length
+      ?Object.entries(bd).map(([prov,v])=>`<tr>
+        <td><strong>${esc(prov)}</strong></td>
+        <td style="font-family:'JetBrains Mono'">${v.calls}</td>
+        <td style="font-family:'JetBrains Mono';color:#60a5fa">${(v.input_tokens||0).toLocaleString()}</td>
+        <td style="font-family:'JetBrains Mono';color:#a78bfa">${(v.output_tokens||0).toLocaleString()}</td>
+        <td style="font-family:'JetBrains Mono';color:var(--warning)">$${(v.total_cost||0).toFixed(6)}</td>
+      </tr>`).join('')
+      :'<tr><td colspan="5" style="text-align:center;color:var(--muted)">Sin costes registrados hoy (solo proveedores cloud generan costes).</td></tr>';
+  }catch(e){ console.error('[Cost]',e); }
+}
+
+// ── Engine Watchdog ──────────────────────────────────────────────────────────────
+async function fetchWatchdog(){
+  try{
+    const d=await fetch('/v1/watchdog').then(r=>r.json());
+    const badge=document.getElementById('wd-lock-badge');
+    const unlockBtn=document.getElementById('wd-unlock-btn');
+    if(d.model_locked){
+      badge.textContent='🔒 MODELO BLOQUEADO (MANUAL)';
+      badge.className='wd-lock-badge locked';
+      unlockBtn.style.display='flex';
+    } else {
+      badge.textContent='● AUTO-SWITCH ACTIVO';
+      badge.className='wd-lock-badge auto';
+      unlockBtn.style.display='none';
+    }
+    document.getElementById('wd-provider').textContent=d.active_provider||'Sin proveedor';
+    document.getElementById('wd-model').textContent=d.active_model||'—';
+    const hw=d.hardware||{};
+    document.getElementById('wd-hw-gpu').textContent=hw.gpu_name||'—';
+    document.getElementById('wd-hw-vram').textContent=hw.vram_mb?(hw.vram_mb/1024).toFixed(1)+' GB':'—';
+    document.getElementById('wd-hw-type').textContent=(hw.gpu_type||'—').toUpperCase();
+  }catch(e){ console.error('[Watchdog]',e); }
+}
+async function watchdogUnlock(){
+  try{
+    const r=await fetch('/v1/watchdog/unlock',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    const data=await r.json();
+    if(data.ok){ showToast(data.message,'success'); fetchWatchdog(); }
+    else { showToast(data.error||'Error.','error'); }
+  }catch(e){ showToast('Error de conexión.','error'); }
+}
+
+// ── Loop Maestro Unificado ──────────────────────────────────────────────────────
 async function refreshAll(){
   await Promise.all([fetchStatus(), fetchAudit()]);
-  if(currentTab==='queue')      fetchQueue();
-  if(currentTab==='security')   fetchSecurity();
-  if(currentTab==='deploy')     fetchDeployStatus();
-  if(currentTab==='gameserver') fetchGameServer();
-  if(currentTab==='vision')     checkFooocusBackend();
+  if(currentTab==='queue')       fetchQueue();
+  if(currentTab==='security')    fetchSecurity();
+  if(currentTab==='deploy')      fetchDeployStatus();
+  if(currentTab==='gameserver')  fetchGameServer();
+  if(currentTab==='vision')      checkFooocusBackend();
+  if(currentTab==='hardware')    fetchHardware();
+  if(currentTab==='cost')        fetchCost();
+  if(currentTab==='watchdog')    fetchWatchdog();
+}
+// switchTab actualizado para nuevos paneles
+const _origSwitch = switchTab;
+function switchTab(name,el){
+  _origSwitch(name,el);
+  if(name==='hardware')   fetchHardware();
+  if(name==='cost')       fetchCost();
+  if(name==='watchdog')   fetchWatchdog();
 }
 
 // Arranque
