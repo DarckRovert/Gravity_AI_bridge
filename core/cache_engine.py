@@ -98,15 +98,12 @@ class CacheEngine:
                         return row[0]
                     elif row:
                         conn.execute("DELETE FROM cache WHERE key = ?", (key,))
-            except Exception: pass
-            
-            # Miss tracking
-            try:
-                with _get_connection() as conn:
-                    conn.execute(
-                        "INSERT OR REPLACE INTO stats (key, value) "
-                        "VALUES ('misses', COALESCE((SELECT value FROM stats WHERE key='misses'),0)+1)"
-                    )
+
+                # Miss tracking
+                conn.execute(
+                    "INSERT OR REPLACE INTO stats (key, value) "
+                    "VALUES ('misses', COALESCE((SELECT value FROM stats WHERE key='misses'),0)+1)"
+                )
             except Exception: pass
         return None
 

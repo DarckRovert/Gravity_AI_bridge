@@ -223,14 +223,17 @@ def start_deploy(project_path: Optional[str] = None) -> dict:
                       "Configura 'active_project_path' en _settings.json."
         }
 
-    _running = True
-    t = threading.Thread(
-        target=_pipeline,
-        args=(project_path,),
-        name="GravityDeployPipeline",
-        daemon=True,
-    )
-    t.start()
+    with _lock:
+        if _running:
+            return {"started": False, "reason": "La ejecución ha sido interceptada por otro hilo en la fracción de segundo."}
+        _running = True
+        t = threading.Thread(
+            target=_pipeline,
+            args=(project_path,),
+            name="GravityDeployPipeline",
+            daemon=True,
+        )
+        t.start()
 
     return {"started": True, "project": project_path}
 

@@ -47,6 +47,9 @@ WHITELIST_PORTS: set[int] = {
     80,     # HTTP outbound
     5432,   # Postgres (si aplica)
     3306,   # MySQL (si aplica)
+    3724,   # WoW realmd
+    8085,   # WoW worldserver
+    7878,   # WoW SOAP api
 }
 
 # Archivos críticos cuyo hash se monitorea

@@ -49,7 +49,7 @@ def check_access(ip: str, api_key: str = None) -> tuple[bool, str]:
     Returns (allowed, reason).
     """
     # 1. Global IP Limit
-    ip_limit = config.get("security.rate_limit_ip", 100) # req per minute
+    ip_limit = config.get("rate_limit.requests_per_minute", 100) # req per minute
     if not ip_limiter.is_allowed(ip, ip_limit, 60):
         return False, "Rate limit exceeded for IP."
         

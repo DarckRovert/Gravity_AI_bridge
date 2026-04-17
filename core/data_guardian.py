@@ -202,7 +202,7 @@ def load_knowledge(path: str) -> tuple[dict, list[str]]:
     Retorna (knowledge_dict_sano, warnings).
     """
     warnings = []
-    default  = {"persistent_rules": [], "version": "9.3.1"}
+    default  = {"persistent_rules": [], "version": "10.0"}
 
     if not os.path.exists(path):
         return default, warnings

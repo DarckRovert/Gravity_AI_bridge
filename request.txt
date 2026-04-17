@@ -1,0 +1,976 @@
+analiza y mejora visualmente el proyecto, y crea un lore de los protagonistas que este acorde al lore real de wow
+
+
+CONTEXTO:
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World OF Wanos | Hermandad UltimoWoW</title>
+    <meta name="description" content="Sitio oficial de la hermandad World OF Wanos en el servidor UltimoWoW (WotLK). Bajo la visión de Bhalanar y el poder de Morgoroth.">
+    <link rel="stylesheet" href="index.css">
+    <!-- Wowhead Tooltips -->
+    <script>const whTooltips = {colorLinks: true, iconizeLinks: true, renameLinks: true};</script>
+    <script src="https://wow.zamimg.com/js/tooltips.js"></script>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div id="custom-cursor"></div>
+    <div class="fog-texture"></div>
+
+    <!-- Achievement Container -->
+    <div id="achievement-container"></div>
+
+    <!-- Background Audio (Optional) -->
+    <audio id="ambient-audio" loop>
+        <!-- Audio source would be added here if defined -->
+    </audio>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="hero" class="hero">
+            <h1 class="glacial-text">WORLD OF WANOS</h1>
+            <p>"Bajo la visión de Bhalanar y el poder de Morgoroth"</p>
+            <div class="quote-container" id="random-quote"></div>
+            <a href="#" class="cta-button">UNIRSE AL UNIVERSO WANOS</a>
+            <div class="scroll-down">↓</div>
+        </section>
+
+        <!-- Architects Section -->
+        <section id="architects">
+            <h2 class="gold-text">Los Arquitectos</h2>
+            <div class="cards-container">
+                <div class="card">
+                    <img src="assets/images/bhalanar.png" alt="Bhalanar">
+                    <h3 class="gold-text">Bhalanar</h3>
+                    <p class="glacial-text">El Creador del Universo Wanos (Líder)</p>
+                    <p>El arquitecto que hizo posible este proyecto. Aunque parezca que no está, siempre observa desde lo alto; todo se le informa por lo bajo.</p>
+                </div>
+                <div class="card">
+                    <img src="assets/images/morgoroth.png" alt="Morgoroth">
+                    <h3 class="gold-text">Morgoroth</h3>
+                    <p class="glacial-text">El Ser Supremo (Co-Líder)</p>
+                    <p>El poder en las sombras, ejecutor de la voluntad de Azeroth y protector de la comunidad. El impulsador de la fe Wana.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pillars Section -->
+        <section id="pillars">
+            <h2 class="glacial-text">Los Pilares</h2>
+            <div class="cards-container">
+                <div class="card">
+                    <div class="pillar-icon">📖</div>
+                    <h3>Aprendizaje Real</h3>
+                    <p>"Preferimos explicar 5 veces a wipear por silencio."</p>
+                </div>
+                <div class="card">
+                    <div class="pillar-icon">🛡️</div>
+                    <h3>Cero Toxicidad</h3>
+                    <p>"El respeto es la base; aquí no hay lugar para el veneno."</p>
+                </div>
+                <div class="card">
+                    <div class="pillar-icon">🤝</div>
+                    <h3>Cooperación</h3>
+                    <p>"Ayuda mutua en farmeo y mazmorras. Creciendo juntos."</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Rules Section -->
+        <section id="rules">
+            <h2 class="gold-text">Reglas de la Casa</h2>
+            <div class="rules-container">
+                <div class="rule-item">
+                    <h3 class="glacial-text">Comunicación Obligatoria</h3>
+                    <p>Uso obligatorio de Discord. La voz es la que coordina la victoria.</p>
+                </div>
+                <div class="rule-item">
+                    <h3 class="glacial-text">Participación Activa</h3>
+                    <p>No somos un almacén de pjs. Si estás, que se note.</p>
+                </div>
+                <div class="rule-item">
+                    <h3 class="glacial-text">Humildad Suprema</h3>
+                    <p>Todos fuimos 'verdes' alguna vez. Ayuda al que viene detrás.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recruitment Section -->
+        <section id="recruit">
+            <h2 class="glacial-text">Buscamos Guerreros, no Tóxicos</h2>
+            <div class="card" style="margin-top: 30px; text-align: left;">
+                <p>"¿Cansado de que te expulsen de una raid en UltimoWoW por no tener 6k de GS? En World OF Wanos, Bhalanar y Morgoroth valoran tu compromiso. Si tienes ganas de aprender a tanquear, curar o capear tu índice de golpe correctamente, este es tu lugar."</p>
+                <div class="recruitment-grid">
+                    <div class="class-slot priority-high">Chamán Resto</div>
+                    <div class="class-slot priority-high">Paladín Tank</div>
+                    <div class="class-slot priority-medium">Dk Profano</div>
+                    <div class="class-slot priority-medium">Cazador</div>
+                    <div class="class-slot priority-low">Sacerdote</div>
+                    <div class="class-slot priority-low">Guerrero</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Muro de Conquista Section -->
+        <section id="conquest">
+            <h2 class="glacial-text">El Muro de Conquista</h2>
+            <p>Estado de las campañas en Rasganorte</p>
+            <div class="conquest-grid">
+                <div class="boss-card current" id="boss-arthas">
+                    <img src="assets/icons/bosses/arthas.png" alt="Arthas">
+                    <h3>Rey Exánime (ICC)</h3>
+                    <span class="status-tag pulse">OBJETIVO ACTUAL</span>
+                </div>
+                <div class="boss-card defeated" id="boss-anubarak">
+                    <img src="assets/icons/bosses/anubarak.png" alt="Anub'arak">
+                    <h3>Anub'arak (ToC)</h3>
+                    <span class="status-tag">DOMINADO</span>
+                </div>
+                <div class="boss-card defeated" id="boss-algalon">
+                    <img src="assets/icons/bosses/algalon.png" alt="Algalon">
+                    <h3>Algalon (Ulduar)</h3>
+                    <span class="status-tag">DOMINADO</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Secret Lore Runes (Hidden across the page) -->
+        <div class="secret-rune" id="rune-1" style="top: 20%; left: 2%; opacity: 0.1;">ᛟ</div>
+        <div class="secret-rune" id="rune-2" style="bottom: 10%; right: 5%; opacity: 0.1;">ᚦ</div>
+
+        <!-- Lore Modal -->
+        <div id="lore-modal" class="modal">
+            <div class="modal-content card">
+                <span class="close-modal">&times;</span>
+                <h2 id="lore-title" class="gold-text"></h2>
+                <div id="lore-body"></div>
+            </div>
+        </div>
+
+        <!-- Wisdom Section (Sabiduría Wana) -->
+        <section id="wisdom">
+            <h2 class="gold-text">Sabiduría Wana</h2>
+            <div class="cards-container">
+                <div class="card">
+                    <h3>Votos y Donaciones</h3>
+                    <p>Apoya al servidor UltimoWoW para mantener nuestra casa activa. Sin pay-to-win, solo por amor al arte.</p>
+                </div>
+                <div class="card">
+                    <h3>Ruta de Equipamiento</h3>
+                    <p>De nivel 80 verde a Triunfo/Escarcha: Diarias, Foso, Forja y Cámaras son tus mejores aliados.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pantheon Section -->
+        <section id="pantheon">
+            <h2 class="glacial-text">El Panteón de los Wanos</h2>
+            <div class="rules-container">
+                <div class="rule-item"><b class="gold-text">GM:</b> Bhalanar - El Arquitecto del Universo</div>
+                <div class="rule-item"><b class="gold-text">Co-GM:</b> Morgoroth - El Ejecutor de Azeroth</div>
+                <div class="rule-item"><b class="glacial-text">Heraldos:</b> Oficiales y organizadores de Raids.</div>
+                <div class="rule-item"><b class="glacial-text">Veteranos:</b> Dominan las mecánicas y guían al grupo.</div>
+                <div class="rule-item"><b>Iniciados:</b> Almas nuevas en periodo de prueba.</div>
+            </div>
+        </section>
+
+        <!-- Countdown Section -->
+        <section id="countdown">
+            <h2 class="gold-text">El Reloj de la Eternidad</h2>
+            <p id="countdown-title">"Bhalanar ha dictado la hora. Prepárense para la conquista."</p>
+            <div class="countdown-container">
+                <div class="time-box"><span id="days">00</span><label>Días</label></div>
+                <div class="time-box"><span id="hours">00</span><label>Horas</label></div>
+                <div class="time-box"><span id="minutes">00</span><label>Minutos</label></div>
+                <div class="time-box"><span id="seconds">00</span><label>Segundos</label></div>
+            </div>
+        </section>
+
+        <!-- Black Market (Mercado Negro) -->
+        <section id="market">
+            <h2 class="glacial-text">Ofrendas para la Hermandad</h2>
+            <div class="card">
+                <p>Necesitamos Alquimistas para <a href="https://www.wowhead.com/wotlk/item=46376" class="q3">Frascos de Ira Infinita</a> y Mineros para <a href="https://www.wowhead.com/wotlk/item=49908" class="q4">Saronita Primordial</a>.</p>
+                <a href="#" class="cta-button" style="margin-top: 20px;">Contactar a un Oficial</a>
+            </div>
+        </section>
+
+        <!-- Gallery Section -->
+        <section id="gallery">
+            <h2 class="gold-text">Postales de Rasganorte</h2>
+            <div class="cards-container">
+                <!-- Gallery items would be injected or static -->
+                <div class="card" style="padding: 10px;">
+                    <img src="assets/images/hero_bg.png" alt="ICC View" style="border-radius: 4px; border: none; width: 100%; height: auto;">
+                    <p>La Ciudadela nos espera.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Build Forge -->
+        <section id="forge">
+            <h2 class="glacial-text">La Forja de Builds</h2>
+            <div class="recruitment-grid" id="class-forge">
+                <!-- Class icons with tips -->
+                <button class="cta-button" onclick="showTip('WARRIOR')">☕ Guerrero</button>
+                <button class="cta-button" onclick="showTip('PALADIN')">✨ Paladín</button>
+                <button class="cta-button" onclick="showTip('DK')">❄️ DK</button>
+                <button class="cta-button" onclick="showTip('WARLOCK')">🔮 Brujo</button>
+            </div>
+            <div id="forge-tip" class="card" style="display: none; margin-top: 20px;"></div>
+        </section>
+    </main>
+
+    <!-- Weather Widget -->
+    <div id="weather-widget" style="position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); padding: 10px; border: 1px solid var(--primary-glacial); border-radius: 4px; font-size: 0.8rem;">
+        📍 Rasganorte: <span id="weather-status">Tormenta de Sombras</span>
+    </div>
+
+    <footer style="text-align: center; padding: 40px; border-top: 1px solid #333; margin-top: 50px;">
+        <p class="gold-text">&copy; 2026 World OF Wanos - Comunidad UltimoWoW</p>
+        <p style="font-size: 0.8rem; opacity: 0.5;">Protocolo DarckRovert Institutional | MIT License</p>
+    </footer>
+
+    <script src="main.js"></script>
+</body>
+</html>
+
+/* 
+    World OF Wanos - Core Design System
+    Estética: Dark, Epic, Mystic
+    Protocolo: DarckRovert Institutional
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Metamorphic&family=Outfit:wght@300;400;700&display=swap');
+
+:root {
+    --bg-dark: #0a0a0a;
+    --bg-card: rgba(20, 20, 25, 0.8);
+    --primary-glacial: #62c6f2;
+    --secondary-gold: #ffcc00;
+    --text-main: #e0e0e0;
+    --text-muted: #a0a0a0;
+    --border-neon: rgba(98, 198, 242, 0.3);
+    --font-titles: 'Metamorphic', serif;
+    --font-body: 'Outfit', sans-serif;
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    cursor: none; /* Hide default for custom cursor */
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Background Texture & Particles Canvas */
+#bg-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%);
+}
+
+.fog-texture {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('https://www.transparenttextures.com/patterns/dark-matter.png');
+    opacity: 0.1;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Typography */
+h1, h2, h3, h4 {
+    font-family: var(--font-titles);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.gold-text {
+    color: var(--secondary-gold);
+    text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+}
+
+.glacial-text {
+    color: var(--primary-glacial);
+    text-shadow: 0 0 10px rgba(98, 198, 242, 0.5);
+}
+
+/* Sections Layout */
+section {
+    padding: 100px 5% 50px;
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: var(--transition-smooth);
+}
+
+section.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Components: Buttons */
+.cta-button {
+    background: linear-gradient(135deg, #1a3a4a 0%, #0a1a2a 100%);
+    border: 1px solid var(--primary-glacial);
+    color: var(--primary-glacial);
+    padding: 15px 35px;
+    font-size: 1.1rem;
+    font-family: var(--font-titles);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition-smooth);
+    box-shadow: 0 0 15px rgba(98, 198, 242, 0.2);
+}
+
+.cta-button:hover {
+    box-shadow: 0 0 25px rgba(98, 198, 242, 0.5);
+    background: var(--primary-glacial);
+    color: var(--bg-dark);
+    transform: scale(1.05);
+}
+
+/* Hero Section */
+.hero {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: linear-gradient(rgba(10, 10, 10, 0.7), rgba(10, 10, 10, 0.7)), url('assets/images/hero_bg.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    padding-top: 0;
+    opacity: 1;
+    transform: none;
+    max-width: 100%;
+}
+
+.hero h1 {
+    font-size: 5rem;
+    margin-bottom: 20px;
+    animation: glowText 2s infinite alternate;
+}
+
+@keyframes glowText {
+    from { text-shadow: 0 0 10px #62c6f2, 0 0 20px #62c6f2; }
+    to { text-shadow: 0 0 20px #62c6f2, 0 0 40px #62c6f2; }
+}
+
+.hero p {
+    font-size: 1.5rem;
+    color: var(--secondary-gold);
+    margin-bottom: 40px;
+    font-style: italic;
+}
+
+/* Cards System */
+.cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 50px;
+}
+
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-neon);
+    border-radius: 12px;
+    padding: 30px;
+    position: relative;
+    backdrop-filter: blur(10px);
+    transition: var(--transition-smooth);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.card:hover {
+    border-color: var(--primary-glacial);
+    box-shadow: 0 0 30px rgba(98, 198, 242, 0.2);
+    transform: translateY(-10px);
+}
+
+.card img {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid var(--secondary-gold);
+    margin-bottom: 20px;
+}
+
+.card h3 {
+    margin-bottom: 15px;
+}
+
+/* Pillars Section */
+.pillar-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    color: var(--primary-glacial);
+}
+
+/* Rules Table Style */
+.rules-container {
+    background: url('https://www.transparenttextures.com/patterns/pavement.png');
+    padding: 40px;
+    border: 2px solid #333;
+    border-radius: 8px;
+    box-shadow: inset 0 0 50px #000;
+}
+
+.rule-item {
+    margin-bottom: 20px;
+    padding-left: 20px;
+    border-left: 3px solid var(--secondary-gold);
+}
+
+/* Recruitment Widget */
+.recruitment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.class-slot {
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.priority-high { background: rgba(255, 50, 50, 0.2); border: 1px solid #ff3232; color: #ff3232; }
+.priority-medium { background: rgba(255, 204, 0, 0.2); border: 1px solid #ffcc00; color: #ffcc00; }
+.priority-low { background: rgba(50, 255, 50, 0.2); border: 1px solid #32ff32; color: #32ff32; }
+
+/* Countdown */
+.countdown-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 50px;
+}
+
+.time-box {
+    background: rgba(0,0,0,0.5);
+    border: 2px solid var(--primary-glacial);
+    padding: 20px;
+    border-radius: 8px;
+    min-width: 100px;
+    text-align: center;
+}
+
+.time-box span {
+    display: block;
+    font-size: 2.5rem;
+    font-family: var(--font-titles);
+    color: var(--primary-glacial);
+}
+
+.time-box label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+/* Custom Cursor */
+#custom-cursor {
+    width: 20px;
+    height: 20px;
+    background: var(--primary-glacial);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    box-shadow: 0 0 15px var(--primary-glacial);
+    mix-blend-mode: difference;
+    transform: translate(-50%, -50%);
+}
+
+.cursor-particle {
+    position: fixed;
+    pointer-events: none;
+    background: var(--primary-glacial);
+    border-radius: 50%;
+    z-index: 9998;
+}
+
+/* Achievement Toast */
+#achievement-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+}
+
+.achievement {
+    background: linear-gradient(to right, #2c2c2c, #1a1a1a);
+    border: 1px solid var(--secondary-gold);
+    border-radius: 8px;
+    padding: 15px 25px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    animation: slideInR 0.5s forwards, fadeOut 1s 4.5s forwards;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+@keyframes slideInR {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+    to { opacity: 0; transform: translateY(-20px); }
+}
+
+.achievement img {
+    width: 40px;
+    height: 40px;
+}
+
+/* Conquest Grid */
+.conquest-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.boss-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-neon);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    transition: var(--transition-smooth);
+}
+
+.boss-card.current {
+    border-color: var(--primary-glacial);
+    box-shadow: 0 0 20px rgba(98, 198, 242, 0.3);
+}
+
+.boss-card.defeated {
+    filter: grayscale(0.5);
+    opacity: 0.8;
+}
+
+.boss-card img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin-bottom: 20px;
+}
+
+.status-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    margin-top: 15px;
+    background: #333;
+}
+
+.status-tag.pulse {
+    background: #004d40;
+    color: var(--primary-glacial);
+    animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 rgba(98, 198, 242, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(98, 198, 242, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(98, 198, 242, 0); }
+}
+
+/* Modals */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9);
+    backdrop-filter: blur(10px);
+}
+
+.modal-content {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 600px;
+    width: 90%;
+}
+
+.close-modal {
+    position: absolute;
+    right: 20px;
+    top: 10px;
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+.secret-rune {
+    position: absolute;
+    font-size: 2.5rem;
+    cursor: pointer;
+    z-index: 10;
+    transition: var(--transition-smooth);
+}
+
+.secret-rune:hover {
+    opacity: 1 !important;
+    color: var(--secondary-gold);
+    text-shadow: 0 0 15px var(--secondary-gold);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero h1 { font-size: 3rem; }
+    .hero p { font-size: 1.1rem; }
+    section { padding: 60px 5% 30px; }
+    .countdown-container { gap: 10px; }
+    .time-box { min-width: 70px; padding: 10px; }
+    .time-box span { font-size: 1.5rem; }
+}
+
+/*
+    World OF Wanos - Logic & Interactivity
+    Protocolo: DarckRovert Technical
+*/
+
+document.addEventListener('DOMContentLoaded', () => {
+    initParticles();
+    initCountdown();
+    initScrollAnimations();
+    initRandomQuotes();
+    initWeather();
+    initCustomCursor();
+    initAchievements();
+    initSecretLore();
+});
+
+// Particles System (Snow/Fog Effect)
+function initParticles() {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+        constructor() {
+            this.reset();
+        }
+
+        reset() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 2 + 1;
+            this.speedX = Math.random() * 1 - 0.5;
+            this.speedY = Math.random() * 1 + 0.5;
+            this.opacity = Math.random() * 0.5 + 0.1;
+        }
+
+        update() {
+            this.y += this.speedY;
+            this.x += this.speedX;
+
+            if (this.y > canvas.height) {
+                this.y = -10;
+                this.x = Math.random() * canvas.width;
+            }
+        }
+
+        draw() {
+            ctx.fillStyle = `rgba(160, 210, 255, ${this.opacity})`;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    for (let i = 0; i < 100; i++) {
+        particles.push(new Particle());
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+            p.update();
+            p.draw();
+        });
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+}
+
+// Raid Countdown
+function initCountdown() {
+    // Definimos una fecha de raid (ejemplo: próximo sábado a las 20:00)
+    const nextRaid = new Date();
+    nextRaid.setDate(nextRaid.getDate() + (6 - nextRaid.getDay() + 7) % 7);
+    nextRaid.setHours(20, 0, 0, 0);
+
+    const updateTimer = () => {
+        const now = new Date().getTime();
+        const distance = nextRaid - now;
+
+        const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((distance % (1000 * 60)) / 1000);
+
+        document.getElementById('days').innerText = d.toString().padStart(2, '0');
+        document.getElementById('hours').innerText = h.toString().padStart(2, '0');
+        document.getElementById('minutes').innerText = m.toString().padStart(2, '0');
+        document.getElementById('seconds').innerText = s.toString().padStart(2, '0');
+
+        const title = document.getElementById('countdown-title');
+        if (d > 1) {
+            title.innerText = "Afilen sus hachas y preparen sus frascos.";
+        } else if (h < 1 && d === 0) {
+            title.innerText = "Morgoroth está pasando lista. ¡Todos al Discord!";
+        } else if (distance < 0) {
+            title.innerText = "LA BATALLA HA COMENZADO. QUE EL CAOS NOS GUÍE.";
+        }
+    };
+
+    setInterval(updateTimer, 1000);
+    updateTimer();
+}
+
+// Scroll Animations (Fade-In)
+function initScrollAnimations() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('section').forEach(section => {
+        observer.observe(section);
+    });
+}
+
+// Random Quotes
+function initRandomQuotes() {
+    const quotes = [
+        "Bhalanar te está observando... ¿ya hiciste tus diarias?",
+        "Morgoroth dice: Menos lag, más DPS.",
+        "En este gremio, el único wipe prohibido es el de la amistad.",
+        "Namor el niño sin amor.",
+        "¿Ya sacaste tu primer logro hoy o estás esperando que Bhalanar lo haga por ti?",
+        "Morgoroth dice: El GS no te da manos, pero el Universo Wanos sí."
+    ];
+
+    const quoteElement = document.getElementById('random-quote');
+    const setQuote = () => {
+        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        quoteElement.style.opacity = 0;
+        setTimeout(() => {
+            quoteElement.innerText = `"${randomQuote}"`;
+            quoteElement.style.opacity = 0.7;
+        }, 500);
+    };
+
+    setQuote();
+    setInterval(setQuote, 10000);
+}
+
+// Custom Cursor Logic
+function initCustomCursor() {
+    const cursor = document.getElementById('custom-cursor');
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    
+    if (isMobile) {
+        cursor.style.display = 'none';
+        document.body.style.cursor = 'auto';
+        return;
+    }
+
+    document.addEventListener('mousemove', (e) => {
+        cursor.style.left = e.clientX + 'px';
+        cursor.style.top = e.clientY + 'px';
+        
+        // Trail particles
+        if (Math.random() > 0.8) {
+            createCursorParticle(e.clientX, e.clientY);
+        }
+    });
+
+    document.addEventListener('mousedown', () => {
+        cursor.style.transform = 'translate(-50%, -50%) scale(0.8)';
+    });
+
+    document.addEventListener('mouseup', () => {
+        cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+    });
+}
+
+function createCursorParticle(x, y) {
+    const p = document.createElement('div');
+    p.className = 'cursor-particle';
+    const size = Math.random() * 5 + 2;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    
+    document.body.appendChild(p);
+    
+    const anim = p.animate([
+        { opacity: 1, transform: 'scale(1) translateY(0)' },
+        { opacity: 0, transform: `scale(0) translateY(${Math.random() * 20 - 10}px)` }
+    ], { duration: 1000 });
+
+    anim.onfinish = () => p.remove();
+}
+
+// Achievements System
+function initAchievements() {
+    const container = document.getElementById('achievement-container');
+    const guildAchievements = [
+        { title: "Soberanía Wana", desc: "52 semanas sin insultos.", icon: "✨" },
+        { title: "El Silencio es Oro", desc: "Wipear en silencio total.", icon: "🤐" },
+        { title: "Namor el Niño", desc: "Ser el centro de atención sin amor.", icon: "💔" },
+        { title: "Arquitectos del Caos", desc: "Bhalanar ha dictado el orden.", icon: "🏗️" },
+        { title: "Poder Supremo", desc: "Morgoroth ha consumido una alma.", icon: "🔥" },
+        { title: "Verde pero Valiente", desc: "Morir con dignidad en Foso.", icon: "🌿" }
+    ];
+
+    const showAchievement = () => {
+        const achievement = guildAchievements[Math.floor(Math.random() * guildAchievements.length)];
+        const el = document.createElement('div');
+        el.className = 'achievement';
+        el.innerHTML = `
+            <div style="font-size: 2rem;">${achievement.icon}</div>
+            <div>
+                <strong class="gold-text" style="display:block;">¡LOGRO DE HERMANDAD!</strong>
+                <span class="glacial-text">${achievement.title}</span>
+                <p style="font-size:0.8rem; margin:0;">${achievement.desc}</p>
+            </div>
+        `;
+        container.appendChild(el);
+        setTimeout(() => el.remove(), 6000);
+    };
+
+    // Trigger periodically or randomly
+    setInterval(showAchievement, 60000); // Every minute
+    setTimeout(showAchievement, 5000); // Initial welcome achievement
+}
+
+// Secret Lore Logic
+function initSecretLore() {
+    const modal = document.getElementById('lore-modal');
+    const title = document.getElementById('lore-title');
+    const body = document.getElementById('lore-body');
+    const close = document.querySelector('.close-modal');
+
+    const loreDatabase = {
+        'rune-1': {
+            title: "El Códice de Bhalanar",
+            text: "En los albores de UltimoWoW, el Arquitecto buscó una visión: una comunidad donde el GS no fuera la medida del alma. 'Construiremos sobre piedra, no sobre arena', dictó. Así nació el Universo Wanos, un refugio para los que buscan la gloria sin el veneno del mundo exterior."
+        },
+        'rune-2': {
+            title: "La Voluntad de Morgoroth",
+            text: "Cristo-Jehová, el Ejecutor. Su sombra protege a los iniciados mientras sus ojos vigilan el cumplimiento de la fe Wana. Se dice que su poder emana directamente del vacío de Azeroth, canalizado para guiar a la hermandad a través de las nieves de Corona de Hielo."
+        }
+    };
+
+    document.querySelectorAll('.secret-rune').forEach(rune => {
+        rune.addEventListener('click', () => {
+            const data = loreDatabase[rune.id];
+            title.innerText = data.title;
+            body.innerHTML = `<p style="line-height:1.8; font-style:italic;">${data.text}</p>`;
+            modal.style.display = 'block';
+        });
+    });
+
+    close.onclick = () => modal.style.display = 'none';
+    window.onclick = (event) => {
+        if (event.target == modal) modal.style.display = 'none';
+    };
+}
+window.showTip = function(className) {
+    const tipElement = document.getElementById('forge-tip');
+    let message = "";
+
+    switch(className) {
+        case 'WARRIOR': message = "Morgoroth dice: Si vas a tanquear, capea tu defensa a 540 o no pases de la puerta de ICC."; break;
+        case 'PALADIN': message = "Bhalanar dice: Tus manos son la salvación de la raid. No olvides activar tu aura."; break;
+        case 'DK': message = "Morgoroth dice: La escarcha es tu aliada, pero tu voluntad es tu verdadera arma."; break;
+        case 'WARLOCK': message = "Morgoroth dice: Menos corrupción, más fuego infernal. Tu DPS es mi orgullo."; break;
+        default: message = "Consejo Wano: Juega con el corazón, equipa con la cabeza.";
+    }
+
+    tipElement.style.display = 'block';
+    tipElement.innerHTML = `<p class="gold-text">Firma: ${className === 'WARRIOR' || className === 'DK' || className === 'WARLOCK' ? 'Morgoroth' : 'Bhalanar'}</p><p>${message}</p>`;
+};
+
+// Weather Simulator
+function initWeather() {
+    const weathers = [
+        "Tormenta de Sombras (Ideal para farmear)",
+        "Despejado (Cuidado con los gankers)",
+        "Nevada Glacial (Visibilidad reducida en ICC)",
+        "Aurora del Vacío (Energía mística alta)"
+    ];
+    const statusElement = document.getElementById('weather-status');
+    const updateWeather = () => {
+        statusElement.innerText = weathers[Math.floor(Math.random() * weathers.length)];
+    };
+    updateWeather();
+    setInterval(updateWeather, 30000);
+}
+

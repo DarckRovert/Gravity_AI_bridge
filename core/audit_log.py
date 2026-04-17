@@ -14,7 +14,7 @@ class AuditLogger:
     def record(self, session_id: str, provider: str, model: str, 
                input_tokens: int, output_tokens: int, cost_usd: float, latency_ms: float):
         entry = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.utcnow().isoformat() + "Z",
             "session_id": session_id,
             "provider": provider,
             "model": model,

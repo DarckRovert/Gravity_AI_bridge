@@ -27,6 +27,7 @@ import threading
 import logging
 from datetime import datetime
 from typing import Optional
+import hashlib
 
 log = logging.getLogger("gravity.gameserver")
 
@@ -426,4 +427,116 @@ def send_command(server_id: str, command: str) -> dict:
             "(SOAPEnabled=1, SOAPPort=7878). Activa esa opción y reinicia el servidor. "
             "Por ahora, ejecuta el comando directamente en la ventana de la consola del worldserver."
         ),
+    }
+
+def register_account(server_id: str, username: str, password: str) -> dict:
+    """Crea una nueva cuenta usando SRP-6a (vMaNGOS) o SHA1 (MaNGOS clásico)."""
+    if not _PYMYSQL_OK:
+        return {"ok": False, "error": "pymysql no instalado. Ejecuta: pip install pymysql"}
+
+    servers_cfg = _load_config()
+    cfg = servers_cfg.get(server_id, {})
+    if not cfg:
+        return {"ok": False, "error": f"Servidor {server_id} inexistente."}
+
+    db_auth = cfg.get("db_name_auth", "realmd")
+
+    try:
+        conn = pymysql.connect(
+            host            = cfg.get("db_host", "127.0.0.1"),
+            port            = int(cfg.get("db_port", 3306)),
+            user            = cfg.get("db_user", "mangos"),
+            password        = cfg.get("db_pass", ""),
+            database        = db_auth,
+            connect_timeout = 3,
+        )
+        with conn.cursor() as cur:
+            # 1. Verificar si ya existe
+            cur.execute("SELECT id FROM account WHERE username = %s LIMIT 1", (username.upper(),))
+            if cur.fetchone():
+                conn.close()
+                return {"ok": False, "error": "Ese nombre de usuario ya está tomado."}
+
+            # 2. Detectar modo (SRP-6a vs SHA1)
+            # vMaNGOS tiene columnas 'v' y 's'
+            cur.execute("SHOW COLUMNS FROM account LIKE 'v'")
+            is_srp = cur.fetchone() is not None
+
+            if is_srp:
+                # Protocolo SRP-6a para vMaNGOS/Trinity
+                N = 0x894B645E89E1535BBDAD5B8B290650530801B18EBFBF5E8FAB3C82872A3E9BB7
+                g = 7
+                s_bytes = os.urandom(32)
+                h1      = hashlib.sha1(f"{username.upper()}:{password.upper()}".encode("utf-8")).digest()
+                x_bytes = hashlib.sha1(s_bytes + h1).digest()
+                x       = int.from_bytes(x_bytes, 'little')
+                v       = pow(g, x, N)
+
+                v_hex = v.to_bytes(32, 'little').hex().upper()
+                s_hex = s_bytes.hex().upper()
+
+                cur.execute("""
+                    INSERT INTO account (username, v, s, gmlevel, sessionkey, token_key, os, platform)
+                    VALUES (%s, %s, %s, 0, '', '', '', '')
+                """, (username.upper(), v_hex, s_hex))
+            else:
+                # Fallback SHA1 (MaNGOS clásico)
+                raw_str      = f"{username.upper()}:{password.upper()}"
+                sha_pass_hash = hashlib.sha1(raw_str.encode("utf-8")).hexdigest().upper()
+                cur.execute("""
+                    INSERT INTO account (username, sha_pass_hash, v, s, sessionkey)
+                    VALUES (%s, %s, '0', '0', '')
+                """, (username.upper(), sha_pass_hash))
+
+            conn.commit()
+
+        conn.close()
+        return {"ok": True, "message": f"Cuenta '{username}' registrada correctamente en el servidor."}
+    except Exception as e:
+        log.error(f"Error registrando cuenta: {e}")
+        return {"ok": False, "error": str(e)}
+
+def expose_wan(server_id: str, public_address: str) -> dict:
+    """Configura el Firewall local y reescribe el realmlist DB en MySQL."""
+    servers_cfg = _load_config()
+    cfg = servers_cfg.get(server_id, {})
+    
+    if public_address in ["127.0.0.1", "localhost", "0.0.0.0"]:
+        return {"ok": False, "error": "Debes especificar tu IP pública o dominio DDNS válido, no localhost."}
+        
+    try:
+        log.info(f"Aplicando reglas Firewall para WoW (8085, 3724)...")
+        # Inyectando silenciosamente reglas de firewall por CMD, requiere ADMIN
+        subprocess.run(
+            ["netsh", "advfirewall", "firewall", "add", "rule", 
+             "name=Gravity_WoW_MANGOS", "dir=in", "action=allow", 
+             "protocol=TCP", "localport=8085,3724"],
+            capture_output=True, check=False, creationflags=subprocess.CREATE_NO_WINDOW
+        )
+    except Exception as e:
+        return {"ok": False, "error": f"Fallo añadiendo reglas Firewall. Requieres abrir Bridge como Admin: {e}"}
+        
+    if _PYMYSQL_OK:
+        try:
+            db_auth = cfg.get("db_name_auth", "realmd")
+            conn = pymysql.connect(
+                host    = cfg.get("db_host", "127.0.0.1"),
+                port    = int(cfg.get("db_port", 3306)),
+                user    = cfg.get("db_user", "mangos"),
+                password= cfg.get("db_pass", ""),
+                database= db_auth,
+                connect_timeout=3,
+            )
+            with conn.cursor() as cur:
+                cur.execute("UPDATE realmlist SET address = %s WHERE id = 1", (public_address,))
+                conn.commit()
+            conn.close()
+        except Exception as e:
+            return {"ok": False, "error": f"Firewall aplicado pero error actualizando 'realmlist' SQL: {e}"}
+    else:
+        log.warning("pymysql no disponible. Firewall modificado pero no se alteró el MySQL.")
+        
+    return {
+        "ok": True, 
+        "message": f"Servidor configurado. Realm apuntando hacia: {public_address} y puertos TCP abiertos en SO."
     }

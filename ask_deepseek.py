@@ -54,51 +54,8 @@ try:
 except ImportError:
     pass
 
-# ── Reasoning Stripper (V7.1 Optimization) ──────────────────────────────────
-class ReasoningStripper:
-    def __init__(self):
-        self.in_reasoning = False
-        self.buffer = ""
-        self.start_tags = ["<think>", "<|canal>pensamiento"]
-        self.end_tags   = ["</think>", "<channel|>"]
-
-    def process_chunk(self, text: str) -> str:
-        self.buffer += text
-        output = ""
-        while self.buffer:
-            if not self.in_reasoning:
-                closest_start = -1
-                for tag in self.start_tags:
-                    pos = self.buffer.find(tag)
-                    if pos != -1 and (closest_start == -1 or pos < closest_start):
-                        closest_start = pos
-                if closest_start != -1:
-                    output += self.buffer[:closest_start]
-                    self.buffer = self.buffer[closest_start:]
-                    matched_tag = next((t for t in self.start_tags if self.buffer.startswith(t)), None)
-                    if matched_tag:
-                        self.buffer = self.buffer[len(matched_tag):]
-                        self.in_reasoning = True
-                else:
-                    if any(tag.startswith(self.buffer[-1:]) for tag in self.start_tags): break
-                    output += self.buffer
-                    self.buffer = ""
-            else:
-                closest_end = -1
-                for tag in self.end_tags:
-                    pos = self.buffer.find(tag)
-                    if pos != -1 and (closest_end == -1 or pos < closest_end):
-                        closest_end = pos
-                if closest_end != -1:
-                    self.buffer = self.buffer[closest_end:]
-                    matched_tag = next((t for t in self.end_tags if self.buffer.startswith(t)), None)
-                    if matched_tag:
-                        self.buffer = self.buffer[len(matched_tag):]
-                        self.in_reasoning = False
-                else:
-                    self.buffer = ""
-                    break
-        return output
+# ── Reasoning Stripper (módulo compartido) ───────────────────────────────────
+from core.reasoning_stripper import ReasoningStripper  # noqa: E402
 
 APP_VERSION    = "10.0"
 BASE_DIR       = os.path.dirname(__file__)

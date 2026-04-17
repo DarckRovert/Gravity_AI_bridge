@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║          GRAVITY AI - BRIDGE SERVER V9.3.1 PRO [Diamond-Tier Edition]          ║
+║          GRAVITY AI - BRIDGE SERVER V10.0 [Diamond-Tier Edition]             ║
 ║                    Enrutador Universal OpenAI-Compatible                     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
@@ -35,6 +35,7 @@ from core import security_monitor
 from core import image_queue
 from core import deploy_manager
 from core import game_server_manager
+from core import ai_process_manager
 
 
 class Console_Safe:
@@ -51,51 +52,10 @@ def background_scanner():
         except Exception: pass
         time.sleep(30)
 
-# ── Reasoning Stripper ────────────────────────────────────────────────────────
-class ReasoningStripper:
-    def __init__(self):
-        self.in_reasoning = False
-        self.buffer = ""
-        self.start_tags = ["<think>", "<|canal>pensamiento"]
-        self.end_tags   = ["</think>", "<channel|>"]
+# ── Reasoning Stripper (módulo compartido) ───────────────────────────────────
+from core.reasoning_stripper import ReasoningStripper  # noqa: E402
 
-    def process_chunk(self, text: str) -> str:
-        self.buffer += text
-        output = ""
-        while self.buffer:
-            if not self.in_reasoning:
-                closest_start = -1
-                for tag in self.start_tags:
-                    pos = self.buffer.find(tag)
-                    if pos != -1 and (closest_start == -1 or pos < closest_start):
-                        closest_start = pos
-                if closest_start != -1:
-                    output += self.buffer[:closest_start]
-                    self.buffer = self.buffer[closest_start:]
-                    matched_tag = next((t for t in self.start_tags if self.buffer.startswith(t)), None)
-                    if matched_tag:
-                        self.buffer = self.buffer[len(matched_tag):]
-                        self.in_reasoning = True
-                else:
-                    if any(tag.startswith(self.buffer[-1:]) for tag in self.start_tags): break
-                    output += self.buffer
-                    self.buffer = ""
-            else:
-                closest_end = -1
-                for tag in self.end_tags:
-                    pos = self.buffer.find(tag)
-                    if pos != -1 and (closest_end == -1 or pos < closest_end):
-                        closest_end = pos
-                if closest_end != -1:
-                    self.buffer = self.buffer[closest_end:]
-                    matched_tag = next((t for t in self.end_tags if self.buffer.startswith(t)), None)
-                    if matched_tag:
-                        self.buffer = self.buffer[len(matched_tag):]
-                        self.in_reasoning = False
-                else:
-                    self.buffer = ""
-                    break
-        return output
+
 
 # ── HTTP Handler ──────────────────────────────────────────────────────────────
 class GravityBridgeHandler(BaseHTTPRequestHandler):
@@ -127,13 +87,12 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             "/v1/gameserver/status":self._serve_gameserver_status,
             "/v1/gameserver/log":   self._serve_gameserver_log,
             "/v1/gameserver/players":self._serve_gameserver_players,
+            "/registro":            self._serve_registro,
         }
         # Rutas con query string (?server=&lines=)
         path_clean = self.path.split("?")[0]
         if path_clean in routes:
             routes[path_clean]()
-        elif self.path in routes:
-            routes[self.path]()
         elif self.path.startswith("/static/output/"):
             self._serve_static_output()
         else:
@@ -435,6 +394,58 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _serve_registro(self):
+        HTML = """<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear Cuenta - WoW Server</title>
+    <style>
+        body { background: #111; color: #fff; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: #222; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-align: center; border: 1px solid #444; width: 300px; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #555; background: #333; color: white; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; margin-top: 10px; background: #c69c6d; color: #111; border: none; font-weight: bold; font-size: 16px; cursor: pointer; border-radius: 4px; }
+        button:hover { background: #e0b07e; }
+        #msg { margin-top: 15px; font-weight: bold; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2 style="margin-top:0; color:#c69c6d;">Forge Account</h2>
+        <input type="text" id="user" placeholder="Nombre de usuario" maxlength="16">
+        <input type="password" id="pass" placeholder="Contraseña">
+        <button onclick="registrar()">Crear Cuenta</button>
+        <div id="msg"></div>
+    </div>
+    <script>
+        async function registrar() {
+            let user = document.getElementById("user").value;
+            let pass = document.getElementById("pass").value;
+            let msg = document.getElementById("msg");
+            if(!user || !pass) return msg.innerHTML = "<span style='color:#ff5555'>Llena todos los campos</span>";
+            msg.innerHTML = "Procesando...";
+            
+            try {
+                let res = await fetch("/v1/gameserver/register", {
+                    method: "POST", headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({server: "wow_vanilla", username: user, password: pass})
+                });
+                let data = await res.json();
+                if(res.ok || data.ok) msg.innerHTML = "<span style='color:#55ff55'>" + data.message + "</span>";
+                else msg.innerHTML = "<span style='color:#ff5555'>" + data.error + "</span>";
+            } catch(e) {
+                msg.innerHTML = "<span style='color:#ff5555'>Error de conexión al puente</span>";
+            }
+        }
+    </script>
+</body>
+</html>"""
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self._send_cors()
+        self.end_headers()
+        self.wfile.write(HTML.encode("utf-8"))
+
     # ── POST ──────────────────────────────────────────────────────────────────
     def do_POST(self):
 
@@ -511,6 +522,85 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
                 self.send_response(500)
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        if self.path == "/v1/gameserver/register":
+            try:
+                length    = int(self.headers.get("Content-Length", 0))
+                data      = json.loads(self.rfile.read(length)) if length else {}
+                server_id = data.get("server", "wow_vanilla")
+                usr       = data.get("username", "")
+                pwd       = data.get("password", "")
+                result    = game_server_manager.register_account(server_id, usr, pwd)
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps(result).encode("utf-8"))
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+            return
+
+        if self.path == "/v1/gameserver/expose":
+            try:
+                length    = int(self.headers.get("Content-Length", 0))
+                data      = json.loads(self.rfile.read(length)) if length else {}
+                server_id = data.get("server", "wow_vanilla")
+                public_ip = data.get("public_address", "")
+                result    = game_server_manager.expose_wan(server_id, public_ip)
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps(result).encode("utf-8"))
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+            return
+
+        if self.path == "/v1/ai/start":
+            try:
+                length    = int(self.headers.get("Content-Length", 0))
+                data      = json.loads(self.rfile.read(length)) if length else {}
+                provider  = data.get("provider", "")
+                result    = ai_process_manager.start_engine(provider)
+                body      = json.dumps(result).encode("utf-8")
+                self.send_response(200 if result.get("success") else 400)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(body)))
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                body = json.dumps({"error": str(e)}).encode("utf-8")
+                self.send_response(500)
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            return
+
+        if self.path == "/v1/ai/stop":
+            try:
+                length    = int(self.headers.get("Content-Length", 0))
+                data      = json.loads(self.rfile.read(length)) if length else {}
+                provider  = data.get("provider", "")
+                result    = ai_process_manager.stop_engine(provider)
+                body      = json.dumps(result).encode("utf-8")
+                self.send_response(200 if result.get("success") else 400)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(body)))
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                body = json.dumps({"error": str(e)}).encode("utf-8")
+                self.send_response(500)
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
             return
 
         # /v1/security/scan — Fuerza un escaneo de seguridad inmediato
@@ -780,9 +870,15 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             import traceback
             log.error(f"Error in POST: {e}", exc_info=True)
             record_error("internal_error")
-            self.send_response(500)
-            self.end_headers()
-            self.wfile.write(f'{{"error":"{str(e)}"}}\n'.encode())
+            try:
+                body = json.dumps({"error": str(e)}).encode("utf-8")
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception:
+                pass
 
     def log_message(self, fmt, *args):
         log.debug(fmt % args)
@@ -797,6 +893,7 @@ def run_server():
     # Arrancar módulos nuevos V10.0
     security_monitor.start()
     image_queue.start()
+    ai_process_manager.discover_apps()
     log.info("[V10.0] Security Monitor, Image Queue y Game Server Manager iniciados.")
 
     log.info(f"Gravity Bridge V10.0 — http://localhost:{port} | Dashboard: / | API: /v1")

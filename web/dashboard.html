@@ -236,7 +236,7 @@
   <!-- Topbar -->
   <header class="topbar">
     <button class="hamburger" onclick="toggleSidebar()">☰</button>
-    <span class="logo" id="topbar-logo">GRAVITY V9.4 PRO</span>
+    <span class="logo" id="topbar-logo">GRAVITY V10.0</span>
     <div class="top-right">
       <div class="badge-online" id="global-status"><div class="dot"></div>BRIDGE ONLINE</div>
       <button class="btn-icon" onclick="refreshAll()"><span style="font-size:16px">⟳</span> Refrescar</button>
@@ -248,7 +248,7 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-section">
         <div class="sidebar-label">Principal</div>
-        <div class="nav-item" id="nav-chat"     onclick="switchTab('chat',this)">    <span class="nav-icon">💬</span><span class="nav-text">Chat Auditor</span></div>
+        <div class="nav-item active" id="nav-chat"     onclick="switchTab('chat',this)">    <span class="nav-icon">💬</span><span class="nav-text">Chat Auditor</span></div>
         <div class="nav-item"        id="nav-vision"   onclick="switchTab('vision',this)">  <span class="nav-icon">🎨</span><span class="nav-text">Vision Studio</span></div>
         <div class="nav-item"        id="nav-queue"    onclick="switchTab('queue',this)">   <span class="nav-icon">🖼️</span><span class="nav-text">Image Queue</span></div>
         <div class="nav-item"        id="nav-deploy"   onclick="switchTab('deploy',this)">  <span class="nav-icon">🚀</span><span class="nav-text">Deploy</span></div>
@@ -278,12 +278,13 @@
         <div class="chat-messages" id="messages">
           <div class="msg ai">
             <div class="msg-bubble">
-              <strong>👋 Bienvenido a Gravity AI Bridge V9.4 PRO</strong><br><br>
-              Sistema de orquestación V9.4 inicializado.<br>
-              <strong>Nuevos módulos activos:</strong><br>
-              🛡️ <strong>Security Monitor</strong> — Vigilancia de procesos, puertos y archivos<br>
-              🖼️ <strong>Image Queue</strong> — Cola persistente para generación secuencial<br>
-              🚀 <strong>Deploy Manager</strong> — Pipeline automatizado a Netlify<br><br>
+              <strong>👋 Bienvenido a Gravity AI Bridge V10.0 [Ecosistema Total]</strong><br><br>
+              Sistema de orquestación unificada en línea.<br>
+              <strong>Módulos Desplegados:</strong><br><br>
+              ⚔️ <strong>Game Server Manager</strong> — Control absoluto de tu servidor WoW, IP Pública Cuentas y Firewall Integrado.<br>
+              🛡️ <strong>Security Monitor</strong> — Vigilancia automatizada de procesos, puertos y archivos clave del entorno.<br>
+              🖼️ <strong>Image Queue</strong> — Motor encolador para generación secuencial de imágenes de Food-Delivery y Assets.<br>
+              🚀 <strong>Deploy Manager</strong> — Integración y distribución web asíncrona hacia la nube (Netlify CICD).<br><br>
               <strong>Atajos rápidos:</strong><br>
               <code>/help</code> — Comandos CLI disponibles<br>
               <code>/search</code> — Búsqueda web en vivo<br>
@@ -324,10 +325,12 @@
             <canvas id="latencyChart"></canvas>
           </div>
           <div class="table-wrap">
-            <div class="table-title">Mapa de Proveedores Registrados</div>
+            <div class="table-title">Mapa de Proveedores Registrados 
+               <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:12px">(Los motores se autodescubren en %LOCALAPPDATA%)</span>
+            </div>
             <table>
-              <thead><tr><th>Proveedor</th><th>Tier</th><th>Estado</th><th>Ping</th><th>Modelos Disp.</th></tr></thead>
-              <tbody id="tb-providers"><tr><td colspan="5" style="text-align:center;color:var(--muted)">Cargando...</td></tr></tbody>
+              <thead><tr><th>Proveedor</th><th>Tier</th><th>Estado</th><th>Ping</th><th>Modelos Disp.</th><th>Acción</th></tr></thead>
+              <tbody id="tb-providers"><tr><td colspan="6" style="text-align:center;color:var(--muted)">Cargando...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -351,7 +354,11 @@
                     <span style="font-size:12px">↗</span>
                   </a>
                 </div>
-                <button class="btn-icon" onclick="reloadStudio()" style="padding:4px 8px;font-size:11px">⟳ Recargar UI</button>
+                <div style="display:flex;gap:8px">
+                  <button class="btn-icon" onclick="aiAction('start', 'Fooocus')" style="padding:4px 8px;font-size:11px;color:var(--success)">▶ Iniciar</button>
+                  <button class="btn-icon" onclick="aiAction('stop', 'Fooocus')" style="padding:4px 8px;font-size:11px;color:var(--error)">⏹ Detener</button>
+                  <button class="btn-icon" onclick="reloadStudio()" style="padding:4px 8px;font-size:11px">⟳ Recargar UI</button>
+                </div>
               </div>
               <iframe id="studio-frame" class="studio-frame" src="http://127.0.0.1:7861"></iframe>
             </div>
@@ -459,6 +466,8 @@
               <button class="gs-btn restart" onclick="gsAction('restart','wow_vanilla')">↺ Reiniciar</button>
               <button class="gs-btn" onclick="fetchGsPlayers('wow_vanilla')">👥 Jugadores Online</button>
               <button class="gs-btn" onclick="fetchGsLog('wow_vanilla')">📜 Ver Log</button>
+              <button class="gs-btn" style="border-color:rgba(79,70,229,0.5);color:var(--accent)" onclick="exposeWan('wow_vanilla')">🌐 Exponer a Internet</button>
+              <a href="/registro" target="_blank" class="gs-btn" style="text-decoration:none;color:var(--text)">🔗 Portal Cuentas</a>
             </div>
 
             <!-- Errores -->
@@ -874,6 +883,23 @@ async function sendGsCmd(serverId){
   out.scrollTop = out.scrollHeight;
 }
 
+async function exposeWan(serverId){
+  const ip = prompt("Ingresa la IP Pública o Dominio DDNS para el servidor:");
+  if(!ip) return;
+  showToast("Aplicando reglas nativas... Revisa la terminal.", "info");
+  try{
+    const r = await fetch('/v1/gameserver/expose',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({server: serverId, public_address: ip})
+    });
+    const data = await r.json();
+    if(data.message) showToast(data.message, "success");
+    else showToast(data.error, "error");
+  }catch(e){
+    showToast("Error conectando con el puente: " + e.message, "error");
+  }
+}
+
 // ── Status ──
 async function fetchStatus(){
   try{
@@ -893,7 +919,13 @@ async function fetchStatus(){
         <td><span style="color:var(--${b.healthy?'success':'error'})">${b.healthy?'● Activo':'○ Inactivo'}</span></td>
         <td style="font-family:'JetBrains Mono'">${b.healthy?Math.round(b.latency_ms)+'ms':'—'}</td>
         <td>${b.models}</td>
-      </tr>`).join('')||'<tr><td colspan="5">Sin motores.</td></tr>';
+        <td>
+           <div style="display:flex;gap:4px">
+             <button onclick="aiAction('start','${b.name}')" style="background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:4px;cursor:pointer;color:var(--success);padding:2px 6px" title="Iniciar motor en background">▶</button>
+             <button onclick="aiAction('stop','${b.name}')" style="background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:4px;cursor:pointer;color:var(--error);padding:2px 6px" title="Detener proceso del motor">⏹</button>
+           </div>
+        </td>
+      </tr>`).join('')||'<tr><td colspan="6">Sin motores.</td></tr>';
     document.getElementById('sb-providers').innerHTML=(st.backends||[]).map(b=>`
       <div class="provider-status">
         <div class="dot-sm ${b.healthy?'dot-online':'dot-offline'}"></div>
@@ -904,6 +936,25 @@ async function fetchStatus(){
       if(active&&active.healthy){ latencyHistory.push(active.latency_ms); if(latencyHistory.length>20) latencyHistory.shift(); if(currentTab==='status') renderChart(); }
     }
   }catch(e){ console.error('[Status]',e); }
+}
+
+async function aiAction(action, provider) {
+    const fn = action === 'start' ? 'Iniciando' : 'Deteniendo';
+    try{
+        const r = await fetch(`/v1/ai/${action}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({provider: provider})
+        });
+        const data = await r.json();
+        if(data.success) {
+            showToast(data.message, "success");
+        } else {
+            showToast(data.error || 'Error desconocido', "error");
+        }
+    }catch(e){
+        showToast("Error de conexión con Bridge", "error");
+    }
 }
 
 async function fetchAudit(){

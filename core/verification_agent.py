@@ -74,7 +74,7 @@ class VerificationAgent:
                 # Validación básica de Lua (buscando 'end' balanceados simplificado)
                 if content.count('if') + content.count('function') + content.count('do') != content.count('end'):
                     # Notch: Esto es una heurística simplista para WoW Lua 5.0
-                    pass 
+                    return {"success": False, "error": "Desbalance de bloques if/function/do vs end"} 
         except Exception as e:
             return {"success": False, "error": str(e)}
         
