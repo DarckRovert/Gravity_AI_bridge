@@ -3,7 +3,7 @@
 aiohttp==3.10.10
 colorama==0.4.6
 PyYAML==6.0.2
-# gradio>=4.0.0 (500MB innecesarios ahora)
+gradio>=4.0.0
 rich
 pyfiglet
 pyreadline3
@@ -21,11 +21,12 @@ google-generativeai
 prometheus_client
 
 # RAG — Embeddings locales (obligatorio: instala si no tienes Ollama)
-# sentence-transformers
-# pypdf
+sentence-transformers
+pypdf
 
 # Seguridad — cifrado de API keys con DPAPI en Windows (obligatorio)
-# pywin32
+pywin32
+pymysql
 
 # Tests
 pytest
