@@ -1,9 +1,34 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('web', 'web'), ('core', 'core'), ('rag', 'rag'), ('providers', 'providers'), ('tools', 'tools'), ('_knowledge.json', '.'), ('config.yaml', '.'), ('assets', 'assets')]
+datas = [
+    ('web',              'web'),
+    ('core',             'core'),
+    ('rag',              'rag'),
+    ('providers',        'providers'),
+    ('tools',            'tools'),
+    ('assets',           'assets'),
+    ('wiki',             'wiki'),
+    ('_knowledge.json',  '.'),
+    ('config.yaml',      '.'),
+    # Scripts raíz que el launcher importa dinámicamente
+    ('bridge_server.py', '.'),
+    ('dashboard.py',     '.'),
+    ('gravity_tray.py',  '.'),
+    ('ask_deepseek.py',  '.'),
+    ('health_check.py',  '.'),
+]
 binaries = []
-hiddenimports = ['pystray', 'PIL', 'aiohttp', 'yaml', 'rich', 'anthropic', 'pymysql', 'win32api', 'win32security', 'prometheus_client']
+hiddenimports = [
+    'pystray', 'PIL', 'PIL.Image', 'PIL.ImageDraw', 'PIL.ImageFont',
+    'aiohttp', 'yaml', 'rich', 'rich.console', 'rich.panel',
+    'anthropic', 'pymysql',
+    'win32api', 'win32security', 'win32con', 'win32event', 'winerror',
+    'prometheus_client',
+    'psutil',
+    'cryptography', 'cryptography.hazmat.primitives',
+    'sentence_transformers',
+]
 tmp_ret = collect_all('pystray')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 

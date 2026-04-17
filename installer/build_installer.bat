@@ -28,13 +28,22 @@ if not exist "assets\gravity_icon.ico" (
 )
 echo.
 
-REM ── PASO 1: Limpiar builds anteriores ────────────────────────────────────────
-echo  [1/5] Limpiando builds anteriores...
+REM ── PASO 1: Limpiar artefactos de build anterior ────────────────────────────
+echo  [1/5] Limpiando artefactos anteriores...
 if exist "dist\GravityBridge.exe"  del /f /q "dist\GravityBridge.exe"
 if exist "build\GravityBridge"     rmdir /s /q "build\GravityBridge"
-if exist "GravityBridge.spec"      del /f /q "GravityBridge.spec"
+REM NOTA: GravityBridge.spec NO se elimina. Si existe, PyInstaller lo reutiliza.
+REM       Esto preserva hidden-imports y add-data configurados.
 echo  [OK]
 echo.
+
+REM ── Verificar entry point ────────────────────────────────────────────────────
+if not exist "gravity_launcher.pyw" (
+    echo  [ERROR] No se encontro gravity_launcher.pyw en F:\Gravity_AI_bridge\
+    echo  [ERROR] Asegurate de ejecutar este script desde la carpeta correcta.
+    pause
+    exit /b 1
+)
 
 REM ── PASO 2: Verificar PyInstaller ────────────────────────────────────────────
 echo  [2/5] Verificando PyInstaller...
@@ -60,34 +69,40 @@ echo  [3/5] Compilando GravityBridge.exe con PyInstaller...
 echo  (Esto puede tardar 3-8 minutos en la primera ejecucion)
 echo.
 
-pyinstaller gravity_launcher.pyw ^
-  --name GravityBridge ^
-  --onefile ^
-  --noconsole ^
-  --icon assets\gravity_icon.ico ^
-  --add-data "web;web" ^
-  --add-data "core;core" ^
-  --add-data "rag;rag" ^
-  --add-data "providers;providers" ^
-  --add-data "tools;tools" ^
-  --add-data "_knowledge.json;." ^
-  --add-data "config.yaml;." ^
-  --add-data "assets;assets" ^
-  --hidden-import pystray ^
-  --hidden-import PIL ^
-  --hidden-import aiohttp ^
-  --hidden-import yaml ^
-  --hidden-import rich ^
-  --hidden-import anthropic ^
-  --hidden-import pymysql ^
-  --hidden-import win32api ^
-  --hidden-import win32security ^
-  --hidden-import prometheus_client ^
-  --collect-all pystray ^
-  --distpath dist ^
-  --workpath build ^
-  --clean ^
-  --noconfirm
+if exist "GravityBridge.spec" (
+    echo  [INFO] Usando GravityBridge.spec existente...
+    pyinstaller GravityBridge.spec --noconfirm --distpath dist --workpath build --clean
+) else (
+    echo  [INFO] GravityBridge.spec no encontrado. Generando desde flags...
+    pyinstaller gravity_launcher.pyw ^
+      --name GravityBridge ^
+      --onefile ^
+      --noconsole ^
+      --icon assets\gravity_icon.ico ^
+      --add-data "web;web" ^
+      --add-data "core;core" ^
+      --add-data "rag;rag" ^
+      --add-data "providers;providers" ^
+      --add-data "tools;tools" ^
+      --add-data "_knowledge.json;." ^
+      --add-data "config.yaml;." ^
+      --add-data "assets;assets" ^
+      --hidden-import pystray ^
+      --hidden-import PIL ^
+      --hidden-import aiohttp ^
+      --hidden-import yaml ^
+      --hidden-import rich ^
+      --hidden-import anthropic ^
+      --hidden-import pymysql ^
+      --hidden-import win32api ^
+      --hidden-import win32security ^
+      --hidden-import prometheus_client ^
+      --collect-all pystray ^
+      --distpath dist ^
+      --workpath build ^
+      --clean ^
+      --noconfirm
+)
 
 if %errorlevel% neq 0 (
     echo.
