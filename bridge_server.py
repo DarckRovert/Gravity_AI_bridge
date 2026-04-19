@@ -64,6 +64,28 @@ class Console_Safe:
 
 console = Console_Safe()
 
+# ── Rate Limiter por IP ───────────────────────────────────────────────────────────
+# Máximo 120 requests por IP por ventana de 60 segundos.
+# Configurable vía config.yaml: rate_limit.max_requests / rate_limit.window_seconds
+_RATE_LIMIT_MAX   = 120
+_RATE_LIMIT_WINDOW = 60
+_ip_counts: dict  = {}  # {ip: [timestamp, ...]}
+_ip_lock          = threading.Lock()
+
+def _check_rate_limit(ip: str) -> bool:
+    """Retorna True si la IP puede hacer la request. False si está bloqueada."""
+    now = time.time()
+    with _ip_lock:
+        timestamps = _ip_counts.get(ip, [])
+        # Descartar timestamps fuera de la ventana
+        timestamps = [t for t in timestamps if now - t < _RATE_LIMIT_WINDOW]
+        if len(timestamps) >= _RATE_LIMIT_MAX:
+            _ip_counts[ip] = timestamps
+            return False
+        timestamps.append(now)
+        _ip_counts[ip] = timestamps
+        return True
+
 # ── Background provider scanner ───────────────────────────────────────────────
 def background_scanner():
     while True:
@@ -83,6 +105,20 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin",  "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+    def _check_rate(self) -> bool:
+        """Verifica el rate limit para la IP del cliente. Retorna False y envía 429 si bloqueada."""
+        ip = self.client_address[0] if self.client_address else "unknown"
+        if not _check_rate_limit(ip):
+            body = json.dumps({"error": "Too Many Requests", "retry_after": _RATE_LIMIT_WINDOW}).encode()
+            self.send_response(429)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Retry-After", str(_RATE_LIMIT_WINDOW))
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+            return False
+        return True
 
     def do_OPTIONS(self):
         self.send_response(200)
@@ -107,12 +143,15 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             "/v1/gameserver/log":   self._serve_gameserver_log,
             "/v1/gameserver/players":self._serve_gameserver_players,
             "/registro":            self._serve_registro,
-            # ── V10.0 New Endpoints ────────────────────────────────────────
+            # ── V10.1 Endpoints ────────────────────────────────────────
             "/v1/hardware":         self._serve_hardware,
             "/v1/cost":             self._serve_cost,
             "/v1/watchdog":         self._serve_watchdog,
             "/v1/sessions":         self._serve_sessions,
             "/v1/rag/status":       self._serve_rag_status,
+            # ── V10.1 New Endpoints ─────────────────────────────────────────────
+            "/v1/queue/stream":     self._serve_queue_stream,
+            "/v1/fabricaweb/status":self._serve_fabricaweb_status,
         }
         # Rutas con query string (?server=&lines=)
         path_clean = self.path.split("?")[0]
@@ -131,7 +170,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             from dashboard import get_dashboard_html
             body = get_dashboard_html()
         except Exception:
-            body = b"<h1>Gravity AI Bridge V10.0</h1><p>No se encontro web/dashboard.html. Restaura la carpeta web/.</p>"
+            body = b"<h1>Gravity AI Bridge V10.1</h1><p>No se encontro web/dashboard.html. Restaura la carpeta web/.</p>"
         try:
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -258,7 +297,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
         best_p, best_m = provider_manager.get_best()
         scans  = provider_manager.scan_all()
         status = {
-            "version":         "10.0",
+            "version":         "10.1",
             "bridge_online":   True,
             "active_provider": best_p.name if best_p else None,
             "active_model":    best_m,
@@ -375,12 +414,65 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode())
 
-    # ── Deploy Manager ───────────────────────────────────────────────────────────
+    def _serve_queue_stream(self):
+        """SSE stream: emite el estado del job actual cada 5 segundos.
+        Permite que el Dashboard muestre progreso real sin polling manual.
+        """
+        try:
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("Connection", "keep-alive")
+            self._send_cors()
+            self.end_headers()
+
+            # Emitir eventos cada 5s hasta que el cliente cierre la conexión
+            while True:
+                try:
+                    status = image_queue.get_queue_status()
+                    payload = json.dumps(status, ensure_ascii=False)
+                    self.wfile.write(f"data: {payload}\n\n".encode("utf-8"))
+                    self.wfile.flush()
+                    time.sleep(5)
+                except Exception:
+                    break  # Cliente desconectado — salir limpiamente
+        except Exception:
+            pass
+
+    # ── Deploy Manager & FabricaWeb ──────────────────────────────────────────────
     def _serve_deploy_status(self):
         """Estado del último pipeline de deploy."""
         try:
             status = deploy_manager.get_status()
             body   = json.dumps(status, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_fabricaweb_status(self):
+        """Estado del pipeline de FabricaWeb (el proyecto web activo en _integrations/FabricaWeb)."""
+        try:
+            fabricaweb_path = os.path.join(_BASE, "_integrations", "FabricaWeb")
+            status = deploy_manager.get_status()
+            # Inyectar info del proyecto
+            status["fabricaweb_path"] = fabricaweb_path
+            status["fabricaweb_exists"] = os.path.isdir(fabricaweb_path)
+            pkg_path = os.path.join(fabricaweb_path, "package.json")
+            if os.path.isfile(pkg_path):
+                try:
+                    with open(pkg_path, "r", encoding="utf-8") as f:
+                        pkg = json.load(f)
+                    status["project_name"] = pkg.get("name", "FabricaWeb")
+                    status["project_version"] = pkg.get("version", "?")
+                except Exception:
+                    pass
+            body = json.dumps(status, indent=2).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self._send_cors()
@@ -640,6 +732,22 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
                 self._send_cors()
                 self.end_headers()
                 self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/fabricaweb/deploy
+        if self.path == "/v1/fabricaweb/deploy":
+            try:
+                # Dispara el pipeline sin bloquear al cliente
+                threading.Thread(target=deploy_manager.run_deploy_pipeline, daemon=True).start()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": True, "message": "Deploy hacia FabricaWeb iniciado", "job_id": "fabricaweb_deploy"}).encode())
             except Exception as e:
                 self.send_response(500)
                 self.end_headers()
@@ -1108,14 +1216,28 @@ def run_server():
     provider_manager.scan_all()
     threading.Thread(target=background_scanner, daemon=True).start()
 
-    # Arrancar módulos background V10.0
+    # Arrancar módulos background V10.1
     security_monitor.start()
     image_queue.start()
-    engine_watchdog.start(verbose=True)   # Fix: el watchdog ahora arranca con el bridge
+    engine_watchdog.start(verbose=True)
     ai_process_manager.discover_apps()
-    log.info("[V10.0] Security Monitor, Image Queue, Engine Watchdog y AI Process Manager iniciados.")
 
-    log.info(f"Gravity Bridge V10.0 — http://localhost:{port} | Dashboard: / | API: /v1")
+    # ── WAL Checkpoint: truncar el Write-Ahead Log de SQLite antes de arrancar ──
+    # Evita que _cache.sqlite-wal crezca indefinidamente entre sesiones.
+    try:
+        import sqlite3 as _sqlite3
+        _wal_path = os.path.join(_BASE, "_cache.sqlite")
+        if os.path.exists(_wal_path):
+            _wal_conn = _sqlite3.connect(_wal_path)
+            _wal_conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            _wal_conn.close()
+            log.info("[V10.1] WAL checkpoint completado en _cache.sqlite.")
+    except Exception as _e:
+        log.debug(f"[V10.1] WAL checkpoint salteado: {_e}")
+
+    log.info("[V10.1] Security Monitor, Image Queue, Engine Watchdog, AI Process Manager activos.")
+
+    log.info(f"Gravity Bridge V10.1 — http://localhost:{port} | Dashboard: / | API: /v1")
     server = ThreadingHTTPServer(("0.0.0.0", port), GravityBridgeHandler)
     try:
         server.serve_forever()

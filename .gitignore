@@ -1,62 +1,34 @@
-# Python
+# Configuración Git Ignore
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
+*.pyc
+*.pyo
+*.pyd
 .Python
 env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 venv/
 .env
-.venv
-pip-log.txt
-pip-delete-this-directory.txt
+.venv/
+env.bak/
+venv.bak/
 
-# Databases & Persistencia Local
-*.sqlite
-*.sqlite-shm
-*.sqlite-wal
-_audit_log.jsonl
-_cost_log.json
-_settings.json
-_knowledge.json.bak
-
-# Logs
+# Logs del entorno pre-rotación y bases SQLite internas del Bridge
 *.log
-logs/
+_cache.sqlite
+_cache.sqlite-wal
+_cache.sqlite-shm
+_saves/
+_rag_index/
 
-# Secrets & Config
-config_local.yaml
-*.key
-.api_keys
-
-# Windows / OS
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-
-# Project Specific
-temp_images/
-output/
-_first_run_done
-
-# PyInstaller artifacts
-GravityBridge.spec
+# Archivos de empaquetado/Build (Pyinstaller, VSCode, Vite)
 build/
-dist/*.exe
-dist/GravityBridge.exe
+dist/
+*.egg-info/
+.vscode/
+.idea/
+.DS_Store
+
+# Archivos temporales de Fooocus e Integraciones locales
+_integrations/Fooocus/
+_saves/
+temp/
+__pycache__/

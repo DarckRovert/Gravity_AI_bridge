@@ -1,23 +1,9 @@
-Gravity AI Bridge V10.0
-Copyright (c) 2026 DarckRovert. Todos los derechos reservados.
+Copyright (c) 2026 DarckRovert
 
--------------------------------------------------------------------------------
-END USER LICENSE AGREEMENT (EULA) / ACUERDO DE LICENCIA DE USUARIO FINAL
--------------------------------------------------------------------------------
+TODOS LOS DERECHOS RESERVADOS.
 
-1. PROPIEDAD Y DERECHOS DE AUTOR
-Este software, incluyendo su código fuente, diseño, arquitectura, documentación y ejecutables, es propiedad intelectual exclusiva de DarckRovert. El presente acuerdo no constituye una venta de este software ni de ninguna copia del mismo.
+El presente código fuente de "Gravity AI Bridge" (incluyendo su arquitectura nativa, integración en el flujo de World of Warcraft, puente difusivo con Fooocus y la orquestación Multi-Agente) es propiedad exclusiva de su autor y creador, bajo el seudónimo DarckRovert.
 
-2. USO ESTRICTAMENTE NO-COMERCIAL
-El uso comercial de Gravity AI Bridge, así como de cualquiera de sus módulos o código derivado, está estrictamente prohibido. Usted no puede vender, licenciar, alquilar, subarrendar, distribuir para beneficio económico, ni incorporar este software en un producto o servicio comercial.
+Queda estrictamente prohibida la copia, redistribución, modificación, uso comercial, integración en servicios de terceros, o uso no autorizado en servidores públicos que no formen parte de la red de infraestructuras Diamond-Tier autorizadas expresamente por el autor en https://github.com/DarckRovert o su stream oficial https://twitch.tv/darckrovert.
 
-3. RESTRICCIONES DE MODIFICACIÓN Y REDISTRIBUCIÓN
-Queda estrictamente prohibida la redistribución de copias modificadas o no modificadas del software sin el consentimiento expreso, previo y por escrito de DarckRovert. Cualquier mejora o modificación realizada bajo autorización debe mantener la atribución original al autor.
-
-4. EXENCIÓN DE RESPONSABILIDAD
-ESTE SOFTWARE SE PROPORCIONA "TAL CUAL", SIN GARANTÍA DE NINGÚN TIPO, EXPRESA O IMPLÍCITA, INCLUYENDO PERO NO LIMITADO A LAS GARANTÍAS DE COMERCIABILIDAD O ADECUACIÓN PARA UN PROPÓSITO PARTICULAR. EN NINGÚN CASO El AUTOR SERÁ RESPONSABLE DE NINGÚN DAÑO DIRECTO, INDIRECTO, INCIDENTAL, ESPECIAL, EJEMPLAR O CONSECUENTE.
-
--------------------------------------------------------------------------------
-Strictly Non-Commercial: This software is owned by DarckRovert. Commercial use for profit is prohibited.
-Estrictamente No-Comercial: Este software es propiedad de DarckRovert. El uso comercial con fines de lucro está prohibido.
--------------------------------------------------------------------------------
+Cualquier vulneración a estas directrices supone una violación directa de los términos de propiedad intelectual. La ingeniería inversa del core de seguridad, y la re-distribución forked de este código bajo otras marcas están rigurosamente prohibidas sin un acuerdo por escrito.

@@ -115,9 +115,16 @@ def cancel_job(job_id: int) -> bool:
 # ── Worker ─────────────────────────────────────────────────────────────────────
 
 def _process_job(job: sqlite3.Row) -> None:
-    """Procesa un trabajo individual usando fooocus_client."""
+    """Procesa un trabajo individual usando fooocus_client.
+    Valida que realmente apareció un archivo nuevo en outputs/ antes de marcar done.
+    """
     global _current_job
+    import glob as _glob
+
     job_id = job["id"]
+
+    # Ruta de outputs — igual que en fooocus_client.py
+    _OUTPUT_DIR = os.path.join(BASE_DIR, "_integrations", "Fooocus", "Fooocus", "outputs")
 
     # Marcar como en progreso
     with _get_conn() as conn:
@@ -135,12 +142,18 @@ def _process_job(job: sqlite3.Row) -> None:
         }
 
     try:
-        # Import del cliente de Fooocus
         import sys
         tools_dir = os.path.join(BASE_DIR, "tools")
         if tools_dir not in sys.path:
             sys.path.insert(0, tools_dir)
         from fooocus_client import generate_image, ImageGenRequest
+
+        # Snapshot ANTES de la generación
+        os.makedirs(_OUTPUT_DIR, exist_ok=True)
+        before: set = set(
+            _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.png"), recursive=True) +
+            _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.webp"), recursive=True)
+        )
 
         req: ImageGenRequest = {
             "prompt":      job["prompt"],
@@ -150,6 +163,24 @@ def _process_job(job: sqlite3.Row) -> None:
             "num_images":  1,
         }
         result = generate_image(req)
+
+        # Snapshot DESPUÉS — verificar archivos nuevos reales
+        after: set = set(
+            _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.png"), recursive=True) +
+            _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.webp"), recursive=True)
+        )
+        new_files = list(after - before)
+
+        if result.get("success") and not new_files:
+            # Fooocus reportó éxito pero no hay archivo nuevo: FALSO POSITIVO
+            result["success"] = False
+            result["error"]   = (
+                "Fooocus reportó success pero no apareció ningún archivo nuevo en outputs/. "
+                "Falso positivo detectado. Revisa fooocus_trigger_debug.log."
+            )
+
+        if new_files:
+            result["images"] = sorted(new_files, key=os.path.getmtime, reverse=True)
 
         result_str = json.dumps(result, ensure_ascii=False)
         status     = "done" if result.get("success") else "failed"

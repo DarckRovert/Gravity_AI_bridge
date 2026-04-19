@@ -67,10 +67,15 @@ except ImportError:
 
 # ── Estado Global ──────────────────────────────────────────────────────────────
 
-_processes: dict[str, dict] = {}  # {server_id: {proc_world, proc_realm, status, ...}}
+_processes: dict = {}  # {server_id: {proc_world, proc_realm, status, ...}}
 _lock = threading.Lock()
-_watchdog_threads: dict[str, threading.Thread] = {}
+_watchdog_threads: dict = {}
 _started = False
+
+# Buffer circular de logs de stdout de los servidores (500 líneas por servidor)
+from collections import deque
+_stdout_buffers: dict = {}  # {server_id: deque(maxlen=500)}
+_stdout_threads: dict = {}  # {server_id: threading.Thread}
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -111,8 +116,51 @@ def _tail_log(log_path: str, lines: int = 100) -> list[str]:
 
 # ── Control de Procesos ────────────────────────────────────────────────────────
 
+def _check_mysql_ready(cfg: dict, max_wait: int = 30) -> bool:
+    """Verifica que MySQL responde antes de arrancar el worldserver.
+    Intenta conectar hasta max_wait segundos. Retorna True si MySQL está listo.
+    """
+    if not _PYMYSQL_OK:
+        log.warning("[GameServer] pymysql no disponible — salteando pre-flight MySQL.")
+        return True  # No bloquear si no tenemos pymysql
+
+    deadline = time.time() + max_wait
+    while time.time() < deadline:
+        try:
+            conn = pymysql.connect(
+                host            = cfg.get("db_host", "127.0.0.1"),
+                port            = int(cfg.get("db_port", 3306)),
+                user            = cfg.get("db_user", "mangos"),
+                password        = cfg.get("db_pass", ""),
+                database        = cfg.get("db_name", "characters"),
+                connect_timeout = 3,
+            )
+            conn.close()
+            log.info("[GameServer] MySQL listo.")
+            return True
+        except Exception:
+            time.sleep(2)
+
+    log.error("[GameServer] Pre-flight MySQL fallido: MySQL no respondió en tiempo.")
+    return False
+
+
+def _read_stdout_to_buffer(proc: subprocess.Popen, server_id: str, label: str) -> None:
+    """Hilo lector: captura STDOUT del proceso y lo almacena en el buffer circular."""
+    buf = _stdout_buffers.setdefault(server_id, deque(maxlen=500))
+    try:
+        for raw_line in iter(proc.stdout.readline, b""):
+            try:
+                line = raw_line.decode("utf-8", errors="replace").rstrip()
+            except Exception:
+                line = repr(raw_line)
+            buf.append(f"[{label}] {line}")
+    except Exception:
+        pass
+
+
 def _start_server(server_id: str, cfg: dict) -> dict:
-    """Inicia los procesos de un servidor. Devuelve el estado resultante."""
+    """Inicia los procesos de un servidor con STDOUT capturado y pre-flight MySQL."""
     server_dir  = cfg.get("server_dir", "")
     world_exe   = os.path.join(server_dir, cfg.get("worldserver_exe", "mangosd.exe"))
     realm_exe   = os.path.join(server_dir, cfg.get("realmd_exe",     "realmd.exe"))
@@ -127,23 +175,43 @@ def _start_server(server_id: str, cfg: dict) -> dict:
                 cwd=os.path.dirname(mysql_bat),
             )
             log.info(f"[GameServer] MySQL arrancado para {server_id}")
-            time.sleep(3)  # Esperar a que MySQL inicie
+            time.sleep(3)
         except Exception as e:
             log.warning(f"[GameServer] No se pudo arrancar MySQL: {e}")
 
-    procs: dict = {"world": None, "realm": None}
-    errors: list[str] = []
+    # 1. Pre-flight: verificar que MySQL responde antes de arrancar worldserver
+    if not _check_mysql_ready(cfg, max_wait=30):
+        return {
+            "status":       "failed",
+            "display_name": cfg.get("display_name", server_id),
+            "errors":       ["MySQL no respondió en el pre-flight check. Worldserver no iniciado."],
+            "world_pid":    None,
+            "realm_pid":    None,
+        }
 
-    # 1. Realm server (autenticación)
+    # Inicializar buffer de logs para este servidor
+    _stdout_buffers[server_id] = deque(maxlen=500)
+
+    procs: dict = {"world": None, "realm": None}
+    errors: list = []
+
+    # 2. Realm server (autenticación)
     if os.path.exists(realm_exe):
         try:
             procs["realm"] = subprocess.Popen(
                 [realm_exe],
                 cwd=server_dir,
                 creationflags=subprocess.CREATE_NEW_CONSOLE,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
             )
+            # Hilo lector de stdout del realm
+            t_realm = threading.Thread(
+                target=_read_stdout_to_buffer,
+                args=(procs["realm"], server_id, "REALM"),
+                daemon=True,
+            )
+            t_realm.start()
             log.info(f"[GameServer] realmd.exe iniciado (PID {procs['realm'].pid})")
             time.sleep(2)
         except Exception as e:
@@ -151,16 +219,23 @@ def _start_server(server_id: str, cfg: dict) -> dict:
     else:
         errors.append(f"realmd.exe no encontrado en {realm_exe}")
 
-    # 2. World server (juego)
+    # 3. World server (juego)
     if os.path.exists(world_exe):
         try:
             procs["world"] = subprocess.Popen(
                 [world_exe],
                 cwd=server_dir,
                 creationflags=subprocess.CREATE_NEW_CONSOLE,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
             )
+            # Hilo lector de stdout del worldserver
+            t_world = threading.Thread(
+                target=_read_stdout_to_buffer,
+                args=(procs["world"], server_id, "WORLD"),
+                daemon=True,
+            )
+            t_world.start()
             log.info(f"[GameServer] mangosd.exe iniciado (PID {procs['world'].pid})")
         except Exception as e:
             errors.append(f"mangosd: {e}")
@@ -182,7 +257,6 @@ def _start_server(server_id: str, cfg: dict) -> dict:
     with _lock:
         _processes[server_id] = state
 
-    # Iniciar watchdog si auto_restart está activo
     if cfg.get("auto_restart", True):
         _start_watchdog(server_id)
 
@@ -190,12 +264,17 @@ def _start_server(server_id: str, cfg: dict) -> dict:
 
 
 def _stop_server(server_id: str) -> dict:
-    """Detiene los procesos de un servidor."""
+    """Detiene los procesos de un servidor. Realiza backup de DB antes de parar."""
     with _lock:
         state = _processes.get(server_id)
 
     if not state:
         return {"ok": False, "error": f"Servidor '{server_id}' no encontrado o no iniciado."}
+
+    cfg = state.get("cfg", {})
+
+    # Auto-backup de la base de datos de personajes antes de cualquier parada
+    _auto_backup_db(server_id, cfg)
 
     for key in ("_world_proc", "_realm_proc"):
         proc = state.get(key)
@@ -210,7 +289,7 @@ def _stop_server(server_id: str) -> dict:
                     pass
 
     # Detener MySQL si corresponde
-    mysql_bat = state.get("cfg", {}).get("mysql_stop_bat", "")
+    mysql_bat = cfg.get("mysql_stop_bat", "")
     if mysql_bat and os.path.exists(mysql_bat):
         try:
             subprocess.Popen(["cmd.exe", "/c", mysql_bat], creationflags=subprocess.CREATE_NEW_CONSOLE)
@@ -264,6 +343,57 @@ def _start_watchdog(server_id: str) -> None:
     )
     _watchdog_threads[server_id] = t
     t.start()
+
+
+def _auto_backup_db(server_id: str, cfg: dict) -> None:
+    """Realiza un mysqldump de la base de datos de personajes antes de apagar el servidor.
+    El dump se guarda en _saves/backup_<server_id>_YYYYMMDD_HHMMSS.sql.
+    Silencioso si mysqldump no está disponible.
+    """
+    if not _PYMYSQL_OK:
+        return
+    try:
+        from datetime import datetime as _dt
+        saves_dir = os.path.join(BASE_DIR, "_saves")
+        os.makedirs(saves_dir, exist_ok=True)
+        ts          = _dt.utcnow().strftime("%Y%m%d_%H%M%S")
+        backup_file = os.path.join(saves_dir, f"backup_{server_id}_{ts}.sql")
+        db_host  = cfg.get("db_host", "127.0.0.1")
+        db_port  = str(cfg.get("db_port", 3306))
+        db_user  = cfg.get("db_user", "mangos")
+        db_pass  = cfg.get("db_pass", "")
+        db_name  = cfg.get("db_name", "characters")
+        cmd = [
+            "mysqldump",
+            f"--host={db_host}",
+            f"--port={db_port}",
+            f"--user={db_user}",
+            f"--password={db_pass}" if db_pass else "--skip-password",
+            db_name,
+        ]
+        with open(backup_file, "w", encoding="utf-8") as f:
+            result = subprocess.run(
+                cmd, stdout=f, stderr=subprocess.PIPE,
+                timeout=120, creationflags=subprocess.CREATE_NO_WINDOW
+            )
+        if result.returncode == 0:
+            log.info(f"[GameServer] Backup realizado: {backup_file}")
+            # Limpiar backups viejos, conservar los últimos 5
+            baks = sorted([
+                os.path.join(saves_dir, f) for f in os.listdir(saves_dir)
+                if f.startswith(f"backup_{server_id}_") and f.endswith(".sql")
+            ])
+            while len(baks) > 5:
+                try:
+                    os.remove(baks.pop(0))
+                except Exception:
+                    break
+        else:
+            log.warning(f"[GameServer] mysqldump retornó error: {result.stderr.decode(errors='replace')[:200]}")
+    except FileNotFoundError:
+        log.debug("[GameServer] mysqldump no disponible en PATH — backup salteado.")
+    except Exception as e:
+        log.warning(f"[GameServer] Error en auto-backup: {e}")
 
 
 # ── Consulta de Jugadores (MySQL) ──────────────────────────────────────────────
@@ -390,12 +520,28 @@ def restart(server_id: str) -> dict:
 
 
 def get_log(server_id: str, lines: int = 100) -> dict:
-    """Devuelve las últimas líneas del log del servidor."""
+    """Devuelve las últimas líneas del log del servidor.
+    Prioriza el buffer en memoria (STDOUT capturado en tiempo real).
+    Cae al archivo en disco si el buffer está vacío.
+    """
+    # 1. Intentar buffer en memoria (tiempo real)
+    buf = _stdout_buffers.get(server_id)
+    if buf and len(buf) > 0:
+        buf_lines = list(buf)[-lines:]
+        return {
+            "server":   server_id,
+            "source":   "memory_buffer",
+            "log_file": None,
+            "lines":    buf_lines,
+        }
+
+    # 2. Fallback: archivo en disco
     servers_cfg = _load_config()
     cfg = servers_cfg.get(server_id, {})
     log_path = cfg.get("log_file", "")
     return {
         "server":   server_id,
+        "source":   "file",
         "log_file": log_path,
         "lines":    _tail_log(log_path, lines),
     }

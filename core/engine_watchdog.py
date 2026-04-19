@@ -85,7 +85,7 @@ def _persist_settings(provider_result, model_name, api_opts):
 def _apply_engine_optimization(provider_name, protocol):
     try:
         try:
-            from env_optimizer import apply_all, build_api_options
+            from core.env_optimizer import apply_all, build_api_options
         except ImportError:
             return {}, {}
         profile, _ = apply_all(persist=False, verbose=False)

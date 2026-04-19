@@ -35,21 +35,56 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # ── Configuración ──────────────────────────────────────────────────────────────
 
-# Puertos que el sistema usa legítimamente. Cualquier otro es sospechoso.
-WHITELIST_PORTS: set[int] = {
+# Puertos conocidos del ecosistema Gravity. Cualquier otro se evalúa por proceso.
+WHITELIST_PORTS: set = {
     7860,   # Gravity Bridge
     7861,   # Fooocus
     11434,  # Ollama
     1234,   # LM Studio default
-    8080,   # Jan AI
-    8888,   # Jupyter (si aplica)
-    443,    # HTTPS outbound
-    80,     # HTTP outbound
-    5432,   # Postgres (si aplica)
-    3306,   # MySQL (si aplica)
+    8080,   # Jan AI / HTTP alt
+    8888,   # Jupyter
+    443,    # HTTPS
+    80,     # HTTP
+    5432,   # Postgres
+    3306,   # MySQL
     3724,   # WoW realmd
     8085,   # WoW worldserver
     7878,   # WoW SOAP api
+    8181,   # Jan AI alt
+    1080,   # proxy local
+    5000,   # Flask / devtools
+    3000,   # Node DevServer
+    4000,   # GraphQL / dev
+    9090,   # Prometheus
+    9229,   # Node debugger
+}
+
+# Procesos legítimos que pueden abrir puertos aleatorios sin ser sospechosos.
+# Los comparamos en lowercase para ser case-insensitive.
+LEGITIMATE_PROCESS_NAMES: set = {
+    # Sistema operativo Windows
+    "svchost.exe", "lsass.exe", "wininit.exe", "services.exe",
+    "explorer.exe", "winlogon.exe", "spoolsv.exe", "taskmgr.exe",
+    "audiodg.exe", "dwm.exe", "csrss.exe", "smss.exe",
+    # Navegadores
+    "chrome.exe", "firefox.exe", "msedge.exe", "brave.exe", "opera.exe",
+    "iexplore.exe", "chromium.exe", "vivaldi.exe",
+    # Comunicación
+    "discord.exe", "slack.exe", "teams.exe", "zoom.exe", "skype.exe",
+    "telegram.exe", "whatsapp.exe", "signal.exe",
+    # Gaming / distribución
+    "steam.exe", "epicgameslauncher.exe", "gog galaxy.exe", "upc.exe",
+    "battlenet.exe", "origin.exe", "eadesktop.exe",
+    # Desarrollo
+    "node.exe", "python.exe", "python3.exe", "code.exe", "git.exe",
+    "java.exe", "javaw.exe", "cargo.exe", "rustup.exe",
+    # Herramientas comunes
+    "dropbox.exe", "onedrive.exe", "googledrivefs.exe", "syncthing.exe",
+    "nordvpn.exe", "mullvad.exe", "protonvpn.exe", "tailscale.exe",
+    "docker.exe", "dockerd.exe", "wsl.exe", "wslhost.exe",
+    # Gravity / IA local
+    "gravitybridge.exe", "lm studio.exe", "lmstudio.exe",
+    "ollama.exe", "jan.exe", "koboldcpp.exe",
 }
 
 # Archivos críticos cuyo hash se monitorea
@@ -159,8 +194,11 @@ def _scan_processes() -> list[dict]:
     return procs[:30]
 
 
-def _scan_ports() -> tuple[list[dict], list[int]]:
-    """Escanea puertos TCP escuchando en la máquina local."""
+def _scan_ports() -> tuple:
+    """Escanea puertos TCP escuchando. Solo marca sospechoso si el proceso
+    dueño del puerto NO está en la lista de procesos legítimos conocidos.
+    Esto elimina los falsos positivos de puertos efímeros de Steam, Discord, etc.
+    """
     if not _PSUTIL_OK:
         return [], []
 
@@ -169,25 +207,45 @@ def _scan_ports() -> tuple[list[dict], list[int]]:
 
     try:
         for conn in psutil.net_connections(kind="tcp"):
-            if conn.status == "LISTEN":
-                port = conn.laddr.port
-                try:
-                    proc_name = psutil.Process(conn.pid).name() if conn.pid else "?"
-                except Exception:
-                    proc_name = "?"
-                is_suspicious = port not in WHITELIST_PORTS and port > 1024
-                if is_suspicious:
-                    suspicious.append(port)
-                    _record_alert(
-                        "WARNING",
-                        f"Puerto no reconocido en escucha: {port} (proceso: {proc_name})"
-                    )
-                open_ports.append({
-                    "port":      port,
-                    "process":   proc_name,
-                    "pid":       conn.pid,
-                    "suspicious": is_suspicious,
-                })
+            if conn.status != "LISTEN":
+                continue
+            port = conn.laddr.port
+            proc_name = "?"
+            proc_name_lower = ""
+            try:
+                if conn.pid:
+                    proc_name = psutil.Process(conn.pid).name()
+                    proc_name_lower = proc_name.lower()
+            except Exception:
+                pass
+
+            # Un puerto es sospechoso SOLO si:
+            # 1. No está en la whitelist de puertos conocidos del ecosistema, Y
+            # 2. El proceso dueño NO es un proceso legítimo conocido
+            in_port_whitelist    = port in WHITELIST_PORTS
+            is_legitimate_proc   = proc_name_lower in LEGITIMATE_PROCESS_NAMES
+            # Los puertos del sistema (<1024) siempre son seguros
+            is_system_port       = port <= 1024
+
+            is_suspicious = (
+                not is_system_port
+                and not in_port_whitelist
+                and not is_legitimate_proc
+            )
+
+            if is_suspicious:
+                suspicious.append(port)
+                _record_alert(
+                    "WARNING",
+                    f"Puerto no reconocido en escucha: {port} (proceso: {proc_name})"
+                )
+
+            open_ports.append({
+                "port":       port,
+                "process":    proc_name,
+                "pid":        conn.pid,
+                "suspicious": is_suspicious,
+            })
     except Exception:
         pass
 

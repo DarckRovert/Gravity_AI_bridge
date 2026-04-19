@@ -1,11 +1,13 @@
 """
-╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — MULTI-AGENT ORCHESTRATOR V7.1               ║
-║     Parallel, Sequential y Vote-based multi-model queries    ║
-╚══════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════╗
+║         GRAVITY AI — MULTI-AGENT ORCHESTRATOR V7.2                           ║
+║         Parallel, Sequential y Vote-based multi-model queries                ║
+║         V7.2: Retrocompatibilidad Python 3.7+ (typing module)                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 """
 import time
 import threading
+from typing import Optional, List, Dict, Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from core.provider_manager import get_plugin, get_all_model_names
 
@@ -13,36 +15,45 @@ from core.provider_manager import get_plugin, get_all_model_names
 # ── Parallel multi-model comparison ──────────────────────────────────────────
 
 def compare(
-    messages:  list[dict],
-    providers: list[str] | None   = None,
-    n_models:  int                = 3,
-    options:   dict | None        = None,
-    timeout:   float              = 120.0,
-) -> list[dict]:
+    messages:  List[Dict[str, Any]],
+    providers: Optional[List[str]]     = None,
+    n_models:  int                     = 3,
+    options:   Optional[Dict[str, Any]] = None,
+    timeout:   float                   = 120.0,
+) -> List[Dict[str, Any]]:
     """
     Sends the same messages to N providers/models in parallel.
-    Returns list of {"provider": str, "model": str, "response": str, "elapsed": float}.
-    providers: list of provider names to use. If None, picks top-N available.
+    Returns list of {provider, model, response, elapsed}.
+    providers: list of provider names. If None, picks top-N available.
     """
     options = options or {}
 
-    # Auto-select providers if not specified
     if not providers:
         all_models = get_all_model_names()
         providers  = list(all_models.keys())[:n_models]
 
-    results  = []
-    lock     = threading.Lock()
+    results: List[Dict[str, Any]] = []
+    lock = threading.Lock()
 
-    def _query(provider_name: str) -> dict:
+    def _query(provider_name: str) -> Dict[str, Any]:
         plugin = get_plugin(provider_name)
         if not plugin:
-            return {"provider": provider_name, "model": "N/A", "response": f"[{provider_name} not available]", "elapsed": 0}
+            return {
+                "provider": provider_name,
+                "model":    "N/A",
+                "response": f"[{provider_name} not available]",
+                "elapsed":  0,
+            }
         health = plugin.check_health()
         if not health.is_healthy or not health.models:
-            return {"provider": provider_name, "model": "N/A", "response": f"[{provider_name} offline]", "elapsed": 0}
+            return {
+                "provider": provider_name,
+                "model":    "N/A",
+                "response": f"[{provider_name} offline]",
+                "elapsed":  0,
+            }
         model = health.active_model or health.models[0]["name"]
-        t0    = time.time()
+        t0 = time.time()
         try:
             chunks   = list(plugin.chat_stream(messages, model, options))
             response = "".join(chunks)
@@ -69,10 +80,10 @@ def compare(
 # ── Vote: majority consensus ──────────────────────────────────────────────────
 
 def vote(
-    messages:  list[dict],
-    providers: list[str] | None = None,
-    n_models:  int              = 3,
-) -> dict:
+    messages:  List[Dict[str, Any]],
+    providers: Optional[List[str]] = None,
+    n_models:  int                 = 3,
+) -> Dict[str, Any]:
     """
     Runs parallel compare() and selects the response with least divergence
     (centroid similarity via word overlap — no embeddings required).
@@ -88,7 +99,6 @@ def vote(
         import re
         return set(re.findall(r'\w+', text.lower()))
 
-    # Score each result by average Jaccard similarity to all others
     best_score = -1.0
     best       = results[0]
     for i, r in enumerate(results):
@@ -112,13 +122,17 @@ def vote(
 # ── Sequential pipeline ───────────────────────────────────────────────────────
 
 class PipelineStep:
-    def __init__(self, provider: str, model: str = None, role: str = ""):
+    def __init__(self, provider: str, model: Optional[str] = None, role: str = ""):
         self.provider = provider
         self.model    = model
         self.role     = role   # e.g. "Refactor this code", "Review and find bugs"
 
 
-def run_pipeline(steps: list[PipelineStep], initial_messages: list[dict], options: dict = None) -> str:
+def run_pipeline(
+    steps:            List[PipelineStep],
+    initial_messages: List[Dict[str, Any]],
+    options:          Optional[Dict[str, Any]] = None,
+) -> str:
     """
     Runs a sequential pipeline where each step's output becomes the next step's input.
     The output of each step is appended as a new user message for the next step.
@@ -135,7 +149,6 @@ def run_pipeline(steps: list[PipelineStep], initial_messages: list[dict], option
         model  = step.model or (health.active_model if health.is_healthy else None)
         if not model:
             continue
-        # Inject the step's role prompt if specified
         if step.role and last_out:
             history.append({"role": "user", "content": f"{step.role}:\n\n{last_out}"})
         chunks   = list(plugin.chat_stream(history, model, options))

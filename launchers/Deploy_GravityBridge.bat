@@ -1,13 +1,13 @@
 @echo off
 setlocal EnableDelayedExpansion
-title Gravity AI -- Deploy Script V9.3.1 PRO
+title Gravity AI -- Deploy Script V10.1
 cd /d "F:\Gravity_AI_bridge"
 color 0B
 cls
 
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|          GRAVITY AI BRIDGE V9.3.1 PRO [Diamond-Tier Edition]             ^|
+echo  ^|          GRAVITY AI BRIDGE V10.1 STABLE [Diamond-Tier Edition]           ^|
 echo  ^|          Deploy y Auditoria Final (Antes de GitHub)                      ^|
 echo  +--------------------------------------------------------------------------+
 echo.
@@ -73,16 +73,19 @@ if /i not "%CONFIRM%"=="S" (
 )
 
 REM ── 8. Commit y Push ────────────────────────────────────────────────────────
-set MSG=feat: Gravity AI Bridge V9.3.1 PRO sync !DATETIME!
+set MSG=feat: Gravity AI Bridge V10.1 Stable sync !DATETIME!
 echo.
 echo  Commiteando: "%MSG%"
 
-git add .
+:: Destruir la carpeta Fooocus entera del trackeo para prevenir Crash en Github (>100MB Limits)
+git rm -r --cached _integrations/Fooocus >nul 2>&1
+git config core.safecrlf false
+git add -A
 git commit -m "%MSG%"
 if %ERRORLEVEL% NEQ 0 (
-    echo  [ERROR] Fallo al crear el commit. Revisa el estado de Git.
-    pause
-    exit /b 1
+    echo  [WARN] El commit no se genero ya que solo hay archivos ignorados o sub-modulos sucios.
+    echo  Pasando a forzar el Push de la rampa local...
+    goto DO_PUSH
 )
 
 :DO_PUSH

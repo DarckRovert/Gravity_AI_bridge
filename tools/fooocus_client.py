@@ -163,45 +163,93 @@ def generate_image(request: ImageGenRequest) -> ImageGenResponse:
 
 def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ratio: str = "1024x1024") -> ImageGenResponse:
     """
-    Disparador de alta precision via REST API.
-    Mapea dinamicamente los parametros de Fooocus buscando por etiquetas (labels).
+    Disparador via subproceso nativo al Python embebido de Fooocus.
+    Verifica la aparición real de archivos en OUTPUT_DIR para evitar
+    falsos positivos. Cierra correctamente el file descriptor de log.
     """
-    import random
-    import string
+    import glob as _glob
+    import subprocess
 
+    fooocus_python = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "_integrations",
+                     "Fooocus", "python_embeded", "python.exe")
+    )
+    trigger_script = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "native_trigger.py")
+    )
+    log_file = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "fooocus_trigger_debug.log")
+    )
+
+    if not os.path.exists(fooocus_python):
+        return {
+            "success": False, "images": [], "job_id": None,
+            "error": "Python embebido de Fooocus no encontrado en _integrations/Fooocus/python_embeded/",
+        }
+
+    # Gradio usa "*" como separador en el dropdown de aspect ratio, no el carácter ×
+    aspect_ratio_safe = aspect_ratio.replace("\u00d7", "*").replace("x", "*")
+
+    # Snapshot ANTES: qué archivos existen ya en outputs/
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    before: set = set(
+        _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.png"), recursive=True) +
+        _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.webp"), recursive=True)
+    )
+
+    out_file = None
+    proc = None
     try:
-        print(f"[FooocusClient] Iniciando disparo dinamico para: {prompt[:30]}...")
-        
-        import subprocess
-        import os
-        
-        # Ruta al ejecutable de Python de Fooocus
-        fooocus_python = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "_integrations", "Fooocus", "python_embeded", "python.exe"))
-        trigger_script = os.path.abspath(os.path.join(os.path.dirname(__file__), "native_trigger.py"))
-        
-        if not os.path.exists(fooocus_python):
-            return {"success": False, "images": [], "error": "Python de Fooocus no encontrado. ¿Está en _integrations/Fooocus?", "job_id": None}
-            
-        # Llamada asíncrona redirigiendo la salida a log para tener trazabilidad.
+        out_file = open(log_file, "a", encoding="utf-8", errors="replace")
+        out_file.write(f"\n--- Disparando: {prompt[:80]} [{performance}] [{aspect_ratio_safe}] ---\n")
+        out_file.flush()
+
+        proc = subprocess.Popen(
+            [fooocus_python, trigger_script, prompt, performance, aspect_ratio_safe],
+            stdout=out_file,
+            stderr=out_file,
+        )
+
+        # Esperar hasta 900 segundos (15 min) — Fooocus en CPU es lento
         try:
-            log_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "fooocus_trigger_debug.log"))
-            with open(log_file, "a") as f:
-                f.write(f"\n--- Disparando {prompt} ---\n")
-            
-            # Pasamos stdout y stderr al log para no perder el error si explota.
-            out_file = open(log_file, "a")
-            subprocess.Popen([fooocus_python, trigger_script, prompt, performance, aspect_ratio], stdout=out_file, stderr=out_file)
-            
-            print("[FooocusClient] Trigger nativo disparado en background absoluto...")
-            return {"success": True, "images": [], "error": None, "job_id": "native_queue_trigger"}
-                
-        except Exception as se:
-            print(f"[FooocusClient] ERROR en Llamada Nativa: {se}")
-            return {"success": False, "images": [], "error": str(se), "job_id": None}
-            
+            proc.wait(timeout=900)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait()
+            return {
+                "success": False, "images": [], "job_id": None,
+                "error": "Timeout: Fooocus no completó la generación en 15 minutos.",
+            }
+
     except Exception as e:
-        print(f"[FooocusClient] ERROR general en Trigger: {e}")
-        return {"success": False, "images": [], "error": str(e), "job_id": None}
+        return {"success": False, "images": [], "job_id": None, "error": str(e)}
+    finally:
+        if out_file is not None:
+            try:
+                out_file.close()
+            except Exception:
+                pass
+
+    # Snapshot DESPUÉS: detectar archivos nuevos (diff real)
+    after: set = set(
+        _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.png"), recursive=True) +
+        _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.webp"), recursive=True)
+    )
+    new_files = list(after - before)
+
+    if not new_files:
+        return {
+            "success": False, "images": [], "job_id": None,
+            "error": "Fooocus completó la ejecución pero no generó ningún archivo en outputs/. "
+                     "Revisa fooocus_trigger_debug.log para detalles.",
+        }
+
+    return {
+        "success": True,
+        "images": sorted(new_files, key=os.path.getmtime, reverse=True),
+        "error":  None,
+        "job_id": f"native_{len(new_files)}_files",
+    }
 
 
 # ─── Job Status Polling ───────────────────────────────────────────────────────

@@ -62,7 +62,7 @@ def check_tools() -> dict:
     }
 
 
-def get_project_path() -> Optional[str]:
+def get_project_path() -> str:
     """Lee la ruta del proyecto activo desde _settings.json."""
     try:
         with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
@@ -70,6 +70,78 @@ def get_project_path() -> Optional[str]:
         return data.get("active_project_path")
     except Exception:
         return None
+
+
+def detect_output_dir(project_path: str) -> str:
+    """
+    Detecta dinámicamente la carpeta de build del proyecto.
+    Estrategia:
+      1. Leer `package.json` para detectar framework (next, vite, react-scripts).
+      2. Para Vite: buscar `outDir` en vite.config.js / vite.config.ts con regex.
+      3. Para Next.js: verificar si `next.config.*` tiene `output: 'export'` (→ /out).
+      4. Fallback ordenado: /out → /dist → /build → project_path.
+    """
+    import re
+
+    def _safe_read(path: str) -> str:
+        try:
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
+                return f.read()
+        except Exception:
+            return ""
+
+    # 1. Leer package.json
+    pkg_path  = os.path.join(project_path, "package.json")
+    pkg_text  = _safe_read(pkg_path)
+    framework = "unknown"
+    try:
+        pkg = json.loads(pkg_text)
+        deps = {**pkg.get("dependencies", {}), **pkg.get("devDependencies", {})}
+        if "next" in deps:
+            framework = "next"
+        elif "vite" in deps:
+            framework = "vite"
+        elif "react-scripts" in deps:
+            framework = "cra"  # Create React App
+    except Exception:
+        pass
+
+    # 2. Vite: leer outDir del config
+    if framework == "vite":
+        for cfg_name in ("vite.config.ts", "vite.config.js", "vite.config.mjs"):
+            cfg_text = _safe_read(os.path.join(project_path, cfg_name))
+            if cfg_text:
+                match = re.search(r'outDir\s*:\s*[\'"]([^\'"]+)[\'"]', cfg_text)
+                if match:
+                    custom_out = os.path.join(project_path, match.group(1))
+                    if os.path.isdir(custom_out):
+                        return custom_out
+        # Vite default: /dist
+        dist = os.path.join(project_path, "dist")
+        if os.path.isdir(dist):
+            return dist
+
+    # 3. Next.js
+    if framework == "next":
+        for cfg_name in ("next.config.js", "next.config.ts", "next.config.mjs"):
+            cfg_text = _safe_read(os.path.join(project_path, cfg_name))
+            if "output" in cfg_text and "export" in cfg_text:
+                # next export mode → /out
+                out = os.path.join(project_path, "out")
+                if os.path.isdir(out):
+                    return out
+        # Next.js sin export estático → /.next/standalone o /out
+        out = os.path.join(project_path, "out")
+        if os.path.isdir(out):
+            return out
+
+    # 4. CRA y fallback genérico
+    for candidate in ("build", "out", "dist"):
+        path = os.path.join(project_path, candidate)
+        if os.path.isdir(path):
+            return path
+
+    return project_path  # Último fallback absoluto
 
 
 # ── Pipeline ───────────────────────────────────────────────────────────────────
@@ -159,21 +231,16 @@ def _pipeline(project_path: str) -> None:
         with _lock:
             _state["status"]     = "done"
             _state["netlify_url"] = None
-            _state["error"]      = "netlify CLI no instalado. Build listo en /out pero no desplegado."
+            _state["error"]      = "netlify CLI no instalado. Build listo pero no desplegado."
         _running = False
         return
 
     with _lock:
         _state["status"] = "deploying"
 
-    # Detectar carpeta de salida: Next.js export usa /out, Vite usa /dist
-    out_dir = os.path.join(project_path, "out")
-    if not os.path.isdir(out_dir):
-        out_dir = os.path.join(project_path, "dist")
-    if not os.path.isdir(out_dir):
-        out_dir = project_path  # Fallback
-
-    _log(f"=== PASO 2: netlify deploy --prod --dir={out_dir} ===")
+    # Detectar carpeta de salida dinámicamente
+    out_dir = detect_output_dir(project_path)
+    _log(f"Carpeta de build detectada: {out_dir}")
     ok, output = _run_step(
         ["netlify", "deploy", "--prod", f"--dir={out_dir}"],
         cwd=project_path,
