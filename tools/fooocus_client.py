@@ -231,17 +231,27 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
                 pass
 
     # Snapshot DESPUÉS: detectar archivos nuevos (diff real)
-    after: set = set(
-        _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.png"), recursive=True) +
-        _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.webp"), recursive=True)
-    )
-    new_files = list(after - before)
+    # Como Gradio 4+ usa /queue/join, native_trigger finaliza instantáneamente.
+    # Debemos esperar (polling) hasta que aparezca el nuevo archivo en outputs/.
+    timeout_end = time.time() + 900  # 15 minutos de timeout
+    new_files = []
+    
+    while time.time() < timeout_end:
+        after: set = set(
+            _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.png"), recursive=True) +
+            _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.webp"), recursive=True)
+        )
+        new_files = list(after - before)
+        
+        if new_files:
+            break
+            
+        time.sleep(5)
 
     if not new_files:
         return {
             "success": False, "images": [], "job_id": None,
-            "error": "Fooocus completó la ejecución pero no generó ningún archivo en outputs/. "
-                     "Revisa fooocus_trigger_debug.log para detalles.",
+            "error": "Timeout de 15 minutos: Fooocus encoló el trabajo pero no apareció ningún archivo en outputs/. Revisa log o si Fooocus falló internamente.",
         }
 
     return {

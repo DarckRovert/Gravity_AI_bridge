@@ -1,73 +1,18 @@
-You are a Python expert. Rewrite the following files completely with real, production-ready code. No placeholders. No comments like "rest of code here". Deliver complete files only.
+Context: We are modifying the Gravity AI Bridge backend (`bridge_server.py` or FastAPI equivalent) and the frontend dashboard (`web/dashboard.html`) to include a GeoIP Security Tracker.
 
-===== TASK 1: CREATE NEW FILE =====
-FILE: F:\Gravity_AI_bridge\core\env_optimizer.py
+Task 1: Backend (`bridge_server.py`)
+1. We need to create a global cache `_geoip_cache = {}` to store IP data and a queue/list `_recent_ips = []` to maintain the order of the last 20 IPs that hit any endpoint.
+2. We need a background async task or an inline handler that takes an IP address. It must:
+   - Check if the IP is already in `_geoip_cache`.
+   - If not, make an HTTP GET request to `http://ip-api.com/json/{ip}`.
+   - Store the resulting JSON (location, city, country, isp) in the cache.
+   - If the IP is '127.0.0.1' or localhost, map it to a mock "Localhost / Gravity Core" location to avoid unnecessary API calls.
+3. We need a new REST endpoint: `GET /v1/security/geoip`. This endpoint should return the state of the cache and the list of the most recent tracked IPs along with their geolocation data.
 
-Create a real hardware profiler and API optimizer module. It must:
-1. Use the existing `core/hardware_profiler.py` (which has `get_full_profile()`) to detect hardware: CPU cores, RAM, GPU VRAM.
-2. Export two functions:
-   - `apply_all(persist: bool = True, verbose: bool = False) -> tuple[dict, dict]`
-     Calls `get_full_profile()`, determines optimal parameters, returns (profile_dict, api_opts_dict).
-   - `build_api_options(engine_key: str, profile: dict, user_opts: dict) -> dict`
-     Builds engine-specific API options dict. engine_key can be: "ollama", "lm_studio", "kobold", "jan", "lemonade", "openai_compat".
-     For ollama: sets num_ctx, num_thread, num_gpu based on profile.
-     For lm_studio: sets n_ctx, threads.
-     For kobold: sets max_context_length, max_length.
-     user_opts values override computed values (user always wins).
-3. Logic for num_ctx: if RAM >= 32GB, use 16384. If RAM >= 16GB, use 8192. If RAM < 16GB, use 4096.
-4. Logic for num_thread: use (cpu_cores - 2) but minimum 2.
-5. The module must be importable standalone without crashing if hardware_profiler fails (use try/except).
-6. Use only stdlib + modules already present in the project (no new pip installs).
+Task 2: Frontend (`web/dashboard.html`)
+1. In the HTML dashboard, create a new Panel/Table (perhaps named "GeoIP Threat Map" or "Spy Tracker") styled consistently with the existing UI. 
+2. Add a short Javascript script to fetch data from `/v1/security/geoip` every 10 seconds (polling).
+3. Populate the panel with dynamically generated rows displaying the IP, Status, ISP, Country, City, and Lat/Lon.
 
-===== TASK 2: MODIFY EXISTING FILE =====
-FILE: F:\Gravity_AI_bridge\tools\fooocus_client.py
-
-Rewrite ONLY the function `trigger_gradio_generation()` (lines 164-204) with these fixes:
-1. Close `out_file` in a finally block after Popen.
-2. Take a snapshot of OUTPUT_DIR files BEFORE the Popen call (using os.listdir or glob).
-3. Call `.wait(timeout=900)` on the process (not Popen — use subprocess.run equivalent or wait with try/except TimeoutExpired that kills the process).
-4. After wait completes, take a new snapshot of OUTPUT_DIR.
-5. Compare before/after: if new *.png or *.webp files appeared, return success=True with the new file paths in "images" list.
-6. If no new files appeared or process timed out, return success=False with descriptive error.
-7. Fix the aspect_ratio string: replace the unicode × (U+00D7) with the literal character "*" before passing to native_trigger.py argv, because Gradio dropdowns use "*" not "×".
-8. Preserve the existing function signature: `def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ratio: str = "1024x1024") -> ImageGenResponse`
-
-Provide the complete rewritten function only (not the entire file).
-
-===== TASK 3: MODIFY EXISTING FILE =====
-FILE: F:\Gravity_AI_bridge\core\image_queue.py
-
-Rewrite ONLY the function `_process_job()` (lines 117-172) with these fixes:
-1. Before calling generate_image(), snapshot OUTPUT_DIR contents (import glob, get set of existing *.png and *.webp files).
-2. After generate_image() returns, if result.get("success") is True, do a second snapshot of OUTPUT_DIR.
-3. Compare snapshots: if no new files appeared within 5 seconds (poll every 1s for up to 5s), set status = "failed" and error = "Fooocus reported success but no output file was produced (false positive detected)".
-4. If new files appeared, set status = "done" and store the new file paths in result_json.
-5. OUTPUT_DIR path must be derived identically to how fooocus_client.py derives it: os.path.join(BASE_DIR, "_integrations", "Fooocus", "Fooocus", "outputs").
-6. Keep all existing DB update logic intact.
-
-Provide the complete rewritten function only.
-
-===== TASK 4: MODIFY EXISTING FILE =====
-FILE: F:\Gravity_AI_bridge\core\multi_agent.py
-
-Rewrite the entire file. Changes required:
-1. Replace ALL type hint union syntax `X | Y` and `list[X]` (Python 3.10+) with `Optional[X]` and `List[X]` from `typing` module (Python 3.7 compatible).
-2. Add at the top: `from typing import Optional, List, Dict`
-3. The function signatures become:
-   - `compare(messages: List[Dict], providers: Optional[List[str]] = None, n_models: int = 3, options: Optional[Dict] = None, timeout: float = 120.0) -> List[Dict]`
-   - `vote(messages: List[Dict], providers: Optional[List[str]] = None, n_models: int = 3) -> Dict`
-   - `run_pipeline(steps: List[PipelineStep], initial_messages: List[Dict], options: Optional[Dict] = None) -> str`
-4. Keep all logic 100% identical, only change the type annotations.
-
-Provide the complete rewritten file.
-
-===== TASK 5: MODIFY EXISTING FILE =====
-FILE: F:\Gravity_AI_bridge\core\ai_process_manager.py
-
-Rewrite ONLY the function `discover_apps()` (lines 31-73). Changes:
-1. Replace the two `print()` calls with `import logging; logger = logging.getLogger("gravity.ai_process_manager")` and use `logger.info()` instead.
-2. Define the logger at module level (top of file, after imports), not inside the function.
-
-Also check if there are any other bare `print()` statements in this file and replace them with logger calls.
-
-Provide the complete rewritten file.
+REQUIREMENT:
+Act as a Senior Architect System. Provide the full, precise Python implementation block that should be injected into `bridge_server.py`, AND the exact HTML/JS block that should be inserted into `dashboard.html`. DO NOT use placeholders like `// rest of the code`. Give the exact functions, imports, and variables. Output the results cleanly using Markdown code blocks.

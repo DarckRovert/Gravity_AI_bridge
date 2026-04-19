@@ -17650,3 +17650,740 @@
 {"timestamp": "2026-04-19T04:00:45.442320Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 50714 (proceso: Antigravity.exe)", "source": "security_monitor"}
 {"timestamp": "2026-04-19T04:00:45.442479Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49667 (proceso: svchost.exe)", "source": "security_monitor"}
 {"timestamp": "2026-04-19T04:00:45.442663Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56427 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:39:56.057086Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 65373 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:39:56.057395Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55268 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:39:56.057626Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:39:56.057846Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 43319 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:39:56.058092Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 65374 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:39:56.058310Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:39:56.058488Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:39:56.058668Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54284 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:39:56.058821Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:39:56.059076Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:39:56.059249Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 65372 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:39:56.059483Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:39:56.059677Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:39:56.059856Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 65371 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:39:56.060101Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 34298 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:39:56.060450Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 58358 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:39:56.060666Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 58351 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:40:56.378909Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 5100)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:40:56.405764Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 6572)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:40:56.492832Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 9164)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:40:56.575806Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 12032)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:40:56.729168Z", "level": "INFO", "message": "Nuevo proceso detectado: python.exe (PID 21392)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:40:56.845603Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 29840)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:40:56.852481Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 30180)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:40:56.858968Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 30256)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:40:56.863797Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:40:56.864205Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 43319 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:40:56.864494Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:40:56.864787Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:40:56.865080Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:40:56.865414Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:40:56.865743Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:40:56.866032Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:41:57.360943Z", "level": "INFO", "message": "Nuevo proceso detectado: powershell.exe (PID 5692)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:41:57.943576Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 25880)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:41:58.040337Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:41:58.040932Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 43319 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:41:58.041528Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:41:58.041827Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:41:58.042079Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:41:58.042327Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:41:58.042560Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:41:58.042955Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:58.654764Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity.exe (PID 4676)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:58.966193Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity.exe (PID 7508)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:58.993229Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity.exe (PID 7764)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.182729Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 11292)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.272161Z", "level": "INFO", "message": "Nuevo proceso detectado: msedgewebview2.exe (PID 13140)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.421368Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 16448)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.515063Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 18904)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.534375Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity.exe (PID 19756)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.616596Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 23472)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.767800Z", "level": "INFO", "message": "Nuevo proceso detectado: language_server_windows_x64.exe (PID 28308)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.824989Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity.exe (PID 30168)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.840458Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 30608)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.843210Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.843801Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.844101Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 43319 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.844530Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.844745Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.844976Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.845191Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.845392Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.845635Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.849675Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.850159Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:42:59.850525Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:00.341445Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity.exe (PID 4508)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:00.550500Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 4964)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:00.774596Z", "level": "INFO", "message": "Nuevo proceso detectado: powershell.exe (PID 8204)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.002911Z", "level": "INFO", "message": "Nuevo proceso detectado: msedgewebview2.exe (PID 12576)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.042167Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity.exe (PID 13376)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.198946Z", "level": "INFO", "message": "Nuevo proceso detectado: LM-Studio-0.4.12-1-win32-x64.exe (PID 16520)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.290008Z", "level": "INFO", "message": "Nuevo proceso detectado: language_server_windows_x64.exe (PID 18548)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.299652Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity.exe (PID 18764)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.320988Z", "level": "INFO", "message": "Nuevo proceso detectado: powershell.exe (PID 19376)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.394209Z", "level": "INFO", "message": "Nuevo proceso detectado: codex.exe (PID 22688)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.456882Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity.exe (PID 24308)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.525425Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity.exe (PID 25792)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.536857Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity.exe (PID 25820)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.566993Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 26364)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.675659Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 28696)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.684289Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 29060)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.745316Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity.exe (PID 30532)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.760849Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.761266Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.761697Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.762015Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.762286Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.762843Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.763064Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.763272Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.763842Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.764178Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.764403Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.764735Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.765108Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.765341Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.765560Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.766127Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:44:01.766378Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.176778Z", "level": "INFO", "message": "Nuevo proceso detectado: LM Studio.exe (PID 5084)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.240087Z", "level": "INFO", "message": "Nuevo proceso detectado: dllhost.exe (PID 7124)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.277550Z", "level": "INFO", "message": "Nuevo proceso detectado: LM Studio.exe (PID 7976)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.376159Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 10380)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.467086Z", "level": "INFO", "message": "Nuevo proceso detectado: LM Studio.exe (PID 13860)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.614275Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 19188)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.631653Z", "level": "INFO", "message": "Nuevo proceso detectado: dllhost.exe (PID 19908)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.635586Z", "level": "INFO", "message": "Nuevo proceso detectado: dllhost.exe (PID 20180)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.646003Z", "level": "INFO", "message": "Nuevo proceso detectado: dllhost.exe (PID 20804)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.676978Z", "level": "INFO", "message": "Nuevo proceso detectado: dllhost.exe (PID 22812)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.710853Z", "level": "INFO", "message": "Nuevo proceso detectado: LM Studio.exe (PID 24152)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.742151Z", "level": "INFO", "message": "Nuevo proceso detectado: LM Studio.exe (PID 25508)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.828711Z", "level": "INFO", "message": "Nuevo proceso detectado: lmlink-connector.exe (PID 29936)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.855738Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.856018Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.856615Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.856869Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.857280Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.857499Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.857720Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.857939Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.858123Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.858331Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.858512Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.858700Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.858874Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.859079Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.859296Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.859484Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.859708Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:45:02.859888Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.452166Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 9568)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.639574Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 16436)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.958366Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.958640Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.958841Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.959032Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.959177Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.959341Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.959500Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.959653Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.959797Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.960001Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.960151Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.960310Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.960439Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.960584Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.960742Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.960881Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.961044Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:46:03.961193Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:04.006405Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 1528)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:04.059028Z", "level": "INFO", "message": "Nuevo proceso detectado: TrustedInstaller.exe (PID 1992)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:04.753144Z", "level": "INFO", "message": "Nuevo proceso detectado: TiWorker.exe (PID 17328)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:04.821267Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 19924)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:04.849626Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 21644)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:04.895740Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 23708)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.032426Z", "level": "INFO", "message": "Nuevo proceso detectado: MoUsoCoreWorker.exe (PID 29448)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.057805Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 30484)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.072313Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.072668Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.072932Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.073142Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.073314Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.074021Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.074561Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.074770Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.074952Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.075152Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.075322Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.075491Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.075655Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.075824Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.076029Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.076273Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.076621Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:05.076917Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.736374Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.736692Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.737118Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.737526Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.737846Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.738068Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.738249Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.738476Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.738712Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.738940Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.739126Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.739353Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.739531Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.739727Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.739922Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.740084Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.740267Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:47:22.740495Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:05.115693Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 1144)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:05.124843Z", "level": "INFO", "message": "Nuevo proceso detectado: SnippingTool.exe (PID 1288)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.319384Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 30188)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.339710Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.340186Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.340630Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.340940Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.341171Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.341389Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.341565Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.341787Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.341987Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.342196Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.342376Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.342570Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.342760Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.342949Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.343391Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.343573Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.343782Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:48:06.343974Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:06.896276Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 10344)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.361555Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.361988Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.363495Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.363901Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.364197Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.366087Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.366430Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.366961Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.367280Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.367679Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.368037Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.369259Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.370463Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.370717Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.370950Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.371168Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.371441Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:49:07.371915Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:07.823434Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 6960)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.442038Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.442451Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.442708Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.442916Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.443109Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.443299Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.443459Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.443670Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.443840Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.444041Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.444214Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.444379Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.444540Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.444701Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.444912Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.445083Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.445283Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:50:08.445469Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:08.479567Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 444)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:08.548107Z", "level": "INFO", "message": "Nuevo proceso detectado: updater.exe (PID 2076)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.015145Z", "level": "INFO", "message": "Nuevo proceso detectado: updater.exe (PID 7592)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.383231Z", "level": "INFO", "message": "Nuevo proceso detectado: updater.exe (PID 17868)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.430888Z", "level": "INFO", "message": "Nuevo proceso detectado: updater.exe (PID 18572)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.436448Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 18676)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.474748Z", "level": "INFO", "message": "Nuevo proceso detectado: updater.exe (PID 20236)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.497533Z", "level": "INFO", "message": "Nuevo proceso detectado: LM Studio.exe (PID 21084)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.545926Z", "level": "INFO", "message": "Nuevo proceso detectado: updater.exe (PID 23876)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.588354Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 25280)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.722392Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.722674Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.722880Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.723103Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.723257Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.723458Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.723618Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.723797Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.723973Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.724169Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.724331Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.724491Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.724661Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.724833Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.725027Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.725196Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.725389Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:51:09.725611Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:09.967014Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 3468)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.654456Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 21964)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.897625Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.897957Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.898195Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.898428Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.898610Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.898863Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.899025Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.899220Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.899405Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.899624Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.899821Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.900010Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.900250Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.900434Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.900656Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.900865Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.901093Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:52:10.901285Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:11.523663Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 5088)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:11.845227Z", "level": "INFO", "message": "Nuevo proceso detectado: pyrefly.exe (PID 10256)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:11.933612Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 11804)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.421624Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity.exe (PID 25528)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.432694Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 25564)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.485498Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 26544)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.624874Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.625399Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.625706Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.625993Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.626216Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.626452Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.626655Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.626917Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.627119Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.627354Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.627541Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.627744Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.628050Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.628267Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.628480Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.628655Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.628852Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:12.629031Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:53:27.377176Z", "session_id": "chatcmpl-713d43d1041a", "provider": "LM Studio", "model": "google/gemma-4-e4b", "input_tokens": 56, "output_tokens": 236, "total_tokens": 292, "latency_ms": 24339.547872543335, "cost_usd": 0.0}
+{"timestamp": "2026-04-19T18:54:13.796487Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:54:13.796890Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:54:13.797195Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:54:13.797428Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:54:13.797698Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:54:13.797911Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:54:13.798563Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:54:13.798741Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:54:13.798915Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:54:13.799104Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:54:13.799272Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:54:13.799431Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:54:13.799603Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:54:13.799774Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:54:13.799963Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:54:13.800127Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:54:13.800321Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:54:13.800487Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.832971Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.833279Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.833501Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.833721Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.833895Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.834082Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.834286Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.834452Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.834611Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.834785Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.834970Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.835162Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.835339Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.835544Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.835727Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.835888Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.836065Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:55:14.836231Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.869948Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 26060)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.962705Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.963004Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.963202Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.963381Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.963539Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.963721Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.963897Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.964095Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.964278Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.964469Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.964686Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.964854Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.965018Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.965178Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.965351Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.965505Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.965680Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:56:15.965840Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:16.788049Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 19900)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:16.800275Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 20656)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.040132Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.040423Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.040641Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.040870Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.041037Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.041222Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.041372Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.041587Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.041770Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.041961Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.042154Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.042322Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.042486Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.042691Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.042871Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.043025Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.043204Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:57:17.043367Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:17.266582Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 3968)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:17.641374Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 11052)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.072813Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.073097Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.073340Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.073557Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.073732Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.073897Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.074041Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.074242Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.074446Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.074649Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.074861Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.075025Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.075194Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.075382Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.075566Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.075730Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.075967Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:58:18.076139Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.031081Z", "level": "INFO", "message": "Nuevo proceso detectado: msedgewebview2.exe (PID 21628)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.191051Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 27072)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.260081Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.260445Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.260703Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.260992Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.261206Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.261431Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.261620Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.261849Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.262064Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.262296Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.262472Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.262681Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.262879Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.263082Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.263491Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.263701Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.263970Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T18:59:19.264204Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.149065Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 21180)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.376720Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.377171Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.377633Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.378017Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.378209Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.378407Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.378578Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.378775Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.378961Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.379282Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.380274Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.380465Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.380658Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.380826Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.381006Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.381162Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.381338Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:00:20.381503Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.414789Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 26336)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.480852Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 29120)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.484701Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 29244)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.526843Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.527135Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.527370Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.527678Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.527917Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.528130Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.528320Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.528570Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.528755Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.528962Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.529128Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.529286Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.529455Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.529625Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.529831Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.529996Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.530185Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:01:21.530361Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.020948Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 6924)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.200618Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 10860)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.506911Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 22388)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.699039Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 30400)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.711368Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.711634Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.712012Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.712362Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.712759Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.712996Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.713160Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.713360Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.713564Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.713770Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.713933Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.714125Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.714386Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.714658Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.714953Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.715224Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.715417Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:02:22.715603Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.417442Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 11788)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.621708Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 19008)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.833260Z", "level": "INFO", "message": "Nuevo proceso detectado: MoUsoCoreWorker.exe (PID 27364)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.838863Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 27540)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.926919Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.927235Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.927559Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.927799Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.928029Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.928275Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.928456Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.928642Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.928835Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.929039Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.929231Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.929406Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.929568Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.929740Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.929930Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.930096Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.930283Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:03:23.930474Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:24.360265Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 6484)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:24.370497Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 6592)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.070501Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.070855Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.071134Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.071368Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.071556Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.071755Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.071951Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.072165Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.072390Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.072581Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.072748Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.072937Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.073110Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.073290Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.073486Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.073697Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.073890Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:04:25.074067Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:25.286367Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 3672)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:25.315794Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 4228)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:25.612662Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 9988)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:25.633294Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 10340)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:25.899361Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 21400)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:25.903317Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 21556)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.115079Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.115382Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.115608Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.115828Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.116070Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.116274Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.116438Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.116621Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.116968Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.117196Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.117367Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.117556Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.117716Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.117891Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.118088Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.118267Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.118463Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.118643Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:05:26.119404Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:26.733427Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 12108)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:26.998771Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity.exe (PID 22844)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.203750Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.204067Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.204275Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.204475Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.204648Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.204823Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.204978Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.205147Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.205301Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.205471Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.205677Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.205871Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.206027Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.206212Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.206394Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.206552Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.206739Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.206935Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:06:27.207330Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.030410Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 21152)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.249121Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.249411Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.249616Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.249839Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.250168Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.250446Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.250638Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.250826Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.250998Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.251239Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.251409Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.251569Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.251746Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.251963Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.252296Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.252582Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.252907Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.253204Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:07:28.253767Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.150909Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 20468)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.266064Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 24696)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.415989Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.416438Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.416813Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.417147Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.417433Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.417725Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.417903Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.418118Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.418352Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.418576Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.418756Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.418924Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.419092Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.419268Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.419457Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.419685Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.419893Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.420079Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:08:29.420551Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.546438Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.546938Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.547212Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.547444Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.547627Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.547828Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.548013Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.548210Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.548402Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.548603Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.548766Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.548944Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.549122Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.549293Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.549480Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.549643Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.549827Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.549996Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:09:30.550379Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.228648Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 14700)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.393313Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 21916)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.591434Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.591790Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.592030Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.592268Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.592468Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.592670Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.592834Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.593046Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.593251Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.593472Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.593674Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.593857Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.594022Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.594215Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.594415Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.594588Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.594790Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.594971Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:10:31.595339Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.621393Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.621790Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.622073Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.622290Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.622471Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.622686Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.622860Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.623062Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.623242Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.623878Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.624063Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.624241Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.624403Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.624585Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.624804Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.624999Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.625296Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.625520Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:11:32.626099Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.344060Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.344702Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.344973Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.345218Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.345389Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.345568Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.346520Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.346733Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.346900Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.347063Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.347304Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.347470Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.347626Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.347797Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.347957Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.348171Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.348360Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:12:36.348580Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:36.432498Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 1908)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:36.600914Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 3468)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.012633Z", "level": "INFO", "message": "Nuevo proceso detectado: python.exe (PID 8432)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.365154Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 18836)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.402826Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 20580)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.436445Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 21576)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.440424Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 21596)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.594200Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 27352)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.683267Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 36642 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.684169Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.684727Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 2968 (proceso: EEventManager.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.685676Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59344 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.686470Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62510 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.686986Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.687683Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63456 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.688041Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.688533Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62503 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.688877Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62499 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.689347Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.689666Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56450 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.689975Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62500 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.690352Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63455 (proceso: Antigravity.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.690687Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62504 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.691026Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59343 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.691534Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-04-19T19:13:37.691907Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 32131 (proceso: Antigravity.exe)", "source": "security_monitor"}

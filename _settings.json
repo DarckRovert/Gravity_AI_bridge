@@ -2,6 +2,6 @@
     "provider": "LM Studio",
     "provider_protocol": "openai",
     "api_url": "http://localhost:1234",
-    "last_model": "gemma-4-e4b-uncensored-hauhaucs-aggressive",
+    "last_model": "google/gemma-4-e4b",
     "active_project_path": "F:\\PROYECTO PASTELERIA\\pastelito-next"
 }

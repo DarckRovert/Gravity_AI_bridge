@@ -98,6 +98,44 @@ from core.reasoning_stripper import ReasoningStripper  # noqa: E402
 
 
 
+# ── GeoIP Security Tracker ──────────────────────────────────────────────────
+import urllib.request
+
+_geoip_cache = {}
+_recent_ips = []
+_geoip_lock = threading.Lock()
+
+def _track_geoip(ip: str):
+    if not ip or ip in _geoip_cache:
+        return
+    if ip in ("127.0.0.1", "localhost", "0.0.0.0", "::1") or ip.startswith("192.168.") or ip.startswith("10."):
+        _geoip_cache[ip] = {"status": "success", "country": "LocalNet", "city": "Gravity Core", "isp": "Localhost"}
+        return
+    
+    _geoip_cache[ip] = {"status": "pending", "country": "Resolviendo...", "city": "...", "isp": "..."}
+    
+    def fetch():
+        try:
+            req = urllib.request.Request(f"http://ip-api.com/json/{ip}", headers={"User-Agent": "Gravity_GeoIP_Watch/10.0"})
+            with urllib.request.urlopen(req, timeout=5) as res:
+                _geoip_cache[ip] = json.loads(res.read().decode())
+        except Exception:
+            _geoip_cache[ip] = {"status": "fail", "country": "Unknown", "city": "Unknown", "isp": "Error de Red"}
+            
+    threading.Thread(target=fetch, daemon=True).start()
+
+def _register_ip_hit(ip: str):
+    with _geoip_lock:
+        for i, x in enumerate(_recent_ips):
+            if x["ip"] == ip:
+                _recent_ips.pop(i)
+                break
+        _recent_ips.insert(0, {"ip": ip, "timestamp": time.time()})
+        if len(_recent_ips) > 30:
+            _recent_ips.pop()
+    _track_geoip(ip)
+
+
 # ── HTTP Handler ──────────────────────────────────────────────────────────────
 class GravityBridgeHandler(BaseHTTPRequestHandler):
 
@@ -109,6 +147,8 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
     def _check_rate(self) -> bool:
         """Verifica el rate limit para la IP del cliente. Retorna False y envía 429 si bloqueada."""
         ip = self.client_address[0] if self.client_address else "unknown"
+        if ip != "unknown":
+            _register_ip_hit(ip)
         if not _check_rate_limit(ip):
             body = json.dumps({"error": "Too Many Requests", "retry_after": _RATE_LIMIT_WINDOW}).encode()
             self.send_response(429)
@@ -137,6 +177,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
             "/v1/images":           self._serve_images,
             "/metrics":             self._serve_metrics,
             "/v1/security":         self._serve_security,
+            "/v1/security/geoip":   self._serve_security_geoip,
             "/v1/queue":            self._serve_queue,
             "/v1/deploy/status":    self._serve_deploy_status,
             "/v1/gameserver/status":self._serve_gameserver_status,
@@ -388,6 +429,33 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
         try:
             state = security_monitor.get_state()
             body  = json.dumps(state, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_security_geoip(self):
+        """Endpoint para el Panel Tracker de GeoLocalizacion HTTP"""
+        try:
+            results = []
+            with _geoip_lock:
+                for entry in _recent_ips:
+                    ip = entry["ip"]
+                    data = _geoip_cache.get(ip, {})
+                    results.append({
+                        "ip": ip,
+                        "timestamp": entry["timestamp"],
+                        "country": data.get("country", "Unknown"),
+                        "city": data.get("city", "Unknown"),
+                        "isp": data.get("isp", "Unknown"),
+                        "status": data.get("status", "pending")
+                    })
+            body = json.dumps({"tracker": results}, indent=2).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self._send_cors()

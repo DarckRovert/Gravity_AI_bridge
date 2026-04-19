@@ -660,6 +660,15 @@
             </div>
           </div>
 
+          <!-- GeoIP Threat Radar -->
+          <div class="table-wrap" style="margin-bottom:24px">
+            <div class="table-title">🌍 GeoIP Threat Radar (Últimas Conexiones)</div>
+            <table class="proc-table">
+              <thead><tr><th>IP (Origen)</th><th>País</th><th>Ciudad</th><th>ISP / Status</th></tr></thead>
+              <tbody id="geoip-table-body"><tr><td colspan="4" style="text-align:center;color:var(--muted)">Escaneando...</td></tr></tbody>
+            </table>
+          </div>
+
           <div class="sec-grid">
             <!-- Integridad de archivos -->
             <div class="sec-card">
@@ -1064,7 +1073,10 @@ function switchTab(name, el) {
   currentTab = name;
   if(name==='status')   renderChart();
   if(name==='queue')    fetchQueue();
-  if(name==='security') fetchSecurity();
+  if(name==='security') {
+      fetchSecurity();
+      loadGeoTracker();
+  }
   if(name==='deploy')   fetchDeployStatus();
   if(name==='gameserver') fetchGameServer();
   if(name==='vision')   checkFooocusBackend();
@@ -1473,6 +1485,33 @@ async function fetchSecurity(){
   }catch(e){ console.error('[Security]',e); }
 }
 
+async function loadGeoTracker() {
+    try {
+        let res = await fetch("/v1/security/geoip");
+        let data = await res.json();
+        let tbody = document.getElementById("geoip-table-body");
+        if(tbody) {
+            tbody.innerHTML = "";
+            if(!data.tracker || data.tracker.length === 0) {
+               tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted)">Sin conexiones detectadas aún</td></tr>';
+               return;
+            }
+            data.tracker.forEach(t => {
+                let color = (t.country === "LocalNet") ? "var(--success)" : "var(--error)";
+                let row = `<tr>
+                    <td style="color:${color}; font-family:'JetBrains Mono', monospace; font-weight:bold;">${t.ip}</td>
+                    <td>${t.country}</td>
+                    <td>${t.city}</td>
+                    <td style="color:var(--muted);">${t.isp}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+    } catch(err) {
+        console.error("Fallo al trazar mapa de intrusión", err);
+    }
+}
+
 async function forceScan(){
   showToast('Forzando escaneo de seguridad...','info');
   try{
@@ -1750,7 +1789,10 @@ async function fetchRAG(){
 async function refreshAll(){
   await Promise.all([fetchStatus(), fetchAudit()]);
   if(currentTab==='queue')       fetchQueue();
-  if(currentTab==='security')    fetchSecurity();
+  if(currentTab==='security') {
+       fetchSecurity();
+       loadGeoTracker();
+  }
   if(currentTab==='deploy')      fetchDeployStatus();
   if(currentTab==='gameserver')  fetchGameServer();
   if(currentTab==='vision')      checkFooocusBackend();
