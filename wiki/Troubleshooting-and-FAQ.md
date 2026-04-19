@@ -9,7 +9,7 @@ Soluciones crudas para los problemas más severos dentro del `Gravity AI Bridge`
 **Solución:** Probablemente desconfiguraste el enviroment. La V10.1 cruza listas físicas de la carpeta `outputs`. Asegúrate que no tengas configurado un Path personalizado escondido en el YAML de Fooocus hacia otra ruta remota o disco D:\ distinto.
 
 ### Q: ¡El log Security_Audit es basura de 10 megas!
-**Solución de versión:** Actualiza a la V10.1 compilada. La V10.0 alertaba todas las conexiones efímeras. La revisión actual rota los JSONL después de 5MB en disco (`.pak`) e ignora estáticamente puertos superiores listados como Steam o Discord. Si quieres bloquear *literalmente TODO*, modifica el array whitelist duro en `core/security_monitor.py`.
+**Solución de versión:** Actualiza a la V10.1 compilada. La V10.1 alertaba todas las conexiones efímeras. La revisión actual rota los JSONL después de 5MB en disco (`.pak`) e ignora estáticamente puertos superiores listados como Steam o Discord. Si quieres bloquear *literalmente TODO*, modifica el array whitelist duro en `core/security_monitor.py`.
 
 ### Q: PyInstaller Compilado se crashea en un loop infinito negro.
 **Causa:** Python puro en su versión congelada rompe incompatibilidades de tipado (PEP 604 vs viejo typing).  

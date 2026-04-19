@@ -1,5 +1,5 @@
 """
-Gravity AI — Google Gemini Provider V7.0
+Gravity AI — Google Gemini Provider V10.1
 
 Gemini usa la Google Generative Language API (REST).
 Convierte internamente el formato messages OpenAI al formato contents[]

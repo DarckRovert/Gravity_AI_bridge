@@ -72,6 +72,11 @@ def main():
         fn_index = dependencies.index(gen_fn)
         input_ids = gen_fn.get("inputs", [])
         
+        # Parche Crítico: En Gradio 3 (Fooocus), el 'Prompt' real (textbox) no tiene un 'label' coincidente,
+        # mientras que otro componente (radio Upscale) sí lo usa. Forzamos la asignación posicional real:
+        cid_map["prompt"] = input_ids[0]
+        cid_map["neg_prompt"] = input_ids[1]
+        
         args = []
         for cid in input_ids:
             val = comp_data.get(cid)

@@ -1,5 +1,5 @@
 """
-providers/local/_base_local.py — Shared HTTP helper for local providers V7.1
+providers/local/_base_local.py — Shared HTTP helper for local providers V10.1
 Internal — not auto-discovered by registry (filename starts with _).
 """
 

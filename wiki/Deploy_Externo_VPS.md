@@ -2,7 +2,7 @@
 
 Si bien jugar en local es perfecto para círculos reducidos, un servidor estable 24/7 de World of Warcraft requiere alquilar un **VPS (Virtual Private Server)** o Servidor Dedicado.
 
-Con la V10.0 de Gravity, no necesitas saber de Linux ni instalar Apache para tener un servidor o crear cuentas. Gravity funciona como el orquestador principal.
+Con la V10.1 de Gravity, no necesitas saber de Linux ni instalar Apache para tener un servidor o crear cuentas. Gravity funciona como el orquestador principal.
 
 ---
 

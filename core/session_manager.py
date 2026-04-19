@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         GRAVITY AI - SESSION MANAGER V9.3.1 PRO [Diamond-Tier Edition]         ║
+║         GRAVITY AI - SESSION MANAGER V10.1 PRO [Diamond-Tier Edition]         ║
 ║                       Sesiones con Fork/Merge + Export                       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
@@ -141,7 +141,7 @@ class SessionManager:
                     self._history.append(msg)
         return True
 
-    # ── Token Optimization (V7.1) ─────────────────────────────────────────────
+    # ── Token Optimization (V10.1) ─────────────────────────────────────────────
 
     def trim_history(self, max_tokens: int = 128000) -> int:
         """

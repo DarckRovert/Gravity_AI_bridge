@@ -1,4 +1,4 @@
-# Game Server Manager — Gravity AI Bridge V10.0 ⚔️
+# Game Server Manager — Gravity AI Bridge V10.1 ⚔️
 
 El módulo **Game Server Manager** (`core/game_server_manager.py`) permite que Gravity AI controle totalmente servidores de juegos ejecutados en la misma máquina física, ofreciendo una capa de gestión profesional similar a un orquestador de contenedores pero nativo para Windows.
 
@@ -78,4 +78,4 @@ Navegando a la pestaña **Game Servers** en `http://localhost:7860`:
 Este módulo es agnóstico al motor. Aunque está optimizado para MaNGOS, puede adaptarse a cualquier proceso de juego (Minecraft, Terraria, CS2) configurando los ejecutables y archivos de log correspondientes en `config.yaml`.
 
 ---
-*Manual Técnico del Game Server Manager — V10.0.*
+*Manual Técnico del Game Server Manager — V10.1.*

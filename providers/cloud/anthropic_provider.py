@@ -1,5 +1,5 @@
 """
-Gravity AI — Anthropic Claude Provider V7.0
+Gravity AI — Anthropic Claude Provider V10.1
 
 Anthropic usa su propio protocolo Messages API (no OpenAI-compatible).
 Este provider convierte internamente el formato messages OpenAI

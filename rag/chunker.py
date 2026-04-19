@@ -1,5 +1,5 @@
 """
-Gravity AI — RAG Chunker V7.1
+Gravity AI — RAG Chunker V10.1
 Smart chunking that respects code blocks, markdown headers, and sentence boundaries.
 """
 

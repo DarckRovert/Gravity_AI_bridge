@@ -1,5 +1,5 @@
 """
-Gravity AI Bridge V9.3.1 PRO — Fooocus (CPU) Satellite Client
+Gravity AI Bridge V10.1 PRO — Fooocus (CPU) Satellite Client
 Tool: fooocus_client
 Endpoint: http://127.0.0.1:7861 (Fooocus HTTP API — modo CPU)
 Hardware: AMD Ryzen 7 8700G — CPU puro (sin DirectML, sin crash)
@@ -197,22 +197,44 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
         _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.webp"), recursive=True)
     )
 
-    out_file = None
-    proc = None
     try:
-        out_file = open(log_file, "a", encoding="utf-8", errors="replace")
-        out_file.write(f"\n--- Disparando: {prompt[:80]} [{performance}] [{aspect_ratio_safe}] ---\n")
-        out_file.flush()
-
         proc = subprocess.Popen(
             [fooocus_python, trigger_script, prompt, performance, aspect_ratio_safe],
-            stdout=out_file,
-            stderr=out_file,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
 
         # Esperar hasta 900 segundos (15 min) — Fooocus en CPU es lento
         try:
-            proc.wait(timeout=900)
+            stdout_bytes, stderr_bytes = proc.communicate(timeout=900)
+            stdout_str = stdout_bytes.decode("utf-8", errors="replace")
+            stderr_str = stderr_bytes.decode("utf-8", errors="replace")
+            
+            # Guardar el log para depuración
+            with open(log_file, "a", encoding="utf-8", errors="replace") as out_file:
+                out_file.write(f"\n--- Disparando: {prompt[:80]} [{performance}] [{aspect_ratio_safe}] ---\n")
+                out_file.write(stdout_str + "\n")
+                if stderr_str: out_file.write(stderr_str + "\n")
+                
+            # Interceptar fallos tempranos en el trigger nativo
+            import json as _json
+            lines = [L for L in stdout_str.split("\n") if L.strip() and L.strip().startswith("{")]
+            if lines:
+                try:
+                    res_json = _json.loads(lines[-1].strip())
+                    if not res_json.get("success"):
+                        return {"success": False, "images": [], "job_id": None, "error": f"Trigger nativo falló: {res_json.get('error')}"}
+                    
+                    # Detectar si Fooocus abortó instantáneamente la generación
+                    data_obj = res_json.get("data", {})
+                    if isinstance(data_obj, dict):
+                        inner_data = data_obj.get("data", [])
+                        if inner_data and inner_data[0] is None:
+                            return {"success": False, "images": [], "job_id": None, "error": "Fooocus abortó la generación internamente. (Gradio retornó null)."}
+                            
+                except Exception:
+                    pass
+                    
         except subprocess.TimeoutExpired:
             proc.kill()
             proc.wait()
@@ -223,12 +245,6 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
 
     except Exception as e:
         return {"success": False, "images": [], "job_id": None, "error": str(e)}
-    finally:
-        if out_file is not None:
-            try:
-                out_file.close()
-            except Exception:
-                pass
 
     # Snapshot DESPUÉS: detectar archivos nuevos (diff real)
     # Como Gradio 4+ usa /queue/join, native_trigger finaliza instantáneamente.
@@ -386,7 +402,7 @@ def batch_generate(
 # ─── Self-test ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    print("[Gravity :: Fooocus Client V9.3.1] Health check...")
+    print("[Gravity :: Fooocus Client V10.1] Health check...")
     status: HealthStatus = health_check()
     print(f"  Online : {status['online']}")
     print(f"  Version: {status['version']}")

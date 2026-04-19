@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║          GRAVITY AI - BRIDGE SERVER V10.0 [Diamond-Tier Edition]             ║
+║          GRAVITY AI - BRIDGE SERVER V10.1 [Diamond-Tier Edition]             ║
 ║                    Enrutador Universal OpenAI-Compatible                     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
@@ -1157,7 +1157,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler):
                     _base_dir = os.path.dirname(__file__)
                     kb_data, _ = data_guardian.load_knowledge(os.path.join(_base_dir, "_knowledge.json"))
                     _sys_prompt = (
-                        "Eres Gravity AI V10.0, Auditor Senior. "
+                        "Eres Gravity AI V10.1, Auditor Senior. "
                         "PROTOCOLO: Lógica interna en inglés. Salida final en español estrictamente. "
                         "Sin rellenos conversacionales. Solo hechos técnicos fríos. Resolución directa."
                     )

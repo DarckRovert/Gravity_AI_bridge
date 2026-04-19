@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         GRAVITY AI — IMAGE QUEUE V9.4                                        ║
+║         GRAVITY AI — IMAGE QUEUE V10.1                                        ║
 ║         Cola persistente SQLite para generación secuencial de imágenes       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

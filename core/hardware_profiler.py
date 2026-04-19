@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════╗
-║     GRAVITY AI — HARDWARE PROFILER V7.1              ║
+║     GRAVITY AI — HARDWARE PROFILER V10.1              ║
 ║     Detección multi-GPU, VRAM y cálculo de contexto  ║
 ╚══════════════════════════════════════════════════════╝
 Detecta TODAS las GPUs disponibles (iGPU + dGPU),
@@ -300,7 +300,7 @@ def get_full_profile():
 
 if __name__ == "__main__":
     print("\n╔════════════════════════════════════╗")
-    print("║  GRAVITY AI HARDWARE PROFILER V7.1 ║")
+    print("║  GRAVITY AI HARDWARE PROFILER V10.1 ║")
     print("╚════════════════════════════════════╝\n")
 
     p = get_full_profile()

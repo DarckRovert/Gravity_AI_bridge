@@ -1,4 +1,4 @@
-# Guía de API — Gravity AI Bridge V10.0
+# Guía de API — Gravity AI Bridge V10.1
 **Diamond-Tier Edition** · Base URL: `http://localhost:7860`
 
 El Bridge expone una API HTTP completamente compatible con el estándar OpenAI, más endpoints propios para gestión del sistema. Cualquier cliente que funcione con OpenAI puede conectarse al Bridge sin modificaciones.
@@ -612,7 +612,7 @@ print(result.content)
 
 ### Continue.dev (config.yaml)
 ```yaml
-name: Gravity Local V10.0
+name: Gravity Local V10.1
 version: 10.0.0
 schema: v1
 models:

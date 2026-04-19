@@ -1,5 +1,5 @@
 """
-Gravity AI — Web Search Tool V7.1
+Gravity AI — Web Search Tool V10.1
 Sin API key requerida. Usa DuckDuckGo HTML scraping.
 Opcional: Brave Search API (gratuita, 2000 req/mes).
 """

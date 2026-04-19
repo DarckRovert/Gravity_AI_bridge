@@ -42,7 +42,7 @@ JOBS = [
 STYLE_REINFORCEMENT = ", Elegant bakery, gourmet presentation, glossy glazes, rich textures, dramatic lighting, photorealistic style"
 
 def main():
-    print(f"--- GRAVITY MASTER GENERATOR V9.3.1 ---")
+    print(f"--- GRAVITY MASTER GENERATOR V10.1 ---")
     print(f"Iniciando secuencia para {len(JOBS)} imágenes...")
     
     for i, (prod_id, base_prompt) in enumerate(JOBS):

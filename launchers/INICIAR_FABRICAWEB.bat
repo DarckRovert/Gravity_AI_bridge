@@ -1,5 +1,5 @@
 @echo off
-title GRAVITY AI -- FABRICA WEB V9.3.1 PRO (NEXT.JS)
+title GRAVITY AI -- FABRICA WEB V10.1 PRO (NEXT.JS)
 color 0d
 cls
 
@@ -8,7 +8,7 @@ cd /d "%~dp0.."
 
 echo.
 echo  +------------------------------------------------------------------------------+
-echo  ^|         GRAVITY AI - FABRICA WEB V9.3.1 PRO [Diamond-Tier Edition]           ^|
+echo  ^|         GRAVITY AI - FABRICA WEB V10.1 PRO [Diamond-Tier Edition]           ^|
 echo  ^|                      Frontend Node.js / Next.js Server                       ^|
 echo  +------------------------------------------------------------------------------+
 echo.

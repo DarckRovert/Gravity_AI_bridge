@@ -1,12 +1,12 @@
 @echo off
-title Gravity AI -- Vision Studio V9.3 PRO
+title Gravity AI -- Vision Studio V10.1 PRO
 cd /d "F:\Gravity_AI_bridge"
 color 0B
 cls
 
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|          GRAVITY AI -- Vision Studio V9.3.1 PRO [Diamond-Tier]           ^|
+echo  ^|          GRAVITY AI -- Vision Studio V10.1 PRO [Diamond-Tier]           ^|
 echo  ^|          Motor: Fooocus 2.5.5 CPU-Mode (Estable sin crash)               ^|
 echo  +--------------------------------------------------------------------------+
 echo.

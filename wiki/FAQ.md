@@ -1,4 +1,4 @@
-# FAQ — Gravity AI Bridge V10.0
+# FAQ — Gravity AI Bridge V10.1
 **Diamond-Tier Edition** · [Reportar un bug](https://github.com/DarckRovert/Gravity_AI_bridge/issues) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
 
 ---

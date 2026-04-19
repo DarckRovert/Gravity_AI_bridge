@@ -1,4 +1,4 @@
-# Arquitectura — Gravity AI Bridge V10.0
+# Arquitectura — Gravity AI Bridge V10.1
 **Diamond-Tier Edition** · Última actualización: 2026-04-17
 
 ---
@@ -15,7 +15,7 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
                                │ HTTP POST /v1/chat/completions
                                ▼
 ┌────────────────────────────────────────────────────────────────────┐
-│                    GRAVITY AI BRIDGE V10.0                         │
+│                    GRAVITY AI BRIDGE V10.1                         │
 │                    bridge_server.py                                │
 │                    ThreadingHTTPServer :7860                       │
 │                                                                    │
@@ -309,7 +309,7 @@ make_icon.py          → genera assets/gravity_icon.ico (multi-res: 256..16px)
       ↓
 PyInstaller           → empaqueta Python + todas las dependencias → GravityBridge.exe
       ↓
-Inno Setup 6          → crea Gravity_AI_Bridge_V10.0_Setup.exe
+Inno Setup 6          → crea Gravity_AI_Bridge_V10.1_Setup.exe
       ↓
 gravity_launcher.pyw  → EXE sin consola que arranca bridge_server + gravity_tray
 ```
@@ -318,7 +318,7 @@ gravity_launcher.pyw  → EXE sin consola que arranca bridge_server + gravity_tr
 | Archivo generado | Descripción |
 |:---|:---|
 | `dist/GravityBridge.exe` | Ejecutable standalone (no requiere Python) |
-| `dist/Gravity_AI_Bridge_V10.0_Setup.exe` | Instalador completo para distribución |
+| `dist/Gravity_AI_Bridge_V10.1_Setup.exe` | Instalador completo para distribución |
 
 ### Características del Instalador
 - Instala en `C:\Program Files\Gravity AI Bridge\`

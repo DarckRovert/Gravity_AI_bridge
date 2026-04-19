@@ -1,5 +1,5 @@
 """
-Gravity AI Bridge V10.0 [Diamond-Tier Edition] — Dashboard Web Server
+Gravity AI Bridge V10.1 [Diamond-Tier Edition] — Dashboard Web Server
 Lee web/dashboard.html desde disco en cada request (hot-reload real).
 Sirve el HTML actualizado sin necesidad de reiniciar el proceso.
 """
@@ -36,9 +36,9 @@ def get_dashboard_html() -> bytes:
             except Exception:
                 pass
 
-    return b"""<!DOCTYPE html><html><head><title>Gravity AI Bridge V10.0</title></head>
+    return b"""<!DOCTYPE html><html><head><title>Gravity AI Bridge V10.1</title></head>
     <body style="background:#090c10;color:white;font-family:sans-serif;padding:40px;text-align:center">
-    <h2>Gravity AI Bridge V10.0</h2><p>No se encontro <code>web/dashboard.html</code> en:</p>
+    <h2>Gravity AI Bridge V10.1</h2><p>No se encontro <code>web/dashboard.html</code> en:</p>
     <p><code>""" + html_path.encode() + b"""</code></p>
     <p>Verifica que la carpeta <code>web/</code> exista junto al ejecutable.</p>
     </body></html>"""

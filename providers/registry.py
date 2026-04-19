@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — PROVIDER REGISTRY V7.1                      ║
+║     GRAVITY AI — PROVIDER REGISTRY V10.1                      ║
 ║     Auto-discovery + hot-reload de todos los plugins        ║
 ╚══════════════════════════════════════════════════════════════╝
 """
@@ -171,7 +171,7 @@ class ProviderRegistry:
 
 
 if __name__ == "__main__":
-    print("Provider Registry V7.1 — Discovery test\n")
+    print("Provider Registry V10.1 — Discovery test\n")
     ProviderRegistry.discover(force=True)
     names = ProviderRegistry.get_names()
     print(f"  Discovered {len(names)} plugin(s): {', '.join(names)}\n")

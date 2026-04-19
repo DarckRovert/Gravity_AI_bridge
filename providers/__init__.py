@@ -1,4 +1,4 @@
-"""providers package — Gravity AI Bridge V7.0"""
+"""providers package — Gravity AI Bridge V10.1"""
 from providers.base import ProviderPlugin, ProviderResult
 from providers.registry import ProviderRegistry
 

@@ -1,4 +1,4 @@
-# Manual de Usuario — Gravity AI Bridge V10.0
+# Manual de Usuario — Gravity AI Bridge V10.1
 **Diamond-Tier Edition** · [github.com/DarckRovert/Gravity_AI_bridge](https://github.com/DarckRovert/Gravity_AI_bridge) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
 
 ---
@@ -14,7 +14,7 @@ Gravity AI Bridge es un **servidor proxy OpenAI-compatible** que actúa como pun
 ## Instalación
 
 ### Para usuarios finales (sin Python)
-1. Descarga `Gravity_AI_Bridge_V10.0_Setup.exe`
+1. Descarga `Gravity_AI_Bridge_V10.1_Setup.exe`
 2. Ejecuta el instalador → "Siguiente" tres veces → "Instalar"
 3. Marca "Iniciar Gravity AI Bridge ahora" al finalizar
 4. Un icono aparecerá en la bandeja del sistema (esquina inferior derecha)
