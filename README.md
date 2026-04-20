@@ -5,7 +5,7 @@
   [![Desarrollador](https://img.shields.io/badge/Author-DarckRovert-ff69b4.svg?style=flat-square)](https://github.com/DarckRovert)
   [![Licencia](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
   [![Architecture](https://img.shields.io/badge/Architecture-Diamond--Tier-c69c6d.svg?style=flat-square)]()
-  [![Release](https://img.shields.io/badge/Release-V10.1_Stable-success.svg?style=flat-square)]()
+  [![Release](https://img.shields.io/badge/Release-V10.2_Stable-success.svg?style=flat-square)]()
   [![Twitch Oficial](https://img.shields.io/badge/Twitch-DarckRovert-purple.svg?style=flat-square&logo=twitch)](https://twitch.tv/darckrovert)
 
   <p align="center">
@@ -24,7 +24,7 @@
 
 En el desarrollo tradicional, el orquestado de clústeres de IA locales (Ollama, LM Studio), herramientas de generación artística en base Gradio (Fooocus) y sub-máquinas ejecutorias de C++ (Servidores *MangosD* de World of Warcraft) resultaba en asfixia de hardware, puertos huérfanos y colapsos catastróficos por Out of Memory Errors (OOM) en las tarjetas gráficas (VRAM). 
 
-El servidor **Gravity AI Bridge V10.1 Stable** ha sido forjado íntegramente de cero en Python nativo empleando hilos cruzados desde `http.server.ThreadingHTTPServer`. Su filosofía radica en:
+El servidor **Gravity AI Bridge V10.2 Stable** ha sido forjado íntegramente de cero en Python nativo empleando hilos cruzados desde `http.server.ThreadingHTTPServer`. Su filosofía radica en:
 - **Cero Dependencias Externas Masivas**: Operamos libres de Flask, FastAPI o bloqueos estáticos, logrando latencia interna de micro-segundos con un payload de memoria insignificante.
 - **Conciencia Dinámica del Host**: La IA se auto-diagnostica leyendo la RAM del servidor en la cual habita y modificando activamente sus ventanas contextuales de razonamiento; es *software* que respeta y domestica a tu *hardware*.
 - **Sub-Memoria de Tracción Rápida**: Elimina el terror del cuello de botella SSD de Windows desviando los *outputs* de log a bases de datos circulares internas (Ring-Deque Buffers) sin latencia.
@@ -56,13 +56,23 @@ Los frontends perezosos a menudo tiran fallas `CP1252 Unicode (Expected 153, Got
 - **Validación del Output Folder:** Gravity Bridge asimila la petición y ejecuta un sub-trabajo asíncrono local que crea un listado estático del disco HDD de todos los `.png` presentes, dispara a Fooocus y monitorea si la colección de carpetas posee un verdadero Diffing file. Disuelve de forma inquebrantable el reporte falso Positivo, validando verdaderas obras consumadas.
 - Todo esto corre por HTTP bidireccional puro *SSE (Server-Sent-Events)* bajo `/v1/queue/stream` en flujos de 5 segundos `Event-Stream`. Cero Polling, flujo libre y vital sin desbordar el Buffer Web.
 
-### 🗃️ 5. Memoria RAM Longeva & Gestiones Financieras Contables (`RAG` & `Cost Tracker`)
+### 🎬 5. Video Studio CPU-Only (`core/video_pipeline.py`) *(V10.2)*
+Generación de videos documentales automatizada sin GPU dedicada. Pipeline de 5 pasos orquestados en background:
+- **LLM (Ollama)** genera un guión estructurado JSON con N escenas (título, narración, prompt visual)
+- **Fooocus** (CPU) genera 1 imagen cinematic 16:9 por escena (~5 min/imagen en Ryzen 7 8700G)
+- **Windows SAPI** (pyttsx3) convierte la narración a audio `.wav`, auto-seleccionando voz en español
+- **ffmpeg** ensambla imagen + audio en clip `.mp4` a 24fps con padding 16:9 y codec H.264
+- **ffmpeg** concatena clips → video final `.mp4` descargable via `GET /v1/video/download`
+
+Cola SQLite aislada (`_video_queue.sqlite`) + worker daemon. Fallback automático si Fooocus no está corriendo.
+
+### 🗃️ 6. Memoria RAM Longeva & Gestiones Financieras Contables (`RAG` & `Cost Tracker`)
 1. **Retrieval-Augmented Generation (RAG):** El sub-directorio de indexaciones de `/rag_index` mastica conocimiento extra-canónico, JSONs inmensos con *chunks* localizados incrustándolos dinámicamente como apéndice a los Prompts multi-agentes antes de chocar con tu procesador. Convierte un modelo base en un experto focal de infraestructura "V10". 
 2. **Sistema de Cost Tracker y Limites de Rate:** Afecta a endpoints Cloud tarifados. Contabiliza milimétricamente el "Tokens In / Tokens Out" derivándolo a un valor fiscal y alojándolo en `_cost_log.json`. Al exceder los topes impuestos del threshold, devuelve status HTTP bloqueador previniendo que gastes más de lo que deseas en peticiones API efímeras sin supervisión.
 
 ---
 
-## 🔐 Barreras Extensivas de Auditoría y Seguridad V10.1 Stable
+## 🔐 Barreras Extensivas de Auditoría y Seguridad V10.2 Stable
 
 En vista de que `Gravity AI Bridge` administra cuentas directas WoW Vanilla por endpoints de registro saltándose Firewalls con SRP-6a y levanta pipes de procesos pesados, sus reglas de Seguridad (`SECURITY.md`) aplastan las interrupciones externas:
 
@@ -80,7 +90,7 @@ Ruteado al Endpoint `/v1/fabricaweb/deploy`, evalúa estáticamente el *package.
 ---
 
 > [!NOTE]  
-> Este es el documento final del Manifiesto Arquitectural V10.1. Revisa los apartados indexados para soporte técnico del puente.     
+> Este es el documento final del Manifiesto Arquitectural V10.2. Revisa los apartados indexados para soporte técnico del puente.     
 > [**📖 INGRESAR A LA WIKI CORPORATIVA**](./wiki/Home.md)  |  [📜 PAUTAS DE CONTRIBUCIÓN](./CONTRIBUTING.md) 
 
 <br>

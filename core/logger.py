@@ -11,11 +11,15 @@ class SanitizedJSONFormatter(logging.Formatter):
     """
     # Patrones para censurar: bearer tokens, openai keys, anthropic keys, etc.
     SENSITIVE_PATTERNS = [
-        re.compile(r'sk-[a-zA-Z0-9]{20,}'),           # OpenAI / general test keys
-        re.compile(r'sk-ant-[a-zA-Z0-9\-_]{20,}'),    # Anthropic
+        re.compile(r'sk-[a-zA-Z0-9]{4,}'),              # OpenAI / general keys (mínimo 4 chars)
+        re.compile(r'sk-ant-[a-zA-Z0-9\-_]{4,}'),       # Anthropic
         re.compile(r'Bearer\s+[a-zA-Z0-9\-\._~+/]+=*'), # Bearer tokens
-        re.compile(r'x-api-key\s*:\s*[a-zA-Z0-9\-_]{20,}'), # Custom headers
+        re.compile(r'x-api-key\s*:\s*[a-zA-Z0-9\-_]{4,}'), # Custom headers
     ]
+
+    # Nombres de campo que siempre deben redactarse en dicts
+    SENSITIVE_KEYS = {"api_key", "apikey", "token", "secret", "password",
+                      "passwd", "authorization", "auth", "access_token"}
     
     def sanitize(self, text: str) -> str:
         if not isinstance(text, str):
@@ -92,12 +96,17 @@ log = setup_logger()
 def sanitize_json(data: dict) -> dict:
     """
     Sanitiza un dict redactando valores que sean API keys.
-    Usada en tests y en cualquier modulo que necesite limpiar datos sensibles.
+    Redacta por dos criterios:
+      1. El nombre del campo está en SENSITIVE_KEYS (api_key, token, etc.)
+      2. El valor matchea algún patrón de SENSITIVE_PATTERNS (sk-xxxx, Bearer, etc.)
+    Usada en tests y en cualquier módulo que necesite limpiar datos sensibles.
     """
     sanitizer = SanitizedJSONFormatter()
     result = {}
     for k, v in data.items():
-        if isinstance(v, str):
+        if k.lower() in SanitizedJSONFormatter.SENSITIVE_KEYS:
+            result[k] = "[REDACTED_KEY]"
+        elif isinstance(v, str):
             result[k] = sanitizer.sanitize(v)
         elif isinstance(v, dict):
             result[k] = sanitize_json(v)

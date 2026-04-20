@@ -1,13 +1,14 @@
 ---
 description: Auditoría total, Generación de Documentación, Wiki y Despliegue en DarckRovert.
 ---
+
 // workflow-id: ultra-professional-release
 // git-user: DarckRovert
 
 1. **Generación de Suite Legal y Organizativa (Local AI)**
    Delegar al bridge la creación de la base del repositorio:
    - README.md (Nivel empresarial con badges).
-   - LICENSE (MIT con año actual).
+   - LICENSE (con año actual).
    - CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md.
    - .gitignore y .github/ISSUE_TEMPLATE/.
 

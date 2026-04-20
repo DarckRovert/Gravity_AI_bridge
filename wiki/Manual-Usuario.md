@@ -1,4 +1,4 @@
-# Manual de Usuario — Gravity AI Bridge V10.1
+# Manual de Usuario — Gravity AI Bridge V10.2
 **Diamond-Tier Edition** · [github.com/DarckRovert/Gravity_AI_bridge](https://github.com/DarckRovert/Gravity_AI_bridge) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
 
 ---
@@ -138,6 +138,47 @@ curl -X POST http://localhost:7860/v1/queue/add \
 ```
 
 Los trabajos se procesan en orden FIFO. El panel muestra el estado de cada job: `pending`, `processing`, `done`, `failed`.
+
+---
+
+### 🎬 Video Studio *(nuevo en V10.2)*
+
+Generación automática de videos documentales en modo **CPU-only** (sin GPU dedicada).
+
+**Flujo automático:**
+1. El LLM genera un guión estructurado (N escenas con título, narración e instrucción visual)
+2. **Fooocus** genera una imagen por escena (CPU ~5 min/imagen)
+3. **Windows SAPI** (pyttsx3) convierte la narración a audio `.wav`
+4. **ffmpeg** ensambla imagen + audio en un clip `.mp4` por escena
+5. **ffmpeg** concatena todos los clips en el video final `.mp4`
+
+**Parámetros del formulario:**
+| Campo | Descripción | Ejemplo |
+|:---|:---|:---|
+| Tema | Descripción libre del video | "La historia del jazz" |
+| Nº Escenas | Cuántas escenas genera (4–10) | 6 escenas |
+| Velocidad de Voz | Palabras por minuto de la narración | 150 ppm (normal) |
+
+**Tiempos estimados (Ryzen 7 8700G, CPU puro):**
+| Escenas | Tiempo aproximado |
+|:---|:---|
+| 4 | ~20–25 min |
+| 6 | ~30–35 min |
+| 8 | ~40–45 min |
+| 10 | ~50–60 min |
+
+**Prerrequisitos:**
+- **Fooocus** corriendo en el puerto 7861 (para imágenes)
+- `pyttsx3` instalado: `pip install pyttsx3`
+- **ffmpeg** en `_integrations/ffmpeg/ffmpeg.exe` (ya integrado)
+
+> Si Fooocus no está corriendo, el pipeline genera imágenes en negro como placeholder y el video se completa igual con audio y narración.
+
+**Descarga del video:**
+Cuando el job termina, aparece el botón **⬇ Descargar** en la tabla de historial. También disponible via API:
+```bash
+curl http://localhost:7860/v1/video/download?file=video_1_topic_20260420.mp4 --output mi_video.mp4
+```
 
 ---
 
@@ -529,3 +570,7 @@ El Bridge detecta ambos y usa el de menor latencia. Puedes forzar uno específic
 | Watchdog en LOCKED sin querer | Se fijó un modelo manualmente | Click "Forzar Unlock" en el panel Watchdog |
 | RAG muestra 0 documentos | Índice vacío | Indexa documentos con `/rag indexar <ruta>` |
 | Timeout en Multi-Agent | Los modelos tardan demasiado | Reduce N_modelos a 2 o usa modelos más pequeños |
+| Video Studio: "ffmpeg no encontrado" | ffmpeg no está en `_integrations/ffmpeg/` | Mueve `ffmpeg.exe` a `F:\Gravity_AI_bridge\_integrations\ffmpeg\` |
+| Video Studio: imágenes negras | Fooocus no está corriendo | Inicia Fooocus en `:7861` antes de crear el video |
+| Video Studio: sin voz | pyttsx3 no instalado | `pip install pyttsx3` |
+| Video Studio: LLM timeout | Ollama no está corriendo | `ollama serve` antes de crear videos |

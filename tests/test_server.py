@@ -11,20 +11,17 @@ BASE_URL = "http://localhost:7860"
 
 @pytest.fixture(scope="module", autouse=True)
 def ensure_server():
-    # Intentar ver si ya está corriendo
     try:
         requests.get(f"{BASE_URL}/v1/status", timeout=1)
         yield
-    except requests.exceptions.ConnectionError:
-        # Aquí se podría lanzar el subproceso, pero para este entorno
-        # asumimos que el usuario o el agente lo controla.
+    except Exception:
         pytest.skip("Servidor no detectado en localhost:7860")
 
 def test_status_endpoint():
     r = requests.get(f"{BASE_URL}/v1/status")
     assert r.status_code == 200
     data = r.json()
-    assert data["version"] == "9.3.1"
+    assert data["version"] == "10.1"
     assert "active_provider" in data
 
 def test_models_endpoint():

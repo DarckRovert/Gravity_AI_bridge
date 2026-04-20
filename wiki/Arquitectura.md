@@ -1,5 +1,5 @@
-# Arquitectura — Gravity AI Bridge V10.1
-**Diamond-Tier Edition** · Última actualización: 2026-04-17
+# Arquitectura — Gravity AI Bridge V10.2
+**Diamond-Tier Edition** · Última actualización: 2026-04-20
 
 ---
 
@@ -15,13 +15,15 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
                                │ HTTP POST /v1/chat/completions
                                ▼
 ┌────────────────────────────────────────────────────────────────────┐
-│                    GRAVITY AI BRIDGE V10.1                         │
-│                    bridge_server.py                                │
-│                    ThreadingHTTPServer :7860                       │
+│                    GRAVITY AI BRIDGE V10.2                         │
+│                    bridge_server.py (~200 líneas — Orquestador)    │
+│                    ThreadingHTTPServer :7860                        │
 │                                                                    │
-│  ┌──────────────┐  ┌─────────────┐  ┌──────────────────────────┐  │
-│  │ rate_limiter │  │ audit_log   │  │ reasoning_stripper        │  │
-│  └──────────────┘  └─────────────┘  └──────────────────────────┘  │
+│  ┌──────────────────────┐  ┌──────────────────────────────────┐    │
+│  │   api/state.py       │  │   api/routes/                    │    │
+│  │   Rate Limiter State │  │   mixin_get.py  (GET endpoints)  │    │
+│  │   GeoIP Tracker      │  │   mixin_post.py (POST + LLM)     │    │
+│  └──────────────────────┘  └──────────────────────────────────┘    │
 │                                                                    │
 │  ┌──────────────────────────────────────────────────────────────┐  │
 │  │                   provider_manager                           │  │
@@ -46,7 +48,7 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
 |:---|:---|
 | **Local-First** | Los proveedores locales tienen prioridad sobre cloud en la selección automática |
 | **Zero-Trust** | Rate limiting, API key whitelist, escaneo de amenazas en background |
-| **Micro-Kernel** | El bridge_server.py solo enruta. Cada funcionalidad es un módulo independiente |
+| **Micro-Kernel** | `bridge_server.py` solo orquesta. Cada funcionalidad es un módulo independiente con Mixins |
 | **Hot-Reload** | El Dashboard HTML se lee desde disco en cada request (sin reiniciar el servidor) |
 | **Fault Tolerant** | Si un proveedor falla, el Watchdog hace auto-switch en máximo 30 segundos |
 
@@ -57,7 +59,7 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
 ```
 F:\Gravity_AI_bridge\
 │
-├── bridge_server.py          ← Servidor HTTP principal (29 endpoints)
+├── bridge_server.py          ← Orquestador HTTP (~200 líneas, V10.1.1)
 ├── dashboard.py              ← Mini-servidor del Dashboard (hot-reload)
 ├── ask_deepseek.py           ← CLI interactivo del auditor
 ├── gravity_launcher.pyw      ← Launcher silencioso (sin consola)
@@ -66,7 +68,13 @@ F:\Gravity_AI_bridge\
 ├── INSTALAR.py               ← Asistente de configuración inicial
 ├── health_check.py           ← Health check standalone
 │
-├── core/                     ← Módulos del micro-kernel
+├── api/                      ← Capa de enrutamiento modular (V10.1.1)
+│   ├── state.py              ← Estado global: Rate Limiter + GeoIP Tracker
+│   └── routes/
+│       ├── mixin_get.py      ← 20+ endpoints GET (dashboard, status, métricas)
+│       └── mixin_post.py     ← Endpoints POST + lógica LLM (stream/complete)
+│
+├── core/                     ← Módulos del micro-kernel (29 módulos)
 │   ├── provider_manager.py   ← Escaneo y selección de proveedores
 │   ├── engine_watchdog.py    ← Auto-switch con lock/unlock
 │   ├── hardware_profiler.py  ← GPU/VRAM/NPU detection

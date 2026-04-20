@@ -210,6 +210,24 @@
   .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;animation:prog 1.5s ease infinite;width:60%}
   @keyframes prog{0%{width:20%}50%{width:80%}100%{width:20%}}
 
+  /* Video Studio */
+  .vs-grid{display:grid;grid-template-columns:360px 1fr;gap:20px;margin-bottom:24px}
+  .vs-form{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px}
+  .vs-form h3{font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .vs-status-card{background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:16px}
+  .vs-progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+  .vs-progress-label{font-size:12px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+  .vs-progress-track{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:8px}
+  .vs-progress-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#7c3aed,#4f46e5);transition:width 0.5s ease}
+  .vs-video-preview{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+  .vs-video-preview video{width:100%;border-radius:8px;max-height:240px;background:#000}
+  .vs-stat{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+  .vs-stat:last-child{border:none}
+  .vs-badge-done{background:rgba(63,185,80,.15);color:var(--success);border:1px solid rgba(63,185,80,.3);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
+  .vs-badge-run{background:rgba(240,136,62,.15);color:var(--warning);border:1px solid rgba(240,136,62,.3);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;animation:blink 1.5s infinite}
+  .vs-badge-fail{background:rgba(248,81,73,.15);color:var(--error);border:1px solid rgba(248,81,73,.3);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
+  .vs-badge-pend{background:rgba(139,148,158,.15);color:var(--muted);border:1px solid rgba(139,148,158,.3);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
+
   /* Deploy Manager */
   .deploy-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
   .deploy-status-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px}
@@ -321,6 +339,7 @@
         <div class="nav-item active" id="nav-chat"     onclick="switchTab('chat',this)">    <span class="nav-icon">💬</span><span class="nav-text">Chat Auditor</span></div>
         <div class="nav-item"        id="nav-vision"   onclick="switchTab('vision',this)">  <span class="nav-icon">🎨</span><span class="nav-text">Vision Studio</span></div>
         <div class="nav-item"        id="nav-queue"    onclick="switchTab('queue',this)">   <span class="nav-icon">🖼️</span><span class="nav-text">Image Queue</span></div>
+        <div class="nav-item"        id="nav-video"    onclick="switchTab('video',this)">   <span class="nav-icon">🎬</span><span class="nav-text">Video Studio</span></div>
         <div class="nav-item"        id="nav-deploy"   onclick="switchTab('deploy',this)">  <span class="nav-icon">🚀</span><span class="nav-text">Deploy</span></div>
         <div class="nav-item"        id="nav-gameserver" onclick="switchTab('gameserver',this)"><span class="nav-icon">⚔️</span><span class="nav-text">Game Servers</span></div>
         <div class="sidebar-label" style="margin-top:12px">IA & Sistema</div>
@@ -507,6 +526,115 @@
             <table>
               <thead><tr><th>#</th><th>Prompt</th><th>Estado</th><th>Performance</th><th>Creado</th></tr></thead>
               <tbody id="tb-queue"><tr><td colspan="5" style="text-align:center;color:var(--muted)">Sin trabajos aún</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Video Studio -->
+      <div id="panel-video" class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🎬 Video Studio</div>
+          <div class="panel-subtitle">Generación automática de videos CPU-only: LLM → Imagen → Voz → ffmpeg</div>
+        </div>
+        <div class="panel-content">
+
+          <!-- Estado del sistema -->
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:12px">
+            <span id="vs-ffmpeg-badge" style="font-size:12px;font-weight:700;color:var(--muted)">Verificando ffmpeg...</span>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+              <span style="font-size:12px;color:var(--muted)">Pipeline:</span>
+              <span style="font-size:12px;color:var(--text)">LLM → Fooocus (CPU) → pyttsx3 (SAPI) → ffmpeg</span>
+            </div>
+          </div>
+
+          <div class="vs-grid">
+            <!-- Formulario -->
+            <div class="vs-form">
+              <h3>🎬 Nuevo Video</h3>
+              <div class="form-group">
+                <label class="form-label">Tema del Video</label>
+                <textarea id="vs-topic" class="form-input" rows="3" style="resize:vertical;height:80px"
+                  placeholder="ej. La historia del jazz, Cómo funciona la IA, El universo observable..."></textarea>
+              </div>
+              <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div>
+                  <label class="form-label">Nº de Escenas</label>
+                  <select id="vs-scenes" class="form-input">
+                    <option value="4">4 escenas (~20 min)</option>
+                    <option value="6" selected>6 escenas (~30 min)</option>
+                    <option value="8">8 escenas (~40 min)</option>
+                    <option value="10">10 escenas (~50 min)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label">Velocidad de Voz</label>
+                  <select id="vs-speed" class="form-input">
+                    <option value="130">Lenta (130 ppm)</option>
+                    <option value="150" selected>Normal (150 ppm)</option>
+                    <option value="175">Rápida (175 ppm)</option>
+                  </select>
+                </div>
+              </div>
+              <button class="btn-primary" id="vs-create-btn" onclick="createVideo()">🎬 Generar Video</button>
+              <div style="margin-top:16px;padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border)">
+                <div style="font-size:11px;color:var(--muted);line-height:1.7">
+                  <strong style="color:var(--text)">Flujo automático:</strong><br>
+                  1. El LLM genera el guión con N escenas<br>
+                  2. Fooocus genera 1 imagen por escena (CPU, ~5 min/imagen)<br>
+                  3. Windows SAPI narra cada escena (.wav)<br>
+                  4. ffmpeg ensambla imagen + audio → clip<br>
+                  5. ffmpeg concatena clips → video .mp4 final
+                </div>
+              </div>
+            </div>
+
+            <!-- Estado -->
+            <div class="vs-status-card">
+              <div>
+                <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;font-weight:700">Estado de la Cola</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+                  <div style="background:var(--surface);padding:12px;border-radius:8px;text-align:center">
+                    <div style="font-size:28px;font-weight:800;color:var(--accent)" id="vs-pending-count">0</div>
+                    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Pendientes</div>
+                  </div>
+                  <div style="background:var(--surface);padding:12px;border-radius:8px;text-align:center">
+                    <div style="font-size:13px;font-weight:600;color:var(--warning)">CPU-Only</div>
+                    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Modo Hardware</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Progreso del job activo -->
+              <div id="vs-current-wrap" style="display:none">
+                <div class="vs-progress-wrap">
+                  <div class="vs-progress-label" id="vs-progress-label">Iniciando pipeline...</div>
+                  <div class="vs-progress-track">
+                    <div class="vs-progress-fill" id="vs-progress-fill" style="width:0%"></div>
+                  </div>
+                  <div style="font-size:11px;color:var(--muted);text-align:center">
+                    ⏳ La generación de imágenes en CPU toma ~5 min por escena. El sistema trabaja en background.
+                  </div>
+                </div>
+              </div>
+
+              <div style="font-size:12px;color:var(--muted);line-height:1.6;padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border)">
+                <strong style="color:var(--text)">Nota de hardware:</strong><br>
+                Ryzen 7 8700G (CPU puro). Sin GPU dedicada.<br>
+                ~5 min/imagen × N escenas + 20s ffmpeg + TTS.
+              </div>
+            </div>
+          </div>
+
+          <!-- Historial de videos -->
+          <div class="table-wrap">
+            <div class="table-title" style="display:flex;justify-content:space-between;align-items:center">
+              <span>Historial de Videos Generados</span>
+              <button class="btn-icon" onclick="fetchVideoStatus()" style="padding:4px 10px;font-size:11px">⟳ Actualizar</button>
+            </div>
+            <table>
+              <thead><tr><th>#</th><th>Tema</th><th>Estado</th><th>Escenas</th><th>Creado</th><th>Descargar</th></tr></thead>
+              <tbody id="tb-video"><tr><td colspan="6" style="text-align:center;color:var(--muted)">Sin videos generados aún.</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1801,6 +1929,98 @@ async function refreshAll(){
   if(currentTab==='watchdog')    fetchWatchdog();
   if(currentTab==='sessions')    fetchSessions();
   if(currentTab==='rag')         fetchRAG();
+  if(currentTab==='video')       fetchVideoStatus();
+}
+
+// ── Video Studio ──────────────────────────────────────────────────────────────
+async function createVideo(){
+  const topic = document.getElementById('vs-topic').value.trim();
+  if(!topic){ showToast('El campo Tema es obligatorio.','error'); return; }
+  const n_scenes    = parseInt(document.getElementById('vs-scenes').value)||6;
+  const voice_speed = parseInt(document.getElementById('vs-speed').value)||150;
+  const btn = document.getElementById('vs-create-btn');
+  btn.disabled=true; btn.textContent='Encolando...';
+  try{
+    const r = await fetch('/v1/video/create',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({topic, n_scenes, voice_speed})
+    });
+    const d = await r.json();
+    if(d.ok){
+      showToast(`✅ Job #${d.job_id} encolado. ~${n_scenes*5} min en CPU.`,'info');
+      document.getElementById('vs-topic').value='';
+      fetchVideoStatus();
+    } else {
+      showToast(d.error||'Error creando video','error');
+    }
+  }catch(e){ showToast('Sin conexión con el bridge.','error'); }
+  finally{ btn.disabled=false; btn.textContent='🎬 Generar Video'; }
+}
+
+async function cancelVideo(job_id){
+  try{
+    const r = await fetch('/v1/video/cancel',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({job_id})
+    });
+    const d = await r.json();
+    showToast(d.ok?`Job #${job_id} cancelado.`:'No se pudo cancelar (ya procesando).', d.ok?'info':'error');
+    fetchVideoStatus();
+  }catch(e){ showToast('Error cancelando.','error'); }
+}
+
+async function fetchVideoStatus(){
+  try{
+    const d = await fetch('/v1/video/status').then(r=>r.json());
+
+    // ffmpeg check
+    const ffBadge = document.getElementById('vs-ffmpeg-badge');
+    if(ffBadge) ffBadge.textContent = d.ffmpeg_ok ? '✅ ffmpeg OK' : '❌ ffmpeg no encontrado';
+
+    // Stats
+    document.getElementById('vs-pending-count').textContent = d.pending_count||0;
+
+    // Job activo
+    const cur = d.current_job;
+    const curWrap = document.getElementById('vs-current-wrap');
+    const fill = document.getElementById('vs-progress-fill');
+    const label = document.getElementById('vs-progress-label');
+    if(cur){
+      curWrap.style.display='block';
+      fill.style.width = (cur.progress||0)+'%';
+      label.textContent = `[${cur.progress||0}%] ${cur.step||'Procesando...'} — Job #${cur.id}: ${cur.topic}`;
+    } else {
+      curWrap.style.display='none';
+    }
+
+    // Historial
+    const tbody = document.getElementById('tb-video');
+    if(!d.history||!d.history.length){
+      tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted)">Sin videos generados aún.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = d.history.map(j=>{
+      const badge = j.status==='done'   ? '<span class="vs-badge-done">DONE</span>'
+                  : j.status==='running' ? '<span class="vs-badge-run">EN PROCESO</span>'
+                  : j.status==='failed'  ? '<span class="vs-badge-fail">ERROR</span>'
+                  : j.status==='cancelled'?'<span class="vs-badge-fail">CANCELADO</span>'
+                  : '<span class="vs-badge-pend">PENDIENTE</span>';
+      const dl = j.output_path
+        ? `<a href="/v1/video/download?file=${encodeURIComponent(j.output_path.split(/[\\/]/).pop())}" style="color:var(--accent);font-size:12px" download>⬇ Descargar</a>`
+        : (j.status==='pending'?`<button onclick="cancelVideo(${j.id})" style="background:none;border:1px solid var(--border);color:var(--muted);padding:3px 8px;border-radius:6px;cursor:pointer;font-size:11px">✕ Cancelar</button>`:'—');
+      const err = j.error ? `<div style="font-size:11px;color:var(--error);margin-top:4px">${j.error.slice(0,80)}</div>` : '';
+      return `<tr>
+        <td style="font-family:'JetBrains Mono';font-size:12px">#${j.id}</td>
+        <td>${j.topic.slice(0,40)}${j.topic.length>40?'…':''}</td>
+        <td>${badge}${err}</td>
+        <td style="font-size:12px;color:var(--muted)">${j.n_scenes} escenas</td>
+        <td style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono'">${(j.created_at||'').slice(0,16).replace('T',' ')}</td>
+        <td>${dl}</td>
+      </tr>`;
+    }).join('');
+  }catch(e){ console.error('[VideoStudio]',e); }
 }
 
 // Arranque

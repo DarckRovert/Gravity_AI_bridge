@@ -25,7 +25,7 @@ import time
 import subprocess
 import threading
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 import hashlib
 
@@ -81,7 +81,7 @@ _stdout_threads: dict = {}  # {server_id: threading.Thread}
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _now() -> str:
-    return datetime.utcnow().isoformat() + "Z"
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def _load_config() -> dict:

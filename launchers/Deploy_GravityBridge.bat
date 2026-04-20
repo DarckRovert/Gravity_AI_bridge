@@ -73,7 +73,7 @@ if /i not "%CONFIRM%"=="S" (
 )
 
 REM ── 8. Commit y Push ────────────────────────────────────────────────────────
-set MSG=feat: Gravity AI Bridge V10.1 Stable sync !DATETIME!
+set MSG=feat: Gravity AI Bridge V10.2 [VideoStudio+RAG+Fixes] !DATETIME!
 echo.
 echo  Commiteando: "%MSG%"
 

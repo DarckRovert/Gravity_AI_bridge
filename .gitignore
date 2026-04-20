@@ -29,6 +29,20 @@ dist/
 
 # Archivos temporales de Fooocus e Integraciones locales
 _integrations/Fooocus/
+_integrations/ffmpeg/
+_integrations/ComfyUI-Zluda/
 _saves/
 temp/
 __pycache__/
+
+# Datos en tiempo de ejecución (no son código)
+_audit_log*.jsonl
+_image_queue.sqlite
+_cost_log.json
+_first_run_done
+_knowledge.json
+_settings.json
+
+# Video Studio V10.2 — outputs y base de datos de cola
+_videos/
+_video_queue.sqlite

@@ -17,7 +17,7 @@ import os
 import json
 import subprocess
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 BASE_DIR     = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -147,7 +147,7 @@ def detect_output_dir(project_path: str) -> str:
 # ── Pipeline ───────────────────────────────────────────────────────────────────
 
 def _log(msg: str) -> None:
-    ts    = datetime.utcnow().strftime("%H:%M:%S")
+    ts    = datetime.now(timezone.utc).strftime("%H:%M:%S")
     entry = f"[{ts}] {msg}"
     with _lock:
         _state["log"].append(entry)
@@ -200,7 +200,7 @@ def _pipeline(project_path: str) -> None:
         _state["log"]        = []
         _state["netlify_url"] = None
         _state["error"]      = None
-        _state["last_run"]   = datetime.utcnow().isoformat() + "Z"
+        _state["last_run"]   = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         _state["project"]    = project_path
 
     _log(f"Iniciando pipeline para: {project_path}")

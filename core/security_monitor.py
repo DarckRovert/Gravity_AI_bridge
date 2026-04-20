@@ -20,7 +20,7 @@ import time
 import hashlib
 import threading
 import subprocess
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 import sys
@@ -135,7 +135,7 @@ def _sha256(path: str) -> Optional[str]:
 def _record_alert(level: str, message: str) -> None:
     """Registra una alerta en el estado y en el audit log."""
     entry = {
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "level": level,
         "message": message,
         "source": "security_monitor",
@@ -296,7 +296,7 @@ def _monitor_loop() -> None:
             integrity = _scan_file_integrity()
 
             with _lock:
-                _state["last_scan"] = datetime.utcnow().isoformat() + "Z"
+                _state["last_scan"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
                 _state["status"] = "ok" if not suspicious else "warning"
                 _state["processes"] = procs
                 _state["open_ports"] = ports
@@ -306,7 +306,7 @@ def _monitor_loop() -> None:
         except Exception as e:
             with _lock:
                 _state["status"] = "error"
-                _state["last_scan"] = datetime.utcnow().isoformat() + "Z"
+                _state["last_scan"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
         time.sleep(SCAN_INTERVAL_SECONDS)
 
@@ -326,7 +326,7 @@ def force_scan() -> dict:
     integrity = _scan_file_integrity()
 
     with _lock:
-        _state["last_scan"] = datetime.utcnow().isoformat() + "Z"
+        _state["last_scan"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         _state["status"] = "ok" if not suspicious else "warning"
         _state["processes"] = procs
         _state["open_ports"] = ports

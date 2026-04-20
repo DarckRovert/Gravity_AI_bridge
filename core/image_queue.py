@@ -18,7 +18,7 @@ import json
 import sqlite3
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -68,7 +68,7 @@ def add_job(prompt: str, performance: str = "Speed",
     Encola un trabajo de generación de imagen.
     Retorna el ID del trabajo asignado.
     """
-    now = datetime.utcnow().isoformat() + "Z"
+    now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     with _get_conn() as conn:
         cur = conn.execute(
             "INSERT INTO image_jobs (created_at, status, prompt, performance, width, height) "
@@ -107,7 +107,7 @@ def cancel_job(job_id: int) -> bool:
         cur = conn.execute(
             "UPDATE image_jobs SET status='cancelled', "
             "finished_at=? WHERE id=? AND status='pending'",
-            (datetime.utcnow().isoformat() + "Z", job_id)
+            (datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), job_id)
         )
         return cur.rowcount > 0
 
@@ -130,7 +130,7 @@ def _process_job(job: sqlite3.Row) -> None:
     with _get_conn() as conn:
         conn.execute(
             "UPDATE image_jobs SET status='running', started_at=? WHERE id=?",
-            (datetime.utcnow().isoformat() + "Z", job_id)
+            (datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), job_id)
         )
 
     with _lock:
@@ -138,7 +138,7 @@ def _process_job(job: sqlite3.Row) -> None:
             "id":      job_id,
             "prompt":  job["prompt"],
             "status":  "running",
-            "started": datetime.utcnow().isoformat() + "Z",
+            "started": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         }
 
     try:
@@ -189,14 +189,14 @@ def _process_job(job: sqlite3.Row) -> None:
         with _get_conn() as conn:
             conn.execute(
                 "UPDATE image_jobs SET status=?, finished_at=?, result_json=?, error=? WHERE id=?",
-                (status, datetime.utcnow().isoformat() + "Z", result_str, error_msg, job_id)
+                (status, datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), result_str, error_msg, job_id)
             )
 
     except Exception as e:
         with _get_conn() as conn:
             conn.execute(
                 "UPDATE image_jobs SET status='failed', finished_at=?, error=? WHERE id=?",
-                (datetime.utcnow().isoformat() + "Z", str(e), job_id)
+                (datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), str(e), job_id)
             )
     finally:
         with _lock:

@@ -1,4 +1,4 @@
-# Guía de API — Gravity AI Bridge V10.1
+# Guía de API — Gravity AI Bridge V10.2
 **Diamond-Tier Edition** · Base URL: `http://localhost:7860`
 
 El Bridge expone una API HTTP completamente compatible con el estándar OpenAI, más endpoints propios para gestión del sistema. Cualquier cliente que funcione con OpenAI puede conectarse al Bridge sin modificaciones.
@@ -495,6 +495,28 @@ curl -X POST http://localhost:7860/v1/security/scan \
 
 ---
 
+### `POST /v1/audit/rotate` *(V10.2)*
+
+Fuerza la rotación inmediata del audit log activo. El archivo actual se archiva con timestamp y se crea uno nuevo.
+
+```bash
+curl -X POST http://localhost:7860/v1/audit/rotate -H "Content-Type: application/json" -d '{}'
+# → {"ok": true, "archived": "_audit_log_20260420_190000.jsonl"}
+```
+
+---
+
+### `POST /v1/rag/toggle` *(V10.2)*
+
+Activa o desactiva el RAG en el flujo de chat en caliente (sin reiniciar el bridge).
+
+```bash
+curl -X POST http://localhost:7860/v1/rag/toggle -H "Content-Type: application/json" -d '{}'
+# → {"ok": true, "rag_enabled": false}
+```
+
+---
+
 ### `POST /v1/deploy`
 
 Inicia el pipeline `npm run build` → `netlify deploy --prod`.
@@ -525,6 +547,98 @@ Añade un trabajo de generación de imagen a la cola de Fooocus.
 ```json
 {"ok": true, "job_id": "job_a1b2c3d4"}
 ```
+
+---
+
+## Video Studio V10.2
+
+### `POST /v1/video/create`
+
+Encola un nuevo trabajo de generación de video. El pipeline corre en background (no bloquea la respuesta).
+
+```json
+{
+  "topic":      "La historia del jazz y su influencia en la música moderna",
+  "n_scenes":   6,
+  "voice_speed": 150
+}
+```
+
+| Campo | Tipo | Por defecto | Descripción |
+|:---|:---|:---|:---|
+| `topic` | string | **requerido** | Tema del video en lenguaje natural |
+| `n_scenes` | int | `6` | Número de escenas (4–10) |
+| `voice_speed` | int | `150` | Palabras por minuto de la voz SAPI |
+
+**Respuesta:**
+```json
+{
+  "ok": true,
+  "job_id": 1,
+  "message": "Video encolado (job #1). El proceso toma ~30 min en CPU.",
+  "n_scenes": 6
+}
+```
+
+---
+
+### `POST /v1/video/cancel`
+
+Cancela un trabajo **pendiente** (no puede cancelar uno que ya está procesándose).
+
+```json
+{"job_id": 3}
+```
+
+```json
+{"ok": true}
+```
+
+---
+
+### `GET /v1/video/status`
+
+Estado completo de la cola de video: pendientes, job activo con progreso en tiempo real e historial de los últimos 20 jobs.
+
+```json
+{
+  "ffmpeg_ok": true,
+  "pending_count": 1,
+  "pending_jobs": [{"id": 2, "topic": "El universo observable", "n_scenes": 6}],
+  "current_job": {
+    "id": 1,
+    "topic": "La historia del jazz",
+    "progress": 45,
+    "step": "[3/6] Generando imagen: Escena 3 — Los años dorados del bebop"
+  },
+  "history": [
+    {
+      "id": 1,
+      "topic": "La historia del jazz",
+      "status": "done",
+      "n_scenes": 6,
+      "output_path": "F:/Gravity_AI_bridge/_videos/video_1_La_historia_del_jazz_20260420.mp4",
+      "created_at": "2026-04-20T19:00:00Z",
+      "finished_at": "2026-04-20T19:32:14Z"
+    }
+  ]
+}
+```
+
+El campo `current_job` es `null` si no hay ningún job procesándose.
+
+---
+
+### `GET /v1/video/download?file=nombre.mp4`
+
+Descarga el archivo `.mp4` generado. El parámetro `file` debe ser solo el nombre del archivo (sin ruta).
+
+```bash
+curl "http://localhost:7860/v1/video/download?file=video_1_La_historia_del_jazz_20260420.mp4" \
+  --output video.mp4
+```
+
+Retorna el binario MP4 con `Content-Type: video/mp4` y `Content-Disposition: attachment`.
 
 ---
 

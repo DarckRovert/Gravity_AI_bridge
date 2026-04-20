@@ -1,4 +1,4 @@
-# FAQ — Gravity AI Bridge V10.1
+# FAQ — Gravity AI Bridge V10.2
 **Diamond-Tier Edition** · [Reportar un bug](https://github.com/DarckRovert/Gravity_AI_bridge/issues) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
 
 ---
@@ -251,3 +251,43 @@ echo {"providers":{}, "daily":{}, "total":{}} > _cost_log.json
 - **GitHub Issues:** [github.com/DarckRovert/Gravity_AI_bridge/issues](https://github.com/DarckRovert/Gravity_AI_bridge/issues)
 - **Twitch:** [twitch.tv/darckrovert](https://twitch.tv/darckrovert) (en directo)
 - **CONTRIBUTING.md** — Para contribuir con código directamente
+
+---
+
+## Video Studio V10.2
+
+### ¿Cuánto tarda en generarse un video?
+Depende del hardware y el número de escenas. En el **Ryzen 7 8700G** (CPU puro, sin GPU dedicada):
+- ~5 minutos por imagen (Fooocus CPU)
+- ~10 segundos de TTS (voces SAPI Windows)
+- ~20 segundos de ensamblado ffmpeg por clip
+- ~30 segundos de concatenación final
+
+Total estimado para 6 escenas: **30–35 minutos**.
+
+---
+
+### ¿Qué pasa si Fooocus no está corriendo?
+El pipeline detecta el error y genera una imagen de marcador negro por cada escena que falle. El video se ensambla igualmente con audio y texto. No bloquea la generación.
+
+---
+
+### ¿Qué pasa si el LLM (Ollama) no está corriendo?
+El pipeline usa un guión de ejemplo genérico con N escenas. El resultado es funcional pero sin personalización del contenido. Para aprovechar el Video Studio al máximo, ten Ollama corriendo antes de crear un video.
+
+---
+
+### ¿Puedo cancelar un video en proceso?
+Solo si el job todavía está en estado `pending`. Un job `running` no puede interrumpirse sin reiniciar el bridge (el pipeline corre en un hilo daemon bloqueante por escena). La próxima versión añadirá soporte para interrupción por señal.
+
+---
+
+### ¿En qué formato se genera el video?
+MP4 con codec H.264 (`libx264 -preset fast`) a 24 fps. El audio usa AAC a 128 kbps. Compatible con todos los reproductores modernos y plataformas de video.
+
+---
+
+### ¿Dónde se guardan los videos generados?
+En `F:\Gravity_AI_bridge\_videos\`. Los archivos temporales por escena se guardan en `_videos\job_N\` y se eliminan automáticamente al finalizar la concatenación.
+
+---

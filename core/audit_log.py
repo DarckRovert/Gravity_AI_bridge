@@ -1,17 +1,20 @@
 import json
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timezone
+from collections import deque
 
 BASE_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MAX_BYTES = 5 * 1024 * 1024   # 5 MB — archivo de rotación
+MAX_BYTES = 5 * 1024 * 1024   # 5 MB
+MAX_LINES = 10_000             # 10k líneas — umbral de rotación por volumen
 
 
 class AuditLogger:
     """
     Immutable audit log for all inference calls (append-only JSONL).
     Records: timestamp, session_id, provider, model, tokens, latency, cost.
-    V2: Rotación automática cuando el archivo supera MAX_BYTES (5 MB).
+    V2: Rotación automática cuando el archivo supera MAX_BYTES (5 MB) o MAX_LINES (10k).
+    V3: get_recent() optimizado con deque — no carga el archivo completo en memoria.
     """
 
     def __init__(self, log_path: str = "_audit_log.jsonl"):
@@ -20,14 +23,36 @@ class AuditLogger:
             self.log_path = os.path.join(BASE_DIR, log_path)
         else:
             self.log_path = log_path
+        self._line_count: int = self._count_lines()
+
+    def _count_lines(self) -> int:
+        """Cuenta líneas del log actual sin cargarlo en memoria."""
+        if not os.path.isfile(self.log_path):
+            return 0
+        try:
+            count = 0
+            with open(self.log_path, "rb") as f:
+                for _ in f:
+                    count += 1
+            return count
+        except Exception:
+            return 0
 
     def _rotate_if_needed(self) -> None:
-        """Rota el log si supera MAX_BYTES. Crea una copia .bak y empieza uno nuevo."""
+        """Rota el log si supera MAX_BYTES o MAX_LINES."""
         try:
-            if os.path.isfile(self.log_path) and os.path.getsize(self.log_path) >= MAX_BYTES:
+            needs_rotation = False
+            if os.path.isfile(self.log_path):
+                if os.path.getsize(self.log_path) >= MAX_BYTES:
+                    needs_rotation = True
+                elif self._line_count >= MAX_LINES:
+                    needs_rotation = True
+
+            if needs_rotation:
                 bak = self.log_path.replace(".jsonl", f".bak.{int(time.time())}.jsonl")
                 os.rename(self.log_path, bak)
-                # Eliminar backups viejos si hay más de 3
+                self._line_count = 0
+                # Mantener máximo 3 backups — eliminar los más viejos
                 base_dir  = os.path.dirname(self.log_path)
                 base_name = os.path.basename(self.log_path).replace(".jsonl", "")
                 baks = sorted([
@@ -42,15 +67,15 @@ class AuditLogger:
     def record(self, session_id: str, provider: str, model: str,
                input_tokens: int, output_tokens: int, cost_usd: float, latency_ms: float):
         entry = {
-            "timestamp":    datetime.utcnow().isoformat() + "Z",
-            "session_id":   session_id,
-            "provider":     provider,
-            "model":        model,
-            "input_tokens": input_tokens,
+            "timestamp":     datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "session_id":    session_id,
+            "provider":      provider,
+            "model":         model,
+            "input_tokens":  input_tokens,
             "output_tokens": output_tokens,
-            "total_tokens": input_tokens + output_tokens,
-            "latency_ms":   latency_ms,
-            "cost_usd":     cost_usd,
+            "total_tokens":  input_tokens + output_tokens,
+            "latency_ms":    latency_ms,
+            "cost_usd":      cost_usd,
         }
 
         self._rotate_if_needed()
@@ -58,19 +83,23 @@ class AuditLogger:
         try:
             with open(self.log_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(entry) + "\n")
+            self._line_count += 1
         except Exception:
             pass  # Silencioso en frozen build — stdout puede no estar disponible
 
     def get_recent(self, limit: int = 50) -> list:
-        """Devuelve las últimas N entradas del audit log."""
+        """
+        Devuelve las últimas N entradas del audit log.
+        Usa collections.deque para leer únicamente las últimas N líneas
+        sin cargar el archivo completo en memoria.
+        """
         if not os.path.exists(self.log_path):
             return []
 
         try:
             with open(self.log_path, "r", encoding="utf-8") as f:
-                lines = f.readlines()
-            recent_lines = lines[-limit:] if limit > 0 else lines
-            return [json.loads(line) for line in recent_lines if line.strip()]
+                tail = deque(f, maxlen=limit if limit > 0 else None)
+            return [json.loads(line) for line in tail if line.strip()]
         except Exception:
             return []
 

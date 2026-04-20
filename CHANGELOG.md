@@ -2,7 +2,48 @@
 
 Registro maestro de la metamorfosis estructural aplicada sobre la herramienta Gravity AI Bridge y el módulo local de servidor WOW. 
 
+## [V10.2] Video Studio + RAG en Chat + Admin API - 20/04/2026
+
+**[NUEVA FUNCIONALIDAD — VIDEO STUDIO]**
+- **`core/video_pipeline.py`**: Pipeline completo de generación de videos CPU-only. Flujo de 5 pasos: LLM (guión JSON) → Fooocus CPU (imágenes) → Windows SAPI/pyttsx3 (TTS .wav) → ffmpeg (clips .mp4) → ffmpeg concat (video final).
+- **Cola SQLite Aislada**: `_video_queue.sqlite` con worker daemon independiente. Progreso real 0-100 por escena accesible en tiempo real.
+- **Endpoints REST**: `POST /v1/video/create`, `POST /v1/video/cancel`, `GET /v1/video/status`, `GET /v1/video/download`.
+- **Dashboard Panel #18**: Nuevo panel "🎬 Video Studio" con formulario, barra de progreso en tiempo real, historial de 20 jobs y descarga directa del MP4.
+- **Fallback automático**: Si Fooocus no está corriendo, genera imagen placeholder negra y continúa.
+
+**[NUEVA FUNCIONALIDAD — RAG EN CHAT]**
+- **Inyección automática de contexto**: El endpoint `/v1/chat/completions` inyecta fragmentos RAG relevantes cuando `rag_enabled: true` en `_settings.json`.
+- **`POST /v1/rag/toggle`**: Activa/desactiva el RAG en caliente sin reiniciar el bridge.
+
+**[NUEVA FUNCIONALIDAD — ADMIN API]**
+- **`POST /v1/audit/rotate`**: Fuerza rotación inmediata del audit log activo con archivado por timestamp.
+
+**[INFRAESTRUCTURA]**
+- **ffmpeg integrado**: `_integrations/ffmpeg/ffmpeg.exe` (v2026-04-19) añadido al PATH de usuario.
+- **pyttsx3**: Motor TTS Windows SAPI instalado para síntesis de voz offline.
+- **62 tests pasados**: Suite pytest completa con 0 fallos y 0 errores.
+- **Limpieza del repositorio**: Eliminados `build/` (~450MB), logs obsoletos (`fooocus_trigger_debug.log`, `native_trigger.py.bak`).
+
+**[DOCUMENTACIÓN]**
+- Wiki completa actualizada a V10.2: `Home.md`, `Arquitectura.md`, `Guia-API.md`, `Manual-Usuario.md`, `FAQ.md`, `API-Reference.md`.
+- `README.md` actualizado con módulo Video Studio y badge V10.2.
+- `CHANGELOG.md` con esta entrada.
+- `Deploy_GravityBridge.bat` actualizado con mensaje de commit V10.2.
+
+## [V10.1.1] Modularización Arquitectónica del Enrutador - 20/04/2026
+
+**[REFACTORIZACIÓN ESTRUCTURAL]**
+- **Desacoplamiento del Monolito:** `bridge_server.py` reducido de 1,323 líneas a ~200 líneas. Toda la lógica de rutas migrada a un sistema de Mixins distribuidos (`api/routes/mixin_get.py`, `api/routes/mixin_post.py`).
+- **Estado Global Aislado:** Variables de estado de Rate Limiter y GeoIP Tracker extraídas a `api/state.py` eliminando dependencias cíclicas y fugas de contexto entre módulos.
+- **Bugs Corregidos:** 4 regresiones identificadas y corregidas post-refactorización: referencia a `_RATE_LIMIT_WINDOW` obsoleta, variables GeoIP con prefijo incorrecto, 7 rutas `__file__` apuntando a directorio incorrecto, y `background_scanner` huérfano.
+
+**[MEJORAS DE ESTABILIDAD]**
+- **Audit Log — Rotación por Volumen:** `core/audit_log.py` ahora rota en base a 10,000 líneas además del umbral de 5MB existente. El archivo contaba con 19,785 líneas sin rotación activa. `get_recent()` optimizado con `collections.deque` — ya no carga el archivo completo en memoria.
+- **Limpieza del Repositorio:** Eliminados 12 archivos residuales (`scratch_*.py`, `temp_task.txt`, stubs de wiki en inglés, backup del monolito).
+- **requirements.txt:** Versión mínima fijada para `prometheus_client>=0.20.0`. Cabecera actualizada a V10.1.
+
 ## [V10.1] Stable Diamond-Tier Integration - 19/04/2026
+
 
 **[MAJOR FIXES & SEGURIDAD CORE]**
 - **Image Queue Blindado:** La vulnerabilidad sintética de la confirmación Gradio ahora ha sido purgada de raíz. El modulo `fooocus_client` y `image_queue` hacen diferencia real de carpetas en sistema operativo ("antes de disparar POST" vs "post disparar POST"). Los Falsos Positivos de generación se han reducido de un posible 15% a un rotundo 0%.
