@@ -1,4 +1,4 @@
-# Arquitectura — Gravity AI Bridge V10.2
+# Arquitectura — Gravity AI Bridge V10.3
 **Diamond-Tier Edition** · Última actualización: 2026-04-20
 
 ---
@@ -15,7 +15,7 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
                                │ HTTP POST /v1/chat/completions
                                ▼
 ┌────────────────────────────────────────────────────────────────────┐
-│                    GRAVITY AI BRIDGE V10.2                         │
+│                    GRAVITY AI BRIDGE V10.3                         │
 │                    bridge_server.py (~200 líneas — Orquestador)    │
 │                    ThreadingHTTPServer :7860                        │
 │                                                                    │

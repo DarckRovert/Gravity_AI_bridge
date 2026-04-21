@@ -1,4 +1,4 @@
-# 🪐 Gravity AI Bridge | Control Maestro & Ecosistema de Automatización V10.2
+# 🪐 Gravity AI Bridge | Control Maestro & Ecosistema de Automatización V10.3
 
 Bienvenido a la Central de Conocimiento del Bridge, tu hub principal para orquestar infraestructuras pesadas con herramientas LLMs subyacentes sin fricciones externas.
 
@@ -18,7 +18,7 @@ A continuación verás el índice para navegar los pilares funcionales que confo
 6. [❓ FAQ](./FAQ.md)
    Preguntas frecuentes, solución de problemas y guía de Video Studio.
 
-## Novedades V10.2
+## Novedades V10.3
 - **🎬 Video Studio**: Generación automática de videos documentales sin GPU dedicada. Pipeline: LLM → Fooocus (CPU) → SAPI TTS → ffmpeg.
 - **RAG en Chat**: Contexto vectorial inyectado automáticamente en cada petición cuando `rag_enabled: true`.
 - **Admin API**: Nuevos endpoints `POST /v1/audit/rotate` y `POST /v1/rag/toggle`.

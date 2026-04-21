@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║          GRAVITY AI - BRIDGE SERVER V10.2 [Diamond-Tier Edition]             ║
+║          GRAVITY AI - BRIDGE SERVER V10.3 [Diamond-Tier Edition]             ║
 ║                    Enrutador Universal OpenAI-Compatible                     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
@@ -79,6 +79,12 @@ from api.routes.mixin_get import GetRoutesMixin
 from api.routes.mixin_post import PostRoutesMixin
 
 class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMixin):
+    def handle_one_request(self):
+        try:
+            super().handle_one_request()
+        except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):
+            pass # Cliente desconectado abruptamente
+
 
     def _send_cors(self):
         self.send_header("Access-Control-Allow-Origin",  "*")
@@ -134,16 +140,23 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             # ── V10.1 New Endpoints ─────────────────────────────────────────────
             "/v1/queue/stream":     self._serve_queue_stream,
             "/v1/fabricaweb/status":self._serve_fabricaweb_status,
-            # ── V10.2 Video Studio ──────────────────────────────────────────────
+            # ── V10.3 Video Studio ──────────────────────────────────────────────
             "/v1/video/status":     self._serve_video_status,
             "/v1/video/download":   self._serve_video_download,
+            "/v1/video/voices":     self._serve_video_voices,
+            # ── V10.3 Image Lab (Pollinations) ────────────────────────────────────────
+            "/v1/image/health":     self._serve_pollinations_health,
+            "/v1/image/lab/history":self._serve_image_lab_list,
         }
+
         # Rutas con query string (?server=&lines=)
         path_clean = self.path.split("?")[0]
         if path_clean in routes:
             routes[path_clean]()
         elif self.path.startswith("/static/output/"):
             self._serve_static_output()
+        elif self.path.startswith("/static/imagelab/"):
+            self._serve_static_image_lab()
         else:
             self.send_response(404)
             self.end_headers()
@@ -160,7 +173,7 @@ def run_server():
     provider_manager.scan_all()
     threading.Thread(target=background_scanner, daemon=True).start()
 
-    # Arrancar módulos background V10.1 + V10.2
+    # Arrancar módulos background V10.1 + V10.3
     security_monitor.start()
     image_queue.start()
     video_pipeline.start()
@@ -176,13 +189,13 @@ def run_server():
             _wal_conn = _sqlite3.connect(_wal_path)
             _wal_conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             _wal_conn.close()
-            log.info("[V10.2] WAL checkpoint completado en _cache.sqlite.")
+            log.info("[V10.3] WAL checkpoint completado en _cache.sqlite.")
     except Exception as _e:
-        log.debug(f"[V10.2] WAL checkpoint salteado: {_e}")
+        log.debug(f"[V10.3] WAL checkpoint salteado: {_e}")
 
-    log.info("[V10.2] Security Monitor, Image Queue, Video Pipeline, Engine Watchdog, AI Process Manager activos.")
+    log.info("[V10.3] Security Monitor, Image Queue, Video Pipeline, Engine Watchdog, AI Process Manager activos.")
 
-    log.info(f"Gravity Bridge V10.2 — http://localhost:{port} | Dashboard: / | API: /v1")
+    log.info(f"Gravity Bridge V10.3 — http://localhost:{port} | Dashboard: / | API: /v1")
     server = ThreadingHTTPServer(("0.0.0.0", port), GravityBridgeHandler)
     try:
         server.serve_forever()

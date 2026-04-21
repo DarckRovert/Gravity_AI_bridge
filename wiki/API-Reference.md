@@ -45,7 +45,7 @@ Flujo puro **SSE Event-Stream Server**. La base para tu FrontEnd. Devuelve métr
 ### `GET /v1/fabricaweb/status` y `POST /v1/fabricaweb/deploy`
 El puente funciona de Pipeline CI/CD interno. Encripta tu WebApp de front-end alojada en `_integrations` tras leer dinámicamente tu framework desde el `package.json` (`/out`, `/dist`) e incrustándolo hacia hostings de netlify mediante tokens puros o repos locales.
 
-## 🎬 Video Studio V10.2 (CPU-Only)
+## 🎬 Video Studio V10.3 (CPU-Only)
 
 ### `POST /v1/video/create`
 Encola un trabajo de generación de video completo. Flujo: LLM (guión) → Fooocus (imágenes, CPU) → pyttsx3/SAPI (TTS) → ffmpeg (ensamblado clips y concatenación). Parámetros: `topic`, `n_scenes` (4–10), `voice_speed` (ppm).
@@ -59,7 +59,7 @@ Estado completo de la cola: pendientes, job activo con `progress` (0–100) y `s
 ### `GET /v1/video/download?file=nombre.mp4`
 Servicio de descarga directa del MP4 generado. Streaming chunk-based (65 KB) para archivos grandes. Validación de path traversal incluida.
 
-## 🛡️ Endpoints de Administración V10.2
+## 🛡️ Endpoints de Administración V10.3
 
 ### `POST /v1/audit/rotate`
 Forza rotación inmediata del audit log activo con archivado por timestamp.

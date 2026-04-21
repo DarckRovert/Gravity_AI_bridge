@@ -1,4 +1,4 @@
-# FAQ — Gravity AI Bridge V10.2
+# FAQ — Gravity AI Bridge V10.3
 **Diamond-Tier Edition** · [Reportar un bug](https://github.com/DarckRovert/Gravity_AI_bridge/issues) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
 
 ---
@@ -254,7 +254,7 @@ echo {"providers":{}, "daily":{}, "total":{}} > _cost_log.json
 
 ---
 
-## Video Studio V10.2
+## Video Studio V10.3
 
 ### ¿Cuánto tarda en generarse un video?
 Depende del hardware y el número de escenas. En el **Ryzen 7 8700G** (CPU puro, sin GPU dedicada):

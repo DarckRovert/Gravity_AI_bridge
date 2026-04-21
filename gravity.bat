@@ -2,7 +2,7 @@
 cd /d "%~dp0"
 setlocal enabledelayedexpansion
 
-REM ── Gravity AI Bridge V10.1 PRO [Diamond-Tier Edition] - Comando Global ──────────────────────────────
+REM ── Gravity AI Bridge V10.3 PRO [Diamond-Tier Edition] - Comando Global ──────────────────────────────
 REM Uso:  gravity "pregunta"          → respuesta directa
 REM       gravity                     → modo interactivo
 REM       gravity --help              → ayuda rápida
@@ -15,7 +15,7 @@ REM ─────────────────────────�
 
 if "%~1"=="--help" (
     echo.
-    echo  GRAVITY AI BRIDGE V10.1 PRO [Diamond-Tier Edition] - Ayuda Rápida
+    echo  GRAVITY AI BRIDGE V10.3 PRO [Diamond-Tier Edition] - Ayuda Rápida
     echo  ─────────────────────────────────────────
     echo  gravity                  Modo interactivo (CLI)
     echo  gravity "pregunta"       Respuesta directa rápida
@@ -32,7 +32,7 @@ if "%~1"=="--help" (
 )
 
 if "%~1"=="--version" (
-    echo Gravity AI Bridge V10.1 PRO [Diamond-Tier Edition]
+    echo Gravity AI Bridge V10.3 PRO [Diamond-Tier Edition]
     echo https://github.com/DarckRovert/Gravity_AI_bridge
     exit /b 0
 )

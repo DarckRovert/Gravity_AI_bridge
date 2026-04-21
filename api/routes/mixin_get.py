@@ -146,7 +146,7 @@ class GetRoutesMixin:
         best_p, best_m = provider_manager.get_best()
         scans  = provider_manager.scan_all()
         status = {
-            "version":         "10.1",
+            "version":         "10.3",
             "bridge_online":   True,
             "active_provider": best_p.name if best_p else None,
             "active_model":    best_m,
@@ -517,7 +517,16 @@ class GetRoutesMixin:
         """Perfil completo de hardware: GPUs, VRAM, NPU, num_ctx óptimo."""
         try:
             from core.hardware_profiler import get_full_profile
+            from core.cost_tracker import CostTracker
+            import psutil
             profile = get_full_profile()
+            try:
+                profile["cpu_percent"] = psutil.cpu_percent(interval=None)
+                profile["ram_percent"] = psutil.virtual_memory().percent
+                st = CostTracker.get_session_tokens()
+                profile["tokens"] = int(st.get("input", 0)) + int(st.get("output", 0))
+            except:
+                pass
             body = json.dumps(profile, indent=2).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
@@ -600,6 +609,36 @@ class GetRoutesMixin:
             self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode())
 
+    def _serve_video_voices(self):
+        """GET /v1/video/voices — Lista las voces SAPI disponibles con metadatos."""
+        try:
+            voices = video_pipeline.get_available_voices()
+            styles = {k: v["label"] for k, v in video_pipeline.CINEMA_STYLES.items()}
+            body = json.dumps({
+                "voices":  voices,
+                "count":   len(voices),
+                "styles":  styles,
+                "langs":   {
+                    "es": "Español",
+                    "en": "English",
+                    "pt": "Português",
+                    "fr": "Français",
+                    "de": "Deutsch",
+                    "it": "Italiano",
+                },
+            }, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+
+
     def _serve_video_download(self):
         """GET /v1/video/download?file=nombre.mp4 — Descarga un video generado."""
         try:
@@ -635,4 +674,85 @@ class GetRoutesMixin:
             self.send_response(500)
             self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    # ── Pollinations.ai Motor ─────────────────────────────────────────────────
+    def _serve_pollinations_health(self):
+        """GET /v1/image/health — Estado de conectividad con Pollinations.ai."""
+        try:
+            from tools.pollinations_generator import health_check
+            status = health_check()
+            body = json.dumps(status, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            body = json.dumps({"online": False, "message": str(e)}).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+
+    def _serve_image_lab_list(self):
+        """GET /v1/image/lab/history — Devuelve lista de imágenes de ImageLab."""
+        try:
+            BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            lab_dir = os.path.join(BASE, "_integrations", "ImageLab")
+            files = []
+            if os.path.isdir(lab_dir):
+                for ext in ("*.png", "*.jpg", "*.jpeg", "*.webp"):
+                    files.extend(glob.glob(os.path.join(lab_dir, ext)))
+            
+            files.sort(key=os.path.getmtime, reverse=True)
+            img_urls = []
+            for f in files[:50]:
+                basename = os.path.basename(f)
+                img_urls.append({
+                    "url": f"/static/imagelab/{basename}",
+                    "name": basename,
+                    "date": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(f)))
+                })
+            
+            resp = {"images": img_urls, "count": len(img_urls)}
+            body = json.dumps(resp).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+
+    def _serve_static_image_lab(self):
+        """
+        GET /static/imagelab/<filename>
+        Sirve imágenes generadas por el Image Lab (guardadas en _integrations/ImageLab/).
+        """
+        raw = self.path[len("/static/imagelab/"):]
+        if not raw or ".." in raw:
+            self.send_response(403); self.end_headers(); return
+
+        BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        lab_dir = os.path.join(BASE, "_integrations", "ImageLab")
+        filepath = os.path.join(lab_dir, os.path.basename(raw))
+
+        if not os.path.isfile(filepath):
+            self.send_response(404); self.end_headers(); return
+
+        mime, _ = mimetypes.guess_type(filepath)
+        mime = mime or "image/png"
+        try:
+            with open(filepath, "rb") as f:
+                data = f.read()
+            self.send_response(200)
+            self.send_header("Content-Type", mime)
+            self.send_header("Content-Length", str(len(data)))
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(data)
+        except Exception:
+            self.send_response(500); self.end_headers()
 

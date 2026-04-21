@@ -1,4 +1,4 @@
-# Guía de API — Gravity AI Bridge V10.2
+# Guía de API — Gravity AI Bridge V10.3
 **Diamond-Tier Edition** · Base URL: `http://localhost:7860`
 
 El Bridge expone una API HTTP completamente compatible con el estándar OpenAI, más endpoints propios para gestión del sistema. Cualquier cliente que funcione con OpenAI puede conectarse al Bridge sin modificaciones.
@@ -495,7 +495,7 @@ curl -X POST http://localhost:7860/v1/security/scan \
 
 ---
 
-### `POST /v1/audit/rotate` *(V10.2)*
+### `POST /v1/audit/rotate` *(V10.3)*
 
 Fuerza la rotación inmediata del audit log activo. El archivo actual se archiva con timestamp y se crea uno nuevo.
 
@@ -506,7 +506,7 @@ curl -X POST http://localhost:7860/v1/audit/rotate -H "Content-Type: application
 
 ---
 
-### `POST /v1/rag/toggle` *(V10.2)*
+### `POST /v1/rag/toggle` *(V10.3)*
 
 Activa o desactiva el RAG en el flujo de chat en caliente (sin reiniciar el bridge).
 
@@ -550,7 +550,7 @@ Añade un trabajo de generación de imagen a la cola de Fooocus.
 
 ---
 
-## Video Studio V10.2
+## Video Studio V10.3
 
 ### `POST /v1/video/create`
 

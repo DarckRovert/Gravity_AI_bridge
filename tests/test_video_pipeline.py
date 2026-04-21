@@ -1,5 +1,5 @@
 """
-Tests unitarios para core/video_pipeline.py — V10.2
+Tests unitarios para core/video_pipeline.py — V10.3
 Cubre: cola SQLite, add_job, cancel_job, get_queue_status,
        _generate_script (fallback), _generate_audio (mock),
        _assemble_clip (ffmpeg ausente), start() idempotente.
@@ -125,20 +125,18 @@ class TestScriptGeneration:
             scenes = vp._generate_script("Tema X", n_scenes=6)
         assert len(scenes) == 6
 
-    def test_llm_response_parsed_correctly(self, isolated_video_env):
+    @patch("core.provider_manager.get_best")
+    @patch("core.provider_manager.complete")
+    def test_llm_response_parsed_correctly(self, mock_complete, mock_get_best, isolated_video_env):
         vp = isolated_video_env
         fake_scenes = [
             {"title": "T1", "image_prompt": "P1", "narration": "N1"},
             {"title": "T2", "image_prompt": "P2", "narration": "N2"},
         ]
-        fake_response = MagicMock()
-        fake_response.read.return_value = json.dumps({
-            "message": {"content": json.dumps(fake_scenes)}
-        }).encode("utf-8")
-        fake_response.__enter__ = lambda s: s
-        fake_response.__exit__ = MagicMock(return_value=False)
-        with patch("urllib.request.urlopen", return_value=fake_response):
-            scenes = vp._generate_script("Test", n_scenes=2)
+        mock_get_best.return_value = (MagicMock(name="FalsoProv"), "FalsoModel")
+        mock_complete.return_value = json.dumps(fake_scenes)
+
+        scenes = vp._generate_script("Test", n_scenes=2)
         assert len(scenes) == 2
         assert scenes[0]["title"] == "T1"
 

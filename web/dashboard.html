@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gravity AI — V10.1 Dashboard</title>
+<title>Gravity AI — V10.3 Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -227,6 +227,10 @@
   .vs-badge-run{background:rgba(240,136,62,.15);color:var(--warning);border:1px solid rgba(240,136,62,.3);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;animation:blink 1.5s infinite}
   .vs-badge-fail{background:rgba(248,81,73,.15);color:var(--error);border:1px solid rgba(248,81,73,.3);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
   .vs-badge-pend{background:rgba(139,148,158,.15);color:var(--muted);border:1px solid rgba(139,148,158,.3);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
+  .vs-style-btn{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 6px;text-align:center;cursor:pointer;transition:all 0.2s;font-size:20px;opacity:0.7}
+  .vs-style-btn:hover{background:var(--card);opacity:1;border-color:rgba(124,58,237,0.5)}
+  .vs-style-btn.active{background:rgba(124,58,237,0.15);border-color:#7c3aed;opacity:1;box-shadow:0 0 12px rgba(124,58,237,0.2)}
+  .vs-style-btn span{display:block;font-size:10px;font-weight:600;margin-top:6px;color:var(--text);letter-spacing:0.5px}
 
   /* Deploy Manager */
   .deploy-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
@@ -302,7 +306,264 @@
   .wd-lock-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:700;border:1px solid}
   .wd-lock-badge.locked{background:rgba(248,81,73,0.1);color:var(--error);border-color:rgba(248,81,73,0.3)}
   .wd-lock-badge.auto{background:rgba(63,185,80,0.1);color:var(--success);border-color:rgba(63,185,80,0.3)}
+
+  /* ── GRAVITY V10.3 ULTRA EVOLUTION — CSS NUEVO ── */
+
+  /* Home Panel Mission Control */
+  .home-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:28px}
+  .home-widget{background:var(--glass);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:.3s}
+  .home-widget:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+  .home-widget::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+  .home-widget-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .home-widget-value{font-size:28px;font-weight:800;letter-spacing:-0.5px;color:var(--text)}
+  .home-widget-sub{font-size:12px;color:var(--muted);margin-top:6px}
+  .home-quick-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
+  .home-qa-btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:10px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;transition:.2s;display:flex;align-items:center;gap:8px;font-family:'Inter',sans-serif}
+  .home-qa-btn:hover{border-color:var(--accent);background:rgba(79,70,229,0.1);transform:translateY(-1px);box-shadow:0 4px 12px rgba(79,70,229,0.15)}
+  .home-activity{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:24px}
+  .home-activity-title{padding:14px 20px;font-size:13px;font-weight:600;background:var(--surface);border-bottom:1px solid var(--border)}
+  .home-activity-row{display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:13px;transition:.15s}
+  .home-activity-row:hover{background:rgba(255,255,255,0.02)}
+  .home-activity-row:last-child{border:none}
+  .home-services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px}
+  .home-service-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;transition:.2s}
+  .home-service-card:hover{border-color:var(--accent)}
+  .home-service-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+  /* Topbar Stats */
+  .topbar-stat{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:4px 12px;font-size:11px;color:var(--muted);font-family:'JetBrains Mono';display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:28px}
+  .topbar-stat span{display:inline-flex;align-items:center}
+  .topbar-stat .val{color:var(--text);font-weight:700}
+  .breadcrumb{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .breadcrumb span{color:var(--text);font-weight:600}
+
+  /* Bell Notifications */
+  .bell-btn{position:relative;background:var(--card);border:1px solid var(--border);width:36px;height:36px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:.2s}
+  .bell-btn:hover{border-color:var(--accent);background:rgba(79,70,229,0.1)}
+  .bell-badge{position:absolute;top:-4px;right:-4px;background:var(--error);color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;pointer-events:none}
+  .notif-panel{position:fixed;top:70px;right:16px;width:320px;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,0.5);z-index:9000;overflow:hidden;transform:translateY(-8px);opacity:0;pointer-events:none;transition:all 0.25s cubic-bezier(0.175,0.885,0.32,1.275)}
+  .notif-panel.open{transform:translateY(0);opacity:1;pointer-events:all}
+  .notif-header{padding:12px 16px;font-size:13px;font-weight:600;background:var(--card);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .notif-clear{font-size:11px;color:var(--muted);cursor:pointer;padding:2px 6px;border-radius:4px}
+  .notif-clear:hover{color:var(--error)}
+  .notif-item{padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;gap:10px;align-items:flex-start;font-size:12px;animation:fadeIn .2s ease}
+  .notif-item:last-child{border:none}
+  .notif-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+  .notif-text{flex:1;line-height:1.4;color:var(--text)}
+  .notif-time{font-size:10px;color:var(--muted);font-family:'JetBrains Mono';white-space:nowrap;margin-top:2px}
+  .notif-empty{padding:24px;text-align:center;color:var(--muted);font-size:13px}
+
+  /* Video Studio Timeline */
+  .vs-timeline{display:flex;gap:0;margin-bottom:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .vs-tl-step{flex:1;padding:10px 6px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);transition:.3s;border-right:1px solid var(--border);position:relative}
+  .vs-tl-step:last-child{border-right:none}
+  .vs-tl-step.done{background:rgba(63,185,80,0.1);color:var(--success)}
+  .vs-tl-step.active{background:rgba(124,58,237,0.15);color:#c4b5fd;animation:blink 1.5s infinite}
+  .vs-tl-step.pending{opacity:0.4}
+  .vs-tl-icon{font-size:16px;display:block;margin-bottom:4px}
+  .vs-duration-wrap{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .vs-duration-wrap label{font-size:12px;color:var(--muted);white-space:nowrap;font-weight:600}
+  .vs-duration-wrap input[type=range]{flex:1;accent-color:var(--accent)}
+  .vs-duration-total{font-size:12px;color:#a5b4fc;font-family:'JetBrains Mono';font-weight:700;white-space:nowrap;min-width:80px;text-align:right}
+
+  /* Image Lab A/B */
+  .il-ab-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  .il-ab-panel{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)}
+  .il-ab-label{padding:6px 12px;font-size:11px;font-weight:700;text-align:center;background:var(--card);border-bottom:1px solid var(--border);letter-spacing:1px;text-transform:uppercase}
+  .il-ab-img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;min-height:120px;background:var(--bg)}
+  .il-presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .il-preset-chip{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;transition:.2s;color:var(--muted)}
+  .il-preset-chip:hover{border-color:var(--accent);color:var(--text);background:rgba(79,70,229,0.1)}
+  .il-masonry{columns:3;column-gap:10px;padding:12px}
+  .il-masonry .il-thumb{break-inside:avoid;margin-bottom:10px;border-radius:8px;overflow:hidden;border:1px solid var(--border);transition:.2s;position:relative;cursor:pointer}
+  .il-masonry .il-thumb:hover{border-color:var(--accent);transform:scale(1.02)}
+  .il-masonry .il-thumb img{width:100%;display:block}
+  .il-thumb-meta{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.8);padding:6px 8px;font-size:10px;color:var(--muted);opacity:0;transition:.2s}
+  .il-thumb:hover .il-thumb-meta{opacity:1}
+
+  /* Tools Panel Funcional */
+  .tool-panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .tool-card-v2{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px}
+  .tool-card-v2 .tool-header{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700}
+  .tool-editor{width:100%;background:var(--bg);border:1px solid var(--border);color:#a5b4fc;padding:12px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;resize:vertical;outline:none;min-height:100px;line-height:1.6;transition:.2s}
+  .tool-editor:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(79,70,229,0.15)}
+  .tool-output{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:11px;min-height:80px;max-height:200px;overflow-y:auto;color:#6e7681;line-height:1.6;white-space:pre-wrap;word-break:break-all}
+  .tool-output .stdout{color:#3fb950}
+  .tool-output .stderr{color:#f85149}
+  .tool-output .info{color:#a5b4fc}
+  .tool-run-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:.2s;display:flex;align-items:center;gap:6px;font-family:'Inter',sans-serif}
+  .tool-run-btn:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 12px var(--glow)}
+  .tool-run-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  .search-result-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:8px;transition:.2s}
+  .search-result-card:hover{border-color:var(--accent)}
+  .search-result-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+  .search-result-url{font-size:11px;color:var(--accent);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .search-result-snippet{font-size:12px;color:var(--muted);line-height:1.5}
+  .grep-match{font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--muted)}
+  .grep-match .file{color:#60a5fa}
+  .grep-match .linenum{color:var(--warning)}
+  .grep-match .matchtext{color:var(--text)}
+
+  /* Chat Templates Modal */
+  .tpl-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:10001;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.3s}
+  .tpl-modal-overlay.open{opacity:1;pointer-events:all}
+  .tpl-modal-box{background:var(--surface);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:28px;width:680px;max-width:95vw;max-height:85vh;overflow-y:auto;transform:scale(0.95);transition:transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275);box-shadow:0 24px 64px rgba(0,0,0,0.5)}
+  .tpl-modal-overlay.open .tpl-modal-box{transform:scale(1)}
+  .tpl-cats{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+  .tpl-cat{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:.2s;color:var(--muted)}
+  .tpl-cat.active{background:rgba(79,70,229,0.15);border-color:var(--accent);color:var(--text)}
+  .tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .tpl-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;transition:.2s}
+  .tpl-card:hover{border-color:var(--accent);background:rgba(79,70,229,0.05)}
+  .tpl-card-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
+  .tpl-card-preview{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* Chat token counter */
+  .chat-token-counter{font-size:11px;color:var(--muted);font-family:'JetBrains Mono';padding:0 4px}
+  .chat-context-bar{background:var(--card);border-top:1px solid var(--border);padding:8px 40px;display:flex;gap:20px;align-items:center;font-size:12px;color:var(--muted)}
+  .chat-context-item{display:flex;align-items:center;gap:6px}
+  .chat-context-val{color:var(--text);font-weight:700;font-family:'JetBrains Mono'}
+
+  /* Security Score */
+  .sec-score-ring{width:90px;height:90px;position:relative;flex-shrink:0}
+  .sec-score-ring svg{width:100%;height:100%}
+  .sec-score-ring .score-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800}
+  .sec-timeline{padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+  .sec-tl-item{display:flex;align-items:flex-start;gap:10px;font-size:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+  .sec-tl-item:last-child{border:none}
+  .sec-tl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
+  .sec-tl-CRITICAL{background:var(--error)}
+  .sec-tl-WARNING{background:var(--warning)}
+  .sec-tl-INFO{background:var(--accent)}
+  .sec-tl-time{font-family:'JetBrains Mono';color:var(--muted);white-space:nowrap;font-size:10px}
+
+  /* Multi-Agent Debate */
+  .agent-debate-round{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px}
+  .agent-debate-round-title{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+  .agent-thumb-btns{display:flex;gap:6px;margin-top:8px}
+  .agent-thumb-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:14px;transition:.2s;color:var(--muted)}
+  .agent-thumb-btn:hover{border-color:var(--accent)}
+  .agent-thumb-btn.voted{border-color:var(--success);color:var(--success)}
+
+  /* Cost Center Chart */
+  .cost-chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px}
+  .cost-chart-title{font-size:13px;font-weight:600;margin-bottom:16px;color:var(--text)}
+  #costBarChart{width:100%;height:140px}
+
+  /* Game Server Stats */
+  .gs-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+  .gs-stat-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+  .gs-stat-val{font-size:22px;font-weight:800;color:var(--accent)}
+  .gs-stat-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:4px}
+
+  /* Highlight.js custom overrides */
+  .hljs{background:#0d1117;border-radius:6px;padding:12px;overflow-x:auto;font-size:13px}
+
+  @keyframes slideDown { from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1} }
+
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js">
+// ── Tools Pro ────────────────────────────────────────────────────────────────
+async function runCode() {
+  const lang = document.getElementById('cr-lang').value;
+  const code = document.getElementById('cr-code').value.trim();
+  if(!code)return;
+  const out = document.getElementById('cr-output');
+  const btn = document.getElementById('cr-run-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Ejecutando...';
+  out.innerHTML = '<span class="spinner"></span> Ejecutando código aislado...';
+  try {
+    const res = await fetch('/v1/tools/run', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({source: code, lang: lang})
+    });
+    const data = await res.json();
+    if(data.error) {
+      out.innerHTML = `<span style="color:var(--error)">${esc(data.error)}</span>`;
+    } else {
+      out.innerHTML = `<pre style="margin:0;font-family:'JetBrains Mono';white-space:pre-wrap;color:var(--success)">${esc(data.stdout || '')}</pre><pre style="margin:0;font-family:'JetBrains Mono';white-space:pre-wrap;color:var(--error)">${esc(data.stderr || '')}</pre>`;
+    }
+  }catch(e){ out.innerHTML = `<span style="color:var(--error)">Error de red: ${e.message}</span>`; }
+  btn.disabled = false;
+  btn.textContent = '▶ Ejecutar';
+}
+
+function clearCodeOutput() {
+  document.getElementById('cr-output').innerHTML = '<span class="info">Listo. Presiona ▶ para ejecutar.</span>';
+}
+
+async function runWebSearch() {
+  const q = document.getElementById('ws-query').value.trim();
+  if(!q)return;
+  const out = document.getElementById('ws-results');
+  const btn = document.getElementById('ws-run-btn');
+  btn.disabled = true; btn.textContent = 'Buscando...';
+  out.innerHTML = '<div style="text-align:center;padding:24px"><span class="spinner"></span> Consultando DuckDuckGo...</div>';
+  try {
+    const res = await fetch('/v1/tools/search', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({query: q})
+    });
+    const data = await res.json();
+    if(data.error) {
+       out.innerHTML = `<div style="text-align:center;color:var(--error);padding:20px">${esc(data.error)}</div>`;
+    } else {
+       if(!data.results || data.results.length === 0) out.innerHTML = '<div style="text-align:center;padding:20px">No hubo resultados</div>';
+       else {
+         out.innerHTML = data.results.map(r => `
+          <div style="padding:10px;border-bottom:1px solid var(--border)">
+            <a href="${esc(r.href)}" target="_blank" style="color:var(--accent);font-weight:600;text-decoration:none;font-size:13px">${esc(r.title)}</a>
+            <div style="font-size:11px;color:var(--muted);margin:4px 0">${esc(r.body)}</div>
+          </div>
+         `).join('');
+       }
+    }
+  }catch(e){ out.innerHTML = 'Error fetching search'; }
+  btn.disabled = false; btn.textContent = '🔍 Buscar';
+}
+
+async function runGit(action) {
+  const out = document.getElementById('git-output');
+  out.innerHTML = `<span class="spinner"></span> Ejecutando git ${action}...`;
+  try {
+    const res = await fetch('/v1/tools/git', {
+       method:'POST',
+       headers:{'Content-Type':'application/json'},
+       body: JSON.stringify({action: action})
+    });
+    const data = await res.json();
+    out.innerHTML = `<pre style="margin:0;font-family:'JetBrains Mono';white-space:pre-wrap;color:var(--text)">${esc(data.stdout||data.error||'OK')}</pre>`;
+  } catch(e){ out.innerHTML = 'Error: ' + e.message; }
+}
+
+async function runGrep() {
+  const pat = document.getElementById('grep-pattern').value.trim();
+  const path = document.getElementById('grep-path').value.trim();
+  if(!pat)return;
+  const out = document.getElementById('grep-results');
+  const btn = document.getElementById('grep-run-btn');
+  btn.disabled = true; btn.textContent = '...';
+  out.innerHTML = '<div style="text-align:center;padding:20px"><span class="spinner"></span> Buscando...</div>';
+  try {
+    const res = await fetch('/v1/tools/grep', {
+      method: 'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({pattern: pat, path: path||'.'})
+    });
+    const data = await res.json();
+    if(data.error) {
+      out.innerHTML = `<div style="color:var(--error)">${esc(data.error)}</div>`;
+    } else {
+      out.innerHTML = `<pre style="margin:0;font-family:'JetBrains Mono';white-space:pre-wrap;font-size:11px;color:var(--text)">${esc(data.stdout||'Sin coincidencias')}</pre>`;
+    }
+  } catch(e){ out.innerHTML = 'Error: ' + e.message; }
+  btn.disabled = false; btn.textContent = '🔎 Buscar';
+}
+
+</script>
 </head>
 <body>
 <div id="toast-container"></div>
@@ -324,12 +585,34 @@
   <!-- Topbar -->
   <header class="topbar">
     <button class="hamburger" onclick="toggleSidebar()">☰</button>
-    <span class="logo" id="topbar-logo">GRAVITY V10.1</span>
+    <span class="logo" id="topbar-logo">GRAVITY V10.3</span>
+    <div id="topbar-breadcrumb" class="breadcrumb" style="margin:0 auto 0 16px">🏠&nbsp;<span id="bc-current">Home</span></div>
+    <div class="topbar-stat"><span>⚙️</span><span class="val" id="ts-cpu-val">--</span>%&nbsp;CPU</div>
+    <div class="topbar-stat"><span>🧠</span><span class="val" id="ts-ram-val">--</span>%&nbsp;RAM</div>
+    <div class="topbar-stat"><span>🔤</span><span class="val" id="ts-tokens-val">0</span>&nbsp;tok</div>
     <div class="top-right">
       <div class="badge-online" id="global-status"><div class="dot"></div>BRIDGE ONLINE</div>
       <button class="btn-icon" onclick="refreshAll()"><span style="font-size:16px">⟳</span> Refrescar</button>
+      <div class="bell-btn" onclick="toggleNotifPanel()" id="bell-btn-el" title="Notificaciones">🔔<span class="bell-badge" id="bell-badge" style="display:none">0</span></div>
     </div>
   </header>
+
+<!-- Notification Panel -->
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-header">🔔 Notificaciones<span class="notif-clear" onclick="clearNotifications()">Limpiar</span></div>
+  <div id="notif-list"><div class="notif-empty">Sin notificaciones</div></div>
+</div>
+<!-- Templates Modal -->
+<div class="tpl-modal-overlay" id="tpl-modal-overlay" onclick="closeTplModal(event)">
+  <div class="tpl-modal-box" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <strong style="font-size:16px;font-weight:700">📋 Templates de Prompt</strong>
+      <button onclick="closeTplModal(event)" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div class="tpl-cats" id="tpl-cats"></div>
+    <div class="tpl-grid" id="tpl-grid" style="margin-top:12px"></div>
+  </div>
+</div>
 
   <div class="content-wrapper">
     <!-- Sidebar -->
@@ -337,9 +620,11 @@
       <div class="sidebar-section">
         <div class="sidebar-label">Principal</div>
         <div class="nav-item active" id="nav-chat"     onclick="switchTab('chat',this)">    <span class="nav-icon">💬</span><span class="nav-text">Chat Auditor</span></div>
-        <div class="nav-item"        id="nav-vision"   onclick="switchTab('vision',this)">  <span class="nav-icon">🎨</span><span class="nav-text">Vision Studio</span></div>
+        <div class="nav-item" id="nav-home" onclick="switchTab('home',this)"><span class="nav-icon">🏠</span><span class="nav-text">Mission Control</span></div>
+<div class="nav-item"        id="nav-vision"   onclick="switchTab('vision',this)">  <span class="nav-icon">🎨</span><span class="nav-text">Vision Studio</span></div>
         <div class="nav-item"        id="nav-queue"    onclick="switchTab('queue',this)">   <span class="nav-icon">🖼️</span><span class="nav-text">Image Queue</span></div>
         <div class="nav-item"        id="nav-video"    onclick="switchTab('video',this)">   <span class="nav-icon">🎬</span><span class="nav-text">Video Studio</span></div>
+        <div class="nav-item"        id="nav-imagelab" onclick="switchTab('imagelab',this)"><span class="nav-icon">🎨</span><span class="nav-text">Image Lab</span></div>
         <div class="nav-item"        id="nav-deploy"   onclick="switchTab('deploy',this)">  <span class="nav-icon">🚀</span><span class="nav-text">Deploy</span></div>
         <div class="nav-item"        id="nav-gameserver" onclick="switchTab('gameserver',this)"><span class="nav-icon">⚔️</span><span class="nav-text">Game Servers</span></div>
         <div class="sidebar-label" style="margin-top:12px">IA & Sistema</div>
@@ -352,6 +637,7 @@
         <div class="nav-item"        id="nav-rag"        onclick="switchTab('rag',this)">      <span class="nav-icon">📚</span><span class="nav-text">RAG</span></div>
         <div class="nav-item"        id="nav-mcp"        onclick="switchTab('mcp',this)">      <span class="nav-icon">🔌</span><span class="nav-text">MCP Servers</span></div>
         <div class="nav-item"        id="nav-tools"      onclick="switchTab('tools',this)">    <span class="nav-icon">🛠️</span><span class="nav-text">Tools</span></div>
+        <div class="nav-item" id="nav-tools-pro" onclick="switchTab('tools-pro',this)"><span class="nav-icon">⚡</span><span class="nav-text">Tools Pro</span></div>
         <div class="sidebar-label" style="margin-top:12px">Monitoreo</div>
         <div class="nav-item"        id="nav-status"   onclick="switchTab('status',this)">  <span class="nav-icon">📡</span><span class="nav-text">System Status</span></div>
         <div class="nav-item"        id="nav-security" onclick="switchTab('security',this)"><span class="nav-icon">🛡️</span><span class="nav-text">Security</span></div>
@@ -373,17 +659,91 @@
     <main class="main">
 
       <!-- Panel 1: Chat -->
-      <div id="panel-chat" class="panel active">
+      <!-- ═══════ PANEL: HOME / MISSION CONTROL ═══════ -->
+<div id="panel-home" class="panel" style="padding:0">
+  <div class="panel-header">
+    <h2 class="panel-title">🏠 Mission Control</h2>
+    <div style="font-size:13px;color:var(--muted)">Vista general del sistema en tiempo real</div>
+  </div>
+  <div style="padding:24px;overflow-y:auto;height:calc(100vh - 120px)">
+
+    <!-- Quick Actions -->
+    <div class="home-quick-actions">
+      <button class="home-qa-btn" onclick="switchTab('imagelab',document.getElementById('nav-imagelab'))">🎨 Nueva Imagen</button>
+      <button class="home-qa-btn" onclick="switchTab('video',document.getElementById('nav-video'))">🎬 Nuevo Video</button>
+      <button class="home-qa-btn" onclick="switchTab('chat',document.getElementById('nav-chat'))">💬 Nuevo Chat</button>
+      <button class="home-qa-btn" onclick="switchTab('multiagent',document.getElementById('nav-multiagent'))">🤖 Multi-Agent</button>
+      <button class="home-qa-btn" onclick="switchTab('security',document.getElementById('nav-security'))">🔒 Security</button>
+      <button class="home-qa-btn" onclick="refreshAll()" style="margin-left:auto">⟳ Refrescar todo</button>
+    </div>
+
+    <!-- KPI Widgets -->
+    <div class="home-grid">
+      <div class="home-widget">
+        <div class="home-widget-title">🤖 Proveedor Activo</div>
+        <div class="home-widget-value" id="hw-provider" style="font-size:18px;font-weight:700">--</div>
+        <div class="home-widget-sub" id="hw-model">Modelo: --</div>
+      </div>
+      <div class="home-widget">
+        <div class="home-widget-title">🎬 Video Studio</div>
+        <div class="home-widget-value" id="hw-video-pending">--</div>
+        <div class="home-widget-sub" id="hw-video-status">Jobs en cola</div>
+      </div>
+      <div class="home-widget">
+        <div class="home-widget-title">🖼️ Image Queue</div>
+        <div class="home-widget-value" id="hw-queue-count">--</div>
+        <div class="home-widget-sub" id="hw-queue-status">Imágenes en cola</div>
+      </div>
+      <div class="home-widget">
+        <div class="home-widget-title">🔤 Tokens Sesión</div>
+        <div class="home-widget-value" id="hw-tokens">0</div>
+        <div class="home-widget-sub" id="hw-cost">Coste: $0.0000</div>
+      </div>
+      <div class="home-widget">
+        <div class="home-widget-title">💰 Coste Hoy</div>
+        <div class="home-widget-value" id="hw-daily-cost">$0.00</div>
+        <div class="home-widget-sub" id="hw-limit-status">Límite no superado</div>
+      </div>
+      <div class="home-widget">
+        <div class="home-widget-title">🔒 Seguridad</div>
+        <div class="home-widget-value" id="hw-sec-score" style="color:var(--success)">100</div>
+        <div class="home-widget-sub" id="hw-sec-alerts">Sin alertas activas</div>
+      </div>
+    </div>
+
+    <!-- Services Status -->
+    <div style="margin-bottom:12px;font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Estado de Servicios</div>
+    <div class="home-services-grid">
+      <div class="home-service-card"><div class="home-service-dot" id="svc-dot-bridge" style="background:var(--success)"></div><div><div style="font-size:13px;font-weight:600">Bridge Server</div><div style="font-size:11px;color:var(--muted)">Puerto 5000</div></div></div>
+      <div class="home-service-card"><div class="home-service-dot" id="svc-dot-poll" style="background:var(--muted)"></div><div><div style="font-size:13px;font-weight:600">Pollinations.ai</div><div style="font-size:11px;color:var(--muted)" id="svc-label-poll">Verificando...</div></div></div>
+      <div class="home-service-card"><div class="home-service-dot" id="svc-dot-fooocus" style="background:var(--muted)"></div><div><div style="font-size:13px;font-weight:600">Fooocus</div><div style="font-size:11px;color:var(--muted)" id="svc-label-fooocus">Verificando...</div></div></div>
+      <div class="home-service-card"><div class="home-service-dot" id="svc-dot-rag" style="background:var(--muted)"></div><div><div style="font-size:13px;font-weight:600">RAG Index</div><div style="font-size:11px;color:var(--muted)" id="svc-label-rag">Verificando...</div></div></div>
+      <div class="home-service-card"><div class="home-service-dot" id="svc-dot-gameserver" style="background:var(--muted)"></div><div><div style="font-size:13px;font-weight:600">Game Server</div><div style="font-size:11px;color:var(--muted)" id="svc-label-gs">Verificando...</div></div></div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="home-activity">
+      <div class="home-activity-title">⚡ Actividad Reciente</div>
+      <div id="home-activity-list">
+        <div class="home-activity-row" style="color:var(--muted)">Cargando actividad...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="panel-chat" class="panel active">
         <div class="chat-messages" id="messages">
           <div class="msg ai">
             <div class="msg-bubble">
-              <strong>👋 Bienvenido a Gravity AI Bridge V10.1 [Ecosistema Total]</strong><br><br>
+              <strong>👋 Bienvenido a Gravity AI Bridge V10.3 [Ecosistema Total]</strong><br><br>
               Sistema de orquestación unificada en línea.<br>
               <strong>Módulos Desplegados:</strong><br><br>
-              ⚔️ <strong>Game Server Manager</strong> — Control absoluto de tu servidor WoW, IP Pública Cuentas y Firewall Integrado.<br>
-              🛡️ <strong>Security Monitor</strong> — Vigilancia automatizada de procesos, puertos y archivos clave del entorno.<br>
-              🖼️ <strong>Image Queue</strong> — Motor encolador para generación secuencial de imágenes de Food-Delivery y Assets.<br>
-              🚀 <strong>Deploy Manager</strong> — Integración y distribución web asíncrona hacia la nube (Netlify CICD).<br><br>
+              🏠 <strong>Mission Control</strong> — Panel maestro con TopBar de widgets dinámicos y supervisión global del Hardware y Cost Center.<br>
+              🎬 <strong>Video Studio</strong> — Engine cinemático con soporte lofi/retro80s enlazado a TTS, LLM y FFMpeg.<br>
+              🎨 <strong>Image Lab</strong> — Plataforma Pro para Pruebas A/B en paralelo, auto-mejora de prompts IA y presets de estilo rápido.<br>
+              ⚡ <strong>Tools Pro</strong> — Herramientas nativas y reactivas vinculadas al dashboard: CodeRunner, Web Search, CMD Git y Regex Grep.<br>
+              🛡️ <strong>Security V10.3</strong> — Ring UI de puntajes e inyección segura para Kill Processes PID.<br><br>
               <strong>Atajos rápidos:</strong><br>
               <code>/help</code> — Comandos CLI disponibles<br>
               <code>/search</code> — Búsqueda web en vivo<br>
@@ -531,111 +891,336 @@
         </div>
       </div>
 
-      <!-- Panel: Video Studio -->
+      <!-- Panel: Video Studio Cinematic Edition -->
       <div id="panel-video" class="panel">
         <div class="panel-header">
-          <div class="panel-title">🎬 Video Studio</div>
-          <div class="panel-subtitle">Generación automática de videos CPU-only: LLM → Imagen → Voz → ffmpeg</div>
+          <div class="panel-title">🎬 Video Studio <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:linear-gradient(90deg,rgba(124,58,237,0.2),rgba(79,70,229,0.2));border:1px solid rgba(124,58,237,0.4);color:#c4b5fd;margin-left:8px">CINEMATIC EDITION</span></div>
+          <div class="panel-subtitle">Character Consistency Engine · Estilos Cinematográficos · Selector de Voz SAPI · Transiciones Fade</div>
         </div>
         <div class="panel-content">
 
-          <!-- Estado del sistema -->
-          <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:12px">
-            <span id="vs-ffmpeg-badge" style="font-size:12px;font-weight:700;color:var(--muted)">Verificando ffmpeg...</span>
-            <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-              <span style="font-size:12px;color:var(--muted)">Pipeline:</span>
-              <span style="font-size:12px;color:var(--text)">LLM → Fooocus (CPU) → pyttsx3 (SAPI) → ffmpeg</span>
-            </div>
+          <!-- Status bar -->
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:12px;flex-wrap:wrap">
+            <span id="vs-ffmpeg-badge" style="font-size:12px;font-weight:700;color:var(--muted)">⏳ ffmpeg...</span>
+            <span id="vs-pollinations-badge" style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:6px;background:rgba(79,70,229,0.15);border:1px solid rgba(79,70,229,0.3);color:#a5b4fc">Pollinations.ai — verificando...</span>
+            <span style="font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#c4b5fd">🎭 Character Consistency Engine</span>
+            <span style="font-size:11px;padding:2px 8px;border-radius:6px;background:rgba(63,185,80,0.1);border:1px solid rgba(63,185,80,0.3);color:var(--success)">🌱 Seed por Job</span>
+            <div style="margin-left:auto;font-size:11px;color:var(--muted)">LLM Anchor → Pollinations.ai (seed) → pyttsx3 SAPI → ffmpeg fade</div>
           </div>
 
-          <div class="vs-grid">
-            <!-- Formulario -->
-            <div class="vs-form">
-              <h3>🎬 Nuevo Video</h3>
+          <div style="display:grid;grid-template-columns:420px 1fr;gap:24px;margin-bottom:24px">
+
+            <!-- ═══ FORMULARIO CINEMATOGRÁFICO ═══ -->
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:14px">
+              <h3 style="font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px">🎬 Nuevo Video Cinematográfico</h3>
+
+              <!-- Tema -->
               <div class="form-group">
-                <label class="form-label">Tema del Video</label>
-                <textarea id="vs-topic" class="form-input" rows="3" style="resize:vertical;height:80px"
-                  placeholder="ej. La historia del jazz, Cómo funciona la IA, El universo observable..."></textarea>
+                <label class="form-label">📝 Tema / Historia</label>
+                <textarea id="vs-topic" class="form-input" rows="3" style="resize:vertical;height:72px"
+                  placeholder="ej. La historia de un gatito siamés llamado Jamón, El universo observable, Cómo funciona la IA..."></textarea>
               </div>
-              <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                <div>
-                  <label class="form-label">Nº de Escenas</label>
-                  <select id="vs-scenes" class="form-input">
-                    <option value="4">4 escenas (~20 min)</option>
-                    <option value="6" selected>6 escenas (~30 min)</option>
-                    <option value="8">8 escenas (~40 min)</option>
-                    <option value="10">10 escenas (~50 min)</option>
+
+              <!-- Estilo Cinematográfico -->
+              <div class="form-group">
+                <label class="form-label">🎨 Estilo Cinematográfico</label>
+                <div id="vs-style-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+                  <div class="vs-style-btn active" data-style="documental" onclick="selectStyle(this)" title="Fotorrealista, iluminación dramática, National Geographic">📽️<br><span>Documental</span></div>
+                  <div class="vs-style-btn" data-style="anime" onclick="selectStyle(this)" title="Cel shading vibrante, Pixar/Studio Ghibli">🌸<br><span>Anime</span></div>
+                  <div class="vs-style-btn" data-style="epico" onclick="selectStyle(this)" title="Fantasy heroico, digital painting épico">⚔️<br><span>Épico</span></div>
+                  <div class="vs-style-btn" data-style="noir" onclick="selectStyle(this)" title="Blanco/negro, chiaroscuro 1940s">🕵️<br><span>Noir</span></div>
+                  <div class="vs-style-btn" data-style="infantil" onclick="selectStyle(this)" title="Cuento infantil, colores suaves, amigable">🧸<br><span>Infantil</span></div>
+                  <div class="vs-style-btn" data-style="naturaleza" onclick="selectStyle(this)" title="Wildlife, National Geographic">🌿<br><span>Naturaleza</span></div>
+                  <div class="vs-style-btn" data-style="cyberpunk" onclick="selectStyle(this)" title="Neon, distopía futurista">⚡<br><span>Cyberpunk</span></div>
+                  <div class="vs-style-btn" data-style="historico" onclick="selectStyle(this)" title="Period-accurate, estilo óleo">🏛️<br><span>Histórico</span></div>
+                </div>
+                <input type="hidden" id="vs-style" value="documental">
+              </div>
+
+              <!-- Voz SAPI -->
+              <div class="form-group">
+                <label class="form-label" style="display:flex;justify-content:space-between">
+                  🎤 Narrador (Voz SAPI)
+                  <a href="#" onclick="loadVoices();return false" style="font-size:11px;color:var(--accent)">⟳ Cargar voces</a>
+                </label>
+                <select id="vs-voice" class="form-input">
+                  <option value="">Auto (Español prioritario)</option>
+                </select>
+              </div>
+
+              <!-- Idioma y velocidad -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="form-group">
+                  <label class="form-label">🌐 Idioma Narración</label>
+                  <select id="vs-lang" class="form-input">
+                    <option value="es" selected>🇪🇸 Español</option>
+                    <option value="en">🇬🇧 English</option>
+                    <option value="pt">🇧🇷 Português</option>
+                    <option value="fr">🇫🇷 Français</option>
+                    <option value="de">🇩🇪 Deutsch</option>
+                    <option value="it">🇮🇹 Italiano</option>
                   </select>
                 </div>
-                <div>
-                  <label class="form-label">Velocidad de Voz</label>
+                
+      <!-- Slider Duración por Escena -->
+      <div class="vs-duration-wrap" style="grid-column: 1 / -1; margin-top: 8px">
+        <label>⏱️ Duración/escena:</label>
+        <input type="range" id="vs-scene-duration" min="5" max="30" value="8" oninput="updateVsDuration()">
+        <span class="vs-duration-total" id="vs-duration-total">~48s total (8s × 6 escenas)</span>
+      </div>
+<div class="form-group">
+                  <label class="form-label">⚡ Velocidad Narrador</label>
                   <select id="vs-speed" class="form-input">
-                    <option value="130">Lenta (130 ppm)</option>
-                    <option value="150" selected>Normal (150 ppm)</option>
-                    <option value="175">Rápida (175 ppm)</option>
+                    <option value="110">Muy lenta (110)</option>
+                    <option value="130">Lenta (130)</option>
+                    <option value="150" selected>Normal (150)</option>
+                    <option value="175">Rápida (175)</option>
+                    <option value="200">Muy rápida (200)</option>
                   </select>
                 </div>
               </div>
-              <button class="btn-primary" id="vs-create-btn" onclick="createVideo()">🎬 Generar Video</button>
-              <div style="margin-top:16px;padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border)">
-                <div style="font-size:11px;color:var(--muted);line-height:1.7">
-                  <strong style="color:var(--text)">Flujo automático:</strong><br>
-                  1. El LLM genera el guión con N escenas<br>
-                  2. Fooocus genera 1 imagen por escena (CPU, ~5 min/imagen)<br>
-                  3. Windows SAPI narra cada escena (.wav)<br>
-                  4. ffmpeg ensambla imagen + audio → clip<br>
-                  5. ffmpeg concatena clips → video .mp4 final
+
+              <!-- Escenas y transiciones -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="form-group">
+                  <label class="form-label">🎞️ Nº de Escenas</label>
+                  <select id="vs-scenes" class="form-input">
+                    <option value="3">3 (~15 min)</option>
+                    <option value="4">4 (~20 min)</option>
+                    <option value="6" selected>6 (~30 min)</option>
+                    <option value="8">8 (~40 min)</option>
+                    <option value="10">10 (~50 min)</option>
+                    <option value="12">12 (~60 min)</option>
+                  </select>
                 </div>
+                <div class="form-group" style="display:flex;flex-direction:column;justify-content:flex-end">
+                  <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;padding:8px 0">
+                    <input type="checkbox" id="vs-transitions" checked style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
+                    <span>✨ Fade entre escenas</span>
+                  </label>
+                </div>
+              </div>
+
+              <button class="btn-primary" id="vs-create-btn" onclick="createVideo()" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);font-size:15px;padding:14px">🎬 Generar Video Cinematográfico</button>
+
+              <!-- Info pipeline -->
+              <div style="padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.8">
+                <strong style="color:var(--text)">🧠 Character Consistency Engine:</strong><br>
+                1. LLM extrae <em>Visual Anchor</em> del personaje principal<br>
+                2. Anchor + Estilo → inyectado en cada prompt de escena<br>
+                3. Seed unificada por job → coherencia visual garantizada<br>
+                4. Pollinations.ai (~30s/imagen) → pyttsx3 SAPI → ffmpeg<br>
+                5. Fade in/out entre escenas (si activado)
               </div>
             </div>
 
-            <!-- Estado -->
+            <!-- ═══ STATUS + PREVIEW ═══ -->
             <div class="vs-status-card">
-              <div>
-                <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;font-weight:700">Estado de la Cola</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-                  <div style="background:var(--surface);padding:12px;border-radius:8px;text-align:center">
-                    <div style="font-size:28px;font-weight:800;color:var(--accent)" id="vs-pending-count">0</div>
-                    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Pendientes</div>
-                  </div>
-                  <div style="background:var(--surface);padding:12px;border-radius:8px;text-align:center">
-                    <div style="font-size:13px;font-weight:600;color:var(--warning)">CPU-Only</div>
-                    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Modo Hardware</div>
-                  </div>
+              <!-- Counters -->
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+                <div style="background:var(--surface);padding:12px;border-radius:8px;text-align:center">
+                  <div style="font-size:26px;font-weight:800;color:var(--accent)" id="vs-pending-count">0</div>
+                  <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Pendientes</div>
+                </div>
+                <div style="background:var(--surface);padding:12px;border-radius:8px;text-align:center">
+                  <div style="font-size:13px;font-weight:700;color:var(--warning)">CPU-Only</div>
+                  <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Hardware</div>
+                </div>
+                <div style="background:var(--surface);padding:12px;border-radius:8px;text-align:center">
+                  <div style="font-size:13px;font-weight:700;color:#a5b4fc" id="vs-voices-count">—</div>
+                  <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Voces SAPI</div>
                 </div>
               </div>
 
-              <!-- Progreso del job activo -->
+              <!-- Job activo -->
               <div id="vs-current-wrap" style="display:none">
                 <div class="vs-progress-wrap">
                   <div class="vs-progress-label" id="vs-progress-label">Iniciando pipeline...</div>
                   <div class="vs-progress-track">
                     <div class="vs-progress-fill" id="vs-progress-fill" style="width:0%"></div>
                   </div>
-                  <div style="font-size:11px;color:var(--muted);text-align:center">
-                    ⏳ La generación de imágenes en CPU toma ~5 min por escena. El sistema trabaja en background.
+                  <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:4px">
+                    ⏳ Character Consistency Engine activo. ~5 min/escena en CPU.
                   </div>
                 </div>
               </div>
 
-              <div style="font-size:12px;color:var(--muted);line-height:1.6;padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border)">
-                <strong style="color:var(--text)">Nota de hardware:</strong><br>
-                Ryzen 7 8700G (CPU puro). Sin GPU dedicada.<br>
-                ~5 min/imagen × N escenas + 20s ffmpeg + TTS.
+              <!-- Video preview -->
+              <div id="vs-video-preview" class="vs-video-preview" style="display:none">
+                <div style="font-size:12px;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+                  <span>🎬 Último Video Generado</span>
+                  <a id="vs-dl-link" href="#" download style="font-size:12px;color:var(--accent)">⬇ Descargar</a>
+                </div>
+                <video id="vs-video-el" controls preload="metadata" style="width:100%;border-radius:8px;max-height:220px;background:#000"></video>
+              </div>
+
+              <!-- Motor info -->
+              <div style="font-size:12px;color:var(--muted);line-height:1.7;padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border)">
+                <strong style="color:var(--text)">Motor de Imagen:</strong><br>
+                <span style="color:#a5b4fc">★ Pollinations.ai</span> (primario) — seed/job consistente<br>
+                Fooocus CPU (respaldo automático)<br><br>
+                <strong style="color:var(--text)">Estilos Disponibles:</strong><br>
+                <span id="vs-styles-list" style="color:var(--muted)">Cargando...</span>
               </div>
             </div>
           </div>
 
-          <!-- Historial de videos -->
+          <!-- Historial -->
           <div class="table-wrap">
             <div class="table-title" style="display:flex;justify-content:space-between;align-items:center">
-              <span>Historial de Videos Generados</span>
+              <span>🎬 Historial de Videos Generados</span>
               <button class="btn-icon" onclick="fetchVideoStatus()" style="padding:4px 10px;font-size:11px">⟳ Actualizar</button>
             </div>
             <table>
-              <thead><tr><th>#</th><th>Tema</th><th>Estado</th><th>Escenas</th><th>Creado</th><th>Descargar</th></tr></thead>
-              <tbody id="tb-video"><tr><td colspan="6" style="text-align:center;color:var(--muted)">Sin videos generados aún.</td></tr></tbody>
+              <thead><tr><th>#</th><th>Tema</th><th>Estado</th><th>Estilo</th><th>Escenas</th><th>Creado</th><th>Acción</th></tr></thead>
+              <tbody id="tb-video"><tr><td colspan="7" style="text-align:center;color:var(--muted)">Sin videos generados aún.</td></tr></tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Image Lab (Pollinations.ai) -->
+      <div id="panel-imagelab" class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🎨 Image Lab</div>
+          <div class="panel-subtitle">Generación de imágenes con Pollinations.ai — Sin GPU, sin configuración, ~30s por imagen</div>
+        </div>
+        <div class="panel-content">
+
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:12px">
+            <div id="il-status-dot" style="width:10px;height:10px;border-radius:50%;background:var(--muted)"></div>
+            <span id="il-status-text" style="font-size:13px;font-weight:600;color:var(--muted)">Verificando conectividad...</span>
+            <div style="margin-left:auto;display:flex;gap:8px">
+              <span class="badge" style="background:rgba(79,70,229,0.15);border:1px solid rgba(79,70,229,0.3);color:#a5b4fc;padding:3px 10px">Pollinations.ai</span>
+              <span class="badge" style="background:rgba(63,185,80,0.15);border:1px solid rgba(63,185,80,0.3);color:var(--success);padding:3px 10px">Flux</span>
+              <span class="badge" style="background:rgba(240,136,62,0.15);border:1px solid rgba(240,136,62,0.3);color:var(--warning);padding:3px 10px">Turbo</span>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:380px 1fr;gap:24px">
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:16px">
+              <h3 style="font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px">🎨 Nueva Imagen</h3>
+              <div class="form-group">
+                <label class="form-label">Prompt (Descriptivo en inglés)</label>
+                <textarea id="il-prompt" class="form-input" rows="4" style="resize:vertical;height:80px"
+                  placeholder="A cinematic view of a red nebula in deep space, photorealistic..."></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="color:var(--muted)">Negative Prompt <span style="font-size:10px;font-weight:400">(Trata de evitar en lo posible)</span></label>
+                <input type="text" id="il-negprompt" class="form-input" placeholder="blur, text, watermark, bad anatomy, deformed...">
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="form-group">
+                  <label class="form-label">Resolución</label>
+                  <select id="il-res" class="form-input">
+                    <option value="1024x1024">1024 × 1024 (Cuadrado)</option>
+                    <option value="1216x832" selected>1216 × 832 (Landscape)</option>
+                    <option value="832x1216">832 × 1216 (Portrait)</option>
+                    <option value="1344x768">1344 × 768 (Cinéma)</option>
+                    <option value="1440x810">1440 × 810 (Full HD)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Motor</label>
+                  <select id="il-model" class="form-input">
+                    <option value="flux" selected>Flux (Alta Calidad)</option>
+                    <option value="turbo">Turbo (Rápido)</option>
+                    <option value="dreamshaper">Dreamshaper</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="form-group">
+                  <label class="form-label">Seed (Opcional)</label>
+                  <input type="number" id="il-seed" class="form-input" placeholder="Random">
+                </div>
+                
+      <!-- Presets de Estilo Rápido -->
+      <div class="il-presets" id="il-presets-row" style="grid-column: 1 / -1; padding-top: 12px; border-top: 1px solid var(--border)">
+        <span style="font-size:12px;color:var(--muted);align-self:center;font-weight:600">Presets:</span>
+        <div class="il-preset-chip" onclick="applyIlPreset('portrait')">🧑 Portrait</div>
+        <div class="il-preset-chip" onclick="applyIlPreset('landscape')">🌄 Landscape</div>
+        <div class="il-preset-chip" onclick="applyIlPreset('logo')">⚡ Logo</div>
+        <div class="il-preset-chip" onclick="applyIlPreset('avatar')">🎭 Avatar</div>
+        <div class="il-preset-chip" onclick="applyIlPreset('cinematic')">🎬 Cinematic</div>
+        <div class="il-preset-chip" onclick="applyIlPreset('fantasy')">🧙 Fantasy</div>
+        <div class="il-preset-chip" onclick="applyIlPreset('anime')">🎌 Anime</div>
+        <div class="il-preset-chip" onclick="applyIlPreset('product')">📦 Producto</div>
+      </div>
+      <!-- Botón Mejorar Prompt con LLM -->
+      <div style="grid-column: 1 / -1; display:flex; gap:8px; margin-bottom:10px; align-items:center; flex-wrap:wrap">
+        <button onclick="improveIlPrompt()" id="il-improve-btn" class="btn-secondary" style="font-size:12px;padding:7px 14px">✨ Mejorar Prompt</button>
+        <button onclick="toggleIlAB()" id="il-ab-toggle" class="btn-secondary" style="font-size:12px;padding:7px 14px">⚖️ Modo A/B</button>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer">
+          <span>Variaciones:</span>
+          <select id="il-batch-count" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:6px;font-size:12px">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </label>
+      </div>
+      <!-- A/B Container -->
+      <div class="il-ab-grid" id="il-ab-container" style="display:none">
+        <div class="il-ab-panel">
+          <div class="il-ab-label">🅰 Variante A</div>
+          <img src="" alt="A" class="il-ab-img" id="il-ab-img-a" style="display:none">
+          <div id="il-ab-loading-a" style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Generando...</div>
+        </div>
+        <div class="il-ab-panel">
+          <div class="il-ab-label">🅱 Variante B</div>
+          <img src="" alt="B" class="il-ab-img" id="il-ab-img-b" style="display:none">
+          <div id="il-ab-loading-b" style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Generando...</div>
+        </div>
+      </div>
+<div class="form-group" style="display:flex;align-items:flex-end">
+                  <label style="display:flex;align-items:center;gap:8px;font-size:13px;height:38px;padding:0 8px">
+                    <input type="checkbox" id="il-enhance" checked>
+                    Habilitar "Prompt Enhance"
+                  </label>
+                </div>
+              </div>
+              <button class="btn-primary" id="il-gen-btn" onclick="generateImage()">🎨 Generar Imagen</button>
+              <div id="il-gen-progress" style="display:none">
+                <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:8px">
+                  <div style="height:100%;width:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;animation:prog 1.5s ease infinite"></div>
+                </div>
+                <div style="font-size:12px;color:var(--muted);text-align:center">Generando con Pollinations.ai... (~30s)</div>
+              </div>
+              <div style="padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.7">
+                <strong style="color:var(--text)">★ Pollinations.ai</strong><br>
+                Motor gratuito sin API key. ~30s por imagen.<br>
+                Imágenes guardadas en <code>_integrations/ImageLab/</code>.
+              </div>
+            </div>
+
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column">
+              <div style="padding:14px 20px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+                <span style="font-size:13px;font-weight:600">Vista Previa</span>
+                <span id="il-preview-meta" style="font-size:12px;color:var(--muted)">Ninguna imagen generada aún</span>
+                <a id="il-download-btn" href="#" download style="margin-left:auto;display:none" class="btn-icon">↓ Descargar PNG</a>
+              </div>
+              <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;min-height:400px">
+                <div id="il-placeholder" style="text-align:center;color:var(--muted)">
+                  <div style="font-size:48px;margin-bottom:12px">🎨</div>
+                  <div style="font-size:14px">La imagen generada aparecerá aquí</div>
+                  <div style="font-size:12px;margin-top:6px;opacity:.6">Escribe un prompt y pulsa Generar</div>
+                </div>
+                <img id="il-preview-img" src="" alt="" style="display:none;max-width:100%;max-height:520px;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrap" style="margin-top:24px">
+            <div class="table-title" style="display:flex;justify-content:space-between;align-items:center">
+              <span>🖼️ Historial del Image Lab</span>
+              <button class="btn-icon" onclick="loadLabHistory()" style="padding:4px 10px;font-size:11px">⟳ Actualizar</button>
+            </div>
+            <div id="il-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:16px">
+              <div style="color:var(--muted);font-size:13px;grid-column:1/-1;text-align:center;padding:24px">Sin imágenes generadas aún.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1124,12 +1709,71 @@
         </div>
       </div>
 
-      <!-- Panel: Tools -->
-      <div id="panel-tools" class="panel">
-        <div class="panel-header">
-          <div class="panel-title">🛠️ Tools</div>
-          <div class="panel-subtitle">Herramientas integradas: code runner, git, web search, file edit</div>
-        </div>
+      <!-- Panel: Tools Pro -->
+<!-- ═══════ PANEL: TOOLS (FUNCIONAL) ═══════ -->
+<div id="panel-tools-pro" class="panel">
+  <div class="panel-header">
+    <h2 class="panel-title">🛠️ Tools Pro — Herramientas Reales</h2>
+  </div>
+  <div class="tool-panel-grid">
+
+    <!-- Code Runner -->
+    <div class="tool-card-v2">
+      <div class="tool-header">⚡ Code Runner</div>
+      <div style="display:flex;gap:8px;margin-bottom:6px">
+        <select id="cr-lang" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;font-size:12px">
+          <option value="python">Python</option>
+          <option value="powershell">PowerShell</option>
+          <option value="bash">Bash</option>
+          <option value="javascript">JavaScript</option>
+        </select>
+        <button class="tool-run-btn" onclick="runCode()" id="cr-run-btn">▶ Ejecutar</button>
+        <button onclick="clearCodeOutput()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:12px">Limpiar</button>
+      </div>
+      <textarea class="tool-editor" id="cr-code" placeholder="# Escribe código Python aquí&#10;print('Gravity OK')" rows="8">print('Gravity AI Bridge V10.3 — Funcionando!')</textarea>
+      <div class="tool-output" id="cr-output"><span class="info">Listo. Presiona ▶ para ejecutar.</span></div>
+    </div>
+
+    <!-- Web Search -->
+    <div class="tool-card-v2">
+      <div class="tool-header">🔍 Web Search</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input type="text" id="ws-query" class="form-input" style="flex:1;padding:8px 12px" placeholder="Buscar en la web..." onkeydown="if(event.key==='Enter')runWebSearch()">
+        <button class="tool-run-btn" onclick="runWebSearch()" id="ws-run-btn">🔍 Buscar</button>
+      </div>
+      <div id="ws-results" style="max-height:280px;overflow-y:auto">
+        <div style="color:var(--muted);font-size:13px;text-align:center;padding:24px">Introduce una búsqueda y presiona Enter</div>
+      </div>
+    </div>
+
+    <!-- Git Tool -->
+    <div class="tool-card-v2">
+      <div class="tool-header">📦 Git Tool</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        <button class="tool-run-btn" onclick="runGit('status')" style="padding:6px 12px">status</button>
+        <button class="tool-run-btn" onclick="runGit('log')" style="padding:6px 12px">log -15</button>
+        <button class="tool-run-btn" onclick="runGit('diff')" style="padding:6px 12px">diff HEAD</button>
+        <button class="tool-run-btn" onclick="runGit('branch')" style="padding:6px 12px">branches</button>
+      </div>
+      <div class="tool-output" id="git-output"><span class="info">Selecciona una operación Git.</span></div>
+    </div>
+
+    <!-- Grep Tool -->
+    <div class="tool-card-v2">
+      <div class="tool-header">🔎 Grep / Buscar en Código</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input type="text" id="grep-pattern" class="form-input" style="flex:1;padding:8px 12px" placeholder="Patrón regex..." onkeydown="if(event.key==='Enter')runGrep()">
+        <button class="tool-run-btn" onclick="runGrep()" id="grep-run-btn">🔎 Buscar</button>
+      </div>
+      <input type="text" id="grep-path" class="form-input" style="width:100%;padding:6px 12px;margin-bottom:8px;font-size:12px" placeholder="Ruta (vacío = raíz del proyecto)">
+      <div id="grep-results" style="max-height:220px;overflow-y:auto;background:#0d1117;border:1px solid var(--border);border-radius:6px;padding:8px">
+        <div style="color:var(--muted);font-size:12px">Introduce un patrón para buscar en el código.</div>
+      </div>
+    </div>
+
+  </div>
+<!-- Removed panel-tools-pro closing div from here to include the dummy cards inside the panel -->
+
         <div class="panel-content">
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
             <div class="sc-card hw-card">
@@ -1164,7 +1808,8 @@
             </div>
           </div>
         </div>
-      </div>
+        <!-- Re-adding panel-tools-pro closing div here so the cards only show in Tools Pro -->
+        </div>
 
     </main>
   </div>
@@ -1930,32 +2575,65 @@ async function refreshAll(){
   if(currentTab==='sessions')    fetchSessions();
   if(currentTab==='rag')         fetchRAG();
   if(currentTab==='video')       fetchVideoStatus();
+  if(currentTab==='imagelab')    { checkImageLabConnectivity(); loadLabHistory(); }
 }
 
-// ── Video Studio ──────────────────────────────────────────────────────────────
+// ── Video Studio Cinematic Edition ──────────────────────────────────────────
+function selectStyle(el){
+  document.querySelectorAll('.vs-style-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('vs-style').value = el.dataset.style;
+}
+
+async function loadVoices(){
+  try{
+    const d = await fetch('/v1/video/voices').then(r=>r.json());
+    const sel = document.getElementById('vs-voice');
+    sel.innerHTML = '<option value="">Auto (Español prioritario)</option>';
+    (d.voices||[]).forEach(v=>{
+      const langFlag = {es:'🇪🇸',en:'🇬🇧',pt:'🇧🇷',fr:'🇫🇷',de:'🇩🇪',it:'🇮🇹'}[v.lang]||'🌐';
+      const genderIcon = v.gender==='female'?'👩':'👨';
+      const opt = document.createElement('option');
+      opt.value = v.id;
+      opt.textContent = `${langFlag} ${genderIcon} ${v.name}`;
+      sel.appendChild(opt);
+    });
+    const vc = document.getElementById('vs-voices-count');
+    if(vc) vc.textContent = (d.voices||[]).length;
+    // Estilos disponibles
+    const sl = document.getElementById('vs-styles-list');
+    if(sl && d.styles) sl.textContent = Object.values(d.styles).join(' · ');
+    showToast(`${(d.voices||[]).length} voces SAPI cargadas.`,'info');
+  }catch(e){ showToast('Error cargando voces.','error'); }
+}
+
 async function createVideo(){
   const topic = document.getElementById('vs-topic').value.trim();
   if(!topic){ showToast('El campo Tema es obligatorio.','error'); return; }
-  const n_scenes    = parseInt(document.getElementById('vs-scenes').value)||6;
-  const voice_speed = parseInt(document.getElementById('vs-speed').value)||150;
+  const n_scenes      = parseInt(document.getElementById('vs-scenes').value)||6;
+  const voice_speed   = parseInt(document.getElementById('vs-speed').value)||150;
+  const voice_id      = document.getElementById('vs-voice').value.trim();
+  const style         = document.getElementById('vs-style').value||'documental';
+  const narration_lang= document.getElementById('vs-lang').value||'es';
+  const transitions   = document.getElementById('vs-transitions').checked;
   const btn = document.getElementById('vs-create-btn');
   btn.disabled=true; btn.textContent='Encolando...';
   try{
     const r = await fetch('/v1/video/create',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({topic, n_scenes, voice_speed})
+      body: JSON.stringify({topic, n_scenes, voice_speed, voice_id, style, narration_lang, transitions})
     });
     const d = await r.json();
     if(d.ok){
-      showToast(`✅ Job #${d.job_id} encolado. ~${n_scenes*5} min en CPU.`,'info');
+      showToast(`✅ Job #${d.job_id} encolado — Estilo: ${style} | Voz: ${voice_id||'auto'} | ~${n_scenes*5} min.`,'info');
       document.getElementById('vs-topic').value='';
       fetchVideoStatus();
     } else {
       showToast(d.error||'Error creando video','error');
     }
   }catch(e){ showToast('Sin conexión con el bridge.','error'); }
-  finally{ btn.disabled=false; btn.textContent='🎬 Generar Video'; }
+  finally{ btn.disabled=false; btn.textContent='🎬 Generar Video Cinematográfico'; }
 }
 
 async function cancelVideo(job_id){
@@ -1975,57 +2653,924 @@ async function fetchVideoStatus(){
   try{
     const d = await fetch('/v1/video/status').then(r=>r.json());
 
-    // ffmpeg check
+    // ffmpeg badge
     const ffBadge = document.getElementById('vs-ffmpeg-badge');
-    if(ffBadge) ffBadge.textContent = d.ffmpeg_ok ? '✅ ffmpeg OK' : '❌ ffmpeg no encontrado';
+    if(ffBadge){
+      ffBadge.textContent = d.ffmpeg_ok ? '✅ ffmpeg OK' : '❌ ffmpeg no encontrado';
+      ffBadge.style.color = d.ffmpeg_ok ? 'var(--success)' : 'var(--error)';
+    }
 
-    // Stats
+    // Estilos en sidebar info
+    if(d.styles){
+      const sl = document.getElementById('vs-styles-list');
+      if(sl) sl.textContent = Object.values(d.styles).join(' · ');
+    }
+
     document.getElementById('vs-pending-count').textContent = d.pending_count||0;
 
     // Job activo
     const cur = d.current_job;
     const curWrap = document.getElementById('vs-current-wrap');
-    const fill = document.getElementById('vs-progress-fill');
-    const label = document.getElementById('vs-progress-label');
+    const fill    = document.getElementById('vs-progress-fill');
+    const label   = document.getElementById('vs-progress-label');
     if(cur){
       curWrap.style.display='block';
       fill.style.width = (cur.progress||0)+'%';
-      label.textContent = `[${cur.progress||0}%] ${cur.step||'Procesando...'} — Job #${cur.id}: ${cur.topic}`;
+      label.textContent = `[${cur.progress||0}%] ${cur.step||'Procesando...'} — Job #${cur.id}: ${(cur.topic||'').slice(0,40)}`;
     } else {
       curWrap.style.display='none';
     }
 
+    // Preview del último video completado
+    const lastDone = (d.history||[]).find(j=>j.status==='done'&&j.output_path);
+    const vPreview = document.getElementById('vs-video-preview');
+    const vEl      = document.getElementById('vs-video-el');
+    const dlLink   = document.getElementById('vs-dl-link');
+    if(lastDone && vPreview && vEl){
+      const fname = lastDone.output_path.split(/[\\/]/).pop();
+      const url   = `/v1/video/download?file=${encodeURIComponent(fname)}`;
+      if(vEl.dataset.src !== url){
+        vEl.src = url;
+        vEl.dataset.src = url;
+        if(dlLink){ dlLink.href=url; dlLink.download=fname; }
+      }
+      vPreview.style.display='block';
+    } else if(vPreview){
+      vPreview.style.display='none';
+    }
+
     // Historial
     const tbody = document.getElementById('tb-video');
+    const styleLabels = d.styles||{};
     if(!d.history||!d.history.length){
-      tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted)">Sin videos generados aún.</td></tr>';
+      tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted)">Sin videos generados aún.</td></tr>';
       return;
     }
     tbody.innerHTML = d.history.map(j=>{
-      const badge = j.status==='done'   ? '<span class="vs-badge-done">DONE</span>'
-                  : j.status==='running' ? '<span class="vs-badge-run">EN PROCESO</span>'
-                  : j.status==='failed'  ? '<span class="vs-badge-fail">ERROR</span>'
-                  : j.status==='cancelled'?'<span class="vs-badge-fail">CANCELADO</span>'
+      const badge = j.status==='done'    ? '<span class="vs-badge-done">DONE</span>'
+                  : j.status==='running'  ? '<span class="vs-badge-run">&#9654; PROCESO</span>'
+                  : j.status==='failed'   ? '<span class="vs-badge-fail">ERROR</span>'
+                  : j.status==='cancelled'? '<span class="vs-badge-fail">CANCELADO</span>'
                   : '<span class="vs-badge-pend">PENDIENTE</span>';
-      const dl = j.output_path
-        ? `<a href="/v1/video/download?file=${encodeURIComponent(j.output_path.split(/[\\/]/).pop())}" style="color:var(--accent);font-size:12px" download>⬇ Descargar</a>`
-        : (j.status==='pending'?`<button onclick="cancelVideo(${j.id})" style="background:none;border:1px solid var(--border);color:var(--muted);padding:3px 8px;border-radius:6px;cursor:pointer;font-size:11px">✕ Cancelar</button>`:'—');
-      const err = j.error ? `<div style="font-size:11px;color:var(--error);margin-top:4px">${j.error.slice(0,80)}</div>` : '';
+      const styleName = styleLabels[j.style||''] || (j.style||'—');
+      const styleIcons = {documental:'📽️',anime:'🌸',epico:'⚔️',noir:'🕵️',infantil:'🧸',naturaleza:'🌿',cyberpunk:'⚡',historico:'🏛️'};
+      const styleIcon  = styleIcons[j.style||'']||'🎬';
+      const err = j.error ? `<div style="font-size:10px;color:var(--error);margin-top:2px">${j.error.slice(0,60)}</div>` : '';
+      let action = '—';
+      if(j.output_path){
+        const fname = j.output_path.split(/[\\/]/).pop();
+        action = `<div style="display:flex;gap:6px;flex-wrap:wrap">`+
+          `<a href="/v1/video/download?file=${encodeURIComponent(fname)}" download style="color:var(--accent);font-size:11px;text-decoration:none;border:1px solid rgba(79,70,229,0.4);padding:2px 8px;border-radius:6px">⬇ Descargar</a>`+
+          `<button onclick="previewVideo('${fname}')" style="background:none;border:1px solid var(--border);color:var(--muted);padding:2px 8px;border-radius:6px;cursor:pointer;font-size:11px">▶ Preview</button>`+
+          `</div>`;
+      } else if(j.status==='pending'){
+        action = `<button onclick="cancelVideo(${j.id})" style="background:none;border:1px solid rgba(248,81,73,0.4);color:var(--error);padding:2px 8px;border-radius:6px;cursor:pointer;font-size:11px">✕ Cancelar</button>`;
+      }
       return `<tr>
         <td style="font-family:'JetBrains Mono';font-size:12px">#${j.id}</td>
-        <td>${j.topic.slice(0,40)}${j.topic.length>40?'…':''}</td>
-        <td>${badge}${err}</td>
-        <td style="font-size:12px;color:var(--muted)">${j.n_scenes} escenas</td>
+        <td style="max-width:180px"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px" title="${j.topic}">${j.topic.slice(0,45)}${j.topic.length>45?'…':''}</div>${err}</td>
+        <td>${badge}</td>
+        <td style="font-size:11px;white-space:nowrap">${styleIcon} ${styleName}</td>
+        <td style="font-size:12px;color:var(--muted);text-align:center">${j.n_scenes||'—'}</td>
         <td style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono'">${(j.created_at||'').slice(0,16).replace('T',' ')}</td>
-        <td>${dl}</td>
+        <td>${action}</td>
       </tr>`;
     }).join('');
   }catch(e){ console.error('[VideoStudio]',e); }
 }
 
+function previewVideo(fname){
+  const vPreview = document.getElementById('vs-video-preview');
+  const vEl      = document.getElementById('vs-video-el');
+  const dlLink   = document.getElementById('vs-dl-link');
+  const url = `/v1/video/download?file=${encodeURIComponent(fname)}`;
+  vEl.src = url;
+  vEl.dataset.src = url;
+  if(dlLink){ dlLink.href=url; dlLink.download=fname; }
+  vPreview.style.display='block';
+  vPreview.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ── Image Lab Logic ──────────────────────────────────────────────────────────
+async function checkImageLabConnectivity() {
+  try {
+    const res = await fetch('/v1/image/health');
+    const data = await res.json();
+    const dot = document.getElementById('il-status-dot');
+    const txt = document.getElementById('il-status-text');
+    if (data.online) {
+      dot.style.background = 'var(--success)';
+      txt.textContent = `Online — Latencia: ${data.latency_ms}ms`;
+      txt.style.color = 'var(--success)';
+      // También usamos esto para actualizar el badge en el Video Studio
+      let vsb = document.getElementById('vs-pollinations-badge');
+      if(vsb) {
+        vsb.textContent = 'Pollinations.ai — Online';
+        vsb.style.color = '#a5b4fc';
+        vsb.style.background = 'rgba(79,70,229,0.15)';
+      }
+    } else {
+      dot.style.background = 'var(--error)';
+      txt.textContent = 'Desconectado / Error';
+      txt.style.color = 'var(--error)';
+      let vsb = document.getElementById('vs-pollinations-badge');
+      if(vsb) {
+        vsb.textContent = 'Pollinations.ai — Fallo';
+        vsb.style.color = 'var(--error)';
+      }
+    }
+  } catch (e) {
+    document.getElementById('il-status-dot').style.background = 'var(--error)';
+    document.getElementById('il-status-text').style.color = 'var(--error)';
+    document.getElementById('il-status-text').textContent = 'Error de conexión';
+  }
+}
+
+async function loadLabHistory() {
+  try {
+    const res = await fetch('/v1/image/lab/history');
+    if(!res.ok) return;
+    const data = await res.json();
+    const gal = document.getElementById('il-gallery');
+    if(!data.images || data.images.length === 0) {
+      gal.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1;text-align:center;padding:24px">Sin imágenes generadas aún.</div>';
+      return;
+    }
+    gal.innerHTML = data.images.map(img => `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:all 0.2s">
+        <a href="${img.url}" target="_blank">
+          <img src="${img.url}" style="width:100%;aspect-ratio:3/2;object-fit:cover;display:block">
+        </a>
+        <div style="padding:8px 12px;font-size:11px;color:var(--muted);display:flex;justify-content:space-between;align-items:center">
+          <span title="${img.name}" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100px">${img.name}</span>
+          <a href="${img.url}" download="${img.name}" style="color:var(--accent);text-decoration:none">↓</a>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { console.error('Error loadLabHistory:', e); }
+}
+
+async function generateImage() {
+  const prompt = document.getElementById('il-prompt').value.trim();
+  if(!prompt) { alert("Escribe un prompt."); return; }
+  
+  const dim = document.getElementById('il-res').value.split('x');
+  const model = document.getElementById('il-model').value;
+  const negative_prompt = document.getElementById('il-negprompt').value.trim();
+  const seed = document.getElementById('il-seed').value.trim();
+  const enhance = document.getElementById('il-enhance').checked;
+  
+  const btn = document.getElementById('il-gen-btn');
+  const prog = document.getElementById('il-gen-progress');
+  btn.style.display = 'none';
+  prog.style.display = 'block';
+  
+  try {
+    const res = await fetch('/v1/image/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: prompt,
+        negative_prompt: negative_prompt,
+        seed: seed,
+        enhance: enhance,
+        width: parseInt(dim[0]),
+        height: parseInt(dim[1]),
+        model: model
+      })
+    });
+    
+    const data = await res.json();
+    if(res.ok && data.ok) {
+        document.getElementById('il-placeholder').style.display = 'none';
+        const imgEl = document.getElementById('il-preview-img');
+        imgEl.src = data.url;
+        imgEl.style.display = 'block';
+        document.getElementById('il-preview-meta').textContent = `Completado: ${data.width}x${data.height} — Motor: ${data.model}`;
+        
+        const dlBtn = document.getElementById('il-download-btn');
+        dlBtn.href = data.url;
+        dlBtn.download = data.filename;
+        dlBtn.style.display = 'inline-flex';
+        
+        loadLabHistory(); // refrescar historial
+    } else {
+        alert("Error generando imagen: " + (data.error || 'Desconocido'));
+    }
+  } catch(e) {
+    alert("Error de red: " + e.message);
+  } finally {
+    btn.style.display = 'block';
+    prog.style.display = 'none';
+  }
+}
+
 // Arranque
 refreshAll();
 setInterval(refreshAll, 10000);
+
+
+// ═══════════════════════════════════════════════════════════════════
+// GRAVITY V10.3 ULTRA EVOLUTION — JAVASCRIPT NUEVO
+// ═══════════════════════════════════════════════════════════════════
+
+// ── Notificaciones ──────────────────────────────────────────────────
+const _notifications = [];
+let _notifCount = 0;
+
+function addNotification(icon, text, type='info') {
+  const ts = new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+  _notifications.unshift({icon, text, ts, type});
+  if(_notifications.length > 20) _notifications.pop();
+  _notifCount++;
+  const badge = document.getElementById('bell-badge');
+  if(badge) { badge.textContent = _notifCount; badge.style.display='flex'; }
+  renderNotifications();
+}
+
+function renderNotifications() {
+  const list = document.getElementById('notif-list');
+  if(!list) return;
+  if(!_notifications.length) { list.innerHTML='<div class="notif-empty">Sin notificaciones</div>'; return; }
+  list.innerHTML = _notifications.slice(0,10).map(n => `
+    <div class="notif-item">
+      <div class="notif-icon">${n.icon}</div>
+      <div style="flex:1"><div class="notif-text">${n.text}</div><div class="notif-time">${n.ts}</div></div>
+    </div>`).join('');
+}
+
+function toggleNotifPanel() {
+  const panel = document.getElementById('notif-panel');
+  if(panel) panel.classList.toggle('open');
+  _notifCount = 0;
+  const badge = document.getElementById('bell-badge');
+  if(badge) badge.style.display='none';
+}
+
+function clearNotifications() {
+  _notifications.length = 0;
+  renderNotifications();
+  document.getElementById('notif-panel').classList.remove('open');
+}
+
+document.addEventListener('click', function(e) {
+  const panel = document.getElementById('notif-panel');
+  const btn = document.getElementById('bell-btn-el');
+  if(panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) {
+    panel.classList.remove('open');
+  }
+});
+
+// ── Breadcrumb ──────────────────────────────────────────────────────
+const _tabNames = {
+  'home': '🏠 Home', 'chat': '💬 Chat', 'vision': '🎨 Vision Studio',
+  'queue': '🖼️ Image Queue', 'video': '🎬 Video Studio', 'imagelab': '🎨 Image Lab',
+  'deploy': '🚀 Deploy', 'gameserver': '⚔️ Game Servers', 'multiagent': '🤖 Multi-Agent',
+  'tools': '🧰 Tools', 'tools-pro': '⚡ Tools Pro', 'security': '🔒 Security',
+  'cost': '💰 Cost Center', 'watchdog': '🐶 Watchdog', 'audit': '📋 Audit',
+  'hardware': '🖥️ Hardware', 'config': '⚙️ Config', 'rag': '📚 RAG',
+};
+function updateBreadcrumb(tab) {
+  const el = document.getElementById('bc-current');
+  if(el) el.textContent = _tabNames[tab] || tab;
+}
+
+// Override/extend the existing switchTab to update breadcrumb
+window._origSwitchTab = window.switchTab;
+window.switchTab = function(name, el) {
+  if(window._origSwitchTab) {
+    try { window._origSwitchTab(name, el); } catch(e) {}
+  }
+  updateBreadcrumb(name);
+  // Also update active nav if 'el' not provided
+  if(!el) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const navEl = document.getElementById('nav-' + name);
+    if(navEl) navEl.classList.add('active');
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    const panelEl = document.getElementById('panel-' + name);
+    if(panelEl) panelEl.classList.add('active');
+  }
+  // Load panel-specific data
+  if(name === 'home') loadHomePanel();
+  if(name === 'tools-pro') {}
+}
+
+// ── Topbar Live Stats ───────────────────────────────────────────────
+let _sessionTokens = 0;
+function updateTopbarStats(data) {
+  if(data && data.cpu !== undefined) {
+    const cpu = document.getElementById('ts-cpu-val');
+    if(cpu) cpu.textContent = Math.round(data.cpu);
+  }
+  if(data && data.ram !== undefined) {
+    const ram = document.getElementById('ts-ram-val');
+    if(ram) ram.textContent = Math.round(data.ram);
+  }
+  const tok = document.getElementById('ts-tokens-val');
+  if(tok) tok.textContent = _sessionTokens.toLocaleString();
+  // also update home widget
+  const hw = document.getElementById('hw-tokens');
+  if(hw) hw.textContent = _sessionTokens.toLocaleString();
+}
+
+async function fetchTopbarStats() {
+  try {
+    const r = await fetch('/v1/hardware');
+    if(r.ok) {
+      const d = await r.json();
+      const cpuVal = d.cpu_percent || d.cpu || 0;
+      const ramVal = d.ram_percent || d.ram || (d.memory && d.memory.percent) || 0;
+      updateTopbarStats({cpu: cpuVal, ram: ramVal, tokens: d.tokens});
+    }
+  } catch(e) {}
+}
+setInterval(fetchTopbarStats, 8000);
+fetchTopbarStats();
+
+// ── Home Panel ──────────────────────────────────────────────────────
+async function loadHomePanel() {
+  try {
+    // Status
+    const st = await fetch('/v1/status').then(r=>r.json()).catch(()=>({}));
+    const prov = document.getElementById('hw-provider');
+    const mod = document.getElementById('hw-model');
+    if(prov) prov.textContent = st.active_provider || 'Sin proveedor';
+    if(mod) mod.textContent = 'Modelo: ' + (st.active_model || '--');
+
+    // Video queue
+    const vq = await fetch('/v1/video/status').then(r=>r.json()).catch(()=>({}));
+    const vqEl = document.getElementById('hw-video-pending');
+    const vqSt = document.getElementById('hw-video-status');
+    if(vqEl) vqEl.textContent = vq.pending_count || 0;
+    if(vqSt) vqSt.textContent = (vq.current_job ? '▶ Job #' + vq.current_job.id + ' activo' : 'En cola');
+
+    // Image queue
+    const iq = await fetch('/v1/queue').then(r=>r.json()).catch(()=>({}));
+    const iqEl = document.getElementById('hw-queue-count');
+    if(iqEl) iqEl.textContent = iq.pending_count || 0;
+
+    // Cost
+    const cost = await fetch('/v1/cost').then(r=>r.json()).catch(()=>({}));
+    const dc = document.getElementById('hw-daily-cost');
+    if(dc) dc.textContent = '$' + (cost.daily_cost || 0).toFixed(4);
+    const lim = document.getElementById('hw-limit-status');
+    if(lim) lim.textContent = cost.over_limit ? '⚠️ Límite superado' : 'Límite no superado';
+
+    // Security score
+    const sec = await fetch('/v1/security').then(r=>r.json()).catch(()=>({}));
+    const alerts = sec.alerts || [];
+    let score = 100;
+    score -= Math.min(alerts.filter(a=>a.level==='CRITICAL').length * 20, 60);
+    score -= Math.min(alerts.filter(a=>a.level==='WARNING').length * 10, 30);
+    score = Math.max(0, score);
+    const sScore = document.getElementById('hw-sec-score');
+    if(sScore) { sScore.textContent = score; sScore.style.color = score > 70 ? 'var(--success)' : score > 40 ? 'var(--warning)' : 'var(--error)'; }
+    const sAlerts = document.getElementById('hw-sec-alerts');
+    if(sAlerts) sAlerts.textContent = alerts.length ? alerts.length + ' alerta(s)' : 'Sin alertas activas';
+
+    // Services
+    setServiceDot('svc-dot-bridge', 'svc-label-bridge', true, 'Online :5000');
+    // Poll health
+    fetch('/v1/image/health').then(r=>r.json()).then(d=>{
+      setServiceDot('svc-dot-poll', 'svc-label-poll', d.online, d.online ? 'Online' : 'Offline');
+    }).catch(()=>setServiceDot('svc-dot-poll', 'svc-label-poll', false, 'Sin conexión'));
+    fetch('/v1/fooocus/status').then(r=>r.json()).then(d=>{
+      setServiceDot('svc-dot-fooocus', 'svc-label-fooocus', d.online, d.online ? 'Puerto 7861' : 'Offline');
+    }).catch(()=>setServiceDot('svc-dot-fooocus', 'svc-label-fooocus', false, 'Offline'));
+    fetch('/v1/rag/status').then(r=>r.json()).then(d=>{
+      setServiceDot('svc-dot-rag', 'svc-label-rag', d.online, d.online ? d.doc_count+' docs' : 'Sin índice');
+    }).catch(()=>setServiceDot('svc-dot-rag', 'svc-label-rag', false, 'Offline'));
+
+    // Activity
+    const audit = await fetch('/v1/audit').then(r=>r.json()).catch(()=>({data:[]}));
+    const rows = (audit.data || []).slice(0, 8);
+    const actList = document.getElementById('home-activity-list');
+    if(actList) {
+      actList.innerHTML = rows.length ? rows.map(a => `
+        <div class="home-activity-row">
+          <span>🤖</span>
+          <span style="flex:1"><strong>${a.provider||'?'}</strong> / ${(a.model||'').substring(0,30)}</span>
+          <span style="color:var(--muted);font-size:11px;font-family:'JetBrains Mono'">${a.input_tokens||0}+${a.output_tokens||0} tok</span>
+          <span style="color:var(--muted);font-size:10px">${(a.timestamp||'').slice(11,19)}</span>
+        </div>`).join('') : '<div class="home-activity-row" style="color:var(--muted)">Sin actividad reciente.</div>';
+    }
+  } catch(e) { console.warn('[Home]', e); }
+}
+
+function setServiceDot(dotId, labelId, online, label) {
+  const dot = document.getElementById(dotId);
+  const lbl = document.getElementById(labelId);
+  if(dot) dot.style.background = online ? 'var(--success)' : 'var(--error)';
+  if(lbl) lbl.textContent = label;
+}
+
+// ── Video Studio — Slider de duración ──────────────────────────────
+window.updateVsDuration = function() {
+  const slider = document.getElementById('vs-scene-duration');
+  const nScenes = document.getElementById('vs-n-scenes') || {value:'6'};
+  const totEl = document.getElementById('vs-duration-total');
+  if(!slider || !totEl) return;
+  const secs = parseInt(slider.value);
+  const n = parseInt(nScenes.value || '6');
+  const total = secs * n;
+  const mins = Math.floor(total/60);
+  const s = total % 60;
+  totEl.textContent = `~${mins > 0 ? mins+'m ' : ''}${s}s total (${secs}s × ${n} escenas)`;
+}
+
+// Timeline Video Studio auto-update
+window.updateVsTimeline = function(step, status) {
+  const steps = ['script','img','audio','video','final'];
+  steps.forEach((s, i) => {
+    const el = document.getElementById('vs-step-'+s);
+    if(!el) return;
+    if(s === step) el.className = 'vs-tl-step active';
+    else if(steps.indexOf(step) > i) el.className = 'vs-tl-step done';
+    else el.className = 'vs-tl-step pending';
+  });
+  const bar = document.getElementById('vs-timeline-bar');
+  if(bar) bar.style.display='flex';
+}
+
+// ── Image Lab Funciones ─────────────────────────────────────────────
+const IL_PRESETS = {
+  portrait:  ', professional portrait photography, studio lighting, sharp focus, bokeh background, 4k',
+  landscape: ', epic landscape photography, golden hour, dramatic sky, ultra wide angle, RAW photo',
+  logo:      ', minimalist logo design, vector style, clean background, professional brand identity',
+  avatar:    ', digital avatar, game character, detailed portrait, dramatic lighting, fantasy style',
+  cinematic: ', cinematic still, film grain, anamorphic lens, color grading, professional cinematography',
+  fantasy:   ', epic fantasy art, digital painting, detailed, dramatic lighting, concept art',
+  anime:     ', anime illustration, detailed, vibrant colors, studio quality, 4k masterpiece',
+  product:   ', product photography, studio white background, professional lighting, commercial quality',
+};
+
+window.applyIlPreset = function(preset) {
+  const inp = document.getElementById('il-prompt');
+  if(!inp) return;
+  const suffix = IL_PRESETS[preset] || '';
+  // Remove existing preset suffixes first
+  let val = inp.value;
+  Object.values(IL_PRESETS).forEach(s => { val = val.replace(s,''); });
+  inp.value = val.trim() + suffix;
+  inp.focus();
+  // Visual feedback
+  document.querySelectorAll('.il-preset-chip').forEach(c => c.style.borderColor='');
+  event && event.target && (event.target.style.borderColor='var(--accent)');
+}
+
+let _ilAbMode = false;
+window.toggleIlAB = function() {
+  _ilAbMode = !_ilAbMode;
+  const container = document.getElementById('il-ab-container');
+  const btn = document.getElementById('il-ab-toggle');
+  if(container) container.style.display = _ilAbMode ? 'grid' : 'none';
+  if(btn) btn.innerHTML = _ilAbMode ? '⚖️ Modo A/B <span style="color:var(--success)">ON</span>' : '⚖️ Modo A/B';
+  if(btn) btn.style.background = _ilAbMode ? 'rgba(79,70,229,0.15)' : '';
+}
+
+window.improveIlPrompt = async function() {
+  const inp = document.getElementById('il-prompt');
+  const btn = document.getElementById('il-improve-btn');
+  if(!inp || !btn) return;
+  const orig = inp.value.trim();
+  if(!orig) { showToast('Escribe un prompt primero', 'error'); return; }
+  btn.disabled = true; btn.textContent = '⏳ Mejorando...';
+  try {
+    const resp = await fetch('/v1/chat/completions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        stream: false,
+        messages:[
+          {role:'system', content:'You are an expert Stable Diffusion prompt engineer. Enrich the given prompt to maximize visual quality. Return ONLY the improved prompt, nothing else. Keep it under 400 characters.'},
+          {role:'user', content:'Improve this image prompt: "' + orig + '"'}
+        ]
+      })
+    });
+    const data = await resp.json();
+    const improved = data.choices?.[0]?.message?.content?.trim();
+    if(improved) {
+      inp.value = improved;
+      inp.style.borderColor='var(--success)';
+      setTimeout(()=>inp.style.borderColor='', 2000);
+      showToast('✨ Prompt mejorado!', 'success');
+    }
+  } catch(e) { showToast('Error mejorando prompt: '+e.message, 'error'); }
+  finally { btn.disabled=false; btn.textContent='✨ Mejorar Prompt'; }
+}
+
+// Override image lab gen function if needed
+window.generateIlEnhanced = async function() {
+  const batchCount = parseInt(document.getElementById('il-batch-count')?.value || '1');
+  if(_ilAbMode && batchCount === 1) {
+    const prompt = document.getElementById('il-prompt')?.value?.trim();
+    if(!prompt) { showToast('Prompt requerido', 'error'); return; }
+    const seed = Math.floor(Math.random() * 9999999);
+    document.getElementById('il-ab-loading-a').style.display='block';
+    document.getElementById('il-ab-loading-b').style.display='block';
+    document.getElementById('il-ab-img-a').style.display='none';
+    document.getElementById('il-ab-img-b').style.display='none';
+    
+    const getParams = (s) => ({
+      prompt, seed: s,
+      width: parseInt(document.getElementById('il-width')?.value||'1024'),
+      height: parseInt(document.getElementById('il-height')?.value||'1024'),
+      model: document.getElementById('il-model')?.value||'flux',
+      enhance: document.getElementById('il-enhance')?.checked || false,
+      negative_prompt: document.getElementById('il-negative')?.value||''
+    });
+    
+    const [rA, rB] = await Promise.all([
+      fetch('/v1/image/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(getParams(seed))}).then(r=>r.json()).catch(e=>({error:e.message})),
+      fetch('/v1/image/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(getParams(seed+1))}).then(r=>r.json()).catch(e=>({error:e.message}))
+    ]);
+    
+    ['a','b'].forEach((v, i) => {
+      const r = i===0 ? rA : rB;
+      document.getElementById('il-ab-loading-'+v).style.display='none';
+      if(r.url) {
+        const img = document.getElementById('il-ab-img-'+v);
+        img.src = r.url + '?t=' + Date.now();
+        img.style.display='block';
+      }
+    });
+    if(rA.url || rB.url) addNotification('🎨','Imágenes A/B generadas','success');
+    return true; // was handled
+  }
+  return false; // let normal flow handle it
+}
+
+// Decorate the original generate function for ImageLab ONLY if it exists
+if(typeof window.generateImage === 'function') {
+  const origFn = window.generateImage;
+  window.generateImage = async function() {
+    // If we are in image lab panel and AB mode handles it
+    const p = document.getElementById('panel-imagelab');
+    if(p && p.classList.contains('active')) {
+      const handled = await window.generateIlEnhanced();
+      if(handled) return;
+    }
+    // else
+    return origFn.apply(this, arguments);
+  };
+}
+
+// ── Tools Pro ───────────────────────────────────────────────────────
+window.runCode = async function() {
+  const code = document.getElementById('cr-code')?.value?.trim();
+  const lang = document.getElementById('cr-lang')?.value || 'python';
+  const btn = document.getElementById('cr-run-btn');
+  const out = document.getElementById('cr-output');
+  if(!code || !out) return;
+  btn.disabled=true; btn.textContent='⏳ Ejecutando...';
+  out.innerHTML='<span class="info">Ejecutando...</span>';
+  try {
+    const r = await fetch('/v1/tools/run', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code, lang})});
+    const d = await r.json();
+    let html = '';
+    if(d.stdout) html += '<span class="stdout">' + escapeHtml(d.stdout) + '</span>';
+    if(d.stderr) html += '<span class="stderr">' + escapeHtml(d.stderr) + '</span>';
+    if(!d.stdout && !d.stderr) html = '<span class="info">Sin salida (exit '+d.exit_code+')</span>';
+    out.innerHTML = html;
+    addNotification('⚡', 'Code Runner: exit ' + d.exit_code, d.exit_code===0 ? 'success' : 'error');
+  } catch(e) { out.innerHTML='<span class="stderr">Error: '+escapeHtml(e.message)+'</span>'; }
+  finally { btn.disabled=false; btn.textContent='▶ Ejecutar'; }
+}
+
+window.clearCodeOutput = function() {
+  const out = document.getElementById('cr-output');
+  if(out) out.innerHTML='<span class="info">Listo.</span>';
+}
+
+window.runWebSearch = async function() {
+  const q = document.getElementById('ws-query')?.value?.trim();
+  const btn = document.getElementById('ws-run-btn');
+  const results = document.getElementById('ws-results');
+  if(!q || !results) return;
+  btn.disabled=true; btn.textContent='⏳ Buscando...';
+  results.innerHTML='<div style="color:var(--muted);text-align:center;padding:24px;font-size:13px">Buscando...</div>';
+  try {
+    const r = await fetch('/v1/tools/search', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({query:q})});
+    const d = await r.json();
+    if(d.results && d.results.length) {
+      results.innerHTML = d.results.map(r => `
+        <div class="search-result-card">
+          <div class="search-result-title">${escapeHtml(r.title||'Sin título')}</div>
+          ${r.url ? '<div class="search-result-url"><a href="'+escapeHtml(r.url)+'" target="_blank">'+escapeHtml(r.url.substring(0,60))+'...</a></div>' : ''}
+          ${r.snippet ? '<div class="search-result-snippet">'+escapeHtml(r.snippet)+'</div>' : ''}
+        </div>`).join('');
+    } else {
+      results.innerHTML='<div style="color:var(--muted);text-align:center;padding:24px;font-size:13px">Sin resultados para "'+escapeHtml(q)+'"</div>';
+    }
+  } catch(e) { results.innerHTML='<div style="color:var(--error);padding:16px">Error: '+escapeHtml(e.message)+'</div>'; }
+  finally { btn.disabled=false; btn.textContent='🔍 Buscar'; }
+}
+
+window.runGit = async function(cmd) {
+  const out = document.getElementById('git-output');
+  if(!out) return;
+  out.innerHTML='<span class="info">Ejecutando git '+cmd+'...</span>';
+  try {
+    const r = await fetch('/v1/tools/git', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({cmd, cwd:'F:/Gravity_AI_bridge'})});
+    const d = await r.json();
+    const text = (d.output||d.error||'Sin salida').trim();
+    out.innerHTML = '<span class="' + (d.error&&!d.output?'stderr':'stdout') + '">' + escapeHtml(text) + '</span>';
+  } catch(e) { out.innerHTML='<span class="stderr">Error: '+escapeHtml(e.message)+'</span>'; }
+}
+
+window.runGrep = async function() {
+  const pattern = document.getElementById('grep-pattern')?.value?.trim();
+  const path = document.getElementById('grep-path')?.value?.trim() || '';
+  const btn = document.getElementById('grep-run-btn');
+  const results = document.getElementById('grep-results');
+  if(!pattern || !results) return;
+  btn.disabled=true; btn.textContent='⏳...';
+  results.innerHTML='<div style="color:var(--muted);font-size:12px;padding:4px">Buscando "' + escapeHtml(pattern) + '"...</div>';
+  try {
+    const r = await fetch('/v1/tools/grep', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({pattern, path})});
+    const d = await r.json();
+    if(d.matches && d.matches.length) {
+      results.innerHTML = '<div style="color:var(--muted);font-size:11px;margin-bottom:6px">' + (d.count>50?'Mostrando 50':'') + ' de ' + d.count + ' coincidencias</div>' + 
+        d.matches.slice(0,80).map(m => {
+          const line = m.line || m;
+          const parts = (line+'').split(':');
+          const file = parts[0]||'';
+          const linenum = parts[1]||'';
+          const text = parts.slice(2).join(':');
+          return '<div class="grep-match"><span class="file">'+escapeHtml(file.split('/').pop().split('\\').pop())+'</span><span class="linenum">:'+escapeHtml(linenum)+'</span> <span class="matchtext">'+escapeHtml(text.substring(0,100))+'</span></div>';
+        }).join('');
+    } else {
+      results.innerHTML='<div style="color:var(--muted);font-size:12px;padding:4px">Sin resultados para "'+escapeHtml(pattern)+'"</div>';
+    }
+  } catch(e) { results.innerHTML='<div style="color:var(--error);font-size:12px">Error: '+escapeHtml(e.message)+'</div>'; }
+  finally { btn.disabled=false; btn.textContent='🔎 Buscar'; }
+}
+
+// ── Chat Templates ──────────────────────────────────────────────────
+const PROMPT_TEMPLATES = {
+  'Código': [
+    {title:'Depurar Error', prompt:'Analiza este error y dame la solución exacta:\n\n[PEGA EL ERROR AQUÍ]'},
+    {title:'Refactorizar', prompt:'Refactoriza este código manteniendo funcionalidad:\n\n```python\n[CÓDIGO AQUÍ]\n```'},
+    {title:'Explicar Código', prompt:'Explica este código línea por línea:\n\n```\n[CÓDIGO]\n```'},
+    {title:'Crear Tests', prompt:'Crea tests unitarios completos para esta función:\n\n```python\n[FUNCIÓN]\n```'},
+  ],
+  'WoW Vanilla': [
+    {title:'Spell Lua', prompt:'Crea un script Lua 5.0 para WoW Vanilla (vMaNGOS) que haga: [DESCRIPCIÓN]'},
+    {title:'NPC Handler', prompt:'Crea un NPC handler en Lua para vMaNGOS con las siguientes interacciones: [DETALLES]'},
+    {title:'Quest Script', prompt:'Crea un script de misión para WoW Vanilla con este flujo: [DESCRIPCIÓN]'},
+    {title:'SQL Query', prompt:'Escribe una query SQL de vMaNGOS para: [OBJETIVO]'},
+  ],
+  'Imágenes AI': [
+    {title:'Prompt Épico', prompt:'Genera un prompt de Stable Diffusion para: [DESCRIPCIÓN]. Incluye estilo, iluminación y composición.'},
+    {title:'Prompt Anime', prompt:'Crea un prompt de imagen anime detallado para: [DESCRIPCIÓN]'},
+    {title:'Prompt Cinematic', prompt:'Genera un prompt cinematográfico ultra-detallado para una escena de: [DESCRIPCIÓN]'},
+    {title:'Prompt Retrato', prompt:'Prompt profesional para retrato fotográfico de: [DESCRIPCIÓN]'},
+  ],
+  'Análisis': [
+    {title:'Analizar Logs', prompt:'Analiza estos logs y detecta el problema raíz:\n\n[PEGA LOS LOGS]'},
+    {title:'Revisar Arquitectura', prompt:'Revisa esta arquitectura de software y sugiere mejoras:\n\n[DESCRIPCIÓN]'},
+    {title:'Code Review', prompt:'Haz un code review técnico detallado de este código:\n\n```\n[CÓDIGO]\n```'},
+    {title:'Seguridad', prompt:'Analiza posibles vulnerabilidades de seguridad en:\n\n[CÓDIGO/CONFIG]'},
+  ],
+};
+
+let _tplCurrentCat = 'Código';
+
+window.openTplModal = function() {
+  const overlay = document.getElementById('tpl-modal-overlay');
+  if(!overlay) return;
+  overlay.classList.add('open');
+  window.renderTplModal();
+}
+
+window.closeTplModal = function(event) {
+  if(!event || event.target.id === 'tpl-modal-overlay' || event.currentTarget.tagName === 'BUTTON') {
+    document.getElementById('tpl-modal-overlay')?.classList.remove('open');
+  }
+}
+
+window.renderTplModal = function() {
+  const cats = document.getElementById('tpl-cats');
+  const grid = document.getElementById('tpl-grid');
+  if(!cats || !grid) return;
+  cats.innerHTML = Object.keys(PROMPT_TEMPLATES).map(cat => `
+    <div class="tpl-cat ${cat===_tplCurrentCat?'active':''}" onclick="_tplCurrentCat='${cat}';window.renderTplModal()">${cat}</div>`).join('');
+  const templates = PROMPT_TEMPLATES[_tplCurrentCat] || [];
+  grid.innerHTML = templates.map((t,i) => `
+    <div class="tpl-card" onclick="window.applyTemplate(${i})">
+      <div class="tpl-card-title">${t.title}</div>
+      <div class="tpl-card-preview">${t.prompt.substring(0,80)}...</div>
+    </div>`).join('');
+}
+
+window.applyTemplate = function(idx) {
+  const t = (PROMPT_TEMPLATES[_tplCurrentCat]||[])[idx];
+  if(!t) return;
+  const inp = document.getElementById('user-input') || document.getElementById('chat-input') || document.getElementById('msg-input');
+  if(inp) { inp.value = t.prompt; inp.focus(); }
+  window.closeTplModal({currentTarget:{tagName:'BUTTON'}});
+  showToast('Template aplicado: '+t.title, 'success');
+}
+
+// ── Security Monitor funciones mejoradas ────────────────────────────
+window.loadSecurityEnhanced = async function() {
+  try {
+    const sec = await fetch('/v1/security').then(r=>r.json()).catch(()=>({}));
+    const alerts = sec.alerts || [];
+    
+    // Score
+    let score = 100;
+    score -= Math.min(alerts.filter(a=>(a.level||'').toUpperCase()==='CRITICAL').length * 20, 60);
+    score -= Math.min(alerts.filter(a=>(a.level||'').toUpperCase()==='WARNING').length * 10, 30);
+    score = Math.max(0, score);
+    
+    const scoreNum = document.getElementById('sec-score-num');
+    const scoreArc = document.getElementById('sec-score-arc');
+    const scoreDetail = document.getElementById('sec-score-detail');
+    
+    if(scoreNum) { scoreNum.textContent = score; scoreNum.style.color = score>70?'var(--success)':score>40?'var(--warning)':'var(--error)'; }
+    if(scoreArc) { scoreArc.setAttribute('stroke-dasharray', score+', 100'); scoreArc.setAttribute('stroke', score>70?'var(--success)':score>40?'var(--warning)':'var(--error)'); }
+    if(scoreDetail) { scoreDetail.textContent = alerts.length ? alerts.length + ' alertas activas' : 'Sistema seguro'; }
+
+    // Timeline
+    const timeline = document.getElementById('sec-alert-timeline');
+    if(timeline) {
+      timeline.innerHTML = alerts.length ? alerts.slice(0,10).map(a=>`
+        <div class="sec-tl-item">
+          <div class="sec-tl-dot sec-tl-${(a.level||'INFO').toUpperCase()}"></div>
+          <div style="flex:1"><strong>${escapeHtml(a.level||'INFO')}</strong>: ${escapeHtml(a.message||a.description||'alerta sin detalles')}</div>
+          <div class="sec-tl-time">${(a.timestamp||a.time||'').slice(11,19)||'--:--:--'}</div>
+        </div>`).join('') : '<div style="color:var(--muted);font-size:13px;padding:8px 0">Sin alertas recientes.</div>';
+    }
+  } catch(e) { console.warn('[Security Enhanced]', e); }
+}
+
+window.killProcess = async function(pid) {
+  if(!pid) return;
+  if(!confirm('¿Terminar proceso PID ' + pid + '?')) return;
+  try {
+    const r = await fetch('/v1/security/kill', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({pid})});
+    const d = await r.json();
+    showToast(d.message || 'Kill enviado', d.ok ? 'success' : 'error');
+    addNotification('🔒', d.message || 'Proceso terminado');
+    if(typeof loadSecurity === 'function') loadSecurity();
+  } catch(e) { showToast('Error: '+e.message, 'error'); }
+}
+
+// ── Game Server Backup ──────────────────────────────────────────────
+window.backupGameServer = async function(server='wow_vanilla') {
+  try {
+    const r = await fetch('/v1/gameserver/backup', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({server})});
+    const d = await r.json();
+    showToast(d.message || 'Backup iniciado', d.ok ? 'success' : 'error');
+    addNotification('💾', 'Backup servidor: '+d.message);
+  } catch(e) { showToast('Error backup: '+e.message, 'error'); }
+}
+
+// ── Utilidades ──────────────────────────────────────────────────────
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(text||''));
+  return div.innerHTML;
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+  if(e.ctrlKey && e.key=='/') { e.preventDefault(); window.openTplModal(); }
+  if(e.ctrlKey && e.key==='l') {
+    e.preventDefault();
+    const msgs = document.getElementById('messages'); if(msgs) msgs.innerHTML='';
+    const hist = document.getElementById('history'); if(hist) hist.innerHTML='';
+    if(typeof chatHistory!=='undefined') chatHistory.length=0;
+  }
+});
+
+// Auto-load on tab switch — intercept clicks
+document.querySelectorAll('.nav-item[id]').forEach(el => {
+  const tabName = el.id.replace('nav-','');
+  el.addEventListener('click', () => {
+    setTimeout(() => {
+      if(tabName === 'security') window.loadSecurityEnhanced();
+      if(tabName === 'home') loadHomePanel();
+    }, 100);
+  });
+});
+
+// ── Init on load ────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  // Show home panel by default if it exists
+  const homePanel = document.getElementById('panel-home');
+  if(homePanel) {
+    // Don't auto-switch to home, let existing logic handle it
+    setTimeout(loadHomePanel, 500);
+  }
+  setTimeout(fetchTopbarStats, 1000);
+  setTimeout(window.loadSecurityEnhanced, 2000);
+});
+
+// MARCADOR FINAL V10.3
+
+
+// ── Tools Pro ────────────────────────────────────────────────────────────────
+async function runCode() {
+  const lang = document.getElementById('cr-lang').value;
+  const code = document.getElementById('cr-code').value.trim();
+  if(!code)return;
+  const out = document.getElementById('cr-output');
+  const btn = document.getElementById('cr-run-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Ejecutando...';
+  out.innerHTML = '<span class="spinner"></span> Ejecutando código aislado...';
+  try {
+    const res = await fetch('/v1/tools/run', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({source: code, lang: lang})
+    });
+    const data = await res.json();
+    if(data.error) {
+      out.innerHTML = `<span style="color:var(--error)">${esc(data.error)}</span>`;
+    } else {
+      out.innerHTML = `<pre style="margin:0;font-family:'JetBrains Mono';white-space:pre-wrap;color:var(--success)">${esc(data.stdout || '')}</pre><pre style="margin:0;font-family:'JetBrains Mono';white-space:pre-wrap;color:var(--error)">${esc(data.stderr || '')}</pre>`;
+    }
+  }catch(e){ out.innerHTML = `<span style="color:var(--error)">Error de red: ${e.message}</span>`; }
+  btn.disabled = false;
+  btn.textContent = '▶ Ejecutar';
+}
+
+function clearCodeOutput() {
+  document.getElementById('cr-output').innerHTML = '<span class="info">Listo. Presiona ▶ para ejecutar.</span>';
+}
+
+async function runWebSearch() {
+  const q = document.getElementById('ws-query').value.trim();
+  if(!q)return;
+  const out = document.getElementById('ws-results');
+  const btn = document.getElementById('ws-run-btn');
+  btn.disabled = true; btn.textContent = 'Buscando...';
+  out.innerHTML = '<div style="text-align:center;padding:24px"><span class="spinner"></span> Consultando DuckDuckGo...</div>';
+  try {
+    const res = await fetch('/v1/tools/search', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({query: q})
+    });
+    const data = await res.json();
+    if(data.error) {
+       out.innerHTML = `<div style="text-align:center;color:var(--error);padding:20px">${esc(data.error)}</div>`;
+    } else {
+       if(!data.results || data.results.length === 0) out.innerHTML = '<div style="text-align:center;padding:20px">No hubo resultados</div>';
+       else {
+         out.innerHTML = data.results.map(r => `
+          <div style="padding:10px;border-bottom:1px solid var(--border)">
+            <a href="${esc(r.href)}" target="_blank" style="color:var(--accent);font-weight:600;text-decoration:none;font-size:13px">${esc(r.title)}</a>
+            <div style="font-size:11px;color:var(--muted);margin:4px 0">${esc(r.body)}</div>
+          </div>
+         `).join('');
+       }
+    }
+  }catch(e){ out.innerHTML = 'Error fetching search'; }
+  btn.disabled = false; btn.textContent = '🔍 Buscar';
+}
+
+async function runGit(action) {
+  const out = document.getElementById('git-output');
+  out.innerHTML = `<span class="spinner"></span> Ejecutando git ${action}...`;
+  try {
+    const res = await fetch('/v1/tools/git', {
+       method:'POST',
+       headers:{'Content-Type':'application/json'},
+       body: JSON.stringify({action: action})
+    });
+    const data = await res.json();
+    out.innerHTML = `<pre style="margin:0;font-family:'JetBrains Mono';white-space:pre-wrap;color:var(--text)">${esc(data.stdout||data.error||'OK')}</pre>`;
+  } catch(e){ out.innerHTML = 'Error: ' + e.message; }
+}
+
+async function runGrep() {
+  const pat = document.getElementById('grep-pattern').value.trim();
+  const path = document.getElementById('grep-path').value.trim();
+  if(!pat)return;
+  const out = document.getElementById('grep-results');
+  const btn = document.getElementById('grep-run-btn');
+  btn.disabled = true; btn.textContent = '...';
+  out.innerHTML = '<div style="text-align:center;padding:20px"><span class="spinner"></span> Buscando...</div>';
+  try {
+    const res = await fetch('/v1/tools/grep', {
+      method: 'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({pattern: pat, path: path||'.'})
+    });
+    const data = await res.json();
+    if(data.error) {
+      out.innerHTML = `<div style="color:var(--error)">${esc(data.error)}</div>`;
+    } else {
+      out.innerHTML = `<pre style="margin:0;font-family:'JetBrains Mono';white-space:pre-wrap;font-size:11px;color:var(--text)">${esc(data.stdout||'Sin coincidencias')}</pre>`;
+    }
+  } catch(e){ out.innerHTML = 'Error: ' + e.message; }
+  btn.disabled = false; btn.textContent = '🔎 Buscar';
+}
+
 </script>
 </body>
 </html>

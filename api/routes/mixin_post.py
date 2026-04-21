@@ -51,7 +51,79 @@ class PostRoutesMixin:
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
 
+        # /v1/image/generate — Image Lab independiente via Pollinations.ai
+        if self.path == "/v1/image/generate":
+            try:
+                import uuid as _uuid, base64
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                prompt = data.get("prompt", "").strip()
+                if not prompt:
+                    self.send_response(400)
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "prompt requerido"}).encode())
+                    return
+
+                width  = int(data.get("width",  1024))
+                height = int(data.get("height", 1024))
+                model  = data.get("model", "flux")
+                negative_prompt = data.get("negative_prompt", "").strip()
+                enhance_str = str(data.get("enhance", "true")).lower()
+                enhance = enhance_str == "true"
+                seed_val = data.get("seed", "")
+                seed = None
+                if seed_val and str(seed_val).isdigit():
+                    seed = int(seed_val)
+
+                BASE    = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                lab_dir = os.path.join(BASE, "_integrations", "ImageLab")
+                os.makedirs(lab_dir, exist_ok=True)
+
+                filename    = f"lab_{_uuid.uuid4().hex[:12]}.png"
+                output_path = os.path.join(lab_dir, filename)
+
+                from tools.pollinations_generator import generate as poll_gen
+                try:
+                    result = poll_gen(prompt=prompt, output_path=output_path,
+                                      width=width, height=height, model=model,
+                                      seed=seed, enhance=enhance, negative_prompt=negative_prompt)
+                except Exception as e:
+                    import traceback
+                    print(f"Error calling poll_gen: {traceback.format_exc()}", file=sys.stderr)
+                    raise e
+
+                if result.get("success") and os.path.isfile(output_path):
+                    with open(output_path, "rb") as f:
+                        b64 = base64.b64encode(f.read()).decode()
+                    body = json.dumps({
+                        "ok":       True,
+                        "url":      f"/static/imagelab/{filename}",
+                        "filename": filename,
+                        "b64":      b64,
+                        "width":    width,
+                        "height":   height,
+                        "model":    model,
+                    }).encode("utf-8")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(body)
+                else:
+                    err = result.get("error", "Pollinations sin respuesta")
+                    self.send_response(502)
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": err}).encode())
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
         # /v1/watchdog/unlock
+
         if self.path == "/v1/watchdog/unlock":
             try:
                 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -366,9 +438,21 @@ class PostRoutesMixin:
                     self.end_headers()
                     self.wfile.write(json.dumps({"error": "Campo 'topic' requerido."}).encode())
                     return
-                n_scenes    = int(data.get("n_scenes", 6))
-                voice_speed = int(data.get("voice_speed", 150))
-                job_id      = video_pipeline.add_job(topic, n_scenes, voice_speed)
+                n_scenes      = int(data.get("n_scenes", 6))
+                voice_speed   = int(data.get("voice_speed", 150))
+                voice_id      = data.get("voice_id", "").strip()
+                style         = data.get("style", "documental").strip()
+                narration_lang= data.get("narration_lang", "es").strip()
+                transitions   = bool(data.get("transitions", True))
+                job_id        = video_pipeline.add_job(
+                    topic          = topic,
+                    n_scenes       = n_scenes,
+                    voice_speed    = voice_speed,
+                    voice_id       = voice_id,
+                    style          = style,
+                    narration_lang = narration_lang,
+                    transitions    = transitions,
+                )
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self._send_cors()
@@ -378,12 +462,15 @@ class PostRoutesMixin:
                     "job_id":   job_id,
                     "message":  f"Video encolado (job #{job_id}). El proceso toma ~{n_scenes * 5} min en CPU.",
                     "n_scenes": n_scenes,
+                    "style":    style,
+                    "voice_id": voice_id or "auto",
                 }).encode())
             except Exception as e:
                 self.send_response(500)
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
+
 
         # /v1/video/cancel — Cancela un trabajo de video pendiente
         if self.path == "/v1/video/cancel":
@@ -406,7 +493,6 @@ class PostRoutesMixin:
         # /v1/audit/rotate — Fuerza rotación inmediata del audit log activo
         if self.path == "/v1/audit/rotate":
             try:
-                from core.audit_log import audit_logger
                 _base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
                 import time as _time, os as _os
                 bak = audit_logger.log_path.replace(".jsonl", f".bak.{int(_time.time())}.jsonl")
@@ -463,6 +549,215 @@ class PostRoutesMixin:
                 }).encode())
             except Exception as e:
                 self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+
+        # /v1/tools/run — Code Runner (Python/Bash)
+        if self.path == "/v1/tools/run":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                code   = data.get("code", "").strip()
+                lang   = data.get("lang", "python").lower()
+                if not code:
+                    self.send_response(400)
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "code requerido"}).encode())
+                    return
+                BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                sys.path.insert(0, os.path.join(BASE, "tools"))
+                from code_runner import CodeRunner
+                runner = CodeRunner()
+                result = runner.execute(code=code, language=lang, timeout=15)
+                body = json.dumps({"ok": True, "stdout": result.stdout or "", "stderr": result.stderr or "", "exit_code": result.exit_code or 0}).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/tools/search — Web Search DuckDuckGo
+        if self.path == "/v1/tools/search":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                query  = data.get("query", "").strip()
+                if not query:
+                    self.send_response(400)
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "query requerido"}).encode())
+                    return
+                BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                sys.path.insert(0, os.path.join(BASE, "tools"))
+                from web_search import WebSearch
+                searcher = WebSearch()
+                r = searcher.execute(query=query)
+                # Parse structured results from stdout
+                import re as _re
+                lines = (r.stdout or "").split("\n")
+                results = []
+                cur = {}
+                for line in lines:
+                    if line and line[0].isdigit() and ". **" in line:
+                        if cur: results.append(cur)
+                        cur = {"title": _re.sub(r"^\d+\.\s*\*\*(.+)\*\*", r"\1", line).strip()}
+                    elif "URL:" in line and cur:
+                        cur["url"] = line.replace("URL:", "").strip()
+                    elif line.strip() and cur and "title" in cur and "url" in cur:
+                        cur.setdefault("snippet", line.strip())
+                if cur: results.append(cur)
+                if not results:
+                    results = [{"title": "Resultado", "url": "", "snippet": r.stdout or "Sin resultados"}]
+                body = json.dumps({"ok": r.success, "results": results, "query": query}).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/tools/git — Git Tool operations
+        if self.path == "/v1/tools/git":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                cmd    = data.get("cmd", "status").strip()
+                cwd    = data.get("cwd", "").strip() or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                sys.path.insert(0, os.path.join(BASE, "tools"))
+                from git_tool import GitTool
+                import subprocess as _sp
+                git_cmds = {"status": ["git","status","--short"], "log": ["git","log","--oneline","-15"], "diff": ["git","diff","HEAD"], "branch": ["git","branch","-a"]}
+                git_cmd = git_cmds.get(cmd, None)
+                if git_cmd:
+                    _r = _sp.run(git_cmd, capture_output=True, text=True, timeout=10, cwd=cwd)
+                    output = _r.stdout[:5000] + (_r.stderr[:1000] if _r.stderr else "")
+                else:
+                    output = f"Comando '{cmd}' no soportado. Opciones: status, log, diff, branch"
+                body = json.dumps({"ok": True, "output": output, "error": "", "cmd": cmd}).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/tools/grep — Grep pattern search
+        if self.path == "/v1/tools/grep":
+            try:
+                length  = int(self.headers.get("Content-Length", 0))
+                data    = json.loads(self.rfile.read(length)) if length else {}
+                pattern = data.get("pattern", "").strip()
+                path_g  = data.get("path", "").strip()
+                if not pattern:
+                    self.send_response(400)
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "pattern requerido"}).encode())
+                    return
+                BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                sys.path.insert(0, os.path.join(BASE, "tools"))
+                from grep_tool import GrepTool
+                grepper = GrepTool()
+                r = grepper.execute(pattern=pattern, path=path_g or BASE)
+                lines = (r.stdout or "").split("\n") if r.success else []
+                results = [{"line": l} for l in lines if l.strip()]
+                body = json.dumps({"ok": r.success, "matches": results, "count": len(results), "raw": r.stdout or r.stderr or ""}).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/security/kill — Kill suspicious process
+        if self.path == "/v1/security/kill":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                pid    = int(data.get("pid", 0))
+                if not pid:
+                    self.send_response(400)
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "pid requerido"}).encode())
+                    return
+                import signal as _signal
+                try:
+                    import psutil
+                    p = psutil.Process(pid)
+                    pname = p.name()
+                    p.terminate()
+                    body = json.dumps({"ok": True, "message": f"Proceso {pname} (PID {pid}) terminado.", "pid": pid}).encode()
+                except ImportError:
+                    import subprocess, sys
+                    if sys.platform == "win32":
+                        subprocess.run(["taskkill", "/PID", str(pid), "/F"], capture_output=True)
+                    body = json.dumps({"ok": True, "message": f"Kill enviado a PID {pid}.", "pid": pid}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/gameserver/backup — Backup server DB
+        if self.path == "/v1/gameserver/backup":
+            try:
+                import shutil, time as t
+                length    = int(self.headers.get("Content-Length", 0))
+                data      = json.loads(self.rfile.read(length)) if length else {}
+                BASE      = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                backup_dir = os.path.join(BASE, "_archivo", "server_backups")
+                os.makedirs(backup_dir, exist_ok=True)
+                ts = int(t.time())
+                # Backup del SQLite del servidor si existe
+                gs_db = os.path.join(BASE, "_image_queue.sqlite")
+                if os.path.isfile(gs_db):
+                    dst = os.path.join(backup_dir, f"server_backup_{ts}.zip")
+                    shutil.copy2(gs_db, os.path.join(backup_dir, f"backup_{ts}.sqlite"))
+                    msg = f"Backup creado: backup_{ts}.sqlite en _archivo/server_backups/"
+                else:
+                    msg = f"Backup dir listo: {backup_dir} (no hay DB de servidor local para copiar)"
+                body = json.dumps({"ok": True, "message": msg, "timestamp": ts}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return

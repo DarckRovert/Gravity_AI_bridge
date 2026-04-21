@@ -1,10 +1,14 @@
+import asyncio
+import websockets
+import json
 import urllib.request
 import urllib.error
-import json
 import sys
 import io
+import random
+import string
 
-# Forzar utf-8 para que las librerías Gradio 0.5 de Fooocus no colapsen en consolas cp1252
+# Forzar utf-8 para consolas cp1252
 if sys.stdout.encoding.lower() != "utf-8":
     try:
         sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -13,125 +17,157 @@ if sys.stdout.encoding.lower() != "utf-8":
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
-import random
-import string
+async def run_gradio(prompt, performance, aspect_ratio, fooocus_url="http://127.0.0.1:7861"):
+    ws_url = fooocus_url.replace("http://", "ws://").replace("https://", "wss://") + "/queue/join"
+    
+    try:
+        with urllib.request.urlopen(f"{fooocus_url}/config", timeout=5) as r:
+            config = json.loads(r.read().decode())
+    except Exception as e:
+        print(json.dumps({"success": False, "error": f"Error conectando a Fooocus: {e}"}))
+        return
+
+    components = config.get("components", [])
+    dependencies = config.get("dependencies", [])
+    
+    comp_data = {}
+    comp_choices = {}
+    cid_map = {}
+    target_labels = {
+        "prompt": "Prompt", 
+        "neg_prompt": "Negative Prompt", 
+        "perf": "Performance", 
+        "aspect": "Aspect Ratios",
+        "num": "Image Number"
+    }
+    
+    for c in components:
+        cid = c.get("id")
+        if cid is None: continue
+        props = c.get("props", {})
+        label = props.get("label", "")
+        comp_data[cid] = props.get("value")
+        if "choices" in props:
+            comp_choices[cid] = props.get("choices")
+        for key, target_label in target_labels.items():
+            if label == target_label:
+                cid_map[key] = cid
+
+    get_task_fn = None
+    gen_clicked_fn = None
+
+    for i, fn in enumerate(dependencies):
+        inputs = fn.get("inputs", [])
+        if len(inputs) > 50:
+            get_task_fn = {"index": i, "inputs": inputs}
+        elif fn.get("types", {}).get("generator") is True:
+            # generate_clicked yields progress
+            gen_clicked_fn = {"index": i, "inputs": inputs}
+
+    if not get_task_fn or not gen_clicked_fn:
+        print(json.dumps({"success": False, "error": "generadores web no encontrados en config"}))
+        return
+
+    # Mapeo posicional del prompt real (textbox) vs Component 125 (radio)
+    cid_map["prompt"] = get_task_fn["inputs"][0]
+    
+    args = []
+    for cid in get_task_fn["inputs"]:
+        val = comp_data.get(cid)
+        if cid == cid_map.get("prompt"):
+            val = prompt
+        elif cid == cid_map.get("neg_prompt"):
+            val = "low quality, bad anatomy, text, watermark, deformed"
+        elif cid == cid_map.get("perf"):
+            val = performance
+        elif cid == cid_map.get("aspect"):
+            base_aspect = aspect_ratio.replace("*", "×")
+            val = base_aspect
+            if cid in comp_choices:
+                for choice in comp_choices[cid]:
+                    choice_val = choice[1] if isinstance(choice, list) and len(choice) > 1 else choice
+                    if isinstance(choice_val, str) and choice_val.startswith(base_aspect):
+                        val = choice_val
+                        break
+        elif cid == cid_map.get("num"):
+            val = 1
+        args.append(val)
+
+    expected_len = len(get_task_fn["inputs"])
+    if len(args) > expected_len:
+        args = args[:expected_len]
+    elif len(args) < expected_len:
+        args.extend([None] * (expected_len - len(args)))
+
+    session_hash = "gravity_" + "".join(random.choices(string.ascii_lowercase + string.digits, k=10))
+    print(f"[NativeTrigger] WS State init. (session: {session_hash}, params: {len(args)})", file=sys.stderr)
+
+    try:
+        # FASE 1: Setear variables en memoria
+        async with websockets.connect(ws_url, max_size=None, ping_interval=None) as ws:
+            while True:
+                msg = await ws.recv()
+                data = json.loads(msg)
+                
+                if data["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": get_task_fn["index"], "session_hash": session_hash}))
+                elif data["msg"] == "send_data":
+                    await ws.send(json.dumps({"fn_index": get_task_fn["index"], "session_hash": session_hash, "data": args}))
+                elif data["msg"] == "process_completed":
+                    if not data.get("success", True):
+                        print(json.dumps({"success": False, "error": data.get("output", {}).get("error", "Init fallback")}))
+                        return
+                    break
+
+        print(f"[NativeTrigger] WS Generando imagen (fn_index: {gen_clicked_fn['index']})", file=sys.stderr)
+        # FASE 2: Iniciar Generator Thread
+        async with websockets.connect(ws_url, max_size=None, ping_interval=None) as ws:
+            while True:
+                msg = await ws.recv()
+                data = json.loads(msg)
+                
+                if data["msg"] == "send_hash":
+                    await ws.send(json.dumps({"fn_index": gen_clicked_fn["index"], "session_hash": session_hash}))
+                elif data["msg"] == "send_data":
+                    # Pasa argumentos requeridos por generate_clicked (None para state args)
+                    gen_args = [None for _ in gen_clicked_fn["inputs"]]
+                    await ws.send(json.dumps({"fn_index": gen_clicked_fn["index"], "session_hash": session_hash, "data": gen_args}))
+                elif data["msg"] == "process_generating":
+                    # Logs silenciosos o progress
+                    pass
+                elif data["msg"] == "process_completed":
+                    # Output: {'data': [html, preview, finished_images, gallery]}
+                    out_data = data.get("output", {}).get("data", [])
+                    # gallery o finished_images puede tener metadata
+                    gallery = []
+                    for i in (3, 2):  # índices comunes para gallery
+                        if len(out_data) > i and isinstance(out_data[i], list):
+                            gallery = out_data[i]
+                            break
+                    
+                    real_images = []
+                    for im in gallery:
+                        if isinstance(im, dict) and "name" in im:
+                            real_images.append(im["name"])
+                        elif isinstance(im, list) and len(im) > 0 and isinstance(im[0], dict) and "name" in im[0]: # Gradio < 3.42 fallback
+                             real_images.append(im[0]["name"])
+                    
+                    print(json.dumps({"success": True, "images": real_images, "data": data.get("output", {})}))
+                    break
+                    
+    except Exception as e:
+        print(json.dumps({"success": False, "error": f"WS Exception: {str(e)}"}))
 
 def main():
     if len(sys.argv) < 4:
         print(json.dumps({"success": False, "error": "Faltan argumentos (prompt, performance, aspect_ratio)"}))
         sys.exit(1)
-        
+    
     prompt = sys.argv[1]
     performance = sys.argv[2]
     aspect_ratio = sys.argv[3]
     
-    fooocus_url = "http://127.0.0.1:7861"
-    
-    try:
-        # 1. Obtener Componentes Dinámicos (Resuelve el error "needed: 153, got: X")
-        with urllib.request.urlopen(f"{fooocus_url}/config", timeout=5) as r:
-            config = json.loads(r.read().decode())
-        
-        components = config.get("components", [])
-        dependencies = config.get("dependencies", [])
-        
-        cid_map = {}
-        target_labels = {
-            "prompt": "Prompt", 
-            "neg_prompt": "Negative Prompt", 
-            "perf": "Performance", 
-            "aspect": "Aspect Ratios",
-            "num": "Image Number"
-        }
-        
-        comp_data = {}
-        for c in components:
-            cid = c.get("id")
-            if cid is None: continue
-            
-            props = c.get("props", {})
-            label = props.get("label", "")
-            value = props.get("value")
-            comp_data[cid] = value
-            
-            for key, target_label in target_labels.items():
-                if label == target_label:
-                    cid_map[key] = cid
-
-        # 2. Localizar función de Generación
-        gen_fn = None
-        for fn in dependencies:
-            if len(fn.get("inputs", [])) > 100:
-                gen_fn = fn
-                break
-                
-        if not gen_fn:
-            print(json.dumps({"success": False, "error": "generador web no encontrado"}))
-            return
-            
-        fn_index = dependencies.index(gen_fn)
-        input_ids = gen_fn.get("inputs", [])
-        
-        # Parche Crítico: En Gradio 3 (Fooocus), el 'Prompt' real (textbox) no tiene un 'label' coincidente,
-        # mientras que otro componente (radio Upscale) sí lo usa. Forzamos la asignación posicional real:
-        cid_map["prompt"] = input_ids[0]
-        cid_map["neg_prompt"] = input_ids[1]
-        
-        args = []
-        for cid in input_ids:
-            val = comp_data.get(cid)
-            if cid == cid_map.get("prompt"):
-                val = prompt
-            elif cid == cid_map.get("neg_prompt"):
-                val = "low quality, bad anatomy, text, watermark, deformed"
-            elif cid == cid_map.get("perf"):
-                val = performance
-            elif cid == cid_map.get("aspect"):
-                val = aspect_ratio
-            elif cid == cid_map.get("num"):
-                val = 1
-            args.append(val)
-
-        # Ajuste dinámico de argumentos (Fix: Expected 153, got 154)
-        expected_len = len(input_ids)
-        if len(args) > expected_len:
-            print(f"[NativeTrigger] AJUSTE: Recortando de {len(args)} a {expected_len} argumentos.", file=sys.stderr)
-            args = args[:expected_len]
-        elif len(args) < expected_len:
-            print(f"[NativeTrigger] AJUSTE: Rellenando de {len(args)} a {expected_len} con None.", file=sys.stderr)
-            while len(args) < expected_len:
-                args.append(None)
-
-        # 3. Disparo via REST puro (Bypass Gradio Client y WebSockets)
-        session_hash = "gravity_" + "".join(random.choices(string.ascii_lowercase + string.digits, k=10))
-        payload = {
-            "data": args,
-            "fn_index": fn_index,
-            "session_hash": session_hash
-        }
-        
-        req_url = f"{fooocus_url}/run/predict"
-        req_data = json.dumps(payload).encode("utf-8")
-        
-        print(f"[NativeTrigger] Enviando POST a {req_url} (fn_index: {fn_index}, session: {session_hash})", file=sys.stderr)
-        
-        req = urllib.request.Request(
-            req_url, 
-            data=req_data, 
-            headers={"Content-Type": "application/json"}
-        )
-        
-        # El timeout debe ser largo (10 minutos) ya que la generación en CPU es lenta.
-        with urllib.request.urlopen(req, timeout=600) as response:
-            res_content = response.read().decode("utf-8")
-            res_json = json.loads(res_content)
-            
-        print(json.dumps({"success": True, "data": res_json}))
-        
-    except urllib.error.URLError as e:
-        print(json.dumps({"success": False, "error": f"URLError (timeout o conexion): {e.reason}"}))
-    except Exception as e:
-        print(json.dumps({"success": False, "error": str(e)}))
+    asyncio.run(run_gradio(prompt, performance, aspect_ratio))
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,4 @@
-# Manual de Usuario — Gravity AI Bridge V10.2
+# Manual de Usuario — Gravity AI Bridge V10.3
 **Diamond-Tier Edition** · [github.com/DarckRovert/Gravity_AI_bridge](https://github.com/DarckRovert/Gravity_AI_bridge) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
 
 ---
@@ -141,7 +141,7 @@ Los trabajos se procesan en orden FIFO. El panel muestra el estado de cada job: 
 
 ---
 
-### 🎬 Video Studio *(nuevo en V10.2)*
+### 🎬 Video Studio *(nuevo en V10.3)*
 
 Generación automática de videos documentales en modo **CPU-only** (sin GPU dedicada).
 

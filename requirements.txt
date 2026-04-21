@@ -1,4 +1,4 @@
-# ── Gravity AI Bridge V10.2 [Diamond-Tier Edition] — Dependencias ────────────────────
+# ── Gravity AI Bridge V10.3 [Diamond-Tier Edition] — Dependencias ────────────────────
 # CLI / UI
 aiohttp==3.10.10
 colorama==0.4.6
@@ -43,5 +43,5 @@ pystray
 Pillow
 psutil
 
-# Video Studio V10.2 — TTS offline (Windows SAPI)
+# Video Studio V10.3 — TTS offline (Windows SAPI)
 pyttsx3>=2.90
