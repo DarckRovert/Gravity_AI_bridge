@@ -1,4 +1,4 @@
-﻿"""
+"""
 â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
 â•‘  GRAVITY AI â€” VIDEO STUDIO PIPELINE V10.3 CINEMATIC EDITION                  â•‘
 â•‘                                                                              â•‘
@@ -147,6 +147,8 @@ def _init_db() -> None:
         ("style",          "TEXT NOT NULL DEFAULT 'documental'"),
         ("narration_lang", "TEXT NOT NULL DEFAULT 'es'"),
         ("transitions",    "INTEGER NOT NULL DEFAULT 1"),
+        ("resolution",     "TEXT NOT NULL DEFAULT '1024x1024'"),
+        ("subtitles",      "INTEGER NOT NULL DEFAULT 1"),
     ]
     for col_name, col_def in migrations:
         if col_name not in existing:
@@ -163,6 +165,8 @@ def add_job(
     style: str          = DEFAULT_STYLE,
     narration_lang: str = "es",
     transitions: bool   = True,
+    resolution: str     = "1024x1024",
+    subtitles: bool     = True,
 ) -> int:
     """Encola un nuevo trabajo de video. Retorna el ID generado."""
     _init_db()
@@ -172,9 +176,9 @@ def add_job(
     conn = sqlite3.connect(DB_PATH)
     cur  = conn.execute(
         "INSERT INTO video_jobs "
-        "(topic, n_scenes, voice_speed, voice_id, style, narration_lang, transitions, created_at) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        (topic, n_scenes, voice_speed, voice_id, style, narration_lang, 1 if transitions else 0, now)
+        "(topic, n_scenes, voice_speed, voice_id, style, narration_lang, transitions, resolution, subtitles, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (topic, n_scenes, voice_speed, voice_id, style, narration_lang, 1 if transitions else 0, resolution, 1 if subtitles else 0, now)
     )
     job_id = cur.lastrowid
     conn.commit()
@@ -437,6 +441,7 @@ def _generate_scene_image(
     job_id: int,
     job_seed: int,
     style: str,
+    resolution: str = "1024x1024",
 ) -> Optional[str]:
     """
     Genera imagen de una escena con consistencia visual garantizada.
@@ -481,7 +486,7 @@ def _generate_scene_image(
             result = trigger_gradio_generation(
                 prompt       = prompt,
                 performance  = "Speed",
-                aspect_ratio = f"{DEFAULT_IMG_W}*{DEFAULT_IMG_H}",
+                aspect_ratio = f"{w}*{h}",
             )
             if result.get("success") and result.get("images"):
                 img_src = result["images"][0]
@@ -574,6 +579,9 @@ def _assemble_clip(
     audio_path: str,
     output_mp4: str,
     fade: bool = True,
+    resolution: str = "1024x1024",
+    text: str = "",
+    subtitles: bool = True,
 ) -> bool:
     """
     Combina imagen + audio en clip mp4.
@@ -608,12 +616,36 @@ def _assemble_clip(
         fade_d     = min(FADE_DURATION, clip_dur / 3) if fade else 0.0
         fade_out_t = max(0, clip_dur - fade_d)
 
+        # Extraer resolucion
+        w_val, h_val = DEFAULT_IMG_W, DEFAULT_IMG_H
+        if "x" in resolution:
+            parts = resolution.split("x")
+            if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
+                w_val, h_val = int(parts[0]), int(parts[1])
+
         # Filtro de video con fade
         vf_parts = [
-            f"scale={DEFAULT_IMG_W}:{DEFAULT_IMG_H}:force_original_aspect_ratio=decrease",
-            f"pad={DEFAULT_IMG_W}:{DEFAULT_IMG_H}:(ow-iw)/2:(oh-ih)/2:black",
+            f"scale={w_val}:{h_val}:force_original_aspect_ratio=decrease",
+            f"pad={w_val}:{h_val}:(ow-iw)/2:(oh-ih)/2:black",
             "fps=24",
         ]
+        
+        if subtitles and text:
+            def fmt_time(s):
+                ms = int((s % 1) * 1000)
+                m, s_int = divmod(int(s), 60)
+                _h, _m = divmod(m, 60)
+                return f"{_h:02d}:{_m:02d}:{s_int:02d},{ms:03d}"
+            
+            job_dir = os.path.dirname(image_path)
+            scene_name = os.path.splitext(os.path.basename(image_path))[0]
+            srt_path = os.path.join(job_dir, f"{scene_name}.srt")
+            with open(srt_path, "w", encoding="utf-8") as f:
+                f.write(f"1\n00:00:00,000 --> {fmt_time(clip_dur)}\n{text}\n")
+            
+            safe_srt = srt_path.replace('\\', '/').replace(':', '\\:')
+            vf_parts.append(f"subtitles='{safe_srt}':force_style='FontSize=20,PrimaryColour=&H00FFFFFF,BorderStyle=3,Outline=2,Shadow=1,Alignment=2,MarginV=20'")
+            
         if fade and fade_d > 0:
             vf_parts.append(f"fade=t=in:st=0:d={fade_d}")
             vf_parts.append(f"fade=t=out:st={fade_out_t:.3f}:d={fade_d}")
@@ -679,15 +711,37 @@ def _concatenate_clips(clip_paths: list[str], output_mp4: str) -> bool:
                 safe = cp.replace("'", "'\\''")
                 f.write(f"file '{safe}'\n")
 
-        cmd = [
-            FFMPEG_EXE, "-y",
-            "-f", "concat", "-safe", "0",
-            "-i", list_file,
-            "-c:v", "libx264", "-preset", "fast",
-            "-c:a", "aac",
-            "-movflags", "+faststart",
-            output_mp4,
-        ]
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        bgm_path = os.path.join(base_dir, "inputs", "bgm.mp3")
+        
+        has_bgm = os.path.isfile(bgm_path)
+        
+        if has_bgm:
+            cmd = [
+                FFMPEG_EXE, "-y",
+                "-f", "concat", "-safe", "0",
+                "-i", list_file,
+                "-stream_loop", "-1", "-i", bgm_path,
+                "-filter_complex", "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2:weights=1 0.1[a]",
+                "-map", "0:v", "-map", "[a]",
+                "-c:v", "libx264", "-preset", "fast",
+                "-c:a", "aac",
+                "-movflags", "+faststart",
+                output_mp4,
+            ]
+            log.info(f"[VideoStudio] Concatenando {len(clip_paths)} clips con MIX MUSICAL -> {os.path.basename(output_mp4)}")
+        else:
+            cmd = [
+                FFMPEG_EXE, "-y",
+                "-f", "concat", "-safe", "0",
+                "-i", list_file,
+                "-c:v", "libx264", "-preset", "fast",
+                "-c:a", "aac",
+                "-movflags", "+faststart",
+                output_mp4,
+            ]
+            log.info(f"[VideoStudio] Concatenando {len(clip_paths)} clips simples -> {os.path.basename(output_mp4)}")
+        
         result = subprocess.run(
             cmd, capture_output=True, timeout=300,
             creationflags=subprocess.CREATE_NO_WINDOW
@@ -738,6 +792,8 @@ def _process_job(
     style: str,
     narration_lang: str,
     transitions: bool,
+    resolution: str,
+    subtitles: bool,
 ) -> None:
     """
     Pipeline completo con Character Consistency Engine.
@@ -796,7 +852,7 @@ def _process_job(
                     _current_job["progress"] = pct
                     _current_job["step"]     = f"Escena {scene_num}/{n_scenes}: imagen..."
 
-            img_path = _generate_scene_image(anchored_prompt, scene_num, job_id, job_seed, style)
+            img_path = _generate_scene_image(anchored_prompt, scene_num, job_id, job_seed, style, resolution)
 
             if not img_path:
                 placeholder = os.path.join(job_dir, f"scene_{scene_num:02d}_placeholder.png")
@@ -827,7 +883,7 @@ def _process_job(
                     _current_job["step"]     = f"Escena {scene_num}/{n_scenes}: clip..."
 
             clip_path = os.path.join(job_dir, f"scene_{scene_num:02d}_clip.mp4")
-            if _assemble_clip(img_path, audio_path if audio_ok else None, clip_path, fade=transitions):
+            if _assemble_clip(img_path, audio_path if audio_ok else None, clip_path, fade=transitions, resolution=resolution, text=narration, subtitles=subtitles):
                 clip_paths.append(clip_path)
 
         # â”€â”€ PASO 5: Video final â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -910,6 +966,8 @@ def _worker_loop() -> None:
                     style         = row["style"]          if "style"          in row.keys() else DEFAULT_STYLE,
                     narration_lang= row["narration_lang"] if "narration_lang" in row.keys() else "es",
                     transitions   = bool(row["transitions"] if "transitions" in row.keys() else 1),
+                    resolution    = row["resolution"]     if "resolution"     in row.keys() else "1024x1024",
+                    subtitles     = bool(row["subtitles"] if "subtitles"      in row.keys() else 1),
                 )
             else:
                 time.sleep(5)

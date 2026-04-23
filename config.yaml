@@ -51,3 +51,14 @@ ai_engines:
   LM Studio: C:\Users\darck\AppData\Local\Programs\LM Studio\LM Studio.exe
   Ollama: C:\Users\darck\AppData\Local\Programs\Ollama\ollama app.exe
   Fooocus: F:\Gravity_AI_bridge\_integrations\Fooocus\run.bat
+agent_routing:
+  auditor:
+    provider: OpenAI
+    model: o1-preview
+  planner:
+    provider: OpenAI
+    model: gpt-4o
+  default:
+    provider: LM Studio
+    model: auto
+firecrawl_api_key: ''

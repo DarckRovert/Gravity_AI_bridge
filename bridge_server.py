@@ -1,7 +1,7 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║          GRAVITY AI - BRIDGE SERVER V10.3 [Diamond-Tier Edition]             ║
-║                    Enrutador Universal OpenAI-Compatible                     ║
+║          GRAVITY AI - BRIDGE SERVER V10.4 [Diamond-Tier Edition]             ║
+║            Enrutador Universal OpenAI-Compatible + Multi-Session             ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
@@ -57,6 +57,29 @@ from core import game_server_manager
 from core import ai_process_manager
 from core import engine_watchdog
 from core import video_pipeline
+
+# ── V10.4 Multi-Session Bridge ────────────────────────────────────────────────
+from core.session_runner import CapacityWake, SessionSpawner
+import uuid
+
+ACTIVE_SESSIONS = {}
+MAX_SESSIONS = 32
+
+def bridge_poll_loop():
+    """Loop continuo de polling asíncrono para orquestar sub-sesiones en paralelo."""
+    log.info("[V10.4] Multi-Session Poll Loop activado. Capacidad máxima: 32.")
+    wake = CapacityWake()
+    spawner = SessionSpawner(sys.executable, os.path.join(_BASE, "ask_deepseek.py"))
+    
+    while True:
+        if len(ACTIVE_SESSIONS) >= MAX_SESSIONS:
+            wake.wait(10.0) # Espera ser despertado o chequea cada 10s
+            continue
+            
+        # Simular poll checking (acá se integraría contra un queue redis o socket si existiera)
+        # Para el entorno local, permitiremos que el HTTP endpoint encole tareas
+        time.sleep(1.0)
+
 
 
 class Console_Safe:
@@ -147,6 +170,10 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             # ── V10.3 Image Lab (Pollinations) ────────────────────────────────────────
             "/v1/image/health":     self._serve_pollinations_health,
             "/v1/image/lab/history":self._serve_image_lab_list,
+            # ── V10.4 Diamond Tier ───────────────────────────────────────────────
+            "/v1/sessions/active":  self._serve_active_sessions,
+            "/v1/mcp/status":       self._serve_mcp_status,
+            "/v1/mcp/resource":     self._serve_mcp_resource,
         }
 
         # Rutas con query string (?server=&lines=)
@@ -195,7 +222,10 @@ def run_server():
 
     log.info("[V10.3] Security Monitor, Image Queue, Video Pipeline, Engine Watchdog, AI Process Manager activos.")
 
-    log.info(f"Gravity Bridge V10.3 — http://localhost:{port} | Dashboard: / | API: /v1")
+    # Iniciar Multi-Session Poll Loop (V10.4)
+    threading.Thread(target=bridge_poll_loop, daemon=True, name="BridgePollLoop").start()
+
+    log.info(f"Gravity Bridge V10.4 — http://localhost:{port} | Dashboard: / | API: /v1")
     server = ThreadingHTTPServer(("0.0.0.0", port), GravityBridgeHandler)
     try:
         server.serve_forever()

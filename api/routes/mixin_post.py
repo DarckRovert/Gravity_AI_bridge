@@ -444,6 +444,8 @@ class PostRoutesMixin:
                 style         = data.get("style", "documental").strip()
                 narration_lang= data.get("narration_lang", "es").strip()
                 transitions   = bool(data.get("transitions", True))
+                subtitles     = bool(data.get("subtitles", True))
+                resolution    = data.get("resolution", "1024x1024").strip()
                 job_id        = video_pipeline.add_job(
                     topic          = topic,
                     n_scenes       = n_scenes,
@@ -452,6 +454,8 @@ class PostRoutesMixin:
                     style          = style,
                     narration_lang = narration_lang,
                     transitions    = transitions,
+                    resolution     = resolution,
+                    subtitles      = subtitles,
                 )
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
@@ -750,6 +754,62 @@ class PostRoutesMixin:
                 else:
                     msg = f"Backup dir listo: {backup_dir} (no hay DB de servidor local para copiar)"
                 body = json.dumps({"ok": True, "message": msg, "timestamp": ts}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/sessions/spawn — Crea un nuevo subproceso ask_deepseek.py --session <id>
+        if self.path == "/v1/sessions/spawn":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                s_id   = data.get("session_id", "").strip()
+                s_role = data.get("role", "").strip() or None
+                
+                from core.session_runner import SessionSpawner
+                # Spawn session as subprocess
+                spawner = SessionSpawner()
+                spawner.spawn(session_id=s_id, work_data={}, role=s_role)
+                
+                body = json.dumps({"ok": True, "session_id": s_id, "message": f"Worker para sesión {s_id} levantado."}).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/sessions/kill — Termina un subproceso de sesión
+        if self.path == "/v1/sessions/kill":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                s_id   = data.get("session_id", "").strip()
+                
+                from core.session_runner import active_sessions
+                if s_id in active_sessions:
+                    handle = active_sessions[s_id]
+                    if handle.process.poll() is None:
+                        handle.process.terminate()
+                    del active_sessions[s_id]
+                    msg = f"Worker {s_id} terminado con éxito."
+                else:
+                    msg = f"Worker {s_id} no encontrado o ya inactivo."
+                    
+                body = json.dumps({"ok": True, "message": msg}).encode("utf-8")
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self._send_cors()

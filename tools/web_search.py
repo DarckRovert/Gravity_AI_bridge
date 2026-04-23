@@ -1,5 +1,5 @@
 """
-Gravity AI — Web Search Tool V10.1
+Gravity AI — Web Search Tool V10.3 [Ultra Evolution]
 Sin API key requerida. Usa DuckDuckGo HTML scraping.
 Opcional: Brave Search API (gratuita, 2000 req/mes).
 """
@@ -18,7 +18,7 @@ def _ddg_search(query: str) -> list[dict]:
     """DuckDuckGo HTML scrape — no API key required."""
     data = urllib.parse.urlencode({"q": query, "kl": "es-es"}).encode()
     req  = urllib.request.Request(DDG_URL, data=data, headers={
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) GravityAI/7.1",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) GravityAI/10.3",
         "Content-Type": "application/x-www-form-urlencoded",
     })
     try:
@@ -35,8 +35,10 @@ def _ddg_search(query: str) -> list[dict]:
 
     for i in range(min(MAX_RES, len(titles))):
         title   = re.sub(r"<[^>]+>", "", titles[i]).strip()
+        title   = re.sub(r"\s+", " ", title)
         url     = urls[i].strip() if i < len(urls) else ""
         snippet = re.sub(r"<[^>]+>", "", snippets[i]).strip() if i < len(snippets) else ""
+        snippet = re.sub(r"\s+", " ", snippet)
         results.append({"title": title, "url": url, "snippet": snippet})
 
     return results

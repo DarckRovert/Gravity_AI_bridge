@@ -1,5 +1,5 @@
-# Arquitectura — Gravity AI Bridge V10.3
-**Diamond-Tier Edition** · Última actualización: 2026-04-20
+# Arquitectura — Gravity AI Bridge V10.4
+**Diamond-Tier Edition** · Última actualización: 2026-04-22
 
 ---
 
@@ -28,6 +28,11 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
 │  ┌──────────────────────────────────────────────────────────────┐  │
 │  │                   provider_manager                           │  │
 │  │   scan_all() → get_best() → stream() / complete()           │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                                                                    │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │             core/session_runner.py (V10.4)                   │  │
+│  │   CapacityWake() + SessionSpawner (Multi-session parallel)   │  │
 │  └──────────────────────────────────────────────────────────────┘  │
 └─────────────────────────┬──────────────────────────────────────────┘
                           │
@@ -80,8 +85,9 @@ F:\Gravity_AI_bridge\
 │   ├── hardware_profiler.py  ← GPU/VRAM/NPU detection
 │   ├── cost_tracker.py       ← Tracking USD para cloud
 │   ├── multi_agent.py        ← Orquestador parallel/vote
-│   ├── session_manager.py    ← Sesiones con fork de branches
-│   ├── mcp_adapter.py        ← Model Context Protocol client
+│   ├── session_manager.py    ← Sesiones con fork de branches + MemDir (V10.4)
+│   ├── session_runner.py     ← Multi-Session spawners y CapacityWake (V10.4)
+│   ├── mcp_adapter.py        ← Model Context Protocol client con Reconexión (V10.4)
 │   ├── security_monitor.py   ← Zero-Trust scanning en background
 │   ├── rate_limiter.py       ← Control de acceso por IP/key
 │   ├── audit_log.py          ← Log inmutable de peticiones
@@ -229,12 +235,20 @@ Detecta automáticamente:
 ---
 
 ### session_manager.py
-**Responsabilidad:** Persistencia de conversaciones con soporte de branches.
+**Responsabilidad:** Persistencia de conversaciones con soporte de branches y MemDir (V10.4).
 
 - Las sesiones se guardan como JSON en `_saves/<nombre>.json`
 - Cada sesión contiene: nombre, branch, timestamp, historial completo de mensajes
 - El fork crea una copia independiente de la sesión en una rama nueva
-- No tiene límite de sesiones guardadas
+- **MemDir (V10.4)**: Inyección dinámica de contexto (archivos `.gravity_mem` y `MEMORY.md`) directo al System Prompt simulando una "memoria de directorio" sin coste extra de RAG vectorial.
+
+---
+
+### session_runner.py (V10.4)
+**Responsabilidad:** Orquestación Multi-sesión paralela.
+
+- Define `CapacityWake` para señalización de subprocesos y control de carga.
+- Exporta `SessionSpawner` para levantar un agente de CLI aislado (`ask_deepseek.py --session`) sin colisionar el bridge principal.
 
 ---
 

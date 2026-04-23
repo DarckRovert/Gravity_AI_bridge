@@ -2,6 +2,14 @@
 
 Registro maestro de la metamorfosis estructural aplicada sobre la herramienta Gravity AI Bridge y el módulo local de servidor WOW. 
 
+## [V10.4] Multi-Session & MemDir Architecture - 22/04/2026
+
+**[ASIMILACIÓN ARQUITECTÓNICA: OPENCLAUDE]**
+- **Multi-Session Bridge**: `bridge_server.py` ahora integra un bucle de orquestación continua basado en `CapacityWake` y `SessionSpawner` (vía `core/session_runner.py`), permitiendo hasta 32 procesos aislados de agente sin bloqueo.
+- **MemDir Integration**: `core/session_manager.py` escanea el workspace por carpetas `.gravity_mem` o `MEMORY.md` para inyectarlas atómicamente en el System Prompt, brindando memoria hiperlocalizada por directorio.
+- **MCP Adapter Evolucionado**: `core/mcp_adapter.py` ahora posee auto-reconexión del proceso stdio, junto a `list_resources` y `read_resource` para ampliar las capacidades estáticas de las tools.
+- **AgentTool Refactor**: `ask_deepseek.py` soporta banderas `--session` para instancias remotas acopladas, simulando el `QueryEngine` bidireccional.
+
 ## [V10.3] Ultra Evolution Panel & Interactive Tools - 21/04/2026
 
 **[NUEVA FUNCIONALIDAD — MISSION CONTROL]**

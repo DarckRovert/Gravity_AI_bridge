@@ -472,6 +472,82 @@ class GetRoutesMixin:
             self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode())
 
+    def _serve_active_sessions(self):
+        """Lista las instancias de SessionSpawner activas."""
+        try:
+            from core.session_runner import active_sessions
+            sessions = []
+            for s_id, handle in active_sessions.items():
+                is_alive = handle.process.poll() is None
+                sessions.append({
+                    "id": s_id,
+                    "alive": is_alive,
+                    "pid": handle.process.pid if is_alive else None
+                })
+            
+            body = json.dumps({"active_sessions": sessions, "count": len(sessions)}, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    # ── MCP Adapter ────────────────────────────────────────────────────────────
+    def _serve_mcp_status(self):
+        """Lista el estado de los adaptadores MCP cargados y sus resources."""
+        try:
+            from core.mcp_adapter import active_adapters
+            servers = []
+            for name, adapter in active_adapters.items():
+                is_connected = adapter.process is not None and adapter.process.poll() is None
+                servers.append({
+                    "name": name,
+                    "connected": is_connected,
+                    "tools": adapter.list_tools() if is_connected else [],
+                    "resources": adapter.list_resources() if is_connected else []
+                })
+            
+            body = json.dumps({"mcp_servers": servers, "count": len(servers)}, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_mcp_resource(self):
+        """Lee un recurso específico de un servidor MCP."""
+        try:
+            import urllib.parse
+            from core.mcp_adapter import active_adapters
+            params = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(self.path).query))
+            server = params.get("server")
+            uri = params.get("uri")
+            
+            if not server or not uri or server not in active_adapters:
+                raise ValueError("Servidor o URI no válido")
+                
+            adapter = active_adapters[server]
+            data = adapter.read_resource(uri)
+            
+            body = json.dumps(data, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
     # ── RAG Status ──────────────────────────────────────────────────────────────
     def _serve_rag_status(self):
         """Estado del índice RAG: documentos indexados, tamaño, carpeta."""

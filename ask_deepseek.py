@@ -176,8 +176,17 @@ def first_run_check():
 
 
 class AuditorCLI:
-    def __init__(self):
+    def __init__(self, role=None):
         self.sm = SettingsManager()
+        
+        # V10.4 Agent Routing
+        if role:
+            routing = config.get("agent_routing", {})
+            if role in routing:
+                self.sm.data["model_locked"] = True
+                self.sm.data["locked_provider"] = routing[role].get("provider")
+                self.sm.data["locked_model"] = routing[role].get("model")
+        
         self.history = []
         self.session = SessionManager(self.history)
         self.verifier = VerificationAgent(self.sm.data)
@@ -733,6 +742,11 @@ class AuditorCLI:
 
                 console.print(f"[dim]→ {tgt_p} / {tgt_m}[/]")
 
+                # V10.4: Inyectar MemDir (conocimiento de directorio) antes de buscar RAG
+                mem_tokens = self.session.inject_mem_dir(BASE_DIR)
+                if mem_tokens > 0:
+                    console.print(f"[dim]MemDir inyectado ({mem_tokens} tokens)[/]")
+
                 # RAG context injection heuristic
                 if "busca en" in user_msg.lower() or "del contexto" in user_msg.lower() or "en mi codigo" in user_msg.lower():
                     ctx = RAGRetriever.retrieve_as_context(user_msg)
@@ -808,15 +822,38 @@ class AuditorCLI:
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
+        args = sys.argv[1:]
+        session_id = None
+        role = None
+        if "--session" in args:
+            session_id = args[args.index("--session") + 1]
+        if "--role" in args:
+            try:
+                role = args[args.index("--role") + 1]
+            except IndexError:
+                pass
+                
+        # Modo remoto subproceso (V10.4)
+        if session_id:
+            console.print(f"[green]Iniciando sesión aislada: {session_id} (Role: {role})[/]")
+            cli = AuditorCLI(role=role)
+            cli.interactive_loop()
+            sys.exit(0)
+            
         # Modo pipe / ejecución directa
-        prompt = " ".join(sys.argv[1:])
-        # No mostrar first_run en modo pipe
-        cli = AuditorCLI()
-        bp, bm = provider_manager.get_best()
+        prompt = " ".join([a for a in args if not a.startswith("--") and args.index(a) == 0 or (args.index(a) > 0 and not args[args.index(a)-1].startswith("--"))])
+        if not prompt:
+            prompt = " ".join(args) # fallback if parse logic strips everything
+        cli = AuditorCLI(role=role)
+        bp, bm = cli._get_active_provider_and_model()
         if not bp:
             print("ERROR: Sin proveedor disponible. Usa /keys set o inicia un motor local.")
             sys.exit(1)
         cli.history.append({"role": "user", "content": prompt})
+        
+        # Inyectar MemDir para comandos pipe
+        cli.session.inject_mem_dir(BASE_DIR)
+        
         resp = provider_manager.complete(cli.history, bm, bp.name, cli.sm.data.get("advanced_params", {}))
         print(resp)
         for tname, succ, out in tools.parse_and_execute_all(resp):

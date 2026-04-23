@@ -141,6 +141,51 @@ class SessionManager:
                     self._history.append(msg)
         return True
 
+    # ── MemDir (V10.4) ────────────────────────────────────────────────────────
+    
+    def inject_mem_dir(self, workspace_path: str) -> int:
+        """
+        Escanea el workspace_path buscando un directorio '.gravity_mem' o un archivo 'MEMORY.md'.
+        Si los encuentra, inyecta su contenido en el prompt del sistema o como un bloque de contexto
+        al inicio del historial, imitando el sistema MemDir de OpenClaude.
+        Retorna la cantidad de tokens aproximados inyectados.
+        """
+        mem_file = os.path.join(workspace_path, "MEMORY.md")
+        mem_dir = os.path.join(workspace_path, ".gravity_mem")
+        
+        mem_content = []
+        if os.path.exists(mem_file):
+            try:
+                with open(mem_file, "r", encoding="utf-8") as f:
+                    mem_content.append(f"--- MEMORY.md ---\n{f.read()}\n")
+            except Exception:
+                pass
+                
+        if os.path.exists(mem_dir) and os.path.isdir(mem_dir):
+            for root, _, files in os.walk(mem_dir):
+                for file in files:
+                    if file.endswith(".md") or file.endswith(".txt"):
+                        try:
+                            with open(os.path.join(root, file), "r", encoding="utf-8") as f:
+                                mem_content.append(f"--- {file} ---\n{f.read()}\n")
+                        except Exception:
+                            pass
+                            
+        if not mem_content:
+            return 0
+            
+        full_injection = "\n".join(mem_content)
+        
+        # Inyectar en el system prompt (primer elemento del historial)
+        if self._history and self._history[0]["role"] == "system":
+            # Evitar inyección duplicada
+            if "--- MEMORY.md ---" not in self._history[0]["content"]:
+                self._history[0]["content"] += f"\n\n[MEMDIR CONTEXT]\n{full_injection}"
+        else:
+            self._history.insert(0, {"role": "system", "content": f"[MEMDIR CONTEXT]\n{full_injection}"})
+            
+        return len(full_injection) // 4
+
     # ── Token Optimization (V10.1) ─────────────────────────────────────────────
 
     def trim_history(self, max_tokens: int = 128000) -> int:
