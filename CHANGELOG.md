@@ -1,85 +1,116 @@
-# Changelog de Evolución (Gravity Bridge)
+# Changelog — Gravity AI Bridge
 
-Registro maestro de la metamorfosis estructural aplicada sobre la herramienta Gravity AI Bridge y el módulo local de servidor WOW. 
+Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Bridge.
 
-## [V10.4] Multi-Session & MemDir Architecture - 22/04/2026
+---
+
+## [V10.4] Diamond-Tier — Multi-Session, HITL & Firecrawl · 23/04/2026
 
 **[ASIMILACIÓN ARQUITECTÓNICA: OPENCLAUDE]**
-- **Multi-Session Bridge**: `bridge_server.py` ahora integra un bucle de orquestación continua basado en `CapacityWake` y `SessionSpawner` (vía `core/session_runner.py`), permitiendo hasta 32 procesos aislados de agente sin bloqueo.
-- **MemDir Integration**: `core/session_manager.py` escanea el workspace por carpetas `.gravity_mem` o `MEMORY.md` para inyectarlas atómicamente en el System Prompt, brindando memoria hiperlocalizada por directorio.
-- **MCP Adapter Evolucionado**: `core/mcp_adapter.py` ahora posee auto-reconexión del proceso stdio, junto a `list_resources` y `read_resource` para ampliar las capacidades estáticas de las tools.
-- **AgentTool Refactor**: `ask_deepseek.py` soporta banderas `--session` para instancias remotas acopladas, simulando el `QueryEngine` bidireccional.
 
-## [V10.3] Ultra Evolution Panel & Interactive Tools - 21/04/2026
+### Nuevos Módulos Backend
+- **`core/firecrawl_scraper.py`**: Scraping de URLs con soporte doble — Firecrawl API (Markdown limpio) + fallback HTTP nativo (`urllib`) sin dependencias externas. Auto-detecta API key en `config.yaml`.
+- **`core/hitl_manager.py`**: Human-in-the-Loop completo. Cola thread-safe de aprobaciones para tools de alto riesgo (`code_runner`, `shell_exec`, `file_write`, `deploy`, `git_push`, etc.). Timeout de 120s con auto-rechazo. Bypass en modo background. Funciones: `request_approval`, `wait_for_decision`, `approve`, `reject`, `get_pending`, `intercept`.
 
-**[NUEVA FUNCIONALIDAD — MISSION CONTROL]**
-- **Dashboard Home**: Widget grid en vivo de métricas críticas (Tokens, Queue, Models, Costos).
-- **Notificaciones**: Sistema de Alertas Flotantes UI/UX para feedbacks pasivos.
+### Nuevos Endpoints REST
+- `GET /v1/hitl/pending` — Lista solicitudes de aprobación humana en espera.
+- `POST /v1/hitl/approve` — Aprueba una acción del agente ({approval_id}).
+- `POST /v1/hitl/reject` — Rechaza una acción del agente ({approval_id, reason}).
+- `POST /v1/tools/scrape` — Scraping de URL ({url}) con Firecrawl o fallback.
+- `GET /v1/tools/firecrawl/health` — Estado de la API key y modo de scraping.
 
-**[MEJORA — TOOLS PRO]**
-- **Interfaz Híbrida**: Tools estáticas pasaron a ser Terminales Reactivas reales atadas al Mixin_post en backend.
-- **CodeRunner & Grep**: Integración de shell local al Dashboard para debugging y scripting directo (Powershell/Python/Bash).
-- **Git Actions**: Botones macro inyectados en la UI sin necesidad de consola.
+### Dashboard V10.4 — UI/UX Diamond Tier
+- **Rediseño CSS total**: Nueva paleta (`#07090e` bg, `#6366f1` accent, `#8b5cf6` accent2, `#06b6d4` accent3). Animaciones `slideIn`, `hitlPop`, `gradMove`.
+- **Panel HITL**: Solicitudes pendientes con botones Aprobar/Rechazar, stats de sesión (aprobadas/rechazadas), lista de tools de alto riesgo, polling automático cada 8s.
+- **Panel Firecrawl**: Status de API key, scraper interactivo de URL, viewer de resultado en Markdown con badge de fuente y botón copiar.
+- **Sessions — Role Selector**: Selector de rol (auditor/planner/coder/researcher/executor) al hacer Spawn de un worker, enviado al backend vía `--role`.
+- **Nav sidebar**: Nuevos items HITL (con badge rojo de alertas pendientes) y Firecrawl.
+- **Bug fix switchTab**: Eliminada colisión de override doble con IIFE seguro.
 
-**[NUEVA FUNCIONALIDAD — ENGINE MULTIMEDIA Y SECURITY]**
-- **Video Studio Cinematic**: Inyección de estilos `lofi` y `retro80s`.
-- **Image Lab Avanzado**: Render multicapa con testeo A/B. Agregados presets directos. Prompt improvement function via LLM.
-- **Security Score**: UI gráfico base 100 con capacidad destructiva para inyectar Kills (`/v1/security/kill`).
+### Agent Routing
+- `ask_deepseek.py`: Soporte `--role` en CLI para inyectar configuración de proveedor/modelo según rol definido en `config.yaml → agent_routing`.
+- `core/session_runner.py`: `SessionSpawner.spawn` pasa `--role` al subproceso.
 
-**[DOCUMENTACIÓN Y ARQUITECTURA]**
-- Actualización total de firmas digitales V10.2 a V10.3.
+---
 
-## [V10.2] Video Studio + RAG en Chat + Admin API - 20/04/2026
+## [V10.3] Ultra Evolution Panel & Interactive Tools · 21/04/2026
 
-**[NUEVA FUNCIONALIDAD — VIDEO STUDIO]**
-- **`core/video_pipeline.py`**: Pipeline completo de generación de videos CPU-only. Flujo de 5 pasos: LLM (guión JSON) → Fooocus CPU (imágenes) → Windows SAPI/pyttsx3 (TTS .wav) → ffmpeg (clips .mp4) → ffmpeg concat (video final).
-- **Cola SQLite Aislada**: `_video_queue.sqlite` con worker daemon independiente. Progreso real 0-100 por escena accesible en tiempo real.
-- **Endpoints REST**: `POST /v1/video/create`, `POST /v1/video/cancel`, `GET /v1/video/status`, `GET /v1/video/download`.
-- **Dashboard Panel #18**: Nuevo panel "🎬 Video Studio" con formulario, barra de progreso en tiempo real, historial de 20 jobs y descarga directa del MP4.
-- **Fallback automático**: Si Fooocus no está corriendo, genera imagen placeholder negra y continúa.
+### Mission Control Dashboard
+- Widget grid en vivo de métricas críticas (Tokens, Queue, Models, Costos).
+- Sistema de Alertas Flotantes UI/UX para feedbacks pasivos.
 
-**[NUEVA FUNCIONALIDAD — RAG EN CHAT]**
-- **Inyección automática de contexto**: El endpoint `/v1/chat/completions` inyecta fragmentos RAG relevantes cuando `rag_enabled: true` en `_settings.json`.
-- **`POST /v1/rag/toggle`**: Activa/desactiva el RAG en caliente sin reiniciar el bridge.
+### Tools Pro
+- Interfaz Híbrida: Code Runner, Grep, Git Actions con terminal reactiva real.
+- Integración de shell local al Dashboard para debugging y scripting directo.
 
-**[NUEVA FUNCIONALIDAD — ADMIN API]**
-- **`POST /v1/audit/rotate`**: Fuerza rotación inmediata del audit log activo con archivado por timestamp.
+### Multimedia & Security
+- **Video Studio Cinematic**: Estilos `lofi` y `retro80s`.
+- **Image Lab Avanzado**: Render multicapa, presets directos, prompt improvement via LLM.
+- **Security Score**: UI gráfico base 100, kill de procesos via `/v1/security/kill`.
 
-**[INFRAESTRUCTURA]**
-- **ffmpeg integrado**: `_integrations/ffmpeg/ffmpeg.exe` (v2026-04-19) añadido al PATH de usuario.
-- **pyttsx3**: Motor TTS Windows SAPI instalado para síntesis de voz offline.
-- **62 tests pasados**: Suite pytest completa con 0 fallos y 0 errores.
-- **Limpieza del repositorio**: Eliminados `build/` (~450MB), logs obsoletos (`fooocus_trigger_debug.log`, `native_trigger.py.bak`).
+---
 
-**[DOCUMENTACIÓN]**
-- Wiki completa actualizada a V10.2: `Home.md`, `Arquitectura.md`, `Guia-API.md`, `Manual-Usuario.md`, `FAQ.md`, `API-Reference.md`.
-- `README.md` actualizado con módulo Video Studio y badge V10.2.
-- `CHANGELOG.md` con esta entrada.
-- `Deploy_GravityBridge.bat` actualizado con mensaje de commit V10.2.
+## [V10.2] Video Studio + RAG en Chat + Admin API · 20/04/2026
 
-## [V10.1.1] Modularización Arquitectónica del Enrutador - 20/04/2026
+### Video Studio
+- `core/video_pipeline.py`: Pipeline completo CPU-only. LLM → Fooocus → SAPI TTS → ffmpeg clips → concat final.
+- Cola SQLite aislada `_video_queue.sqlite` con worker daemon independiente.
+- Endpoints: `POST /v1/video/create`, `POST /v1/video/cancel`, `GET /v1/video/status`, `GET /v1/video/download`.
+- Dashboard Panel Video Studio con formulario, barra de progreso en tiempo real, historial de 20 jobs, descarga directa MP4.
+- Fallback automático si Fooocus no está corriendo.
 
-**[REFACTORIZACIÓN ESTRUCTURAL]**
-- **Desacoplamiento del Monolito:** `bridge_server.py` reducido de 1,323 líneas a ~200 líneas. Toda la lógica de rutas migrada a un sistema de Mixins distribuidos (`api/routes/mixin_get.py`, `api/routes/mixin_post.py`).
-- **Estado Global Aislado:** Variables de estado de Rate Limiter y GeoIP Tracker extraídas a `api/state.py` eliminando dependencias cíclicas y fugas de contexto entre módulos.
-- **Bugs Corregidos:** 4 regresiones identificadas y corregidas post-refactorización: referencia a `_RATE_LIMIT_WINDOW` obsoleta, variables GeoIP con prefijo incorrecto, 7 rutas `__file__` apuntando a directorio incorrecto, y `background_scanner` huérfano.
+### RAG en Chat
+- Inyección automática de contexto RAG en `/v1/chat/completions` cuando `rag_enabled: true`.
+- `POST /v1/rag/toggle`: Activa/desactiva en caliente sin reiniciar el bridge.
 
-**[MEJORAS DE ESTABILIDAD]**
-- **Audit Log — Rotación por Volumen:** `core/audit_log.py` ahora rota en base a 10,000 líneas además del umbral de 5MB existente. El archivo contaba con 19,785 líneas sin rotación activa. `get_recent()` optimizado con `collections.deque` — ya no carga el archivo completo en memoria.
-- **Limpieza del Repositorio:** Eliminados 12 archivos residuales (`scratch_*.py`, `temp_task.txt`, stubs de wiki en inglés, backup del monolito).
-- **requirements.txt:** Versión mínima fijada para `prometheus_client>=0.20.0`. Cabecera actualizada a V10.1.
+### Admin API
+- `POST /v1/audit/rotate`: Fuerza rotación del audit log activo con archivado por timestamp.
 
-## [V10.1] Stable Diamond-Tier Integration - 19/04/2026
+### Infraestructura
+- ffmpeg integrado en `_integrations/ffmpeg/`.
+- pyttsx3 TTS Windows SAPI offline.
+- Limpieza del repositorio: Eliminados `build/` (~450MB), logs obsoletos.
 
+### Documentación
+- Wiki completa actualizada a V10.2.
+- `README.md` con módulo Video Studio y badge V10.2.
 
-**[MAJOR FIXES & SEGURIDAD CORE]**
-- **Image Queue Blindado:** La vulnerabilidad sintética de la confirmación Gradio ahora ha sido purgada de raíz. El modulo `fooocus_client` y `image_queue` hacen diferencia real de carpetas en sistema operativo ("antes de disparar POST" vs "post disparar POST"). Los Falsos Positivos de generación se han reducido de un posible 15% a un rotundo 0%.
-- **Evacuación de la API RAG Insegura:** Se controló el desgaste perpetuo de la IA con rate limiting `_check_rate` global en la clase BaseHTTPRequestHandler impidiendo el desbordamiento local por LAN.
-- **Drenaje de Falsos Flags (Spam Reduction):** `security_monitor.py` detuvo las alertas agresivas de red por puertos rutinarios al cruzarlo pasivamente contra una lista blanca (discord, navegadores, battle.net, steam). Reducción del ~98% de spam en la huella de log audit_log.jsonl.
-- **Soporte Compatibilidad Pyinstaller:** El ejecutable frozen dejó de cerrarse arbitrariamente debido a tipajes de python obsoletos `type | None` que desbordaban la compilación pre-Python3.10 en los scripts de IA Process Manager.
+---
 
-**[NUEVAS FUNCIONALIDADES REALES]**
-- **SSE En Vivo `/v1/queue/stream`:** Interfaz estática modernizada conectándose por `Event-Stream` bidireccional puro a los contadores HTTP para evitar ahogamiento del servidor via pooling.
-- **MangosD Deque Buffer y Auto-Backup:** GravityBridge ahora levanta un Subprocess Popen interceptando Standard Out con un Ring-Buffer (Deque) guardando 500 líneas en RAM, exponiéndose vivas en `/v1/gameserver/log`.
-- **Pre-Flight MySQL:** El launcher de `game_server_manager` lanza requests pings internos. Si tu base de datos WOW no existe o no responde, el servidor detiene su secuencia antes de encender Mangos, salvándote de cuelgues oscuros locales.
-- **Rotación Máxima de Logs:** La carpeta raíz previene la muerte térmica del disco del Bot haciendo Backups rotativos .pak de 5MB como tope duro.
+## [V10.1.1] Modularización Arquitectónica del Enrutador · 20/04/2026
+
+### Refactorización Estructural
+- `bridge_server.py` reducido de 1,323 → ~200 líneas. Lógica migrada a Mixins (`api/routes/mixin_get.py`, `api/routes/mixin_post.py`).
+- Estado global aislado en `api/state.py`. Eliminadas dependencias cíclicas.
+- 4 regresiones corregidas post-refactorización.
+
+### Estabilidad
+- Audit Log: rotación por 10,000 líneas además del umbral 5MB.
+- Limpieza: 12 archivos residuales eliminados.
+- `requirements.txt` con versiones mínimas fijadas.
+
+---
+
+## [V10.1] Stable Diamond-Tier Integration · 19/04/2026
+
+### Fixes & Seguridad Core
+- Image Queue: 0% falsos positivos de generación (diferenciación real antes/después de POST).
+- Rate limiting global anti-DDoS en BaseHTTPRequestHandler.
+- Security Monitor: whitelist dinámica (Discord/Chrome/BattleNet/Steam), 98% menos spam en audit log.
+- Soporte PyInstaller: Fix para `type | None` en Python < 3.10.
+
+### Nuevas Funcionalidades
+- SSE En Vivo `/v1/queue/stream`: Event-Stream bidireccional puro.
+- MangosD Deque Buffer: Ring-Buffer de 500 líneas en RAM, expuesto en `/v1/gameserver/log`.
+- Pre-Flight MySQL: Verificación antes de arrancar MangosD.
+- Rotación máxima de logs: backups rotativos .pak de 5MB tope duro.
+
+---
+
+## [V10.0] Foundation Diamond-Tier · 18/04/2026
+
+- Arquitectura base `http.server.ThreadingHTTPServer` sin Flask/FastAPI.
+- Provider Manager: Ollama, LM Studio, Kobold, Jan, OpenAI, Anthropic.
+- Dashboard SPA inicial con Chat Auditor, Status, Security, Audit Log.
+- Key Manager con cifrado DPAPI.
+- Installer Inno Setup para Windows 10+.

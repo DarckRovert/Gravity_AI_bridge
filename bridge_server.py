@@ -1,9 +1,11 @@
+
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║          GRAVITY AI - BRIDGE SERVER V10.4 [Diamond-Tier Edition]             ║
 ║            Enrutador Universal OpenAI-Compatible + Multi-Session             ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
+
 
 import json
 import time
@@ -171,9 +173,11 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             "/v1/image/health":     self._serve_pollinations_health,
             "/v1/image/lab/history":self._serve_image_lab_list,
             # ── V10.4 Diamond Tier ───────────────────────────────────────────────
-            "/v1/sessions/active":  self._serve_active_sessions,
-            "/v1/mcp/status":       self._serve_mcp_status,
-            "/v1/mcp/resource":     self._serve_mcp_resource,
+            "/v1/sessions/active":       self._serve_active_sessions,
+            "/v1/mcp/status":            self._serve_mcp_status,
+            "/v1/mcp/resource":          self._serve_mcp_resource,
+            "/v1/hitl/pending":          self._serve_hitl_pending,
+            "/v1/tools/firecrawl/health":self._serve_firecrawl_health,
         }
 
         # Rutas con query string (?server=&lines=)

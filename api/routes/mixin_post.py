@@ -822,6 +822,88 @@ class PostRoutesMixin:
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
 
+        # /v1/hitl/approve — Aprobar una acción pendiente
+        if self.path == "/v1/hitl/approve":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                aid    = data.get("approval_id", "").strip()
+                from core.hitl_manager import approve
+                ok = approve(aid)
+                body = json.dumps({"ok": ok, "approval_id": aid,
+                                   "message": "Aprobado" if ok else "ID no encontrado"}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/hitl/reject — Rechazar una acción pendiente
+        if self.path == "/v1/hitl/reject":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                aid    = data.get("approval_id", "").strip()
+                reason = data.get("reason", "").strip()
+                from core.hitl_manager import reject
+                ok = reject(aid, reason)
+                body = json.dumps({"ok": ok, "approval_id": aid,
+                                   "message": "Rechazado" if ok else "ID no encontrado"}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/tools/scrape — Firecrawl / Fallback HTML scraper
+        if self.path == "/v1/tools/scrape":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                url    = data.get("url", "").strip()
+                if not url:
+                    self.send_response(400)
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "url requerida"}).encode())
+                    return
+                # Leer api_key desde config.yaml
+                api_key = ""
+                try:
+                    BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                    import yaml
+                    with open(os.path.join(BASE_DIR, "config.yaml"), "r", encoding="utf-8") as f:
+                        cfg = yaml.safe_load(f)
+                    api_key = cfg.get("firecrawl_api_key", "") or ""
+                except Exception:
+                    pass
+                from core.firecrawl_scraper import scrape_url
+                result = scrape_url(url, api_key)
+                body = json.dumps(result, ensure_ascii=False, indent=2).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
         if self.path not in ("/v1/chat/completions", "/v1/completions"):
             self.send_response(404)
             self.end_headers()

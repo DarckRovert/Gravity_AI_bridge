@@ -832,3 +832,49 @@ class GetRoutesMixin:
         except Exception:
             self.send_response(500); self.end_headers()
 
+    # ── HITL Manager ─────────────────────────────────────────────────────────
+    def _serve_hitl_pending(self):
+        """GET /v1/hitl/pending — Lista solicitudes de aprobación humana en espera."""
+        try:
+            from core.hitl_manager import get_pending
+            pending = get_pending()
+            body = json.dumps({"pending": pending, "count": len(pending)}, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    # ── Firecrawl Health ──────────────────────────────────────────────────────
+    def _serve_firecrawl_health(self):
+        """GET /v1/tools/firecrawl/health — Estado de la API key Firecrawl."""
+        try:
+            BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            cfg_path = os.path.join(BASE_DIR, "config.yaml")
+            api_key = ""
+            try:
+                import yaml
+                with open(cfg_path, "r", encoding="utf-8") as f:
+                    cfg = yaml.safe_load(f)
+                api_key = cfg.get("firecrawl_api_key", "") or ""
+            except Exception:
+                pass
+            body = json.dumps({
+                "configured": bool(api_key),
+                "mode": "firecrawl_api" if api_key else "fallback_html",
+                "message": "API Key Firecrawl activa" if api_key else "Sin API key — modo fallback (urllib)"
+            }, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+

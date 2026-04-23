@@ -1,22 +1,106 @@
-# 🛡️ Matriz de Seguridad y Mitigación de Ecosistema (V10.1+)
+# Política de Seguridad — Gravity AI Bridge
 
-El despliegue local que permite el Gravity AI Bridge no lo exonera de ataques LAN agresivos o fugas termales destructivas para sus clústeres. Todo servidor Windows o Instancia host que hospede el Bridge obedece estas políticas.
+## Versiones Soportadas
 
-## 1. Defensa contra Fugas VRAM (Engine Watchdog)
-No existe exposición directa del modelo Local. 
-Cualquier petición en la suite es forzada dinámicamente por la clase cruzada del `Env Optimizer` que intercepta qué hardware provee la base. Si un intrusista LAN con acceso en `/v1/chat` manda context-windows monstruosos que superarían el tope térmico/físico de NVIDIA CUDA u OS M-Series de la IA hosteadora, el Optimizador desactiva y resetea dinámicamente la ventana forzando seguridad para que los Drivers de video de la máquina matriz no crasheen.
+| Versión | Estado | Soporte de Seguridad |
+|---|---|---|
+| V10.4 Diamond | ✅ Actual | Activo — recibe parches |
+| V10.3 | ⚠️ Legacy | Solo vulnerabilidades críticas |
+| V10.2 | ❌ EOL | Sin soporte |
+| < V10.1 | ❌ EOL | Sin soporte |
 
-## 2. Prevención de Gastos (Cost Tracker Lock)
-Las APIs Cloud conectadas accidental o estratégicamente en tus `.env` no drenarán infinitur.
-Obligatorio en todo subproceso de cobro: Un logueo forzado al instante por token de entrada y de salida (`_cost_log.json`). 
-- **Límite Diario Estricto:** Si las cuotas permean el umbral, los subprocesos de la API Cloud devuelven 403 Forbidden y caen un escalón buscando inteligencias gratis base Ollama de forma automática. 
+---
 
-## 3. Seguridad de Datos Persistentes y Memoria
-1. **Truncamiento SQLite Forzado Foráneo**: Base y Metadatos de Session / Config operan en SQLite. Para evitar fugas de subprocesos inactivos con bloqueos fantasma, al Boot se fuerza el protocolo `"PRAGMA wal_checkpoint(TRUNCATE)"` matando memorias basura desahuciadas de previas corridas rotas. A coste mínimo recorta 1 MB de inflamiento de base de datos diariamente.
-2. **Auto Mysql Backups para WoW**: Nadie apaga el World of Warcraft local sin que Gravity Bridge expulse primero un Popen agresivo corriendo `mysqldump` a toda tu DB de "Characters". Todo se encripta silenciosamente para que tus progresos resistan un crash FATAL de Windows OS.
+## Reportar una Vulnerabilidad
 
-## 4. Auditoría HTTP Endpoints y Rate Limiter
-1. Tasa Limitante por defecto global inyectada en Header Level: **120 Peticiones / 60 Segundos**. El sistema HTTP corta de raíz solicitudes repetidas desde una IP de la red ignorando el body del parseador interno (Evita colapso de CPU interno por sobreesfuerzo de HTTP Parsing malioso).
-2. Cada solicitud se imprime en `_audit_log.jsonl`. Con auto rotación física (`maxBytes` a 5 Millones de caracteres) para no llenar los discos de 500GB hosteadores.
+**NO abrir un Issue público para vulnerabilidades de seguridad.**
 
-Este módulo corporativo está construido para defender sus operaciones con resiliencia máxima y zero down-time. Las peticiones desautorizadas por favor se dirigen y apelan internamente a las directrices de [DarckRovert](https://github.com/DarckRovert).
+Reportar de forma privada:
+1. **GitHub Private Advisory**: [Security Advisories](https://github.com/DarckRovert/Gravity_AI_bridge/security/advisories/new)
+2. **Contacto directo**: [Twitch DarckRovert](https://twitch.tv/darckrovert)
+
+### Información a Incluir
+- Descripción clara de la vulnerabilidad
+- Pasos para reproducir (PoC si aplica)
+- Versión afectada
+- Impacto estimado
+
+**Tiempo de respuesta objetivo**: 48-72 horas para acuse de recibo, 7-14 días para evaluación.
+
+---
+
+## Modelo de Seguridad de Gravity AI Bridge
+
+### 1. Autenticación y API Keys
+- Las API keys (OpenAI, Anthropic, Firecrawl, etc.) se cifran con **DPAPI de Windows** via `core/key_manager.py`.
+- Nunca se almacenan en texto plano en disco.
+- `config.yaml` NO debe contener keys reales en repositorios públicos.
+
+### 2. Anti-DDoS Local
+- Rate limiting por IP: máximo 120 peticiones por ventana de tiempo configurable.
+- Bloqueo inmediato vía HTTP 429 sin procesar el cuerpo de la petición.
+- Implementado directamente en `BaseHTTPRequestHandler` (pre-parse).
+
+### 3. HITL — Human in the Loop
+Las siguientes tools requieren aprobación explícita del operador humano antes de ejecutarse:
+- `code_runner`, `shell_exec`, `file_write`, `file_delete`
+- `deploy`, `git_push`, `git_commit`
+- `send_email`, `send_request`, `database_write`
+
+El agente queda bloqueado 120 segundos esperando aprobación. Timeout → auto-rechazo.
+**Excepción**: Modo background con permisos absolutos (requiere habilitación explícita).
+
+### 4. Audit Log
+- Todas las peticiones `/v1/chat/completions` y acciones de agente se registran en `_audit_log.jsonl`.
+- Rotación automática al superar 5MB o 10,000 líneas.
+- Los backups se mantienen como `.bak` con timestamp (máximo 3 backups rotativos).
+
+### 5. Security Monitor (`core/security_monitor.py`)
+- Whitelist dinámica de procesos benignos (Discord, Chrome, BattleNet, Steam, Spotify, etc.).
+- Alertas CRITICAL/WARNING/INFO por proceso anómalo, puerto inesperado o modificación de archivo del sistema.
+- GeoIP tracker de IPs externas con cache.
+- Score de seguridad base 100 visible en el Dashboard.
+
+### 6. Integridad del Servidor
+- Pre-flight MySQL antes de arrancar MangosD (evita corrupción de Character-Files WoW).
+- WAL Checkpoint de SQLite al arrancar (evita fuga de gigabytes en `.wal`).
+- Validación de rutas con `..` (path traversal) en todos los endpoints de archivos estáticos.
+
+### 7. Network Exposure
+- Por defecto el servidor escucha en `0.0.0.0:7860`.
+- **Recomendación**: En producción, proteger el puerto con firewall o proxy reverso (nginx/Caddy) con autenticación básica.
+- El endpoint `/registro` (WoW account creation) solo debe estar accesible desde LAN.
+
+---
+
+## Vulnerabilidades Conocidas Mitigadas
+
+| ID | Descripción | Estado |
+|---|---|---|
+| GAB-2026-001 | Falsos positivos en Image Queue (Fooocus) | ✅ Corregido V10.1 |
+| GAB-2026-002 | Spam de alertas de security_monitor por apps legítimas | ✅ Corregido V10.1 |
+| GAB-2026-003 | Path traversal en `/static/output/` | ✅ Mitigado V10.0 |
+| GAB-2026-004 | Colisión de override `switchTab` en JS del Dashboard | ✅ Corregido V10.4 |
+
+---
+
+## Scope de Seguridad
+
+### En Scope (reportar)
+- Ejecución remota de código (RCE) via endpoints
+- Escalación de privilegios local
+- Exposición no autorizada de API keys almacenadas
+- Bypass del sistema HITL
+- Path traversal / Directory traversal
+- Inyección SQL en bases SQLite
+
+### Fuera de Scope
+- Vulnerabilidades en dependencias de terceros (Ollama, LM Studio, Fooocus) — reportar directamente a sus repositorios
+- Ataques que requieren acceso físico al equipo
+- Vulnerabilidades en el servidor WoW (MangosD/vMaNGOS) — fuera del ámbito del bridge
+
+---
+
+<div align="center">
+  <sub><i>© 2026 DarckRovert · Gravity AI Bridge Security Policy</i></sub>
+</div>

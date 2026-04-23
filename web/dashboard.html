@@ -3,34 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gravity AI — V10.3 Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Gravity AI — V10.4 Diamond Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:       #090c10;
-    --surface:  #0f1117;
-    --card:     #161b22;
-    --border:   #21262d;
-    --accent:   #4f46e5;
-    --accent2:  #7c3aed;
-    --glow:     rgba(79,70,229,0.35);
-    --text:     #e6edf3;
-    --muted:    #8b949e;
-    --success:  #3fb950;
-    --warning:  #f0883e;
-    --error:    #f85149;
-    --user-bg:  #1c2128;
-    --ai-bg:    #13131a;
-    --glass:    rgba(22, 27, 34, 0.7);
+    --bg:        #07090e;
+    --surface:   #0d1117;
+    --card:      #131920;
+    --border:    #1e2530;
+    --accent:    #6366f1;
+    --accent2:   #8b5cf6;
+    --accent3:   #06b6d4;
+    --glow:      rgba(99,102,241,0.4);
+    --glow2:     rgba(139,92,246,0.3);
+    --text:      #e2e8f0;
+    --muted:     #64748b;
+    --success:   #10b981;
+    --warning:   #f59e0b;
+    --error:     #ef4444;
+    --user-bg:   #1a2030;
+    --ai-bg:     #0f1320;
+    --glass:     rgba(13,17,23,0.8);
+    --hitl-warn: rgba(245,158,11,0.15);
+    --hitl-border: rgba(245,158,11,0.4);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow:hidden}
 
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes pulse  { 0%   { box-shadow: 0 0 0 0 rgba(79,70,229,0.4); } 70% { box-shadow: 0 0 0 10px rgba(79,70,229,0); } 100% { box-shadow: 0 0 0 0 rgba(79,70,229,0); } }
-  @keyframes blink  { 0%,100%{opacity:.6}50%{opacity:1} }
-  @keyframes cur    { 0%,100%{opacity:1}50%{opacity:0} }
-  @keyframes spin   { to { transform: rotate(360deg); } }
+  @keyframes fadeIn  { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes pulse   { 0%   { box-shadow: 0 0 0 0 rgba(99,102,241,0.5); } 70% { box-shadow: 0 0 0 12px rgba(99,102,241,0); } 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); } }
+  @keyframes blink   { 0%,100%{opacity:.5}50%{opacity:1} }
+  @keyframes cur     { 0%,100%{opacity:1}50%{opacity:0} }
+  @keyframes spin    { to { transform: rotate(360deg); } }
+  @keyframes hitlPop { 0%{transform:scale(0.95);opacity:0} 60%{transform:scale(1.03)} 100%{transform:scale(1);opacity:1} }
+  @keyframes gradMove{ 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
 
   .shell{display:flex;height:100vh;flex-direction:column}
   .topbar{background:var(--surface);border-bottom:1px solid var(--border);height:60px;
@@ -55,7 +62,7 @@
   .btn-icon{background:var(--card);border:1px solid var(--border);color:var(--text);
             padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;font-weight:500;
             transition:.2s;display:flex;align-items:center;gap:6px}
-  .btn-icon:hover{border-color:var(--accent);background:rgba(79,70,229,0.1);box-shadow:0 0 8px var(--glow)}
+  .btn-icon:hover{border-color:var(--accent);background:rgba(99,102,241,0.1);box-shadow:0 0 8px var(--glow)}
 
   .sidebar-section{padding:0 16px;margin-bottom:12px}
   .sidebar-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);
@@ -63,7 +70,7 @@
   .nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;
             cursor:pointer;font-size:14px;font-weight:500;color:var(--muted);transition:.2s;margin-bottom:4px}
   .nav-item:hover{background:var(--card);color:var(--text)}
-  .nav-item.active{background:linear-gradient(90deg,rgba(79,70,229,0.15),transparent);color:var(--text);border-left:3px solid var(--accent)}
+  .nav-item.active{background:linear-gradient(90deg,rgba(99,102,241,0.18),transparent);color:var(--text);border-left:3px solid var(--accent)}
   .nav-icon{font-size:16px;width:24px;text-align:center}
   .model-card{background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:12px;
               margin:0 16px 12px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
@@ -128,7 +135,7 @@
   .input-wrapper:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px rgba(79,70,229,0.2)}
   #chat-input{flex:1;background:transparent;border:none;color:var(--text);padding:8px;font-size:15px;font-family:'Inter',sans-serif;resize:none;outline:none;max-height:200px;min-height:24px;line-height:1.5}
   #send-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;width:40px;height:40px;border-radius:12px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.2s}
-  #send-btn:hover:not(:disabled){transform:scale(1.05);box-shadow:0 0 12px var(--glow)}
+  #send-btn:hover:not(:disabled){transform:scale(1.05);box-shadow:0 0 16px var(--glow)}
   #send-btn:disabled{opacity:.5;cursor:not-allowed}
   .input-hints{font-size:12px;color:var(--muted);margin-top:12px;display:flex;gap:12px;flex-wrap:wrap}
   .hint{cursor:pointer;padding:4px 10px;border-radius:6px;background:var(--card);border:1px solid var(--border);transition:.2s}
@@ -173,7 +180,7 @@
   .form-input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:0.2s}
   .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(79,70,229,0.2)}
   .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;transition:.2s;width:100%}
-  .btn-primary:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 12px var(--glow)}
+  .btn-primary:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 16px var(--glow)}
   .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
   .link-list{display:flex;flex-direction:column;gap:12px}
   .cfg-link{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);text-decoration:none;transition:0.2s}
@@ -460,15 +467,14 @@
   .hljs{background:#0d1117;border-radius:6px;padding:12px;overflow-x:auto;font-size:13px}
 
   @keyframes slideDown { from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1} }
-
-</style>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js">
-// ── Tools Pro ────────────────────────────────────────────────────────────────
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+// ── Tools Pro — Code Runner, Web Search, Git, Grep ─────────────────────────
 async function runCode() {
   const lang = document.getElementById('cr-lang').value;
   const code = document.getElementById('cr-code').value.trim();
-  if(!code)return;
+  if(!code) return;
   const out = document.getElementById('cr-output');
   const btn = document.getElementById('cr-run-btn');
   btn.disabled = true;
@@ -484,73 +490,84 @@ async function runCode() {
     if(data.error) {
       out.innerHTML = `<span style="color:var(--error)">${esc(data.error)}</span>`;
     } else {
-      out.innerHTML = `<pre style="margin:0;font-family:'JetBrains Mono';white-space:pre-wrap;color:var(--success)">${esc(data.stdout || '')}</pre><pre style="margin:0;font-family:'JetBrains Mono';white-space:pre-wrap;color:var(--error)">${esc(data.stderr || '')}</pre>`;
+      out.innerHTML =
+        `<pre style="margin:0;font-family:'JetBrains Mono';white-space:pre-wrap;color:var(--success)">${esc(data.stdout||'')}</pre>` +
+        (data.stderr ? `<pre style="margin:0;font-family:'JetBrains Mono';white-space:pre-wrap;color:var(--error)">${esc(data.stderr)}</pre>` : '');
     }
-  }catch(e){ out.innerHTML = `<span style="color:var(--error)">Error de red: ${e.message}</span>`; }
+  } catch(e) {
+    out.innerHTML = `<span style="color:var(--error)">Error de red: ${e.message}</span>`;
+  }
   btn.disabled = false;
-  btn.textContent = '▶ Ejecutar';
+  btn.innerHTML = '▶ Ejecutar';
 }
 
 function clearCodeOutput() {
-  document.getElementById('cr-output').innerHTML = '<span class="info">Listo. Presiona ▶ para ejecutar.</span>';
+  const el = document.getElementById('cr-output');
+  if(el) el.innerHTML = '<span style="color:var(--muted)">Listo. Presiona ▶ para ejecutar.</span>';
 }
 
 async function runWebSearch() {
-  const q = document.getElementById('ws-query').value.trim();
-  if(!q)return;
+  const q   = document.getElementById('ws-query').value.trim();
+  if(!q) return;
   const out = document.getElementById('ws-results');
   const btn = document.getElementById('ws-run-btn');
   btn.disabled = true; btn.textContent = 'Buscando...';
   out.innerHTML = '<div style="text-align:center;padding:24px"><span class="spinner"></span> Consultando DuckDuckGo...</div>';
   try {
-    const res = await fetch('/v1/tools/search', {
+    const res  = await fetch('/v1/tools/search', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({query: q})
     });
     const data = await res.json();
     if(data.error) {
-       out.innerHTML = `<div style="text-align:center;color:var(--error);padding:20px">${esc(data.error)}</div>`;
+      out.innerHTML = `<div style="text-align:center;color:var(--error);padding:20px">${esc(data.error)}</div>`;
+    } else if(!data.results || data.results.length === 0) {
+      out.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">Sin resultados</div>';
     } else {
-       if(!data.results || data.results.length === 0) out.innerHTML = '<div style="text-align:center;padding:20px">No hubo resultados</div>';
-       else {
-         out.innerHTML = data.results.map(r => `
-          <div style="padding:10px;border-bottom:1px solid var(--border)">
-            <a href="${esc(r.href)}" target="_blank" style="color:var(--accent);font-weight:600;text-decoration:none;font-size:13px">${esc(r.title)}</a>
-            <div style="font-size:11px;color:var(--muted);margin:4px 0">${esc(r.body)}</div>
-          </div>
-         `).join('');
-       }
+      out.innerHTML = data.results.map(r => `
+        <div style="padding:12px;border-bottom:1px solid var(--border);transition:.15s" onmouseover="this.style.background='rgba(99,102,241,0.05)'" onmouseout="this.style.background=''">
+          <a href="${esc(r.href)}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;text-decoration:none;font-size:14px">${esc(r.title)}</a>
+          <div style="font-size:11px;color:var(--muted);margin:4px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.href)}</div>
+          <div style="font-size:12px;color:var(--text);line-height:1.5">${esc(r.body||'')}</div>
+        </div>
+      `).join('');
     }
-  }catch(e){ out.innerHTML = 'Error fetching search'; }
+  } catch(e) {
+    out.innerHTML = `<div style="color:var(--error);padding:20px">Error: ${e.message}</div>`;
+  }
   btn.disabled = false; btn.textContent = '🔍 Buscar';
 }
 
 async function runGit(action) {
   const out = document.getElementById('git-output');
-  out.innerHTML = `<span class="spinner"></span> Ejecutando git ${action}...`;
+  if(!out) return;
+  out.innerHTML = `<span class="spinner"></span> Ejecutando git ${esc(action)}...`;
   try {
-    const res = await fetch('/v1/tools/git', {
-       method:'POST',
-       headers:{'Content-Type':'application/json'},
-       body: JSON.stringify({action: action})
+    const res  = await fetch('/v1/tools/git', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action: action})
     });
     const data = await res.json();
-    out.innerHTML = `<pre style="margin:0;font-family:'JetBrains Mono';white-space:pre-wrap;color:var(--text)">${esc(data.stdout||data.error||'OK')}</pre>`;
-  } catch(e){ out.innerHTML = 'Error: ' + e.message; }
+    out.innerHTML = `<pre style="margin:0;font-family:'JetBrains Mono';white-space:pre-wrap;color:${data.error?'var(--error)':'var(--text)'}">${esc(data.stdout||data.error||'OK')}</pre>`;
+  } catch(e) {
+    out.innerHTML = `<span style="color:var(--error)">Error: ${e.message}</span>`;
+  }
 }
 
 async function runGrep() {
-  const pat = document.getElementById('grep-pattern').value.trim();
+  const pat  = document.getElementById('grep-pattern').value.trim();
   const path = document.getElementById('grep-path').value.trim();
-  if(!pat)return;
+  if(!pat) return;
   const out = document.getElementById('grep-results');
   const btn = document.getElementById('grep-run-btn');
   btn.disabled = true; btn.textContent = '...';
   out.innerHTML = '<div style="text-align:center;padding:20px"><span class="spinner"></span> Buscando...</div>';
   try {
-    const res = await fetch('/v1/tools/grep', {
-      method: 'POST', headers:{'Content-Type':'application/json'},
+    const res  = await fetch('/v1/tools/grep', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({pattern: pat, path: path||'.'})
     });
     const data = await res.json();
@@ -559,10 +576,11 @@ async function runGrep() {
     } else {
       out.innerHTML = `<pre style="margin:0;font-family:'JetBrains Mono';white-space:pre-wrap;font-size:11px;color:var(--text)">${esc(data.stdout||'Sin coincidencias')}</pre>`;
     }
-  } catch(e){ out.innerHTML = 'Error: ' + e.message; }
+  } catch(e) {
+    out.innerHTML = `<span style="color:var(--error)">Error: ${e.message}</span>`;
+  }
   btn.disabled = false; btn.textContent = '🔎 Buscar';
 }
-
 </script>
 </head>
 <body>
@@ -585,7 +603,7 @@ async function runGrep() {
   <!-- Topbar -->
   <header class="topbar">
     <button class="hamburger" onclick="toggleSidebar()">☰</button>
-    <span class="logo" id="topbar-logo">GRAVITY V10.3</span>
+    <span class="logo" id="topbar-logo">GRAVITY V10.4</span>
     <div id="topbar-breadcrumb" class="breadcrumb" style="margin:0 auto 0 16px">🏠&nbsp;<span id="bc-current">Home</span></div>
     <div class="topbar-stat"><span>⚙️</span><span class="val" id="ts-cpu-val">--</span>%&nbsp;CPU</div>
     <div class="topbar-stat"><span>🧠</span><span class="val" id="ts-ram-val">--</span>%&nbsp;RAM</div>
@@ -636,13 +654,18 @@ async function runGrep() {
         <div class="nav-item"        id="nav-sessions"   onclick="switchTab('sessions',this)"><span class="nav-icon">💾</span><span class="nav-text">Sessions</span></div>
         <div class="nav-item"        id="nav-rag"        onclick="switchTab('rag',this)">      <span class="nav-icon">📚</span><span class="nav-text">RAG</span></div>
         <div class="nav-item"        id="nav-mcp"        onclick="switchTab('mcp',this)">      <span class="nav-icon">🔌</span><span class="nav-text">MCP Servers</span></div>
-        <div class="nav-item"        id="nav-tools"      onclick="switchTab('tools',this)">    <span class="nav-icon">🛠️</span><span class="nav-text">Tools</span></div>
+        <div class="nav-item" id="nav-tools" onclick="switchTab('tools',this)"><span class="nav-icon">🛠️</span><span class="nav-text">Tools</span></div>
         <div class="nav-item" id="nav-tools-pro" onclick="switchTab('tools-pro',this)"><span class="nav-icon">⚡</span><span class="nav-text">Tools Pro</span></div>
+        <div class="nav-item" id="nav-firecrawl" onclick="switchTab('firecrawl',this)"><span class="nav-icon">🕷️</span><span class="nav-text">Firecrawl</span></div>
         <div class="sidebar-label" style="margin-top:12px">Monitoreo</div>
-        <div class="nav-item"        id="nav-status"   onclick="switchTab('status',this)">  <span class="nav-icon">📡</span><span class="nav-text">System Status</span></div>
-        <div class="nav-item"        id="nav-security" onclick="switchTab('security',this)"><span class="nav-icon">🛡️</span><span class="nav-text">Security</span></div>
-        <div class="nav-item"        id="nav-audit"    onclick="switchTab('audit',this)">   <span class="nav-icon">📋</span><span class="nav-text">Audit Log</span></div>
-        <div class="nav-item"        id="nav-config"   onclick="switchTab('config',this)">  <span class="nav-icon">⚙️</span><span class="nav-text">Configuración</span></div>
+        <div class="nav-item" id="nav-hitl" onclick="switchTab('hitl',this)" style="position:relative">
+          <span class="nav-icon">🛡️</span><span class="nav-text">HITL Approval</span>
+          <span id="hitl-badge" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);background:var(--warning);color:#000;font-size:10px;font-weight:800;padding:2px 6px;border-radius:10px">0</span>
+        </div>
+        <div class="nav-item" id="nav-status" onclick="switchTab('status',this)"><span class="nav-icon">📡</span><span class="nav-text">System Status</span></div>
+        <div class="nav-item" id="nav-security" onclick="switchTab('security',this)"><span class="nav-icon">🔒</span><span class="nav-text">Security</span></div>
+        <div class="nav-item" id="nav-audit" onclick="switchTab('audit',this)"><span class="nav-icon">📋</span><span class="nav-text">Audit Log</span></div>
+        <div class="nav-item" id="nav-config" onclick="switchTab('config',this)"><span class="nav-icon">⚙️</span><span class="nav-text">Configuración</span></div>
       </div>
       <div class="sidebar-section" style="margin-top:auto">
         <div class="sidebar-label">Modelo Activo</div>
@@ -1655,9 +1678,20 @@ async function runGrep() {
             <div class="hw-card"><div class="hw-label">MemDir System</div><div class="hw-value" style="color:#55ff55">Enabled</div></div>
           </div>
           
-          <div class="sec-card" style="margin-bottom:20px; display:flex; gap:10px; align-items:center;">
-            <input type="text" id="spawn-session-id" placeholder="Nombre de la nueva sesión (ej. 'dev-1')" style="flex:1; padding:8px; border-radius:4px; border:1px solid #444; background:#111; color:#fff;" />
-            <button class="btn btn-primary" onclick="spawnSession()" style="padding:8px 16px;">Spawn Worker</button>
+          <div class="sec-card" style="margin-bottom:20px;">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)">🚀 Spawn New Worker</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <input type="text" id="spawn-session-id" placeholder="ID de sesión (ej. 'dev-1')" style="flex:2;min-width:140px;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;outline:none;transition:0.2s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" />
+              <select id="spawn-role" style="flex:1;min-width:130px;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;outline:none;cursor:pointer">
+                <option value="">🔧 Sin rol (default)</option>
+                <option value="auditor">🔍 Auditor (análisis profundo)</option>
+                <option value="planner">📋 Planner (planificación)</option>
+                <option value="coder">💻 Coder (generación código)</option>
+                <option value="researcher">🔬 Researcher (investigación)</option>
+                <option value="executor">⚙️ Executor (ejecución tools)</option>
+              </select>
+              <button style="padding:9px 18px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;transition:0.2s;white-space:nowrap" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'" onclick="spawnSession()">⚡ Spawn</button>
+            </div>
           </div>
 
           <div class="table-wrap" style="margin-bottom:20px">
@@ -1737,6 +1771,113 @@ async function runGrep() {
             <h3>⚙️ Configuración (Próximamente)</h3>
             <p style="font-size:13px;color:var(--muted);line-height:1.8">
               Actualmente los servidores MCP deben configurarse vía código en <code>config_manager</code> o script de inicio. Se añadirá soporte en dashboard pronto para agregarlos dinámicamente.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: HITL Approval -->
+      <div id="panel-hitl" class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🛡️ HITL — Human in the Loop</div>
+          <div class="panel-subtitle">Intercepción de tools de alto riesgo · Aprobación o rechazo en tiempo real</div>
+        </div>
+        <div class="panel-content">
+          <!-- Stats bar -->
+          <div class="hw-grid" style="margin-bottom:24px">
+            <div class="hw-card" style="border-color:var(--hitl-border);background:var(--hitl-warn)">
+              <div class="hw-label">⚠️ Pendientes</div>
+              <div class="hw-value" id="hitl-pending-count" style="color:var(--warning)">0</div>
+            </div>
+            <div class="hw-card">
+              <div class="hw-label">✅ Aprobadas (sesión)</div>
+              <div class="hw-value" id="hitl-approved-count" style="color:var(--success)">0</div>
+            </div>
+            <div class="hw-card">
+              <div class="hw-label">❌ Rechazadas (sesión)</div>
+              <div class="hw-value" id="hitl-rejected-count" style="color:var(--error)">0</div>
+            </div>
+          </div>
+
+          <!-- Pending approvals list -->
+          <div class="table-wrap" style="margin-bottom:24px">
+            <div class="table-title" style="display:flex;justify-content:space-between;align-items:center">
+              <span>🔔 Solicitudes Pendientes de Aprobación</span>
+              <button class="btn-icon" onclick="fetchHITLPending()" style="font-size:12px">⟳ Actualizar</button>
+            </div>
+            <div id="hitl-pending-list" style="padding:8px">
+              <div style="text-align:center;padding:32px;color:var(--muted);font-size:14px">Sin solicitudes pendientes</div>
+            </div>
+          </div>
+
+          <!-- High risk tools reference -->
+          <div class="sec-card">
+            <h3 style="margin-bottom:12px">🔴 Tools de Alto Riesgo (requieren aprobación)</h3>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <span class="badge" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3)">code_runner</span>
+              <span class="badge" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3)">shell_exec</span>
+              <span class="badge" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3)">file_write</span>
+              <span class="badge" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3)">file_delete</span>
+              <span class="badge" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3)">deploy</span>
+              <span class="badge" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3)">git_push</span>
+              <span class="badge" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3)">send_email</span>
+              <span class="badge" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3)">database_write</span>
+            </div>
+            <p style="margin-top:12px;font-size:12px;color:var(--muted);line-height:1.7">
+              Cuando el agente invoca una de estas tools, la ejecución se pausa y aparece aquí una solicitud de aprobación. En modo <strong style="color:var(--warning)">background</strong>, el agente tiene permisos absolutos y no requiere aprobación.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Firecrawl Scraper -->
+      <div id="panel-firecrawl" class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🕷️ Firecrawl — Web Scraper</div>
+          <div class="panel-subtitle">Extracción de contenido web en Markdown · API Firecrawl o fallback HTML nativo</div>
+        </div>
+        <div class="panel-content">
+          <!-- Status bar -->
+          <div class="hw-grid" style="margin-bottom:24px">
+            <div class="hw-card" id="fc-mode-card">
+              <div class="hw-label">Modo</div>
+              <div class="hw-value" id="fc-mode" style="font-size:16px;color:var(--accent)">Detectando...</div>
+            </div>
+            <div class="hw-card">
+              <div class="hw-label">API Key</div>
+              <div class="hw-value" id="fc-key-status" style="font-size:16px;color:var(--muted)">—</div>
+            </div>
+          </div>
+
+          <!-- Scraper input -->
+          <div class="sec-card" style="margin-bottom:24px">
+            <h3 style="margin-bottom:16px">🔗 Scrape URL</h3>
+            <div style="display:flex;gap:10px;margin-bottom:16px">
+              <input type="url" id="fc-url-input" class="form-input" style="flex:1" placeholder="https://ejemplo.com/articulo" onkeydown="if(event.key==='Enter')runFirecrawl()">
+              <button id="fc-run-btn" style="padding:10px 20px;background:linear-gradient(135deg,var(--accent3),var(--accent));border:none;color:#fff;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;white-space:nowrap;transition:0.2s" onclick="runFirecrawl()">🕷️ Scrape</button>
+            </div>
+            <div style="font-size:12px;color:var(--muted)">Extrae el contenido principal en Markdown limpio. Sin API key: usa fallback HTML con limpieza básica.</div>
+          </div>
+
+          <!-- Result viewer -->
+          <div id="fc-result-box" style="display:none">
+            <div class="table-wrap">
+              <div class="table-title" style="display:flex;justify-content:space-between;align-items:center">
+                <span id="fc-result-title">Resultado</span>
+                <div style="display:flex;gap:8px">
+                  <span id="fc-source-badge" class="badge" style="font-size:11px"></span>
+                  <button class="btn-icon" style="font-size:12px" onclick="copyFirecrawlResult()">📋 Copiar</button>
+                </div>
+              </div>
+              <pre id="fc-result-content" style="padding:20px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;color:var(--text);max-height:500px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;background:var(--bg)"></pre>
+            </div>
+          </div>
+
+          <!-- API Key config hint -->
+          <div class="sec-card" style="margin-top:24px">
+            <h3 style="margin-bottom:8px">🔑 Configurar API Key Firecrawl</h3>
+            <p style="font-size:13px;color:var(--muted);line-height:1.8">
+              Para activar el modo premium con Markdown estructurado, añade tu clave en <code style="background:var(--bg);padding:2px 6px;border-radius:4px">config.yaml</code> bajo la clave <code style="background:var(--bg);padding:2px 6px;border-radius:4px">firecrawl_api_key: 'fc-xxxx'</code>. Sin clave, el scraper funciona en modo fallback con urllib.
             </p>
           </div>
         </div>
@@ -3651,19 +3792,25 @@ async function loadActiveSessions() {
 }
 
 async function spawnSession() {
-  const input = document.getElementById('spawn-session-id');
-  const sid = input.value.trim();
+  const input   = document.getElementById('spawn-session-id');
+  const roleEl  = document.getElementById('spawn-role');
+  const sid     = input.value.trim();
+  const role    = roleEl ? roleEl.value.trim() : '';
   if(!sid) return showToast('Ingresa un ID para la sesión', 'error');
   try {
+    const body = {session_id: sid};
+    if(role) body.role = role;
     const res = await fetch('/v1/sessions/spawn', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({session_id: sid})
+      body: JSON.stringify(body)
     });
     const data = await res.json();
-    showToast(data.message || 'Worker Spawneado', data.ok ? 'success' : 'error');
+    const roleLabel = role ? ` [${role}]` : '';
+    showToast(data.message ? data.message + roleLabel : 'Worker spawneado' + roleLabel, data.ok ? 'success' : 'error');
     if(data.ok) {
       input.value = '';
+      if(roleEl) roleEl.value = '';
       loadActiveSessions();
     }
   } catch(e) {
@@ -3687,6 +3834,137 @@ async function killSession(sid) {
   }
 }
 
+// ── V10.4: HITL Approval ─────────────────────────────────────────────────────
+let _hitlApproved = 0;
+let _hitlRejected = 0;
+
+async function fetchHITLPending() {
+  const listEl = document.getElementById('hitl-pending-list');
+  const countEl = document.getElementById('hitl-pending-count');
+  const badge = document.getElementById('hitl-badge');
+  try {
+    const res = await fetch('/v1/hitl/pending');
+    const data = await res.json();
+    const pending = data.pending || [];
+    if(countEl) countEl.textContent = pending.length;
+    if(badge) {
+      badge.textContent = pending.length;
+      badge.style.display = pending.length > 0 ? 'inline-block' : 'none';
+    }
+    if(!listEl) return;
+    if(pending.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);font-size:14px">Sin solicitudes pendientes</div>';
+      return;
+    }
+    listEl.innerHTML = pending.map(p => `
+      <div style="border:1px solid var(--hitl-border);border-radius:10px;padding:16px;margin:8px;background:var(--hitl-warn);animation:hitlPop 0.3s ease">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div>
+            <span style="font-size:12px;color:var(--muted)">${esc(p.timestamp)} · Sesión: ${esc(p.session_id)}</span><br>
+            <strong style="font-size:15px;color:var(--warning)">⚠️ ${esc(p.tool)}</strong>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button onclick="approveHITL('${esc(p.id)}')" style="padding:7px 16px;background:#10b981;border:none;color:#fff;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;transition:0.2s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">✅ Aprobar</button>
+            <button onclick="rejectHITL('${esc(p.id)}')" style="padding:7px 16px;background:#ef4444;border:none;color:#fff;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;transition:0.2s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">❌ Rechazar</button>
+          </div>
+        </div>
+        <pre style="background:var(--bg);border-radius:6px;padding:10px;font-size:11px;max-height:150px;overflow-y:auto;color:var(--text);font-family:'JetBrains Mono',monospace">${esc(JSON.stringify(p.arguments,null,2))}</pre>
+      </div>
+    `).join('');
+  } catch(e) {
+    if(listEl) listEl.innerHTML = `<div style="color:var(--error);padding:16px">Error: ${esc(e.message)}</div>`;
+  }
+}
+
+async function approveHITL(aid) {
+  try {
+    const res = await fetch('/v1/hitl/approve', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({approval_id: aid})});
+    const data = await res.json();
+    showToast(data.message || 'Aprobado', 'success');
+    _hitlApproved++;
+    const el = document.getElementById('hitl-approved-count');
+    if(el) el.textContent = _hitlApproved;
+    fetchHITLPending();
+  } catch(e) { showToast('Error aprobando: ' + e.message, 'error'); }
+}
+
+async function rejectHITL(aid) {
+  const reason = prompt('¿Motivar el rechazo? (opcional)');
+  try {
+    const res = await fetch('/v1/hitl/reject', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({approval_id: aid, reason: reason||''})});
+    const data = await res.json();
+    showToast(data.message || 'Rechazado', 'warning');
+    _hitlRejected++;
+    const el = document.getElementById('hitl-rejected-count');
+    if(el) el.textContent = _hitlRejected;
+    fetchHITLPending();
+  } catch(e) { showToast('Error rechazando: ' + e.message, 'error'); }
+}
+
+// ── V10.4: Firecrawl ─────────────────────────────────────────────────────────
+async function fetchFirecrawlHealth() {
+  try {
+    const res = await fetch('/v1/tools/firecrawl/health');
+    const d = await res.json();
+    const modeEl = document.getElementById('fc-mode');
+    const keyEl  = document.getElementById('fc-key-status');
+    if(modeEl) {
+      modeEl.textContent = d.configured ? 'Firecrawl API' : 'Fallback HTML';
+      modeEl.style.color = d.configured ? 'var(--success)' : 'var(--warning)';
+    }
+    if(keyEl) {
+      keyEl.textContent = d.configured ? '✅ Configurada' : '❌ No configurada';
+      keyEl.style.color = d.configured ? 'var(--success)' : 'var(--error)';
+    }
+  } catch(e) {}
+}
+
+async function runFirecrawl() {
+  const urlEl  = document.getElementById('fc-url-input');
+  const btn    = document.getElementById('fc-run-btn');
+  const resBox = document.getElementById('fc-result-box');
+  const resCon = document.getElementById('fc-result-content');
+  const resTit = document.getElementById('fc-result-title');
+  const srcBdg = document.getElementById('fc-source-badge');
+  const url    = urlEl ? urlEl.value.trim() : '';
+  if(!url) return showToast('Ingresa una URL válida', 'error');
+  if(btn) { btn.disabled = true; btn.textContent = '⏳ Scrapeando...'; }
+  try {
+    const res = await fetch('/v1/tools/scrape', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({url})
+    });
+    const data = await res.json();
+    if(resBox) resBox.style.display = 'block';
+    if(data.ok) {
+      if(resTit) resTit.textContent = data.title || url;
+      if(resCon) resCon.textContent = data.content || '(sin contenido)';
+      if(srcBdg) {
+        srcBdg.textContent = data.source === 'firecrawl' ? 'Firecrawl API' : 'Fallback HTML';
+        srcBdg.style.background = data.source === 'firecrawl' ? 'rgba(99,102,241,0.15)' : 'rgba(245,158,11,0.15)';
+        srcBdg.style.color = data.source === 'firecrawl' ? 'var(--accent)' : 'var(--warning)';
+        srcBdg.style.border = data.source === 'firecrawl' ? '1px solid rgba(99,102,241,0.4)' : '1px solid rgba(245,158,11,0.4)';
+      }
+      showToast('Scrape completado — ' + (data.content||'').length + ' chars', 'success');
+    } else {
+      if(resCon) resCon.textContent = data.error || 'Error desconocido';
+      if(resTit) resTit.textContent = 'Error';
+      showToast(data.error || 'Error scrapeando URL', 'error');
+    }
+  } catch(e) {
+    showToast('Error de red: ' + e.message, 'error');
+  } finally {
+    if(btn) { btn.disabled = false; btn.textContent = '🕷️ Scrape'; }
+  }
+}
+
+function copyFirecrawlResult() {
+  const el = document.getElementById('fc-result-content');
+  if(!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => showToast('Contenido copiado al portapapeles', 'success')).catch(() => showToast('No se pudo copiar', 'error'));
+}
+
 // ── V10.4: MCP Servers ───────────────────────────────────────────────────────
 async function loadMCPServers() {
   const tb = document.getElementById('tb-mcp-servers');
@@ -3696,26 +3974,16 @@ async function loadMCPServers() {
     const res = await fetch('/v1/mcp/status');
     const data = await res.json();
     if(countSpan) countSpan.textContent = data.count || 0;
-    
     if(!data.mcp_servers || data.mcp_servers.length === 0) {
       tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted)">Sin servidores MCP conectados</td></tr>';
       return;
     }
-    
     tb.innerHTML = data.mcp_servers.map(s => `
       <tr>
         <td style="font-weight:600">${esc(s.name)}</td>
-        <td>
-          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${s.connected ? '#55ff55' : '#ff5555'};margin-right:6px"></span>
-          ${s.connected ? 'Online' : 'Offline'}
-        </td>
-        <td><div style="font-size:11px; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis" title="${s.tools.map(t=>t.name).join(', ')}">${s.tools.length} Tools</div></td>
-        <td>
-          ${s.resources.length > 0 ? 
-            s.resources.map(r => `<button class="btn" style="padding:2px 6px; font-size:11px; margin:2px" onclick="readMCPResource('${s.name}', '${r.uri}')">${esc(r.name)}</button>`).join('')
-            : '<span style="font-size:11px;color:var(--muted)">0 Resources</span>'
-          }
-        </td>
+        <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${s.connected ? 'var(--success)' : 'var(--error)'};margin-right:6px"></span>${s.connected ? 'Online' : 'Offline'}</td>
+        <td>${s.tools.length} Tools</td>
+        <td>${s.resources.length > 0 ? s.resources.map(r => `<button class="btn-icon" style="font-size:11px;padding:2px 8px;margin:2px" onclick="readMCPResource('${s.name}','${r.uri}')">${esc(r.name)}</button>`).join('') : '<span style="font-size:11px;color:var(--muted)">0 Resources</span>'}</td>
       </tr>
     `).join('');
   } catch(e) {
@@ -3724,49 +3992,49 @@ async function loadMCPServers() {
 }
 
 async function readMCPResource(server, uri) {
-  const viewer = document.getElementById('mcp-resources-viewer');
-  const title = document.getElementById('mcp-viewer-title');
+  const viewer  = document.getElementById('mcp-resources-viewer');
+  const title   = document.getElementById('mcp-viewer-title');
   const content = document.getElementById('mcp-resource-content');
-  
+  if(!viewer) return;
   viewer.style.display = 'block';
-  title.textContent = `Leyendo: ${uri} (@${server})`;
-  content.innerHTML = '<span class="spinner"></span> Obteniendo recurso...';
-  
+  if(title) title.textContent = `Leyendo: ${uri} (@${server})`;
+  if(content) content.innerHTML = '<span class="spinner"></span> Obteniendo recurso...';
   try {
     const res = await fetch(`/v1/mcp/resource?server=${encodeURIComponent(server)}&uri=${encodeURIComponent(uri)}`);
     const data = await res.json();
-    
+    if(!content) return;
     if(data.error) {
       content.innerHTML = `<span style="color:var(--error)">${esc(data.error)}</span>`;
     } else {
-      // Intentar formatear JSON si lo es
-      let textToShow = data;
-      if(data.contents && data.contents.length > 0 && data.contents[0].text) {
-        textToShow = data.contents[0].text;
-      } else {
-        textToShow = JSON.stringify(data, null, 2);
-      }
+      let textToShow = (data.contents && data.contents.length > 0 && data.contents[0].text) ? data.contents[0].text : JSON.stringify(data, null, 2);
       content.textContent = textToShow;
     }
   } catch(e) {
-    content.innerHTML = `<span style="color:var(--error)">Error de red: ${e.message}</span>`;
+    if(content) content.innerHTML = `<span style="color:var(--error)">Error de red: ${e.message}</span>`;
   }
 }
 
-// Hook into existing intervals or tab switch (override switchTab hook)
-const originalSwitchTab = window.switchTab;
-if (originalSwitchTab) {
+// ── V10.4: switchTab hook (sin colisión) ────────────────────────────────────
+// Nos enganchamos SIN override doble: inspeccionamos el tab dentro del mismo hook.
+// El _switchTabV10hooks se evalúa al final, garantizando que el switchTab original ya está definido.
+(function() {
+  const _orig = window.switchTab;
+  if(typeof _orig !== 'function') return; // switchTab no definido aún — retry deferred
   window.switchTab = function(tab, el) {
-    originalSwitchTab(tab, el);
-    if(tab === 'sessions') {
-      loadSessions(); // Existing
-      loadActiveSessions(); // New V10.4
-    }
-    if(tab === 'mcp') {
-      loadMCPServers(); // New V10.4
-    }
+    _orig(tab, el);
+    if(tab === 'sessions') { loadActiveSessions(); }
+    if(tab === 'mcp')      { loadMCPServers(); }
+    if(tab === 'hitl')     { fetchHITLPending(); }
+    if(tab === 'firecrawl'){ fetchFirecrawlHealth(); }
   };
-}
+})();
+
+// Polling HITL: cada 8 segundos verifica si hay aprobaciones pendientes
+setInterval(fetchHITLPending, 8000);
+// Inicializar Firecrawl health si el panel ya está activo
+document.addEventListener('DOMContentLoaded', () => {
+  fetchHITLPending();
+});
 
 </script>
 </body>

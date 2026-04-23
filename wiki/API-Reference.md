@@ -1,68 +1,292 @@
-# 🔌 Referencia Oficial de API del Sistema de Ecosistema Gravity
+# 🔌 Referencia Completa de API — Gravity AI Bridge V10.4
 
-El puente procesa y levanta sus peticiones bajo HTTP puro local (`127.0.0.1:7860`). Diseñado con candados contra Rate-Limits y limitadores de sesión para estabilidad en entornos con latencia o alto tráfico.
+Todos los endpoints del Bridge. Puerto por defecto: `7860`. Base URL: `http://localhost:7860`.
 
-## 📡 Eje de Control y Telemetría del Entorno
+---
 
-### `GET /v1/status`
-Recopila el estado binario del Puente y lista el mejor proveedor LLM encadenado a la intranet en el momento (Modelos activos, conectividad a red).
-### `GET /v1/hardware`
-Extrae del Profiler información fidedigna de las Tarjetas Gráficas y NPU operativas que tu AI asume. Devuelve VRAM, Cores, Threads de CPU de tu servidor.
-### `GET /v1/cost`
-Devuelve el `session_cost`, `daily_limit` y métricas asociadas al gasto fraccionado e incesante de Tokens IN/OUT operados a la hora.
-### `GET /v1/security`
-Reporta pasivamente la sanidad operativa de todo subproceso (`security_monitor.py`), descartando por Whitelist interna y auditando si los puertos de fondo sufren injección intrusista, protegiendo Windows Server y World Of Warcraft Server.
+## 📡 Sistema y Telemetría
 
-## 🧠 Núcleo de Inteligencia Artificial
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/health` | Health check básico del bridge |
+| GET | `/v1/status` | Estado completo: proveedor activo, backends, latencias |
+| GET | `/v1/models` | Lista de modelos disponibles (OpenAI-compatible) |
+| GET | `/metrics` | Métricas Prometheus |
 
-### `POST /v1/agent/compare`
-Motor del Multi-Agent Orchestrator. 
-- Acepta parámetros de `messages`, `n_models` y `mode: vote/parallel`.
-- Devuelve las percepciones fraccionadas por N inteligencias artificiales concurrentes.
+---
 
-### `GET /v1/rag/status`
-Analizador del Retrieval-Augmented Generation (Memoria vectorizada o asociativa del proyecto). Retorna documentos cargados, chunks particionados y peso vivo (MB) listos para ingestión por el LLM en consultas complejas sobre lore o códigos de servidor WoW.
-### `GET /v1/sessions`
-Lista de estados. Muestra cuantos historiales de conversaciones y "State Locks" tiene el modelo salvaguardado silenciosamente en su base circular interna.
+## 🧠 Chat / Completions (OpenAI-Compatible)
 
-## ⚔️ Game Server (World of Warcraft) y Utilidad Difusiva
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/v1/chat/completions` | Chat con streaming SSE o respuesta completa |
+| POST | `/v1/completions` | Completions (legacy, redirige a chat) |
 
-### `POST /v1/gameserver/start` y `POST /v1/gameserver/stop`
-Maneja directamente los triggers ejecutables compilados del MangosD y RealmD subyacentes. Internamente llama el validador MySQL para anulación antes-del-vuelo e invoca el *AutoBackup Dump* automático del DB Characters resguardado.
+**Parámetros `POST /v1/chat/completions`:**
+```json
+{
+  "model": "gravity-bridge-auto",
+  "messages": [{"role": "user", "content": "Hola"}],
+  "stream": true,
+  "temperature": 0.7,
+  "max_tokens": 2048
+}
+```
 
-### `GET /v1/gameserver/log`
-Retorna bajo Event-Deque la colección en vivo (Ram Buffer, 0 discos HDD/SSD gastados) de todo lo que el motor WoW escupe para visualización rápida anti-crash.
-### `POST /v1/gameserver/register`
-Inyección directa de cuenta con su SRP-6a para servidores MaNGOs, saltando burocracia de consolas In-Game y permitiendo altas HTTP encriptadas.
+---
 
-### `GET /v1/fooocus/status` y `GET /v1/queue`
-Verifican el latir del ecosistema Difusor local en puerto `7861`, y consultan las colas de procesamiento paralelos en imagen. Fooocus ahora hace auto-verificación difusora diferencial (`diff` del archivo físico Output).
-### `GET /v1/queue/stream`
-Flujo puro **SSE Event-Stream Server**. La base para tu FrontEnd. Devuelve métricas `text/event-stream` del progreso asíncrono temporal sin requerir Pooling constante.
+## 🤖 Multi-Agent Orchestrator
 
-## 💻 Automatiza Deploy Remoto (FabricaWeb)
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/v1/agent/compare` | Compara respuestas de N modelos en paralelo |
 
-### `GET /v1/fabricaweb/status` y `POST /v1/fabricaweb/deploy`
-El puente funciona de Pipeline CI/CD interno. Encripta tu WebApp de front-end alojada en `_integrations` tras leer dinámicamente tu framework desde el `package.json` (`/out`, `/dist`) e incrustándolo hacia hostings de netlify mediante tokens puros o repos locales.
+**Parámetros:**
+```json
+{
+  "messages": [{"role": "user", "content": "..."}],
+  "n_models": 3,
+  "mode": "parallel"
+}
+```
+`mode`: `"parallel"` (independientes) | `"vote"` (votación consensuada).
 
-## 🎬 Video Studio V10.3 (CPU-Only)
+---
 
-### `POST /v1/video/create`
-Encola un trabajo de generación de video completo. Flujo: LLM (guión) → Fooocus (imágenes, CPU) → pyttsx3/SAPI (TTS) → ffmpeg (ensamblado clips y concatenación). Parámetros: `topic`, `n_scenes` (4–10), `voice_speed` (ppm).
+## 💾 Session Manager
 
-### `POST /v1/video/cancel`
-Cancela un trabajo **pendiente** por `job_id`. No interrumpe trabajos en ejecución.
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/v1/sessions` | Lista sesiones persistentes guardadas en `_saves/` |
+| GET | `/v1/sessions/active` | Workers activos (subprocesos spawneados) |
+| POST | `/v1/sessions/spawn` | Crea un nuevo worker con rol opcional |
+| POST | `/v1/sessions/kill` | Termina un worker activo |
 
-### `GET /v1/video/status`
-Estado completo de la cola: pendientes, job activo con `progress` (0–100) y `step` en tiempo real, historial de los últimos 20 videos generados con estado y ruta de salida.
+**Spawn Worker:**
+```json
+{
+  "session_id": "dev-1",
+  "role": "auditor"
+}
+```
+`role`: `"auditor"` | `"planner"` | `"coder"` | `"researcher"` | `"executor"` | `""` (default).
 
-### `GET /v1/video/download?file=nombre.mp4`
-Servicio de descarga directa del MP4 generado. Streaming chunk-based (65 KB) para archivos grandes. Validación de path traversal incluida.
+---
 
-## 🛡️ Endpoints de Administración V10.3
+## 🛡️ HITL — Human in the Loop
 
-### `POST /v1/audit/rotate`
-Forza rotación inmediata del audit log activo con archivado por timestamp.
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/v1/hitl/pending` | Lista solicitudes de aprobación en espera |
+| POST | `/v1/hitl/approve` | Aprueba una acción del agente |
+| POST | `/v1/hitl/reject` | Rechaza una acción del agente |
 
-### `POST /v1/rag/toggle`
-Activa/desactiva el contexto RAG en el pipeline de chat en caliente. Estado persistido en `_settings.json`.
+**Approve/Reject:**
+```json
+{"approval_id": "abc123"}
+{"approval_id": "abc123", "reason": "Acción no autorizada en producción"}
+```
+
+**Tools de Alto Riesgo (requieren aprobación):**
+`code_runner`, `shell_exec`, `file_write`, `file_delete`, `deploy`, `git_push`, `git_commit`, `send_email`, `send_request`, `database_write`
+
+---
+
+## 🕷️ Firecrawl / Web Scraper
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/v1/tools/firecrawl/health` | Estado de la API key y modo |
+| POST | `/v1/tools/scrape` | Scraping de URL en Markdown |
+
+**Scrape:**
+```json
+{"url": "https://ejemplo.com/articulo"}
+```
+
+**Respuesta:**
+```json
+{
+  "ok": true,
+  "url": "https://ejemplo.com/articulo",
+  "title": "Título de la página",
+  "content": "# Contenido en Markdown...",
+  "source": "firecrawl"
+}
+```
+`source`: `"firecrawl"` (API premium) | `"fallback_html"` (sin API key).
+
+---
+
+## 🔌 MCP Servers
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/v1/mcp/status` | Estado de adaptadores MCP y sus tools/resources |
+| GET | `/v1/mcp/resource?server=X&uri=Y` | Lee un recurso específico de un servidor MCP |
+
+---
+
+## 📚 RAG (Retrieval-Augmented Generation)
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/v1/rag/status` | Estado del índice RAG (documentos, chunks, tamaño) |
+| POST | `/v1/rag/toggle` | Activa/desactiva inyección RAG en chat |
+
+**Toggle:**
+```json
+{"enabled": true}
+```
+
+---
+
+## 🎨 Image Queue (Fooocus)
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/v1/fooocus/status` | Health check del motor Fooocus (puerto 7861) |
+| GET | `/v1/queue` | Estado completo de la cola de imágenes |
+| GET | `/v1/queue/stream` | SSE stream del progreso del job activo |
+| GET | `/v1/images` | Lista de imágenes generadas |
+| POST | `/v1/queue/add` | Añadir trabajo a la cola |
+| POST | `/v1/generate` | Generación directa via Fooocus |
+
+---
+
+## 🎨 Image Lab (Pollinations.ai)
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/v1/image/health` | Estado de conectividad con Pollinations.ai |
+| GET | `/v1/image/lab/history` | Historial de imágenes generadas |
+| POST | `/v1/image/generate` | Generación via Pollinations.ai |
+
+**Generate:**
+```json
+{
+  "prompt": "A futuristic city at night",
+  "model": "flux",
+  "width": 1024,
+  "height": 1024,
+  "enhance": true,
+  "seed": 42
+}
+```
+
+---
+
+## 🎬 Video Studio (CPU-Only)
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/v1/video/status` | Estado completo de la cola de video |
+| GET | `/v1/video/voices` | Lista de voces SAPI disponibles |
+| GET | `/v1/video/download?file=nombre.mp4` | Descarga un video generado |
+| POST | `/v1/video/create` | Encola un trabajo de video |
+| POST | `/v1/video/cancel` | Cancela un trabajo pendiente |
+
+**Create:**
+```json
+{
+  "topic": "Historia de la Inteligencia Artificial",
+  "n_scenes": 6,
+  "voice_id": "Microsoft Helena Desktop",
+  "voice_speed": 150,
+  "style": "documental",
+  "narration_lang": "es",
+  "transitions": true,
+  "subtitles": true,
+  "resolution": "1024x1024"
+}
+```
+
+---
+
+## ⚔️ Game Server (World of Warcraft MangosD)
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/v1/gameserver/status` | Estado de todos los servidores configurados |
+| GET | `/v1/gameserver/log?server=wow_vanilla&lines=100` | Log en vivo (Ring-Buffer RAM) |
+| GET | `/v1/gameserver/players?server=wow_vanilla` | Lista de jugadores conectados |
+| POST | `/v1/gameserver/start` | Inicia un servidor |
+| POST | `/v1/gameserver/stop` | Detiene un servidor |
+| POST | `/v1/gameserver/restart` | Reinicia un servidor |
+| POST | `/v1/gameserver/command` | Envía comando de consola |
+| POST | `/v1/gameserver/register` | Crea cuenta de jugador (SRP-6a) |
+| POST | `/v1/gameserver/expose` | Expone el servidor a WAN |
+| POST | `/v1/gameserver/backup` | Backup manual de la base de datos |
+| GET | `/registro` | Formulario web de creación de cuenta |
+
+---
+
+## 🚀 Deploy / FabricaWeb
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/v1/deploy/status` | Estado del último pipeline de deploy |
+| GET | `/v1/fabricaweb/status` | Estado del proyecto FabricaWeb activo |
+| POST | `/v1/deploy` | Inicia deploy de un proyecto web |
+| POST | `/v1/fabricaweb/deploy` | Deploy específico de FabricaWeb → Netlify |
+
+---
+
+## 🖥️ Hardware & Sistema
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/v1/hardware` | Perfil completo: GPUs, VRAM, NPU, CPU, RAM |
+| GET | `/v1/cost` | Costos de sesión, diarios, breakdown por proveedor |
+| GET | `/v1/watchdog` | Estado del Engine Watchdog y lock de modelo |
+| POST | `/v1/watchdog/unlock` | Desbloquea el modelo para auto-switch |
+| GET | `/v1/audit` | Historial de peticiones (últimas 100) |
+| POST | `/v1/audit/rotate` | Fuerza rotación del audit log |
+
+---
+
+## 🔐 Seguridad
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| GET | `/v1/security` | Estado del Security Monitor |
+| GET | `/v1/security/geoip` | Tracker de IPs externas con geolocalización |
+| POST | `/v1/security/scan` | Fuerza un escaneo de seguridad inmediato |
+| POST | `/v1/security/kill` | Termina un proceso sospechoso por PID |
+
+---
+
+## 🛠️ Tools
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/v1/tools/run` | Ejecuta código Python/Bash |
+| POST | `/v1/tools/search` | Búsqueda web DuckDuckGo |
+| POST | `/v1/tools/git` | Operaciones Git (status/log/diff/branch) |
+| POST | `/v1/tools/grep` | Búsqueda de patrones en archivos |
+| POST | `/v1/tools/scrape` | Scraping de URL (Firecrawl/fallback) |
+
+---
+
+## ⚙️ Configuración
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/v1/keys` | Guarda una API key (cifrada con DPAPI) |
+| POST | `/v1/ai/start` | Inicia un motor de IA (provider) |
+| POST | `/v1/ai/stop` | Detiene un motor de IA |
+
+---
+
+## 🗂️ Archivos Estáticos
+
+| Ruta | Descripción |
+|---|---|
+| `GET /static/output/<subcarpeta>/<archivo>` | Imágenes de Fooocus |
+| `GET /static/imagelab/<archivo>` | Imágenes de Image Lab |
+
+---
+
+<div align="center">
+  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V10.4 · Referencia API Completa</i></sub>
+</div>
