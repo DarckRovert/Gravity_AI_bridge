@@ -4,6 +4,22 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
+## [V12.0] Omniscient-Tier — Fully Autonomous React Ecosystem · 24/04/2026
+
+**[ESTADO DE PRODUCCIÓN FINAL ALCANZADO]**
+
+### Refactorización React Frontend & Eliminación de Deuda Técnica
+- **Limpieza Definitiva**: Borrado del dashboard legacy V10.0 en HTML puro y `dashboard.py`. Todo ruteado a `frontend/dist`.
+- **Integración React UI/UX**: Se reactivaron y enrutaron los botones muertos en `Firecrawl.tsx`, `MultiAgent.tsx`, `Sessions.tsx`, `MCPServers.tsx` e `ImageQueue.tsx`.
+- **Nuevo Endpoint GET**: `/v1/hardware/stats` agregado como alias en el servidor Bridge para sincronizar en tiempo real el componente `HardwareMonitor.tsx`.
+- **Nuevos Endpoints POST**: Se completó la implementación para el puente React-Python con `/v1/keys`, `/v1/rag/toggle`, `/v1/audit/rotate`, y `/v1/security/scan`.
+
+### Arquitectura de Lanzamiento Consolidada
+- **INICIAR_TODO.bat**: Único script de inicialización recomendado. Múltiples bats fragmentados (Servidor, Vision Pro, Auditor) fueron purgados para estandarizar el despliegue.
+- **gravity.bat Wrapper**: Actualizado para invocar a la versión 12.0 Omniscient-Tier en todos los menús CLI.
+
+---
+
 ## [V10.4] Diamond-Tier — Multi-Session, HITL & Firecrawl · 23/04/2026
 
 **[ASIMILACIÓN ARQUITECTÓNICA: OPENCLAUDE]**

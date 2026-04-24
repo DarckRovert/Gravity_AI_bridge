@@ -1,10 +1,10 @@
 ; ══════════════════════════════════════════════════════════════════════════════
-; GRAVITY AI BRIDGE V10.4 — Inno Setup Script
+; GRAVITY AI BRIDGE V12.0 — Inno Setup Script
 ; Compilar con: Inno Setup Compiler 6.x (https://jrsoftware.org/isinfo.php)
 ; ══════════════════════════════════════════════════════════════════════════════
 
 #define AppName      "Gravity AI Bridge"
-#define AppVersion   "10.4"
+#define AppVersion   "12.0"
 #define AppPublisher "DarckRovert"
 #define AppURL       "https://github.com/DarckRovert/Gravity_AI_bridge"
 #define AppExe       "GravityBridge.exe"
@@ -34,7 +34,7 @@ UninstallDisplayIcon={app}\{#AppExe}
 UninstallDisplayName={#AppName} V{#AppVersion}
 VersionInfoVersion={#AppVersion}.0
 VersionInfoCompany={#AppPublisher}
-VersionInfoDescription={#AppName} — Orquestador de IA Local Diamond-Tier V10.4
+VersionInfoDescription={#AppName} — Orquestador de IA Local Omniscient-Tier V12.0
 VersionInfoCopyright=Copyright (C) 2026 {#AppPublisher}. Strictly Non-Commercial.
 ; Diálogo de bienvenida con imagen personalizada (si existe)
 ; WizardImageFile=..\assets\setup_banner.bmp
@@ -120,8 +120,8 @@ Type: filesandordirs; Name: "{app}\_video_queue.sqlite"
 procedure InitializeWizard;
 begin
   WizardForm.WelcomeLabel2.Caption :=
-    'Este asistente instalará Gravity AI Bridge V10.4 Diamond-Tier en tu computadora.' + #13#10 + #13#10 +
-    'Gravity AI Bridge es un orquestador de IA local Diamond-Tier que permite gestionar' + #13#10 +
+    'Este asistente instalará Gravity AI Bridge V12.0 Omniscient-Tier en tu computadora.' + #13#10 + #13#10 +
+    'Gravity AI Bridge es un orquestador de IA local Omniscient-Tier que permite gestionar' + #13#10 +
     'múltiples modelos de lenguaje (LLMs), pipelines multimedia, Game Servers y agentes' + #13#10 +
     'IA con intercepción HITL — todo desde un único Dashboard web.' + #13#10 + #13#10 +
     'Compatible con: LM Studio, Ollama, Kobold, Jan, OpenAI, Anthropic.' + #13#10 +
