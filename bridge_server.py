@@ -178,6 +178,10 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             "/v1/mcp/resource":          self._serve_mcp_resource,
             "/v1/hitl/pending":          self._serve_hitl_pending,
             "/v1/tools/firecrawl/health":self._serve_firecrawl_health,
+            # ── V11.0 Gravity Brain ──────────────────────────────────────────────
+            "/v1/gravity/context":       self._serve_gravity_context,
+            "/v1/video/list":            self._serve_video_list,
+            "/v1/video/stream":          self._serve_video_stream,
         }
 
         # Rutas con query string (?server=&lines=)
@@ -191,6 +195,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
         else:
             self.send_response(404)
             self.end_headers()
+
 
     # Rutas manejadas de forma nativa por los modulos Mixins incorporados
 

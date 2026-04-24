@@ -904,9 +904,183 @@ class PostRoutesMixin:
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
 
-        if self.path not in ("/v1/chat/completions", "/v1/completions"):
+        if self.path not in ("/v1/chat/completions", "/v1/completions", "/v1/gravity/chat"):
             self.send_response(404)
             self.end_headers()
+            return
+
+        # ── /v1/gravity/chat — Chat con conciencia sistémica completa ─────────
+        if self.path == "/v1/gravity/chat":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                messages_in = data.get("messages", [])
+                stream_mode = data.get("stream", True)
+
+                user_msg = ""
+                for m in reversed(messages_in):
+                    if m.get("role") == "user":
+                        user_msg = m.get("content", "")
+                        break
+
+                # Detectar comandos del sistema
+                from core.gravity_brain import parse_chat_commands, execute_system_command, build_gravity_system_prompt
+                from core import data_guardian
+                from core.reasoning_stripper import ReasoningStripper
+
+                cmd_info = parse_chat_commands(user_msg)
+                if cmd_info:
+                    # Ejecutar el comando del sistema
+                    cmd_result = execute_system_command(cmd_info)
+                    feedback = cmd_info.get("user_feedback", "")
+                    result_text = cmd_result.get("result_text", "Sin resultado")
+                    ok = cmd_result.get("ok", False)
+                    icon = "✓" if ok else "✗"
+
+                    # Construir respuesta con resultado del comando
+                    response_content = (
+                        f"**{icon} {feedback}**\n\n"
+                        f"Acción ejecutada: `{cmd_info.get('api_action', cmd_info.get('command'))}`\n\n"
+                        f"```\n{result_text}\n```"
+                    )
+
+                    if stream_mode:
+                        chat_id = f"chatcmpl-gravity-{uuid.uuid4().hex[:10]}"
+                        self.send_response(200)
+                        self.send_header("Content-Type", "text/event-stream")
+                        self.send_header("Cache-Control", "no-cache")
+                        self._send_cors()
+                        self.end_headers()
+                        chunk = {
+                            "id": chat_id, "object": "chat.completion.chunk", "model": "gravity-brain-v11",
+                            "choices": [{"index": 0, "delta": {"content": response_content}, "finish_reason": None}]
+                        }
+                        self.wfile.write(f"data: {json.dumps(chunk)}\n\n".encode("utf-8"))
+                        final = {
+                            "id": chat_id, "object": "chat.completion.chunk", "model": "gravity-brain-v11",
+                            "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}]
+                        }
+                        self.wfile.write(f"data: {json.dumps(final)}\n\n".encode("utf-8"))
+                        self.wfile.write(b"data: [DONE]\n\n")
+                        self.wfile.flush()
+                    else:
+                        body = json.dumps({
+                            "id": f"chatcmpl-gravity-{uuid.uuid4().hex[:10]}",
+                            "object": "chat.completion",
+                            "model": "gravity-brain-v11",
+                            "choices": [{"index": 0, "message": {"role": "assistant", "content": response_content}, "finish_reason": "stop"}],
+                            "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+                        }).encode("utf-8")
+                        self.send_response(200)
+                        self.send_header("Content-Type", "application/json")
+                        self._send_cors()
+                        self.end_headers()
+                        self.wfile.write(body)
+                    return
+
+                # No es un comando — chat normal con conciencia sistémica inyectada
+                _base_dir_brain = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                kb_data_brain = {}
+                try:
+                    kb_data_brain, _ = data_guardian.load_knowledge(
+                        os.path.join(_base_dir_brain, "_knowledge.json")
+                    )
+                except Exception:
+                    pass
+
+                extra_rules = kb_data_brain.get("persistent_rules", [])
+                system_prompt = build_gravity_system_prompt(extra_rules=extra_rules if extra_rules else None)
+
+                # Insertar system prompt con conciencia sistémica
+                messages_out = [m for m in messages_in if m.get("role") != "system"]
+                messages_out.insert(0, {"role": "system", "content": system_prompt})
+
+                # Inyección RAG si está activa
+                try:
+                    settings_brain = {}
+                    sp = os.path.join(_base_dir_brain, "_settings.json")
+                    with open(sp, "r", encoding="utf-8") as _sf:
+                        settings_brain = json.load(_sf)
+                    if settings_brain.get("rag_enabled", False) and user_msg:
+                        from rag.retriever import RAGRetriever
+                        rag_ctx = RAGRetriever.retrieve_as_context(user_msg[:500], top_k=3)
+                        if rag_ctx:
+                            messages_out.append({"role": "system", "content": rag_ctx})
+                            log.info("[GravityChat] RAG inyectado")
+                except Exception:
+                    pass
+
+                # Obtener proveedor activo
+                from core import provider_manager as _pm
+                best_p, best_m = _pm.get_best()
+                if not best_p:
+                    error_body = json.dumps({"error": "No hay proveedor de IA disponible. Inicia un motor local o configura una API key."}).encode()
+                    self.send_response(503)
+                    self.send_header("Content-Type", "application/json")
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(error_body)
+                    return
+
+                options = {k: data[k] for k in ("temperature", "top_p", "max_tokens") if k in data}
+                stripper = ReasoningStripper()
+                chat_id = f"chatcmpl-gravity-{uuid.uuid4().hex[:10]}"
+
+                if stream_mode:
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/event-stream")
+                    self.send_header("Cache-Control", "no-cache")
+                    self._send_cors()
+                    self.end_headers()
+                    for chunk_text in _pm.stream(messages_out, model=best_m, provider=best_p.name, options=options):
+                        if not chunk_text:
+                            continue
+                        clean = stripper.process_chunk(chunk_text)
+                        if not clean:
+                            continue
+                        chunk = {
+                            "id": chat_id, "object": "chat.completion.chunk", "model": best_m,
+                            "choices": [{"index": 0, "delta": {"content": clean}, "finish_reason": None}]
+                        }
+                        try:
+                            self.wfile.write(f"data: {json.dumps(chunk)}\n\n".encode("utf-8"))
+                            self.wfile.flush()
+                        except Exception:
+                            break
+                    final = {
+                        "id": chat_id, "object": "chat.completion.chunk", "model": best_m,
+                        "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}]
+                    }
+                    try:
+                        self.wfile.write(f"data: {json.dumps(final)}\n\n".encode("utf-8"))
+                        self.wfile.write(b"data: [DONE]\n\n")
+                        self.wfile.flush()
+                    except Exception:
+                        pass
+                else:
+                    raw = _pm.complete(messages_out, model=best_m, provider=best_p.name, options=options)
+                    full = stripper.process_chunk(raw)
+                    body = json.dumps({
+                        "id": chat_id, "object": "chat.completion", "model": best_m,
+                        "choices": [{"index": 0, "message": {"role": "assistant", "content": full}, "finish_reason": "stop"}],
+                    }).encode("utf-8")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(body)
+            except Exception as e:
+                import traceback
+                log.error(f"[GravityChat] Error: {e}", exc_info=True)
+                try:
+                    body = json.dumps({"error": str(e)}).encode("utf-8")
+                    self.send_response(500)
+                    self.send_header("Content-Type", "application/json")
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(body)
+                except Exception:
+                    pass
             return
 
 

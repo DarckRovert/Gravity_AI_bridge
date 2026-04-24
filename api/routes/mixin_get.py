@@ -713,6 +713,153 @@ class GetRoutesMixin:
             self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode())
 
+    # ── Gravity Brain — Contexto sistémico ────────────────────────────────────
+    def _serve_gravity_context(self):
+        """GET /v1/gravity/context — Estado completo del sistema para el Chat Auditor."""
+        try:
+            from core.gravity_brain import build_system_context, SYSTEM_COMMANDS
+            from core import provider_manager, video_pipeline
+            from core.hardware_profiler import get_full_profile
+            from core.cost_tracker import CostTracker
+            import psutil
+
+            scans = provider_manager.scan_all()
+            best_p, best_m = provider_manager.get_best()
+            providers_data = [
+                {
+                    "name": s.name,
+                    "healthy": s.is_healthy,
+                    "models": len(s.models),
+                    "latency_ms": getattr(s, "response_ms", 0),
+                    "category": getattr(s, "category", "local"),
+                }
+                for s in scans
+            ]
+
+            video_data = {}
+            try:
+                video_data = video_pipeline.get_queue_status()
+            except Exception:
+                pass
+
+            hw = {}
+            try:
+                hw = get_full_profile()
+                hw["cpu_percent"] = psutil.cpu_percent(interval=None)
+                hw["ram_percent"] = psutil.virtual_memory().percent
+            except Exception:
+                pass
+
+            cost_data = {}
+            try:
+                from core.cost_tracker import _get_daily_limit
+                over_limit, daily = CostTracker.check_limit()
+                st = CostTracker.get_session_tokens()
+                cost_data = {
+                    "session_cost": CostTracker.get_session_cost(),
+                    "session_tokens": int(st.get("input", 0)) + int(st.get("output", 0)),
+                    "daily_cost": daily,
+                    "daily_limit": _get_daily_limit(),
+                    "over_limit": over_limit,
+                }
+            except Exception:
+                pass
+
+            context_text = build_system_context()
+
+            data = {
+                "active_provider": best_p.name if best_p else None,
+                "active_model": best_m,
+                "providers": providers_data,
+                "video": {
+                    "pending_count": video_data.get("pending_count", 0),
+                    "current_job": video_data.get("current_job"),
+                    "ffmpeg_ok": video_data.get("ffmpeg_ok", False),
+                    "history_count": len(video_data.get("history", [])),
+                    "styles": {k: v["label"] for k, v in __import__("core.video_pipeline", fromlist=["CINEMA_STYLES"]).CINEMA_STYLES.items()},
+                },
+                "hardware": hw,
+                "cost": cost_data,
+                "system_commands": SYSTEM_COMMANDS,
+                "context_text": context_text,
+                "timestamp": __import__("datetime").datetime.utcnow().isoformat() + "Z",
+            }
+            body = json.dumps(data, indent=2, default=str).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_video_list(self):
+        """GET /v1/video/list — Lista los videos generados."""
+        try:
+            BASE_DIR_v = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            videos_dir = os.path.join(BASE_DIR_v, "_videos")
+            videos = []
+            if os.path.isdir(videos_dir):
+                for job_dir in sorted(os.listdir(videos_dir)):
+                    job_path = os.path.join(videos_dir, job_dir)
+                    if os.path.isdir(job_path):
+                        for fname in os.listdir(job_path):
+                            if fname.endswith(".mp4"):
+                                fpath = os.path.join(job_path, fname)
+                                size_mb = os.path.getsize(fpath) / (1024 * 1024)
+                                mtime = time.strftime('%Y-%m-%d %H:%M', time.localtime(os.path.getmtime(fpath)))
+                                videos.append({
+                                    "filename": fname,
+                                    "job_dir": job_dir,
+                                    "path": f"{job_dir}/{fname}",
+                                    "size_mb": round(size_mb, 2),
+                                    "date": mtime,
+                                    "download_url": f"/v1/video/download?file={fname}",
+                                    "stream_url": f"/v1/video/stream?path={job_dir}/{fname}",
+                                })
+            body = json.dumps({"videos": videos, "count": len(videos)}, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_video_stream(self):
+        """GET /v1/video/stream?path=job_X/video.mp4 — Preview de video."""
+        try:
+            from urllib.parse import urlparse, parse_qs
+            qs = parse_qs(urlparse(self.path).query)
+            rel_path = qs.get("path", [None])[0]
+            if not rel_path or ".." in rel_path:
+                self.send_response(400); self.end_headers()
+                self.wfile.write(b'{"error":"path invalido"}'); return
+            BASE_DIR_v = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            video_path = os.path.join(BASE_DIR_v, "_videos", rel_path.replace("/", os.sep))
+            if not os.path.isfile(video_path):
+                self.send_response(404); self.end_headers()
+                self.wfile.write(b'{"error":"video no encontrado"}'); return
+            size = os.path.getsize(video_path)
+            self.send_response(200)
+            self.send_header("Content-Type", "video/mp4")
+            self.send_header("Content-Length", str(size))
+            self.send_header("Accept-Ranges", "bytes")
+            self._send_cors()
+            self.end_headers()
+            with open(video_path, "rb") as f:
+                while True:
+                    chunk = f.read(65536)
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+        except Exception as e:
+            self.send_response(500); self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
 
 
     def _serve_video_download(self):

@@ -7,26 +7,39 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:        #07090e;
-    --surface:   #0d1117;
-    --card:      #131920;
-    --border:    #1e2530;
-    --accent:    #6366f1;
-    --accent2:   #8b5cf6;
-    --accent3:   #06b6d4;
-    --glow:      rgba(99,102,241,0.4);
-    --glow2:     rgba(139,92,246,0.3);
-    --text:      #e2e8f0;
-    --muted:     #64748b;
-    --success:   #10b981;
-    --warning:   #f59e0b;
-    --error:     #ef4444;
-    --user-bg:   #1a2030;
-    --ai-bg:     #0f1320;
-    --glass:     rgba(13,17,23,0.8);
+    --bg:        #02040a;
+    --surface:   rgba(13,17,23,0.7);
+    --card:      rgba(20,25,35,0.6);
+    --border:    rgba(60,70,90,0.4);
+    --accent:    #818cf8;
+    --accent2:   #c084fc;
+    --accent3:   #38bdf8;
+    --glow:      rgba(129,140,248,0.5);
+    --glow2:     rgba(192,132,252,0.4);
+    --text:      #f8fafc;
+    --muted:     #94a3b8;
+    --success:   #34d399;
+    --warning:   #fbbf24;
+    --error:     #f87171;
+    --user-bg:   rgba(129,140,248,0.1);
+    --ai-bg:     rgba(10,15,25,0.8);
+    --glass:     rgba(10,14,20,0.85);
     --hitl-warn: rgba(245,158,11,0.15);
     --hitl-border: rgba(245,158,11,0.4);
   }
+  
+  /* Additional V11 Aesthetics */
+  .panel-header { backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+  .sidebar { backdrop-filter: blur(12px); }
+  .topbar { backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+  .card, .stat-card, .model-card { backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 16px; }
+  .card:hover, .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(129,140,248,0.2); border-color: var(--accent); }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); border:none; box-shadow: 0 4px 15px var(--glow); transition: 0.3s; }
+  .btn-primary:hover { transform: scale(1.05); box-shadow: 0 8px 25px var(--glow2); }
+  .msg-bubble { box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-radius: 18px !important; }
+  .nav-item { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+  .nav-item:hover { transform: translateX(4px); }
+  
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow:hidden}
 
@@ -605,7 +618,7 @@ async function runGrep() {
   <!-- Topbar -->
   <header class="topbar">
     <button class="hamburger" onclick="toggleSidebar()">☰</button>
-    <span class="logo" id="topbar-logo">GRAVITY V10.4</span>
+    <span class="logo" id="topbar-logo">GRAVITY V11 [OMNISCIENT]</span>
     <div id="topbar-breadcrumb" class="breadcrumb" style="margin:0 auto 0 16px">🏠&nbsp;<span id="bc-current">Home</span></div>
     <div class="topbar-stat"><span>⚙️</span><span class="val" id="ts-cpu-val">--</span>%&nbsp;CPU</div>
     <div class="topbar-stat"><span>🧠</span><span class="val" id="ts-ram-val">--</span>%&nbsp;RAM</div>
@@ -761,7 +774,7 @@ async function runGrep() {
         <div class="chat-messages" id="messages">
           <div class="msg ai">
             <div class="msg-bubble">
-              <strong>👋 Bienvenido a Gravity AI Bridge V10.3 [Ecosistema Total]</strong><br><br>
+              <strong>👋 Bienvenido a Gravity AI Bridge V11 [Ecosistema Total]</strong><br><br>
               Sistema de orquestación unificada en línea.<br>
               <strong>Módulos Desplegados:</strong><br><br>
               🏠 <strong>Mission Control</strong> — Panel maestro con TopBar de widgets dinámicos y supervisión global del Hardware y Cost Center.<br>
@@ -1906,7 +1919,7 @@ async function runGrep() {
         <button class="tool-run-btn" onclick="runCode()" id="cr-run-btn">▶ Ejecutar</button>
         <button onclick="clearCodeOutput()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:12px">Limpiar</button>
       </div>
-      <textarea class="tool-editor" id="cr-code" placeholder="# Escribe código Python aquí&#10;print('Gravity OK')" rows="8">print('Gravity AI Bridge V10.3 — Funcionando!')</textarea>
+      <textarea class="tool-editor" id="cr-code" placeholder="# Escribe código Python aquí&#10;print('Gravity OK')" rows="8">print('Gravity AI Bridge V11 — Funcionando!')</textarea>
       <div class="tool-output" id="cr-output"><span class="info">Listo. Presiona ▶ para ejecutar.</span></div>
     </div>
 
@@ -2090,7 +2103,7 @@ async function sendMessage(){
   const bubble=addStreamBubble();
   let accum='';
   try{
-    const resp=await fetch('/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'gravity-bridge-auto',messages:chatHistory,stream:true})});
+    const resp=await fetch('/v1/gravity/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'gravity-brain-v11',messages:chatHistory,stream:true})});
     if(!resp.ok){ bubble.innerHTML=`<span style="color:var(--error)">Error HTTP ${resp.status}</span>`; }
     else{
       const reader=resp.body.getReader(),dec=new TextDecoder();
@@ -3326,7 +3339,7 @@ window.improveIlPrompt = async function() {
   if(!orig) { showToast('Escribe un prompt primero', 'error'); return; }
   btn.disabled = true; btn.textContent = '⏳ Mejorando...';
   try {
-    const resp = await fetch('/v1/chat/completions', {
+    const resp = await fetch('/v1/gravity/chat', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
@@ -4037,6 +4050,56 @@ setInterval(fetchHITLPending, 8000);
 document.addEventListener('DOMContentLoaded', () => {
   fetchHITLPending();
 });
+
+
+// --- V11 Gravity Brain Context Polling ---
+async function fetchGravityContext() {
+  try {
+    const res = await fetch('/v1/gravity/context');
+    if(res.ok) {
+      const ctx = await res.json();
+      
+      // Update Topbar Stats
+      if(document.getElementById('ts-cpu-val')) document.getElementById('ts-cpu-val').innerText = ctx.hardware.cpu_percent || '--';
+      if(document.getElementById('ts-ram-val')) document.getElementById('ts-ram-val').innerText = ctx.hardware.ram_percent || '--';
+      if(document.getElementById('ts-tokens-val')) document.getElementById('ts-tokens-val').innerText = ctx.cost.session_tokens || 0;
+      
+      // Update Sidebar Active Provider
+      if(document.getElementById('sb-model')) document.getElementById('sb-model').innerText = ctx.active_model || 'Auto-Routing';
+      if(document.getElementById('sb-provider')) document.getElementById('sb-provider').innerText = ctx.active_provider ? 'Activo: ' + ctx.active_provider : 'Sin Proveedor';
+      
+      // Update Mission Control (Home)
+      if(document.getElementById('hw-provider')) document.getElementById('hw-provider').innerText = ctx.active_provider || 'Auto';
+      if(document.getElementById('hw-model')) document.getElementById('hw-model').innerText = 'Modelo: ' + (ctx.active_model || 'Detectando...');
+      if(document.getElementById('hw-video-pending')) document.getElementById('hw-video-pending').innerText = ctx.video.pending_count || 0;
+      if(document.getElementById('hw-cost')) document.getElementById('hw-cost').innerText = 'Coste: $' + (ctx.cost.session_cost?.toFixed(4) || '0.0000');
+      if(document.getElementById('hw-daily-cost')) document.getElementById('hw-daily-cost').innerText = '$' + (ctx.cost.daily_cost?.toFixed(2) || '0.00');
+      
+      // Add Context Indicator to topbar if not exists
+      let ctxInd = document.getElementById('ctx-indicator');
+      if(!ctxInd) {
+        const topright = document.querySelector('.top-right');
+        if(topright) {
+          ctxInd = document.createElement('div');
+          ctxInd.id = 'ctx-indicator';
+          ctxInd.className = 'badge-online';
+          ctxInd.style.background = 'rgba(129,140,248,0.15)';
+          ctxInd.style.borderColor = 'rgba(129,140,248,0.4)';
+          ctxInd.style.color = 'var(--accent)';
+          ctxInd.style.marginRight = '8px';
+          ctxInd.innerHTML = '<div class="dot" style="background:var(--accent);box-shadow:0 0 8px var(--accent)"></div>BRAIN SYNC';
+          topright.insertBefore(ctxInd, topright.firstChild);
+        }
+      }
+    }
+  } catch(e) {
+    console.warn("No se pudo obtener context de Gravity Brain", e);
+  }
+}
+
+setInterval(fetchGravityContext, 5000);
+setTimeout(fetchGravityContext, 1000);
+// -----------------------------------------
 
 </script>
 </body>
