@@ -1,6 +1,6 @@
 # Contribuir a Gravity AI Bridge
 
-Gravity AI Bridge es un ecosistema privado **Diamond-Tier** de DarckRovert. Las contribuciones externas son limitadas pero bienvenidas bajo las siguientes condiciones.
+Gravity AI Bridge es un ecosistema privado **Omniscient-Tier** de DarckRovert. Las contribuciones externas son limitadas pero bienvenidas bajo las siguientes condiciones.
 
 ---
 

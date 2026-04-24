@@ -1,5 +1,5 @@
-# Arquitectura — Gravity AI Bridge V11.0
-**Omniscient-Tier Edition** · Última actualización: 2026-04-22
+# Arquitectura — Gravity AI Bridge V12.1
+**Omniscient-Tier Edition** · Última actualización: 2026-04-24
 
 ---
 
@@ -10,12 +10,12 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
 ```
 ┌────────────────────────────────────────────────────────────────────┐
 │                     CLIENTES (cualquier herramienta OpenAI-compat) │
-│         Continue.dev / Aider / Cursor / SPA Web / curl / Python    │
+│         Continue.dev / Aider / Cursor / React SPA / curl / Python  │
 └──────────────────────────────┬─────────────────────────────────────┘
                                │ HTTP POST /v1/chat/completions
                                ▼
 ┌────────────────────────────────────────────────────────────────────┐
-│                    GRAVITY AI BRIDGE V11.0                         │
+│                    GRAVITY AI BRIDGE V12.1                         │
 │                    bridge_server.py (~200 líneas — Orquestador)    │
 │                    ThreadingHTTPServer :7860                        │
 │                                                                    │
@@ -31,7 +31,7 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
 │  └──────────────────────────────────────────────────────────────┘  │
 │                                                                    │
 │  ┌──────────────────────────────────────────────────────────────┐  │
-│  │             core/session_runner.py (V11.0)                   │  │
+│  │             core/session_runner.py (V12.1)                   │  │
 │  │   CapacityWake() + SessionSpawner (Multi-session parallel)   │  │
 │  └──────────────────────────────────────────────────────────────┘  │
 └─────────────────────────┬──────────────────────────────────────────┘
@@ -64,8 +64,8 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
 ```
 F:\Gravity_AI_bridge\
 │
-├── bridge_server.py          ← Orquestador HTTP (~200 líneas, V11.0.0)
-├── dashboard.py              ← Mini-servidor del Dashboard (hot-reload)
+├── bridge_server.py          ← Orquestador HTTP (~200 líneas, V12.1.0)
+├── frontend/                 ← Frontend React/Vite (Reemplaza dashboard.py)
 ├── ask_deepseek.py           ← CLI interactivo del auditor
 ├── gravity_launcher.pyw      ← Launcher silencioso (sin consola)
 ├── gravity_tray.py           ← Icono de bandeja del sistema
@@ -73,7 +73,7 @@ F:\Gravity_AI_bridge\
 ├── INSTALAR.py               ← Asistente de configuración inicial
 ├── health_check.py           ← Health check standalone
 │
-├── api/                      ← Capa de enrutamiento modular (V11.0.0)
+├── api/                      ← Capa de enrutamiento modular (V12.1.0)
 │   ├── state.py              ← Estado global: Rate Limiter + GeoIP Tracker
 │   └── routes/
 │       ├── mixin_get.py      ← 20+ endpoints GET (dashboard, status, métricas)
@@ -122,8 +122,9 @@ F:\Gravity_AI_bridge\
 │   ├── indexer.py            ← Generación de embeddings y chunks
 │   └── retriever.py          ← Búsqueda semántica vectorial
 │
-├── web/
-│   └── dashboard.html        ← SPA — 23 paneles, ~4000 líneas (V11.0)
+├── frontend/
+│   ├── src/components/       ← 25 componentes React SPA interactivos (V12.1)
+│   └── dist/                 ← Build de producción servido por bridge_server.py
 │
 ├── installer/
 │   ├── build_installer.bat   ← Build automatizado (PyInstaller + Inno Setup)
@@ -279,7 +280,7 @@ Aplica via variables de entorno `OLLAMA_KV_CACHE_TYPE` y `OLLAMA_FLASH_ATTENTION
 
 ---
 
-## Dashboard — 23 Paneles V11.0
+## Dashboard — 25 Componentes React V12.1
 
 | # | Panel | Módulo Backend | Endpoints |
 |:---|:---|:---|:---|
@@ -350,7 +351,7 @@ gravity_launcher.pyw  → EXE sin consola que arranca bridge_server + gravity_tr
 | Archivo generado | Descripción |
 |:---|:---|
 | `dist/GravityBridge.exe` | Ejecutable standalone (no requiere Python) |
-| `dist/Gravity_AI_Bridge_V11.0_Setup.exe` | Instalador completo para distribución |
+| `dist/Gravity_AI_Bridge_V12.1_Setup.exe` | Instalador completo para distribución |
 
 ### Características del Instalador
 - Instala en `C:\Program Files\Gravity AI Bridge\`

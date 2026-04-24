@@ -1,4 +1,4 @@
-# Manual de Usuario — Gravity AI Bridge V11.0
+# Manual de Usuario — Gravity AI Bridge V12.1
 **Omniscient-Tier Edition** · [github.com/DarckRovert/Gravity_AI_bridge](https://github.com/DarckRovert/Gravity_AI_bridge) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
 
 ---
@@ -14,7 +14,7 @@ Gravity AI Bridge es un **servidor proxy OpenAI-compatible** que actúa como pun
 ## Instalación
 
 ### Para usuarios finales (sin Python)
-1. Descarga `Gravity_AI_Bridge_V11.0_Setup.exe`
+1. Descarga `Gravity_AI_Bridge_V12.1_Setup.exe`
 2. Ejecuta el instalador → "Siguiente" tres veces → "Instalar"
 3. Marca "Iniciar Gravity AI Bridge ahora" al finalizar
 4. Un icono aparecerá en la bandeja del sistema (esquina inferior derecha)
@@ -28,6 +28,7 @@ cd Gravity_AI_bridge
 
 # 2. Dependencias
 pip install -r requirements.txt
+cd frontend && npm install && npm run build && cd ..
 
 # 3. Configuración inicial interactiva
 python INSTALAR.py
@@ -141,7 +142,7 @@ Los trabajos se procesan en orden FIFO. El panel muestra el estado de cada job: 
 
 ---
 
-### 🎬 Video Studio *(nuevo en V11.0)*
+### 🎬 Video Studio *(Monetization Ready)*
 
 Generación automática de videos documentales en modo **CPU-only** (sin GPU dedicada).
 
@@ -150,7 +151,7 @@ Generación automática de videos documentales en modo **CPU-only** (sin GPU ded
 2. **Fooocus** genera una imagen por escena (CPU ~5 min/imagen)
 3. **Windows SAPI** (pyttsx3) convierte la narración a audio `.wav`
 4. **ffmpeg** ensambla imagen + audio en un clip `.mp4` por escena
-5. **ffmpeg** concatena todos los clips en el video final `.mp4`
+5. **ffmpeg** concatena todos los clips en el video final `.mp4` servido vía streaming.
 
 **Parámetros del formulario:**
 | Campo | Descripción | Ejemplo |
@@ -174,11 +175,9 @@ Generación automática de videos documentales en modo **CPU-only** (sin GPU ded
 
 > Si Fooocus no está corriendo, el pipeline genera imágenes en negro como placeholder y el video se completa igual con audio y narración.
 
-**Descarga del video:**
-Cuando el job termina, aparece el botón **⬇ Descargar** en la tabla de historial. También disponible via API:
-```bash
-curl http://localhost:7860/v1/video/download?file=video_1_topic_20260420.mp4 --output mi_video.mp4
-```
+**Descarga y Reproducción:**
+Cuando el job termina, puedes hacer clic sobre él en la tabla de historial. Un modal cinemático interactivo aparecerá mostrando la previsualización del video.
+Podrás descargar la pista maestra en .mp4 directamente o pre-exportar en resoluciones Shorts/Reels/Facebook.
 
 ---
 

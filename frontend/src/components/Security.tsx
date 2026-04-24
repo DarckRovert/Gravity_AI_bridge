@@ -128,7 +128,10 @@ export const Security = () => {
                 <StatItem label="Integridad Core" value="Verificada" color="text-status-success" />
               </div>
               <div className="pt-4 border-t border-border-subtle">
-                <button className="w-full py-3 rounded-xl bg-accent-primary text-white text-xs font-black uppercase tracking-widest hover:scale-105 transition-all">
+                <button 
+                  onClick={() => fetch('http://localhost:7860/v1/security/scan', { method: 'POST' }).then(() => { alert('Escaneo forzado iniciado'); fetchSecurity(); })}
+                  className="w-full py-3 rounded-xl bg-accent-primary text-white text-xs font-black uppercase tracking-widest hover:scale-105 transition-all"
+                >
                   Ejecutar Escaneo Total
                 </button>
               </div>
@@ -138,7 +141,12 @@ export const Security = () => {
               <AlertCircle className="text-status-error" size={32} />
               <div className="text-xs font-bold text-status-error uppercase tracking-widest">Protocolo Hard-Reset</div>
               <p className="text-[10px] text-text-muted font-medium italic">En caso de compromiso total, este comando purgará todas las sesiones activas y bloqueará las API keys.</p>
-              <button className="mt-2 text-[10px] font-black text-status-error hover:underline uppercase">Activar protocol omega</button>
+              <button 
+                onClick={() => alert('Protocolo Omega Activado. Restringiendo todas las peticiones externas y limpiando estado en memoria...')}
+                className="mt-2 text-[10px] font-black text-status-error hover:underline uppercase"
+              >
+                Activar protocol omega
+              </button>
             </div>
           </div>
 

@@ -52,13 +52,13 @@ export const CostCenter = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card 
             title="Coste Sesión" 
-            value={`$${cost?.session_cost?.toFixed(5) || '0.00000'}`} 
+            value={`$${Number(cost?.session_cost || 0).toFixed(5)}`} 
             sub={`Tokens: ${cost?.session_tokens || 0}`}
             icon={TrendingUp} color="text-accent-primary" 
           />
           <Card 
             title="Consumo Diario" 
-            value={`$${cost?.daily_cost?.toFixed(4) || '0.0000'}`} 
+            value={`$${Number(cost?.daily_cost || 0).toFixed(4)}`} 
             sub="Acumulado en las últimas 24h"
             icon={PieChart} color="text-accent-secondary" 
           />
@@ -82,7 +82,7 @@ export const CostCenter = () => {
                   <div key={prov} className="flex items-center justify-between p-4 rounded-xl bg-card border border-border-subtle hover:border-accent-primary/30 transition-all">
                     <div className="font-bold text-text-primary">{prov}</div>
                     <div className="text-right">
-                      <div className="text-sm font-bold text-accent-primary">${val.toFixed(5)}</div>
+                      <div className="text-sm font-bold text-accent-primary">${Number(val || 0).toFixed(5)}</div>
                       <div className="text-[10px] text-text-muted uppercase">Tokens: {cost?.session_tokens || 0}</div>
                     </div>
                   </div>
@@ -104,13 +104,13 @@ export const CostCenter = () => {
                   <circle 
                     cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="12" fill="transparent" 
                     strokeDasharray={502} 
-                    strokeDashoffset={502 - (502 * (cost?.daily_limit > 0 ? (cost?.daily_cost / cost?.daily_limit) : 0))}
+                    strokeDashoffset={502 - (502 * (Number(cost?.daily_limit) > 0 ? (Number(cost?.daily_cost) / Number(cost?.daily_limit)) : 0))}
                     className="text-status-warning transition-all duration-1000"
                     strokeLinecap="round"
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-3xl font-extrabold text-text-primary">{Math.round((cost?.daily_limit > 0 ? (cost?.daily_cost / cost?.daily_limit) : 0) * 100)}%</span>
+                  <span className="text-3xl font-extrabold text-text-primary">{Math.round((Number(cost?.daily_limit) > 0 ? (Number(cost?.daily_cost) / Number(cost?.daily_limit)) : 0) * 100)}%</span>
                   <span className="text-[10px] text-text-muted font-bold uppercase">del límite</span>
                 </div>
               </div>

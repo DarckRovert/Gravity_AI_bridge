@@ -1,10 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Video, Film, PlayCircle, Clock, CheckCircle2, AlertCircle, Plus, Wand2, RefreshCw } from 'lucide-react';
+import { Video, Film, PlayCircle, Clock, CheckCircle2, AlertCircle, Plus, RefreshCw, X, Share2, Camera, MonitorPlay, Download, Play } from 'lucide-react';
 
 export const VideoStudio = () => {
   const [status, setStatus] = useState<any>(null);
   const [topic, setTopic] = useState('');
+  const [scenes, setScenes] = useState(6);
+  const [voiceSpeed, setVoiceSpeed] = useState(150);
+  const [style, setStyle] = useState('documental');
+  const [lang, setLang] = useState('es');
+  const [transitions, setTransitions] = useState(true);
+  const [resolution, setResolution] = useState('1216x832');
+  const [subtitles, setSubtitles] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<any>(null);
 
   const fetchStatus = async () => {
     try {
@@ -26,7 +34,16 @@ export const VideoStudio = () => {
       await fetch('http://localhost:7860/v1/video/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, n_scenes: 6, style: 'cinematic' })
+        body: JSON.stringify({ 
+          topic, 
+          n_scenes: scenes, 
+          style,
+          voice_speed: voiceSpeed,
+          narration_lang: lang,
+          transitions,
+          resolution,
+          subtitles
+        })
       });
       setTopic('');
       fetchStatus();
@@ -76,13 +93,78 @@ export const VideoStudio = () => {
                   />
                 </div>
                 
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Estilo Visual</label>
+                    <select 
+                      value={style}
+                      onChange={(e) => setStyle(e.target.value)}
+                      className="w-full bg-card border border-border-subtle rounded-xl p-3 text-sm text-text-primary outline-none focus:border-accent-primary"
+                    >
+                      {status?.styles ? Object.entries(status.styles).map(([k, v]: any) => (
+                        <option key={k} value={k}>{v}</option>
+                      )) : <option value="documental">Documental</option>}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Idioma (Narrador)</label>
+                    <select 
+                      value={lang}
+                      onChange={(e) => setLang(e.target.value)}
+                      className="w-full bg-card border border-border-subtle rounded-xl p-3 text-sm text-text-primary outline-none focus:border-accent-primary"
+                    >
+                      <option value="es">Español</option>
+                      <option value="en">English</option>
+                      <option value="pt">Português</option>
+                      <option value="fr">Français</option>
+                      <option value="de">Deutsch</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Escenas ({scenes})</label>
+                    <input 
+                      type="range" min="3" max="15" 
+                      value={scenes}
+                      onChange={(e) => setScenes(+e.target.value)}
+                      className="w-full accent-accent-primary"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Velocidad Voz ({voiceSpeed} WPM)</label>
+                    <input 
+                      type="range" min="100" max="250" step="10"
+                      value={voiceSpeed}
+                      onChange={(e) => setVoiceSpeed(+e.target.value)}
+                      className="w-full accent-accent-primary"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Estilo Visual</label>
-                  <select className="w-full bg-card border border-border-subtle rounded-xl p-3 text-sm text-text-primary outline-none focus:border-accent-primary">
-                    <option>Cinematic Documentary</option>
-                    <option>Epic Sci-Fi</option>
-                    <option>Abstract Art</option>
+                  <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Resolución</label>
+                  <select 
+                    value={resolution}
+                    onChange={(e) => setResolution(e.target.value)}
+                    className="w-full bg-card border border-border-subtle rounded-xl p-2 text-sm text-text-primary outline-none focus:border-accent-primary"
+                  >
+                    <option value="1216x832">16:9 (1216x832)</option>
+                    <option value="832x1216">9:16 (832x1216)</option>
+                    <option value="1024x1024">1:1 (1024x1024)</option>
                   </select>
+                </div>
+
+                <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-card border border-border-subtle">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-text-primary">
+                    <input type="checkbox" checked={subtitles} onChange={(e) => setSubtitles(e.target.checked)} className="accent-accent-primary w-4 h-4" />
+                    Subtítulos
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-text-primary">
+                    <input type="checkbox" checked={transitions} onChange={(e) => setTransitions(e.target.checked)} className="accent-accent-primary w-4 h-4" />
+                    Fade FFMPEG
+                  </label>
                 </div>
               </div>
 
@@ -179,8 +261,13 @@ export const VideoStudio = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <button className="p-2 rounded-lg bg-surface border border-border-subtle text-text-muted hover:text-text-primary transition-all">
-                            <Wand2 size={16} />
+                          <button 
+                            onClick={() => job.status === 'completed' && setSelectedVideo(job)}
+                            className={`p-2 rounded-lg bg-surface border border-border-subtle transition-all
+                              ${job.status === 'completed' ? 'text-accent-primary hover:bg-accent-primary hover:text-white cursor-pointer' : 'text-text-muted opacity-50 cursor-not-allowed'}`}
+                            title="Reproducir y Compartir"
+                          >
+                            <Play size={16} fill="currentColor" />
                           </button>
                         </td>
                       </tr>
@@ -195,6 +282,51 @@ export const VideoStudio = () => {
         </div>
 
       </div>
+
+      {/* Video Player Modal */}
+      {selectedVideo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-surface border border-border-subtle rounded-2xl overflow-hidden max-w-4xl w-full shadow-2xl">
+            <div className="p-4 border-b border-border-subtle flex justify-between items-center bg-card">
+              <h3 className="font-bold text-text-primary">Reproductor Cinematic: #{selectedVideo.id}</h3>
+              <button onClick={() => setSelectedVideo(null)} className="p-2 rounded-lg bg-surface hover:text-status-error transition-colors">
+                <X size={20}/>
+              </button>
+            </div>
+            <div className="p-6 bg-black flex justify-center">
+              <video 
+                controls 
+                autoPlay 
+                src={`http://localhost:7860/v1/video/stream?path=job_${selectedVideo.id}/video_${selectedVideo.id}.mp4`} 
+                className="max-h-[60vh] rounded-lg shadow-[0_0_40px_rgba(0,0,0,0.8)]"
+              />
+            </div>
+            <div className="p-6 bg-card border-t border-border-subtle">
+              <h4 className="text-xs font-black text-text-muted uppercase tracking-widest mb-4">Exportar & Monetizar</h4>
+              <div className="flex flex-wrap gap-4">
+                <button className="flex-1 min-w-[140px] py-3 bg-blue-600/10 text-blue-500 border border-blue-500/30 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white transition-all shadow-lg">
+                  <Share2 size={18}/> Facebook
+                </button>
+                <button className="flex-1 min-w-[140px] py-3 bg-pink-600/10 text-pink-500 border border-pink-500/30 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-pink-600 hover:text-white transition-all shadow-lg">
+                  <Camera size={18}/> Reels
+                </button>
+                <button className="flex-1 min-w-[140px] py-3 bg-red-600/10 text-red-500 border border-red-500/30 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-red-600 hover:text-white transition-all shadow-lg">
+                  <MonitorPlay size={18}/> Shorts
+                </button>
+                <a 
+                  href={`http://localhost:7860/v1/video/stream?path=job_${selectedVideo.id}/video_${selectedVideo.id}.mp4`} 
+                  download
+                  target="_blank" rel="noreferrer"
+                  className="flex-1 min-w-[140px] py-3 bg-surface border border-border-subtle font-bold text-text-primary rounded-xl flex items-center justify-center gap-2 hover:bg-accent-primary hover:border-accent-primary hover:text-white transition-all shadow-lg"
+                >
+                  <Download size={18}/> MP4 Master
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

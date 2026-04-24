@@ -41,7 +41,16 @@ export const Sessions = () => {
 
   const deleteSession = async (id: string) => {
     if (!confirm(`¿Eliminar la sesión ${id} permanentemente?`)) return;
-    alert(`Funcionalidad de borrado en desarrollo para la sesión: ${id}`);
+    try {
+      await fetch('http://localhost:7860/v1/sessions/kill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: id })
+      });
+      fetchData();
+    } catch (e) {
+      alert('Error al matar sesión');
+    }
   };
 
   return (

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Rocket, Server, CheckCircle2, XCircle, RefreshCw, Terminal, Globe } from 'lucide-react';
+import { Rocket, CheckCircle2, XCircle, RefreshCw, Terminal, Globe } from 'lucide-react';
 
 export const DeployManager = () => {
   const [status, setStatus] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [projectPath, setProjectPath] = useState('');
 
   const fetchStatus = async () => {
     try {
@@ -21,7 +22,11 @@ export const DeployManager = () => {
   const runDeploy = async () => {
     setLoading(true);
     try {
-      await fetch('http://localhost:7860/v1/fabricaweb/deploy', { method: 'POST' });
+      await fetch('http://localhost:7860/v1/fabricaweb/deploy', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project_path: projectPath || undefined })
+      });
       alert('Pipeline de Deploy iniciado para FabricaWeb');
     } catch (e) {
       alert('Error al iniciar deploy');
@@ -57,11 +62,15 @@ export const DeployManager = () => {
                 <h3 className="text-2xl font-black text-text-primary">{status?.project_name || 'FabricaWeb Engine'}</h3>
                 <p className="text-sm text-text-muted mt-2 font-medium">Versión activa: {status?.project_version || '1.0.0-stable'}</p>
               </div>
-              <div className="flex gap-4">
-                <div className="px-4 py-2 rounded-xl bg-surface border border-border-subtle flex items-center gap-2 text-xs font-bold text-text-muted">
-                   <Server size={14} /> Path: {status?.fabricaweb_path?.substring(0, 30)}...
-                </div>
-                <div className={`px-4 py-2 rounded-xl border flex items-center gap-2 text-xs font-bold
+              <div className="flex gap-4 w-full">
+                <input 
+                  type="text"
+                  placeholder={status?.fabricaweb_path || "Ruta al Workspace (Ej: C:/Proyectos/MiWeb)"}
+                  value={projectPath}
+                  onChange={(e) => setProjectPath(e.target.value)}
+                  className="flex-1 px-4 py-3 rounded-xl bg-surface border border-border-subtle text-sm text-text-primary outline-none focus:border-accent-primary transition-all"
+                />
+                <div className={`px-4 py-3 rounded-xl border flex items-center gap-2 text-xs font-bold whitespace-nowrap
                   ${status?.fabricaweb_exists ? 'bg-status-success/10 text-status-success border-status-success/20' : 'bg-status-error/10 text-status-error border-status-error/20'}`}>
                    {status?.fabricaweb_exists ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
                    {status?.fabricaweb_exists ? 'WORKSPACE LISTO' : 'WORKSPACE NO ENCONTRADO'}

@@ -102,19 +102,19 @@ export const MissionControl: React.FC = () => {
           />
           <Widget 
             title="Video Studio" 
-            value={ctx?.video.pending_count || '0'} 
+            value={ctx?.video?.pending_count || '0'} 
             sub="Jobs de render en cola" 
             icon={Activity} colorClass="accent-tertiary" 
           />
           <Widget 
             title="Tokens Sesión" 
-            value={(ctx?.cost.session_tokens || 0).toLocaleString()} 
-            sub={`Coste: $${ctx?.cost.session_cost?.toFixed(4) || '0.0000'}`} 
+            value={(ctx?.cost?.session_tokens || 0).toLocaleString()} 
+            sub={`Coste: $${Number(ctx?.cost?.session_cost || 0).toFixed(4)}`} 
             icon={Database} colorClass="accent-secondary" 
           />
           <Widget 
             title="Coste Hoy" 
-            value={`$${ctx?.cost.daily_cost?.toFixed(2) || '0.00'}`} 
+            value={`$${Number(ctx?.cost?.daily_cost || 0).toFixed(2)}`} 
             sub="Límite no superado" 
             icon={DollarSign} colorClass="status-warning" 
           />
@@ -126,7 +126,7 @@ export const MissionControl: React.FC = () => {
           />
           <Widget 
             title="CPU Usage" 
-            value={`${ctx?.hardware.cpu_percent || 0}%`} 
+            value={`${ctx?.hardware?.cpu_percent || 0}%`} 
             sub="Carga de procesamiento global" 
             icon={Cpu} colorClass="accent-primary" 
           />

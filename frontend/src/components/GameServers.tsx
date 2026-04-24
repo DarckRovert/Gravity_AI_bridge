@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Gamepad2, Play, Square, Activity, Users, FileText, ChevronRight } from 'lucide-react';
+import { Gamepad2, Play, Square, Activity, Users, Terminal, Save, Key } from 'lucide-react';
 
 export const GameServers = () => {
   const [servers, setServers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [regUser, setRegUser] = useState('');
+  const [regPass, setRegPass] = useState('');
 
   const fetchStatus = async () => {
     try {
@@ -11,7 +13,7 @@ export const GameServers = () => {
       if (res.ok) {
         const data = await res.json();
         // El backend devuelve { servers: { id: status_obj, ... } }
-        const srvList = Object.entries(data.servers).map(([id, s]) => ({
+        const srvList = Object.entries(data?.servers || {}).map(([id, s]) => ({
           id,
           name: (s as any).display_name,
           online: (s as any).world_alive,
@@ -48,6 +50,48 @@ export const GameServers = () => {
     }
   };
 
+  const handleBackup = async () => {
+    try {
+      const res = await fetch('http://localhost:7860/v1/gameserver/backup', { method: 'POST' });
+      const data = await res.json();
+      alert(data.msg || data.error || 'Backup iniciado');
+    } catch(e) {
+      alert('Error ejecutando backup');
+    }
+  };
+
+  const handleRegister = async () => {
+    if(!regUser || !regPass) return;
+    try {
+      const res = await fetch('http://localhost:7860/v1/gameserver/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ server: 'wow_vanilla', username: regUser, password: regPass })
+      });
+      const data = await res.json();
+      alert(data.note || data.error || 'Proceso finalizado');
+      setRegUser(''); setRegPass('');
+    } catch(e) {
+      alert('Error registrando cuenta');
+    }
+  };
+
+  const handleCommand = async (id: string) => {
+    const cmd = prompt(`Ingresa un comando de consola para ${id}:`);
+    if(!cmd) return;
+    try {
+      const res = await fetch('http://localhost:7860/v1/gameserver/command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ server: id, command: cmd })
+      });
+      const data = await res.json();
+      alert(data.result || data.error || 'Comando enviado');
+    } catch(e) {
+      alert('Error enviando comando');
+    }
+  };
+
   return (
     <div className="h-full overflow-y-auto p-8 scrollbar-hide animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -63,7 +107,10 @@ export const GameServers = () => {
             </div>
           </div>
           <div className="flex gap-2">
-            <button className="px-4 py-2 rounded-xl bg-surface border border-border-subtle text-sm font-bold hover:bg-card transition-all">
+            <button 
+              onClick={() => alert('Información: Configura el archivo realmlist.wtf dentro de tu cliente de World of Warcraft colocando: "set realmlist 127.0.0.1"')}
+              className="px-4 py-2 rounded-xl bg-surface border border-border-subtle text-sm font-bold hover:bg-card transition-all"
+            >
               Configurar Realmlist
             </button>
           </div>
@@ -111,8 +158,12 @@ export const GameServers = () => {
                     <Play size={16} fill="currentColor" /> Iniciar
                   </button>
                 )}
-                <button className="p-3 bg-surface border border-border-subtle rounded-xl text-text-muted hover:text-text-primary transition-all">
-                  <FileText size={20} />
+                <button 
+                  onClick={() => handleCommand(srv.id)}
+                  className="p-3 bg-surface border border-border-subtle rounded-xl text-text-muted hover:text-text-primary transition-all"
+                  title="Enviar comando a consola"
+                >
+                  <Terminal size={20} />
                 </button>
               </div>
 
@@ -123,16 +174,36 @@ export const GameServers = () => {
         {/* Global Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="glass-card p-6 border-accent-secondary/20 bg-accent-secondary/5 rounded-2xl">
-            <h4 className="text-sm font-bold text-text-primary mb-4 flex items-center gap-2"><ChevronRight size={16} className="text-accent-secondary" /> Registro de Cuentas</h4>
-            <p className="text-xs text-text-muted mb-4">El servidor está aceptando nuevos registros locales mediante el endpoint `/registro`.</p>
-            <div className="p-3 rounded-lg bg-black/30 border border-border-subtle font-mono text-[11px] text-accent-secondary">
-              SET REALMLIST 127.0.0.1
+            <h4 className="text-sm font-bold text-text-primary mb-4 flex items-center gap-2"><Key size={16} className="text-accent-secondary" /> Registro de Cuentas</h4>
+            <div className="space-y-3">
+              <input 
+                type="text" placeholder="Usuario" 
+                value={regUser} onChange={e => setRegUser(e.target.value)}
+                className="w-full bg-card border border-border-subtle rounded-lg p-2 text-sm outline-none focus:border-accent-secondary"
+              />
+              <input 
+                type="password" placeholder="Contraseña" 
+                value={regPass} onChange={e => setRegPass(e.target.value)}
+                className="w-full bg-card border border-border-subtle rounded-lg p-2 text-sm outline-none focus:border-accent-secondary"
+              />
+              <button 
+                onClick={handleRegister}
+                disabled={!regUser || !regPass}
+                className="w-full py-2 bg-accent-secondary text-white text-xs font-bold rounded-lg hover:bg-accent-secondary/80 transition-all disabled:opacity-50"
+              >
+                Crear Cuenta Local
+              </button>
             </div>
           </div>
-          <div className="glass-card p-6 border-accent-primary/20 bg-accent-primary/5 rounded-2xl">
-            <h4 className="text-sm font-bold text-text-primary mb-4 flex items-center gap-2"><ChevronRight size={16} className="text-accent-primary" /> Auto-Backup</h4>
-            <p className="text-xs text-text-muted mb-4">Base de datos de personajes sincronizada. Último backup hace 12 minutos.</p>
-            <button className="w-full py-2 bg-accent-primary/10 border border-accent-primary/20 text-accent-primary text-xs font-bold rounded-lg hover:bg-accent-primary hover:text-white transition-all">
+          <div className="glass-card p-6 border-accent-primary/20 bg-accent-primary/5 rounded-2xl flex flex-col justify-between">
+            <div>
+              <h4 className="text-sm font-bold text-text-primary mb-4 flex items-center gap-2"><Save size={16} className="text-accent-primary" /> Auto-Backup</h4>
+              <p className="text-xs text-text-muted mb-4">Base de datos de personajes sincronizada. Puedes forzar un backup manual de la base de datos SQL del servidor en cualquier momento.</p>
+            </div>
+            <button 
+              onClick={handleBackup}
+              className="w-full py-2 bg-accent-primary/10 border border-accent-primary/20 text-accent-primary text-xs font-bold rounded-lg hover:bg-accent-primary hover:text-white transition-all"
+            >
               Realizar Backup Ahora
             </button>
           </div>

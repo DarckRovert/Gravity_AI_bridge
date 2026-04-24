@@ -4,8 +4,8 @@
 
   [![Autor](https://img.shields.io/badge/Author-DarckRovert-818cf8.svg?style=flat-square)](https://github.com/DarckRovert)
   [![Licencia](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
-  [![Arquitectura](https://img.shields.io/badge/Architecture-Diamond--Tier-c69c6d.svg?style=flat-square)]()
-  [![Release](https://img.shields.io/badge/Release-V11.0_Diamond-6366f1.svg?style=flat-square)]()
+  [![Arquitectura](https://img.shields.io/badge/Architecture-Omniscient--Tier-c69c6d.svg?style=flat-square)]()
+  [![Release](https://img.shields.io/badge/Release-V12.1-6366f1.svg?style=flat-square)]()
   [![Twitch](https://img.shields.io/badge/Twitch-DarckRovert-9146ff.svg?style=flat-square&logo=twitch)](https://twitch.tv/darckrovert)
 
   <p align="center">
@@ -27,25 +27,25 @@
 
 En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Studio), motores de difusión (Fooocus), servidores C++ (MangosD/WoW) y pipelines CI/CD desde una sola máquina resulta en colisiones de hardware, puertos huérfanos, OOM en VRAM y latencias de segundos.
 
-**Gravity AI Bridge V11.0** elimina todos estos problemas con Python nativo puro (`http.server.ThreadingHTTPServer`), sin Flask ni FastAPI. Su filosofía:
+**Gravity AI Bridge V12.1** elimina todos estos problemas con Python nativo puro y un frontend React/Vite de alta respuesta. Su filosofía:
 
 - **Zero Dependencias Masivas**: Latencia interna en microsegundos, payload de memoria insignificante.
 - **Conciencia Dinámica del Host**: Auto-diagnóstico de RAM y VRAM, ajuste dinámico de `num_ctx` de Ollama en tiempo real según estrés térmico.
 - **Local-First**: Sin enviar datos a la nube salvo APIs cloud explícitamente configuradas.
-- **Omniscient-Tier Control**: Dashboard SPA unificado con observabilidad total en tiempo real.
+- **Omniscient-Tier Control**: Dashboard SPA (React) unificado con observabilidad total en tiempo real.
 
 ---
 
-## 🏛 Módulos del Ecosistema V11.0
+## 🏛 Módulos del Ecosistema V12.1
 
 ### 🧠 Multi-Agent Orchestrator (`core/multi_agent.py`)
 - Dispara peticiones REST concurrentes a múltiples modelos/APIs en paralelo.
-- **Voting Consensuado**: 3+ modelos votan la respuesta óptima con heurísticas anti-alucinación.
+- **Voting Consensuado / Paralelo / Debate**: 2, 3 o 5 modelos votan la respuesta óptima o debaten un resultado mediante controles de UI nativos.
 - **Reasoning Stripper**: Filtra tokens `<think>` de modelos como DeepSeek-R1 via Regex antes de mostrarlos.
 - **Agent Routing**: Selección dinámica de modelo/proveedor según `--role` (auditor, planner, coder, researcher, executor).
 
-### 🖥️ Dashboard V11.0 SPA (`web/dashboard.html`)
-Panel de control unificado con 20+ paneles en tiempo real:
+### 🖥️ Dashboard V12.1 React SPA (`frontend/dist`)
+Panel de control unificado con 25 componentes orquestados en tiempo real:
 
 | Panel | Función |
 |---|---|
@@ -95,15 +95,15 @@ Panel de control unificado con 20+ paneles en tiempo real:
 - Auto-reconexión, `list_tools`, `list_resources`, `read_resource`.
 - Registro global de adaptadores accesible desde el Dashboard.
 
-### 🎬 Video Studio CPU-Only (`core/video_pipeline.py`)
+### 🎬 Video Studio (Cinematic & Monetization)
 Pipeline de 5 pasos orquestado en daemon:
 1. **LLM (Ollama)** → guión JSON estructurado con N escenas
-2. **Fooocus (CPU)** → imagen cinematic 16:9 por escena
+2. **Fooocus (CPU)** → imagen cinematic 16:9/9:16/1:1 por escena
 3. **Windows SAPI/pyttsx3** → narración TTS en `.wav`
 4. **ffmpeg** → clip `.mp4` por escena (H.264, 24fps)
-5. **ffmpeg concat** → video final descargable vía `GET /v1/video/download`
+5. **ffmpeg concat** → video final servido vía streaming.
 
-Cola SQLite aislada + progreso 0-100% por escena en tiempo real.
+**Reproductor Web Integrado**: Stream de video nativo y panel de exportación a redes (Shorts, Reels, Facebook).
 
 ### 🎨 Image Queue / Fooocus (`core/image_queue.py`)
 - Bypass nativo del WebSocket Gradio con validación real de output.
@@ -150,13 +150,14 @@ Cola SQLite aislada + progreso 0-100% por escena en tiempo real.
 git clone https://github.com/DarckRovert/Gravity_AI_bridge.git
 cd Gravity_AI_bridge
 pip install -r requirements.txt
+cd frontend && npm install && npm run build && cd ..
 python bridge_server.py
 ```
 
 Dashboard disponible en: `http://localhost:7860`
 
 ### Instalación con Installer (Windows)
-Descargar `Gravity_AI_Bridge_V11.0_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
+Descargar `Gravity_AI_Bridge_V12.1_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
 
 ---
 

@@ -5,6 +5,8 @@ export const MultiAgent = () => {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [responses, setResponses] = useState<any[]>([]);
+  const [nModels, setNModels] = useState(3);
+  const [mode, setMode] = useState('parallel');
 
   const runCompare = async () => {
     if (!query.trim()) return;
@@ -14,7 +16,7 @@ export const MultiAgent = () => {
       const res = await fetch('http://localhost:7860/v1/agent/compare', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: query, n_models: 3 })
+        body: JSON.stringify({ prompt: query, n_models: nModels, mode: mode })
       });
       if (res.ok) {
         const data = await res.json();
@@ -57,12 +59,30 @@ export const MultiAgent = () => {
 
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="flex gap-4">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface border border-border-subtle text-xs font-bold text-text-muted">
-                <Bot size={14} /> 3 Agentes Activos
-              </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface border border-border-subtle text-xs font-bold text-text-muted">
-                <ShieldCheck size={14} /> Consenso Activado
-              </div>
+              <label className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface border border-border-subtle text-xs font-bold text-text-muted cursor-pointer hover:border-accent-primary transition-all">
+                <Bot size={14} className="text-accent-primary" />
+                <select 
+                  value={nModels} 
+                  onChange={(e) => setNModels(+e.target.value)}
+                  className="bg-transparent outline-none text-text-primary"
+                >
+                  <option value={2}>2 Agentes</option>
+                  <option value={3}>3 Agentes</option>
+                  <option value={5}>5 Agentes</option>
+                </select>
+              </label>
+              <label className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface border border-border-subtle text-xs font-bold text-text-muted cursor-pointer hover:border-accent-secondary transition-all">
+                <ShieldCheck size={14} className="text-accent-secondary" />
+                <select 
+                  value={mode} 
+                  onChange={(e) => setMode(e.target.value)}
+                  className="bg-transparent outline-none text-text-primary"
+                >
+                  <option value="parallel">Modo: Paralelo</option>
+                  <option value="consensus">Modo: Consenso</option>
+                  <option value="debate">Modo: Debate</option>
+                </select>
+              </label>
             </div>
             <button 
               onClick={runCompare}

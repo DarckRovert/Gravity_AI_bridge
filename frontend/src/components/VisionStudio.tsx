@@ -26,6 +26,8 @@ export const VisionStudio = () => {
   const [model, setModel]         = useState('flux');
   const [aspect, setAspect]       = useState(0);
   const [negPrompt, setNegPrompt] = useState('');
+  const [seed, setSeed]           = useState('');
+  const [enhance, setEnhance]     = useState(true);
   const [loading, setLoading]     = useState(false);
   const [imageUrl, setImageUrl]   = useState<string | null>(null);
   const [error, setError]         = useState<string | null>(null);
@@ -48,7 +50,10 @@ export const VisionStudio = () => {
       const res = await fetch('http://localhost:7860/v1/image/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: prompt.trim(), model, width, height, negative_prompt: negPrompt, enhance: true, provider }),
+        body: JSON.stringify({ 
+          prompt: prompt.trim(), model, width, height, negative_prompt: negPrompt, 
+          enhance: enhance, provider, seed: seed.trim() || undefined
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al generar');
@@ -155,9 +160,27 @@ export const VisionStudio = () => {
                   className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary"
                 >
                   {ASPECT_OPTIONS.map((opt, i) => (
-                    <option key={i} value={i}>{opt.label} ({opt.width}×{opt.height})</option>
+                    <option key={i} value={i}>{opt.label}</option>
                   ))}
                 </select>
+              </div>
+
+              {/* Seed and Enhance */}
+              <div className="space-y-4 pt-4 border-t border-border-subtle">
+                <div>
+                  <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2">Seed (Opcional)</label>
+                  <input 
+                    type="text" 
+                    value={seed}
+                    onChange={(e) => setSeed(e.target.value.replace(/\D/g, ''))}
+                    placeholder="Auto"
+                    className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary transition-all"
+                  />
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-text-primary">
+                  <input type="checkbox" checked={enhance} onChange={(e) => setEnhance(e.target.checked)} className="accent-accent-primary w-4 h-4" />
+                  Auto-Enhance (Mejora LLM)
+                </label>
               </div>
 
               {/* Negative Prompt */}

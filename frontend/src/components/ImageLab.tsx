@@ -8,6 +8,8 @@ export const ImageLab = () => {
   const [height, setHeight] = useState(1024);
   const [provider, setProvider] = useState('Pollinations.ai');
   const [model, setModel] = useState('flux');
+  const [seed, setSeed] = useState('');
+  const [enhance, setEnhance] = useState(true);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -34,7 +36,7 @@ export const ImageLab = () => {
       const res = await fetch('http://localhost:7860/v1/image/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, width, height, model, enhance: true, provider })
+        body: JSON.stringify({ prompt, width, height, model, enhance: enhance, provider, seed: seed.trim() || undefined })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al generar');
@@ -123,7 +125,25 @@ export const ImageLab = () => {
                       <option value={1216}>1216px</option>
                     </select>
                   </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Seed (Opcional)</label>
+                    <input 
+                      type="text" 
+                      value={seed}
+                      onChange={(e) => setSeed(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Auto"
+                      className="w-full bg-surface border border-border-subtle rounded-xl p-3 text-sm text-text-primary outline-none focus:border-accent-primary transition-all"
+                    />
+                  </div>
                 </div>
+
+                <div className="flex gap-4 p-4 rounded-xl bg-surface border border-border-subtle">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-text-primary">
+                    <input type="checkbox" checked={enhance} onChange={(e) => setEnhance(e.target.checked)} className="accent-accent-primary w-4 h-4" />
+                    Auto-Enhance (Mejora LLM)
+                  </label>
+                </div>
+
               </div>
 
               <button

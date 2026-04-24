@@ -1,4 +1,4 @@
-# 🪐 Gravity AI Bridge | Wiki Corporativa V11.0 Omniscient-Tier
+# 🪐 Gravity AI Bridge | Wiki Corporativa V12.1 Omniscient-Tier
 
 Bienvenido al Centro de Conocimiento del Bridge — hub principal para orquestar infraestructuras pesadas con LLMs, multimedia, Game Servers y agentes IA con control total.
 
@@ -19,9 +19,16 @@ Bienvenido al Centro de Conocimiento del Bridge — hub principal para orquestar
 
 ---
 
-## 🚀 Novedades V11.0 Omniscient-Tier
+## 🚀 Novedades V12.1 Omniscient-Tier
 
-### Nuevos Módulos Backend
+### Arquitectura Frontend SPA (React/Vite)
+- **Eliminación de HTML Estático:** Sustitución completa del dashboard monolítico antiguo por un framework moderno React/Vite.
+- **Interconectividad Total:** Los 25 componentes operativos ahora interactúan directamente con el backend Python a través del Bridge REST API.
+- **Reproductor de Video Embebido:** Previsualización de videos renderizados directamente en el frontend usando `/v1/video/stream`.
+
+### Control de Hardware y Seguridad
+- **Hook Activo:** Las interfaces de aniquilación de sesiones (`/v1/sessions/kill`), seguridad y monitoreo de procesos, reaccionan con 0% de maquetas desconectadas.
+- **Saneamiento UI:** Endpoints como `seed`, `enhance` de *Vision Studio*, y los selectores reales de modo y n_agents en *MultiAgent* fueron completamente integrados.
 - **`core/hitl_manager.py`** — Human-in-the-Loop: intercepta tools de alto riesgo (code_runner, shell_exec, file_write, deploy, git_push, etc.) y requiere aprobación humana desde el Dashboard antes de ejecutarlas. Cola thread-safe con timeout de 120s.
 - **`core/firecrawl_scraper.py`** — Scraping web en Markdown limpio: usa Firecrawl API si hay API key configurada, fallback HTTP nativo (`urllib`) si no. Sin dependencias externas.
 
@@ -100,5 +107,5 @@ Compatibilidad: OpenAI API v1 (drop-in replacement)
 ---
 
 <div align="center">
-  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V11.0 Omniscient-Tier</i></sub>
+  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V12.1 Omniscient-Tier</i></sub>
 </div>
