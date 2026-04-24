@@ -58,6 +58,15 @@ agent_routing:
   planner:
     provider: OpenAI
     model: gpt-4o
+  coder:
+    provider: Anthropic
+    model: claude-3-5-sonnet-20241022
+  researcher:
+    provider: OpenAI
+    model: gpt-4o
+  executor:
+    provider: LM Studio
+    model: auto
   default:
     provider: LM Studio
     model: auto

@@ -1,4 +1,4 @@
-# Guía de API — Gravity AI Bridge V10.3
+# Guía de API — Gravity AI Bridge V10.4
 **Diamond-Tier Edition** · Base URL: `http://localhost:7860`
 
 El Bridge expone una API HTTP completamente compatible con el estándar OpenAI, más endpoints propios para gestión del sistema. Cualquier cliente que funcione con OpenAI puede conectarse al Bridge sin modificaciones.
@@ -296,14 +296,30 @@ Lista de sesiones guardadas en `_saves/`.
       "branch": "main",
       "turns": 32,
       "saved_at": "2026-04-17 01:00:00"
-    },
-    {
-      "name": "wow-server-audit",
-      "branch": "rocm-fix",
-      "turns": 14,
-      "saved_at": "2026-04-16 23:30:00"
     }
   ]
+}
+```
+
+---
+
+### `POST /v1/sessions/spawn` *(Nuevo en V10.4)*
+
+Levanta un agente interactivo asíncrono con un rol específico (Auditor, Planner, Coder, etc.) sin bloquear el thread principal.
+
+```bash
+curl -X POST http://localhost:7860/v1/sessions/spawn \
+  -H "Content-Type: application/json" \
+  -d '{"role": "auditor"}'
+```
+
+**Respuesta:**
+```json
+{
+  "ok": true,
+  "role": "auditor",
+  "pid": 20492,
+  "message": "Auditor spawned in detached console"
 }
 ```
 
@@ -517,6 +533,43 @@ curl -X POST http://localhost:7860/v1/rag/toggle -H "Content-Type: application/j
 
 ---
 
+### Endpoints de Firecrawl Scraper *(Nuevo en V10.4)*
+
+Scrapeo web y extracción a Markdown:
+
+```bash
+# Scrapear URL
+curl -X POST http://localhost:7860/v1/tools/scrape \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com", "mode": "markdown"}'
+
+# Health check Firecrawl API (GET)
+curl http://localhost:7860/v1/tools/firecrawl/health
+```
+
+---
+
+### Endpoints HITL (Human-in-the-Loop) *(Nuevo en V10.4)*
+
+Mecanismo de seguridad para aprobación manual de comandos de riesgo:
+
+```bash
+# Ver solicitudes pendientes (GET)
+curl http://localhost:7860/v1/hitl/pending
+
+# Aprobar solicitud (POST)
+curl -X POST http://localhost:7860/v1/hitl/approve \
+  -H "Content-Type: application/json" \
+  -d '{"request_id": "req-1234abcd"}'
+
+# Rechazar solicitud (POST)
+curl -X POST http://localhost:7860/v1/hitl/reject \
+  -H "Content-Type: application/json" \
+  -d '{"request_id": "req-1234abcd", "reason": "No autorizado por el operador"}'
+```
+
+---
+
 ### `POST /v1/deploy`
 
 Inicia el pipeline `npm run build` → `netlify deploy --prod`.
@@ -550,7 +603,7 @@ Añade un trabajo de generación de imagen a la cola de Fooocus.
 
 ---
 
-## Video Studio V10.3
+## Video Studio V10.4
 
 ### `POST /v1/video/create`
 

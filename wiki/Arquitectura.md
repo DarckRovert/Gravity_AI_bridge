@@ -15,7 +15,7 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
                                │ HTTP POST /v1/chat/completions
                                ▼
 ┌────────────────────────────────────────────────────────────────────┐
-│                    GRAVITY AI BRIDGE V10.3                         │
+│                    GRAVITY AI BRIDGE V10.4                         │
 │                    bridge_server.py (~200 líneas — Orquestador)    │
 │                    ThreadingHTTPServer :7860                        │
 │                                                                    │
@@ -123,7 +123,7 @@ F:\Gravity_AI_bridge\
 │   └── retriever.py          ← Búsqueda semántica vectorial
 │
 ├── web/
-│   └── dashboard.html        ← SPA — 17 paneles, ~1700 líneas
+│   └── dashboard.html        ← SPA — 23 paneles, ~4000 líneas (V10.4)
 │
 ├── installer/
 │   ├── build_installer.bat   ← Build automatizado (PyInstaller + Inno Setup)
@@ -275,27 +275,33 @@ Aplica via variables de entorno `OLLAMA_KV_CACHE_TYPE` y `OLLAMA_FLASH_ATTENTION
 
 ---
 
-## Dashboard — 17 Paneles
+## Dashboard — 23 Paneles V10.4
 
 | # | Panel | Módulo Backend | Endpoints |
 |:---|:---|:---|:---|
 | 1 | 💬 Chat Auditor | provider_manager | POST /v1/chat/completions |
-| 2 | 🎨 Vision Studio | fooocus_client | GET /v1/fooocus/status |
-| 3 | 🖼️ Image Queue | image_queue | GET /v1/queue, POST /v1/queue/add |
-| 4 | 🚀 Deploy | deploy_manager | GET /v1/deploy/status, POST /v1/deploy |
-| 5 | ⚔️ Game Servers | game_server_manager | GET /v1/gameserver/status + 6 POST |
-| 6 | 🤖 Multi-Agent | multi_agent | POST /v1/agent/compare |
-| 7 | 🖥️ Hardware | hardware_profiler | GET /v1/hardware |
-| 8 | 💰 Cost Center | cost_tracker | GET /v1/cost |
-| 9 | ⚡ Watchdog | engine_watchdog | GET /v1/watchdog, POST /v1/watchdog/unlock |
-| 10 | 💾 Sessions | session_manager | GET /v1/sessions |
-| 11 | 📚 RAG | rag/retriever | GET /v1/rag/status |
-| 12 | 🔌 MCP Servers | mcp_adapter | Configuración local (config.yaml) |
-| 13 | 🛠️ Tools | tools/* | Uso desde CLI / uso interno |
-| 14 | 📡 System Status | metrics + provider_manager | GET /v1/status, GET /metrics |
-| 15 | 🛡️ Security | security_monitor | GET /v1/security, POST /v1/security/scan |
-| 16 | 📋 Audit Log | audit_logger | GET /v1/audit |
-| 17 | ⚙️ Configuración | key_manager + ide_integrator | POST /v1/keys |
+| 2 | 🏠 Mission Control | metrics + all | GET /v1/status, GET /v1/hardware |
+| 3 | 🎨 Vision Studio | fooocus_client | GET /v1/fooocus/status, POST /v1/generate |
+| 4 | 🖼️ Image Queue | image_queue | GET /v1/queue, POST /v1/queue/add |
+| 5 | 🎥 Video Studio | video_pipeline | GET /v1/video/status, POST /v1/video/create |
+| 6 | 🎨 Image Lab | image_lab | POST /v1/generate (modo lab) |
+| 7 | 🎦 Largometraje | video_pipeline | POST /v1/video/create (100 escenas) |
+| 8 | 🚀 Deploy | deploy_manager | GET /v1/deploy/status, POST /v1/deploy |
+| 9 | ⚔️ Game Servers | game_server_manager | GET /v1/gameserver/status + 6 POST |
+| 10 | 🤖 Multi-Agent | multi_agent | POST /v1/agent/compare |
+| 11 | 🖥️ Hardware | hardware_profiler | GET /v1/hardware |
+| 12 | 💰 Cost Center | cost_tracker | GET /v1/cost |
+| 13 | ⚡ Watchdog | engine_watchdog | GET /v1/watchdog, POST /v1/watchdog/unlock |
+| 14 | 💾 Sessions | session_manager + session_runner | GET /v1/sessions, POST /v1/sessions/spawn |
+| 15 | 📚 RAG | rag/retriever | GET /v1/rag/status, POST /v1/rag/toggle |
+| 16 | 🔌 MCP Servers | mcp_adapter | GET /v1/mcp/status, GET /v1/mcp/resource |
+| 17 | 🛠️ Tools | tools/* | POST /v1/tools/run, /search, /git, /grep |
+| 18 | ⚡ Tools Pro | tools/* | POST /v1/tools/run, /search, /git, /grep |
+| 19 | 🕷️ Firecrawl | firecrawl_scraper | POST /v1/tools/scrape, GET /v1/tools/firecrawl/health |
+| 20 | 🛡️ HITL Approval | hitl_manager | GET /v1/hitl/pending, POST /v1/hitl/approve, /reject |
+| 21 | 📡 System Status | metrics + provider_manager | GET /v1/status, GET /metrics |
+| 22 | 📄 Audit Log | audit_logger | GET /v1/audit, POST /v1/audit/rotate |
+| 23 | ⚙️ Configuración | key_manager + ide_integrator | POST /v1/keys, GET /v1/security |
 
 ---
 
@@ -331,7 +337,7 @@ make_icon.py          → genera assets/gravity_icon.ico (multi-res: 256..16px)
       ↓
 PyInstaller           → empaqueta Python + todas las dependencias → GravityBridge.exe
       ↓
-Inno Setup 6          → crea Gravity_AI_Bridge_V10.1_Setup.exe
+Inno Setup 6          → crea Gravity_AI_Bridge_V10.4_Setup.exe
       ↓
 gravity_launcher.pyw  → EXE sin consola que arranca bridge_server + gravity_tray
 ```
@@ -340,7 +346,7 @@ gravity_launcher.pyw  → EXE sin consola que arranca bridge_server + gravity_tr
 | Archivo generado | Descripción |
 |:---|:---|
 | `dist/GravityBridge.exe` | Ejecutable standalone (no requiere Python) |
-| `dist/Gravity_AI_Bridge_V10.1_Setup.exe` | Instalador completo para distribución |
+| `dist/Gravity_AI_Bridge_V10.4_Setup.exe` | Instalador completo para distribución |
 
 ### Características del Instalador
 - Instala en `C:\Program Files\Gravity AI Bridge\`

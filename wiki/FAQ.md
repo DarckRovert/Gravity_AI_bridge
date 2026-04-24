@@ -1,4 +1,4 @@
-# FAQ — Gravity AI Bridge V10.3
+# FAQ — Gravity AI Bridge V10.4
 **Diamond-Tier Edition** · [Reportar un bug](https://github.com/DarckRovert/Gravity_AI_bridge/issues) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
 
 ---
@@ -223,7 +223,7 @@ python bridge_server.py
 ```
 
 **Instalador (.exe):**
-Descarga y ejecuta el nuevo `Gravity_AI_Bridge_VXX.X_Setup.exe`. El instalador preserva tu `config.yaml` y `_knowledge.json`.
+Descarga y ejecuta el nuevo `Gravity_AI_Bridge_V10.4_Setup.exe`. El instalador preserva tu `config.yaml` y `_knowledge.json`.
 
 ---
 
@@ -254,7 +254,30 @@ echo {"providers":{}, "daily":{}, "total":{}} > _cost_log.json
 
 ---
 
-## Video Studio V10.3
+## HITL y Seguridad (V10.4)
+
+### ¿Qué es el Human-in-the-Loop (HITL)?
+Es un sistema de seguridad de intercepción. Cuando el agente autónomo intenta ejecutar herramientas de alto riesgo (ej. `shell_exec`, `deploy`, `file_write`), el Bridge pausa la ejecución y solicita aprobación humana desde el Dashboard.
+
+### ¿Puedo desactivar HITL?
+Por seguridad, el HITL está activado permanentemente en el `bridge_server.py`. Si necesitas ejecución 100% autónoma, debes modificar `hitl_manager.py` bajo tu propio riesgo.
+
+---
+
+## Firecrawl Scraper (V10.4)
+
+### ¿Por qué Firecrawl falla con "API key faltante"?
+Para scrapeos dinámicos (páginas con JavaScript pesado), requieres una API key de [firecrawl.dev](https://firecrawl.dev). Añádela a tu `config.yaml`:
+```yaml
+firecrawl_api_key: "fc-tu-api-key-aqui"
+```
+
+### ¿Firecrawl funciona sin API key?
+Sí, en modo fallback nativo. Usará `urllib` para scrapear HTML estático. Si la página requiere renderizado de JavaScript, la extracción de contenido será incompleta.
+
+---
+
+## Video Studio V10.4
 
 ### ¿Cuánto tarda en generarse un video?
 Depende del hardware y el número de escenas. En el **Ryzen 7 8700G** (CPU puro, sin GPU dedicada):

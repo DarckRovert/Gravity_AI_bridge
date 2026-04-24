@@ -1,11 +1,11 @@
 @echo off
-title Gravity AI Bridge V10.1 -- Build Comercial
+title Gravity AI Bridge V10.4 -- Build Comercial
 color 0B
 cd /d "F:\Gravity_AI_bridge"
 
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|        GRAVITY AI BRIDGE V10.1 -- BUILD COMERCIAL                       ^|
+echo  ^|        GRAVITY AI BRIDGE V10.4 -- BUILD COMERCIAL                       ^|
 echo  ^|        PyInstaller + Inno Setup                                          ^|
 echo  +--------------------------------------------------------------------------+
 echo.
@@ -134,7 +134,7 @@ echo  [OK] Inno Setup encontrado en %ISCC%
 echo.
 
 REM ── PASO 5: Crear instalador .exe ─────────────────────────────────────────────
-echo  [5/5] Generando instalador Gravity_AI_Bridge_V10.1_Setup.exe...
+echo  [5/5] Generando instalador Gravity_AI_Bridge_V10.4_Setup.exe...
 %ISCC% "installer\gravity_setup.iss"
 
 if %errorlevel% neq 0 (
@@ -148,7 +148,7 @@ echo  +-------------------------------------------------------------------------
 echo  ^|   BUILD COMPLETADO                                                       ^|
 echo  ^|                                                                          ^|
 echo  ^|   Ejecutable:   dist\GravityBridge.exe                                  ^|
-echo  ^|   Instalador:   dist\Gravity_AI_Bridge_V10.1_Setup.exe                  ^|
+echo  ^|   Instalador:   dist\Gravity_AI_Bridge_V10.4_Setup.exe                  ^|
 echo  ^|                                                                          ^|
 echo  ^|   El instalador puede distribuirse a cualquier usuario Windows 10/11.   ^|
 echo  ^|   No requiere Python instalado en el equipo destino.                    ^|

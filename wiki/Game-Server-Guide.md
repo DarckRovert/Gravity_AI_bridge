@@ -1,4 +1,4 @@
-# Game Server Manager — Gravity AI Bridge V10.1 ⚔️
+# Game Server Manager — Gravity AI Bridge V10.4 ⚔️
 
 El módulo **Game Server Manager** (`core/game_server_manager.py`) permite que Gravity AI controle totalmente servidores de juegos ejecutados en la misma máquina física, ofreciendo una capa de gestión profesional similar a un orquestador de contenedores pero nativo para Windows.
 
@@ -70,12 +70,14 @@ Navegando a la pestaña **Game Servers** en `http://localhost:7860`:
 
 ### Funciones Disponibles:
 1. **Controles de Proceso:** Iniciar, Detener y Reiniciar con feedback instantáneo mediante avisos visuales (Toasts).
-2. **Log de MaNGOS:** Consulta en tiempo real las últimas 150 líneas de log del worldserver.
-3. **Jugadores Online:** Tabla dinámica que lee directamente de la base de datos MySQL (Nombre, Nivel, Raza, Clase, Zona).
+2. **Exponer a Internet (WAN):** Edita automáticamente las configuraciones de MaNGOS (`mangosd.conf` y `realmd.conf`) con tu IP Pública o dominio DDNS.
+3. **Registro de Cuentas:** Crea cuentas de jugador directamente desde el Dashboard (usa el comando SOAP `.account create`).
+4. **Comandos de Administrador:** Consola para inyectar comandos SOAP directamente (ej: `.server info`).
+5. **Jugadores Online:** Tabla dinámica que lee directamente de la base de datos MySQL (Nombre, Nivel, Raza, Clase, Zona).
 
 ---
 ## 🚀 Extensibilidad
 Este módulo es agnóstico al motor. Aunque está optimizado para MaNGOS, puede adaptarse a cualquier proceso de juego (Minecraft, Terraria, CS2) configurando los ejecutables y archivos de log correspondientes en `config.yaml`.
 
 ---
-*Manual Técnico del Game Server Manager — V10.1.*
+*Manual Técnico del Game Server Manager — V10.4.*

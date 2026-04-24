@@ -1,11 +1,11 @@
-# Manual de Usuario — Gravity AI Bridge V10.3
+# Manual de Usuario — Gravity AI Bridge V10.4
 **Diamond-Tier Edition** · [github.com/DarckRovert/Gravity_AI_bridge](https://github.com/DarckRovert/Gravity_AI_bridge) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
 
 ---
 
 ## ¿Qué es Gravity AI Bridge?
 
-Gravity AI Bridge es un **servidor proxy OpenAI-compatible** que actúa como punto de entrada único para todos tus modelos de IA, tanto locales como en la nube. En lugar de configurar cada herramienta (VS Code, Aider, Cursor) para conectarse a un modelo diferente, las apuntas todas a `http://localhost:7860/v1` y Gravity hace el resto: elige automáticamente el mejor modelo disponible, monitorea el hardware, registra costes y expone todo mediante un Dashboard web de 17 paneles.
+Gravity AI Bridge es un **servidor proxy OpenAI-compatible** que actúa como punto de entrada único para todos tus modelos de IA, tanto locales como en la nube. En lugar de configurar cada herramienta (VS Code, Aider, Cursor) para conectarse a un modelo diferente, las apuntas todas a `http://localhost:7860/v1` y Gravity hace el resto: elige automáticamente el mejor modelo disponible, monitorea el hardware, registra costes y expone todo mediante un Dashboard web de 23 paneles.
 
 **No requiere GPU dedicada.** Funciona con CPU, iGPU AMD/Intel y cualquier GPU NVIDIA/AMD con VRAM suficiente para correr un modelo cuantizado.
 
@@ -14,7 +14,7 @@ Gravity AI Bridge es un **servidor proxy OpenAI-compatible** que actúa como pun
 ## Instalación
 
 ### Para usuarios finales (sin Python)
-1. Descarga `Gravity_AI_Bridge_V10.1_Setup.exe`
+1. Descarga `Gravity_AI_Bridge_V10.4_Setup.exe`
 2. Ejecuta el instalador → "Siguiente" tres veces → "Instalar"
 3. Marca "Iniciar Gravity AI Bridge ahora" al finalizar
 4. Un icono aparecerá en la bandeja del sistema (esquina inferior derecha)
@@ -141,7 +141,7 @@ Los trabajos se procesan en orden FIFO. El panel muestra el estado de cada job: 
 
 ---
 
-### 🎬 Video Studio *(nuevo en V10.3)*
+### 🎬 Video Studio *(nuevo en V10.4)*
 
 Generación automática de videos documentales en modo **CPU-only** (sin GPU dedicada).
 
@@ -433,18 +433,33 @@ El gráfico se actualiza automáticamente cada 10 segundos.
 
 ---
 
-### 🛡️ Security
+### 🛡️ Security & HITL Approval
 
-Resultado del último escaneo Zero-Trust con:
+Resultado del último escaneo Zero-Trust y aprobación manual de comandos de riesgo (Human-in-the-Loop).
+
+**Funciones:**
 - Intentos de acceso rechazados
 - IPs bloqueadas por rate limiting abusivo
 - Estado del firewall y configuración de seguridad
+- Aprobación/Rechazo de tareas de alto riesgo de los agentes (ej: borrado de archivos, ejecución de scripts).
 
 **Forzar escaneo inmediato:**
 Click en "🔍 Escanear Ahora". También disponible via:
 ```bash
 curl -X POST http://localhost:7860/v1/security/scan
 ```
+
+---
+
+### 🕷️ Firecrawl Scraper
+
+Panel dedicado a la recolección inteligente de información web estructurada en formato Markdown.
+
+**Cómo usarlo:**
+1. Escribe la URL objetivo
+2. Selecciona Modo de Extracción: Default o Markdown
+3. El Bridge intentará usar la API de Firecrawl (si está configurada) o un fallback nativo veloz (`urllib`)
+4. Los resultados están listos para ser ingeridos por RAG o pasados directamente al contexto del LLM.
 
 ---
 
