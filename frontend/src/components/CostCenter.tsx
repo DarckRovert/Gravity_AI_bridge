@@ -53,7 +53,7 @@ export const CostCenter = () => {
           <Card 
             title="Coste Sesión" 
             value={`$${cost?.session_cost?.toFixed(5) || '0.00000'}`} 
-            sub={`Tokens: ${cost?.session_tokens?.input + cost?.session_tokens?.output || 0}`}
+            sub={`Tokens: ${cost?.session_tokens || 0}`}
             icon={TrendingUp} color="text-accent-primary" 
           />
           <Card 
@@ -83,7 +83,7 @@ export const CostCenter = () => {
                     <div className="font-bold text-text-primary">{prov}</div>
                     <div className="text-right">
                       <div className="text-sm font-bold text-accent-primary">${val.toFixed(5)}</div>
-                      <div className="text-[10px] text-text-muted uppercase">Tokens: {cost.session_tokens?.input || 0}i / {cost.session_tokens?.output || 0}o</div>
+                      <div className="text-[10px] text-text-muted uppercase">Tokens: {cost?.session_tokens || 0}</div>
                     </div>
                   </div>
                 ))
@@ -104,13 +104,13 @@ export const CostCenter = () => {
                   <circle 
                     cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="12" fill="transparent" 
                     strokeDasharray={502} 
-                    strokeDashoffset={502 - (502 * (cost?.daily_cost / cost?.daily_limit || 0))}
+                    strokeDashoffset={502 - (502 * (cost?.daily_limit > 0 ? (cost?.daily_cost / cost?.daily_limit) : 0))}
                     className="text-status-warning transition-all duration-1000"
                     strokeLinecap="round"
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-3xl font-extrabold text-text-primary">{Math.round((cost?.daily_cost / cost?.daily_limit || 0) * 100)}%</span>
+                  <span className="text-3xl font-extrabold text-text-primary">{Math.round((cost?.daily_limit > 0 ? (cost?.daily_cost / cost?.daily_limit) : 0) * 100)}%</span>
                   <span className="text-[10px] text-text-muted font-bold uppercase">del límite</span>
                 </div>
               </div>

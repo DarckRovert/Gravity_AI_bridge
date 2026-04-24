@@ -137,15 +137,41 @@ export const MissionControl: React.FC = () => {
           <div>
             <h2 className="text-sm font-bold text-text-muted uppercase tracking-wider mb-4">Estado de Servicios</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {['Bridge Server', 'Pollinations.ai', 'Fooocus', 'RAG Index', 'Game Server'].map((srv, i) => (
-                <div key={srv} className="glass-card p-4 flex items-center gap-4">
-                  <div className={`w-3 h-3 rounded-full ${i===0 ? 'bg-status-success shadow-[0_0_8px_var(--color-status-success)] animate-blink' : 'bg-border-subtle'}`}></div>
-                  <div>
-                    <div className="text-sm font-bold text-text-primary">{srv}</div>
-                    <div className="text-[10px] text-text-muted uppercase">{i===0 ? 'Puerto 5000' : 'Verificando...'}</div>
+              {[
+                { id: 'bridge', name: 'Bridge Server', staticStatus: 'Puerto 7860', isOk: true },
+                { id: 'Pollinations.ai', name: 'Pollinations.ai', isProvider: true },
+                { id: 'Fooocus', name: 'Fooocus Motor', isProvider: true, canStop: true },
+                { id: 'LM Studio', name: 'LM Studio', isProvider: true, canStop: true },
+                { id: 'Ollama', name: 'Ollama', isProvider: true, canStop: true }
+              ].map((srv) => {
+                const prov = srv.isProvider ? ctx?.providers?.find((p:any) => p.name.toLowerCase().includes(srv.id.toLowerCase())) : null;
+                const isHealthy = srv.staticStatus ? srv.isOk : prov?.healthy;
+                const statusText = srv.staticStatus || (isHealthy ? 'En Línea' : (ctx ? 'Offline' : 'Verificando...'));
+                
+                return (
+                  <div key={srv.id} className="glass-card p-4 flex items-center justify-between gap-4 group">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-3 h-3 rounded-full ${isHealthy ? 'bg-status-success shadow-[0_0_8px_var(--color-status-success)] animate-blink' : 'bg-status-error/50'}`}></div>
+                      <div>
+                        <div className="text-sm font-bold text-text-primary">{srv.name}</div>
+                        <div className="text-[10px] text-text-muted uppercase">{statusText} {prov?.latency_ms ? `(${prov.latency_ms}ms)` : ''}</div>
+                      </div>
+                    </div>
+                    {srv.canStop && isHealthy && (
+                      <button 
+                        onClick={() => {
+                           if(confirm(`¿Detener ${srv.name}?`)) {
+                             fetch('http://localhost:7860/v1/ai/stop', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({provider: srv.id}) }).then(() => fetchCtx());
+                           }
+                        }}
+                        className="px-2 py-1 text-[10px] uppercase font-black tracking-widest text-status-error bg-status-error/10 hover:bg-status-error hover:text-white rounded transition-all opacity-0 group-hover:opacity-100"
+                      >
+                        Kill
+                      </button>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

@@ -27,6 +27,7 @@ export interface GravityContext {
   cost: CostStats;
   video: VideoStats;
   security_alerts: number;
+  providers?: any[];
 }
 
 export type PanelId = 
