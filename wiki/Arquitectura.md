@@ -64,7 +64,7 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
 ```
 F:\Gravity_AI_bridge\
 │
-├── bridge_server.py          ← Orquestador HTTP (~200 líneas, V10.1.1)
+├── bridge_server.py          ← Orquestador HTTP (~200 líneas, V11.0.0)
 ├── dashboard.py              ← Mini-servidor del Dashboard (hot-reload)
 ├── ask_deepseek.py           ← CLI interactivo del auditor
 ├── gravity_launcher.pyw      ← Launcher silencioso (sin consola)
@@ -73,7 +73,7 @@ F:\Gravity_AI_bridge\
 ├── INSTALAR.py               ← Asistente de configuración inicial
 ├── health_check.py           ← Health check standalone
 │
-├── api/                      ← Capa de enrutamiento modular (V10.1.1)
+├── api/                      ← Capa de enrutamiento modular (V11.0.0)
 │   ├── state.py              ← Estado global: Rate Limiter + GeoIP Tracker
 │   └── routes/
 │       ├── mixin_get.py      ← 20+ endpoints GET (dashboard, status, métricas)

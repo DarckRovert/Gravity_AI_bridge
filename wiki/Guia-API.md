@@ -779,7 +779,7 @@ print(result.content)
 
 ### Continue.dev (config.yaml)
 ```yaml
-name: Gravity Local V10.1
+name: Gravity Local V11.0
 version: 10.0.0
 schema: v1
 models:

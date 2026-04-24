@@ -4,8 +4,9 @@
 
 | Versión | Estado | Soporte de Seguridad |
 |---|---|---|
-| V10.4 Diamond | ✅ Actual | Activo — recibe parches |
-| V10.3 | ⚠️ Legacy | Solo vulnerabilidades críticas |
+| V11.0 Omniscient | ✅ Actual | Activo — recibe parches |
+| V10.4 Diamond | ⚠️ Legacy | Solo vulnerabilidades críticas |
+| V10.3 | ❌ EOL | Sin soporte |
 | V10.2 | ❌ EOL | Sin soporte |
 | < V10.1 | ❌ EOL | Sin soporte |
 
