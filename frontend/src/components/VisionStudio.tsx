@@ -22,6 +22,7 @@ const ASPECT_OPTIONS = [
 
 export const VisionStudio = () => {
   const [prompt, setPrompt]       = useState('');
+  const [provider, setProvider]   = useState('Pollinations.ai');
   const [model, setModel]         = useState('flux');
   const [aspect, setAspect]       = useState(0);
   const [negPrompt, setNegPrompt] = useState('');
@@ -47,7 +48,7 @@ export const VisionStudio = () => {
       const res = await fetch('http://localhost:7860/v1/image/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: prompt.trim(), model, width, height, negative_prompt: negPrompt, enhance: true }),
+        body: JSON.stringify({ prompt: prompt.trim(), model, width, height, negative_prompt: negPrompt, enhance: true, provider }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al generar');
@@ -118,17 +119,32 @@ export const VisionStudio = () => {
                 </div>
               </div>
 
-              {/* Model */}
+              {/* Provider */}
               <div>
-                <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2">Motor</label>
+                <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2">Motor Generador</label>
                 <select
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
+                  value={provider}
+                  onChange={(e) => setProvider(e.target.value)}
                   className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary"
                 >
-                  {MODELS.map((m) => <option key={m} value={m}>{m}</option>)}
+                  <option value="Pollinations.ai">Pollinations.ai (Rápido / Cloud)</option>
+                  <option value="Fooocus">Fooocus (Local / HQ)</option>
                 </select>
               </div>
+
+              {/* Model */}
+              {provider === 'Pollinations.ai' && (
+                <div>
+                  <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2">Modelo Cloud</label>
+                  <select
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                    className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-primary"
+                  >
+                    {MODELS.map((m) => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
+              )}
 
               {/* Aspect Ratio */}
               <div>

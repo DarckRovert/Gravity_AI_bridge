@@ -194,15 +194,40 @@ class PostRoutesMixin:
                 filename    = f"lab_{_uuid.uuid4().hex[:12]}.png"
                 output_path = os.path.join(lab_dir, filename)
 
-                from tools.pollinations_generator import generate as poll_gen
-                try:
-                    result = poll_gen(prompt=prompt, output_path=output_path,
-                                      width=width, height=height, model=model,
-                                      seed=seed, enhance=enhance, negative_prompt=negative_prompt)
-                except Exception as e:
-                    import traceback
-                    print(f"Error calling poll_gen: {traceback.format_exc()}", file=sys.stderr)
-                    raise e
+                provider = data.get("provider", "Pollinations.ai")
+                
+                if provider.lower() == "fooocus":
+                    from tools.fooocus_client import generate_image
+                    import shutil
+                    try:
+                        f_req = {
+                            "prompt": prompt,
+                            "negative_prompt": negative_prompt,
+                            "width": width,
+                            "height": height,
+                            "num_images": 1,
+                            "performance": "Speed",
+                        }
+                        result = generate_image(f_req)
+                        if result.get("success") and result.get("images"):
+                            img_path = result["images"][0]
+                            shutil.copy2(img_path, output_path)
+                            result["success"] = True
+                        else:
+                            result["error"] = result.get("error", "Error generando con Fooocus")
+                            result["success"] = False
+                    except Exception as e:
+                        result = {"success": False, "error": str(e)}
+                else:
+                    from tools.pollinations_generator import generate as poll_gen
+                    try:
+                        result = poll_gen(prompt=prompt, output_path=output_path,
+                                          width=width, height=height, model=model,
+                                          seed=seed, enhance=enhance, negative_prompt=negative_prompt)
+                    except Exception as e:
+                        import traceback
+                        print(f"Error calling poll_gen: {traceback.format_exc()}", file=sys.stderr)
+                        raise e
 
                 if result.get("success") and os.path.isfile(output_path):
                     with open(output_path, "rb") as f:

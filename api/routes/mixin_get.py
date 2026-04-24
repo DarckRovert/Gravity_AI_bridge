@@ -799,6 +799,7 @@ class GetRoutesMixin:
             from core import provider_manager, video_pipeline
             from core.hardware_profiler import get_full_profile
             from core.cost_tracker import CostTracker
+            from core import security_monitor
             import psutil
 
             scans = provider_manager.scan_all()
@@ -813,6 +814,46 @@ class GetRoutesMixin:
                 }
                 for s in scans
             ]
+            
+            fooocus_healthy = False
+            fooocus_latency = 0
+            try:
+                import time, sys, os
+                t0 = time.time()
+                BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                if os.path.join(BASE, "tools") not in sys.path:
+                    sys.path.insert(0, os.path.join(BASE, "tools"))
+                from fooocus_client import health_check
+                status = health_check()
+                fooocus_healthy = status.get("online", False)
+                if fooocus_healthy:
+                    fooocus_latency = int((time.time() - t0)*1000)
+            except Exception:
+                pass
+            
+            providers_data.append({
+                "name": "Fooocus Motor",
+                "healthy": fooocus_healthy,
+                "models": 1,
+                "latency_ms": fooocus_latency,
+                "category": "local"
+            })
+            
+            poll_healthy = False
+            try:
+                import urllib.request
+                urllib.request.urlopen("https://image.pollinations.ai/", timeout=1)
+                poll_healthy = True
+            except Exception:
+                pass
+                
+            providers_data.append({
+                "name": "Pollinations.ai",
+                "healthy": poll_healthy,
+                "models": 1,
+                "latency_ms": 0,
+                "category": "cloud"
+            })
 
             video_data = {}
             try:
@@ -858,6 +899,7 @@ class GetRoutesMixin:
                 },
                 "hardware": hw,
                 "cost": cost_data,
+                "security_alerts": len(security_monitor.get_state().get("alerts", [])),
                 "system_commands": SYSTEM_COMMANDS,
                 "context_text": context_text,
                 "timestamp": __import__("datetime").datetime.utcnow().isoformat() + "Z",

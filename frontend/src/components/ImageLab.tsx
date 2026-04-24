@@ -6,6 +6,7 @@ export const ImageLab = () => {
   const [prompt, setPrompt] = useState('');
   const [width, setWidth] = useState(1024);
   const [height, setHeight] = useState(1024);
+  const [provider, setProvider] = useState('Pollinations.ai');
   const [model, setModel] = useState('flux');
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
@@ -33,7 +34,7 @@ export const ImageLab = () => {
       const res = await fetch('http://localhost:7860/v1/image/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, width, height, model, enhance: true })
+        body: JSON.stringify({ prompt, width, height, model, enhance: true, provider })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al generar');
@@ -81,15 +82,28 @@ export const ImageLab = () => {
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2">Modelo</label>
+                  <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2">Motor</label>
                   <select 
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
-                    className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none"
+                    value={provider}
+                    onChange={(e) => setProvider(e.target.value)}
+                    className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none mb-4"
                   >
-                    {MODELS.map((m) => <option key={m} value={m}>{m}</option>)}
+                    <option value="Pollinations.ai">Pollinations.ai (Cloud)</option>
+                    <option value="Fooocus">Fooocus (Local)</option>
                   </select>
                 </div>
+                {provider === 'Pollinations.ai' && (
+                  <div>
+                    <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2">Modelo</label>
+                    <select 
+                      value={model}
+                      onChange={(e) => setModel(e.target.value)}
+                      className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none"
+                    >
+                      {MODELS.map((m) => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2">Ancho</label>
