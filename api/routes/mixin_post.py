@@ -9,6 +9,117 @@ from core.reasoning_stripper import ReasoningStripper
 class PostRoutesMixin:
     def do_POST(self):
 
+        # /v1/keys — Guardar API key cifrada en keystore
+        if self.path == "/v1/keys":
+            try:
+                length   = int(self.headers.get("Content-Length", 0))
+                data     = json.loads(self.rfile.read(length)) if length else {}
+                provider = data.get("provider", "").strip().lower()
+                api_key  = data.get("api_key", "").strip()
+                if not provider or not api_key:
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "provider y api_key son requeridos"}).encode())
+                    return
+                from core.key_manager import KeyManager
+                KeyManager.set_key(provider, api_key)
+                body = json.dumps({"ok": True, "provider": provider, "masked": KeyManager.mask(provider)}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/rag/toggle — Activar o desactivar RAG en _settings.json
+        if self.path == "/v1/rag/toggle":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                settings_path = os.path.join(BASE_DIR, "_settings.json")
+                with open(settings_path, "r", encoding="utf-8") as f:
+                    settings = json.load(f)
+                # Si viene valor explícito lo usa; si no, hace toggle
+                if "enabled" in data:
+                    settings["rag_enabled"] = bool(data["enabled"])
+                else:
+                    settings["rag_enabled"] = not settings.get("rag_enabled", True)
+                with open(settings_path, "w", encoding="utf-8") as f:
+                    json.dump(settings, f, indent=4, ensure_ascii=False)
+                body = json.dumps({"ok": True, "rag_enabled": settings["rag_enabled"]}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/audit/rotate — Archivar el audit log actual y empezar uno limpio
+        if self.path == "/v1/audit/rotate":
+            try:
+                BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                audit_path = os.path.join(BASE_DIR, "_audit_log.jsonl")
+                archive_dir = os.path.join(BASE_DIR, "_archivo")
+                os.makedirs(archive_dir, exist_ok=True)
+                ts = time.strftime("%Y%m%d_%H%M%S")
+                archive_path = os.path.join(archive_dir, f"audit_{ts}.jsonl")
+                if os.path.exists(audit_path):
+                    import shutil
+                    shutil.copy2(audit_path, archive_path)
+                    with open(audit_path, "w", encoding="utf-8") as f:
+                        f.write("")  # truncar
+                    size_kb = round(os.path.getsize(archive_path) / 1024, 1)
+                    body = json.dumps({"ok": True, "archived_to": archive_path, "size_kb": size_kb}).encode()
+                else:
+                    body = json.dumps({"ok": True, "note": "No habia audit log que rotar"}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/security/scan — Disparar escaneo activo del monitor de seguridad
+        if self.path == "/v1/security/scan":
+            try:
+                # Forzar re-escaneo del security_monitor en background
+                def _run_scan():
+                    try:
+                        security_monitor.scan_processes()
+                    except Exception:
+                        pass
+                threading.Thread(target=_run_scan, daemon=True).start()
+                # Devolver estado actual inmediatamente
+                state = security_monitor.get_state() if hasattr(security_monitor, "get_state") else {}
+                body = json.dumps({"ok": True, "message": "Escaneo de seguridad iniciado", "state": state}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+
+
         # /v1/agent/compare — Multi-Agent Orchestrator
         if self.path == "/v1/agent/compare":
             try:
@@ -343,7 +454,31 @@ class PostRoutesMixin:
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
 
-        # /v1/deploy — Inicia el pipeline build + netlify
+        # /v1/queue/cancel — Cancela un job de imagen por ID
+        if self.path.startswith("/v1/queue/cancel"):
+            try:
+                from urllib.parse import parse_qs, urlparse
+                qs     = parse_qs(urlparse(self.path).query)
+                job_id = qs.get("id", [None])[0]
+                if not job_id:
+                    length = int(self.headers.get("Content-Length", 0))
+                    data   = json.loads(self.rfile.read(length)) if length else {}
+                    job_id = data.get("id") or data.get("job_id")
+                if not job_id:
+                    self.send_response(400); self.end_headers()
+                    self.wfile.write(b'{"error":"id requerido"}'); return
+                ok = image_queue.cancel_job(job_id) if hasattr(image_queue, "cancel_job") else False
+                body = json.dumps({"ok": ok, "job_id": job_id, "message": "Cancelado" if ok else "Job no encontrado o ya completado"}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
         if self.path == "/v1/deploy":
             try:
                 length       = int(self.headers.get("Content-Length", 0))
@@ -827,7 +962,7 @@ class PostRoutesMixin:
             try:
                 length = int(self.headers.get("Content-Length", 0))
                 data   = json.loads(self.rfile.read(length)) if length else {}
-                aid    = data.get("approval_id", "").strip()
+                aid    = (data.get("approval_id") or data.get("request_id") or "").strip()
                 from core.hitl_manager import approve
                 ok = approve(aid)
                 body = json.dumps({"ok": ok, "approval_id": aid,
@@ -849,7 +984,7 @@ class PostRoutesMixin:
             try:
                 length = int(self.headers.get("Content-Length", 0))
                 data   = json.loads(self.rfile.read(length)) if length else {}
-                aid    = data.get("approval_id", "").strip()
+                aid    = (data.get("approval_id") or data.get("request_id") or "").strip()
                 reason = data.get("reason", "").strip()
                 from core.hitl_manager import reject
                 ok = reject(aid, reason)

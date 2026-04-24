@@ -14,20 +14,68 @@ from api.state import check_rate_limit, register_ip_hit, geoip_cache, recent_ips
 class GetRoutesMixin:
     # ── Dashboard SPA ─────────────────────────────────────────────────────────
     def _serve_dashboard(self):
-        # DASHBOARD_HTML ahora es bytes constante en dashboard.py — import directo
-        try:
-            from dashboard import get_dashboard_html
-            body = get_dashboard_html()
-        except Exception:
-            body = b"<h1>Gravity AI Bridge V10.1</h1><p>No se encontro web/dashboard.html. Restaura la carpeta web/.</p>"
-        try:
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(body)))
+        """Sirve el index.html del nuevo frontend React V12 (dist)."""
+        BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        index_path = os.path.join(BASE, "frontend", "dist", "index.html")
+        
+        if os.path.isfile(index_path):
+            try:
+                with open(index_path, "rb") as f:
+                    body = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception:
+                self.send_response(500)
+                self.end_headers()
+        else:
+            # Fallback legacy dashboard si no hay build
+            try:
+                from dashboard import get_dashboard_html
+                body = get_dashboard_html()
+            except Exception:
+                body = b"<h1>Gravity AI Bridge V12</h1><p>No se encontro frontend/dist/index.html. Ejecuta 'npm run build' en /frontend.</p>"
+            
+            try:
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except ConnectionAbortedError:
+                pass
+
+    def _serve_frontend_static(self):
+        """Sirve archivos estaticos (.js, .css, .svg) desde frontend/dist."""
+        path_clean = self.path.split("?")[0]
+        rel_path = path_clean.lstrip("/")
+        
+        BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        dist_path = os.path.join(BASE, "frontend", "dist")
+        filepath = os.path.join(dist_path, rel_path)
+        
+        if os.path.isfile(filepath) and not ".." in rel_path:
+            mime, _ = mimetypes.guess_type(filepath)
+            mime = mime or "application/octet-stream"
+            try:
+                with open(filepath, "rb") as f:
+                    body = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", mime)
+                self.send_header("Content-Length", str(len(body)))
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception:
+                self.send_response(500)
+                self.end_headers()
+        else:
+            self.send_response(404)
             self.end_headers()
-            self.wfile.write(body)
-        except ConnectionAbortedError:
-            pass
 
     def _serve_static_output(self):
         # Permite subdirectorios de fecha: /static/output/2026-04-13/filename.png
@@ -146,7 +194,7 @@ class GetRoutesMixin:
         best_p, best_m = provider_manager.get_best()
         scans  = provider_manager.scan_all()
         status = {
-            "version":         "10.3",
+            "version":         "12.0",
             "bridge_online":   True,
             "active_provider": best_p.name if best_p else None,
             "active_model":    best_m,
@@ -588,6 +636,36 @@ class GetRoutesMixin:
             self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode())
 
+    def _serve_rag_search(self):
+        """GET /v1/rag/search?query=... — Búsqueda semántica en el índice RAG."""
+        try:
+            import urllib.parse
+            from rag.retriever import RAGRetriever
+            params = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(self.path).query))
+            query  = params.get("query", "").strip()
+            if not query:
+                self.send_response(400); self.end_headers()
+                self.wfile.write(b'{"error":"query requerido"}'); return
+            
+            results = RAGRetriever.retrieve_with_scores(query, top_k=5)
+            # Normalizar para el frontend
+            formatted = [
+                {
+                    "content": r["content"],
+                    "source":  r["metadata"].get("source", "Unknown"),
+                    "score":   r.get("score", 0.0)
+                } for r in results
+            ]
+            body = json.dumps({"ok": True, "results": formatted, "query": query}, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500); self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
     # ── Hardware Profiler ────────────────────────────────────────────────────
     def _serve_hardware(self):
         """Perfil completo de hardware: GPUs, VRAM, NPU, num_ctx óptimo."""
@@ -1025,3 +1103,40 @@ class GetRoutesMixin:
             self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode())
 
+    def _serve_processes(self):
+        """Lista procesos activos con alto consumo de recursos o filtrados por nombre."""
+        try:
+            import psutil
+            processes = []
+            # psutil.process_iter can be slow, we fetch only needed fields
+            for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_info', 'username']):
+                try:
+                    name = proc.info.get('name', '').lower()
+                    # Filtros de interés para el ecosistema Gravity
+                    is_relevant = any(x in name for x in ["fooocus", "ollama", "lm studio", "python", "node", "jan", "java"])
+                    # O si consume más del 0.5% de CPU
+                    if is_relevant or (proc.info.get('cpu_percent', 0) > 0.5):
+                        processes.append({
+                            "pid": proc.info['pid'],
+                            "name": proc.info['name'],
+                            "cpu": proc.info.get('cpu_percent', 0),
+                            "ram": round((proc.info.get('memory_info').rss if proc.info.get('memory_info') else 0) / (1024 * 1024), 2),
+                            "user": proc.info.get('username', 'system')
+                        })
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+            
+            # Ordenar por RAM descendente
+            processes.sort(key=lambda x: x['ram'], reverse=True)
+            
+            body = json.dumps({"processes": processes[:30], "count": len(processes)}, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())

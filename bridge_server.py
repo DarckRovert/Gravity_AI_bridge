@@ -1,7 +1,6 @@
-
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║          GRAVITY AI - BRIDGE SERVER V10.4 [Diamond-Tier Edition]             ║
+║          GRAVITY AI - BRIDGE SERVER V12.0 [Omniscient-Tier Edition]          ║
 ║            Enrutador Universal OpenAI-Compatible + Multi-Session             ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
@@ -69,7 +68,7 @@ MAX_SESSIONS = 32
 
 def bridge_poll_loop():
     """Loop continuo de polling asíncrono para orquestar sub-sesiones en paralelo."""
-    log.info("[V10.4] Multi-Session Poll Loop activado. Capacidad máxima: 32.")
+    log.info("[V12.0] Multi-Session Poll Loop activado. Capacidad máxima: 32.")
     wake = CapacityWake()
     spawner = SessionSpawner(sys.executable, os.path.join(_BASE, "ask_deepseek.py"))
     
@@ -158,10 +157,12 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             "/registro":            self._serve_registro,
             # ── V10.1 Endpoints ────────────────────────────────────────
             "/v1/hardware":         self._serve_hardware,
+            "/v1/hardware/stats":   self._serve_hardware,
             "/v1/cost":             self._serve_cost,
             "/v1/watchdog":         self._serve_watchdog,
             "/v1/sessions":         self._serve_sessions,
             "/v1/rag/status":       self._serve_rag_status,
+            "/v1/rag/search":       self._serve_rag_search,
             # ── V10.1 New Endpoints ─────────────────────────────────────────────
             "/v1/queue/stream":     self._serve_queue_stream,
             "/v1/fabricaweb/status":self._serve_fabricaweb_status,
@@ -182,6 +183,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             "/v1/gravity/context":       self._serve_gravity_context,
             "/v1/video/list":            self._serve_video_list,
             "/v1/video/stream":          self._serve_video_stream,
+            "/v1/processes":             self._serve_processes,
         }
 
         # Rutas con query string (?server=&lines=)
@@ -193,8 +195,8 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
         elif self.path.startswith("/static/imagelab/"):
             self._serve_static_image_lab()
         else:
-            self.send_response(404)
-            self.end_headers()
+            # Intentar servir desde el frontend/dist (JS, CSS, Assets)
+            self._serve_frontend_static()
 
 
     # Rutas manejadas de forma nativa por los modulos Mixins incorporados
@@ -234,7 +236,7 @@ def run_server():
     # Iniciar Multi-Session Poll Loop (V10.4)
     threading.Thread(target=bridge_poll_loop, daemon=True, name="BridgePollLoop").start()
 
-    log.info(f"Gravity Bridge V10.4 — http://localhost:{port} | Dashboard: / | API: /v1")
+    log.info(f"Gravity Bridge V12.0 — http://localhost:{port} | Dashboard: / | API: /v1")
     server = ThreadingHTTPServer(("0.0.0.0", port), GravityBridgeHandler)
     try:
         server.serve_forever()

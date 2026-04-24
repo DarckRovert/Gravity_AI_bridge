@@ -2,7 +2,7 @@
 cd /d "%~dp0"
 setlocal enabledelayedexpansion
 
-REM ── Gravity AI Bridge V10.3 PRO [Diamond-Tier Edition] - Comando Global ──────────────────────────────
+REM ── Gravity AI Bridge V12.0 PRO [Omniscient-Tier Edition] - Comando Global ──────────────────────────────
 REM Uso:  gravity "pregunta"          → respuesta directa
 REM       gravity                     → modo interactivo
 REM       gravity --help              → ayuda rápida
@@ -15,7 +15,7 @@ REM ─────────────────────────�
 
 if "%~1"=="--help" (
     echo.
-    echo  GRAVITY AI BRIDGE V10.3 PRO [Diamond-Tier Edition] - Ayuda Rápida
+    echo  GRAVITY AI BRIDGE V12.0 PRO [Omniscient-Tier Edition] - Ayuda Rápida
     echo  ─────────────────────────────────────────
     echo  gravity                  Modo interactivo (CLI)
     echo  gravity "pregunta"       Respuesta directa rápida
@@ -32,7 +32,7 @@ if "%~1"=="--help" (
 )
 
 if "%~1"=="--version" (
-    echo Gravity AI Bridge V10.3 PRO [Diamond-Tier Edition]
+    echo Gravity AI Bridge V12.0 PRO [Omniscient-Tier Edition]
     echo https://github.com/DarckRovert/Gravity_AI_bridge
     exit /b 0
 )
@@ -46,24 +46,6 @@ if "%~1"=="--start" goto DO_START
 if "%~1"=="start" goto DO_START
 :DO_START
     start "" "%~dp0launchers\INICIAR_TODO.bat"
-    exit /b 0
-
-if "%~1"=="--studio" goto DO_STUDIO
-if "%~1"=="studio" goto DO_STUDIO
-:DO_STUDIO
-    start "" "%~dp0launchers\GRAVITY_VISION_PRO.bat"
-    exit /b 0
-
-if "%~1"=="--server" goto DO_SERVER
-if "%~1"=="server" goto DO_SERVER
-:DO_SERVER
-    start "" "%~dp0launchers\INICIAR_SERVIDOR.bat"
-    exit /b 0
-
-if "%~1"=="--fabrica" goto DO_FABRICA
-if "%~1"=="fabrica" goto DO_FABRICA
-:DO_FABRICA
-    start "" "%~dp0launchers\INICIAR_FABRICAWEB.bat"
     exit /b 0
 
 if "%~1"=="--dashboard" (
