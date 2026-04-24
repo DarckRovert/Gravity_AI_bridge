@@ -1,5 +1,5 @@
-# Manual de Usuario — Gravity AI Bridge V10.4
-**Diamond-Tier Edition** · [github.com/DarckRovert/Gravity_AI_bridge](https://github.com/DarckRovert/Gravity_AI_bridge) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
+# Manual de Usuario — Gravity AI Bridge V11.0
+**Omniscient-Tier Edition** · [github.com/DarckRovert/Gravity_AI_bridge](https://github.com/DarckRovert/Gravity_AI_bridge) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
 
 ---
 
@@ -14,7 +14,7 @@ Gravity AI Bridge es un **servidor proxy OpenAI-compatible** que actúa como pun
 ## Instalación
 
 ### Para usuarios finales (sin Python)
-1. Descarga `Gravity_AI_Bridge_V10.4_Setup.exe`
+1. Descarga `Gravity_AI_Bridge_V11.0_Setup.exe`
 2. Ejecuta el instalador → "Siguiente" tres veces → "Instalar"
 3. Marca "Iniciar Gravity AI Bridge ahora" al finalizar
 4. Un icono aparecerá en la bandeja del sistema (esquina inferior derecha)
@@ -141,7 +141,7 @@ Los trabajos se procesan en orden FIFO. El panel muestra el estado de cada job: 
 
 ---
 
-### 🎬 Video Studio *(nuevo en V10.4)*
+### 🎬 Video Studio *(nuevo en V11.0)*
 
 Generación automática de videos documentales en modo **CPU-only** (sin GPU dedicada).
 

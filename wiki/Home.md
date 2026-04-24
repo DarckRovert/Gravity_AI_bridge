@@ -1,4 +1,4 @@
-# 🪐 Gravity AI Bridge | Wiki Corporativa V10.4 Diamond-Tier
+# 🪐 Gravity AI Bridge | Wiki Corporativa V11.0 Omniscient-Tier
 
 Bienvenido al Centro de Conocimiento del Bridge — hub principal para orquestar infraestructuras pesadas con LLMs, multimedia, Game Servers y agentes IA con control total.
 
@@ -19,7 +19,7 @@ Bienvenido al Centro de Conocimiento del Bridge — hub principal para orquestar
 
 ---
 
-## 🚀 Novedades V10.4 Diamond-Tier
+## 🚀 Novedades V11.0 Omniscient-Tier
 
 ### Nuevos Módulos Backend
 - **`core/hitl_manager.py`** — Human-in-the-Loop: intercepta tools de alto riesgo (code_runner, shell_exec, file_write, deploy, git_push, etc.) y requiere aprobación humana desde el Dashboard antes de ejecutarlas. Cola thread-safe con timeout de 120s.
@@ -32,7 +32,7 @@ Bienvenido al Centro de Conocimiento del Bridge — hub principal para orquestar
 - `POST /v1/tools/scrape` — Scraping de URL
 - `GET /v1/tools/firecrawl/health` — Estado de la configuración Firecrawl
 
-### Dashboard V10.4
+### Dashboard V11.0
 - **Nuevo Panel HITL Approval**: Aprobación/rechazo en tiempo real con polling cada 8s. Badge rojo en el sidebar cuando hay solicitudes pendientes.
 - **Nuevo Panel Firecrawl**: Scraper interactivo con viewer de resultado Markdown.
 - **Sessions — Role Selector**: Selector de rol al hacer Spawn (auditor/planner/coder/researcher/executor).
@@ -100,5 +100,5 @@ Compatibilidad: OpenAI API v1 (drop-in replacement)
 ---
 
 <div align="center">
-  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V10.4 Diamond-Tier</i></sub>
+  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V11.0 Omniscient-Tier</i></sub>
 </div>

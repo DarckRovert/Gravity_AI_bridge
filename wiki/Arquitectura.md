@@ -1,5 +1,5 @@
-# Arquitectura — Gravity AI Bridge V10.4
-**Diamond-Tier Edition** · Última actualización: 2026-04-22
+# Arquitectura — Gravity AI Bridge V11.0
+**Omniscient-Tier Edition** · Última actualización: 2026-04-22
 
 ---
 
@@ -15,7 +15,7 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
                                │ HTTP POST /v1/chat/completions
                                ▼
 ┌────────────────────────────────────────────────────────────────────┐
-│                    GRAVITY AI BRIDGE V10.4                         │
+│                    GRAVITY AI BRIDGE V11.0                         │
 │                    bridge_server.py (~200 líneas — Orquestador)    │
 │                    ThreadingHTTPServer :7860                        │
 │                                                                    │
@@ -31,7 +31,7 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
 │  └──────────────────────────────────────────────────────────────┘  │
 │                                                                    │
 │  ┌──────────────────────────────────────────────────────────────┐  │
-│  │             core/session_runner.py (V10.4)                   │  │
+│  │             core/session_runner.py (V11.0)                   │  │
 │  │   CapacityWake() + SessionSpawner (Multi-session parallel)   │  │
 │  └──────────────────────────────────────────────────────────────┘  │
 └─────────────────────────┬──────────────────────────────────────────┘
@@ -85,9 +85,9 @@ F:\Gravity_AI_bridge\
 │   ├── hardware_profiler.py  ← GPU/VRAM/NPU detection
 │   ├── cost_tracker.py       ← Tracking USD para cloud
 │   ├── multi_agent.py        ← Orquestador parallel/vote
-│   ├── session_manager.py    ← Sesiones con fork de branches + MemDir (V10.4)
-│   ├── session_runner.py     ← Multi-Session spawners y CapacityWake (V10.4)
-│   ├── mcp_adapter.py        ← Model Context Protocol client con Reconexión (V10.4)
+│   ├── session_manager.py    ← Sesiones con fork de branches + MemDir (V11.0)
+│   ├── session_runner.py     ← Multi-Session spawners y CapacityWake (V11.0)
+│   ├── mcp_adapter.py        ← Model Context Protocol client con Reconexión (V11.0)
 │   ├── security_monitor.py   ← Zero-Trust scanning en background
 │   ├── rate_limiter.py       ← Control de acceso por IP/key
 │   ├── audit_log.py          ← Log inmutable de peticiones
@@ -123,7 +123,7 @@ F:\Gravity_AI_bridge\
 │   └── retriever.py          ← Búsqueda semántica vectorial
 │
 ├── web/
-│   └── dashboard.html        ← SPA — 23 paneles, ~4000 líneas (V10.4)
+│   └── dashboard.html        ← SPA — 23 paneles, ~4000 líneas (V11.0)
 │
 ├── installer/
 │   ├── build_installer.bat   ← Build automatizado (PyInstaller + Inno Setup)
@@ -180,6 +180,10 @@ F:\Gravity_AI_bridge\
 
 ## Módulos Core — Referencia Técnica
 
+
+### gravity_brain.py (V11)
+**Responsabilidad:** Cerebro sistémico central. Consolida el estado total (Hardware, Procesos, Video, Imágenes, Seguridad) y lo inyecta como 'System Context' para orquestar acciones complejas desde una interfaz de chat. Permite que el LLM dispare comandos internos de la API.
+
 ### provider_manager.py
 **Responsabilidad:** Descubrimiento y selección de proveedores.
 
@@ -235,16 +239,16 @@ Detecta automáticamente:
 ---
 
 ### session_manager.py
-**Responsabilidad:** Persistencia de conversaciones con soporte de branches y MemDir (V10.4).
+**Responsabilidad:** Persistencia de conversaciones con soporte de branches y MemDir (V11.0).
 
 - Las sesiones se guardan como JSON en `_saves/<nombre>.json`
 - Cada sesión contiene: nombre, branch, timestamp, historial completo de mensajes
 - El fork crea una copia independiente de la sesión en una rama nueva
-- **MemDir (V10.4)**: Inyección dinámica de contexto (archivos `.gravity_mem` y `MEMORY.md`) directo al System Prompt simulando una "memoria de directorio" sin coste extra de RAG vectorial.
+- **MemDir (V11.0)**: Inyección dinámica de contexto (archivos `.gravity_mem` y `MEMORY.md`) directo al System Prompt simulando una "memoria de directorio" sin coste extra de RAG vectorial.
 
 ---
 
-### session_runner.py (V10.4)
+### session_runner.py (V11.0)
 **Responsabilidad:** Orquestación Multi-sesión paralela.
 
 - Define `CapacityWake` para señalización de subprocesos y control de carga.
@@ -275,7 +279,7 @@ Aplica via variables de entorno `OLLAMA_KV_CACHE_TYPE` y `OLLAMA_FLASH_ATTENTION
 
 ---
 
-## Dashboard — 23 Paneles V10.4
+## Dashboard — 23 Paneles V11.0
 
 | # | Panel | Módulo Backend | Endpoints |
 |:---|:---|:---|:---|
@@ -337,7 +341,7 @@ make_icon.py          → genera assets/gravity_icon.ico (multi-res: 256..16px)
       ↓
 PyInstaller           → empaqueta Python + todas las dependencias → GravityBridge.exe
       ↓
-Inno Setup 6          → crea Gravity_AI_Bridge_V10.4_Setup.exe
+Inno Setup 6          → crea Gravity_AI_Bridge_V11.0_Setup.exe
       ↓
 gravity_launcher.pyw  → EXE sin consola que arranca bridge_server + gravity_tray
 ```
@@ -346,7 +350,7 @@ gravity_launcher.pyw  → EXE sin consola que arranca bridge_server + gravity_tr
 | Archivo generado | Descripción |
 |:---|:---|
 | `dist/GravityBridge.exe` | Ejecutable standalone (no requiere Python) |
-| `dist/Gravity_AI_Bridge_V10.4_Setup.exe` | Instalador completo para distribución |
+| `dist/Gravity_AI_Bridge_V11.0_Setup.exe` | Instalador completo para distribución |
 
 ### Características del Instalador
 - Instala en `C:\Program Files\Gravity AI Bridge\`
