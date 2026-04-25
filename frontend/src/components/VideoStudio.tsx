@@ -13,6 +13,9 @@ export const VideoStudio = () => {
   const [resolution, setResolution] = useState('1216x832');
   const [subtitles, setSubtitles] = useState(true);
   const [bgmType, setBgmType] = useState('ninguna');
+  const [voiceId, setVoiceId] = useState('');
+  const [quality, setQuality] = useState('hd');
+  const [useLore, setUseLore] = useState(true);
   const [creating, setCreating] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
 
@@ -41,12 +44,15 @@ export const VideoStudio = () => {
           n_scenes: scenes, 
           style,
           voice_speed: voiceSpeed,
+          voice_id: voiceId,
           narration_lang: lang,
           transitions,
           resolution,
           subtitles,
           title,
-          bgm_type: bgmType
+          bgm_type: bgmType,
+          quality,
+          use_lore: useLore
         })
       });
       setTopic('');
@@ -87,119 +93,148 @@ export const VideoStudio = () => {
             <div className="glass-panel p-6 rounded-2xl border border-border-subtle space-y-6">
               <h2 className="text-lg font-bold text-text-primary flex items-center gap-2"><Plus size={18} className="text-accent-primary"/> Nueva Producción</h2>
               
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Título del Video</label>
-                    <input 
-                      type="text"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Ej: El Misterio del Universo..."
-                      className="w-full bg-card border border-border-subtle rounded-xl p-4 text-sm text-text-primary outline-none focus:border-accent-primary transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Música de Fondo</label>
-                    <select 
-                      value={bgmType}
-                      onChange={(e) => setBgmType(e.target.value)}
-                      className="w-full bg-card border border-border-subtle rounded-xl p-4 text-sm text-text-primary outline-none focus:border-accent-primary"
-                    >
-                      <option value="ninguna">Sin Música</option>
-                      <option value="epico">Épica / Cinemática</option>
-                      <option value="documental">Documental / Chill</option>
-                      <option value="synthwave">Retro / Synthwave</option>
-                      <option value="jazz">Jazz / Lounge</option>
-                    </select>
+              <div className="space-y-6 mb-6">
+                {/* 1. IDENTIDAD DE PRODUCCIÓN */}
+                <div className="bg-surface/30 p-5 rounded-2xl border border-border-subtle space-y-5">
+                  <h3 className="text-[11px] font-black text-accent-primary uppercase tracking-widest flex items-center gap-2"><Film size={14}/> 1. Identidad de Producción</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Título del Proyecto</label>
+                      <input 
+                        type="text" value={title} onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Ej: El Misterio del Universo..."
+                        className="w-full bg-card border border-border-subtle rounded-xl p-3 text-sm text-text-primary outline-none focus:border-accent-primary transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Tema / Guion Maestro</label>
+                      <textarea 
+                        value={topic} onChange={(e) => setTopic(e.target.value)}
+                        placeholder="Ej: Escribe aquí la historia que quieres contar..."
+                        className="w-full bg-card border border-border-subtle rounded-xl p-3 text-sm text-text-primary outline-none focus:border-accent-primary transition-all h-28 resize-none"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Tema / Guion</label>
-                  <textarea 
-                    value={topic}
-                    onChange={(e) => setTopic(e.target.value)}
-                    placeholder="Ej: Escribe aquí la historia que quieres contar..."
-                    className="w-full bg-card border border-border-subtle rounded-xl p-4 text-sm text-text-primary outline-none focus:border-accent-primary transition-all h-32 resize-none"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Estilo Visual</label>
-                    <select 
-                      value={style}
-                      onChange={(e) => setStyle(e.target.value)}
-                      className="w-full bg-card border border-border-subtle rounded-xl p-3 text-sm text-text-primary outline-none focus:border-accent-primary"
-                    >
-                      {status?.styles ? Object.entries(status.styles).map(([k, v]: any) => (
-                        <option key={k} value={k}>{v}</option>
-                      )) : <option value="documental">Documental</option>}
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Idioma (Narrador)</label>
-                    <select 
-                      value={lang}
-                      onChange={(e) => setLang(e.target.value)}
-                      className="w-full bg-card border border-border-subtle rounded-xl p-3 text-sm text-text-primary outline-none focus:border-accent-primary"
-                    >
-                      <option value="es">Español</option>
-                      <option value="en">English</option>
-                      <option value="pt">Português</option>
-                      <option value="fr">Français</option>
-                      <option value="de">Deutsch</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Escenas ({scenes})</label>
-                    <input 
-                      type="range" min="3" max="15" 
-                      value={scenes}
-                      onChange={(e) => setScenes(+e.target.value)}
-                      className="w-full accent-accent-primary"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Velocidad Voz ({voiceSpeed} WPM)</label>
-                    <input 
-                      type="range" min="100" max="250" step="10"
-                      value={voiceSpeed}
-                      onChange={(e) => setVoiceSpeed(+e.target.value)}
-                      className="w-full accent-accent-primary"
-                    />
+                {/* 2. DIRECCIÓN DE ARTE */}
+                <div className="bg-surface/30 p-5 rounded-2xl border border-border-subtle space-y-5">
+                  <h3 className="text-[11px] font-black text-accent-primary uppercase tracking-widest flex items-center gap-2"><Camera size={14}/> 2. Dirección de Arte</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Estilo Visual</label>
+                      <select 
+                        value={style} onChange={(e) => setStyle(e.target.value)}
+                        className="w-full bg-card border border-border-subtle rounded-xl p-3 text-sm text-text-primary outline-none focus:border-accent-primary"
+                      >
+                        {status?.styles ? Object.entries(status.styles).map(([k, v]: any) => (
+                          <option key={k} value={k}>{v}</option>
+                        )) : <option value="documental">Documental</option>}
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Resolución (Relación)</label>
+                      <select 
+                        value={resolution} onChange={(e) => setResolution(e.target.value)}
+                        className="w-full bg-card border border-border-subtle rounded-xl p-3 text-sm text-text-primary outline-none focus:border-accent-primary"
+                      >
+                        <option value="1216x832">16:9 (Horizontal)</option>
+                        <option value="832x1216">9:16 (Vertical)</option>
+                        <option value="1024x1024">1:1 (Cuadrado)</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Calidad de Render</label>
+                      <select 
+                        value={quality} onChange={(e) => setQuality(e.target.value)}
+                        className="w-full bg-card border border-border-subtle rounded-xl p-3 text-sm text-text-primary outline-none focus:border-accent-primary"
+                      >
+                        <option value="standard">Estándar (30 steps)</option>
+                        <option value="hd">HD (60 steps)</option>
+                        <option value="4k">Cinemática 4K (120 steps)</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Escenas ({scenes})</label>
+                      <input 
+                        type="range" min="3" max="15" value={scenes} onChange={(e) => setScenes(+e.target.value)}
+                        className="w-full mt-2 accent-accent-primary"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Resolución</label>
-                  <select 
-                    value={resolution}
-                    onChange={(e) => setResolution(e.target.value)}
-                    className="w-full bg-card border border-border-subtle rounded-xl p-2 text-sm text-text-primary outline-none focus:border-accent-primary"
-                  >
-                    <option value="1216x832">16:9 (1216x832)</option>
-                    <option value="832x1216">9:16 (832x1216)</option>
-                    <option value="1024x1024">1:1 (1024x1024)</option>
-                  </select>
+                {/* 3. INGENIERÍA DE SONIDO */}
+                <div className="bg-surface/30 p-5 rounded-2xl border border-border-subtle space-y-5">
+                  <h3 className="text-[11px] font-black text-accent-primary uppercase tracking-widest flex items-center gap-2"><MonitorPlay size={14}/> 3. Ingeniería de Sonido</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Idioma</label>
+                      <select 
+                        value={lang} onChange={(e) => setLang(e.target.value)}
+                        className="w-full bg-card border border-border-subtle rounded-xl p-3 text-sm text-text-primary outline-none focus:border-accent-primary"
+                      >
+                        <option value="es">Español</option>
+                        <option value="en">English</option>
+                        <option value="pt">Português</option>
+                        <option value="fr">Français</option>
+                        <option value="de">Deutsch</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Voz Neuronal</label>
+                      <select 
+                        value={voiceId} onChange={(e) => setVoiceId(e.target.value)}
+                        className="w-full bg-card border border-border-subtle rounded-xl p-3 text-sm text-text-primary outline-none focus:border-accent-primary"
+                      >
+                        <option value="">Auto / Sistema</option>
+                        <option value="es-ES-AlvaroNeural">Álvaro (ES)</option>
+                        <option value="es-ES-ElviraNeural">Elvira (ES)</option>
+                        <option value="es-MX-JorgeNeural">Jorge (MX)</option>
+                        <option value="es-MX-DaliaNeural">Dalia (MX)</option>
+                        <option value="en-US-ChristopherNeural">Christopher (US)</option>
+                        <option value="en-US-AriaNeural">Aria (US)</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Música (BGM)</label>
+                      <select 
+                        value={bgmType} onChange={(e) => setBgmType(e.target.value)}
+                        className="w-full bg-card border border-border-subtle rounded-xl p-3 text-sm text-text-primary outline-none focus:border-accent-primary"
+                      >
+                        <option value="ninguna">Sin Música</option>
+                        <option value="epico">Épica / Cinemática</option>
+                        <option value="documental">Documental / Chill</option>
+                        <option value="synthwave">Retro / Synthwave</option>
+                        <option value="jazz">Jazz / Lounge</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Velocidad Voz ({voiceSpeed})</label>
+                      <input 
+                        type="range" min="100" max="250" step="10" value={voiceSpeed} onChange={(e) => setVoiceSpeed(+e.target.value)}
+                        className="w-full mt-2 accent-accent-primary"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-card border border-border-subtle">
-                  <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-text-primary">
-                    <input type="checkbox" checked={subtitles} onChange={(e) => setSubtitles(e.target.checked)} className="accent-accent-primary w-4 h-4" />
-                    Subtítulos
+                {/* 4. POST-PRODUCCIÓN & LORE */}
+                <div className="flex flex-wrap items-center justify-center gap-8 p-5 rounded-2xl bg-surface/50 border border-border-subtle">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-text-primary hover:text-accent-primary transition-colors">
+                    <input type="checkbox" checked={useLore} onChange={(e) => setUseLore(e.target.checked)} className="accent-accent-primary w-5 h-5 rounded-md" />
+                    Memoria de Continuidad (Lore)
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-text-primary">
-                    <input type="checkbox" checked={transitions} onChange={(e) => setTransitions(e.target.checked)} className="accent-accent-primary w-4 h-4" />
-                    Fade FFMPEG
+                  <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-text-primary hover:text-accent-primary transition-colors">
+                    <input type="checkbox" checked={subtitles} onChange={(e) => setSubtitles(e.target.checked)} className="accent-accent-primary w-5 h-5 rounded-md" />
+                    Subtítulos Quemados
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-text-primary hover:text-accent-primary transition-colors">
+                    <input type="checkbox" checked={transitions} onChange={(e) => setTransitions(e.target.checked)} className="accent-accent-primary w-5 h-5 rounded-md" />
+                    Transiciones (Fade)
                   </label>
                 </div>
               </div>
-
               <button 
                 onClick={createVideo}
                 disabled={creating || !topic.trim()}

@@ -149,6 +149,10 @@ def _init_db() -> None:
         ("transitions",    "INTEGER NOT NULL DEFAULT 1"),
         ("resolution",     "TEXT NOT NULL DEFAULT '1024x1024'"),
         ("subtitles",      "INTEGER NOT NULL DEFAULT 1"),
+        ("title",          "TEXT NOT NULL DEFAULT ''"),
+        ("bgm_type",       "TEXT NOT NULL DEFAULT 'ninguna'"),
+        ("quality",        "TEXT NOT NULL DEFAULT 'hd'"),
+        ("use_lore",       "INTEGER NOT NULL DEFAULT 1"),
     ]
     for col_name, col_def in migrations:
         if col_name not in existing:
@@ -167,6 +171,10 @@ def add_job(
     transitions: bool   = True,
     resolution: str     = "1024x1024",
     subtitles: bool     = True,
+    title: str          = "",
+    bgm_type: str       = "ninguna",
+    quality: str        = "hd",
+    use_lore: bool      = True,
 ) -> int:
     """Encola un nuevo trabajo de video. Retorna el ID generado."""
     _init_db()
@@ -326,7 +334,7 @@ def _extract_visual_anchor(topic: str) -> str:
 
 # â”€â”€ Paso 2: GeneraciÃ³n de guiÃ³n via LLM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str) -> tuple[list[dict], str]:
+def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str, use_lore: bool = True) -> tuple[list[dict], str]:
     """
     Genera guiÃ³n estructurado AND extrae el visual anchor.
     Retorna (scenes, visual_anchor).
@@ -711,7 +719,7 @@ def _assemble_clip(
 
 # â”€â”€ Paso 6: ConcatenaciÃ³n final â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-def _concatenate_clips(clip_paths: list[str], output_mp4: str) -> bool:
+def _concatenate_clips(clip_paths: list[str], output_mp4: str, bgm_type: str = "ninguna") -> bool:
     """Concatena todos los clips en el video final."""
     if not clip_paths:
         return False
@@ -728,10 +736,24 @@ def _concatenate_clips(clip_paths: list[str], output_mp4: str) -> bool:
                 safe = cp.replace("'", "'\\''")
                 f.write(f"file '{safe}'\n")
 
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         bgm_path = os.path.join(base_dir, "inputs", "bgm.mp3")
         
-        has_bgm = os.path.isfile(bgm_path)
+        if bgm_type != "ninguna":
+            try:
+                import urllib.request
+                urls = {
+                    "epico": "https://archive.org/download/EpicMusic_201708/EpicMusic.mp3",
+                    "documental": "https://archive.org/download/chill-out-music/chill-out.mp3",
+                    "synthwave": "https://archive.org/download/synthwave_202111/synthwave.mp3",
+                    "jazz": "https://archive.org/download/jazzy-lounge/jazzy-lounge.mp3"
+                }
+                url = urls.get(bgm_type.lower(), urls["documental"])
+                os.makedirs(os.path.dirname(bgm_path), exist_ok=True)
+                urllib.request.urlretrieve(url, bgm_path)
+            except Exception as e:
+                log.warning(f"[VideoStudio] Error descargando BGM: {e}")
+        has_bgm = bgm_type != "ninguna" and os.path.isfile(bgm_path)
         
         if has_bgm:
             cmd = [
@@ -811,6 +833,10 @@ def _process_job(
     transitions: bool,
     resolution: str,
     subtitles: bool,
+    title: str = "",
+    bgm_type: str = "ninguna",
+    quality: str = "hd",
+    use_lore: bool = True,
 ) -> None:
     """
     Pipeline completo con Character Consistency Engine.
@@ -832,7 +858,7 @@ def _process_job(
 
     try:
         # â”€â”€ PASO 1: GuiÃ³n + Visual Anchor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        scenes, visual_anchor = _generate_script(topic, n_scenes, style, narration_lang)
+        scenes, visual_anchor = _generate_script(topic, n_scenes, style, narration_lang, use_lore)
         if not scenes:
             raise RuntimeError("El LLM no devolviÃ³ escenas vÃ¡lidas.")
 
@@ -914,12 +940,26 @@ def _process_job(
         safe_topic = "".join(c for c in topic[:30] if c.isalnum() or c in " _-").strip().replace(" ", "_")
         final_path = os.path.join(OUTPUT_DIR, f"video_{job_id}_{safe_topic}_{ts}.mp4")
 
-        if clip_paths and _concatenate_clips(clip_paths, final_path):
+        if clip_paths and _concatenate_clips(clip_paths, final_path, bgm_type):
             now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
             _update_job(job_id, status="done", progress=100,
                         current_step="Completado", output_path=final_path,
                         finished_at=now)
-            log.info(f"[VideoStudio] Job #{job_id} completado â†’ {final_path}")
+            log.info(f"[VideoStudio] Job #{job_id} completado -> {final_path}")
+            
+            if use_lore:
+                try:
+                    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                    inputs_dir = os.path.join(base_dir, "inputs")
+                    os.makedirs(inputs_dir, exist_ok=True)
+                    lore_path = os.path.join(inputs_dir, "cinematic_lore.txt")
+                    with open(lore_path, "a", encoding="utf-8") as f:
+                        f.write(f"\n\n=== HISTORIA: {title or topic} ===\n")
+                        for s in scenes:
+                            f.write(f"Escena: {s.get('title', '')}\n")
+                            f.write(f"Narración: {s.get('narration', '')}\n")
+                except Exception as e:
+                    log.warning(f"[VideoStudio] Error guardando lore: {e}")
         else:
             raise RuntimeError("No se pudieron generar clips.")
 
