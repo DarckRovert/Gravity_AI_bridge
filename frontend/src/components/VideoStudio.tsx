@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Video, Film, PlayCircle, Clock, CheckCircle2, AlertCircle, Plus, RefreshCw, X, Share2, Camera, MonitorPlay, Download, Play } from 'lucide-react';
+import { Video, Film, PlayCircle, Clock, CheckCircle2, AlertCircle, Plus, RefreshCw, X, Share2, Camera, MonitorPlay, Download, Play, Trash2 } from 'lucide-react';
 
 export const VideoStudio = () => {
   const [status, setStatus] = useState<any>(null);
@@ -62,6 +62,20 @@ export const VideoStudio = () => {
       alert('Error al encolar video');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const deleteJob = async (id: number) => {
+    if (!confirm(`¿Estás seguro de que deseas eliminar de raíz la producción #${id} y sus archivos físicos?`)) return;
+    try {
+      await fetch('http://localhost:7860/v1/video/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      fetchStatus();
+    } catch (e) {
+      alert('Error al borrar la producción');
     }
   };
 
@@ -303,10 +317,10 @@ export const VideoStudio = () => {
               <div className="p-6 border-b border-border-subtle bg-surface/30">
                 <h3 className="font-bold text-text-primary flex items-center gap-2"><PlayCircle size={18} className="text-accent-secondary" /> Historial de Exportación</h3>
               </div>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto max-h-[600px] overflow-y-auto scrollbar-hide">
                 <table className="w-full text-left text-sm">
                   <thead>
-                    <tr className="bg-surface/50 text-[10px] uppercase font-bold text-text-muted">
+                    <tr className="bg-surface/90 backdrop-blur-md text-[10px] uppercase font-bold text-text-muted sticky top-0 z-10">
                       <th className="px-6 py-4">ID</th>
                       <th className="px-6 py-4">Tema / Producción</th>
                       <th className="px-6 py-4">Estado</th>
@@ -328,14 +342,23 @@ export const VideoStudio = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <button 
-                            onClick={() => (job.status?.toLowerCase() === 'completed' || job.status?.toLowerCase() === 'done') && setSelectedVideo(job)}
-                            className={`p-2 rounded-lg bg-surface border border-border-subtle transition-all
-                              ${(job.status?.toLowerCase() === 'completed' || job.status?.toLowerCase() === 'done') ? 'text-accent-primary hover:bg-accent-primary hover:text-white cursor-pointer' : 'text-text-muted opacity-50 cursor-not-allowed'}`}
-                            title={job.status?.toLowerCase() === 'deleted' ? "Archivo eliminado" : "Reproducir y Compartir"}
-                          >
-                            <Play size={16} fill="currentColor" />
-                          </button>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => (job.status?.toLowerCase() === 'completed' || job.status?.toLowerCase() === 'done') && setSelectedVideo(job)}
+                              className={`p-2 rounded-lg bg-surface border border-border-subtle transition-all
+                                ${(job.status?.toLowerCase() === 'completed' || job.status?.toLowerCase() === 'done') ? 'text-accent-primary hover:bg-accent-primary hover:text-white cursor-pointer' : 'text-text-muted opacity-50 cursor-not-allowed'}`}
+                              title={job.status?.toLowerCase() === 'deleted' ? "Archivo eliminado" : "Reproducir y Compartir"}
+                            >
+                              <Play size={16} fill="currentColor" />
+                            </button>
+                            <button
+                              onClick={() => deleteJob(job.id)}
+                              className="p-2 rounded-lg bg-surface border border-border-subtle text-status-error hover:bg-status-error hover:text-white cursor-pointer transition-all"
+                              title="Eliminar de raíz"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
