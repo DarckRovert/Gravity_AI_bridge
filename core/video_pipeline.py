@@ -195,10 +195,20 @@ def get_queue_status() -> dict:
     pending  = [dict(r) for r in conn.execute(
         "SELECT * FROM video_jobs WHERE status='pending' ORDER BY id"
     ).fetchall()]
-    history  = [dict(r) for r in conn.execute(
+    
+    raw_history = conn.execute(
         "SELECT * FROM video_jobs WHERE status!='pending' ORDER BY id DESC LIMIT ?",
         (MAX_HISTORY,)
-    ).fetchall()]
+    ).fetchall()
+    
+    history = []
+    for r in raw_history:
+        job_dict = dict(r)
+        if (job_dict.get('status') == 'done' or job_dict.get('status') == 'completed') and job_dict.get('output_path'):
+            if not os.path.isfile(job_dict['output_path']):
+                job_dict['status'] = 'deleted'
+        history.append(job_dict)
+        
     conn.close()
 
     with _lock:
@@ -460,13 +470,20 @@ def _generate_scene_image(
     scene_seed   = (job_seed + scene_idx * 7) % 2147483647
 
     # â”€â”€ Motor 1: Pollinations.ai â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # Extraer resolucion
+    w, h = DEFAULT_IMG_W, DEFAULT_IMG_H
+    if "x" in resolution:
+        parts = resolution.split("x")
+        if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
+            w, h = int(parts[0]), int(parts[1])
+
     try:
         from tools.pollinations_generator import generate as poll_gen
         result = poll_gen(
             prompt          = prompt,
             output_path     = out_path,
-            width           = DEFAULT_IMG_W,
-            height          = DEFAULT_IMG_H,
+            width           = w,
+            height          = h,
             seed            = scene_seed,
             enhance         = False,   # desactivado para mayor fidelidad al prompt exacto
             negative_prompt = negative,

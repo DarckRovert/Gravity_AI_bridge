@@ -256,16 +256,16 @@ export const VideoStudio = () => {
                         </td>
                         <td className="px-6 py-4">
                           <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase
-                            ${job.status === 'completed' ? 'bg-status-success/10 text-status-success' : 'bg-status-error/10 text-status-error'}`}>
+                            ${(job.status?.toLowerCase() === 'completed' || job.status?.toLowerCase() === 'done') ? 'bg-status-success/10 text-status-success' : job.status?.toLowerCase() === 'deleted' ? 'bg-surface border border-border-subtle text-text-muted' : 'bg-status-error/10 text-status-error'}`}>
                             {job.status}
                           </span>
                         </td>
                         <td className="px-6 py-4">
                           <button 
-                            onClick={() => job.status === 'completed' && setSelectedVideo(job)}
+                            onClick={() => (job.status?.toLowerCase() === 'completed' || job.status?.toLowerCase() === 'done') && setSelectedVideo(job)}
                             className={`p-2 rounded-lg bg-surface border border-border-subtle transition-all
-                              ${job.status === 'completed' ? 'text-accent-primary hover:bg-accent-primary hover:text-white cursor-pointer' : 'text-text-muted opacity-50 cursor-not-allowed'}`}
-                            title="Reproducir y Compartir"
+                              ${(job.status?.toLowerCase() === 'completed' || job.status?.toLowerCase() === 'done') ? 'text-accent-primary hover:bg-accent-primary hover:text-white cursor-pointer' : 'text-text-muted opacity-50 cursor-not-allowed'}`}
+                            title={job.status?.toLowerCase() === 'deleted' ? "Archivo eliminado" : "Reproducir y Compartir"}
                           >
                             <Play size={16} fill="currentColor" />
                           </button>
@@ -297,24 +297,24 @@ export const VideoStudio = () => {
               <video 
                 controls 
                 autoPlay 
-                src={`http://localhost:7860/v1/video/stream?path=job_${selectedVideo.id}/video_${selectedVideo.id}.mp4`} 
+                src={`http://localhost:7860/v1/video/stream?path=${selectedVideo.output_path?.split(/[/\\]/).pop() || ''}`} 
                 className="max-h-[60vh] rounded-lg shadow-[0_0_40px_rgba(0,0,0,0.8)]"
               />
             </div>
             <div className="p-6 bg-card border-t border-border-subtle">
               <h4 className="text-xs font-black text-text-muted uppercase tracking-widest mb-4">Exportar & Monetizar</h4>
               <div className="flex flex-wrap gap-4">
-                <button className="flex-1 min-w-[140px] py-3 bg-blue-600/10 text-blue-500 border border-blue-500/30 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white transition-all shadow-lg">
+                <button onClick={() => alert("Publicación automática en Facebook en desarrollo para V12.1")} className="flex-1 min-w-[140px] py-3 bg-blue-600/10 text-blue-500 border border-blue-500/30 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white transition-all shadow-lg">
                   <Share2 size={18}/> Facebook
                 </button>
-                <button className="flex-1 min-w-[140px] py-3 bg-pink-600/10 text-pink-500 border border-pink-500/30 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-pink-600 hover:text-white transition-all shadow-lg">
+                <button onClick={() => alert("Publicación automática en Instagram Reels en desarrollo para V12.1")} className="flex-1 min-w-[140px] py-3 bg-pink-600/10 text-pink-500 border border-pink-500/30 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-pink-600 hover:text-white transition-all shadow-lg">
                   <Camera size={18}/> Reels
                 </button>
-                <button className="flex-1 min-w-[140px] py-3 bg-red-600/10 text-red-500 border border-red-500/30 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-red-600 hover:text-white transition-all shadow-lg">
+                <button onClick={() => alert("Publicación automática en YouTube Shorts en desarrollo para V12.1")} className="flex-1 min-w-[140px] py-3 bg-red-600/10 text-red-500 border border-red-500/30 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-red-600 hover:text-white transition-all shadow-lg">
                   <MonitorPlay size={18}/> Shorts
                 </button>
                 <a 
-                  href={`http://localhost:7860/v1/video/stream?path=job_${selectedVideo.id}/video_${selectedVideo.id}.mp4`} 
+                  href={`http://localhost:7860/v1/video/download?file=${selectedVideo.output_path?.split(/[/\\]/).pop() || ''}`} 
                   download
                   target="_blank" rel="noreferrer"
                   className="flex-1 min-w-[140px] py-3 bg-surface border border-border-subtle font-bold text-text-primary rounded-xl flex items-center justify-center gap-2 hover:bg-accent-primary hover:border-accent-primary hover:text-white transition-all shadow-lg"

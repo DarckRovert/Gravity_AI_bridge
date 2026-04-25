@@ -3,12 +3,22 @@ import { Send, Search, Shield, Brain, DollarSign, Trash2 } from 'lucide-react';
 import type { Message } from '../types';
 
 export const ChatAuditor: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'system',
-      content: `👋 **Bienvenido a Gravity AI Bridge V12 [Organismo Vivo]**\n\nSistema de orquestación unificada en línea con arquitectura React/Vite.\n\n**Módulos Activos:**\n- 🧠 **Gravity Brain**: Telemetría inyectada en tiempo real.\n- 🎨 **Vision Studio**: Renderizado paralelo V12.\n- 🎬 **Video Studio**: FFMPEG orquestado conversacionalmente.\n\n**Atajos rápidos:**\n\`/help\` — Comandos disponibles\n\`/search\` — Búsqueda web\n\`/status\` — Auditoría de sistema`
+  const defaultMessage: Message = {
+    role: 'system',
+    content: `👋 **Bienvenido a Gravity AI Bridge V12 [Organismo Vivo]**\n\nSistema de orquestación unificada en línea con arquitectura React/Vite.\n\n**Módulos Activos:**\n- 🧠 **Gravity Brain**: Telemetría inyectada en tiempo real.\n- 🎨 **Vision Studio**: Renderizado paralelo V12.\n- 🎬 **Video Studio**: FFMPEG orquestado conversacionalmente.\n\n**Atajos rápidos:**\n\`/help\` — Comandos disponibles\n\`/search\` — Búsqueda web\n\`/status\` — Auditoría de sistema`
+  };
+
+  const [messages, setMessages] = useState<Message[]>(() => {
+    try {
+      const saved = localStorage.getItem('gravity_chat_auditor_history');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error("Failed to parse chat history:", e);
     }
-  ]);
+    return [defaultMessage];
+  });
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -20,6 +30,10 @@ export const ChatAuditor: React.FC = () => {
 
   useEffect(() => {
     scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    localStorage.setItem('gravity_chat_auditor_history', JSON.stringify(messages));
   }, [messages]);
 
   const handleSend = async () => {
@@ -176,7 +190,7 @@ export const ChatAuditor: React.FC = () => {
             <button onClick={() => injectHint('!aprende ')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border-subtle text-xs text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"><Brain size={14} /> Persistir regla</button>
             <button onClick={() => injectHint('/cost')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border-subtle text-xs text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"><DollarSign size={14} /> Ver consumo</button>
             
-            <button onClick={() => setMessages([messages[0]])} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-status-error/10 text-xs text-text-muted hover:text-status-error transition-colors ml-auto"><Trash2 size={14} /> Limpiar Chat</button>
+            <button onClick={() => setMessages([defaultMessage])} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-status-error/10 text-xs text-text-muted hover:text-status-error transition-colors ml-auto"><Trash2 size={14} /> Limpiar Chat</button>
           </div>
         </div>
       </div>
