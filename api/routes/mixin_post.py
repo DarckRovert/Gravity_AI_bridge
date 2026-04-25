@@ -606,6 +606,8 @@ class PostRoutesMixin:
                 transitions   = bool(data.get("transitions", True))
                 subtitles     = bool(data.get("subtitles", True))
                 resolution    = data.get("resolution", "1024x1024").strip()
+                title         = data.get("title", "").strip()
+                bgm_type      = data.get("bgm_type", "ninguna").strip()
                 job_id        = video_pipeline.add_job(
                     topic          = topic,
                     n_scenes       = n_scenes,
@@ -616,6 +618,8 @@ class PostRoutesMixin:
                     transitions    = transitions,
                     resolution     = resolution,
                     subtitles      = subtitles,
+                    title          = title,
+                    bgm_type       = bgm_type,
                 )
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")

@@ -3,6 +3,7 @@ import { Video, Film, PlayCircle, Clock, CheckCircle2, AlertCircle, Plus, Refres
 
 export const VideoStudio = () => {
   const [status, setStatus] = useState<any>(null);
+  const [title, setTitle] = useState('');
   const [topic, setTopic] = useState('');
   const [scenes, setScenes] = useState(6);
   const [voiceSpeed, setVoiceSpeed] = useState(150);
@@ -11,6 +12,7 @@ export const VideoStudio = () => {
   const [transitions, setTransitions] = useState(true);
   const [resolution, setResolution] = useState('1216x832');
   const [subtitles, setSubtitles] = useState(true);
+  const [bgmType, setBgmType] = useState('ninguna');
   const [creating, setCreating] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
 
@@ -42,10 +44,13 @@ export const VideoStudio = () => {
           narration_lang: lang,
           transitions,
           resolution,
-          subtitles
+          subtitles,
+          title,
+          bgm_type: bgmType
         })
       });
       setTopic('');
+      setTitle('');
       fetchStatus();
     } catch (e) {
       alert('Error al encolar video');
@@ -83,12 +88,39 @@ export const VideoStudio = () => {
               <h2 className="text-lg font-bold text-text-primary flex items-center gap-2"><Plus size={18} className="text-accent-primary"/> Nueva Producción</h2>
               
               <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Título del Video</label>
+                    <input 
+                      type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Ej: El Misterio del Universo..."
+                      className="w-full bg-card border border-border-subtle rounded-xl p-4 text-sm text-text-primary outline-none focus:border-accent-primary transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Música de Fondo</label>
+                    <select 
+                      value={bgmType}
+                      onChange={(e) => setBgmType(e.target.value)}
+                      className="w-full bg-card border border-border-subtle rounded-xl p-4 text-sm text-text-primary outline-none focus:border-accent-primary"
+                    >
+                      <option value="ninguna">Sin Música</option>
+                      <option value="epico">Épica / Cinemática</option>
+                      <option value="documental">Documental / Chill</option>
+                      <option value="synthwave">Retro / Synthwave</option>
+                      <option value="jazz">Jazz / Lounge</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div>
                   <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Tema / Guion</label>
                   <textarea 
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
-                    placeholder="Ej: Historia de la computación cuántica..."
+                    placeholder="Ej: Escribe aquí la historia que quieres contar..."
                     className="w-full bg-card border border-border-subtle rounded-xl p-4 text-sm text-text-primary outline-none focus:border-accent-primary transition-all h-32 resize-none"
                   />
                 </div>
@@ -251,7 +283,7 @@ export const VideoStudio = () => {
                       <tr key={job.id} className="hover:bg-card transition-colors group">
                         <td className="px-6 py-4 font-mono text-xs text-text-muted">#{job.id}</td>
                         <td className="px-6 py-4">
-                          <div className="font-bold text-text-primary">{job.topic}</div>
+                          <div className="font-bold text-text-primary">{job.title || job.topic}</div>
                           <div className="text-[10px] text-text-muted mt-0.5">{job.style} • {job.scenes} escenas</div>
                         </td>
                         <td className="px-6 py-4">
@@ -304,13 +336,13 @@ export const VideoStudio = () => {
             <div className="p-6 bg-card border-t border-border-subtle">
               <h4 className="text-xs font-black text-text-muted uppercase tracking-widest mb-4">Exportar & Monetizar</h4>
               <div className="flex flex-wrap gap-4">
-                <button onClick={() => alert("Publicación automática en Facebook en desarrollo para V12.1")} className="flex-1 min-w-[140px] py-3 bg-blue-600/10 text-blue-500 border border-blue-500/30 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white transition-all shadow-lg">
+                <button onClick={() => window.open("https://business.facebook.com/creatorstudio/home", "_blank")} className="flex-1 min-w-[140px] py-3 bg-blue-600/10 text-blue-500 border border-blue-500/30 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white transition-all shadow-lg">
                   <Share2 size={18}/> Facebook
                 </button>
-                <button onClick={() => alert("Publicación automática en Instagram Reels en desarrollo para V12.1")} className="flex-1 min-w-[140px] py-3 bg-pink-600/10 text-pink-500 border border-pink-500/30 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-pink-600 hover:text-white transition-all shadow-lg">
+                <button onClick={() => window.open("https://www.instagram.com/", "_blank")} className="flex-1 min-w-[140px] py-3 bg-pink-600/10 text-pink-500 border border-pink-500/30 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-pink-600 hover:text-white transition-all shadow-lg">
                   <Camera size={18}/> Reels
                 </button>
-                <button onClick={() => alert("Publicación automática en YouTube Shorts en desarrollo para V12.1")} className="flex-1 min-w-[140px] py-3 bg-red-600/10 text-red-500 border border-red-500/30 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-red-600 hover:text-white transition-all shadow-lg">
+                <button onClick={() => window.open("https://studio.youtube.com/", "_blank")} className="flex-1 min-w-[140px] py-3 bg-red-600/10 text-red-500 border border-red-500/30 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-red-600 hover:text-white transition-all shadow-lg">
                   <MonitorPlay size={18}/> Shorts
                 </button>
                 <a 
