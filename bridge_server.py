@@ -170,6 +170,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             "/v1/video/status":     self._serve_video_status,
             "/v1/video/download":   self._serve_video_download,
             "/v1/video/voices":     self._serve_video_voices,
+            "/v1/video/engines":    self._serve_video_engines,
             "/v1/video/stream":     self._serve_video_stream,
             "/v1/video/thumbnail":  self._serve_video_thumbnail,
             "/v1/video/list":       self._serve_video_list,

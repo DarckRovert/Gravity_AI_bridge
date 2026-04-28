@@ -1,0 +1,37 @@
+    if os.path.isfile(bgm_path) and os.path.getsize(bgm_path) > 4096:
+        return True
+    if bgm_type not in BGM_GENERATORS:
+        log.warning('[VideoStudio] BGM tipo desconocido: ' + bgm_type)
+        return False
+    if not os.path.isfile(FFMPEG_EXE):
+        log.error('[VideoStudio] ffmpeg no encontrado para generar BGM.')
+        return False
+    os.makedirs(os.path.dirname(bgm_path), exist_ok=True)
+    dur = 600
+    expr = BGM_GENERATORS[bgm_type]
+    aevalsrc_arg = expr + ':c=stereo:s=44100:d=' + str(dur)
+    fade_out_st = dur - 4
+    cmd = [
+        FFMPEG_EXE, '-y',
+        '-f', 'lavfi', '-i', 'aevalsrc=' + aevalsrc_arg,
+        '-af', 'volume=0.45,afade=t=in:st=0:d=4,afade=t=out:st=' + str(fade_out_st) + ':d=4',
+        '-ar', '44100', '-ac', '2',
+        '-c:a', 'libmp3lame', '-b:a', '128k',
+        '-t', str(dur),
+        bgm_path,
+    ]
+    try:
+        result = subprocess.run(
+            cmd, capture_output=True, timeout=120,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
+        if result.returncode == 0 and os.path.isfile(bgm_path) and os.path.getsize(bgm_path) > 4096:
+            size_kb = os.path.getsize(bgm_path) // 1024
+            log.info('[VideoStudio] BGM generado localmente (' + str(size_kb) + ' KB): ' + os.path.basename(bgm_path))
+            return True
+        err = result.stderr.decode(errors='replace')[-400:]
+        log.error('[VideoStudio] Error generando BGM ' + bgm_type + ': ' + err)
+        return False
+    except Exception as e:
+        log.error('[VideoStudio] Excepcion generando BGM: ' + str(e))
+        return False

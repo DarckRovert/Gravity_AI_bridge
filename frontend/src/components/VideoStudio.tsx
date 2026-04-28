@@ -23,6 +23,11 @@ export const VideoStudio = () => {
   const [kenBurns, setKenBurns] = useState(true);
   const [introCard, setIntroCard] = useState(false);
   const [colorGrade, setColorGrade] = useState('auto');
+  const [engines, setEngines] = useState<any[]>([]);
+  const [ttsEngines, setTtsEngines] = useState<any>({});
+  const [geminiVoices, setGeminiVoices] = useState<Record<string,string>>({});
+  const [useGeminiTts, setUseGeminiTts] = useState(false);
+  const [geminiVoiceId, setGeminiVoiceId] = useState('Aoede');
   
   const applyPreset = (preset: string) => {
     if (preset === 'documentary') {
@@ -102,6 +107,18 @@ export const VideoStudio = () => {
       if (res.ok) {
         const data = await res.json();
         setVoices(data.voices || []);
+        if (data.tts_engines) setTtsEngines(data.tts_engines);
+        if (data.tts_engines?.gemini?.voices) setGeminiVoices(data.tts_engines.gemini.voices);
+      }
+    } catch (e) {}
+  };
+
+  const fetchEngines = async () => {
+    try {
+      const res = await fetch('http://localhost:7860/v1/video/engines');
+      if (res.ok) {
+        const data = await res.json();
+        setEngines(data.engines || []);
       }
     } catch (e) {}
   };
@@ -109,8 +126,10 @@ export const VideoStudio = () => {
   useEffect(() => {
     fetchStatus();
     fetchVoices();
-    const iv = setInterval(fetchStatus, 3000); // Polling más rápido para mejor UX
-    return () => clearInterval(iv);
+    fetchEngines();
+    const iv = setInterval(fetchStatus, 3000);
+    const ivEngines = setInterval(fetchEngines, 15000);
+    return () => { clearInterval(iv); clearInterval(ivEngines); };
   }, []);
 
   const createVideo = async () => {
@@ -125,7 +144,7 @@ export const VideoStudio = () => {
           n_scenes: scenes, 
           style,
           voice_speed: voiceSpeed,
-          voice_id: voiceId,
+          voice_id: useGeminiTts ? `gemini:${geminiVoiceId}` : voiceId,
           narration_lang: lang,
           transitions,
           resolution,
@@ -146,7 +165,7 @@ export const VideoStudio = () => {
       });
       setTopic('');
       setTitle('');
-      setActiveTab('queue'); // Cambiar a la pestaña de cola al crear
+      setActiveTab('queue');
       fetchStatus();
     } catch (e) {
       alert('Error al encolar video');
@@ -344,7 +363,7 @@ export const VideoStudio = () => {
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                           <label className="text-[10px] text-text-muted uppercase font-bold">Voz Principal</label>
-                          <select value={voiceId} onChange={(e) => setVoiceId(e.target.value)} className="w-full bg-surface border border-border-subtle rounded-md p-2 text-xs outline-none">
+                          <select value={voiceId} onChange={(e) => setVoiceId(e.target.value)} disabled={useGeminiTts} className="w-full bg-surface border border-border-subtle rounded-md p-2 text-xs outline-none disabled:opacity-40">
                             <option value="">Auto (Sistema)</option>
                             {voices.map((v) => (
                               <option key={v.id} value={v.id}>{v.name} ({v.lang})</option>
@@ -368,7 +387,7 @@ export const VideoStudio = () => {
                                  }
                                } catch (e) { console.error('preview_voice:', e); }
                              }}
-                             disabled={!voiceId}
+                             disabled={!voiceId || useGeminiTts}
                              className="mt-1.5 w-full px-3 py-1.5 bg-surface/50 border border-border-subtle rounded-md text-[10px] font-bold uppercase tracking-wider text-text-muted hover:text-accent-primary hover:border-accent-primary/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                            >
                              ▶ Preview de Voz
@@ -383,6 +402,48 @@ export const VideoStudio = () => {
                           </select>
                         </div>
                       </div>
+
+                      {/* Gemini TTS Premium */}
+                      {ttsEngines?.gemini?.available && (
+                        <div className="rounded-xl border border-violet-500/30 bg-violet-500/5 p-3 space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-violet-400 animate-pulse"></span>
+                              <span className="text-[10px] font-black text-violet-300 uppercase tracking-widest">Gemini TTS Premium</span>
+                              <span className="px-1.5 py-0.5 rounded bg-violet-500/20 border border-violet-400/30 text-[9px] font-bold text-violet-300">ONLINE</span>
+                            </div>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <span className="text-[10px] text-text-muted">Activar</span>
+                              <div
+                                onClick={() => setUseGeminiTts(!useGeminiTts)}
+                                className={`w-9 h-5 rounded-full relative cursor-pointer transition-all duration-300 border ${
+                                  useGeminiTts
+                                    ? 'bg-violet-500 border-violet-400'
+                                    : 'bg-surface border-border-subtle'
+                                }`}
+                              >
+                                <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-300 ${
+                                  useGeminiTts ? 'left-4' : 'left-0.5'
+                                }`} />
+                              </div>
+                            </label>
+                          </div>
+                          {useGeminiTts && (
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] text-text-muted uppercase font-bold">Voz Gemini</label>
+                              <select
+                                value={geminiVoiceId}
+                                onChange={(e) => setGeminiVoiceId(e.target.value)}
+                                className="w-full bg-surface border border-violet-500/40 rounded-md p-2 text-xs outline-none focus:border-violet-400"
+                              >
+                                {Object.entries(geminiVoices).map(([name, desc]) => (
+                                  <option key={name} value={name}>{name} — {desc}</option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
@@ -510,6 +571,47 @@ export const VideoStudio = () => {
 
               {/* Panel de Ejecución (Sidebar) */}
               <div className="lg:col-span-4 space-y-6">
+
+                {/* Engine Status Panel */}
+                <div className="glass-panel rounded-2xl border border-border-subtle overflow-hidden">
+                  <div className="p-3 border-b border-border-subtle bg-surface/50 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-status-success animate-pulse"></span>
+                    <h3 className="text-[10px] font-black text-text-primary uppercase tracking-widest">Motor Status</h3>
+                  </div>
+                  <div className="p-3 space-y-1.5">
+                    {engines.length === 0 ? (
+                      <div className="text-[10px] text-text-muted text-center py-2">Cargando motores...</div>
+                    ) : engines.map((eng) => (
+                      <div key={eng.id} className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-background/50 border border-border-subtle/50">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                            eng.online ? 'bg-status-success' : 'bg-status-error'
+                          }`}></span>
+                          <div className="min-w-0">
+                            <div className="text-[10px] font-bold text-text-primary truncate">{eng.label}</div>
+                            <div className="text-[9px] text-text-muted truncate">{eng.description}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                          <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase border ${
+                            eng.type === 'image' ? 'border-blue-500/30 text-blue-400 bg-blue-500/10' :
+                            eng.type === 'image_video' ? 'border-purple-500/30 text-purple-400 bg-purple-500/10' :
+                            'border-green-500/30 text-green-400 bg-green-500/10'
+                          }`}>
+                            {eng.type === 'image' ? 'IMG' : eng.type === 'image_video' ? 'I2V' : 'TTS'}
+                          </span>
+                          <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${
+                            eng.online
+                              ? 'bg-status-success/15 text-status-success'
+                              : 'bg-status-error/15 text-status-error'
+                          }`}>
+                            {eng.online ? 'ON' : 'OFF'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
                 <div className="glass-panel p-6 rounded-2xl border-accent-primary/30 bg-gradient-to-b from-surface to-background shadow-[0_0_30px_rgba(0,0,0,0.5)] flex flex-col h-full justify-between">
                   <div>
                     <h3 className="text-sm font-black text-text-primary uppercase tracking-widest mb-6 flex items-center gap-2">

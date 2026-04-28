@@ -782,21 +782,43 @@ class GetRoutesMixin:
             self.wfile.write(json.dumps({"error": str(e)}).encode())
 
     def _serve_video_voices(self):
-        """GET /v1/video/voices — Lista las voces SAPI disponibles con metadatos."""
+        """GET /v1/video/voices — Lista voces SAPI + info de motores TTS activos."""
         try:
             voices = video_pipeline.get_available_voices()
             styles = {k: v["label"] for k, v in video_pipeline.CINEMA_STYLES.items()}
+
+            # Detectar si Gemini TTS está configurado
+            gemini_configured = False
+            gemini_voices: dict = {}
+            try:
+                import sys as _sys, os as _os
+                BASE_DIR_g = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+                _int_dir   = _os.path.join(BASE_DIR_g, "_integrations")
+                if _int_dir not in _sys.path:
+                    _sys.path.insert(0, _int_dir)
+                from gemini_tts import list_voices as _gemini_voices, get_api_key_from_gravity
+                gemini_key = get_api_key_from_gravity()
+                if gemini_key:
+                    gemini_configured = True
+                    gemini_voices = _gemini_voices()
+            except Exception:
+                pass
+
             body = json.dumps({
-                "voices":  voices,
-                "count":   len(voices),
-                "styles":  styles,
-                "langs":   {
+                "voices":            voices,
+                "count":             len(voices),
+                "styles":            styles,
+                "langs":             {
                     "es": "Español",
                     "en": "English",
                     "pt": "Português",
                     "fr": "Français",
                     "de": "Deutsch",
                     "it": "Italiano",
+                },
+                "tts_engines": {
+                    "sapi":   {"available": len(voices) > 0, "label": "Windows SAPI (offline)"},
+                    "gemini": {"available": gemini_configured, "label": "Gemini TTS (online)", "voices": gemini_voices},
                 },
             }, ensure_ascii=False).encode("utf-8")
             self.send_response(200)
@@ -808,6 +830,99 @@ class GetRoutesMixin:
             self.send_response(500)
             self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_video_engines(self):
+        """GET /v1/video/engines — Estado en tiempo real de todos los motores de producción."""
+        import socket
+        engines: list[dict] = []
+
+        # Motor 1: Pollinations.ai (imagen)
+        poll_ok = False
+        try:
+            import urllib.request
+            urllib.request.urlopen("https://image.pollinations.ai/", timeout=3)
+            poll_ok = True
+        except Exception:
+            pass
+        engines.append({
+            "id": "pollinations", "label": "Pollinations.ai",
+            "type": "image", "tier": 1,
+            "online": poll_ok,
+            "description": "Generación de imágenes vía API remota",
+        })
+
+        # Motor 2: ComfyUI (imagen animada / I2V)
+        comfy_ok = False
+        try:
+            sock = socket.create_connection(("127.0.0.1", 8188), timeout=1.5)
+            sock.close()
+            comfy_ok = True
+        except Exception:
+            pass
+        engines.append({
+            "id": "comfyui", "label": "ComfyUI (LTX-Video)",
+            "type": "image_video", "tier": 2,
+            "online": comfy_ok,
+            "description": "Generación I2V local (requiere ComfyUI en :8188)",
+        })
+
+        # Motor 3: Fooocus (imagen local)
+        fooocus_ok = False
+        try:
+            import sys as _sys, os as _os
+            BASE_DIR_f = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+            tools_dir  = _os.path.join(BASE_DIR_f, "tools")
+            if tools_dir not in _sys.path:
+                _sys.path.insert(0, tools_dir)
+            from fooocus_client import health_check as _fhc
+            fooocus_ok = _fhc().get("online", False)
+        except Exception:
+            pass
+        engines.append({
+            "id": "fooocus", "label": "Fooocus",
+            "type": "image", "tier": 3,
+            "online": fooocus_ok,
+            "description": "Generación de imágenes local vía Gradio",
+        })
+
+        # Motor 4: Windows SAPI (TTS offline)
+        sapi_voices = []
+        try:
+            sapi_voices = video_pipeline.get_available_voices()
+        except Exception:
+            pass
+        engines.append({
+            "id": "sapi", "label": "Windows SAPI",
+            "type": "tts", "tier": 1,
+            "online": len(sapi_voices) > 0,
+            "description": f"{len(sapi_voices)} voces instaladas (offline)",
+        })
+
+        # Motor 5: Gemini TTS (online)
+        gemini_ok = False
+        try:
+            import sys as _sys2, os as _os2
+            BASE_DIR_gt = _os2.path.dirname(_os2.path.dirname(_os2.path.dirname(_os2.path.abspath(__file__))))
+            _int_dir2   = _os2.path.join(BASE_DIR_gt, "_integrations")
+            if _int_dir2 not in _sys2.path:
+                _sys2.path.insert(0, _int_dir2)
+            from gemini_tts import get_api_key_from_gravity as _gak
+            gemini_ok = bool(_gak())
+        except Exception:
+            pass
+        engines.append({
+            "id": "gemini_tts", "label": "Gemini TTS",
+            "type": "tts", "tier": 3,
+            "online": gemini_ok,
+            "description": "Síntesis premium vía Google AI Studio (requiere API key)",
+        })
+
+        body = json.dumps({"engines": engines, "count": len(engines)}, indent=2).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self._send_cors()
+        self.end_headers()
+        self.wfile.write(body)
 
     # ── Gravity Brain — Contexto sistémico ────────────────────────────────────
     def _serve_gravity_context(self):

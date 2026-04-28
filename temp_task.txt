@@ -1,0 +1,11 @@
+Task: Develop a Python module named `comfy_client.py` for the Gravity AI Bridge V12.1 project.
+The module must act as a REST and WebSocket client for a local ComfyUI instance.
+
+Requirements:
+1. The module must be a class named `ComfyUIClient`.
+2. Initialization: Accept the host/port (default: `127.0.0.1:8188`).
+3. Method `queue_prompt(prompt_workflow: dict)`: Sends a JSON workflow to the `/prompt` endpoint.
+4. Method `get_image(filename: str, subfolder: str, folder_type: str)`: Downloads the generated output from the `/view` endpoint.
+5. Method `wait_for_completion(client_id: str, prompt_id: str)`: Connects via WebSocket (`ws://host/ws?clientId=...`) and blocks until the execution of `prompt_id` is marked as completed. It should capture the generated output filenames.
+6. Type hinting and proper Error handling (e.g., using `urllib` or `requests` and `websockets` libraries, if external libraries are needed, fallback to standard libraries where possible except `websocket-client`).
+7. NO placeholders. Provide the complete code ready to be saved into `core/comfy_client.py`.
