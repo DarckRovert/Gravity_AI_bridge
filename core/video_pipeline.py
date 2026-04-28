@@ -1000,7 +1000,26 @@ def _generate_audio(
         return ok
     except Exception as e:
         log.error(f"[VideoStudio] Error TTS pyttsx3: {e}")
-        return False
+
+    # ── Motor Tier-3: Gemini TTS (online, premium, solo si API key configurada) ─
+    try:
+        import sys as _sys
+        _integrations_dir = os.path.join(BASE_DIR, "_integrations")
+        if _integrations_dir not in _sys.path:
+            _sys.path.insert(0, _integrations_dir)
+        from gemini_tts import synthesize_gemini, get_api_key_from_gravity
+        gemini_key = get_api_key_from_gravity()
+        if gemini_key:
+            log.info("[VideoStudio] TTS Gemini: intentando síntesis premium (motor local no disponible).")
+            ok = synthesize_gemini(text, output_wav, api_key=gemini_key)
+            if ok:
+                size_kb = os.path.getsize(output_wav) // 1024
+                log.info(f"[VideoStudio] Audio (Gemini TTS): {os.path.basename(output_wav)} ({size_kb} KB)")
+                return True
+    except Exception as e:
+        log.warning(f"[VideoStudio] TTS Gemini error: {e}")
+
+    return False
 
 
 # â”€â”€ Paso 5: Ensamblado por escena con fade â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

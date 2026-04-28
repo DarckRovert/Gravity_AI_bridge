@@ -854,7 +854,7 @@ if __name__ == "__main__":
         # Inyectar MemDir para comandos pipe
         cli.session.inject_mem_dir(BASE_DIR)
         
-        resp = provider_manager.complete(cli.history, bm, bp.name, cli.sm.data.get("advanced_params", {}))
+        resp = provider_manager.complete(cli.history, bm, bp, cli.sm.data.get("advanced_params", {}))
         print(resp)
         for tname, succ, out in tools.parse_and_execute_all(resp):
             if not succ:
