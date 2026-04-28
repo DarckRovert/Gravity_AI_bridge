@@ -1336,7 +1336,7 @@ def _concatenate_clips(clip_paths: list[str], output_mp4: str, bgm_type: str = "
             # Threshold=0.1: Sensibilidad al habla | Ratio=5: Nivel de reducción | Attack/Release: Suavidad
             filter_str = (
                 f"anullsrc=channel_layout=stereo:sample_rate=44100[silence];"
-                f"[0:a][silence]amix=inputs=2:duration=longest[narr_mixed];"
+                f"[0:a][silence]amix=inputs=2:duration=first[narr_mixed];"
                 f"[narr_mixed]asplit[narr_main][narr_side];"
                 f"[1:a][narr_side]sidechaincompress=threshold=0.1:ratio=5:attack=200:release=1000[bgm_ducked];"
                 f"[bgm_ducked]volume={bgm_volume}[bgm_final];"
