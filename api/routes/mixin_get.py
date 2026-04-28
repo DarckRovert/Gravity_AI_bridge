@@ -749,9 +749,27 @@ class GetRoutesMixin:
             self.wfile.write(json.dumps({"error": str(e)}).encode())
 
     def _serve_video_status(self):
-        """GET /v1/video/status — Estado completo de la cola de video."""
+        """GET /v1/video/status — Estado completo de la cola de video con métricas de disco."""
         try:
             data = video_pipeline.get_queue_status()
+            # Añadir métricas de disco reales
+            try:
+                import shutil
+                BASE_DIR_v = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                videos_dir = os.path.join(BASE_DIR_v, "_videos")
+                disk = shutil.disk_usage(videos_dir if os.path.isdir(videos_dir) else BASE_DIR_v)
+                data["disk_total_gb"] = round(disk.total / (1024**3), 1)
+                data["disk_used_gb"]  = round(disk.used  / (1024**3), 1)
+                data["disk_free_gb"]  = round(disk.free  / (1024**3), 1)
+                data["disk_pct"]      = round(disk.used  / disk.total * 100, 1)
+                # Tamaño total de la carpeta _videos
+                total_size = sum(
+                    os.path.getsize(os.path.join(dp, f))
+                    for dp, dn, fns in os.walk(videos_dir) for f in fns
+                ) if os.path.isdir(videos_dir) else 0
+                data["videos_size_gb"] = round(total_size / (1024**3), 3)
+            except Exception:
+                pass
             body = json.dumps(data, ensure_ascii=False, default=str).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
@@ -922,6 +940,22 @@ class GetRoutesMixin:
             videos_dir = os.path.join(BASE_DIR_v, "_videos")
             videos = []
             if os.path.isdir(videos_dir):
+                # 1. Buscar en la raíz (videos finales)
+                for fname in os.listdir(videos_dir):
+                    fpath = os.path.join(videos_dir, fname)
+                    if os.path.isfile(fpath) and fname.endswith(".mp4"):
+                        size_mb = os.path.getsize(fpath) / (1024 * 1024)
+                        mtime = time.strftime('%Y-%m-%d %H:%M', time.localtime(os.path.getmtime(fpath)))
+                        videos.append({
+                            "filename": fname,
+                            "job_dir": "",
+                            "path": fname,
+                            "size_mb": round(size_mb, 2),
+                            "date": mtime,
+                            "download_url": f"/v1/video/download?file={fname}",
+                            "stream_url": f"/v1/video/stream?path={fname}",
+                        })
+                # 2. Buscar en subdirectorios (clips crudos)
                 for job_dir in sorted(os.listdir(videos_dir)):
                     job_path = os.path.join(videos_dir, job_dir)
                     if os.path.isdir(job_path):
@@ -936,7 +970,7 @@ class GetRoutesMixin:
                                     "path": f"{job_dir}/{fname}",
                                     "size_mb": round(size_mb, 2),
                                     "date": mtime,
-                                    "download_url": f"/v1/video/download?file={fname}",
+                                    "download_url": f"/v1/video/download?file={job_dir}/{fname}",
                                     "stream_url": f"/v1/video/stream?path={job_dir}/{fname}",
                                 })
             body = json.dumps({"videos": videos, "count": len(videos)}, indent=2).encode("utf-8")
@@ -951,7 +985,7 @@ class GetRoutesMixin:
             self.wfile.write(json.dumps({"error": str(e)}).encode())
 
     def _serve_video_stream(self):
-        """GET /v1/video/stream?path=job_X/video.mp4 — Preview de video."""
+        """GET /v1/video/stream?path=<relpath|basename> — Preview de video con soporte de Range."""
         try:
             from urllib.parse import urlparse, parse_qs
             qs = parse_qs(urlparse(self.path).query)
@@ -960,11 +994,53 @@ class GetRoutesMixin:
                 self.send_response(400); self.end_headers()
                 self.wfile.write(b'{"error":"path invalido"}'); return
             BASE_DIR_v = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            video_path = os.path.join(BASE_DIR_v, "_videos", rel_path.replace("/", os.sep))
+            videos_dir = os.path.join(BASE_DIR_v, "_videos")
+            # Buscar: 1) path relativo directo, 2) en raiz, 3) busqueda recursiva por nombre
+            video_path = os.path.join(videos_dir, rel_path.replace("/", os.sep))
             if not os.path.isfile(video_path):
-                self.send_response(404); self.end_headers()
-                self.wfile.write(b'{"error":"video no encontrado"}'); return
+                basename = os.path.basename(rel_path)
+                # Buscar en raiz de _videos
+                candidate = os.path.join(videos_dir, basename)
+                if os.path.isfile(candidate):
+                    video_path = candidate
+                else:
+                    # Busqueda recursiva
+                    import glob
+                    matches = glob.glob(os.path.join(videos_dir, "**", basename), recursive=True)
+                    if matches:
+                        video_path = matches[0]
+                    else:
+                        self.send_response(404); self.end_headers()
+                        self.wfile.write(b'{"error":"video no encontrado"}'); return
             size = os.path.getsize(video_path)
+            # Soporte Range para reproductores
+            range_header = self.headers.get("Range", "")
+            if range_header and range_header.startswith("bytes="):
+                try:
+                    parts = range_header[6:].split("-")
+                    start = int(parts[0]) if parts[0] else 0
+                    end   = int(parts[1]) if len(parts) > 1 and parts[1] else size - 1
+                    end   = min(end, size - 1)
+                    length = end - start + 1
+                    self.send_response(206)
+                    self.send_header("Content-Type", "video/mp4")
+                    self.send_header("Content-Length", str(length))
+                    self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+                    self.send_header("Accept-Ranges", "bytes")
+                    self._send_cors()
+                    self.end_headers()
+                    with open(video_path, "rb") as f:
+                        f.seek(start)
+                        remaining = length
+                        while remaining > 0:
+                            chunk = f.read(min(65536, remaining))
+                            if not chunk:
+                                break
+                            self.wfile.write(chunk)
+                            remaining -= len(chunk)
+                    return
+                except Exception:
+                    pass
             self.send_response(200)
             self.send_header("Content-Type", "video/mp4")
             self.send_header("Content-Length", str(size))
@@ -994,8 +1070,20 @@ class GetRoutesMixin:
                 self.wfile.write(b'{"error":"Nombre de archivo invalido."}')
                 return
             BASE_DIR   = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            video_path = os.path.join(BASE_DIR, "_videos", filename)
-            if not os.path.isfile(video_path):
+            videos_dir = os.path.join(BASE_DIR, "_videos")
+            
+            video_path = None
+            if os.path.isfile(os.path.join(videos_dir, filename)):
+                video_path = os.path.join(videos_dir, filename)
+            else:
+                for job_dir in os.listdir(videos_dir):
+                    if os.path.isdir(os.path.join(videos_dir, job_dir)):
+                        potential = os.path.join(videos_dir, job_dir, filename)
+                        if os.path.isfile(potential):
+                            video_path = potential
+                            break
+            
+            if not video_path:
                 self.send_response(404)
                 self.end_headers()
                 self.wfile.write(b'{"error":"Archivo no encontrado."}')
@@ -1019,6 +1107,31 @@ class GetRoutesMixin:
             self.wfile.write(json.dumps({"error": str(e)}).encode())
 
     # ── Pollinations.ai Motor ─────────────────────────────────────────────────
+
+    def _serve_video_thumbnail(self):
+        """GET /v1/video/thumbnail?job_id=N — Sirve el thumbnail JPEG de un job."""
+        try:
+            from urllib.parse import urlparse, parse_qs
+            qs = parse_qs(urlparse(self.path).query)
+            job_id = int(qs.get('job_id', [0])[0])
+            BASE_DIR_v = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            thumb_path = os.path.join(BASE_DIR_v, '_videos', 'thumb_' + str(job_id) + '.jpg')
+            if not os.path.isfile(thumb_path):
+                self.send_response(404); self.end_headers()
+                self.wfile.write(b'{}'); return
+            with open(thumb_path, 'rb') as f:
+                data = f.read()
+            self.send_response(200)
+            self.send_header('Content-Type', 'image/jpeg')
+            self.send_header('Content-Length', str(len(data)))
+            self.send_header('Cache-Control', 'public, max-age=3600')
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(data)
+        except Exception as e:
+            self.send_response(500); self.end_headers()
+            self.wfile.write(('{"error":"' + str(e) + '"}').encode())
+
     def _serve_pollinations_health(self):
         """GET /v1/image/health — Estado de conectividad con Pollinations.ai."""
         try:

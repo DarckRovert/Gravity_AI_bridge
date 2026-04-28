@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║          GRAVITY AI - BRIDGE SERVER V12.0 [Omniscient-Tier Edition]          ║
+║          GRAVITY AI - BRIDGE SERVER V12.1 PRO [Omniscient-Tier Edition]          ║
 ║            Enrutador Universal OpenAI-Compatible + Multi-Session             ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
@@ -68,7 +68,7 @@ MAX_SESSIONS = 32
 
 def bridge_poll_loop():
     """Loop continuo de polling asíncrono para orquestar sub-sesiones en paralelo."""
-    log.info("[V12.0] Multi-Session Poll Loop activado. Capacidad máxima: 32.")
+    log.info("[V12.1 PRO] Multi-Session Poll Loop activado. Capacidad máxima: 32.")
     wake = CapacityWake()
     spawner = SessionSpawner(sys.executable, os.path.join(_BASE, "ask_deepseek.py"))
     
@@ -170,6 +170,9 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             "/v1/video/status":     self._serve_video_status,
             "/v1/video/download":   self._serve_video_download,
             "/v1/video/voices":     self._serve_video_voices,
+            "/v1/video/stream":     self._serve_video_stream,
+            "/v1/video/thumbnail":  self._serve_video_thumbnail,
+            "/v1/video/list":       self._serve_video_list,
             # ── V10.3 Image Lab (Pollinations) ────────────────────────────────────────
             "/v1/image/health":     self._serve_pollinations_health,
             "/v1/image/lab/history":self._serve_image_lab_list,
@@ -231,12 +234,12 @@ def run_server():
     except Exception as _e:
         log.debug(f"[V10.3] WAL checkpoint salteado: {_e}")
 
-    log.info("[V10.3] Security Monitor, Image Queue, Video Pipeline, Engine Watchdog, AI Process Manager activos.")
+    log.info("[V12.1 PRO] Security Monitor, Image Queue, Video Pipeline, Engine Watchdog, AI Process Manager activos.")
 
     # Iniciar Multi-Session Poll Loop (V10.4)
     threading.Thread(target=bridge_poll_loop, daemon=True, name="BridgePollLoop").start()
 
-    log.info(f"Gravity Bridge V12.0 — http://localhost:{port} | Dashboard: / | API: /v1")
+    log.info(f"Gravity Bridge V12.1 PRO — http://localhost:{port} | Dashboard: / | API: /v1")
     server = ThreadingHTTPServer(("0.0.0.0", port), GravityBridgeHandler)
     try:
         server.serve_forever()

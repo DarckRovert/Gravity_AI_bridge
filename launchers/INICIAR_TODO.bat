@@ -1,12 +1,12 @@
 @echo off
-title Gravity AI Bridge V12.0 -- Arranque Completo
+title Gravity AI Bridge V12.1 PRO -- Arranque Completo
 cd /d "F:\Gravity_AI_bridge"
 color 0B
 cls
 
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|          GRAVITY AI BRIDGE V12.0 [Ecosistema Total]                      ^|
+echo  ^|          GRAVITY AI BRIDGE V12.1 PRO [Ecosistema Total]                      ^|
 echo  ^|          Arranque completo del ecosistema                                ^|
 echo  +--------------------------------------------------------------------------+
 echo.

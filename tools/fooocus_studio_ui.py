@@ -102,7 +102,7 @@ def on_open_fooocus_and_wait(prompt: str, performance: str, aspect_ratio: str):
     before_set = set(get_all_images())
     before_count = len(before_set)
 
-    # DISPARO AUTOMÁTICO (V10.1 PRO Upgrade)
+    # DISPARO AUTOMÁTICO (V12.1 PRO Upgrade)
     gr.Info(f"🎨 Enviando comando de generación al motor (CPU)...")
     trigger_result = trigger_gradio_generation(prompt, performance, aspect_ratio)
     
@@ -149,9 +149,9 @@ body { background-color: #0d0e17 !important; color: #e8e9f1; }
 footer { display: none !important; }
 """
 
-with gr.Blocks(title="Gravity Vision Studio V10.1", css=custom_css) as demo:
+with gr.Blocks(title="Gravity Vision Studio V12.1 PRO", css=custom_css) as demo:
     gr.Markdown(
-        "## Gravity Vision Studio V10.1 PRO\n"
+        "## Gravity Vision Studio V12.1 PRO\n"
         f"Motor: **Fooocus 2.5.5 (CPU — sin crash)** | Puerto motor: **7861** | "
         f"[**Abrir motor directamente**]({FOOOCUS_BASE_URL}) ← *Genera aqui directamente*\n\n"
         "> **Flujo recomendado**: Escribe el prompt → presiona **Generar** → esta UI detecta la imagen automaticamente. "
@@ -256,9 +256,9 @@ with gr.Blocks(title="Gravity Vision Studio V10.1", css=custom_css) as demo:
 
 if __name__ == "__main__":
     _port = int(os.getenv("GRADIO_SERVER_PORT", "7862"))
-    print(f"[Gravity Vision Studio V10.1] Iniciando en http://127.0.0.1:{_port}")
-    print(f"[Gravity Vision Studio V10.1] Motor Fooocus CPU en http://127.0.0.1:7861")
-    print(f"[Gravity Vision Studio V10.1] Output dir: {OUTPUT_DIR}")
+    print(f"[Gravity Vision Studio V12.1 PRO] Iniciando en http://127.0.0.1:{_port}")
+    print(f"[Gravity Vision Studio V12.1 PRO] Motor Fooocus CPU en http://127.0.0.1:7861")
+    print(f"[Gravity Vision Studio V12.1 PRO] Output dir: {OUTPUT_DIR}")
     demo.launch(
         server_name="0.0.0.0",   # Accesible desde localhost:7862 y 127.0.0.1:7862
         server_port=_port,

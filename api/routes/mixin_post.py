@@ -434,21 +434,7 @@ class PostRoutesMixin:
                 self.wfile.write(body)
             return
 
-        # /v1/security/scan — Fuerza un escaneo de seguridad inmediato
-        if self.path == "/v1/security/scan":
-            try:
-                state = security_monitor.force_scan()
-                body  = json.dumps(state, indent=2).encode("utf-8")
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500)
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
-            return
+
 
         # /v1/queue/add — Añadir trabajo a la cola de imágenes
         if self.path == "/v1/queue/add":
@@ -458,6 +444,8 @@ class PostRoutesMixin:
                 prompt = data.get("prompt", "").strip()
                 if not prompt:
                     self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
+                    self._send_cors()
                     self.end_headers()
                     self.wfile.write(b'{"error":"prompt requerido"}')
                     return
@@ -475,6 +463,8 @@ class PostRoutesMixin:
                 self.wfile.write(body)
             except Exception as e:
                 self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
@@ -490,7 +480,7 @@ class PostRoutesMixin:
                     data   = json.loads(self.rfile.read(length)) if length else {}
                     job_id = data.get("id") or data.get("job_id")
                 if not job_id:
-                    self.send_response(400); self.end_headers()
+                    self.send_response(400); self.send_header("Content-Type", "application/json"); self._send_cors(); self.end_headers()
                     self.wfile.write(b'{"error":"id requerido"}'); return
                 ok = image_queue.cancel_job(job_id) if hasattr(image_queue, "cancel_job") else False
                 body = json.dumps({"ok": ok, "job_id": job_id, "message": "Cancelado" if ok else "Job no encontrado o ya completado"}).encode()
@@ -500,7 +490,7 @@ class PostRoutesMixin:
                 self.end_headers()
                 self.wfile.write(body)
             except Exception as e:
-                self.send_response(500); self.end_headers()
+                self.send_response(500); self.send_header("Content-Type", "application/json"); self._send_cors(); self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
 
@@ -559,30 +549,6 @@ class PostRoutesMixin:
             return
 
 
-        # /v1/keys — guardar API key desde el Dashboard web
-        if self.path == "/v1/keys":
-            try:
-                length = int(self.headers.get("Content-Length", 0))
-                data   = json.loads(self.rfile.read(length))
-                prov   = data.get("provider", "").strip().lower()
-                key    = data.get("key", "").strip()
-                if prov and key:
-                    from core.key_manager import KeyManager
-                    KeyManager.set_key(prov, key)
-                    body = json.dumps({"ok": True, "provider": prov}).encode()
-                    self.send_response(200)
-                    self.send_header("Content-Type", "application/json")
-                    self._send_cors()
-                    self.end_headers()
-                    self.wfile.write(body)
-                else:
-                    self.send_response(400)
-                    self.end_headers()
-            except Exception as e:
-                self.send_response(500)
-                self.end_headers()
-                self.wfile.write(str(e).encode())
-            return
 
 
         # /v1/video/create — Encola un nuevo trabajo de generación de video
@@ -598,19 +564,27 @@ class PostRoutesMixin:
                     self.end_headers()
                     self.wfile.write(json.dumps({"error": "Campo 'topic' requerido."}).encode())
                     return
-                n_scenes      = int(data.get("n_scenes", 6))
-                voice_speed   = int(data.get("voice_speed", 150))
-                voice_id      = data.get("voice_id", "").strip()
-                style         = data.get("style", "documental").strip()
-                narration_lang= data.get("narration_lang", "es").strip()
-                transitions   = bool(data.get("transitions", True))
-                subtitles     = bool(data.get("subtitles", True))
-                resolution    = data.get("resolution", "1024x1024").strip()
-                title         = data.get("title", "").strip()
-                bgm_type      = data.get("bgm_type", "ninguna").strip()
-                quality       = data.get("quality", "hd").strip()
-                use_lore      = bool(data.get("use_lore", True))
-                job_id        = video_pipeline.add_job(
+                n_scenes       = int(data.get("n_scenes", 6))
+                voice_speed    = int(data.get("voice_speed", 150))
+                voice_id       = data.get("voice_id", "").strip()
+                style          = data.get("style", "documental").strip()
+                narration_lang = data.get("narration_lang", "es").strip()
+                transitions    = bool(data.get("transitions", True))
+                subtitles      = bool(data.get("subtitles", True))
+                resolution     = data.get("resolution", "1024x1024").strip()
+                title          = data.get("title", "").strip()
+                bgm_type       = data.get("bgm_type", "ninguna").strip()
+                quality        = data.get("quality", "hd").strip()
+                use_lore       = bool(data.get("use_lore", True))
+                fps            = int(data.get("fps", 24))
+                scene_duration = int(data.get("scene_duration", 8))
+                duration_mode  = data.get("duration_mode", "auto").strip()
+                bgm_volume     = float(data.get("bgm_volume", 0.1))
+                codec          = data.get("codec", "libx264").strip()
+                ken_burns      = bool(data.get("ken_burns", True))
+                intro_card     = bool(data.get("intro_card", False))
+                color_grade    = str(data.get("color_grade", "auto")).strip()
+                job_id         = video_pipeline.add_job(
                     topic          = topic,
                     n_scenes       = n_scenes,
                     voice_speed    = voice_speed,
@@ -624,18 +598,30 @@ class PostRoutesMixin:
                     bgm_type       = bgm_type,
                     quality        = quality,
                     use_lore       = use_lore,
+                    fps            = fps,
+                    scene_duration = scene_duration,
+                    duration_mode  = duration_mode,
+                    bgm_volume     = bgm_volume,
+                    codec          = codec,
+                    ken_burns      = ken_burns,
+                    intro_card     = intro_card,
+                    color_grade    = color_grade,
                 )
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self._send_cors()
                 self.end_headers()
                 self.wfile.write(json.dumps({
-                    "ok":       True,
-                    "job_id":   job_id,
-                    "message":  f"Video encolado (job #{job_id}). El proceso toma ~{n_scenes * 5} min en CPU.",
-                    "n_scenes": n_scenes,
-                    "style":    style,
-                    "voice_id": voice_id or "auto",
+                    "ok":         True,
+                    "job_id":     job_id,
+                    "message":    f"Video encolado (job #{job_id}). Estimado: ~{int(n_scenes * 4.5)} min.",
+                    "n_scenes":   n_scenes,
+                    "style":      style,
+                    "voice_id":   voice_id or "auto",
+                    "fps":        fps,
+                    "codec":      codec,
+                    "ken_burns":  ken_burns,
+                    "intro_card": intro_card,
                 }).encode())
             except Exception as e:
                 self.send_response(500)
@@ -643,87 +629,85 @@ class PostRoutesMixin:
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
 
+
+
+
+        # /v1/video/preview_voice — TTS preview de voz seleccionada
+        if self.path == '/v1/video/preview_voice':
+            try:
+                length   = int(self.headers.get('Content-Length', 0))
+                body_bytes = self.rfile.read(length) if length else b'{}'
+                data     = json.loads(body_bytes.decode('utf-8'))
+                voice_id = data.get('voice_id', '')
+                text     = data.get('text', 'Prueba de voz para Gravity Studio.')[:200]
+                import tempfile, os
+                tmp = tempfile.mktemp(suffix='.wav')
+                ok  = video_pipeline._generate_audio(text, tmp, rate=150, voice_id=voice_id)
+                if ok and os.path.isfile(tmp):
+                    with open(tmp, 'rb') as f:
+                        wav_data = f.read()
+                    try: os.remove(tmp)
+                    except: pass
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'audio/wav')
+                    self.send_header('Content-Length', str(len(wav_data)))
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(wav_data)
+                else:
+                    self.send_response(500)
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(b'{"error":"TTS fallido"}')
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(('{"error":"' + str(e) + '"}').encode())
+            return
 
         # /v1/video/cancel — Cancela un trabajo de video pendiente
         if self.path == "/v1/video/cancel":
             try:
                 length  = int(self.headers.get("Content-Length", 0))
                 data    = json.loads(self.rfile.read(length)) if length else {}
-                job_id  = int(data.get("job_id", 0))
+                job_id  = int(data.get("job_id", 0) or data.get("id", 0))
                 ok      = video_pipeline.cancel_job(job_id)
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self._send_cors()
                 self.end_headers()
-                self.wfile.write(json.dumps({"ok": ok}).encode())
+                self.wfile.write(json.dumps({"ok": ok, "job_id": job_id}).encode())
             except Exception as e:
                 self.send_response(500)
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
 
-        # /v1/audit/rotate — Fuerza rotación inmediata del audit log activo
-        if self.path == "/v1/audit/rotate":
+        # /v1/video/delete — Elimina un job y sus archivos físicos
+        if self.path == "/v1/video/delete":
             try:
-                _base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-                import time as _time, os as _os
-                bak = audit_logger.log_path.replace(".jsonl", f".bak.{int(_time.time())}.jsonl")
-                if _os.path.isfile(audit_logger.log_path):
-                    _os.rename(audit_logger.log_path, bak)
-                    audit_logger._line_count = 0
-                    # Mantener max 3 backups
-                    _base_log_dir  = _os.path.dirname(audit_logger.log_path)
-                    _base_log_name = _os.path.basename(audit_logger.log_path).replace(".jsonl", "")
-                    _baks = sorted([f for f in _os.listdir(_base_log_dir) if f.startswith(_base_log_name + ".bak.")])
-                    while len(_baks) > 3:
-                        _os.remove(_os.path.join(_base_log_dir, _baks.pop(0)))
-                    msg = f"Log rotado → {_os.path.basename(bak)}"
-                else:
-                    msg = "No hay log activo para rotar."
-                self.send_response(200)
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                job_id = int(data.get("id", 0) or data.get("job_id", 0))
+                if not job_id:
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "id requerido"}).encode())
+                    return
+                result = video_pipeline.delete_job(job_id)
+                self.send_response(200 if result.get("ok") else 404)
                 self.send_header("Content-Type", "application/json")
                 self._send_cors()
                 self.end_headers()
-                self.wfile.write(json.dumps({"ok": True, "message": msg}).encode())
+                self.wfile.write(json.dumps(result).encode())
             except Exception as e:
                 self.send_response(500)
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
 
-        # /v1/rag/toggle — Activa o desactiva la inyección RAG en el flujo de chat
-        if self.path == "/v1/rag/toggle":
-            try:
-                length  = int(self.headers.get("Content-Length", 0))
-                data    = json.loads(self.rfile.read(length)) if length else {}
-                enabled = data.get("enabled", None)
-                _base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-                settings_path = os.path.join(_base_dir, "_settings.json")
-                try:
-                    with open(settings_path, "r", encoding="utf-8") as f:
-                        settings = json.load(f)
-                except Exception:
-                    settings = {}
-                if enabled is None:
-                    # Toggle: invierte el estado actual
-                    enabled = not settings.get("rag_enabled", False)
-                settings["rag_enabled"] = bool(enabled)
-                with open(settings_path, "w", encoding="utf-8") as f:
-                    json.dump(settings, f, indent=4, ensure_ascii=False)
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(json.dumps({
-                    "ok": True,
-                    "rag_enabled": settings["rag_enabled"],
-                    "message": f"RAG {'activado' if settings['rag_enabled'] else 'desactivado'} en flujo de chat."
-                }).encode())
-            except Exception as e:
-                self.send_response(500)
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
-            return
+
 
 
         # /v1/tools/run — Code Runner (Python/Bash)
@@ -735,6 +719,7 @@ class PostRoutesMixin:
                 lang   = data.get("lang", "python").lower()
                 if not code:
                     self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
                     self._send_cors()
                     self.end_headers()
                     self.wfile.write(json.dumps({"error": "code requerido"}).encode())
