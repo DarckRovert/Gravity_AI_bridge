@@ -213,3 +213,22 @@ class PerplexityProvider(OpenAICompatCloudProvider):
         if citations:
             refs = "\n\n**Fuentes:**\n" + "\n".join(f"[{i+1}] {c}" for i, c in enumerate(citations[:5]))
             yield refs
+
+# ── Nvidia NIM ────────────────────────────────────────────────────────────────
+class NvidiaProvider(OpenAICompatCloudProvider):
+    name              = "Nvidia NIM"
+    _base_url         = "https://integrate.api.nvidia.com/v1"
+    _key_id           = "nvidia"
+    supports_vision   = True
+    supports_function_calling = True
+    default_context   = 128000
+    _available_models = [
+        "meta/llama-3.3-70b-instruct",
+        "meta/llama-3.1-8b-instruct",
+        "nvidia/llama-3.1-nemotron-70b-instruct",
+        "deepseek-ai/deepseek-r1",
+        "mistralai/mixtral-8x22b-instruct-v0.1"
+    ]
+
+    def get_cost_per_million_tokens(self, model: str) -> dict:
+        return {"input": 1.00, "output": 1.00}  # Approximate generic cost

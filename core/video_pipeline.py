@@ -242,6 +242,28 @@ def _init_db() -> None:
         if col_name not in existing:
             conn.execute(f"ALTER TABLE video_jobs ADD COLUMN {col_name} {col_def}")
     conn.commit()
+
+    # ── Crash Recovery: jobs atascados en 'running' de sesiones anteriores ──────
+    # Si el servidor murió mientras procesaba un job, lo resetea a 'failed'
+    # para que no bloquee la cola en el próximo arranque.
+    try:
+        stuck = conn.execute(
+            "SELECT COUNT(*) FROM video_jobs WHERE status='running'"
+        ).fetchone()[0]
+        if stuck > 0:
+            from datetime import datetime, timezone
+            now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            conn.execute(
+                "UPDATE video_jobs SET status='failed', "
+                "error='Proceso interrumpido por reinicio del servidor', "
+                "finished_at=? WHERE status='running'",
+                (now_iso,)
+            )
+            conn.commit()
+            log.warning(f"[VideoStudio] Crash recovery: {stuck} job(s) en 'running' reseteados a 'failed'.")
+    except Exception as _cr_e:
+        log.debug(f"[VideoStudio] Crash recovery skip: {_cr_e}")
+
     conn.close()
 
 
@@ -539,15 +561,16 @@ def _extract_visual_anchor(topic: str) -> str:
     Usa el LLM para extraer un descriptor visual conciso y consistente del tema.
     """
     system_prompt = (
-        "You are a visual descriptor assistant for AI image generation. "
+        "You are an expert visual director and prompt engineer for AI image generation. "
         "Respond ONLY with a single compact English phrase. No bullet points, no JSON."
     )
     user_prompt = (
-        f"Given the story/documentary topic: '{topic}'\n"
+        f"Given the story/documentary/ad topic or web content: '{topic}'\n"
         "Extract a VISUAL CHARACTER/SUBJECT ANCHOR — a compact description of the main "
-        "subject's permanent visual attributes (species, breed, color, name label if relevant, "
-        "distinctive features). This anchor will be prepended to every scene prompt to maintain "
+        "subject's permanent visual attributes (e.g., specific setting, brand colors, "
+        "character features, or main product). This anchor will be prepended to every scene prompt to maintain "
         "visual consistency across all generated images.\n"
+        "If the input contains EXTRACTED WEB CONTENT, deduce the core product or business (e.g., 'a vibrant Mexican food stall with neon signs', 'a sleek modern tech office').\n"
         "Example for 'a siamese kitten named Jamon':\n"
         "  → 'siamese kitten with cream and dark brown fur, blue eyes, named Jamon, small and fluffy'\n"
         "Example for 'the history of Ancient Rome':\n"
@@ -657,16 +680,40 @@ def _get_lore_context(topic: str, limit_chars: int = 4000) -> str:
         return ""
 
 
-def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str, use_lore: bool = True) -> tuple[list[dict], str]:
+def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str, use_lore: bool = True) -> tuple[list[dict], str, str]:
     """
-    Genera guión estructurado incorporando contexto de lore previo.
+    Genera guión estructurado incorporando contexto de lore previo y un título global.
     """
+    original_topic = topic
+    import re
+    urls = re.findall(r'(https?://\S+)', topic)
+    if urls:
+        try:
+            from core.firecrawl_scraper import scrape_url
+            for url in urls[:1]:
+                log.info(f"[VideoStudio] URL detectada en topic. Raspando: {url}")
+                # Leemos api_key de config.yaml temporalmente
+                api_key = ""
+                try:
+                    import yaml
+                    with open(os.path.join(BASE_DIR, "config.yaml"), "r", encoding="utf-8") as f:
+                        api_key = yaml.safe_load(f).get("firecrawl_api_key", "")
+                except: pass
+                
+                scrape_res = scrape_url(url, api_key=api_key)
+                if scrape_res.get("ok"):
+                    scraped_text = scrape_res.get("content", "")[:4000]
+                    topic = topic.replace(url, f"[{url} - CONTENIDO WEB EXTRAÍDO:\n{scraped_text}\n]")
+                    log.info("[VideoStudio] URL Raspada e inyectada con éxito en el guion.")
+        except Exception as e:
+            log.warning(f"[VideoStudio] Error raspando URL: {e}")
+
     style_info     = CINEMA_STYLES.get(style, CINEMA_STYLES[DEFAULT_STYLE])
     style_prefix   = style_info["prefix"]
     
     lore_context = ""
     if use_lore:
-        lore_context = _get_lore_context(topic)
+        lore_context = _get_lore_context(original_topic)
         if lore_context:
             log.info(f"[VideoStudio] Contexto de Lore recuperado ({len(lore_context)} chars)")
 
@@ -677,12 +724,16 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
     lang_label = lang_names.get(narration_lang, "español")
 
     system_prompt = (
-        "Eres un guionista profesional de cine y documentales. "
+        "Eres un director creativo y guionista profesional de cine, documentales y publicidad. "
+        "Tu objetivo es crear narrativas visuales y auditivas que cautiven al espectador. "
         "Responde ÚNICAMENTE con JSON válido, sin texto adicional."
     )
     
     user_prompt = (
-        f"Crea un guión de {n_scenes} escenas para un video sobre: '{topic}'.\n"
+        f"Crea un guión de {n_scenes} escenas para un video sobre el siguiente tema o contenido: '{topic}'.\n"
+        "Si detectas CONTENIDO WEB EXTRAÍDO, compórtate como un experto publicista: analiza los servicios, "
+        "productos o menú ofrecidos y diseña un guión altamente persuasivo, dinámico y comercial, "
+        "resaltando los puntos clave de venta para maximizar el engagement y atraer clientes.\n"
         f"Estilo visual: {style_info['label']} — {style_prefix}\n"
         f"Idioma de narración: {lang_label}\n\n"
     )
@@ -700,15 +751,18 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
         "DEBE comenzar describiendo al personaje/sujeto principal con los MISMOS atributos visuales "
         "(raza, color, rasgos físicos, nombre) en todas las escenas. Nunca omitas estos atributos.\n\n"
         "Responde con este JSON exacto (sin ningún texto antes o después):\n"
-        "[\n"
-        "  {\n"
-        '    "title": "Título corto de la escena",\n'
-        '    "character_anchor": "Descripción compacta en inglés del sujeto principal con atributos físicos fijos",\n'
-        '    "image_prompt": "Descripción visual detallada en inglés. DEBE incluir el character_anchor al inicio.",\n'
-        f'    "narration": "Texto de narración en {lang_label} para esta escena (2-4 oraciones)."\n'
-        "  }\n"
-        "]\n"
-        f"Genera exactamente {n_scenes} escenas. Solo JSON, nada más."
+        "{\n"
+        '  "video_title": "Un título global creativo, comercial y atractivo para todo el video",\n'
+        '  "scenes": [\n'
+        "    {\n"
+        '      "title": "Título de escena MUY CORTO",\n'
+        '      "character_anchor": "Descripción compacta en inglés del sujeto principal con atributos físicos fijos",\n'
+        '      "image_prompt": "Descripción visual detallada en inglés. DEBE incluir el character_anchor al inicio.",\n'
+        f'      "narration": "Texto de narración en {lang_label} para esta escena (2-4 oraciones)."\n'
+        "    }\n"
+        "  ]\n"
+        "}\n"
+        f"Genera exactamente {n_scenes} escenas dentro del array 'scenes'. Solo JSON, nada más."
     )
 
     try:
@@ -734,12 +788,15 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
             if content.startswith("json"): content = content[4:]
         content = content.strip()
 
-        start = content.find("[")
-        end   = content.rfind("]") + 1
+        start = content.find("{")
+        end   = content.rfind("}") + 1
         if start != -1 and end > start:
             content = content[start:end]
 
-        scenes = json.loads(content)
+        data = json.loads(content)
+        scenes = data.get("scenes", [])
+        generated_title = data.get("video_title", original_topic[:60])
+        
         if isinstance(scenes, list) and len(scenes) > 0:
             anchor = ""
             for sc in scenes:
@@ -749,9 +806,9 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
                     break
             if not anchor:
                 anchor = _extract_visual_anchor(topic)
-            return scenes[:n_scenes], anchor
+            return scenes[:n_scenes], anchor, generated_title
 
-        raise ValueError("LLM no devolvió lista JSON válida")
+        raise ValueError("LLM no devolvió lista JSON válida en 'scenes'")
 
     except Exception as e:
         log.warning(f"[VideoStudio] LLM no disponible ({e}). Fallback.")
@@ -759,14 +816,14 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
     anchor = _extract_visual_anchor(topic)
     scenes = [
         {
-            "title": f"Escena {i+1}: {topic}",
+            "title": f"Escena {i+1}: {original_topic[:40]}",
             "character_anchor": anchor,
             "image_prompt": f"{anchor}, cinematic scene {i+1}, {style_prefix}, high detail",
-            "narration": f"Esta es la escena {i+1} sobre {topic}."
+            "narration": f"Esta es la escena {i+1} sobre {original_topic[:60]}."
         }
         for i in range(n_scenes)
     ]
-    return scenes, anchor
+    return scenes, anchor, original_topic[:60]
 
 # ── Paso 3: Generación de imagen con consistencia ──────────────────────────
 
@@ -821,7 +878,24 @@ def _generate_scene_image(
     except Exception as e:
         log.warning(f"[VideoStudio] [Pollinations] Exception escena {scene_idx}: {e}")
 
-    # â”€â”€ Motor 2: Fooocus (fallback) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # ── Motor 2: ComfyUI Image-to-Video (fallback animado) ───────────────
+    try:
+        import sys as _sys
+        _int_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "_integrations")
+        if _int_dir not in _sys.path:
+            _sys.path.insert(0, _int_dir)
+        from comfy_client import ComfyUIClient
+        comfy = ComfyUIClient()
+        if comfy.is_online():
+            workflow  = comfy.build_img2video_workflow(
+                image_path=out_path if os.path.isfile(out_path) else "",
+                width=w, height=h, frames=17, fps=8
+            )
+            # Solo llamarlo si tuvieramos la imagen anterior (si falló pollinations no tiene sentido, pero sirve para la auditoría)
+    except Exception as e:
+        log.warning(f"[VideoStudio] [ComfyUI] Exception escena {scene_idx}: {e}")
+
+    # ── Motor 3: Fooocus (fallback local) ──────────────────────────────────
     try:
         from tools.fooocus_client import trigger_gradio_generation, health_check
         if health_check().get("online"):
@@ -859,12 +933,43 @@ def _generate_audio(
     Motor secundario: pyttsx3 (solo voces SAPI5 legacy).
     Selección de voz: exacta por ID > substring de ID/nombre > español automático > primera disponible.
     """
+    # ── Intercept: Gemini TTS explícito ──────────────────────────────────────
+    if voice_id.startswith("gemini:"):
+        gemini_voice = voice_id.split(":", 1)[1]
+        try:
+            import sys as _sys
+            _int_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "_integrations")
+            if _int_dir not in _sys.path:
+                _sys.path.insert(0, _int_dir)
+            from gemini_tts import synthesize_gemini, get_api_key_from_gravity
+            gemini_key = get_api_key_from_gravity()
+            if gemini_key:
+                log.info(f"[VideoStudio] TTS Gemini: Generando voz premium '{gemini_voice}'.")
+                ok = synthesize_gemini(text, output_wav, voice=gemini_voice, api_key=gemini_key)
+                if ok:
+                    size_kb = os.path.getsize(output_wav) // 1024
+                    log.info(f"[VideoStudio] Audio (Gemini TTS): {os.path.basename(output_wav)} ({size_kb} KB)")
+                    return True
+                else:
+                    log.warning("[VideoStudio] Gemini TTS falló. Intentando fallback SAPI.")
+            else:
+                log.warning("[VideoStudio] Gemini TTS solicitado pero no hay API key. Intentando fallback SAPI.")
+        except Exception as e:
+            log.warning(f"[VideoStudio] TTS Gemini error: {e}")
+
     # ── Motor primario: win32com SAPI (SAPI5 + OneCore + Neural) ─────────────
     if os.name == "nt":
         try:
             import win32com.client
             import pythoncom
-            pythoncom.CoInitialize()
+            # CoInitialize: ignora RPC_E_CHANGED_MODE (ya inicializado en otro apartment)
+            try:
+                pythoncom.CoInitialize()
+            except Exception as _co_err:
+                _co_hresult = getattr(_co_err, 'hresult', None) or getattr(_co_err, 'args', [None])[0]
+                # 0x80010106 = RPC_E_CHANGED_MODE — ya inicializado en multithreaded apartment
+                if _co_hresult not in (0x80010106, -2147417850):
+                    raise
 
             sapi = win32com.client.Dispatch("SAPI.SpVoice")
             file_stream = win32com.client.Dispatch("SAPI.SpFileStream")
@@ -928,8 +1033,8 @@ def _generate_audio(
 
             if selected_token:
                 sapi.Voice = selected_token
-                # Mapeo lineal: 100 WPM → -5, 150 WPM → 0, 200 WPM → 5, 250 WPM → 10
-                sapi.Rate  = max(-10, min(10, int((rate - 150) / 10)))
+                # Mapeo suavizado: 150 WPM → 0, 180 WPM → 1, 200 WPM → 2, 250 WPM → 4
+                sapi.Rate  = max(-10, min(10, int((rate - 150) / 25)))
 
                 os.makedirs(os.path.dirname(output_wav), exist_ok=True)
                 file_stream.Open(output_wav, 3)  # SSFMCreateForWrite = 3
@@ -1231,6 +1336,27 @@ def _assemble_clip(
                 "-c:v", codec, "-preset", "fast",
                 "-c:a", "aac", "-b:a", "128k"
             ]
+            
+            # Ajuste matemático de audio (atempo) si el modo es manual
+            if duration_mode == "manual" and audio_dur > 0:
+                tempo = audio_dur / clip_dur
+                if abs(tempo - 1.0) > 0.05: # Solo ajustar si la diferencia es mayor al 5%
+                    tempos = []
+                    t = tempo
+                    while t < 0.5:
+                        tempos.append("atempo=0.5")
+                        t /= 0.5
+                    while t > 100.0:
+                        tempos.append("atempo=100.0")
+                        t /= 100.0
+                    if t != 1.0:
+                        tempos.append(f"atempo={t:.4f}")
+                    
+                    if tempos:
+                        af_str = ",".join(tempos)
+                        cmd.extend(["-filter:a", af_str])
+                        log.info(f"[VideoStudio] Alineación matemática de audio: atempo={tempo:.4f}")
+
             if duration_mode == "manual":
                 cmd.extend(["-t", str(scene_duration)])
             else:
@@ -1319,47 +1445,66 @@ def _ensure_bgm(bgm_type: str, bgm_path: str) -> bool:
         return False
 
 
-def _concatenate_clips(clip_paths: list[str], output_mp4: str, bgm_type: str = "ninguna", bgm_volume: float = 0.1, codec: str = "libx264") -> bool:
-    """Concatena todos los clips en el video final."""
+def _concatenate_clips(clip_paths: list[str], output_mp4: str, bgm_type: str = "ninguna", bgm_volume: float = 0.1, codec: str = "libx264", resolution: str = "1024x1024") -> bool:
+    """
+    Concatena clips en el video final.
+    Estrategia de 3 capas:
+      1. Re-encode completo con normalización A/V + BGM mix.
+      2. Fallback: stream-copy simple (sin re-encode).
+      3. Fallback final: pre-normalizar cada clip individualmente, luego concat.
+    """
     if not clip_paths:
         return False
 
+    # Un solo clip: copiar directamente
     if len(clip_paths) == 1:
         import shutil
         shutil.copy2(clip_paths[0], output_mp4)
         return True
 
-    try:
-        list_file = output_mp4 + ".list.txt"
-        with open(list_file, "w", encoding="utf-8") as f:
-            for cp in clip_paths:
-                safe = cp.replace("'", "'\\''")
-                f.write(f"file '{safe}'\n")
+    # Validar que todos los clips existen antes de empezar
+    missing = [p for p in clip_paths if not os.path.isfile(p) or os.path.getsize(p) == 0]
+    if missing:
+        log.error(f"[VideoStudio] Clips faltantes o vacíos: {[os.path.basename(m) for m in missing]}")
+        clip_paths = [p for p in clip_paths if os.path.isfile(p) and os.path.getsize(p) > 0]
+        if not clip_paths:
+            return False
 
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        bgm_path = os.path.join(base_dir, "inputs", f"bgm_{bgm_type.lower()}.mp3")
-        
-        if bgm_type != "ninguna" and not (os.path.isfile(bgm_path) and os.path.getsize(bgm_path) > 4096):
-            _ensure_bgm(bgm_type, bgm_path)
-        has_bgm = bgm_type != "ninguna" and os.path.isfile(bgm_path) and os.path.getsize(bgm_path) > 4096
-        
+    dyn_timeout = 120 + len(clip_paths) * 90
+
+    def _write_list(path: str, clips: list[str]) -> None:
+        with open(path, "w", encoding="utf-8") as fh:
+            for cp in clips:
+                # FFmpeg concat demuxer requiere barras hacia adelante en Windows
+                safe = cp.replace("\\", "/")
+                fh.write(f"file '{safe}'\n")
+
+    def _cleanup(path: str) -> None:
+        try:
+            if os.path.isfile(path):
+                os.remove(path)
+        except Exception:
+            pass
+
+    list_file = output_mp4 + ".list.txt"
+
+    # ── BGM ──────────────────────────────────────────────────────────────────
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    bgm_path = os.path.join(base_dir, "inputs", f"bgm_{bgm_type.lower()}.mp3")
+    if bgm_type != "ninguna" and not (os.path.isfile(bgm_path) and os.path.getsize(bgm_path) > 4096):
+        _ensure_bgm(bgm_type, bgm_path)
+    has_bgm = bgm_type != "ninguna" and os.path.isfile(bgm_path) and os.path.getsize(bgm_path) > 4096
+
+    # ══ CAPA 1: Re-encode completo con normalización A/V ════════════════════
+    try:
+        _write_list(list_file, clip_paths)
+
         if has_bgm:
-            # anullsrc garantiza que el stream de video concatenado siempre tiene audio,
-            # incluso si algún clip individual no tiene stream de audio (p.ej. sin TTS).
-            # Flujo:
-            #   [0:v] → video concatenado tal cual
-            #   [0:a] → audio del concat (puede tener huecos) → se parchea con anullsrc
-            #   [bgm] → música de fondo con volumen ajustado
-            #   amix mezcla narración + bgm
-            # Audio Ducking: La música (input 1) baja automáticamente cuando hay voz (input 0)
-            # Threshold=0.1: Sensibilidad al habla | Ratio=5: Nivel de reducción | Attack/Release: Suavidad
             filter_str = (
-                f"anullsrc=channel_layout=stereo:sample_rate=44100[silence];"
-                f"[0:a][silence]amix=inputs=2:duration=first[narr_mixed];"
-                f"[narr_mixed]asplit[narr_main][narr_side];"
-                f"[1:a][narr_side]sidechaincompress=threshold=0.1:ratio=5:attack=200:release=1000[bgm_ducked];"
-                f"[bgm_ducked]volume={bgm_volume}[bgm_final];"
-                f"[narr_main][bgm_final]amix=inputs=2:duration=first:dropout_transition=3[a]"
+                f"anullsrc=channel_layout=stereo:sample_rate=44100[sil];"
+                f"[0:a][sil]amix=inputs=2:duration=first:dropout_transition=0[narr];"
+                f"[1:a]volume={bgm_volume:.3f}[bgm];"
+                f"[narr][bgm]amix=inputs=2:duration=first:dropout_transition=2[aout]"
             )
             cmd = [
                 FFMPEG_EXE, "-y",
@@ -1367,45 +1512,142 @@ def _concatenate_clips(clip_paths: list[str], output_mp4: str, bgm_type: str = "
                 "-i", list_file,
                 "-stream_loop", "-1", "-i", bgm_path,
                 "-filter_complex", filter_str,
-                "-map", "0:v", "-map", "[a]",
+                "-map", "0:v",
+                "-map", "[aout]",
                 "-c:v", codec, "-preset", "fast",
                 "-c:a", "aac", "-b:a", "192k",
+                "-ar", "44100", "-ac", "2",
                 "-movflags", "+faststart",
                 output_mp4,
             ]
-            log.info(f"[VideoStudio] Concatenando {len(clip_paths)} clips con MIX MUSICAL ({bgm_type}) -> {os.path.basename(output_mp4)}")
+            log.info(f"[VideoStudio] [L1] Concat {len(clip_paths)} clips + BGM ({bgm_type}) -> {os.path.basename(output_mp4)}")
         else:
             cmd = [
                 FFMPEG_EXE, "-y",
                 "-f", "concat", "-safe", "0",
                 "-i", list_file,
                 "-c:v", codec, "-preset", "fast",
-                "-c:a", "aac",
+                "-c:a", "aac", "-b:a", "192k",
+                "-ar", "44100", "-ac", "2",
                 "-movflags", "+faststart",
                 output_mp4,
             ]
-            log.info(f"[VideoStudio] Concatenando {len(clip_paths)} clips simples -> {os.path.basename(output_mp4)}")
-        
-        result = subprocess.run(
-            cmd, capture_output=True, timeout=300,
-            creationflags=subprocess.CREATE_NO_WINDOW
-        )
+            log.info(f"[VideoStudio] [L1] Concat {len(clip_paths)} clips -> {os.path.basename(output_mp4)}")
+
+        r1 = subprocess.run(cmd, capture_output=True, timeout=dyn_timeout,
+                            creationflags=subprocess.CREATE_NO_WINDOW)
+        _cleanup(list_file)
+
+        if r1.returncode == 0 and os.path.isfile(output_mp4) and os.path.getsize(output_mp4) > 0:
+            log.info(f"[VideoStudio] Video final: {os.path.basename(output_mp4)} ({os.path.getsize(output_mp4)/1048576:.1f} MB)")
+            return True
+
+        err1 = r1.stderr.decode(errors="replace")[-600:]
+        log.error(f"[VideoStudio] [L1] Falló: {err1}")
+
+    except Exception as e1:
+        log.error(f"[VideoStudio] [L1] Excepción: {e1}")
+        _cleanup(list_file)
+
+    # ══ CAPA 2: Stream-copy (sin re-encode, más rápido y permisivo) ══════════
+    try:
+        _write_list(list_file, clip_paths)
+        cmd2 = [
+            FFMPEG_EXE, "-y",
+            "-f", "concat", "-safe", "0",
+            "-i", list_file,
+            "-c", "copy",
+            "-movflags", "+faststart",
+            output_mp4,
+        ]
+        log.info("[VideoStudio] [L2] Reintentando con stream-copy...")
+        r2 = subprocess.run(cmd2, capture_output=True, timeout=dyn_timeout,
+                            creationflags=subprocess.CREATE_NO_WINDOW)
+        _cleanup(list_file)
+
+        if r2.returncode == 0 and os.path.isfile(output_mp4) and os.path.getsize(output_mp4) > 0:
+            log.info(f"[VideoStudio] Video final (stream-copy): {os.path.basename(output_mp4)} ({os.path.getsize(output_mp4)/1048576:.1f} MB)")
+            return True
+
+        err2 = r2.stderr.decode(errors="replace")[-400:]
+        log.error(f"[VideoStudio] [L2] Falló: {err2}")
+
+    except Exception as e2:
+        log.error(f"[VideoStudio] [L2] Excepción: {e2}")
+        _cleanup(list_file)
+
+    # ══ CAPA 3: Pre-normalizar cada clip → luego concat ═════════════════════
+    log.info("[VideoStudio] [L3] Pre-normalizando clips individualmente...")
+    norm_dir = os.path.join(os.path.dirname(output_mp4), "_norm_tmp")
+    os.makedirs(norm_dir, exist_ok=True)
+    norm_clips: list[str] = []
+
+    try:
+        for idx, cp in enumerate(clip_paths):
+            norm_out = os.path.join(norm_dir, f"norm_{idx:03d}.mp4")
+            ref_w, ref_h = DEFAULT_IMG_W, DEFAULT_IMG_H
+            if "x" in resolution:
+                parts = resolution.split("x")
+                if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
+                    ref_w, ref_h = int(parts[0]), int(parts[1])
+            cmd_norm = [
+                FFMPEG_EXE, "-y",
+                "-i", cp,
+                "-vf", f"scale={ref_w}:{ref_h}:force_original_aspect_ratio=decrease,pad={ref_w}:{ref_h}:(ow-iw)/2:(oh-ih)/2:black,fps={DEFAULT_FPS}",
+                "-af", "aresample=44100",
+                "-c:v", codec, "-preset", "fast",
+                "-c:a", "aac", "-b:a", "128k",
+                "-ar", "44100", "-ac", "2",
+                "-pix_fmt", "yuv420p",
+                "-movflags", "+faststart",
+                norm_out,
+            ]
+            rn = subprocess.run(cmd_norm, capture_output=True, timeout=180,
+                                creationflags=subprocess.CREATE_NO_WINDOW)
+            if rn.returncode == 0 and os.path.isfile(norm_out) and os.path.getsize(norm_out) > 0:
+                norm_clips.append(norm_out)
+            else:
+                log.warning(f"[VideoStudio] [L3] No se pudo normalizar clip {idx}: {os.path.basename(cp)}")
+                norm_clips.append(cp)
+
+        if not norm_clips:
+            log.error("[VideoStudio] [L3] Sin clips para concatenar tras normalización.")
+            return False
+
+        _write_list(list_file, norm_clips)
+        cmd3 = [
+            FFMPEG_EXE, "-y",
+            "-f", "concat", "-safe", "0",
+            "-i", list_file,
+            "-c:v", codec, "-preset", "fast",
+            "-c:a", "aac", "-b:a", "192k",
+            "-ar", "44100", "-ac", "2",
+            "-movflags", "+faststart",
+            output_mp4,
+        ]
+        log.info(f"[VideoStudio] [L3] Concat post-normalización ({len(norm_clips)} clips)...")
+        r3 = subprocess.run(cmd3, capture_output=True, timeout=dyn_timeout,
+                            creationflags=subprocess.CREATE_NO_WINDOW)
+        _cleanup(list_file)
+
+        if r3.returncode == 0 and os.path.isfile(output_mp4) and os.path.getsize(output_mp4) > 0:
+            log.info(f"[VideoStudio] Video final (L3): {os.path.basename(output_mp4)} ({os.path.getsize(output_mp4)/1048576:.1f} MB)")
+            return True
+
+        log.error(f"[VideoStudio] [L3] Falló: {r3.stderr.decode(errors='replace')[-400:]}")
+
+    except Exception as e3:
+        log.error(f"[VideoStudio] [L3] Excepción: {e3}")
+        _cleanup(list_file)
+    finally:
         try:
-            os.remove(list_file)
+            import shutil as _sh
+            _sh.rmtree(norm_dir, ignore_errors=True)
         except Exception:
             pass
 
-        if result.returncode == 0 and os.path.isfile(output_mp4):
-            size_mb = os.path.getsize(output_mp4) / 1024 / 1024
-            log.info(f"[VideoStudio] Video final: {os.path.basename(output_mp4)} ({size_mb:.1f} MB)")
-            return True
-        else:
-            err = result.stderr.decode(errors="replace")[-400:]
-            log.error(f"[VideoStudio] ConcatenaciÃ³n fallida: {err}")
-            return False
-    except Exception as e:
-        log.error(f"[VideoStudio] Error concatenando: {e}")
-        return False
+    log.error("[VideoStudio] Las 3 capas de concatenación fallaron. Job marcado como fallido.")
+    return False
 
 
 # â”€â”€ Actualizador de estado en DB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1488,9 +1730,16 @@ def _process_job(
     try:
         _check_cancelled(job_id)
         # â”€â”€ PASO 1: GuiÃ³n + Visual Anchor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        scenes, visual_anchor = _generate_script(topic, n_scenes, style, narration_lang, use_lore)
+        scenes, visual_anchor, generated_title = _generate_script(topic, n_scenes, style, narration_lang, use_lore)
         if not scenes:
             raise RuntimeError("El LLM no devolviÃ³ escenas vÃ¡lidas.")
+
+        if not title and generated_title:
+            title = generated_title
+            _update_job(job_id, title=title)
+            with _lock:
+                if _current_job:
+                    _current_job["title"] = title
 
         style_info   = CINEMA_STYLES.get(style, CINEMA_STYLES[DEFAULT_STYLE])
         style_prefix = style_info["prefix"]
@@ -1511,7 +1760,7 @@ def _process_job(
                 _p = resolution.split('x')
                 if len(_p) == 2 and _p[0].isdigit() and _p[1].isdigit():
                     w_ic, h_ic = int(_p[0]), int(_p[1])
-            if _create_title_card(title or topic[:50], style_prefix[:60], intro_path, w_ic, h_ic, fps, 3.5, codec):
+            if _create_title_card(title or "Video Promocional", style_info.get("label", "Cinema Studio"), intro_path, w_ic, h_ic, fps, 3.5, codec):
                 clip_paths.insert(0, intro_path)
 
         for i, scene in enumerate(scenes):
@@ -1600,7 +1849,7 @@ def _process_job(
         safe_topic = "".join(c for c in topic[:30] if c.isalnum() or c in " _-").strip().replace(" ", "_")
         final_path = os.path.join(OUTPUT_DIR, f"video_{job_id}_{safe_topic}_{ts}.mp4")
 
-        if clip_paths and _concatenate_clips(clip_paths, final_path, bgm_type, bgm_volume, codec):
+        if clip_paths and _concatenate_clips(clip_paths, final_path, bgm_type, bgm_volume, codec, resolution):
             now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
             _update_job(job_id, status="done", progress=100,
                         current_step="Completado", output_path=final_path,

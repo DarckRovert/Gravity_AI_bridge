@@ -625,6 +625,7 @@ class PostRoutesMixin:
                 }).encode())
             except Exception as e:
                 self.send_response(500)
+                self._send_cors()
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
@@ -640,14 +641,13 @@ class PostRoutesMixin:
                 data     = json.loads(body_bytes.decode('utf-8'))
                 voice_id = data.get('voice_id', '')
                 text     = data.get('text', 'Prueba de voz para Gravity Studio.')[:200]
-                import tempfile, os
-                tmp = tempfile.mktemp(suffix='.wav')
+                import tempfile
+                import uuid
+                tmp = os.path.join(tempfile.gettempdir(), f"gravity_preview_{uuid.uuid4().hex}.wav")
                 ok  = video_pipeline._generate_audio(text, tmp, rate=150, voice_id=voice_id)
                 if ok and os.path.isfile(tmp):
                     with open(tmp, 'rb') as f:
                         wav_data = f.read()
-                    try: os.remove(tmp)
-                    except: pass
                     self.send_response(200)
                     self.send_header('Content-Type', 'audio/wav')
                     self.send_header('Content-Length', str(len(wav_data)))
@@ -659,7 +659,16 @@ class PostRoutesMixin:
                     self._send_cors()
                     self.end_headers()
                     self.wfile.write(b'{"error":"TTS fallido"}')
+                    
+                try: 
+                    if os.path.isfile(tmp):
+                        os.remove(tmp)
+                except: pass
             except Exception as e:
+                try:
+                    if 'tmp' in locals() and os.path.isfile(tmp):
+                        os.remove(tmp)
+                except: pass
                 self.send_response(500); self._send_cors(); self.end_headers()
                 self.wfile.write(('{"error":"' + str(e) + '"}').encode())
             return
@@ -678,6 +687,7 @@ class PostRoutesMixin:
                 self.wfile.write(json.dumps({"ok": ok, "job_id": job_id}).encode())
             except Exception as e:
                 self.send_response(500)
+                self._send_cors()
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
@@ -703,6 +713,7 @@ class PostRoutesMixin:
                 self.wfile.write(json.dumps(result).encode())
             except Exception as e:
                 self.send_response(500)
+                self._send_cors()
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
@@ -872,7 +883,7 @@ class PostRoutesMixin:
                     p.terminate()
                     body = json.dumps({"ok": True, "message": f"Proceso {pname} (PID {pid}) terminado.", "pid": pid}).encode()
                 except ImportError:
-                    import subprocess, sys
+                    import subprocess
                     if sys.platform == "win32":
                         subprocess.run(["taskkill", "/PID", str(pid), "/F"], capture_output=True)
                     body = json.dumps({"ok": True, "message": f"Kill enviado a PID {pid}.", "pid": pid}).encode()
@@ -1065,16 +1076,45 @@ class PostRoutesMixin:
         # ── /v1/gravity/chat — Chat con conciencia sistémica completa ─────────
         if self.path == "/v1/gravity/chat":
             try:
+                import os as os  # noqa: PLW0127 — fix UnboundLocalError en Python 3.12+ por shadow en scope do_POST
                 length = int(self.headers.get("Content-Length", 0))
                 data   = json.loads(self.rfile.read(length)) if length else {}
                 messages_in = data.get("messages", [])
                 stream_mode = data.get("stream", True)
 
                 user_msg = ""
-                for m in reversed(messages_in):
-                    if m.get("role") == "user":
-                        user_msg = m.get("content", "")
+                user_msg_idx = -1
+                for i in range(len(messages_in)-1, -1, -1):
+                    if messages_in[i].get("role") == "user":
+                        user_msg = messages_in[i].get("content", "")
+                        user_msg_idx = i
                         break
+
+                # Inyección de scraping web en tiempo real para el Chat
+                if user_msg_idx != -1:
+                    import re
+                    urls = re.findall(r'(https?://[^\s)\]]+)', user_msg)
+                    if urls:
+                        try:
+                            from core.firecrawl_scraper import scrape_url
+                            _base_dir_scrape = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                            api_key = ""
+                            try:
+                                import yaml
+                                with open(os.path.join(_base_dir_scrape, "config.yaml"), "r", encoding="utf-8") as f:
+                                    api_key = yaml.safe_load(f).get("firecrawl_api_key", "")
+                            except: pass
+                            
+                            for url in urls[:1]:
+                                scrape_res = scrape_url(url, api_key=api_key)
+                                if scrape_res.get("ok"):
+                                    scraped_text = scrape_res.get("content", "")[:6000]
+                                    messages_in[user_msg_idx]["content"] = user_msg.replace(
+                                        url, f"[{url} - CONTENIDO WEB EXTRAÍDO:\n{scraped_text}\n]"
+                                    )
+                                    user_msg = messages_in[user_msg_idx]["content"]
+                        except Exception as e:
+                            pass
 
                 # Detectar comandos del sistema
                 from core.gravity_brain import parse_chat_commands, execute_system_command, build_gravity_system_prompt

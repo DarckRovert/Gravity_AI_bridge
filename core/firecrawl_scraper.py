@@ -34,7 +34,11 @@ def scrape_url(url: str, api_key: str = "") -> Dict[str, Any]:
         return {"ok": False, "error": "URL inválida. Debe comenzar con http:// o https://"}
 
     if api_key:
-        return _scrape_via_firecrawl(url, api_key)
+        res = _scrape_via_firecrawl(url, api_key)
+        if res.get("ok"):
+            return res
+        # Fallback if Firecrawl fails
+        return _scrape_via_fallback(url)
     return _scrape_via_fallback(url)
 
 

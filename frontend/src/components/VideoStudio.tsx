@@ -330,8 +330,8 @@ export const VideoStudio = () => {
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block">Modo Duración</label>
                         <select value={durationMode} onChange={(e) => setDurationMode(e.target.value)} className="w-full bg-surface border border-border-subtle rounded-lg p-2.5 text-xs font-bold text-text-primary outline-none focus:border-accent-primary cursor-pointer hover:bg-surface-hover">
-                          <option value="manual">Manual (Fijo)</option>
-                          <option value="auto">Automático (TTS)</option>
+                          <option value="manual">Manual (Stretch Audio Exacto)</option>
+                          <option value="auto">Automático (Video se adapta a TTS)</option>
                         </select>
                       </div>
                       <div className="space-y-2">
@@ -354,7 +354,7 @@ export const VideoStudio = () => {
                       Configuración de Motor (Render & Audio)
                     </h2>
                   </div>
-                  <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
                     
                     {/* Audio Engine */}
                     <div className="space-y-5">
@@ -525,12 +525,18 @@ export const VideoStudio = () => {
                         </div>
                       </div>
 
-                      <div className="pt-2">
+                    </div>
+
+                    {/* Post-Production & Lore */}
+                    <div className="space-y-5">
+                      <h3 className="text-xs font-bold text-text-muted uppercase border-b border-border-subtle pb-2">Post-Production & Lore</h3>
+                      
+                      <div className="pt-1">
                         <label className="flex items-center gap-2 cursor-pointer text-xs font-medium bg-surface/50 border border-border-subtle p-2 rounded-lg hover:border-accent-primary/50 transition-colors w-full">
-                          <input type="checkbox" checked={useLore} onChange={(e) => setUseLore(e.target.checked)} className="accent-accent-primary w-4 h-4" />
+                          <input type="checkbox" checked={useLore} onChange={(e) => setUseLore(e.target.checked)} className="accent-accent-primary w-4 h-4 flex-shrink-0" />
                           <div className="flex-1">
                             <span className="block font-bold">Persistir Lore al Conocimiento</span>
-                            <span className="block text-[9px] text-text-muted">Guarda el guion y estilo en la base de RAG de Gravity</span>
+                            <span className="block text-[9px] text-text-muted leading-tight">Guarda el guion y estilo en la base de RAG de Gravity</span>
                           </div>
                         </label>
                       </div>
@@ -540,29 +546,28 @@ export const VideoStudio = () => {
                         <h4 className="text-[9px] font-bold text-text-muted uppercase tracking-widest">Efectos Cinematográficos</h4>
                         <div className="grid grid-cols-1 gap-2">
                           <label className="flex items-center gap-2 cursor-pointer text-xs font-medium bg-surface/50 border border-border-subtle p-2 rounded-lg hover:border-accent-primary/50 transition-colors">
-                            <input type="checkbox" checked={kenBurns} onChange={(e) => setKenBurns(e.target.checked)} className="accent-accent-primary w-4 h-4" />
+                            <input type="checkbox" checked={kenBurns} onChange={(e) => setKenBurns(e.target.checked)} className="accent-accent-primary w-4 h-4 flex-shrink-0" />
                             <div className="flex-1">
                               <span className="block font-bold">Ken Burns (Zoom + Pan)</span>
-                              <span className="block text-[9px] text-text-muted">Animación de cámara sobre imágenes estáticas</span>
+                              <span className="block text-[9px] text-text-muted leading-tight">Animación de cámara sobre imágenes estáticas</span>
                             </div>
                           </label>
                           <label className="flex items-center gap-2 cursor-pointer text-xs font-medium bg-surface/50 border border-border-subtle p-2 rounded-lg hover:border-accent-primary/50 transition-colors">
-                            <input type="checkbox" checked={introCard} onChange={(e) => setIntroCard(e.target.checked)} className="accent-accent-primary w-4 h-4" />
+                            <input type="checkbox" checked={introCard} onChange={(e) => setIntroCard(e.target.checked)} className="accent-accent-primary w-4 h-4 flex-shrink-0" />
                             <div className="flex-1">
                               <span className="block font-bold">Tarjeta de Intro</span>
-                              <span className="block text-[9px] text-text-muted">Slide inicial con título animado (3.5s)</span>
+                              <span className="block text-[9px] text-text-muted leading-tight">Slide inicial con título animado (3.5s)</span>
                             </div>
                           </label>
                         </div>
-                        <div className="space-y-1.5">
+                        <div className="space-y-1.5 pt-2">
                           <label className="text-[10px] text-text-muted uppercase font-bold">Color Grade</label>
-                          <select value={colorGrade} onChange={(e) => setColorGrade(e.target.value)} className="w-full bg-surface border border-border-subtle rounded-md p-2 text-xs outline-none">
+                          <select value={colorGrade} onChange={(e) => setColorGrade(e.target.value)} className="w-full bg-surface border border-border-subtle rounded-md p-2 text-xs outline-none focus:border-accent-primary">
                             <option value="auto">Auto (por estilo cinemático)</option>
                             <option value="none">Sin grading</option>
                           </select>
                         </div>
                       </div>
-
                     </div>
 
                   </div>
@@ -596,9 +601,10 @@ export const VideoStudio = () => {
                           <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase border ${
                             eng.type === 'image' ? 'border-blue-500/30 text-blue-400 bg-blue-500/10' :
                             eng.type === 'image_video' ? 'border-purple-500/30 text-purple-400 bg-purple-500/10' :
+                            eng.type === 'llm' ? 'border-orange-500/30 text-orange-400 bg-orange-500/10' :
                             'border-green-500/30 text-green-400 bg-green-500/10'
                           }`}>
-                            {eng.type === 'image' ? 'IMG' : eng.type === 'image_video' ? 'I2V' : 'TTS'}
+                            {eng.type === 'image' ? 'IMG' : eng.type === 'image_video' ? 'I2V' : eng.type === 'llm' ? 'LLM' : 'TTS'}
                           </span>
                           <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${
                             eng.online

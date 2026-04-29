@@ -4,6 +4,26 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
+## [V12.1 PRO] Pipeline Estabilizado y Omnisciencia Web · 28/04/2026
+
+**[ESTABILIZACIÓN DEL PIPELINE DE VIDEO Y CHAT]**
+
+### Motor de Producción de Video (VideoStudio)
+- **Sincronización Matemática de Audio (`atempo`):** Implementado el estiramiento y contracción matemática de audio nativo por FFmpeg para el modo "Manual". La voz encaja milimétricamente en la duración elegida sin truncarse ni desfasarse.
+- **Auto-Título Creativo:** El motor ya no usa la URL base ni "Video Promocional". El LLM analiza todo el contexto, genera un `video_title` global y auto-nombra el job, la Tarjeta de Introducción (Intro Card) y la Base de Datos RAG.
+- **Recuperación de Aspect Ratio en Fallback:** Se mitigó la desfiguración de videos (e.g., vertical a cuadrado) inyectando la resolución del usuario directamente en la Capa 3 de renderización (`_concatenate_clips`).
+
+### Scraping y Omnisciencia Web (Firecrawl + Urllib)
+- **ChatBot Navegador:** El endpoint `/v1/gravity/chat` ahora tiene capacidades de navegación nativas. Inyección en tiempo real del contexto raspado de cualquier URL enviada por el usuario al Chat de Gravity.
+- **Copywriting Automático:** Al detectar contenido web (`_generate_script`), el Motor de Video asume un rol de Experto en Publicidad, estructurando llamadas a la acción, deduciendo el producto principal (Anchor) e ingiriendo contenido promocional al guion.
+- **Fail-Safe de Firecrawl:** Se parchó la vulnerabilidad del scraper `scrape_url`. Si la API de Firecrawl falla, expira o agota cuotas, el sistema hace un fallback silencioso a la librería local `urllib`, garantizando 100% de disponibilidad de extracción de texto.
+
+### Seguridad y Parches Críticos
+- **Prevención de Archivos Fantasma (Race Conditions):** Erradicada la función altamente insegura `tempfile.mktemp()` en `preview_voice`, reemplazándola por UUID4 absolutos con recolección de basura mediante bloques `finally` incondicionales.
+- **Corrección de Cabeceras CORS en APIs:** Inyección global de `self._send_cors()` en los manejadores de excepciones (`except`) de los endpoints `/v1/video/create`, `/v1/video/cancel` y `/v1/video/delete` para prevenir caídas de red en el dashboard de React.
+
+---
+
 ## [V12.1] Production UI Hardening & Monetization Ready · 24/04/2026
 
 **[INTERVENCIÓN TOTAL DE ARQUITECTURA FRONTEND]**

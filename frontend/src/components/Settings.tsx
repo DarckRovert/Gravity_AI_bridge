@@ -76,6 +76,7 @@ export const Settings = () => {
                     <KeyInput label="OpenAI (GPT-4o/o1)" onSave={(v: string) => handleSaveKey('openai', v)} />
                     <KeyInput label="Anthropic (Claude 3.5)" onSave={(v: string) => handleSaveKey('anthropic', v)} />
                     <KeyInput label="Groq (Llama 3 70B)" onSave={(v: string) => handleSaveKey('groq', v)} />
+                    <KeyInput label="Nvidia NIM (Llama 3.3)" onSave={(v: string) => handleSaveKey('nvidia', v)} />
                     <KeyInput label="OpenRouter (Universal)" onSave={(v: string) => handleSaveKey('openrouter', v)} />
                  </div>
               </section>

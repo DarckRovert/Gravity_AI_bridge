@@ -40,6 +40,7 @@ KNOWN_CLOUD_PROVIDERS = {
     "perplexity":   {"display": "Perplexity",        "key_prefix": "pplx-","url": "https://api.perplexity.ai"},
     "openrouter":   {"display": "OpenRouter",        "key_prefix": "sk-or-","url": "https://openrouter.ai/api/v1"},
     "deepinfra":    {"display": "DeepInfra",         "key_prefix": "",     "url": "https://api.deepinfra.com/v1/openai"},
+    "nvidia":       {"display": "Nvidia NIM",        "key_prefix": "nvapi-","url": "https://integrate.api.nvidia.com/v1"},
 }
 
 
@@ -69,7 +70,7 @@ def _encrypt(plaintext: str) -> bytes:
     if platform.system() == "Windows":
         try:
             import win32crypt
-            return win32crypt.CryptProtectData(raw, None, None, None, None, 0)[1]
+            return win32crypt.CryptProtectData(raw, None, None, None, None, 0)
         except Exception:
             pass
     # Fallback XOR

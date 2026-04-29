@@ -917,6 +917,20 @@ class GetRoutesMixin:
             "description": "Síntesis premium vía Google AI Studio (requiere API key)",
         })
 
+        # Motor 6: Nvidia NIM (LLM)
+        nvidia_ok = False
+        try:
+            from core.key_manager import KeyManager
+            nvidia_ok = KeyManager.has_key("nvidia")
+        except Exception:
+            pass
+        engines.append({
+            "id": "nvidia_nim", "label": "Nvidia NIM",
+            "type": "llm", "tier": 3,
+            "online": nvidia_ok,
+            "description": "Orquestación lógica avanzada vía Nvidia NIM (requiere API key)",
+        })
+
         body = json.dumps({"engines": engines, "count": len(engines)}, indent=2).encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
