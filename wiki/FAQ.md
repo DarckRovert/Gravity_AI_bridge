@@ -1,4 +1,4 @@
-# FAQ — Gravity AI Bridge V11.0
+# FAQ — Gravity AI Bridge V12.1 PRO
 **Omniscient-Tier Edition** · [Reportar un bug](https://github.com/DarckRovert/Gravity_AI_bridge/issues) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
 
 ---
@@ -277,7 +277,19 @@ Sí, en modo fallback nativo. Usará `urllib` para scrapear HTML estático. Si l
 
 ---
 
-## Video Studio V11.0
+## Video Studio & Motor MAI V12.1 PRO
+
+### ¿Qué es el Motor de Animación Inteligente (MAI)?
+El MAI es el nuevo motor de composición cinemática que anima las imágenes generadas por Fooocus antes de ensamblarlas en el video final. Tiene 3 niveles:
+- **L0 (Estático):** Escala base sin animación (útil para debug).
+- **L1 (Procedural):** Efectos calculados matemáticamente por FFmpeg (`kenburns`, `parallax`, `shake`, `vignette_drift`). Son instantáneos.
+- **L2 (Generativo AI):** Conversión Image-to-Video utilizando un servidor ComfyUI externo.
+
+### ¿Cómo activo la animación Image-to-Video (MAI L2)?
+1. Necesitas tener **ComfyUI** corriendo localmente en el puerto `8188`.
+2. Dentro de ComfyUI debe estar cargado el workflow por defecto `Gravity_I2V_API.json` (que usa modelos como LTX-Video o SVD).
+3. En el Dashboard, selecciona el preset "Cine L2" o activa el efecto "AI Image-to-Video (L2)" en el menú desplegable avanzado de animación.
+Si ComfyUI no responde, el sistema hará *fallback automático* a un efecto L1 (Ken Burns) sin bloquear tu render.
 
 ### ¿Cuánto tarda en generarse un video?
 Depende del hardware y el número de escenas. En el **Ryzen 7 8700G** (CPU puro, sin GPU dedicada):

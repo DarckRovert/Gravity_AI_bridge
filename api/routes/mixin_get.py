@@ -194,7 +194,7 @@ class GetRoutesMixin:
         best_p, best_m = provider_manager.get_best()
         scans  = provider_manager.scan_all()
         status = {
-            "version":         "12.0",
+            "version":         "12.1",
             "bridge_online":   True,
             "active_provider": best_p.name if best_p else None,
             "active_model":    best_m,
@@ -679,7 +679,7 @@ class GetRoutesMixin:
                 profile["ram_percent"] = psutil.virtual_memory().percent
                 st = CostTracker.get_session_tokens()
                 profile["tokens"] = int(st.get("input", 0)) + int(st.get("output", 0))
-            except:
+            except Exception:
                 pass
             body = json.dumps(profile, indent=2).encode("utf-8")
             self.send_response(200)
@@ -832,104 +832,126 @@ class GetRoutesMixin:
             self.wfile.write(json.dumps({"error": str(e)}).encode())
 
     def _serve_video_engines(self):
-        """GET /v1/video/engines — Estado en tiempo real de todos los motores de producción."""
+        """GET /v1/video/engines — Estado en tiempo real de todos los motores de producción.
+        Los checks de red se ejecutan en paralelo para no bloquear el thread del servidor.
+        """
         import socket
-        engines: list[dict] = []
+        import concurrent.futures
 
-        # Motor 1: Pollinations.ai (imagen)
-        poll_ok = False
-        try:
-            import urllib.request
-            urllib.request.urlopen("https://image.pollinations.ai/", timeout=3)
-            poll_ok = True
-        except Exception:
-            pass
-        engines.append({
-            "id": "pollinations", "label": "Pollinations.ai",
-            "type": "image", "tier": 1,
-            "online": poll_ok,
-            "description": "Generación de imágenes vía API remota",
-        })
+        def _check_pollinations() -> bool:
+            try:
+                urllib.request.urlopen("https://image.pollinations.ai/", timeout=3)
+                return True
+            except Exception:
+                return False
 
-        # Motor 2: ComfyUI (imagen animada / I2V)
-        comfy_ok = False
-        try:
-            sock = socket.create_connection(("127.0.0.1", 8188), timeout=1.5)
-            sock.close()
-            comfy_ok = True
-        except Exception:
-            pass
-        engines.append({
-            "id": "comfyui", "label": "ComfyUI (LTX-Video)",
-            "type": "image_video", "tier": 2,
-            "online": comfy_ok,
-            "description": "Generación I2V local (requiere ComfyUI en :8188)",
-        })
+        def _check_comfyui() -> bool:
+            try:
+                sock = socket.create_connection(("127.0.0.1", 8188), timeout=1.5)
+                sock.close()
+                return True
+            except Exception:
+                return False
 
-        # Motor 3: Fooocus (imagen local)
-        fooocus_ok = False
-        try:
-            import sys as _sys, os as _os
-            BASE_DIR_f = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-            tools_dir  = _os.path.join(BASE_DIR_f, "tools")
-            if tools_dir not in _sys.path:
-                _sys.path.insert(0, tools_dir)
-            from fooocus_client import health_check as _fhc
-            fooocus_ok = _fhc().get("online", False)
-        except Exception:
-            pass
-        engines.append({
-            "id": "fooocus", "label": "Fooocus",
-            "type": "image", "tier": 3,
-            "online": fooocus_ok,
-            "description": "Generación de imágenes local vía Gradio",
-        })
+        def _check_fooocus() -> bool:
+            try:
+                import sys as _sys, os as _os
+                BASE_DIR_f = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+                tools_dir  = _os.path.join(BASE_DIR_f, "tools")
+                if tools_dir not in _sys.path:
+                    _sys.path.insert(0, tools_dir)
+                from fooocus_client import health_check as _fhc
+                return _fhc().get("online", False)
+            except Exception:
+                return False
 
-        # Motor 4: Windows SAPI (TTS offline)
-        sapi_voices = []
-        try:
-            sapi_voices = video_pipeline.get_available_voices()
-        except Exception:
-            pass
-        engines.append({
-            "id": "sapi", "label": "Windows SAPI",
-            "type": "tts", "tier": 1,
-            "online": len(sapi_voices) > 0,
-            "description": f"{len(sapi_voices)} voces instaladas (offline)",
-        })
+        def _check_gemini() -> bool:
+            try:
+                import sys as _sys2, os as _os2
+                BASE_DIR_gt = _os2.path.dirname(_os2.path.dirname(_os2.path.dirname(_os2.path.abspath(__file__))))
+                _int_dir2   = _os2.path.join(BASE_DIR_gt, "_integrations")
+                if _int_dir2 not in _sys2.path:
+                    _sys2.path.insert(0, _int_dir2)
+                from gemini_tts import get_api_key_from_gravity as _gak
+                return bool(_gak())
+            except Exception:
+                return False
 
-        # Motor 5: Gemini TTS (online)
-        gemini_ok = False
-        try:
-            import sys as _sys2, os as _os2
-            BASE_DIR_gt = _os2.path.dirname(_os2.path.dirname(_os2.path.dirname(_os2.path.abspath(__file__))))
-            _int_dir2   = _os2.path.join(BASE_DIR_gt, "_integrations")
-            if _int_dir2 not in _sys2.path:
-                _sys2.path.insert(0, _int_dir2)
-            from gemini_tts import get_api_key_from_gravity as _gak
-            gemini_ok = bool(_gak())
-        except Exception:
-            pass
-        engines.append({
-            "id": "gemini_tts", "label": "Gemini TTS",
-            "type": "tts", "tier": 3,
-            "online": gemini_ok,
-            "description": "Síntesis premium vía Google AI Studio (requiere API key)",
-        })
+        def _check_nvidia() -> bool:
+            try:
+                from core.key_manager import KeyManager
+                return KeyManager.has_key("nvidia")
+            except Exception:
+                return False
 
-        # Motor 6: Nvidia NIM (LLM)
-        nvidia_ok = False
-        try:
-            from core.key_manager import KeyManager
-            nvidia_ok = KeyManager.has_key("nvidia")
-        except Exception:
-            pass
-        engines.append({
-            "id": "nvidia_nim", "label": "Nvidia NIM",
-            "type": "llm", "tier": 3,
-            "online": nvidia_ok,
-            "description": "Orquestación lógica avanzada vía Nvidia NIM (requiere API key)",
-        })
+        def _get_sapi_count() -> int:
+            try:
+                return len(video_pipeline.get_available_voices())
+            except Exception:
+                return 0
+
+        # Ejecutar todos los checks en paralelo (timeout total 4s)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as ex:
+            f_poll    = ex.submit(_check_pollinations)
+            f_comfy   = ex.submit(_check_comfyui)
+            f_fooocus = ex.submit(_check_fooocus)
+            f_gemini  = ex.submit(_check_gemini)
+            f_nvidia  = ex.submit(_check_nvidia)
+            f_sapi    = ex.submit(_get_sapi_count)
+            poll_ok    = f_poll.result(timeout=4)
+            comfy_ok   = f_comfy.result(timeout=4)
+            fooocus_ok = f_fooocus.result(timeout=4)
+            gemini_ok  = f_gemini.result(timeout=4)
+            nvidia_ok  = f_nvidia.result(timeout=4)
+            sapi_n     = f_sapi.result(timeout=4)
+
+        engines: list[dict] = [
+            {
+                "id": "pollinations", "label": "Pollinations.ai",
+                "type": "image", "tier": 1, "online": poll_ok,
+                "description": "Generación de imágenes vía API remota",
+            },
+            {
+                "id": "comfyui", "label": "ComfyUI / LTX-Video (MAI L2)",
+                "type": "image_video", "tier": 2, "online": comfy_ok,
+                "description": "Motor de animación I2V local (requiere ComfyUI en :8188)",
+            },
+            {
+                "id": "fooocus", "label": "Fooocus",
+                "type": "image", "tier": 3, "online": fooocus_ok,
+                "description": "Generación de imágenes local vía Gradio (:7861)",
+            },
+            {
+                "id": "sapi", "label": "Windows SAPI",
+                "type": "tts", "tier": 1, "online": sapi_n > 0,
+                "description": f"{sapi_n} voces instaladas (offline)",
+            },
+            {
+                "id": "gemini_tts", "label": "Gemini TTS",
+                "type": "tts", "tier": 3, "online": gemini_ok,
+                "description": "Síntesis premium vía Google AI Studio (requiere API key)",
+            },
+            {
+                "id": "nvidia_nim", "label": "Nvidia NIM",
+                "type": "llm", "tier": 3, "online": nvidia_ok,
+                "description": "Orquestación lógica avanzada vía Nvidia NIM (requiere API key)",
+            },
+            {
+                "id": "mai_l0", "label": "MAI — FFmpeg Nativo (L0)",
+                "type": "animation", "tier": 0, "online": True,
+                "description": "Motor de Animación: efectos nativos FFmpeg, sin dependencias",
+            },
+            {
+                "id": "mai_l1", "label": "MAI — Procedural Avanzado (L1)",
+                "type": "animation", "tier": 1, "online": True,
+                "description": "Motor de Animación: parallax, glitch, pulse, film burn, etc.",
+            },
+            {
+                "id": "mai_l2", "label": "MAI — ComfyUI/IA (L2)",
+                "type": "animation", "tier": 2, "online": comfy_ok,
+                "description": "Motor de Animación: Image-to-Video vía ComfyUI (requiere GPU)",
+            },
+        ]
 
         body = json.dumps({"engines": engines, "count": len(engines)}, indent=2).encode("utf-8")
         self.send_response(200)
@@ -937,6 +959,34 @@ class GetRoutesMixin:
         self._send_cors()
         self.end_headers()
         self.wfile.write(body)
+
+    def _serve_video_animations(self):
+        """GET /v1/video/animations — Catálogo de efectos de animación del MAI.
+        Expone el mapa efecto→descripción y el mapa estilo→efecto predeterminado.
+        """
+        try:
+            from core.animation_engine import ANIMATION_EFFECTS, ANIMATION_DEFAULTS
+            body = json.dumps({
+                "effects":  ANIMATION_EFFECTS,
+                "defaults": ANIMATION_DEFAULTS,
+                "levels": {
+                    "0": "FFmpeg Nativo (máximo rendimiento, sin dependencias)",
+                    "1": "Procedural Avanzado (efectos complejos via FFmpeg puro)",
+                    "2": "ComfyUI / IA (máxima calidad visual, requiere ComfyUI online)",
+                },
+                "count": len(ANIMATION_EFFECTS),
+            }, ensure_ascii=False, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+
 
     # ── Gravity Brain — Contexto sistémico ────────────────────────────────────
     def _serve_gravity_context(self):
@@ -1002,6 +1052,25 @@ class GetRoutesMixin:
                 "category": "cloud"
             })
 
+            comfy_healthy = False
+            comfy_latency = 0
+            try:
+                import time, urllib.request
+                t0 = time.time()
+                urllib.request.urlopen("http://127.0.0.1:8188/system_stats", timeout=0.5)
+                comfy_healthy = True
+                comfy_latency = int((time.time() - t0)*1000)
+            except Exception:
+                pass
+            
+            providers_data.append({
+                "name": "MAI L2 (ComfyUI)",
+                "healthy": comfy_healthy,
+                "models": 1,
+                "latency_ms": comfy_latency,
+                "category": "local"
+            })
+
             video_data = {}
             try:
                 video_data = video_pipeline.get_queue_status()
@@ -1042,7 +1111,7 @@ class GetRoutesMixin:
                     "current_job": video_data.get("current_job"),
                     "ffmpeg_ok": video_data.get("ffmpeg_ok", False),
                     "history_count": len(video_data.get("history", [])),
-                    "styles": {k: v["label"] for k, v in __import__("core.video_pipeline", fromlist=["CINEMA_STYLES"]).CINEMA_STYLES.items()},
+                    "styles": {k: v["label"] for k, v in video_pipeline.CINEMA_STYLES.items()},
                 },
                 "hardware": hw,
                 "cost": cost_data,
@@ -1190,16 +1259,25 @@ class GetRoutesMixin:
     def _serve_video_download(self):
         """GET /v1/video/download?file=nombre.mp4 — Descarga un video generado."""
         try:
-            from urllib.parse import urlparse, parse_qs
+            from urllib.parse import urlparse, parse_qs, unquote
             qs       = parse_qs(urlparse(self.path).query)
             filename = qs.get("file", [None])[0]
-            if not filename or ".." in filename or "/" in filename or "\\" in filename:
+            if not filename:
                 self.send_response(400)
                 self.end_headers()
-                self.wfile.write(b'{"error":"Nombre de archivo invalido."}')
+                self.wfile.write(b'{"error":"Nombre de archivo requerido."}')
                 return
+            # BUG-21: decodificar URL encoding antes de validar (%2e%2e%2f bypass)
+            filename = unquote(filename)
             BASE_DIR   = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
             videos_dir = os.path.join(BASE_DIR, "_videos")
+            # Construir path absoluto y verificar que esté dentro de videos_dir
+            candidate  = os.path.normpath(os.path.join(videos_dir, filename))
+            if not candidate.startswith(os.path.normpath(videos_dir)):
+                self.send_response(403)
+                self.end_headers()
+                self.wfile.write(b'{"error":"Acceso denegado."}')
+                return
             
             video_path = None
             if os.path.isfile(os.path.join(videos_dir, filename)):

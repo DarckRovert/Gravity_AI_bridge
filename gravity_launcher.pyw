@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI BRIDGE V10.1 — Silent Launcher                ║
+║     GRAVITY AI BRIDGE V12.1 PRO — Silent Launcher               ║
 ║     Inicia el Bridge + Tray sin mostrar consola              ║
 ╚══════════════════════════════════════════════════════════════╝
 
@@ -37,7 +37,7 @@ else:
 
 PID_FILE   = os.path.join(BASE_DIR, "_gravity_launcher.pid")
 BRIDGE_PY  = os.path.join(BASE_DIR, "bridge_server.py")
-LOG_FILE   = os.path.join(BASE_DIR, "_gravity_server.log")
+LOG_FILE   = os.path.join(BASE_DIR, "bridge.log")  # Unificado con MODO_FANTASMA.vbs
 DASHBOARD  = "http://127.0.0.1:7860"
 PORT       = 7860
 PYTHON     = sys.executable
@@ -78,7 +78,7 @@ def _run_as_server():
         print(f"[GRAVITY SERVER] meipass:  {meipass}")
         print(f"[GRAVITY SERVER] sys.path: {sys.path[:6]}")
         print(f"[GRAVITY SERVER] config.yaml: {os.path.exists(os.path.join(exe_dir, 'config.yaml'))}")
-        print(f"[GRAVITY SERVER] web/dashboard.html: {os.path.exists(os.path.join(exe_dir, 'web', 'dashboard.html'))}")
+        print(f"[GRAVITY SERVER] web/index.html: {os.path.exists(os.path.join(exe_dir, 'web', 'index.html'))}")
         log_f.flush()
 
         # Importar y ejecutar bridge_server

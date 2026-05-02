@@ -4,11 +4,10 @@
 
 | Versión | Estado | Soporte de Seguridad |
 |---|---|---|
-| V11.0 Omniscient | ✅ Actual | Activo — recibe parches |
-| V10.4 Diamond | ⚠️ Legacy | Solo vulnerabilidades críticas |
-| V10.3 | ❌ EOL | Sin soporte |
-| V10.2 | ❌ EOL | Sin soporte |
-| < V10.1 | ❌ EOL | Sin soporte |
+| V12.1 PRO Omniscient | ✅ Actual | Activo — recibe parches |
+| V12.0 Omniscient | ⚠️ Legacy | Solo vulnerabilidades críticas |
+| V11.0 | ❌ EOL | Sin soporte |
+| V10.x | ❌ EOL | Sin soporte |
 
 ---
 

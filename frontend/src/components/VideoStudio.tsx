@@ -23,6 +23,9 @@ export const VideoStudio = () => {
   const [kenBurns, setKenBurns] = useState(true);
   const [introCard, setIntroCard] = useState(false);
   const [colorGrade, setColorGrade] = useState('auto');
+  const [animationEffect, setAnimationEffect] = useState('auto');
+  const [animationLevel, setAnimationLevel] = useState(1);
+  const [animationCatalog, setAnimationCatalog] = useState<Record<string,string>>({});
   const [engines, setEngines] = useState<any[]>([]);
   const [ttsEngines, setTtsEngines] = useState<any>({});
   const [geminiVoices, setGeminiVoices] = useState<Record<string,string>>({});
@@ -42,6 +45,8 @@ export const VideoStudio = () => {
       setKenBurns(true);
       setIntroCard(false);
       setColorGrade('auto');
+      setAnimationEffect('kenburns');
+      setAnimationLevel(1);
     } else if (preset === 'epic_trailer') {
       setStyle('cinematic');
       setScenes(10);
@@ -55,6 +60,8 @@ export const VideoStudio = () => {
       setKenBurns(false);
       setIntroCard(true);
       setColorGrade('auto');
+      setAnimationEffect('vignette_drift');
+      setAnimationLevel(1);
     } else if (preset === 'tiktok_short') {
       setStyle('anime');
       setScenes(5);
@@ -68,6 +75,8 @@ export const VideoStudio = () => {
       setKenBurns(true);
       setIntroCard(false);
       setColorGrade('auto');
+      setAnimationEffect('pulse');
+      setAnimationLevel(1);
     } else if (preset === 'publicidad') {
       setStyle('publicitario');
       setScenes(6);
@@ -83,6 +92,8 @@ export const VideoStudio = () => {
       setColorGrade('auto');
       setBgmType('publicitario');
       setVoiceSpeed(180);
+      setAnimationEffect('shake');
+      setAnimationLevel(1);
     }
   };
   
@@ -123,12 +134,23 @@ export const VideoStudio = () => {
     } catch (e) {}
   };
 
+  const fetchAnimationCatalog = async () => {
+    try {
+      const res = await fetch('http://localhost:7860/v1/video/animations');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.effects) setAnimationCatalog(data.effects);
+      }
+    } catch (e) {}
+  };
+
   useEffect(() => {
     fetchStatus();
     fetchVoices();
     fetchEngines();
+    fetchAnimationCatalog();
     const iv = setInterval(fetchStatus, 3000);
-    const ivEngines = setInterval(fetchEngines, 15000);
+    const ivEngines = setInterval(fetchEngines, 30000);
     return () => { clearInterval(iv); clearInterval(ivEngines); };
   }, []);
 
@@ -161,6 +183,8 @@ export const VideoStudio = () => {
           ken_burns: kenBurns,
           intro_card: introCard,
           color_grade: colorGrade,
+          animation_effect: animationEffect,
+          animation_level: animationLevel,
         })
       });
       setTopic('');
@@ -567,6 +591,54 @@ export const VideoStudio = () => {
                             <option value="none">Sin grading</option>
                           </select>
                         </div>
+
+                        {/* Controles de Animación MAI */}
+                        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 space-y-3 mt-2">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">Motor de Animación (MAI)</span>
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] text-text-muted uppercase font-bold">Efecto por Escena</label>
+                            <select
+                              value={animationEffect}
+                              onChange={(e) => setAnimationEffect(e.target.value)}
+                              className="w-full bg-surface border border-emerald-500/30 rounded-md p-2 text-xs outline-none focus:border-emerald-400"
+                            >
+                              <option value="auto">Auto (según estilo cinemático)</option>
+                              {Object.keys(animationCatalog).length > 0
+                                ? Object.entries(animationCatalog).map(([id, label]) => (
+                                    <option key={id} value={id}>{label as string}</option>
+                                  ))
+                                : (
+                                  <>
+                                    <option value="kenburns">Ken Burns (Zoom + Pan Extendido)</option>
+                                    <option value="pulse">Respiración / Pulse (Zoom Orgánico)</option>
+                                    <option value="vignette_drift">Deriva con Viñeta (Pan Lento)</option>
+                                    <option value="glitch">Glitch Cinematográfico (RGB Shift)</option>
+                                    <option value="film_burn">Quemado de Película (Analógico)</option>
+                                    <option value="shake">Temblor de Cámara (Handheld)</option>
+                                    <option value="parallax">Parallax Simulado (Profundidad)</option>
+                                    <option value="tilt_shift">Tilt-Shift Blur (Miniatura)</option>
+                                    <option value="none">Sin animación (Estático)</option>
+                                  </>
+                                )
+                              }
+                            </select>
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] text-text-muted uppercase font-bold">Nivel de Motor</label>
+                            <select
+                              value={animationLevel}
+                              onChange={(e) => setAnimationLevel(+e.target.value)}
+                              className="w-full bg-surface border border-emerald-500/30 rounded-md p-2 text-xs outline-none focus:border-emerald-400"
+                            >
+                              <option value={0}>L0 — FFmpeg Nativo (más rápido)</option>
+                              <option value={1}>L1 — Procedural Avanzado (recomendado)</option>
+                              <option value={2}>L2 — ComfyUI/IA (máx. calidad, lento)</option>
+                            </select>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -602,9 +674,10 @@ export const VideoStudio = () => {
                             eng.type === 'image' ? 'border-blue-500/30 text-blue-400 bg-blue-500/10' :
                             eng.type === 'image_video' ? 'border-purple-500/30 text-purple-400 bg-purple-500/10' :
                             eng.type === 'llm' ? 'border-orange-500/30 text-orange-400 bg-orange-500/10' :
+                            eng.type === 'animation' ? 'border-teal-500/30 text-teal-400 bg-teal-500/10' :
                             'border-green-500/30 text-green-400 bg-green-500/10'
                           }`}>
-                            {eng.type === 'image' ? 'IMG' : eng.type === 'image_video' ? 'I2V' : eng.type === 'llm' ? 'LLM' : 'TTS'}
+                            {eng.type === 'image' ? 'IMG' : eng.type === 'image_video' ? 'I2V' : eng.type === 'llm' ? 'LLM' : eng.type === 'animation' ? 'MAI' : 'TTS'}
                           </span>
                           <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${
                             eng.online
@@ -698,6 +771,17 @@ export const VideoStudio = () => {
                           <div className="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite]"></div>
                         </div>
                       </div>
+                      {status.current_job.style && (
+                        <div className="flex items-center gap-2 pt-1">
+                          <span className="px-1.5 py-0.5 rounded bg-background border border-border-subtle text-[9px] text-text-muted uppercase font-bold">{status.current_job.style}</span>
+                          <span className="px-1.5 py-0.5 rounded bg-teal-500/10 border border-teal-500/30 text-[9px] text-teal-400 uppercase font-bold">
+                            MAI·{status.current_job.animation_effect !== 'auto'
+                              ? status.current_job.animation_effect
+                              : 'auto'} L{status.current_job.animation_level ?? 1}
+                          </span>
+                          <span className="text-[9px] text-text-muted font-mono">{status.current_job.total_scenes} escenas | {status.current_job.scenes_done?.length ?? 0} completadas</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -725,7 +809,12 @@ export const VideoStudio = () => {
                           <div className="text-2xl font-black text-border-subtle">{(i+1).toString().padStart(2, '0')}</div>
                           <div>
                             <div className="font-bold text-text-primary text-sm">{job.title || job.topic}</div>
-                            <div className="text-[10px] text-text-muted mt-0.5 font-mono">ID: #{job.id} | {job.style} | {job.n_scenes} escenas</div>
+                            <div className="text-[10px] text-text-muted mt-0.5 font-mono">
+                              ID: #{job.id} | {job.style} | {job.n_scenes} escenas
+                              {job.animation_effect && job.animation_effect !== 'auto' && (
+                                <span className="ml-2 text-teal-400">MAI·{job.animation_effect}</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -821,6 +910,14 @@ export const VideoStudio = () => {
                           <div className="mt-2 flex flex-wrap gap-1">
                             <span className="px-1.5 py-0.5 rounded-sm bg-background border border-border-subtle text-[9px] text-text-muted uppercase font-bold">{job.style}</span>
                             <span className="px-1.5 py-0.5 rounded-sm bg-background border border-border-subtle text-[9px] text-text-muted uppercase font-bold">{job.codec || 'h264'}</span>
+                            {job.animation_effect && job.animation_effect !== 'none' && (
+                              <span className="px-1.5 py-0.5 rounded-sm bg-teal-500/10 border border-teal-500/30 text-[9px] text-teal-400 uppercase font-bold">
+                                MAI·{job.animation_effect}
+                              </span>
+                            )}
+                            {job.animation_level >= 2 && (
+                              <span className="px-1.5 py-0.5 rounded-sm bg-purple-500/10 border border-purple-500/30 text-[9px] text-purple-400 uppercase font-bold">L{job.animation_level}</span>
+                            )}
                           </div>
                         </div>
                         
@@ -875,6 +972,9 @@ export const VideoStudio = () => {
                 <h3 className="font-black text-xl">{selectedVideo.title || selectedVideo.topic}</h3>
                 <p className="text-xs text-white/50 font-mono mt-1">
                   MASTER ID: #{selectedVideo.id} | {selectedVideo.fps} FPS | {selectedVideo.codec} | {selectedVideo.resolution}
+                  {selectedVideo.animation_effect && selectedVideo.animation_effect !== 'none' && (
+                    <> | <span className="text-teal-400">MAI·{selectedVideo.animation_effect?.toUpperCase()} L{selectedVideo.animation_level ?? 1}</span></>
+                  )}
                 </p>
               </div>
               <button onClick={() => setSelectedVideo(null)} className="p-3 rounded-full bg-white/10 hover:bg-white/20 hover:text-status-error transition-colors text-white">

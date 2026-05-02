@@ -19,7 +19,20 @@ import sqlite3
 import threading
 import time
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, List, Callable
+
+# Callbacks para notificar cambios de estado en la cola a SSE / WebSockets
+_on_update_callbacks: List[Callable[[], None]] = []
+
+def register_update_callback(cb: Callable[[], None]) -> None:
+    _on_update_callbacks.append(cb)
+
+def _notify_update() -> None:
+    for cb in _on_update_callbacks:
+        try:
+            cb()
+        except Exception:
+            pass
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH  = os.path.join(BASE_DIR, "_image_queue.sqlite")
@@ -75,7 +88,9 @@ def add_job(prompt: str, performance: str = "Speed",
             "VALUES (?, 'pending', ?, ?, ?, ?)",
             (now, prompt, performance, width, height)
         )
-        return cur.lastrowid
+        job_id = cur.lastrowid
+        _notify_update()
+        return job_id
 
 
 def get_queue_status() -> dict:
@@ -109,7 +124,10 @@ def cancel_job(job_id: int) -> bool:
             "finished_at=? WHERE id=? AND status='pending'",
             (datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), job_id)
         )
-        return cur.rowcount > 0
+        changed = cur.rowcount > 0
+        if changed:
+            _notify_update()
+        return changed
 
 
 # ── Worker ─────────────────────────────────────────────────────────────────────
@@ -148,13 +166,6 @@ def _process_job(job: sqlite3.Row) -> None:
             sys.path.insert(0, tools_dir)
         from fooocus_client import generate_image, ImageGenRequest
 
-        # Snapshot ANTES de la generación
-        os.makedirs(_OUTPUT_DIR, exist_ok=True)
-        before: set = set(
-            _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.png"), recursive=True) +
-            _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.webp"), recursive=True)
-        )
-
         req: ImageGenRequest = {
             "prompt":      job["prompt"],
             "performance": job["performance"],
@@ -162,22 +173,46 @@ def _process_job(job: sqlite3.Row) -> None:
             "height":      job["height"],
             "num_images":  1,
         }
-        result = generate_image(req)
 
-        # Snapshot DESPUÉS — verificar archivos nuevos reales
-        after: set = set(
-            _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.png"), recursive=True) +
-            _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.webp"), recursive=True)
-        )
-        new_files = list(after - before)
+        # Lógica de retry con backoff exponencial (3 intentos: 5s, 10s, 20s)
+        max_attempts = 3
+        attempt = 0
+        backoff = 5
+        result = {}
+        new_files = []
 
-        if result.get("success") and not new_files:
-            # Fooocus reportó éxito pero no hay archivo nuevo: FALSO POSITIVO
-            result["success"] = False
-            result["error"]   = (
-                "Fooocus reportó success pero no apareció ningún archivo nuevo en outputs/. "
-                "Falso positivo detectado. Revisa fooocus_trigger_debug.log."
+        while attempt < max_attempts:
+            attempt += 1
+            os.makedirs(_OUTPUT_DIR, exist_ok=True)
+            before: set = set(
+                _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.png"), recursive=True) +
+                _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.webp"), recursive=True)
             )
+
+            try:
+                result = generate_image(req)
+            except Exception as e:
+                result = {"success": False, "error": str(e)}
+
+            after: set = set(
+                _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.png"), recursive=True) +
+                _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.webp"), recursive=True)
+            )
+            new_files = list(after - before)
+
+            if result.get("success") and not new_files:
+                result["success"] = False
+                result["error"]   = (
+                    "Fooocus reportó success pero no apareció ningún archivo nuevo en outputs/. "
+                    "Falso positivo detectado."
+                )
+
+            if result.get("success"):
+                break  # Éxito, salir del loop de retry
+            
+            if attempt < max_attempts:
+                time.sleep(backoff)
+                backoff *= 2
 
         if new_files:
             result["images"] = sorted(new_files, key=os.path.getmtime, reverse=True)
@@ -191,6 +226,7 @@ def _process_job(job: sqlite3.Row) -> None:
                 "UPDATE image_jobs SET status=?, finished_at=?, result_json=?, error=? WHERE id=?",
                 (status, datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), result_str, error_msg, job_id)
             )
+        _notify_update()
 
     except Exception as e:
         with _get_conn() as conn:
@@ -198,6 +234,7 @@ def _process_job(job: sqlite3.Row) -> None:
                 "UPDATE image_jobs SET status='failed', finished_at=?, error=? WHERE id=?",
                 (datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), str(e), job_id)
             )
+        _notify_update()
     finally:
         with _lock:
             _current_job = None

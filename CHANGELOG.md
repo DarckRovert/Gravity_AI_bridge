@@ -13,6 +13,10 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 - **Auto-Título Creativo:** El motor ya no usa la URL base ni "Video Promocional". El LLM analiza todo el contexto, genera un `video_title` global y auto-nombra el job, la Tarjeta de Introducción (Intro Card) y la Base de Datos RAG.
 - **Recuperación de Aspect Ratio en Fallback:** Se mitigó la desfiguración de videos (e.g., vertical a cuadrado) inyectando la resolución del usuario directamente en la Capa 3 de renderización (`_concatenate_clips`).
 
+### Motor de Animación Inteligente (MAI)
+- **Animación Multi-Nivel (L0/L1/L2):** Integración completa del motor MAI. L0 (Estático), L1 (Procedural FFmpeg: parallax, pulse, vignette_drift, shake, kenburns), L2 (Generativo AI via ComfyUI/LTX-Video).
+- **Hardening L2 (Image-to-Video):** Soporte total para entradas MP4 desde ComfyUI en `_assemble_clip`, corrigiendo conflictos del flag `-loop` y derivación correcta de rutas SRT.
+- **Sincronización UI:** Dashboard VideoStudio actualizado con presets (documental, epic_trailer, tiktok, publicidad) que aplican automáticamente efectos y niveles de animación, propagándose al historial, metadata y previsualización en tiempo real.
 ### Scraping y Omnisciencia Web (Firecrawl + Urllib)
 - **ChatBot Navegador:** El endpoint `/v1/gravity/chat` ahora tiene capacidades de navegación nativas. Inyección en tiempo real del contexto raspado de cualquier URL enviada por el usuario al Chat de Gravity.
 - **Copywriting Automático:** Al detectar contenido web (`_generate_script`), el Motor de Video asume un rol de Experto en Publicidad, estructurando llamadas a la acción, deduciendo el producto principal (Anchor) e ingiriendo contenido promocional al guion.

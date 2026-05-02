@@ -584,6 +584,8 @@ class PostRoutesMixin:
                 ken_burns      = bool(data.get("ken_burns", True))
                 intro_card     = bool(data.get("intro_card", False))
                 color_grade    = str(data.get("color_grade", "auto")).strip()
+                animation_effect = str(data.get("animation_effect", "auto")).strip()
+                animation_level  = int(data.get("animation_level", 1))
                 job_id         = video_pipeline.add_job(
                     topic          = topic,
                     n_scenes       = n_scenes,
@@ -606,6 +608,8 @@ class PostRoutesMixin:
                     ken_burns      = ken_burns,
                     intro_card     = intro_card,
                     color_grade    = color_grade,
+                    animation_effect = animation_effect,
+                    animation_level  = animation_level,
                 )
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")

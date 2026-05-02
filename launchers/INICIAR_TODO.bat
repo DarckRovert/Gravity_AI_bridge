@@ -1,23 +1,32 @@
 @echo off
 title Gravity AI Bridge V12.1 PRO -- Arranque Completo
-cd /d "F:\Gravity_AI_bridge"
+setlocal enabledelayedexpansion
 color 0B
 cls
 
 echo.
 echo  +--------------------------------------------------------------------------+
 echo  ^|          GRAVITY AI BRIDGE V12.1 PRO [Ecosistema Total]                 ^|
-echo  ^|          Arranque completo del ecosistema                                ^|
+echo  ^|          Motor de Animacion (MAI) L0/L1/L2 habilitado                   ^|
 echo  +--------------------------------------------------------------------------+
 echo.
 
-REM ── Definir rutas absolutas ───────────────────────────────────────────────────
-set "ROOT=F:\Gravity_AI_bridge"
+REM ── Rutas relativas al script (nunca hardcodeadas) ─────────────────────────────
+set "ROOT=%~dp0.."
 set "FOOOCUS_DIR=%ROOT%\_integrations\Fooocus"
 set "PYTHON_EMB=%FOOOCUS_DIR%\python_embeded\python.exe"
 set "FOOOCUS_SCRIPT=%FOOOCUS_DIR%\Fooocus\entry_with_update.py"
+set "STUDIO_UI=%ROOT%\tools\fooocus_studio_ui.py"
 
-REM ── 1. Matar procesos Python previos en los puertos del ecosistema ────────────
+REM ── Validar entorno base ────────────────────────────────────────────────────────
+if not exist "%ROOT%\bridge_server.py" (
+    echo  [!] ERROR: bridge_server.py no encontrado en: %ROOT%
+    echo  [!] Verifica que este script este en la carpeta 'launchers' del proyecto.
+    pause
+    exit /b 1
+)
+
+REM ── 1. Liberar puertos previos (7860, 7861, 7862) ─────────────────────────────
 echo  [1/4] Liberando puertos previos (7860, 7861, 7862)...
 for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7861 " ^| findstr LISTENING') do (
     taskkill /F /PID %%p >nul 2>&1
@@ -31,59 +40,90 @@ for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7862 " ^| findstr LISTENING
 timeout /t 2 /nobreak >nul
 echo  [OK] Puertos liberados.
 
-REM ── 2. Bridge Server + Dashboard (7860) ──────────────────────────────────────
+REM ── 2. Bridge Server + Dashboard (7860) ───────────────────────────────────────
 echo.
 echo  [2/4] Iniciando Bridge Server (puerto 7860)...
 start "Gravity :: Bridge Server" cmd /k "cd /d "%ROOT%" && python bridge_server.py"
-echo  [INFO] Esperando 4s para que el Bridge levante...
-timeout /t 4 /nobreak >nul
-echo  [OK] Bridge Server iniciado.
 
-REM ── 3. Motor Fooocus CPU (7861) ───────────────────────────────────────────────
+REM Polling real del puerto 7860
+echo  [INFO] Esperando a que el Bridge levante en :7860 (max 45s)...
+set "_BRIDGE_OK=0"
+for /L %%i in (1,1,45) do (
+    if "!_BRIDGE_OK!"=="0" (
+        netstat -ano | findstr ":7860 " | findstr "LISTENING" >nul 2>&1
+        if not errorlevel 1 (
+            set "_BRIDGE_OK=1"
+            echo  [OK] Bridge Server listo en %%is.
+        ) else (
+            timeout /t 1 /nobreak >nul
+        )
+    )
+)
+if "!_BRIDGE_OK!"=="0" (
+    echo  [!] ADVERTENCIA: Bridge no respondio en 45s. Verifica Python y dependencias.
+    echo  [!] Continuando de todas formas (puede tardar mas en hardware lento).
+)
+
+REM ── 3. Motor Fooocus CPU (7861) ────────────────────────────────────────────────
 echo.
 echo  [3/4] Verificando Motor Fooocus CPU...
 if not exist "%PYTHON_EMB%" (
-    echo  [!] ERROR: Python embebido de Fooocus no encontrado en:
-    echo  [!]   %PYTHON_EMB%
-    echo  [!] Generacion de imagenes via Fooocus no disponible.
-    echo  [!] El sistema usara Pollinations como fallback automatico.
-    goto :skip_fooocus
+    echo  [SKIP] Python embebido de Fooocus no encontrado: %PYTHON_EMB%
+    echo  [INFO] Generacion de imagenes via Pollinations (fallback automatico activo).
+    goto :after_fooocus
 )
 if not exist "%FOOOCUS_SCRIPT%" (
-    echo  [!] ERROR: entry_with_update.py no encontrado en:
-    echo  [!]   %FOOOCUS_SCRIPT%
-    echo  [!] Generacion de imagenes via Fooocus no disponible.
-    goto :skip_fooocus
+    echo  [SKIP] entry_with_update.py no encontrado: %FOOOCUS_SCRIPT%
+    echo  [INFO] Generacion via Pollinations activa.
+    goto :after_fooocus
 )
 
 echo  [3/4] Iniciando Motor Fooocus CPU (puerto 7861)...
 start "Gravity :: Motor [Fooocus CPU]" cmd /k "cd /d "%FOOOCUS_DIR%" && "%PYTHON_EMB%" -s Fooocus\entry_with_update.py --always-cpu --all-in-fp32 --disable-async-cuda-allocation --port 7861 --disable-in-browser --disable-analytics"
-echo  [OK] Motor Fooocus iniciando en segundo plano (tarda 60-90s)...
-goto :after_fooocus
+echo  [OK] Motor Fooocus iniciando en segundo plano...
 
-:skip_fooocus
-echo  [SKIP] Fooocus omitido.
+REM Polling real de Fooocus (BUG: antes usaba timeout ciego de 20s)
+echo  [INFO] Esperando a que Fooocus este listo en :7861 (max 120s)...
+set "_FOOOCUS_OK=0"
+for /L %%i in (1,1,120) do (
+    if "!_FOOOCUS_OK!"=="0" (
+        netstat -ano | findstr ":7861 " | findstr "LISTENING" >nul 2>&1
+        if not errorlevel 1 (
+            set "_FOOOCUS_OK=1"
+            echo  [OK] Motor Fooocus listo en %%is.
+        ) else (
+            timeout /t 1 /nobreak >nul
+        )
+    )
+)
+if "!_FOOOCUS_OK!"=="0" (
+    echo  [!] ADVERTENCIA: Fooocus no respondio en 120s. Studio UI puede no funcionar.
+)
 
+REM ── 4. Fooocus Studio UI (7862) ────────────────────────────────────────────────
 :after_fooocus
-
-REM ── 4. Fooocus Studio UI Gradio (7862) ───────────────────────────────────────
 echo.
 echo  [4/4] Iniciando Fooocus Studio UI (puerto 7862)...
-echo  [INFO] Esperando 20s para que el Motor Fooocus inicialice...
-timeout /t 20 /nobreak >nul
+if not exist "%STUDIO_UI%" (
+    echo  [SKIP] tools\fooocus_studio_ui.py no encontrado. Studio UI omitido.
+    goto :launch_done
+)
 start "Gravity :: Fooocus Studio UI" cmd /k "cd /d "%ROOT%" && python tools\fooocus_studio_ui.py"
 echo  [OK] Studio UI iniciado.
 
+:launch_done
 echo.
 echo  +--------------------------------------------------------------------------+
 echo  ^|                                                                          ^|
 echo  ^|   Dashboard Web:    http://localhost:7860       (Chat, Status, Audit)    ^|
-echo  ^|   Fooocus Motor:    http://127.0.0.1:7861      (API de generacion)      ^|
-echo  ^|   Vision Studio:    http://127.0.0.1:7862      (UI de generacion)       ^|
+echo  ^|   Video Studio:     http://localhost:7860       (Tab VideoStudio)        ^|
+echo  ^|   MAI L2 (ComfyUI): http://localhost:8188       (si activo)             ^|
+echo  ^|   Fooocus Motor:    http://127.0.0.1:7861       (API de generacion)     ^|
+echo  ^|   Vision Studio:    http://127.0.0.1:7862       (UI de generacion)      ^|
 echo  ^|                                                                          ^|
-echo  ^|   [!] Fooocus CPU tarda ~60-90s en cargar. Imagen: 3-8 min              ^|
+echo  ^|   [!] Fooocus CPU tarda ~60-120s en cargar. Imagen: 3-8 min             ^|
+echo  ^|   [!] MAI L2 requiere ComfyUI corriendo en :8188                        ^|
 echo  ^|   [!] NO cierres la ventana del motor Fooocus mientras trabajas         ^|
-echo  ^|   [!] Cada componente corre en su propia ventana CMD (cmd /k)           ^|
 echo  ^|                                                                          ^|
 echo  +--------------------------------------------------------------------------+
 echo.
@@ -91,5 +131,5 @@ echo  Abriendo el Dashboard principal en tu navegador...
 timeout /t 2 /nobreak >nul
 start http://127.0.0.1:7860/
 echo.
-echo  [LISTO] Ecosistema Gravity AI iniciado. Esta ventana puede cerrarse.
+echo  [LISTO] Ecosistema Gravity AI V12.1 PRO iniciado. Esta ventana puede cerrarse.
 pause

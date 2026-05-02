@@ -617,11 +617,11 @@ Encola un nuevo trabajo de generación de video. El pipeline corre en background
 }
 ```
 
-| Campo | Tipo | Por defecto | Descripción |
-|:---|:---|:---|:---|
 | `topic` | string | **requerido** | Tema del video en lenguaje natural |
 | `n_scenes` | int | `6` | Número de escenas (4–10) |
 | `voice_speed` | int | `150` | Palabras por minuto de la voz SAPI |
+| `animation_effect` | string | `"auto"` | Efecto MAI (ej. `kenburns`, `parallax`, `shake`, `comfyui_l2_i2v`) |
+| `animation_level` | int | `1` | Nivel de intensidad del efecto (1-3) |
 
 **Respuesta:**
 ```json
@@ -692,6 +692,28 @@ curl "http://localhost:7860/v1/video/download?file=video_1_La_historia_del_jazz_
 ```
 
 Retorna el binario MP4 con `Content-Type: video/mp4` y `Content-Disposition: attachment`.
+
+---
+
+### `GET /v1/video/animations` *(Nuevo en V12.1 PRO)*
+
+Retorna el catálogo completo de efectos del Motor de Animación Inteligente (MAI L0/L1/L2) disponibles para usar en el campo `animation_effect` de la API de creación.
+
+```bash
+curl http://localhost:7860/v1/video/animations
+```
+
+```json
+{
+  "effects": [
+    {"id": "auto", "name": "Automático por Escena", "tier": "L0"},
+    {"id": "kenburns", "name": "Ken Burns Clásico", "tier": "L1"},
+    {"id": "parallax", "name": "Parallax 3D Depth", "tier": "L1"},
+    {"id": "comfyui_l2_i2v", "name": "AI Image-to-Video", "tier": "L2"}
+  ],
+  "levels": [1, 2, 3]
+}
+```
 
 ---
 

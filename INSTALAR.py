@@ -45,7 +45,7 @@ from rich           import box
 import pyfiglet
 
 console    = Console()
-APP_VER    = "10.0"
+APP_VER    = "12.1"
 SOURCE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ── Archivos/Dirs a EXCLUIR de la distribución ────────────────────────────────
@@ -525,8 +525,13 @@ if "%~1"=="--install" (
     exit /b 0
 )
 
+if "%~1"=="--start" (
+    start "" "{target_dir}\\launchers\\INICIAR_TODO.bat"
+    exit /b 0
+)
+
 if "%~1"=="--server" (
-    start "" "{target_dir}\\INICIAR_SERVIDOR.bat"
+    start "" cmd.exe /k "python {target_dir}\\bridge_server.py"
     exit /b 0
 )
 
@@ -676,7 +681,7 @@ def _create_shortcut(target_dir: str):
 $ws = New-Object -ComObject WScript.Shell
 $s  = $ws.CreateShortcut('{lnk_path}')
 $s.TargetPath    = 'cmd.exe'
-$s.Arguments     = '/k "{target_dir}\\INICIAR_AUDITOR.bat"'
+$s.Arguments     = '/k "{target_dir}\\gravity.bat"'
 $s.WorkingDirectory = '{target_dir}'
 $s.Description   = 'Gravity AI Bridge {APP_VER}'
 $s.Save()
@@ -775,7 +780,7 @@ def phase_summary(target_dir: str, hw: dict, engines: dict,
     console.print()
 
     if Confirm.ask("¿Abrir el dashboard web ahora?", default=False):
-        server_bat = os.path.join(target_dir, "INICIAR_SERVIDOR.bat")
+        server_bat = os.path.join(target_dir, "launchers", "INICIAR_TODO.bat")
         if os.path.exists(server_bat):
             subprocess.Popen(["cmd", "/c", server_bat], creationflags=0x00000010)
             time.sleep(2)

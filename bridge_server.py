@@ -59,8 +59,8 @@ from core import ai_process_manager
 from core import engine_watchdog
 from core import video_pipeline
 
-# ── V10.4 Multi-Session Bridge ────────────────────────────────────────────────
-from core.session_runner import CapacityWake, SessionSpawner
+# ── V12.1 Multi-Session Bridge ────────────────────────────────────────────────
+from core.session_runner import SessionSpawner, start_orphan_reaper
 import uuid
 
 ACTIVE_SESSIONS = {}
@@ -69,16 +69,10 @@ MAX_SESSIONS = 32
 def bridge_poll_loop():
     """Loop continuo de polling asíncrono para orquestar sub-sesiones en paralelo."""
     log.info("[V12.1 PRO] Multi-Session Poll Loop activado. Capacidad máxima: 32.")
-    wake = CapacityWake()
     spawner = SessionSpawner(sys.executable, os.path.join(_BASE, "ask_deepseek.py"))
     
     while True:
-        if len(ACTIVE_SESSIONS) >= MAX_SESSIONS:
-            wake.wait(10.0) # Espera ser despertado o chequea cada 10s
-            continue
-            
-        # Simular poll checking (acá se integraría contra un queue redis o socket si existiera)
-        # Para el entorno local, permitiremos que el HTTP endpoint encole tareas
+        # Simular poll checking. La capacidad se controla con BoundedSemaphore internamente en SessionSpawner.
         time.sleep(1.0)
 
 
@@ -185,8 +179,8 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             "/v1/tools/firecrawl/health":self._serve_firecrawl_health,
             # ── V11.0 Gravity Brain ──────────────────────────────────────────────
             "/v1/gravity/context":       self._serve_gravity_context,
-            "/v1/video/list":            self._serve_video_list,
-            "/v1/video/stream":          self._serve_video_stream,
+            # ── V12.1 MAI Animations ────────────────────────────────────────────
+            "/v1/video/animations":      self._serve_video_animations,
             "/v1/processes":             self._serve_processes,
         }
 

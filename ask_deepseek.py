@@ -821,46 +821,48 @@ class AuditorCLI:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        args = sys.argv[1:]
-        session_id = None
-        role = None
-        if "--session" in args:
-            session_id = args[args.index("--session") + 1]
-        if "--role" in args:
-            try:
-                role = args[args.index("--role") + 1]
-            except IndexError:
-                pass
-                
-        # Modo remoto subproceso (V10.4)
-        if session_id:
-            console.print(f"[green]Iniciando sesión aislada: {session_id} (Role: {role})[/]")
-            cli = AuditorCLI(role=role)
-            cli.interactive_loop()
-            sys.exit(0)
-            
-        # Modo pipe / ejecución directa
-        prompt = " ".join([a for a in args if not a.startswith("--") and args.index(a) == 0 or (args.index(a) > 0 and not args[args.index(a)-1].startswith("--"))])
-        if not prompt:
-            prompt = " ".join(args) # fallback if parse logic strips everything
+    import argparse as _ap
+
+    _parser = _ap.ArgumentParser(
+        prog="ask_deepseek",
+        description="Gravity AI Bridge V12.1 CLI",
+        add_help=False,
+    )
+    _parser.add_argument("prompt", nargs="*", help="Prompt directo (modo pipe)")
+    _parser.add_argument("--session", default=None, help="ID de sesión aislada")
+    _parser.add_argument("--role",    default=None, help="Rol del agente")
+    _args, _extra = _parser.parse_known_args()
+
+    role       = _args.role
+    session_id = _args.session
+
+    # Modo sesión aislada (subproceso Multi-Agente)
+    if session_id:
+        console.print(f"[green]Iniciando sesión aislada: {session_id} (Role: {role})[/]")
         cli = AuditorCLI(role=role)
-        bp, bm = cli._get_active_provider_and_model()
-        if not bp:
-            print("ERROR: Sin proveedor disponible. Usa /keys set o inicia un motor local.")
-            sys.exit(1)
-        cli.history.append({"role": "user", "content": prompt})
-        
-        # Inyectar MemDir para comandos pipe
-        cli.session.inject_mem_dir(BASE_DIR)
-        
-        resp = provider_manager.complete(cli.history, bm, bp, cli.sm.data.get("advanced_params", {}))
-        print(resp)
-        for tname, succ, out in tools.parse_and_execute_all(resp):
-            if not succ:
-                print(f"[Tool {tname} Error] {out}")
-    else:
+        cli.interactive_loop()
+        sys.exit(0)
+
+    # Modo pipe / ejecución directa — BUG-12: argparse elimina la ambigüedad de precedencia
+    prompt_parts = _args.prompt + _extra
+    prompt = " ".join(prompt_parts).strip()
+
+    if not prompt:
+        # Sin prompt = modo interactivo
         first_run_check()
         cli = AuditorCLI()
         cli.interactive_loop()
+        sys.exit(0)
 
+    cli = AuditorCLI(role=role)
+    bp, bm = cli._get_active_provider_and_model()
+    if not bp:
+        print("ERROR: Sin proveedor disponible. Usa /keys set o inicia un motor local.")
+        sys.exit(1)
+    cli.history.append({"role": "user", "content": prompt})
+    cli.session.inject_mem_dir(BASE_DIR)
+    resp = provider_manager.complete(cli.history, bm, bp, cli.sm.data.get("advanced_params", {}))
+    print(resp)
+    for tname, succ, out in tools.parse_and_execute_all(resp):
+        if not succ:
+            print(f"[Tool {tname} Error] {out}")

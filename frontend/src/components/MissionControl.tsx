@@ -139,8 +139,9 @@ export const MissionControl: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { id: 'bridge', name: 'Bridge Server', staticStatus: 'Puerto 7860', isOk: true },
-                { id: 'Pollinations.ai', name: 'Pollinations.ai', isProvider: true },
+                { id: 'Pollinations.ai', name: 'Pollinations.ai', isProvider: true, canStop: false },
                 { id: 'Fooocus', name: 'Fooocus Motor', isProvider: true, canStop: true },
+                { id: 'ComfyUI', name: 'MAI L2 (ComfyUI)', isProvider: true, canStop: false },
                 { id: 'LM Studio', name: 'LM Studio', isProvider: true, canStop: true },
                 { id: 'Ollama', name: 'Ollama', isProvider: true, canStop: true }
               ].map((srv) => {
@@ -167,6 +168,18 @@ export const MissionControl: React.FC = () => {
                         className="px-2 py-1 text-[10px] uppercase font-black tracking-widest text-status-error bg-status-error/10 hover:bg-status-error hover:text-white rounded transition-all opacity-0 group-hover:opacity-100"
                       >
                         Kill
+                      </button>
+                    )}
+                    {srv.canStop && !isHealthy && ctx && (
+                      <button 
+                        onClick={() => {
+                           if(confirm(`¿RUN ${srv.name}?`)) {
+                             fetch('http://localhost:7860/v1/ai/start', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({provider: srv.id}) }).then(() => fetchCtx());
+                           }
+                        }}
+                        className="px-2 py-1 text-[10px] uppercase font-black tracking-widest text-status-success bg-status-success/10 hover:bg-status-success hover:text-white rounded transition-all opacity-0 group-hover:opacity-100"
+                      >
+                        Start
                       </button>
                     )}
                   </div>

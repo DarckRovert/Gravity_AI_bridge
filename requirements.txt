@@ -1,4 +1,4 @@
-# ── Gravity AI Bridge V10.3 [Diamond-Tier Edition] — Dependencias ────────────────────
+# ── Gravity AI Bridge V12.1 PRO [Omniscient-Tier Edition] — Dependencias ──────
 # CLI / UI
 aiohttp==3.10.10
 colorama==0.4.6
@@ -14,15 +14,10 @@ requests
 anthropic
 google-generativeai
 
-# Configuración
-# pyyaml ya está por PyYAML arriba
-
 # Métricas Prometheus
 prometheus_client>=0.20.0
 
-# Paquete interno api/ (routing Mixins — no requiere instalación pip)
-
-# RAG — Embeddings locales (obligatorio: instala si no tienes Ollama)
+# RAG — Embeddings locales
 sentence-transformers
 pypdf
 
@@ -43,5 +38,12 @@ pystray
 Pillow
 psutil
 
-# Video Studio V10.3 — TTS offline (Windows SAPI)
+# Video Studio V12.1 — TTS offline (Windows SAPI)
 pyttsx3>=2.90
+
+# MAI — Motor de Animacion Inteligente (V12.1)
+# L2: Integración ComfyUI/LTX-Video via WebSocket
+websocket-client>=1.7.0
+
+# Web scraping contextual (Firecrawl alternativo)
+# firecrawl-py  # Opcional: instalar si tienes API key de Firecrawl

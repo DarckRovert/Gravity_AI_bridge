@@ -95,13 +95,15 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 - Auto-reconexión, `list_tools`, `list_resources`, `read_resource`.
 - Registro global de adaptadores accesible desde el Dashboard.
 
-### 🎬 Video Studio (Cinematic & Monetization)
-Pipeline de 5 pasos orquestado en daemon:
-1. **LLM (Ollama)** → guión JSON estructurado con N escenas
-2. **Fooocus (CPU)** → imagen cinematic 16:9/9:16/1:1 por escena
-3. **Windows SAPI/pyttsx3** → narración TTS en `.wav`
-4. **ffmpeg** → clip `.mp4` por escena (H.264, 24fps)
-5. **ffmpeg concat** → video final servido vía streaming.
+### 🎬 Video Studio (Cinematic & Monetization) V12.1 PRO
+Pipeline de 5 pasos orquestado en daemon con **Motor de Animación Inteligente (MAI)**:
+1. **LLM (Ollama)** → guión JSON estructurado con N escenas y auto-título.
+2. **Fooocus (CPU/GPU)** → imagen base cinematográfica 16:9/9:16.
+3. **MAI Engine (L0/L1/L2)** → Anima la imagen generada:
+   - *L1 (Procedural)*: `kenburns`, `parallax`, `shake` ultra-rápidos vía FFmpeg.
+   - *L2 (AI Video)*: Transformación a video vía `ComfyUI` (LTX-Video/SVD) por WebSocket.
+4. **Windows SAPI/pyttsx3** → narración TTS offline sincronizada vía `atempo`.
+5. **ffmpeg concat** → video final ensamblado y servido vía streaming.
 
 **Reproductor Web Integrado**: Stream de video nativo y panel de exportación a redes (Shorts, Reels, Facebook).
 

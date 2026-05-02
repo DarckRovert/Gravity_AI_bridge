@@ -70,40 +70,23 @@ DEFAULT_FPS        = 24
 DEFAULT_BGM_VOLUME = 0.1   # volumen relativo de la música de fondo (0.0-1.0)
 
 # ── Generadores de BGM locales (sin internet) ─────────────────────────────────
-# Expresiones aevalsrc para ffmpeg: música instrumental sintetizada.
-# Formato: canal izquierdo | canal derecho (stereo via aevalsrc=expr:c=stereo)
+# Ruido marrón/rosa con filtros paso-bajo para crear "rumble" cinemático (drone ambient)
 BGM_GENERATORS: dict[str, str] = {
-    # Épico: drone grave + melodía alta + armónicos
-    "epico": (
-        "0.28*sin(55*2*PI*t)+0.18*sin(110*2*PI*t)+0.12*sin(165*2*PI*t)+"
-        "0.08*sin(82.41*2*PI*t)+0.05*sin(220*2*PI*t)+"
-        "0.04*sin(329.63*2*PI*t*(1+0.001*sin(0.25*2*PI*t)))"
-    ),
-    # Documental: pads ambientales suaves, acorde mayor
-    "documental": (
-        "0.15*sin(220*2*PI*t)+0.12*sin(277.18*2*PI*t)+"
-        "0.10*sin(329.63*2*PI*t)+0.07*sin(440*2*PI*t)+"
-        "0.05*sin(110*2*PI*t)+0.03*sin(554.37*2*PI*t)"
-    ),
-    # Synthwave: arpegio 80s con vibrato sutil
-    "synthwave": (
-        "0.20*sin(130.81*2*PI*t*(1+0.003*sin(4*2*PI*t)))+"
-        "0.15*sin(196*2*PI*t*(1+0.002*sin(4*2*PI*t)))+"
-        "0.12*sin(261.63*2*PI*t)+0.08*sin(392*2*PI*t)+"
-        "0.06*sin(523.25*2*PI*t)"
-    ),
-    # Jazz: bajo cálido + acorde jazz (7ma)
-    "jazz": (
-        "0.22*sin(87.31*2*PI*t)+0.15*sin(174.61*2*PI*t)+"
-        "0.12*sin(261.63*2*PI*t)+0.09*sin(329.63*2*PI*t)+"
-        "0.07*sin(392*2*PI*t)+0.05*sin(466.16*2*PI*t)"
-    ),
-
-    "publicitario": (
-        "0.25*sin(196*2*PI*t)+0.2*sin(246.94*2*PI*t)+"
-        "0.15*sin(293.66*2*PI*t)+0.1*sin(392*2*PI*t)+"
-        "0.05*sin(587.33*2*PI*t)"
-    ),
+    "epico":        "anoisesrc=color=brown:r=44100:a=0.5,lowpass=f=120,chorus=0.5:0.9:50:0.4:0.25:2",
+    "documental":   "anoisesrc=color=pink:r=44100:a=0.2,lowpass=f=300",
+    "synthwave":    "anoisesrc=color=brown:r=44100:a=0.4,lowpass=f=400,tremolo=f=4:d=0.5",
+    "jazz":         "anoisesrc=color=pink:r=44100:a=0.15,lowpass=f=250",
+    "cinematic":    "anoisesrc=color=brown:r=44100:a=0.6,lowpass=f=80,reverb",
+    "publicitario": "anoisesrc=color=pink:r=44100:a=0.3,lowpass=f=350,tremolo=f=2:d=0.3",
+    "heroico":      "anoisesrc=color=brown:r=44100:a=0.5,lowpass=f=100",
+    "ambient":      "anoisesrc=color=pink:r=44100:a=0.15,lowpass=f=150",
+    "tension":      "anoisesrc=color=brown:r=44100:a=0.4,lowpass=f=60",
+    "triste":       "anoisesrc=color=pink:r=44100:a=0.2,lowpass=f=200",
+    "misterio":     "anoisesrc=color=brown:r=44100:a=0.3,lowpass=f=90",
+    "alegre":       "anoisesrc=color=pink:r=44100:a=0.25,lowpass=f=400",
+    "lofi_beats":   "anoisesrc=color=pink:r=44100:a=0.2,lowpass=f=250",
+    "corporativo":  "anoisesrc=color=pink:r=44100:a=0.15,lowpass=f=300",
+    "ninguna":      "anullsrc=r=44100:cl=stereo"
 }
 
 
@@ -188,11 +171,16 @@ STYLE_COLOR_GRADES = {
 _lock         = threading.Lock()
 _current_job  = None
 _started      = False
+_db_initialized = False
 
 
 # â”€â”€ Base de datos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def _init_db() -> None:
+    global _db_initialized
+    if _db_initialized:
+        return
+    _db_initialized = True
     conn = sqlite3.connect(DB_PATH)
     conn.execute("""
         CREATE TABLE IF NOT EXISTS video_jobs (
@@ -233,10 +221,12 @@ def _init_db() -> None:
         ("duration_mode",  "TEXT NOT NULL DEFAULT 'auto'"),
         ("bgm_volume",     "REAL NOT NULL DEFAULT 0.1"),
         ("codec",          "TEXT NOT NULL DEFAULT 'libx264'"),
-        ("ken_burns",      "INTEGER NOT NULL DEFAULT 1"),
-        ("intro_card",     "INTEGER NOT NULL DEFAULT 0"),
-        ("color_grade",    "TEXT NOT NULL DEFAULT 'auto'"),
-        ("thumbnail_path", "TEXT NOT NULL DEFAULT ''"),
+        ("ken_burns",         "INTEGER NOT NULL DEFAULT 1"),
+        ("intro_card",        "INTEGER NOT NULL DEFAULT 0"),
+        ("color_grade",       "TEXT NOT NULL DEFAULT 'auto'"),
+        ("thumbnail_path",    "TEXT NOT NULL DEFAULT ''"),
+        ("animation_effect",  "TEXT NOT NULL DEFAULT 'auto'"),
+        ("animation_level",   "INTEGER NOT NULL DEFAULT 1"),
     ]
     for col_name, col_def in migrations:
         if col_name not in existing:
@@ -286,9 +276,11 @@ def add_job(
     duration_mode: str  = "auto",
     bgm_volume: float   = DEFAULT_BGM_VOLUME,
     codec: str          = "libx264",
-    ken_burns: bool     = True,
-    intro_card: bool    = False,
-    color_grade: str    = "auto",
+    ken_burns: bool        = True,
+    intro_card: bool       = False,
+    color_grade: str       = "auto",
+    animation_effect: str  = "auto",
+    animation_level: int   = 1,
 ) -> int:
     """Encola un nuevo trabajo de video. Retorna el ID generado."""
     _init_db()
@@ -300,14 +292,16 @@ def add_job(
         "INSERT INTO video_jobs "
         "(topic, n_scenes, voice_speed, voice_id, style, narration_lang, transitions, "
         " resolution, subtitles, title, bgm_type, quality, use_lore, fps, scene_duration, "
-        " duration_mode, bgm_volume, codec, ken_burns, intro_card, color_grade, created_at) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        " duration_mode, bgm_volume, codec, ken_burns, intro_card, color_grade, "
+        " animation_effect, animation_level, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (
             topic, n_scenes, voice_speed, voice_id, style, narration_lang,
             1 if transitions else 0, resolution, 1 if subtitles else 0,
             title, bgm_type, quality, 1 if use_lore else 0,
             fps, scene_duration, duration_mode, float(bgm_volume), codec,
-            1 if ken_burns else 0, 1 if intro_card else 0, color_grade, now
+            1 if ken_burns else 0, 1 if intro_card else 0, color_grade,
+            animation_effect, int(animation_level), now
         )
     )
     job_id = cur.lastrowid
@@ -1130,24 +1124,12 @@ def _generate_audio(
 # â”€â”€ Paso 5: Ensamblado por escena con fade â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
-# -- Ken Burns: zoom+pan cinematico sobre imagen estatica ---------------------
+# -- Ken Burns: delegado al animation_engine (compatibilidad legacy) ----------
 
 def _kenburns_vf(clip_dur: float, fps: int, w: int, h: int, scene_idx: int) -> str:
-    """Genera filtro zoompan alterno: escena par=zoom-in, impar=zoom-out+pan."""
-    total_frames = max(1, int(clip_dur * fps))
-    if scene_idx % 2 == 0:
-        z  = "'min(zoom+0.0008,1.18)'"
-        x  = "'iw/2-(iw/zoom/2)'"
-        y  = "'ih/2-(ih/zoom/2)'"
-    else:
-        z  = "'if(eq(on,1),1.18,max(zoom-0.0008,1.0))'"
-        x  = "'iw/2-(iw/zoom/2)+(iw*0.03*on/" + str(total_frames) + ")'"
-        y  = "'ih/2-(ih/zoom/2)'"
-    return (
-        'zoompan=z=' + z + ':d=' + str(total_frames) +
-        ':x=' + x + ':y=' + y +
-        ':s=' + str(w) + 'x' + str(h) + ':fps=' + str(fps)
-    )
+    """Wrapper legacy → delega a animation_engine para compatibilidad."""
+    from core.animation_engine import build_animation_vf
+    return build_animation_vf("kenburns", clip_dur, fps, w, h, scene_idx)
 
 
 # -- Title card: intro animado con drawtext -----------------------------------
@@ -1237,6 +1219,7 @@ def _assemble_clip(
     color_grade: str = "",
     scene_idx: int = 0,
     scene_title: str = "",
+    animation_effect: str = "kenburns",
 ) -> bool:
     """
     Combina imagen + audio en clip mp4.
@@ -1247,6 +1230,8 @@ def _assemble_clip(
         return False
 
     try:
+        # Detectar si el input es un video (L2 ComfyUI) o imagen estática (L0/L1)
+        _input_is_video = image_path.lower().endswith((".mp4", ".webm", ".mov", ".avi"))
         has_audio = audio_path and os.path.isfile(audio_path) and os.path.getsize(audio_path) > 0
 
         # Detectar duración del audio para calcular fade-out offset
@@ -1281,20 +1266,25 @@ def _assemble_clip(
             if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
                 w_val, h_val = int(parts[0]), int(parts[1])
 
-        # Filtro de video con fade
-        if ken_burns and not (subtitles and text):
-            # Ken Burns: zoompan (no compatible con subtitles en misma cadena)
-            vf_parts = [_kenburns_vf(clip_dur, fps, w_val, h_val, scene_idx)]
+        # ── Filtro de animación: animation_engine gestiona ken_burns y efectos ──
+        # FIX BUG ARQUITECTÓNICO: animation_effect recibido directamente como parámetro
+        # (eliminado el hack de atributo-en-función que tenía race condition).
+        from core.animation_engine import build_animation_vf
+
+        if ken_burns:
+            animation_vf = build_animation_vf(animation_effect, clip_dur, fps, w_val, h_val, scene_idx)
         else:
-            vf_parts = [
-                f"scale={w_val}:{h_val}:force_original_aspect_ratio=decrease",
-                f"pad={w_val}:{h_val}:(ow-iw)/2:(oh-ih)/2:black",
-                f"fps={fps}",
-            ]
+            animation_vf = (
+                f"scale={w_val}:{h_val}:force_original_aspect_ratio=decrease,"
+                f"pad={w_val}:{h_val}:(ow-iw)/2:(oh-ih)/2:black,fps={fps}"
+            )
+
+        vf_parts = [animation_vf]
+
         if color_grade:
             vf_parts.append(color_grade)
 
-        # VFX de grano de pelicula sutil para cohesion visual
+        # VFX de grano de película sutil para cohesión visual
         vf_parts.append("noise=alls=7:allf=t+u")
 
         if subtitles and text:
@@ -1304,9 +1294,9 @@ def _assemble_clip(
                 _h, _m = divmod(m, 60)
                 return f"{_h:02d}:{_m:02d}:{s_int:02d},{ms:03d}"
 
-            job_dir = os.path.dirname(image_path)
+            srt_dir = os.path.dirname(output_mp4)
             scene_name = os.path.splitext(os.path.basename(image_path))[0]
-            srt_path = os.path.join(job_dir, f"{scene_name}.srt")
+            srt_path = os.path.join(srt_dir, f"{scene_name}.srt")
             with open(srt_path, "w", encoding="utf-8") as srt_f:
                 srt_f.write(f"1\n00:00:00,000 --> {fmt_time(clip_dur)}\n{text}\n")
 
@@ -1329,14 +1319,34 @@ def _assemble_clip(
         vf = ",".join(vf_parts)
 
         if has_audio:
-            cmd = [
-                FFMPEG_EXE, "-y",
-                "-loop", "1", "-i", image_path,
-                "-i",  audio_path,
-                "-c:v", codec, "-preset", "fast",
-                "-c:a", "aac", "-b:a", "128k"
-            ]
-            
+            if _input_is_video:
+                # Input es MP4 (ComfyUI L2): usar -stream_loop para repetir si necesario
+                cmd = [
+                    FFMPEG_EXE, "-y",
+                    "-stream_loop", "-1", "-i", image_path,
+                    "-i", audio_path,
+                    "-c:v", codec, "-preset", "fast",
+                    "-c:a", "aac", "-b:a", "128k",
+                ]
+            else:
+                # Input es imagen estática: NO usar -loop 1 si el filtro es zoompan
+                if "zoompan" in vf:
+                    cmd = [
+                        FFMPEG_EXE, "-y",
+                        "-i", image_path,
+                        "-i", audio_path,
+                        "-c:v", codec, "-preset", "fast",
+                        "-c:a", "aac", "-b:a", "128k",
+                    ]
+                else:
+                    cmd = [
+                        FFMPEG_EXE, "-y",
+                        "-loop", "1", "-i", image_path,
+                        "-i", audio_path,
+                        "-c:v", codec, "-preset", "fast",
+                        "-c:a", "aac", "-b:a", "128k",
+                    ]
+
             # Ajuste matemático de audio (atempo) si el modo es manual
             if duration_mode == "manual" and audio_dur > 0:
                 tempo = audio_dur / clip_dur
@@ -1351,7 +1361,7 @@ def _assemble_clip(
                         t /= 100.0
                     if t != 1.0:
                         tempos.append(f"atempo={t:.4f}")
-                    
+
                     if tempos:
                         af_str = ",".join(tempos)
                         cmd.extend(["-filter:a", af_str])
@@ -1369,18 +1379,32 @@ def _assemble_clip(
                 output_mp4,
             ])
         else:
-            cmd = [
-                FFMPEG_EXE, "-y",
-                "-loop", "1", "-i", image_path,
-                "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100",
-                "-t", str(scene_duration),
-                "-c:v", codec, "-preset", "fast",
-                "-c:a", "aac", "-b:a", "128k",
-                "-vf", vf,
-                "-pix_fmt", "yuv420p",
-                "-movflags", "+faststart",
-                output_mp4,
-            ]
+            if _input_is_video:
+                cmd = [
+                    FFMPEG_EXE, "-y",
+                    "-stream_loop", "-1", "-i", image_path,
+                    "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100",
+                    "-t", str(scene_duration),
+                    "-c:v", codec, "-preset", "fast",
+                    "-c:a", "aac", "-b:a", "128k",
+                    "-vf", vf,
+                    "-pix_fmt", "yuv420p",
+                    "-movflags", "+faststart",
+                    output_mp4,
+                ]
+            else:
+                cmd = [
+                    FFMPEG_EXE, "-y",
+                    "-loop", "1", "-i", image_path,
+                    "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100",
+                    "-t", str(scene_duration),
+                    "-c:v", codec, "-preset", "fast",
+                    "-c:a", "aac", "-b:a", "128k",
+                    "-vf", vf,
+                    "-pix_fmt", "yuv420p",
+                    "-movflags", "+faststart",
+                    output_mp4,
+                ]
 
         result = subprocess.run(
             cmd, capture_output=True, timeout=180,
@@ -1404,7 +1428,7 @@ def _assemble_clip(
 # -- BGM local: generacion instrumental sin internet ----------------------
 
 def _ensure_bgm(bgm_type: str, bgm_path: str) -> bool:
-    # Genera BGM instrumental con ffmpeg aevalsrc. Sin internet. Cache en inputs/.
+    # Genera BGM instrumental con ffmpeg usando los nuevos generadores de ruido cinemático
     if os.path.isfile(bgm_path) and os.path.getsize(bgm_path) > 4096:
         return True
     if bgm_type not in BGM_GENERATORS:
@@ -1417,11 +1441,17 @@ def _ensure_bgm(bgm_type: str, bgm_path: str) -> bool:
     os.makedirs(parent_dir, exist_ok=True)
     dur = 600
     expr = BGM_GENERATORS[bgm_type]
-    aevalsrc_arg = expr + ':c=stereo:sample_rate=44100:d=' + str(dur)
+    
+    # Asegurar que el audio sea estéreo (anoisesrc genera mono por defecto)
+    if "anoisesrc" in expr:
+        filtergraph = f"{expr},aformat=channel_layouts=stereo"
+    else:
+        filtergraph = expr
+        
     fade_out_st = dur - 4
     cmd = [
         FFMPEG_EXE, '-y',
-        '-f', 'lavfi', '-i', 'aevalsrc=' + aevalsrc_arg,
+        '-f', 'lavfi', '-i', filtergraph,
         '-af', 'volume=0.45,afade=t=in:st=0:d=4,afade=t=out:st=' + str(fade_out_st) + ':d=4',
         '-ar', '44100', '-ac', '2',
         '-c:a', 'libmp3lame', '-b:a', '128k',
@@ -1654,7 +1684,7 @@ def _concatenate_clips(clip_paths: list[str], output_mp4: str, bgm_type: str = "
 
 def _update_job(job_id: int, **kwargs) -> None:
     valid  = {"status", "progress", "current_step", "output_path",
-              "error", "started_at", "finished_at", "thumbnail_path"}
+              "error", "started_at", "finished_at", "thumbnail_path", "title"}
     fields = {k: v for k, v in kwargs.items() if k in valid}
     if not fields:
         return
@@ -1696,12 +1726,14 @@ def _process_job(
     duration_mode: str = "auto",
     bgm_volume: float = DEFAULT_BGM_VOLUME,
     codec: str = "libx264",
-    ken_burns: bool = True,
-    intro_card: bool = False,
-    color_grade: str = "auto",
+    ken_burns: bool        = True,
+    intro_card: bool       = False,
+    color_grade: str       = "auto",
+    animation_effect: str  = "auto",
+    animation_level: int   = 1,
 ) -> None:
     """
-    Pipeline completo con Character Consistency Engine.
+    Pipeline completo con Character Consistency Engine + Motor de Animación (MAI).
     """
     global _current_job
 
@@ -1710,15 +1742,17 @@ def _process_job(
                 current_step="Generando guiÃ³n con el LLM...")
     with _lock:
         _current_job = {
-            "id":            job_id,
-            "topic":         topic,
-            "title":         title or topic[:60],
-            "style":         style,
-            "total_scenes":  n_scenes,
-            "current_scene": 0,
-            "scenes_done":   [],
-            "current_step":  "Generando guión con el LLM...",
-            "progress":      0,
+            "id":               job_id,
+            "topic":            topic,
+            "title":            title or topic[:60],
+            "style":            style,
+            "total_scenes":     n_scenes,
+            "current_scene":    0,
+            "scenes_done":      [],
+            "current_step":     "Generando guión con el LLM...",
+            "progress":         0,
+            "animation_effect": animation_effect,
+            "animation_level":  animation_level,
         }
 
     job_dir = os.path.join(OUTPUT_DIR, f"job_{job_id}")
@@ -1747,6 +1781,10 @@ def _process_job(
 
         # -- Grading de color efectivo
         effective_grade = STYLE_COLOR_GRADES.get(style, '') if color_grade == 'auto' else (color_grade if color_grade != 'none' else '')
+
+        # -- Efecto de animación efectivo (resuelto por el MAI)
+        from core.animation_engine import resolve_effect as _resolve_effect
+        effective_animation = _resolve_effect(style, animation_effect)
 
         total_steps = n_scenes * 3 + 1
         step        = 0
@@ -1830,7 +1868,26 @@ def _process_job(
             scene_mood = scene.get("mood", "neutral").lower()
             mood_grade = EMOTIONAL_GRADES.get(scene_mood, "")
             _cgrade    = f"{base_grade},{mood_grade}" if base_grade and mood_grade else (base_grade or mood_grade)
-            if _assemble_clip(img_path, audio_path if audio_ok else None, clip_path, fade=transitions, resolution=resolution, text=narration, subtitles=subtitles, fps=fps, scene_duration=scene_duration, duration_mode=duration_mode, codec=codec, ken_burns=ken_burns, color_grade=_cgrade, scene_idx=scene_num, scene_title=scene_title):
+
+            # -- L2: Intentar animación via ComfyUI si animation_level >= 2 --
+            _animated_src = img_path
+            if animation_level >= 2:
+                from core.animation_engine import animate_with_comfyui
+                _anim_mp4 = animate_with_comfyui(
+                    image_path=img_path,
+                    job_id=job_id,
+                    scene_idx=scene_num,
+                    fps=min(fps, 8),   # ComfyUI limitado en CPU
+                    frames=16,
+                    output_dir=job_dir,
+                )
+                if _anim_mp4:
+                    _animated_src = _anim_mp4
+                    log.info(f"[VideoStudio] [MAI-L2] Escena {scene_num}: animación ComfyUI → {os.path.basename(_anim_mp4)}")
+                else:
+                    log.info(f"[VideoStudio] [MAI-L2] ComfyUI no disponible. Fallback a L1 ({effective_animation}).")
+
+            if _assemble_clip(_animated_src, audio_path if audio_ok else None, clip_path, fade=transitions, resolution=resolution, text=narration, subtitles=subtitles, fps=fps, scene_duration=scene_duration, duration_mode=duration_mode, codec=codec, ken_burns=ken_burns, color_grade=_cgrade, scene_idx=scene_num, scene_title=scene_title, animation_effect=effective_animation):
                 clip_paths.append(clip_path)
                 with _lock:
                     if _current_job and scene_num not in _current_job.get("scenes_done", []):
@@ -1952,9 +2009,11 @@ def _worker_loop() -> None:
                     duration_mode  = row["duration_mode"]      if "duration_mode"  in keys else "auto",
                     bgm_volume     = float(row["bgm_volume"]) if "bgm_volume"     in keys else DEFAULT_BGM_VOLUME,
                     codec          = row["codec"]             if "codec"           in keys else "libx264",
-                    ken_burns      = bool(row["ken_burns"]    if "ken_burns"       in keys else 1),
-                    intro_card     = bool(row["intro_card"]   if "intro_card"      in keys else 0),
-                    color_grade    = row["color_grade"]       if "color_grade"     in keys else "auto",
+                    ken_burns        = bool(row["ken_burns"]         if "ken_burns"         in keys else 1),
+                    intro_card       = bool(row["intro_card"]        if "intro_card"        in keys else 0),
+                    color_grade      = row["color_grade"]            if "color_grade"       in keys else "auto",
+                    animation_effect = row["animation_effect"]       if "animation_effect"  in keys else "auto",
+                    animation_level  = int(row["animation_level"])   if "animation_level"   in keys else 1,
                 )
             else:
                 time.sleep(5)

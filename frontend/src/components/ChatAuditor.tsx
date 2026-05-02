@@ -5,7 +5,7 @@ import type { Message } from '../types';
 export const ChatAuditor: React.FC = () => {
   const defaultMessage: Message = {
     role: 'system',
-    content: `👋 **Bienvenido a Gravity AI Bridge V12 [Organismo Vivo]**\n\nSistema de orquestación unificada en línea con arquitectura React/Vite.\n\n**Módulos Activos:**\n- 🧠 **Gravity Brain**: Telemetría inyectada en tiempo real.\n- 🎨 **Vision Studio**: Renderizado paralelo V12.\n- 🎬 **Video Studio**: FFMPEG orquestado conversacionalmente.\n\n**Atajos rápidos:**\n\`/help\` — Comandos disponibles\n\`/search\` — Búsqueda web\n\`/status\` — Auditoría de sistema`
+    content: `👋 **Bienvenido a Gravity AI Bridge V12.1 PRO [Organismo Vivo]**\n\nSistema de orquestación unificada en línea con arquitectura React/Vite.\n\n**Módulos Activos:**\n- 🧠 **Gravity Brain**: Telemetría inyectada en tiempo real.\n- 🎨 **Vision Studio**: Renderizado paralelo V12.1 PRO.\n- 🎬 **Video Studio**: FFMPEG orquestado conversacionalmente.\n\n**Atajos rápidos:**\n\`/help\` — Comandos disponibles\n\`/search\` — Búsqueda web\n\`/status\` — Auditoría de sistema`
   };
 
   const [messages, setMessages] = useState<Message[]>(() => {

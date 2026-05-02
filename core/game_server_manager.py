@@ -29,6 +29,10 @@ from datetime import datetime, timezone
 from typing import Optional
 import hashlib
 
+# Módulos extraídos (V12.1)
+from core.game_backup import backup_database
+from core.log_buffer import init_server_buffer, start_reader, get_lines, has_buffer
+
 log = logging.getLogger("gravity.gameserver")
 
 BASE_DIR      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -71,11 +75,6 @@ _processes: dict = {}  # {server_id: {proc_world, proc_realm, status, ...}}
 _lock = threading.Lock()
 _watchdog_threads: dict = {}
 _started = False
-
-# Buffer circular de logs de stdout de los servidores (500 líneas por servidor)
-from collections import deque
-_stdout_buffers: dict = {}  # {server_id: deque(maxlen=500)}
-_stdout_threads: dict = {}  # {server_id: threading.Thread}
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -168,16 +167,31 @@ def _start_server(server_id: str, cfg: dict) -> dict:
 
     # 0. Arrancar MySQL primero si hay bat configurado
     if mysql_bat and os.path.exists(mysql_bat):
+        import socket
+        db_host = cfg.get("db_host", "127.0.0.1")
+        db_port = int(cfg.get("db_port", 3306))
+        mysql_running = False
         try:
-            subprocess.Popen(
-                ["cmd.exe", "/c", mysql_bat],
-                creationflags=subprocess.CREATE_NEW_CONSOLE,
-                cwd=os.path.dirname(mysql_bat),
-            )
-            log.info(f"[GameServer] MySQL arrancado para {server_id}")
-            time.sleep(3)
-        except Exception as e:
-            log.warning(f"[GameServer] No se pudo arrancar MySQL: {e}")
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.settimeout(0.5)
+                if sock.connect_ex((db_host, db_port)) == 0:
+                    mysql_running = True
+        except Exception:
+            pass
+
+        if not mysql_running:
+            try:
+                subprocess.Popen(
+                    ["cmd.exe", "/c", mysql_bat],
+                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                    cwd=os.path.dirname(mysql_bat),
+                )
+                log.info(f"[GameServer] MySQL arrancado para {server_id}")
+                time.sleep(3)
+            except Exception as e:
+                log.warning(f"[GameServer] No se pudo arrancar MySQL: {e}")
+        else:
+            log.info(f"[GameServer] MySQL ya estaba corriendo en {db_host}:{db_port}. Se omitió el bat.")
 
     # 1. Pre-flight: verificar que MySQL responde antes de arrancar worldserver
     if not _check_mysql_ready(cfg, max_wait=30):
@@ -189,8 +203,8 @@ def _start_server(server_id: str, cfg: dict) -> dict:
             "realm_pid":    None,
         }
 
-    # Inicializar buffer de logs para este servidor
-    _stdout_buffers[server_id] = deque(maxlen=500)
+    # Inicializar buffer de logs via log_buffer module
+    init_server_buffer(server_id)
 
     procs: dict = {"world": None, "realm": None}
     errors: list = []
@@ -205,13 +219,7 @@ def _start_server(server_id: str, cfg: dict) -> dict:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
             )
-            # Hilo lector de stdout del realm
-            t_realm = threading.Thread(
-                target=_read_stdout_to_buffer,
-                args=(procs["realm"], server_id, "REALM"),
-                daemon=True,
-            )
-            t_realm.start()
+            t_realm = start_reader(procs["realm"], server_id, "REALM")
             log.info(f"[GameServer] realmd.exe iniciado (PID {procs['realm'].pid})")
             time.sleep(2)
         except Exception as e:
@@ -229,13 +237,7 @@ def _start_server(server_id: str, cfg: dict) -> dict:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
             )
-            # Hilo lector de stdout del worldserver
-            t_world = threading.Thread(
-                target=_read_stdout_to_buffer,
-                args=(procs["world"], server_id, "WORLD"),
-                daemon=True,
-            )
-            t_world.start()
+            t_world = start_reader(procs["world"], server_id, "WORLD")
             log.info(f"[GameServer] mangosd.exe iniciado (PID {procs['world'].pid})")
         except Exception as e:
             errors.append(f"mangosd: {e}")
@@ -273,8 +275,8 @@ def _stop_server(server_id: str) -> dict:
 
     cfg = state.get("cfg", {})
 
-    # Auto-backup de la base de datos de personajes antes de cualquier parada
-    _auto_backup_db(server_id, cfg)
+    # Auto-backup via game_backup module antes de cualquier parada
+    backup_database(server_id, cfg)
 
     for key in ("_world_proc", "_realm_proc"):
         proc = state.get(key)
@@ -312,13 +314,19 @@ def _start_watchdog(server_id: str) -> None:
             and _watchdog_threads[server_id].is_alive():
         return
 
-    def _watch():
+    # BUG-25: Contador de reintentos para evitar loop infinito de reinicios
+    _MAX_RETRIES     = 3
+    _RETRY_WINDOW    = 60  # segundos
+
+    def _watch() -> None:
+        retry_times: list[float] = []
+
         while True:
             time.sleep(10)
             with _lock:
                 state = _processes.get(server_id)
             if not state or state.get("status") == "stopped":
-                break  # Apagado manualmente — no reiniciar
+                break  # Apagado manualmente
 
             world_proc = state.get("_world_proc")
             realm_proc = state.get("_realm_proc")
@@ -326,13 +334,32 @@ def _start_watchdog(server_id: str) -> None:
             realm_died = not _is_running(realm_proc) and realm_proc is not None
 
             if world_died or realm_died:
+                now = time.time()
+                # Purgar reintentos fuera de la ventana de tiempo
+                retry_times = [t for t in retry_times if now - t < _RETRY_WINDOW]
+
+                if len(retry_times) >= _MAX_RETRIES:
+                    # Demasiados fallos en poco tiempo — detener auto-restart
+                    log.error(
+                        f"[GameServer Watchdog] {server_id}: {_MAX_RETRIES} fallos en "
+                        f"{_RETRY_WINDOW}s. Marcando como error_loop. "
+                        "Intervención manual requerida."
+                    )
+                    with _lock:
+                        if server_id in _processes:
+                            _processes[server_id]["status"] = "error_loop"
+                    break
+
+                retry_times.append(now)
                 delay = state.get("cfg", {}).get("restart_delay_seconds", 15)
                 log.warning(
-                    f"[GameServer Watchdog] {server_id} cayó. "
+                    f"[GameServer Watchdog] {server_id} cayó "
+                    f"(intento {len(retry_times)}/{_MAX_RETRIES}). "
                     f"Reiniciando en {delay}s..."
                 )
                 time.sleep(delay)
                 cfg = state.get("cfg", {})
+                _stop_server(server_id)
                 _start_server(server_id, cfg)
                 break  # El nuevo _start_server inicia un watchdog fresco
 
@@ -524,10 +551,9 @@ def get_log(server_id: str, lines: int = 100) -> dict:
     Prioriza el buffer en memoria (STDOUT capturado en tiempo real).
     Cae al archivo en disco si el buffer está vacío.
     """
-    # 1. Intentar buffer en memoria (tiempo real)
-    buf = _stdout_buffers.get(server_id)
-    if buf and len(buf) > 0:
-        buf_lines = list(buf)[-lines:]
+    # Prioridad 1: buffer en memoria (tiempo real via log_buffer module)
+    if has_buffer(server_id):
+        buf_lines = get_lines(server_id, lines)
         return {
             "server":   server_id,
             "source":   "memory_buffer",

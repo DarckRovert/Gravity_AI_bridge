@@ -46,3 +46,9 @@ _settings.json
 # Video Studio V10.2 — outputs y base de datos de cola
 _videos/
 _video_queue.sqlite
+
+# Seguridad — Claves cifradas DPAPI y bases de datos de runtime (NUNCA versionar)
+_keystore.bin
+gravity.db
+*.bin
+rotate_keys.py.bak

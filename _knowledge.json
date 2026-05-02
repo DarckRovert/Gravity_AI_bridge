@@ -76,6 +76,7 @@
   "last_audit": "2026-04-13",
   "author": "DarckRovert",
   "persistent_rules": [
-    "[2026-04-24] Optimizaci?n de Dashboard V12: Implementado endpoint /v1/processes y gesti?n de procesos en HardwareMonitor/ToolsPro. Corregida navegaci?n por eventos."
+    "[2026-04-24] Optimizaci?n de Dashboard V12: Implementado endpoint /v1/processes y gesti?n de procesos en HardwareMonitor/ToolsPro. Corregida navegaci?n por eventos.",
+    "[2026-04-29] V12.1 ARCHITECTURE UPDATE:"
   ]
 }

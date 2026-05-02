@@ -104,6 +104,7 @@ SCAN_INTERVAL_SECONDS: int = 60
 _state: dict = {
     "last_scan": None,
     "status": "initializing",
+    "score": 100,
     "alerts": [],
     "processes": [],
     "open_ports": [],
@@ -295,9 +296,29 @@ def _monitor_loop() -> None:
             ports, suspicious = _scan_ports()
             integrity = _scan_file_integrity()
 
+            # Calcular score real: 100 - penalizaciones por alertas
+            with _lock:
+                recent_alerts = _state["alerts"][-20:]
+            critical_count = sum(1 for a in recent_alerts if a.get("level") == "CRITICAL")
+            warning_count  = sum(1 for a in recent_alerts if a.get("level") == "WARNING")
+            computed_score = max(0, 100 - critical_count * 20 - warning_count * 5 - len(suspicious) * 10)
+
+            # Rotación automática del audit log si supera 10 MB (BUG-08)
+            try:
+                audit_path = os.path.join(BASE_DIR, "_audit_log.jsonl")
+                if os.path.isfile(audit_path) and os.path.getsize(audit_path) > 10 * 1024 * 1024:
+                    import shutil as _sh
+                    archive_dir = os.path.join(BASE_DIR, "_archivo")
+                    os.makedirs(archive_dir, exist_ok=True)
+                    ts_rot = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+                    _sh.move(audit_path, os.path.join(archive_dir, f"audit_{ts_rot}.jsonl"))
+            except Exception as _rot_err:
+                pass  # No bloquear el monitor si la rotación falla
+
             with _lock:
                 _state["last_scan"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
                 _state["status"] = "ok" if not suspicious else "warning"
+                _state["score"] = computed_score
                 _state["processes"] = procs
                 _state["open_ports"] = ports
                 _state["suspicious_ports"] = suspicious

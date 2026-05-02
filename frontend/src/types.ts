@@ -20,6 +20,14 @@ export interface VideoStats {
   pending_count: number;
 }
 
+export interface ProviderStatus {
+  name: string;
+  healthy: boolean;
+  models: number;
+  latency_ms: number;
+  category: 'local' | 'cloud';
+}
+
 export interface GravityContext {
   active_model: string | null;
   active_provider: string | null;
@@ -27,7 +35,7 @@ export interface GravityContext {
   cost: CostStats;
   video: VideoStats;
   security_alerts: number;
-  providers?: any[];
+  providers?: ProviderStatus[];
 }
 
 export type PanelId = 

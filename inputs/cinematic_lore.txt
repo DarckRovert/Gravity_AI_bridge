@@ -96,3 +96,18 @@ Escena: El Pan Egipcio
 Narración: Los egipcios domesticaron el trigo y crearon los primeros panes de piedra. Su horno de barro calentado con madera les permitió crear formas perfectas para sus dioses.
 Escena: El Horno Romano
 Narración: Finalmente, el horno romano alcanzó la perfección: un sistema de tiro natural que mantenía el fuego constante y uniforme para panes perfectos en cualquier época del año.
+
+
+=== HISTORIA: Hitler y el imperio del mal ===
+Escena: Berlín, 1933 - El Poder Ascendente
+Narración: Berlín, 1933. En un despertar de masas, la Alemania se vestía con el negro y el rojo. Un hombre forja mitos y despoja a una nación de su alma. El pueblo encuentra en él no solo un líder, sino un destino.
+Escena: El Culto al Líder
+Narración: Él no solo gobernó; él se convirtió en el dios de un hombre sin Dios. Su figura era magnética, su voz, eléctrica. Un hombre que prometía restaurar la gloria perdida... y ningún oído dudó en escuchar.
+Escena: El Terror Estructural
+Narración: La máquina del Estado totalitario no dormía. El terror se institucionalizó con la policía secreta y el miedo como moneda de cambio. La palabra de él era ley absoluta.
+Escena: El Mito Racial
+Narración: Crearon una biología de la culpa. Crearon un enemigo interno y externo para justificar todo. El hombre se convirtió en el arquetipo del 'superhombre' europeo'. Una mentira tejida con hilos de sangre.
+Escena: El Colapso Inminente
+Narración: Pero el mito es frágil. El imperio construyéndose sobre los huesos de millones no puede sostenerse por sí mismo. Las grietas comienzan a mostrar lo que quedó.
+Escena: El Fin del Show
+Narración: Y en el polvo de la derrota, quedó solo su rostro. El hombre que lo fue todo... vacío. Un eco monumental de un sueño rojo y negro.

@@ -43,10 +43,14 @@ if "%~1"=="--install" (
 )
 
 if "%~1"=="--start" goto DO_START
-if "%~1"=="start" goto DO_START
+if "%~1"=="start"   goto DO_START
+goto DO_RUNTIME
+
 :DO_START
     start "" "%~dp0launchers\INICIAR_TODO.bat"
     exit /b 0
+
+:DO_RUNTIME
 
 if "%~1"=="--dashboard" (
     start "" "http://localhost:7860"
