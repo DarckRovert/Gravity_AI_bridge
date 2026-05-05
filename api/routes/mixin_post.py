@@ -1,4 +1,4 @@
-import json, time, uuid, threading, os, sys, mimetypes, glob, traceback, urllib.parse, urllib.request
+﻿import json, time, uuid, threading, os, sys, mimetypes, glob, traceback, urllib.parse, urllib.request
 from core import provider_manager, security_monitor, image_queue, video_pipeline, deploy_manager, game_server_manager, ai_process_manager, engine_watchdog
 from core.audit_log import audit_logger
 from core.metrics import record_request, record_tokens, record_latency, record_error, get_metrics_data
@@ -8,6 +8,130 @@ from core.reasoning_stripper import ReasoningStripper
 
 class PostRoutesMixin:
     def do_POST(self):
+
+        # /v1/scheduler/trigger — Encolar un video ahora (override manual del scheduler)
+        if self.path == "/v1/scheduler/trigger":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                from core import content_scheduler
+                result = content_scheduler.queue_now(
+                    niche_id = data.get("niche_id"),
+                    topic    = data.get("topic"),
+                )
+                body = json.dumps(result).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/scheduler/topic/add — Agregar un topic nuevo a un niche
+        if self.path == "/v1/scheduler/topic/add":
+            try:
+                length   = int(self.headers.get("Content-Length", 0))
+                data     = json.loads(self.rfile.read(length)) if length else {}
+                niche_id = data.get("niche_id", "").strip()
+                topic    = data.get("topic", "").strip()
+                if not niche_id or not topic:
+                    self.send_response(400)
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "niche_id y topic son requeridos"}).encode())
+                    return
+                from core import content_scheduler
+                result = content_scheduler.add_topic(niche_id, topic)
+                body = json.dumps(result).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/youtube/auth/exchange — Intercambiar código OAuth por refresh_token
+        if self.path == "/v1/youtube/auth/exchange":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                code   = data.get("code", "").strip()
+                if not code:
+                    self.send_response(400)
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "Campo 'code' requerido"}).encode())
+                    return
+                from core.youtube_uploader import exchange_auth_code
+                result = exchange_auth_code(code)
+                body = json.dumps(result).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/youtube/upload — Upload manual de un job completado a YouTube
+        if self.path == "/v1/youtube/upload":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                job_id = int(data.get("job_id", 0))
+                if not job_id:
+                    self.send_response(400)
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "job_id requerido"}).encode())
+                    return
+                # Buscar el job en la DB para obtener rutas
+                import sqlite3 as _sq3
+                BASE_D = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                db_p   = os.path.join(BASE_D, "_video_queue.sqlite")
+                conn   = _sq3.connect(db_p)
+                conn.row_factory = _sq3.Row
+                row = conn.execute("SELECT output_path, title, topic, thumbnail_path FROM video_jobs WHERE id=?", (job_id,)).fetchone()
+                conn.close()
+                if not row or not row["output_path"]:
+                    self.send_response(404)
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": f"Job #{job_id} no encontrado o sin video."}).encode())
+                    return
+                from core.youtube_uploader import upload_job_async
+                upload_job_async(
+                    job_id     = job_id,
+                    video_path = row["output_path"],
+                    title      = row["title"] or row["topic"] or f"Video #{job_id}",
+                    thumb_path = row["thumbnail_path"] or "",
+                )
+                body = json.dumps({"ok": True, "job_id": job_id, "message": "Upload iniciado en background."}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
 
         # /v1/keys — Guardar API key cifrada en keystore
         if self.path == "/v1/keys":
@@ -97,16 +221,14 @@ class PostRoutesMixin:
         # /v1/security/scan — Disparar escaneo activo del monitor de seguridad
         if self.path == "/v1/security/scan":
             try:
-                # Forzar re-escaneo del security_monitor en background
-                def _run_scan():
-                    try:
-                        security_monitor.scan_processes()
-                    except Exception:
-                        pass
-                threading.Thread(target=_run_scan, daemon=True).start()
-                # Devolver estado actual inmediatamente
-                state = security_monitor.get_state() if hasattr(security_monitor, "get_state") else {}
-                body = json.dumps({"ok": True, "message": "Escaneo de seguridad iniciado", "state": state}).encode()
+                # Ejecutar escaneo completo forzado de manera sincrona para que
+                # el frontend reciba y vea los resultados inmediatos.
+                if hasattr(security_monitor, "force_scan"):
+                    state = security_monitor.force_scan()
+                else:
+                    state = security_monitor.get_state() if hasattr(security_monitor, "get_state") else {}
+                
+                body = json.dumps({"ok": True, "message": "Escaneo de seguridad completado", "state": state}).encode()
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self._send_cors()
@@ -150,7 +272,7 @@ class PostRoutesMixin:
         if self.path == "/v1/fabricaweb/deploy":
             try:
                 # Dispara el pipeline sin bloquear al cliente
-                threading.Thread(target=deploy_manager.run_deploy_pipeline, daemon=True).start()
+                threading.Thread(target=deploy_manager.run_deploy_pipeline, daemon=True, name="GravityFabricaDeploy").start()
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self._send_cors()
@@ -226,7 +348,7 @@ class PostRoutesMixin:
                                           seed=seed, enhance=enhance, negative_prompt=negative_prompt)
                     except Exception as e:
                         import traceback
-                        print(f"Error calling poll_gen: {traceback.format_exc()}", file=sys.stderr)
+                        log.error(f"[ImageLab] Error en poll_gen: {traceback.format_exc()}")
                         raise e
 
                 if result.get("success") and os.path.isfile(output_path):
@@ -324,7 +446,7 @@ class PostRoutesMixin:
                 length    = int(self.headers.get("Content-Length", 0))
                 data      = json.loads(self.rfile.read(length)) if length else {}
                 server_id = data.get("server", "wow_vanilla")
-                threading.Thread(target=game_server_manager.restart, args=(server_id,), daemon=True).start()
+                threading.Thread(target=game_server_manager.restart, args=(server_id,), daemon=True, name=f"GravityGameRestart-{server_id}").start()
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self._send_cors()
@@ -1080,7 +1202,6 @@ class PostRoutesMixin:
         # ── /v1/gravity/chat — Chat con conciencia sistémica completa ─────────
         if self.path == "/v1/gravity/chat":
             try:
-                import os as os  # noqa: PLW0127 — fix UnboundLocalError en Python 3.12+ por shadow en scope do_POST
                 length = int(self.headers.get("Content-Length", 0))
                 data   = json.loads(self.rfile.read(length)) if length else {}
                 messages_in = data.get("messages", [])
@@ -1310,7 +1431,7 @@ class PostRoutesMixin:
                     _base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
                     kb_data, _ = data_guardian.load_knowledge(os.path.join(_base_dir, "_knowledge.json"))
                     _sys_prompt = (
-                        "Eres Gravity AI V10.1, Auditor Senior. "
+                        "Eres Gravity AI V12.2 PRO, Auditor Senior. "
                         "PROTOCOLO: Lógica interna en inglés. Salida final en español estrictamente. "
                         "Sin rellenos conversacionales. Solo hechos técnicos fríos. Resolución directa."
                     )
@@ -1435,7 +1556,7 @@ class PostRoutesMixin:
 
         except Exception as e:
             import traceback
-            log.error(f"Error in POST: {e}", exc_info=True)
+            log.error(f"Error in POST /v1/chat/completions: {e}", exc_info=True)
             record_error("internal_error")
             try:
                 body = json.dumps({"error": str(e)}).encode("utf-8")
@@ -1446,3 +1567,100 @@ class PostRoutesMixin:
                 self.wfile.write(body)
             except Exception:
                 pass
+            return
+
+        # ── V12.2 Monetization Hub — POST handlers ────────────────────────────
+
+        # /v1/language/clone — Clonar un job a otros idiomas
+        if self.path == "/v1/language/clone":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                job_id = data.get("job_id")
+                langs  = data.get("languages", None)
+                if not job_id:
+                    self.send_response(400); self._send_cors(); self.end_headers()
+                    self.wfile.write(json.dumps({"error": "job_id requerido"}).encode()); return
+                from core.language_cloner import clone_job_async
+                clone_job_async(int(job_id), langs)
+                body = json.dumps({"ok": True, "job_id": job_id, "message": "Clonación iniciada en background.", "languages": langs}).encode()
+                self.send_response(200); self.send_header("Content-Type", "application/json"); self._send_cors(); self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/affiliates/program/add — Agregar programa de afiliado a un niche
+        if self.path == "/v1/affiliates/program/add":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                niche  = data.get("niche_id", "")
+                prog   = data.get("program", {})
+                if not niche or not prog:
+                    self.send_response(400); self._send_cors(); self.end_headers()
+                    self.wfile.write(json.dumps({"error": "niche_id y program requeridos"}).encode()); return
+                from core.affiliate_manager import add_program
+                result = add_program(niche, prog)
+                body   = json.dumps(result).encode()
+                self.send_response(200 if result["ok"] else 400)
+                self.send_header("Content-Type", "application/json"); self._send_cors(); self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/social/distribute — Distribuir un Short a redes sociales manualmente
+        if self.path == "/v1/social/distribute":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                job_id = data.get("job_id")
+                if not job_id:
+                    self.send_response(400); self._send_cors(); self.end_headers()
+                    self.wfile.write(json.dumps({"error": "job_id requerido"}).encode()); return
+                import sqlite3 as _sq3
+                BASE_D  = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                db_p    = os.path.join(BASE_D, "_video_queue.sqlite")
+                conn    = _sq3.connect(db_p, timeout=10)
+                conn.row_factory = _sq3.Row
+                row     = conn.execute("SELECT shorts_path, title, topic FROM video_jobs WHERE id=?", (int(job_id),)).fetchone()
+                conn.close()
+                if not row or not row["shorts_path"]:
+                    self.send_response(404); self._send_cors(); self.end_headers()
+                    self.wfile.write(json.dumps({"error": "Job sin shorts_path. Asegúrate de que el video fue procesado."}).encode()); return
+                from core.tiktok_uploader import distribute_short_async
+                distribute_short_async(
+                    job_id      = int(job_id),
+                    shorts_path = row["shorts_path"],
+                    title       = row["title"] or row["topic"] or f"Video #{job_id}",
+                )
+                body = json.dumps({"ok": True, "job_id": job_id, "message": "Distribución iniciada en background."}).encode()
+                self.send_response(200); self.send_header("Content-Type", "application/json"); self._send_cors(); self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/revenue/views/update — Actualizar vistas de un job (llamado desde integración externa)
+        if self.path == "/v1/revenue/views/update":
+            try:
+                length  = int(self.headers.get("Content-Length", 0))
+                data    = json.loads(self.rfile.read(length)) if length else {}
+                job_id  = data.get("job_id")
+                views   = data.get("views", 0)
+                if job_id is None:
+                    self.send_response(400); self._send_cors(); self.end_headers()
+                    self.wfile.write(json.dumps({"error": "job_id requerido"}).encode()); return
+                from core.revenue_tracker import update_views
+                update_views(int(job_id), int(views))
+                body = json.dumps({"ok": True, "job_id": job_id, "views": views}).encode()
+                self.send_response(200); self.send_header("Content-Type", "application/json"); self._send_cors(); self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return

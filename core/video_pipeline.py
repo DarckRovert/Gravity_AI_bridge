@@ -1,4 +1,4 @@
-
+﻿
 # -- Mapeo de Emociones a Color Grading Dinámico ------------------------------
 EMOTIONAL_GRADES: dict[str, str] = {
     "neutral":   "eq=contrast=1.0:brightness=0.0:saturation=1.0",
@@ -10,10 +10,9 @@ EMOTIONAL_GRADES: dict[str, str] = {
     "frio":      "eq=contrast=1.1:brightness=-0.02:saturation=0.9:gamma=0.95,colorbalance=rs=-0.2:gs=-0.1:bs=0.3",
     "accion":    "eq=contrast=1.3:brightness=0.0:saturation=1.4:gamma=0.9",
 }
-import re
 """
 â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
-â•‘  GRAVITY AI â€” VIDEO STUDIO PIPELINE V10.3 CINEMATIC EDITION                  â•‘
+â•‘  GRAVITY AI â€” VIDEO STUDIO PIPELINE V12.2 PRO CINEMATIC EDITION                  â•‘
 â•‘                                                                              â•‘
 â•‘  Motor cinematogrÃ¡fico de Ãºltima generaciÃ³n con:                             â•‘
 â•‘    â–¸ Character Consistency Engine â€” ancla visual por escena                  â•‘
@@ -38,6 +37,7 @@ import re
 """
 
 import os
+import re
 import json
 import time
 import sqlite3
@@ -76,7 +76,7 @@ BGM_GENERATORS: dict[str, str] = {
     "documental":   "anoisesrc=color=pink:r=44100:a=0.2,lowpass=f=300",
     "synthwave":    "anoisesrc=color=brown:r=44100:a=0.4,lowpass=f=400,tremolo=f=4:d=0.5",
     "jazz":         "anoisesrc=color=pink:r=44100:a=0.15,lowpass=f=250",
-    "cinematic":    "anoisesrc=color=brown:r=44100:a=0.6,lowpass=f=80,reverb",
+    "cinematic":    "anoisesrc=color=brown:r=44100:a=0.6,lowpass=f=80,aecho=0.8:0.88:60:0.4",
     "publicitario": "anoisesrc=color=pink:r=44100:a=0.3,lowpass=f=350,tremolo=f=2:d=0.3",
     "heroico":      "anoisesrc=color=brown:r=44100:a=0.5,lowpass=f=100",
     "ambient":      "anoisesrc=color=pink:r=44100:a=0.15,lowpass=f=150",
@@ -88,6 +88,18 @@ BGM_GENERATORS: dict[str, str] = {
     "corporativo":  "anoisesrc=color=pink:r=44100:a=0.15,lowpass=f=300",
     "ninguna":      "anullsrc=r=44100:cl=stereo"
 }
+
+_branding_cache = None
+def _get_branding_config() -> dict:
+    global _branding_cache
+    if _branding_cache is None:
+        try:
+            import yaml
+            with open(os.path.join(BASE_DIR, "config.yaml"), "r", encoding="utf-8") as f:
+                _branding_cache = (yaml.safe_load(f) or {}).get("branding", {})
+        except Exception:
+            _branding_cache = {}
+    return _branding_cache
 
 
 # â”€â”€ Estilos cinematogrÃ¡ficos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -174,7 +186,7 @@ _started      = False
 _db_initialized = False
 
 
-# â”€â”€ Base de datos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Base de datos ─────────────────────────────────────────────────────────────
 
 def _init_db() -> None:
     global _db_initialized
@@ -227,6 +239,19 @@ def _init_db() -> None:
         ("thumbnail_path",    "TEXT NOT NULL DEFAULT ''"),
         ("animation_effect",  "TEXT NOT NULL DEFAULT 'auto'"),
         ("animation_level",   "INTEGER NOT NULL DEFAULT 1"),
+        # ── YouTube monetización
+        ("youtube_video_id",  "TEXT NOT NULL DEFAULT ''"),
+        ("youtube_url",       "TEXT NOT NULL DEFAULT ''"),
+        ("uploaded_at",       "TEXT NOT NULL DEFAULT ''"),
+        ("upload_status",     "TEXT NOT NULL DEFAULT 'pending'"),
+        ("shorts_path",       "TEXT NOT NULL DEFAULT ''"),
+        ("shorts_video_id",   "TEXT NOT NULL DEFAULT ''"),
+        ("seo_tags",          "TEXT NOT NULL DEFAULT ''"),
+        ("seo_description",   "TEXT NOT NULL DEFAULT ''"),
+        # ── Multi-canal
+        ("niche_id",          "TEXT NOT NULL DEFAULT ''"),
+        ("cloned_from",       "INTEGER NOT NULL DEFAULT 0"),
+        ("clone_lang",        "TEXT NOT NULL DEFAULT ''"),
     ]
     for col_name, col_def in migrations:
         if col_name not in existing:
@@ -281,6 +306,7 @@ def add_job(
     color_grade: str       = "auto",
     animation_effect: str  = "auto",
     animation_level: int   = 1,
+    niche_id: str          = "",
 ) -> int:
     """Encola un nuevo trabajo de video. Retorna el ID generado."""
     _init_db()
@@ -293,15 +319,15 @@ def add_job(
         "(topic, n_scenes, voice_speed, voice_id, style, narration_lang, transitions, "
         " resolution, subtitles, title, bgm_type, quality, use_lore, fps, scene_duration, "
         " duration_mode, bgm_volume, codec, ken_burns, intro_card, color_grade, "
-        " animation_effect, animation_level, created_at) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        " animation_effect, animation_level, niche_id, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (
             topic, n_scenes, voice_speed, voice_id, style, narration_lang,
             1 if transitions else 0, resolution, 1 if subtitles else 0,
             title, bgm_type, quality, 1 if use_lore else 0,
             fps, scene_duration, duration_mode, float(bgm_volume), codec,
             1 if ken_burns else 0, 1 if intro_card else 0, color_grade,
-            animation_effect, int(animation_level), now
+            animation_effect, int(animation_level), niche_id, now
         )
     )
     job_id = cur.lastrowid
@@ -324,19 +350,30 @@ def get_queue_status() -> dict:
         "SELECT * FROM video_jobs WHERE status NOT IN ('pending', 'deleted') ORDER BY id DESC LIMIT ?",
         (MAX_HISTORY,)
     ).fetchall()
-    
+    conn.close()
+
+    # Purga: jobs done cuyo archivo físico ya no existe.
+    # FIX: conexión separada para el UPDATE — evita OperationalError cuando
+    # la primera conexión todavía retiene el cursor del fetchall en memoria.
     history = []
+    purge_ids: list[int] = []
     for r in raw_history:
         job_dict = dict(r)
         if job_dict.get('status') in ('done', 'completed') and job_dict.get('output_path'):
             if not os.path.isfile(job_dict['output_path']):
-                # Persistir la purga automática en la base de datos
-                conn.execute("UPDATE video_jobs SET status='deleted', output_path=NULL WHERE id=?", (job_dict['id'],))
-                continue  # No agregarlo al historial visible
+                purge_ids.append(job_dict['id'])
+                continue
         history.append(job_dict)
-        
-    conn.commit()
-    conn.close()
+
+    if purge_ids:
+        try:
+            _pc = sqlite3.connect(DB_PATH)
+            for _pid in purge_ids:
+                _pc.execute("UPDATE video_jobs SET status='deleted', output_path=NULL WHERE id=?", (_pid,))
+            _pc.commit()
+            _pc.close()
+        except Exception as _pe:
+            log.debug(f"[VideoStudio] Purge batch error: {_pe}")
 
     with _lock:
         current = _current_job
@@ -607,7 +644,7 @@ def _normalize_topic_for_lore(topic: str) -> str:
     - Elimina indicadores de parte/continuación ('parte 2', 'part ii', 'capitulo 3', etc.)
     - Convierte a minúsculas y elimina espacios extra.
     """
-    import re
+
     t = topic.lower().strip()
     # Eliminar sufijos de continuación: "parte 2", "part 2", "capitulo 3", "ep 1", etc.
     t = re.sub(r"\s*(parte|part|capitulo|capítulo|episode|ep|vol|volume|\#)\s*[\divxlc]+\s*$", "", t).strip()
@@ -679,7 +716,6 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
     Genera guión estructurado incorporando contexto de lore previo y un título global.
     """
     original_topic = topic
-    import re
     urls = re.findall(r'(https?://\S+)', topic)
     if urls:
         try:
@@ -691,8 +727,10 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
                 try:
                     import yaml
                     with open(os.path.join(BASE_DIR, "config.yaml"), "r", encoding="utf-8") as f:
-                        api_key = yaml.safe_load(f).get("firecrawl_api_key", "")
-                except: pass
+                        cfg = yaml.safe_load(f) or {}
+                        api_key = cfg.get("firecrawl_api_key", "")
+                except Exception as _cfg_e:
+                    log.debug(f"[VideoStudio] No se pudo leer firecrawl_api_key: {_cfg_e}")
                 
                 scrape_res = scrape_url(url, api_key=api_key)
                 if scrape_res.get("ok"):
@@ -701,6 +739,17 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
                     log.info("[VideoStudio] URL Raspada e inyectada con éxito en el guion.")
         except Exception as e:
             log.warning(f"[VideoStudio] Error raspando URL: {e}")
+    else:
+        # Auto-investigación inteligente (conocimiento previo)
+        try:
+            from core.web_search import search_and_scrape
+            log.info(f"[VideoStudio] Investigando en internet sobre: '{original_topic[:50]}' para nutrir el guion...")
+            knowledge = search_and_scrape(original_topic, max_results=2)
+            if knowledge:
+                topic = f"{topic}\n\n[CONOCIMIENTO OBTENIDO DE INTERNET PARA CONTEXTO Y PRECISIÓN:\n{knowledge}\n]"
+                log.info("[VideoStudio] Conocimiento inyectado exitosamente en el guion.")
+        except Exception as e:
+            log.warning(f"[VideoStudio] Error en auto-investigación web: {e}")
 
     style_info     = CINEMA_STYLES.get(style, CINEMA_STYLES[DEFAULT_STYLE])
     style_prefix   = style_info["prefix"]
@@ -725,9 +774,11 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
     
     user_prompt = (
         f"Crea un guión de {n_scenes} escenas para un video sobre el siguiente tema o contenido: '{topic}'.\n"
-        "Si detectas CONTENIDO WEB EXTRAÍDO, compórtate como un experto publicista: analiza los servicios, "
-        "productos o menú ofrecidos y diseña un guión altamente persuasivo, dinámico y comercial, "
-        "resaltando los puntos clave de venta para maximizar el engagement y atraer clientes.\n"
+        "Si detectas CONOCIMIENTO OBTENIDO DE INTERNET, compórtate como un investigador experto: utiliza la "
+        "información factual, datos precisos y contexto proporcionado para hacer que el guion sea "
+        "veraz, rico en detalles y sumamente informativo sin perder el tono narrativo.\n"
+        "Si detectas CONTENIDO WEB EXTRAÍDO (por URL directa), compórtate como un experto publicista: analiza "
+        "los servicios, productos o menú ofrecidos y diseña un guión altamente persuasivo.\n"
         f"Estilo visual: {style_info['label']} — {style_prefix}\n"
         f"Idioma de narración: {lang_label}\n\n"
     )
@@ -744,6 +795,10 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
         "REGLA CRÍTICA DE CONSISTENCIA VISUAL: El campo 'image_prompt' de CADA escena "
         "DEBE comenzar describiendo al personaje/sujeto principal con los MISMOS atributos visuales "
         "(raza, color, rasgos físicos, nombre) en todas las escenas. Nunca omitas estos atributos.\n\n"
+        "REGLA CRÍTICA DE NARRACIÓN: El campo 'narration' DEBE contener ÚNICAMENTE lo que dirá el "
+        "locutor en voz en off. DEBE ser una historia fluida o un texto publicitario atrapante. "
+        "PROHIBIDO incluir metadatos como 'Escena 1', 'Imagen:', 'Título:', o direcciones de cámara. "
+        "Solo el diálogo hablado puro y continuo.\n\n"
         "Responde con este JSON exacto (sin ningún texto antes o después):\n"
         "{\n"
         '  "video_title": "Un título global creativo, comercial y atractivo para todo el video",\n'
@@ -805,15 +860,17 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
         raise ValueError("LLM no devolvió lista JSON válida en 'scenes'")
 
     except Exception as e:
-        log.warning(f"[VideoStudio] LLM no disponible ({e}). Fallback.")
+        log.warning(f"[VideoStudio] LLM no disponible ({e}). Fallback con escenas gen\u00e9ricas.")
 
-    anchor = _extract_visual_anchor(topic)
+    # Bypass LLM for anchor if we are already in fallback mode to prevent double timeout
+    anchor = topic[:120]
     scenes = [
         {
-            "title": f"Escena {i+1}: {original_topic[:40]}",
+            "title":            f"Escena {i+1}: {original_topic[:40]}",
             "character_anchor": anchor,
-            "image_prompt": f"{anchor}, cinematic scene {i+1}, {style_prefix}, high detail",
-            "narration": f"Esta es la escena {i+1} sobre {original_topic[:60]}."
+            "image_prompt":     f"{anchor}, cinematic scene {i+1}, {style_prefix}, high detail",
+            "narration":        f"Esta es la escena {i+1} sobre {original_topic[:60]}.",
+            "mood":             "neutral",
         }
         for i in range(n_scenes)
     ]
@@ -872,24 +929,11 @@ def _generate_scene_image(
     except Exception as e:
         log.warning(f"[VideoStudio] [Pollinations] Exception escena {scene_idx}: {e}")
 
-    # ── Motor 2: ComfyUI Image-to-Video (fallback animado) ───────────────
-    try:
-        import sys as _sys
-        _int_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "_integrations")
-        if _int_dir not in _sys.path:
-            _sys.path.insert(0, _int_dir)
-        from comfy_client import ComfyUIClient
-        comfy = ComfyUIClient()
-        if comfy.is_online():
-            workflow  = comfy.build_img2video_workflow(
-                image_path=out_path if os.path.isfile(out_path) else "",
-                width=w, height=h, frames=17, fps=8
-            )
-            # Solo llamarlo si tuvieramos la imagen anterior (si falló pollinations no tiene sentido, pero sirve para la auditoría)
-    except Exception as e:
-        log.warning(f"[VideoStudio] [ComfyUI] Exception escena {scene_idx}: {e}")
+    # ── Motor 2: Fooocus (fallback local) ──────────────────────────────────────
+    # NOTA: ComfyUI como generador de imagen fija fue eliminado (construía workflow
+    # pero nunca llamaba queue_prompt → overhead de red sin resultado).
+    # ComfyUI sigue disponible como animador via animation_engine L2.
 
-    # ── Motor 3: Fooocus (fallback local) ──────────────────────────────────
     try:
         from tools.fooocus_client import trigger_gradio_generation, health_check
         if health_check().get("online"):
@@ -956,12 +1000,17 @@ def _generate_audio(
         try:
             import win32com.client
             import pythoncom
-            # CoInitialize: ignora RPC_E_CHANGED_MODE (ya inicializado en otro apartment)
+            # CoInitialize: solo llamar CoUninitialize si *nosotros* inicializamos el apartment.
+            # RPC_E_CHANGED_MODE (0x80010106 / -2147417850) significa que el apartment
+            # ya fue inicializado por otro hilo — en ese caso NO hacer CoUninitialize
+            # para no desbalancear el contador de referencias COM.
+            _co_initialized_by_us = False
             try:
                 pythoncom.CoInitialize()
+                _co_initialized_by_us = True
             except Exception as _co_err:
-                _co_hresult = getattr(_co_err, 'hresult', None) or getattr(_co_err, 'args', [None])[0]
-                # 0x80010106 = RPC_E_CHANGED_MODE — ya inicializado en multithreaded apartment
+                _co_hresult = getattr(_co_err, 'hresult', None) or (getattr(_co_err, 'args', [None]) or [None])[0]
+                # 0x80010106 = RPC_E_CHANGED_MODE — ya inicializado, no hacemos nada
                 if _co_hresult not in (0x80010106, -2147417850):
                     raise
 
@@ -1040,10 +1089,35 @@ def _generate_audio(
                 if ok:
                     size_kb = os.path.getsize(output_wav) // 1024
                     log.info(f"[VideoStudio] Audio (win32com): {os.path.basename(output_wav)} ({size_kb} KB)")
-                    pythoncom.CoUninitialize()
-                    return ok
+                    # Normalizar sample rate: SAPI puede generar a 8/16/24 kHz según la voz.
+                    # Sin normalización, FFmpeg embebe esa frecuencia en el clip AAC y
+                    # el audio se reproduce acelerado en el video final.
+                    _wav_normalized = output_wav + ".norm.wav"
+                    try:
+                        _nr = subprocess.run(
+                            [
+                                FFMPEG_EXE, "-y", "-i", output_wav,
+                                "-ar", "44100", "-ac", "2", "-sample_fmt", "s16",
+                                _wav_normalized,
+                            ],
+                            capture_output=True, timeout=30,
+                            creationflags=subprocess.CREATE_NO_WINDOW,
+                        )
+                        if _nr.returncode == 0 and os.path.isfile(_wav_normalized):
+                            os.replace(_wav_normalized, output_wav)
+                            log.info(f"[VideoStudio] WAV normalizado a 44100Hz: {os.path.basename(output_wav)}")
+                        else:
+                            log.warning("[VideoStudio] Normalización WAV falló, usando WAV nativo de SAPI.")
+                            if os.path.isfile(_wav_normalized):
+                                os.remove(_wav_normalized)
+                    except Exception as _ne:
+                        log.warning(f"[VideoStudio] Normalización WAV excepción: {_ne}")
+                    if _co_initialized_by_us:
+                        pythoncom.CoUninitialize()
+                    return True
 
-            pythoncom.CoUninitialize()
+            if _co_initialized_by_us:
+                pythoncom.CoUninitialize()
         except Exception as e:
             log.warning(f"[VideoStudio] win32com TTS falló ({e}), usando pyttsx3 fallback.")
 
@@ -1096,6 +1170,27 @@ def _generate_audio(
         if ok:
             size_kb = os.path.getsize(output_wav) // 1024
             log.info(f"[VideoStudio] Audio (pyttsx3): {os.path.basename(output_wav)} ({size_kb} KB)")
+            # Normalizar sample rate: pyttsx3 hereda la frecuencia nativa de la voz SAPI.
+            _wav_normalized = output_wav + ".norm.wav"
+            try:
+                _nr = subprocess.run(
+                    [
+                        FFMPEG_EXE, "-y", "-i", output_wav,
+                        "-ar", "44100", "-ac", "2", "-sample_fmt", "s16",
+                        _wav_normalized,
+                    ],
+                    capture_output=True, timeout=30,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                )
+                if _nr.returncode == 0 and os.path.isfile(_wav_normalized):
+                    os.replace(_wav_normalized, output_wav)
+                    log.info(f"[VideoStudio] WAV normalizado a 44100Hz (pyttsx3): {os.path.basename(output_wav)}")
+                else:
+                    log.warning("[VideoStudio] Normalización WAV (pyttsx3) falló, usando WAV nativo.")
+                    if os.path.isfile(_wav_normalized):
+                        os.remove(_wav_normalized)
+            except Exception as _ne:
+                log.warning(f"[VideoStudio] Normalización WAV (pyttsx3) excepción: {_ne}")
         return ok
     except Exception as e:
         log.error(f"[VideoStudio] Error TTS pyttsx3: {e}")
@@ -1313,10 +1408,26 @@ def _assemble_clip(
             )
             vf_parts.append(draw_t)
 
+        # -- Watermark / Branding --
+        try:
+            _wcfg = _get_branding_config()
+            if _wcfg.get("watermark_enabled", True):
+                _wtext   = _wcfg.get("watermark_text", "@DarckRovert").replace("'", "").replace(":", "").replace("%", "")
+                _wopacity = float(_wcfg.get("watermark_opacity", 0.55))
+                _wsize   = max(16, h_val // 38)
+                _wmark   = (
+                    f"drawtext=text='{_wtext}':fontcolor=white@{_wopacity:.2f}:fontsize={_wsize}:"
+                    f"x=w-tw-18:y=h-th-18:fontfile='C\\:/Windows/Fonts/arial.ttf'"
+                )
+                vf_parts.append(_wmark)
+        except Exception:
+            pass  # Config opcional — si falla, no bloquea el clip
+
         if fade and fade_d > 0:
             vf_parts.append(f"fade=t=in:st=0:d={fade_d}")
             vf_parts.append(f"fade=t=out:st={fade_out_t:.3f}:d={fade_d}")
         vf = ",".join(vf_parts)
+
 
         if has_audio:
             if _input_is_video:
@@ -1326,7 +1437,8 @@ def _assemble_clip(
                     "-stream_loop", "-1", "-i", image_path,
                     "-i", audio_path,
                     "-c:v", codec, "-preset", "fast",
-                    "-c:a", "aac", "-b:a", "128k",
+                    "-c:a", "aac", "-b:a", "192k",
+                    "-ar", "44100", "-ac", "2",
                 ]
             else:
                 # Input es imagen estática: NO usar -loop 1 si el filtro es zoompan
@@ -1336,7 +1448,8 @@ def _assemble_clip(
                         "-i", image_path,
                         "-i", audio_path,
                         "-c:v", codec, "-preset", "fast",
-                        "-c:a", "aac", "-b:a", "128k",
+                        "-c:a", "aac", "-b:a", "192k",
+                        "-ar", "44100", "-ac", "2",
                     ]
                 else:
                     cmd = [
@@ -1344,28 +1457,21 @@ def _assemble_clip(
                         "-loop", "1", "-i", image_path,
                         "-i", audio_path,
                         "-c:v", codec, "-preset", "fast",
-                        "-c:a", "aac", "-b:a", "128k",
+                        "-c:a", "aac", "-b:a", "192k",
+                        "-ar", "44100", "-ac", "2",
                     ]
 
             # Ajuste matemático de audio (atempo) si el modo es manual
             if duration_mode == "manual" and audio_dur > 0:
-                tempo = audio_dur / clip_dur
-                if abs(tempo - 1.0) > 0.05: # Solo ajustar si la diferencia es mayor al 5%
-                    tempos = []
-                    t = tempo
-                    while t < 0.5:
-                        tempos.append("atempo=0.5")
-                        t /= 0.5
-                    while t > 100.0:
-                        tempos.append("atempo=100.0")
-                        t /= 100.0
-                    if t != 1.0:
-                        tempos.append(f"atempo={t:.4f}")
+                raw_tempo = audio_dur / clip_dur
+                # Evitar distorsión extrema: limitamos la ralentización a 0.85x y aceleración a 1.25x.
+                # Si el audio es más corto, FFmpeg dejará silencio natural al final.
+                # Si es mucho más largo, será cortado por el -t, lo cual es el comportamiento esperado en manual.
+                tempo = max(0.85, min(raw_tempo, 1.25))
 
-                    if tempos:
-                        af_str = ",".join(tempos)
-                        cmd.extend(["-filter:a", af_str])
-                        log.info(f"[VideoStudio] Alineación matemática de audio: atempo={tempo:.4f}")
+                if abs(tempo - 1.0) > 0.05:
+                    cmd.extend(["-filter:a", f"atempo={tempo:.4f}"])
+                    log.info(f"[VideoStudio] Alineación de audio limitada: raw_tempo={raw_tempo:.2f} -> atempo={tempo:.4f}")
 
             if duration_mode == "manual":
                 cmd.extend(["-t", str(scene_duration)])
@@ -1530,27 +1636,47 @@ def _concatenate_clips(clip_paths: list[str], output_mp4: str, bgm_type: str = "
         _write_list(list_file, clip_paths)
 
         if has_bgm:
-            filter_str = (
-                f"anullsrc=channel_layout=stereo:sample_rate=44100[sil];"
-                f"[0:a][sil]amix=inputs=2:duration=first:dropout_transition=0[narr];"
-                f"[1:a]volume={bgm_volume:.3f}[bgm];"
-                f"[narr][bgm]amix=inputs=2:duration=first:dropout_transition=2[aout]"
-            )
-            cmd = [
+            # FIX CRÍTICO: No usar -f concat y -filter_complex en el mismo comando.
+            # El concat demuxer genera gaps de PTS en AAC que amix comprime, causando
+            # que TODA la pista de audio se acelere (efecto ardilla).
+            # Paso 1: Concatenar todo sin BGM.
+            temp_concat = output_mp4 + ".temp.mp4"
+            cmd_concat = [
                 FFMPEG_EXE, "-y",
                 "-f", "concat", "-safe", "0",
                 "-i", list_file,
-                "-stream_loop", "-1", "-i", bgm_path,
-                "-filter_complex", filter_str,
-                "-map", "0:v",
-                "-map", "[aout]",
                 "-c:v", codec, "-preset", "fast",
                 "-c:a", "aac", "-b:a", "192k",
                 "-ar", "44100", "-ac", "2",
                 "-movflags", "+faststart",
-                output_mp4,
+                temp_concat,
             ]
-            log.info(f"[VideoStudio] [L1] Concat {len(clip_paths)} clips + BGM ({bgm_type}) -> {os.path.basename(output_mp4)}")
+            r_concat = subprocess.run(cmd_concat, capture_output=True, timeout=dyn_timeout, creationflags=subprocess.CREATE_NO_WINDOW)
+            
+            if r_concat.returncode == 0 and os.path.isfile(temp_concat):
+                # Paso 2: Mezclar BGM
+                filter_str = (
+                    f"[0:a]aresample=44100,volume=1.0[narr];"
+                    f"[1:a]aresample=44100,volume={bgm_volume:.3f}[bgm];"
+                    f"[narr][bgm]amix=inputs=2:duration=first:dropout_transition=2[aout]"
+                )
+                cmd = [
+                    FFMPEG_EXE, "-y",
+                    "-i", temp_concat,
+                    "-stream_loop", "-1", "-i", bgm_path,
+                    "-filter_complex", filter_str,
+                    "-map", "0:v",
+                    "-map", "[aout]",
+                    "-c:v", "copy",  # Copiar video ya codificado, ahorra mucho tiempo
+                    "-c:a", "aac", "-b:a", "192k",
+                    "-ar", "44100", "-ac", "2",
+                    "-movflags", "+faststart",
+                    output_mp4,
+                ]
+                log.info(f"[VideoStudio] [L1] Concat {len(clip_paths)} clips + BGM ({bgm_type}) -> {os.path.basename(output_mp4)}")
+            else:
+                log.error(f"[VideoStudio] [L1] Falló pre-concat: {r_concat.stderr.decode(errors='replace')[-400:]}")
+                cmd = None # Para que caiga al fallback
         else:
             cmd = [
                 FFMPEG_EXE, "-y",
@@ -1564,9 +1690,12 @@ def _concatenate_clips(clip_paths: list[str], output_mp4: str, bgm_type: str = "
             ]
             log.info(f"[VideoStudio] [L1] Concat {len(clip_paths)} clips -> {os.path.basename(output_mp4)}")
 
-        r1 = subprocess.run(cmd, capture_output=True, timeout=dyn_timeout,
-                            creationflags=subprocess.CREATE_NO_WINDOW)
+        if cmd:
+            r1 = subprocess.run(cmd, capture_output=True, timeout=dyn_timeout,
+                                creationflags=subprocess.CREATE_NO_WINDOW)
         _cleanup(list_file)
+        if has_bgm and 'temp_concat' in locals():
+            _cleanup(temp_concat)
 
         if r1.returncode == 0 and os.path.isfile(output_mp4) and os.path.getsize(output_mp4) > 0:
             log.info(f"[VideoStudio] Video final: {os.path.basename(output_mp4)} ({os.path.getsize(output_mp4)/1048576:.1f} MB)")
@@ -1917,7 +2046,66 @@ def _process_job(
             if _extract_thumbnail(final_path, thumb_path):
                 _update_job(job_id, thumbnail_path=thumb_path)
                 log.info(f'[VideoStudio] Thumbnail: {os.path.basename(thumb_path)}')
-            
+
+            # ── Guardar script.json para Language Cloner ─────────────────────
+            try:
+                script_json_path = os.path.join(job_dir, "script.json")
+                with open(script_json_path, "w", encoding="utf-8") as _sf:
+                    json.dump(scenes, _sf, ensure_ascii=False, indent=2)
+            except Exception as _sj_e:
+                log.warning(f"[VideoStudio] Error guardando script.json: {_sj_e}")
+
+            # ── Construir niche_id y lang desde el scheduler state ────────────
+            _niche_id = ""
+            _niche_lang = "es"
+            try:
+                from core import content_scheduler as _cs
+                _niche_id = _cs._state.get("last_niche", "")
+                # Leer lang desde niches.json para el niche activo
+                _niche_data = _cs._load_niches()
+                for _n in _niche_data.get("niches", []):
+                    if _n.get("id") == _niche_id:
+                        _niche_lang = _n.get("lang", "es")
+                        break
+            except Exception:
+                pass
+
+            # ── YouTube Auto-Upload (inyecta afiliados + registra en revenue) ─
+            try:
+                from core.youtube_uploader import upload_job_async
+                upload_job_async(
+                    job_id     = job_id,
+                    video_path = final_path,
+                    title      = title or topic[:100],
+                    thumb_path = thumb_path if os.path.isfile(thumb_path) else "",
+                    niche_id   = _niche_id,
+                    lang       = _niche_lang,
+                )
+            except Exception as _yt_e:
+                log.warning(f"[VideoStudio] YouTube upload dispatch error: {_yt_e}")
+
+            # ── Social Distribution (TikTok / Instagram Reels) ────────────────
+            try:
+                from core.tiktok_uploader import distribute_short_async
+                _shorts_path = final_path.replace(".mp4", "_short.mp4")
+                if os.path.isfile(_shorts_path):
+                    distribute_short_async(
+                        job_id      = job_id,
+                        shorts_path = _shorts_path,
+                        title       = title or topic[:100],
+                    )
+            except Exception as _tt_e:
+                log.warning(f"[VideoStudio] Social distribution error: {_tt_e}")
+
+
+            # ── Language Cloner: clonar en idiomas adicionales ────────────────
+            try:
+                from core.language_cloner import clone_job_async, get_enabled_languages
+                if get_enabled_languages():
+                    clone_job_async(source_job_id=job_id)
+            except Exception as _lc_e:
+                log.warning(f"[VideoStudio] Language cloner dispatch error: {_lc_e}")
+
             if use_lore:
                 try:
                     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -2032,7 +2220,7 @@ def start() -> None:
     _init_db()
     t = threading.Thread(target=_worker_loop, name="GravityVideoWorker", daemon=True)
     t.start()
-    log.info("[VideoStudio] Worker daemon iniciado (Gravity Studio ULTRA V12.1 - Audio Ducking & VFX Active).")
+    log.info("[VideoStudio] Worker daemon iniciado (Gravity Studio ULTRA V12.2 PRO - Audio Ducking & VFX Active).")
 
 
 # â”€â”€ API pÃºblica â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

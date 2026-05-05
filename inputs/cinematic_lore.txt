@@ -111,3 +111,196 @@ Escena: El Colapso Inminente
 Narración: Pero el mito es frágil. El imperio construyéndose sobre los huesos de millones no puede sostenerse por sí mismo. Las grietas comienzan a mostrar lo que quedó.
 Escena: El Fin del Show
 Narración: Y en el polvo de la derrota, quedó solo su rostro. El hombre que lo fue todo... vacío. Un eco monumental de un sueño rojo y negro.
+
+
+=== HISTORIA: La historia jamas contada de la atlantida ===
+Escena: Escena 1: la historia de atlantida
+Narración: Esta es la escena 1 sobre la historia de atlantida.
+Escena: Escena 2: la historia de atlantida
+Narración: Esta es la escena 2 sobre la historia de atlantida.
+Escena: Escena 3: la historia de atlantida
+Narración: Esta es la escena 3 sobre la historia de atlantida.
+Escena: Escena 4: la historia de atlantida
+Narración: Esta es la escena 4 sobre la historia de atlantida.
+Escena: Escena 5: la historia de atlantida
+Narración: Esta es la escena 5 sobre la historia de atlantida.
+Escena: Escena 6: la historia de atlantida
+Narración: Esta es la escena 6 sobre la historia de atlantida.
+
+
+=== HISTORIA: La historia de atlantida ===
+Escena: Escena 1: la historia no contada de atlantida
+Narración: Esta es la escena 1 sobre la historia no contada de atlantida.
+Escena: Escena 2: la historia no contada de atlantida
+Narración: Esta es la escena 2 sobre la historia no contada de atlantida.
+Escena: Escena 3: la historia no contada de atlantida
+Narración: Esta es la escena 3 sobre la historia no contada de atlantida.
+Escena: Escena 4: la historia no contada de atlantida
+Narración: Esta es la escena 4 sobre la historia no contada de atlantida.
+Escena: Escena 5: la historia no contada de atlantida
+Narración: Esta es la escena 5 sobre la historia no contada de atlantida.
+Escena: Escena 6: la historia no contada de atlantida
+Narración: Esta es la escena 6 sobre la historia no contada de atlantida.
+
+
+=== HISTORIA: la historia de las brujas de rumania ===
+Escena: Escena 1: la historia de las brujas de rumania
+Narración: Esta es la escena 1 sobre la historia de las brujas de rumania.
+Escena: Escena 2: la historia de las brujas de rumania
+Narración: Esta es la escena 2 sobre la historia de las brujas de rumania.
+Escena: Escena 3: la historia de las brujas de rumania
+Narración: Esta es la escena 3 sobre la historia de las brujas de rumania.
+Escena: Escena 4: la historia de las brujas de rumania
+Narración: Esta es la escena 4 sobre la historia de las brujas de rumania.
+Escena: Escena 5: la historia de las brujas de rumania
+Narración: Esta es la escena 5 sobre la historia de las brujas de rumania.
+
+
+=== HISTORIA: la historia de hitler ===
+Escena: Juventud Alemana
+Narración: Nacido en Austria-Hungría, el joven Adolf Hitler fue un hijo de clase media marcada por la opresión cultural. Sus años formativos lo moldearon con una sed insaciable de pertenencia y de redención nacional.
+Escena: El Origen del Odio
+Narración: La humillación de Versalles y el resentimiento ante la República de Weimar sembraron en él la semilla de una culpa histórica. El resentimiento se convirtió en combustible.
+Escena: El Oráculo del Pueblo
+Narración: En el caos de Weimar, Hitler encontró su voz. Una oratoria visceral que prometía un orden perdido y la grandeza restaurada. Se convirtió en el grito ahogado del pueblo alemán.
+Escena: La Máquina de Guerra
+Narración: El Führer se convirtió en el dios todopoderoso de la nación. Creó un culto a su persona que no toleraba la disidencia. Alemania despertaba del sueño humillado.
+Escena: La Oscuridad Irreversible
+Narración: El muro se alzaba de piedra en piedra. El miedo era la moneda de cambio y el odio, su religión oficial. No había vuelta atrás.
+Escena: La Jaula de Hierro
+Narración: En los campos de muerte, su sueño se consumaba con eficiencia industrial. Die Maschine des Todes no paró hasta que sus enemigos fueron borrados.
+Escena: El Fin del Mito
+Narración: A medida que las bombas caían sobre Berlín, el hombre se hizo pequeño. Despojado de su mito, solo quedó un hombre derrotado.
+Escena: El Último Aliento
+Narración: El 30 de abril de 1945, en el sótano sellado, puso fin al horror con su propio veneno. El imperio se desmoronó con él.
+
+
+=== HISTORIA: Los 5 activos que generan ingresos pasivos de verdad ===
+Escena: Escena 1: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 1 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 2: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 2 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 3: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 3 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 4: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 4 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 5: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 5 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 6: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 6 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 7: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 7 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 8: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 8 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 9: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 9 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 10: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 10 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 11: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 11 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 12: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 12 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 13: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 13 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 14: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 14 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 15: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 15 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 16: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 16 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 17: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 17 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 18: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 18 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 19: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 19 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 20: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 20 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 21: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 21 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 22: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 22 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 23: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 23 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 24: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 24 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 25: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 25 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 26: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 26 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 27: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 27 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 28: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 28 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 29: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 29 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 30: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 30 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 31: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 31 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 32: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 32 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 33: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 33 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 34: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 34 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 35: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 35 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 36: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 36 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 37: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 37 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 38: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 38 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 39: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 39 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 40: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 40 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 41: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 41 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 42: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 42 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 43: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 43 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 44: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 44 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 45: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 45 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 46: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 46 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 47: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 47 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 48: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 48 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 49: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 49 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 50: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 50 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 51: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 51 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 52: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 52 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 53: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 53 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 54: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 54 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 55: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 55 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 56: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 56 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 57: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 57 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 58: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 58 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 59: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 59 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 60: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 60 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 61: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 61 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 62: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 62 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 63: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 63 sobre Los 5 activos que generan ingresos pasivos de verdad.
+Escena: Escena 64: Los 5 activos que generan ingresos pasiv
+Narración: Esta es la escena 64 sobre Los 5 activos que generan ingresos pasivos de verdad.

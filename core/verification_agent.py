@@ -1,5 +1,5 @@
-"""
-Gravity AI — Verification Agent V10.1 PRO (Claw Edition)
+﻿"""
+Gravity AI — Verification Agent V12.2 PRO (Claw Edition)
 Servicio de auditoría doble para cambios críticos e integridad de código.
 """
 import os

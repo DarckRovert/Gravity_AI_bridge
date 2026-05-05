@@ -1,12 +1,12 @@
-# Política de Seguridad — Gravity AI Bridge
+﻿# Política de Seguridad — Gravity AI Bridge
 
 ## Versiones Soportadas
 
 | Versión | Estado | Soporte de Seguridad |
 |---|---|---|
-| V12.1 PRO Omniscient | ✅ Actual | Activo — recibe parches |
-| V12.0 Omniscient | ⚠️ Legacy | Solo vulnerabilidades críticas |
-| V11.0 | ❌ EOL | Sin soporte |
+| V12.2 PRO Omniscient | ✅ Actual | Activo — recibe parches |
+| V12.2 PRO Omniscient | ⚠️ Legacy | Solo vulnerabilidades críticas |
+| V12.2 PRO | ❌ EOL | Sin soporte |
 | V10.x | ❌ EOL | Sin soporte |
 
 ---
@@ -77,10 +77,10 @@ El agente queda bloqueado 120 segundos esperando aprobación. Timeout → auto-r
 
 | ID | Descripción | Estado |
 |---|---|---|
-| GAB-2026-001 | Falsos positivos en Image Queue (Fooocus) | ✅ Corregido V10.1 |
-| GAB-2026-002 | Spam de alertas de security_monitor por apps legítimas | ✅ Corregido V10.1 |
+| GAB-2026-001 | Falsos positivos en Image Queue (Fooocus) | ✅ Corregido V12.2 PRO |
+| GAB-2026-002 | Spam de alertas de security_monitor por apps legítimas | ✅ Corregido V12.2 PRO |
 | GAB-2026-003 | Path traversal en `/static/output/` | ✅ Mitigado V10.0 |
-| GAB-2026-004 | Colisión de override `switchTab` en JS del Dashboard | ✅ Corregido V10.4 |
+| GAB-2026-004 | Colisión de override `switchTab` en JS del Dashboard | ✅ Corregido V12.2 PRO |
 
 ---
 

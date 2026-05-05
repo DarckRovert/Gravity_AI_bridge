@@ -1,5 +1,5 @@
-"""
-Tests unitarios para core/session_runner.py — V12.1
+﻿"""
+Tests unitarios para core/session_runner.py — V12.2 PRO
 Cubre: BoundedSemaphore, SessionHandle, spawn(), terminate(), shutdown(), reaper.
 """
 import sys

@@ -1,5 +1,5 @@
-"""
-Gravity AI — Grep Tool V10.1 PRO (Claw Edition)
+﻿"""
+Gravity AI — Grep Tool V12.2 PRO (Claw Edition)
 Implementación avanzada de búsqueda de patrones inspirada en Claude Code.
 """
 import os

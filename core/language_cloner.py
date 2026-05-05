@@ -1,0 +1,396 @@
+"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  GRAVITY AI — LANGUAGE CLONER V1.0                                           ║
+║  Multiplica un video a EN / PT / FR reutilizando los assets ya renderizados  ║
+║                                                                              ║
+║  Flujo:                                                                      ║
+║    1. Lee el guion JSON generado por el pipeline (guardado en job_dir)       ║
+║    2. Llama al LLM para traducir el guion a cada idioma objetivo             ║
+║    3. Genera narración TTS en el idioma nuevo (SAPI o pyttsx3)               ║
+║    4. Recompone el video usando las imágenes ya renderizadas + nuevo audio   ║
+║    5. Encola el upload YouTube con el idioma correcto                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+"""
+
+import os
+import json
+import subprocess
+import threading
+import sqlite3
+from datetime import datetime, timezone
+from typing import Optional
+
+from core.logger import log
+
+BASE_DIR    = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FFMPEG_EXE  = os.path.join(BASE_DIR, "_integrations", "ffmpeg", "ffmpeg.exe")
+OUTPUT_DIR  = os.path.join(BASE_DIR, "_videos")
+DB_PATH     = os.path.join(BASE_DIR, "_video_queue.sqlite")
+CONFIG_PATH = os.path.join(BASE_DIR, "config.yaml")
+
+# Idiomas soportados: código IETF -> config TTS voz + código YouTube
+LANG_CONFIG: dict[str, dict] = {
+    "en": {"voice_hint": "english", "yt_title_suffix": "", "description_lang": "English"},
+    "pt": {"voice_hint": "portuguese", "yt_title_suffix": " [PT]", "description_lang": "Português"},
+    "fr": {"voice_hint": "french", "yt_title_suffix": " [FR]", "description_lang": "Français"},
+    "de": {"voice_hint": "german", "yt_title_suffix": " [DE]", "description_lang": "Deutsch"},
+}
+
+
+# ── Config ────────────────────────────────────────────────────────────────────
+
+def _load_config() -> dict:
+    try:
+        import yaml
+        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+            return (yaml.safe_load(f) or {}).get("language_cloner", {})
+    except Exception:
+        return {}
+
+
+def get_enabled_languages() -> list[str]:
+    """Retorna la lista de idiomas habilitados para clonación en config.yaml."""
+    cfg = _load_config()
+    return [l for l in cfg.get("languages", ["en"]) if l in LANG_CONFIG]
+
+
+# ── LLM translation ───────────────────────────────────────────────────────────
+
+def _translate_script(scenes: list[dict], target_lang: str, original_lang: str = "es") -> list[dict]:
+    """
+    Traduce el guion de escenas usando el LLM del bridge.
+    Preserva la estructura JSON exacta, solo traduce los campos de texto.
+    """
+    import urllib.request
+    import urllib.error
+
+    lang_name = {"en": "English", "pt": "Portuguese (Brazil)", "fr": "French", "de": "German"}.get(target_lang, target_lang)
+
+    script_text = json.dumps(scenes, ensure_ascii=False, indent=2)
+    prompt = (
+        f"Translate the following JSON array of video scenes from {original_lang} to {lang_name}.\n"
+        f"Rules:\n"
+        f"- Preserve EXACTLY the JSON structure and all keys.\n"
+        f"- Only translate the values of: title, narration, image_prompt keys.\n"
+        f"- Keep image_prompt values visual and descriptive.\n"
+        f"- Return ONLY the valid JSON array, no extra text.\n\n"
+        f"JSON:\n{script_text}"
+    )
+
+    try:
+        payload = json.dumps({
+            "model":       "auto",
+            "messages":    [{"role": "user", "content": prompt}],
+            "temperature": 0.3,
+            "max_tokens":  4096,
+            "stream":      False,
+        }).encode("utf-8")
+
+        req = urllib.request.Request(
+            "http://localhost:7860/v1/chat/completions",
+            data=payload,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            data = json.loads(resp.read().decode())
+
+        raw = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+        # Extraer JSON del response (el LLM puede añadir ```json)
+        start = raw.find("[")
+        end   = raw.rfind("]") + 1
+        if start >= 0 and end > start:
+            translated = json.loads(raw[start:end])
+            if isinstance(translated, list) and len(translated) == len(scenes):
+                log.info(f"[LangCloner] Guion traducido a {target_lang} ({len(translated)} escenas).")
+                return translated
+
+        log.warning(f"[LangCloner] Traducción a {target_lang} retornó JSON inválido. Usando original.")
+        return scenes
+
+    except Exception as e:
+        log.error(f"[LangCloner] Error traduciendo a {target_lang}: {e}")
+        return scenes
+
+
+# ── TTS en el nuevo idioma ────────────────────────────────────────────────────
+
+def _generate_audio_for_lang(text: str, output_wav: str, lang_code: str) -> bool:
+    """Genera narración TTS en el idioma dado usando pyttsx3 (SAPI en Windows)."""
+    try:
+        import pyttsx3
+        # CoInitialize es obligatorio en CADA thread que use COM en Windows.
+        # Usamos STA (Single Threaded Apartment) para compatibilidad con SAPI.
+        _com_initialized = False
+        try:
+            import pythoncom
+            pythoncom.CoInitializeEx(pythoncom.COINIT_APARTMENTTHREADED)
+            _com_initialized = True
+        except Exception:
+            try:
+                import pythoncom  # type: ignore
+                pythoncom.CoInitialize()
+                _com_initialized = True
+            except Exception:
+                pass
+
+        try:
+            engine = pyttsx3.init()
+            voices = engine.getProperty("voices")
+            lang_hint = LANG_CONFIG.get(lang_code, {}).get("voice_hint", "english").lower()
+
+            selected = None
+            for v in voices:
+                name_lower = (v.name or "").lower()
+                lang_lower = (v.languages[0] if v.languages else b"").lower() if isinstance(
+                    (v.languages[0] if v.languages else ""), bytes) else (
+                    v.languages[0] if v.languages else "").lower()
+                if lang_hint in name_lower or lang_hint in str(lang_lower):
+                    selected = v.id
+                    break
+
+            if selected:
+                engine.setProperty("voice", selected)
+            else:
+                log.warning(f"[LangCloner] No se encontró voz para '{lang_hint}'. Usando voz por defecto.")
+
+            engine.setProperty("rate", 155)
+            engine.save_to_file(text, output_wav)
+            engine.runAndWait()
+            return os.path.isfile(output_wav)
+        finally:
+            if _com_initialized:
+                try:
+                    import pythoncom
+                    pythoncom.CoUninitialize()
+                except Exception:
+                    pass
+
+    except Exception as e:
+        log.error(f"[LangCloner] Error TTS {lang_code}: {e}")
+        return False
+
+
+# ── Recomposición del clip con nuevo audio ────────────────────────────────────
+
+def _recompose_clip(image_path: str, audio_wav: str, output_mp4: str,
+                    duration: float, codec: str = "libx264") -> bool:
+    """Recompone un clip usando la imagen ya renderizada + el audio nuevo."""
+    try:
+        cmd = [
+            FFMPEG_EXE, "-y",
+            "-loop", "1", "-i", image_path,
+            "-i", audio_wav,
+            "-c:v", codec, "-preset", "fast",
+            "-c:a", "aac", "-b:a", "128k",
+            "-ar", "44100", "-ac", "2",
+            "-pix_fmt", "yuv420p",
+            "-t", str(duration),
+            "-movflags", "+faststart",
+            output_mp4,
+        ]
+        r = subprocess.run(cmd, capture_output=True, timeout=120,
+                           creationflags=subprocess.CREATE_NO_WINDOW)
+        return r.returncode == 0 and os.path.isfile(output_mp4)
+    except Exception as e:
+        log.error(f"[LangCloner] Error recomponiendo clip: {e}")
+        return False
+
+
+def _concat_clips(clip_list: list[str], output_mp4: str) -> bool:
+    """Concatena clips con FFmpeg concat demuxer."""
+    try:
+        list_path = output_mp4.replace(".mp4", "_list.txt")
+        with open(list_path, "w", encoding="utf-8") as f:
+            for c in clip_list:
+                f.write(f"file '{c.replace(chr(92), '/')}'\n")
+        cmd = [
+            FFMPEG_EXE, "-y",
+            "-f", "concat", "-safe", "0",
+            "-i", list_path,
+            "-c", "copy",
+            output_mp4,
+        ]
+        r = subprocess.run(cmd, capture_output=True, timeout=300,
+                           creationflags=subprocess.CREATE_NO_WINDOW)
+        try:
+            os.remove(list_path)
+        except Exception:
+            pass
+        return r.returncode == 0 and os.path.isfile(output_mp4)
+    except Exception as e:
+        log.error(f"[LangCloner] Error concatenando: {e}")
+        return False
+
+
+# ── DB ────────────────────────────────────────────────────────────────────────
+
+def _get_job_data(source_job_id: int) -> Optional[dict]:
+    try:
+        conn = sqlite3.connect(DB_PATH, timeout=10)
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT topic, title, style, output_path, thumbnail_path, niche_id FROM video_jobs WHERE id=?",
+            (source_job_id,)
+        ).fetchone()
+        conn.close()
+        if not row:
+            return None
+        return {
+            "topic":          row["topic"],
+            "title":          row["title"],
+            "style":          row["style"],
+            "output_path":    row["output_path"],
+            "thumbnail_path": row["thumbnail_path"],
+            "niche_id":       row["niche_id"] if "niche_id" in row.keys() else "",
+        }
+    except Exception as e:
+        log.error(f"[LangCloner] DB error: {e}")
+        return None
+
+
+def _register_clone_job(source_job_id: int, lang: str, output_path: str, title: str,
+                         niche_id: str = "") -> int:
+    """Registra el video clonado como un nuevo job en la DB."""
+    try:
+        conn = sqlite3.connect(DB_PATH, timeout=10)
+        now  = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        cur  = conn.execute(
+            "INSERT INTO video_jobs (topic, title, n_scenes, style, narration_lang, status, progress, "
+            "current_step, output_path, created_at, finished_at, upload_status, niche_id, cloned_from, clone_lang) "
+            "VALUES (?, ?, 0, 'cloned', ?, 'done', 100, 'Clon de idioma listo', ?, ?, ?, 'pending', ?, ?, ?)",
+            (f"[CLONE:{lang}] {title}", title, lang, output_path, now, now, niche_id, source_job_id, lang)
+        )
+        job_id = cur.lastrowid
+        conn.commit()
+        conn.close()
+        return job_id
+    except Exception as e:
+        log.error(f"[LangCloner] Error registrando clon: {e}")
+        return 0
+
+
+# ── API Pública ───────────────────────────────────────────────────────────────
+
+def clone_job(source_job_id: int, target_langs: Optional[list[str]] = None) -> dict:
+    """
+    Clona el video de un job existente a los idiomas especificados.
+    Si target_langs es None, usa los habilitados en config.yaml.
+    Requiere que el job tenga un directorio de trabajo con las imágenes originales.
+    """
+    if target_langs is None:
+        target_langs = get_enabled_languages()
+
+    if not target_langs:
+        return {"ok": False, "error": "Sin idiomas habilitados. Configura language_cloner.languages en config.yaml"}
+
+    job_data = _get_job_data(source_job_id)
+    if not job_data:
+        return {"ok": False, "error": f"Job #{source_job_id} no encontrado."}
+
+    # El job_dir contiene las imágenes originales
+    job_dir = os.path.join(OUTPUT_DIR, f"job_{source_job_id}")
+    if not os.path.isdir(job_dir):
+        return {"ok": False, "error": f"Directorio de job no encontrado: {job_dir}"}
+
+    # Leer el guion JSON guardado durante el render
+    script_path = os.path.join(job_dir, "script.json")
+    if not os.path.isfile(script_path):
+        return {"ok": False, "error": f"script.json no encontrado en {job_dir}. El pipeline debe guardarlo."}
+
+    with open(script_path, "r", encoding="utf-8") as f:
+        original_scenes = json.load(f)
+
+    results = []
+    for lang in target_langs:
+        log.info(f"[LangCloner] Clonando job #{source_job_id} a idioma: {lang}")
+        lang_conf = LANG_CONFIG.get(lang, {})
+
+        # 1. Traducir guion
+        translated_scenes = _translate_script(original_scenes, lang)
+
+        # 2. Generar audio y clips por escena
+        lang_dir = os.path.join(job_dir, f"lang_{lang}")
+        os.makedirs(lang_dir, exist_ok=True)
+
+        clip_paths = []
+        for i, scene in enumerate(translated_scenes):
+            narration  = scene.get("narration", "")
+            image_path = os.path.join(job_dir, f"scene_{i+1:03d}.jpg")
+            if not os.path.isfile(image_path):
+                image_path = os.path.join(job_dir, f"scene_{i+1:03d}.png")
+            if not os.path.isfile(image_path):
+                log.warning(f"[LangCloner] Imagen scene_{i+1:03d} no encontrada, saltando.")
+                continue
+
+            audio_wav   = os.path.join(lang_dir, f"audio_{i+1:03d}.wav")
+            clip_mp4    = os.path.join(lang_dir, f"clip_{i+1:03d}.mp4")
+
+            if _generate_audio_for_lang(narration, audio_wav, lang):
+                # Estimar duración del audio
+                try:
+                    r = subprocess.run(
+                        [FFMPEG_EXE, "-i", audio_wav],
+                        capture_output=True, timeout=10,
+                        creationflags=subprocess.CREATE_NO_WINDOW
+                    )
+                    import re
+                    m = re.search(r"Duration: (\d+):(\d+):(\d+\.?\d*)", r.stderr.decode(errors="replace"))
+                    dur = float(m.group(3)) + int(m.group(2)) * 60 + int(m.group(1)) * 3600 if m else 8.0
+                    dur = max(dur + 0.5, 6.0)
+                except Exception:
+                    dur = 8.0
+
+                if _recompose_clip(image_path, audio_wav, clip_mp4, dur):
+                    clip_paths.append(clip_mp4)
+
+        if not clip_paths:
+            log.error(f"[LangCloner] Sin clips generados para {lang}.")
+            results.append({"lang": lang, "ok": False, "error": "Sin clips"})
+            continue
+
+        # 3. Concatenar
+        ts          = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        final_path  = os.path.join(OUTPUT_DIR, f"clone_{source_job_id}_{lang}_{ts}.mp4")
+        suffix      = lang_conf.get("yt_title_suffix", f" [{lang.upper()}]")
+        clone_title = (job_data.get("title") or job_data.get("topic", "Video"))[:95] + suffix
+
+        if not _concat_clips(clip_paths, final_path):
+            results.append({"lang": lang, "ok": False, "error": "Concatenación fallida"})
+            continue
+
+        # 4. Registrar en DB y disparar upload con idioma
+        clone_job_id = _register_clone_job(source_job_id, lang, final_path, clone_title,
+                                            niche_id=job_data.get("niche_id", ""))
+
+        from core.youtube_uploader import upload_job_async
+        upload_job_async(
+            job_id     = clone_job_id,
+            video_path = final_path,
+            title      = clone_title,
+            niche_id   = job_data.get("niche_id", ""),
+            lang       = lang,
+        )
+
+        results.append({"lang": lang, "ok": True, "clone_job_id": clone_job_id,
+                        "title": clone_title, "path": final_path})
+        log.info(f"[LangCloner] Clon {lang} listo: {clone_title}")
+
+    return {"ok": True, "source_job_id": source_job_id, "clones": results}
+
+
+def clone_job_async(source_job_id: int, target_langs: Optional[list[str]] = None) -> None:
+    """Dispara la clonación multi-idioma en un thread daemon."""
+    def _run():
+        result = clone_job(source_job_id, target_langs)
+        ok_langs = [c["lang"] for c in result.get("clones", []) if c.get("ok")]
+        log.info(f"[LangCloner] Job #{source_job_id} clonado a: {ok_langs}")
+    threading.Thread(target=_run, name=f"GravityLangClone-{source_job_id}", daemon=True).start()
+
+
+def get_status() -> dict:
+    return {
+        "enabled_languages": get_enabled_languages(),
+        "supported_languages": list(LANG_CONFIG.keys()),
+        "config": _load_config(),
+    }

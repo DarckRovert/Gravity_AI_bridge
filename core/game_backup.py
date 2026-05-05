@@ -1,6 +1,6 @@
-"""
+﻿"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — GAME BACKUP V12.1                                              ║
+║  GRAVITY AI — GAME BACKUP V12.2 PRO                                              ║
 ║  Módulo extraído de game_server_manager.py (BUG-punto 4 del plan)            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

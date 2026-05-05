@@ -1,5 +1,5 @@
-"""
-Gravity AI — Azure OpenAI + Cohere + HuggingFace + AWS Bedrock V10.1
+﻿"""
+Gravity AI — Azure OpenAI + Cohere + HuggingFace + AWS Bedrock V12.2 PRO
 
 Azure:       OpenAI-compatible pero con auth por header 'api-key' y
              endpoint custom por resource/deployment.

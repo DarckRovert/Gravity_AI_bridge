@@ -1,5 +1,5 @@
-"""
-Gravity AI — RAG Embedder + Retriever + PDF Parser V10.1
+﻿"""
+Gravity AI — RAG Embedder + Retriever + PDF Parser V12.2 PRO
 
 Embedder backends (in priority order):
   1. Ollama (nomic-embed-text) — 0 cost, offline, best quality for local

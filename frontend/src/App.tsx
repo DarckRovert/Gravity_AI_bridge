@@ -23,6 +23,7 @@ import { SystemStatus } from './components/SystemStatus';
 import { Security } from './components/Security';
 import { AuditLog } from './components/AuditLog';
 import { Settings } from './components/Settings';
+import { MonetizationHub } from './components/MonetizationHub';
 import { ToastContainer } from './components/Toast';
 
 import type { PanelId } from './types';
@@ -63,6 +64,7 @@ function App() {
       case 'security': return <Security />;
       case 'audit': return <AuditLog />;
       case 'config': return <Settings />;
+      case 'monetization': return <MonetizationHub />;
       default:
         return (
           <div className="flex items-center justify-center h-full text-text-muted text-lg font-medium">

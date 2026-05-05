@@ -1,6 +1,6 @@
-"""
+﻿"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         GRAVITY AI — IMAGE QUEUE V10.1                                        ║
+║         GRAVITY AI — IMAGE QUEUE V12.2 PRO                                        ║
 ║         Cola persistente SQLite para generación secuencial de imágenes       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -100,6 +100,14 @@ def get_queue_status() -> dict:
             "SELECT * FROM image_jobs WHERE status='pending' ORDER BY id ASC"
         ).fetchall()
 
+        running = conn.execute(
+            "SELECT COUNT(*) FROM image_jobs WHERE status='running'"
+        ).fetchone()[0]
+
+        done = conn.execute(
+            "SELECT COUNT(*) FROM image_jobs WHERE status='done'"
+        ).fetchone()[0]
+
         history = conn.execute(
             "SELECT * FROM image_jobs WHERE status != 'pending' "
             "ORDER BY id DESC LIMIT 20"
@@ -111,6 +119,8 @@ def get_queue_status() -> dict:
     return {
         "current_job": current,
         "pending_count": len(pending),
+        "running_count": running,
+        "done_count": done,
         "pending_jobs": [dict(r) for r in pending],
         "history": [dict(r) for r in history],
     }

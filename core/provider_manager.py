@@ -1,6 +1,6 @@
-"""
+﻿"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║        GRAVITY AI - PROVIDER MANAGER V10.1 PRO [Diamond-Tier Edition]         ║
+║        GRAVITY AI - PROVIDER MANAGER V12.2 PRO [Diamond-Tier Edition]         ║
 ║                     Orquestador universal: local + cloud                     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
@@ -71,8 +71,10 @@ def scan_all(force: bool = False) -> list[ProviderResult]:
     """
     Returns a list of ProviderResult for all known plugins.
     Results are cached for _SCAN_TTL seconds.
+    Health checks run in parallel with 8s timeout per provider to prevent stalls.
     """
     global _cached_results, _cached_plugins, _last_scan_time
+    import concurrent.futures
 
     now = time.time()
     if not force and (now - _last_scan_time) < _SCAN_TTL and _cached_results:
@@ -83,11 +85,49 @@ def scan_all(force: bool = False) -> list[ProviderResult]:
         if not force and (now - _last_scan_time) < _SCAN_TTL and _cached_results:
             return _cached_results
 
-        results = ProviderRegistry.scan_all_health()
-        plugins = {p.name: p for p in ProviderRegistry.get_all_plugins()}
+        plugins = ProviderRegistry.get_all_plugins()
+
+        def _safe_check(plugin: ProviderPlugin) -> ProviderResult:
+            try:
+                return plugin.check_health()
+            except Exception as _e:
+                from providers.base import ProviderResult
+                return ProviderResult(
+                    name=plugin.name,
+                    url=getattr(plugin, "base_url", ""),
+                    is_healthy=False,
+                    models=[],
+                    active_model=None,
+                    response_ms=0,
+                    category=getattr(plugin, "category", "local"),
+                    key_configured=False,
+                )
+
+        results: list[ProviderResult] = []
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=min(len(plugins), 8), thread_name_prefix="GravityScan"
+        ) as ex:
+            futures = {ex.submit(_safe_check, p): p for p in plugins}
+            for fut, plug in futures.items():
+                try:
+                    results.append(fut.result(timeout=8.0))
+                except concurrent.futures.TimeoutError:
+                    from providers.base import ProviderResult
+                    results.append(ProviderResult(
+                        name=plug.name,
+                        url=getattr(plug, "base_url", ""),
+                        is_healthy=False,
+                        models=[],
+                        active_model=None,
+                        response_ms=8000,
+                        category=getattr(plug, "category", "local"),
+                        key_configured=False,
+                    ))
+                except Exception:
+                    pass
 
         _cached_results  = results
-        _cached_plugins  = plugins
+        _cached_plugins  = {p.name: p for p in plugins}
         _last_scan_time  = time.time()
 
     return _cached_results
@@ -96,15 +136,20 @@ def scan_all(force: bool = False) -> list[ProviderResult]:
 def get_best(task: str = "any") -> tuple[ProviderResult | None, str | None]:
     """
     Returns (ProviderResult, model_name) of the best provider for the task.
-    Considers: local-first, active model in GPU, latency, task fit.
-    Falls back to cloud if all local offline.
+    Local-first. If all local providers are offline, promotes cloud.
+    If all providers are unhealthy, returns (None, None) — never raises.
     """
     results = scan_all()
     healthy = [r for r in results if r.is_healthy and r.models]
     if not healthy:
         return None, None
 
-    scored = sorted(healthy, key=lambda r: _score_provider(r, task), reverse=True)
+    # Separate local vs cloud to enforce local-first
+    local_healthy = [r for r in healthy if r.category == "local"]
+    cloud_healthy = [r for r in healthy if r.category != "local"]
+
+    candidates = local_healthy if local_healthy else cloud_healthy
+    scored = sorted(candidates, key=lambda r: _score_provider(r, task), reverse=True)
     best   = scored[0]
     model  = best.active_model or best.models[0]["name"]
     return best, model
@@ -202,7 +247,7 @@ def get_cost_estimate(provider_name: str, model: str, input_chars: int, output_c
 
 
 if __name__ == "__main__":
-    print("Provider Manager V10.1 — Universal scan\n")
+    print("Provider Manager V12.2 PRO — Universal scan\n")
     results = scan_all(force=True)
     for r in results:
         tag = "✅" if r.is_healthy else "🔴"

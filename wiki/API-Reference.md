@@ -1,4 +1,4 @@
-# 🔌 Referencia Completa de API — Gravity AI Bridge V11.0
+﻿# 🔌 Referencia Completa de API — Gravity AI Bridge V12.2 PRO
 
 Todos los endpoints del Bridge. Puerto por defecto: `7860`. Base URL: `http://localhost:7860`.
 
@@ -288,5 +288,5 @@ Todos los endpoints del Bridge. Puerto por defecto: `7860`. Base URL: `http://lo
 ---
 
 <div align="center">
-  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V11.0 · Referencia API Completa</i></sub>
+  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V12.2 PRO · Referencia API Completa</i></sub>
 </div>

@@ -1,5 +1,5 @@
-"""
-Gravity AI — RAG Vector Store V10.1
+﻿"""
+Gravity AI — RAG Vector Store V12.2 PRO
 SQLite + VSS (vector similarity search) or pure Python cosine fallback.
 No external service required.
 """

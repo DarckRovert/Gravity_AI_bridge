@@ -1,16 +1,16 @@
-"""
+﻿"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — MCP ADAPTER V12.1                                              ║
+║  GRAVITY AI — MCP ADAPTER V12.2 PRO                                              ║
 ║  Model Context Protocol — Stdio Bridge con robustez de producción            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Cambios V12.1 (vs V10.1):
+Cambios V12.2 PRO (vs V12.2 PRO):
   - Timeout de 10s en readline() via queue.Queue + thread reader (threading puro,
     compatible con ThreadingHTTPServer — NO usa asyncio.wait_for)
   - Reconexión con backoff exponencial: 1s → 2s → 4s → 8s … max 30s
   - Health check periódico cada 60s en daemon thread
   - _id_counter protegido con lock para thread-safety
-  - import de time añadido (faltaba en V10.1)
+  - import de time añadido (faltaba en V12.2 PRO)
 """
 
 import json
@@ -49,11 +49,11 @@ class MCPAdapter:
     def __init__(
         self,
         server_path: str,
-        args: List[str] = [],
+        args: Optional[List[str]] = None,
         name: str = "default",
     ) -> None:
         self.server_path  = server_path
-        self.args         = args
+        self.args         = args if args is not None else []
         self.name         = name
         self.process: Optional[subprocess.Popen] = None
 
@@ -152,7 +152,7 @@ class MCPAdapter:
             except Exception:
                 result_q.put(None)
 
-        t = threading.Thread(target=_reader, daemon=True)
+        t = threading.Thread(target=_reader, daemon=True, name=f"MCPReader-{self.name}")
         t.start()
 
         try:

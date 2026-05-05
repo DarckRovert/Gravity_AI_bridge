@@ -53,12 +53,18 @@ class GetRoutesMixin:
         """Sirve archivos estaticos (.js, .css, .svg) desde frontend/dist."""
         path_clean = self.path.split("?")[0]
         rel_path = path_clean.lstrip("/")
-        
+
         BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        dist_path = os.path.join(BASE, "frontend", "dist")
-        filepath = os.path.join(dist_path, rel_path)
-        
-        if os.path.isfile(filepath) and not ".." in rel_path:
+        dist_path = os.path.realpath(os.path.join(BASE, "frontend", "dist"))
+        filepath  = os.path.realpath(os.path.join(dist_path, rel_path))
+
+        # Seguridad: verificar que el path resuelto esté dentro del directorio permitido
+        if not filepath.startswith(dist_path + os.sep) and filepath != dist_path:
+            self.send_response(403)
+            self.end_headers()
+            return
+
+        if os.path.isfile(filepath):
             mime, _ = mimetypes.guess_type(filepath)
             mime = mime or "application/octet-stream"
             try:
@@ -80,27 +86,32 @@ class GetRoutesMixin:
     def _serve_static_output(self):
         # Permite subdirectorios de fecha: /static/output/2026-04-13/filename.png
         raw = self.path[len("/static/output/"):]
-        if not raw or ".." in raw:
+        if not raw:
             self.send_response(403)
             self.end_headers()
             return
 
         BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        fooocus_out = os.path.join(BASE, "_integrations", "Fooocus", "Fooocus", "outputs")
+        fooocus_out = os.path.realpath(os.path.join(BASE, "_integrations", "Fooocus", "Fooocus", "outputs"))
 
         filepath = None
         # 1. Intento ruta completa (con subcarpeta incluida en raw)
-        candidate = os.path.join(fooocus_out, raw.replace("/", os.sep))
-        if os.path.isfile(candidate):
+        candidate = os.path.realpath(os.path.join(fooocus_out, raw.replace("/", os.sep)))
+        # Validar contención en directorio base
+        if candidate.startswith(fooocus_out + os.sep) and os.path.isfile(candidate):
             filepath = candidate
         else:
             # 2. Busqueda recursiva por basename (compatibilidad con URLs sin subcarpeta)
             basename = os.path.basename(raw)
-            for ext in ("*.png", "*.jpg", "*.jpeg", "*.webp"):
-                matches = glob.glob(os.path.join(fooocus_out, "**", basename), recursive=True)
-                if matches:
-                    filepath = matches[0]
-                    break
+            # Prevenir basenames peligrosos
+            if basename and not os.path.sep in basename:
+                for ext in ("*.png", "*.jpg", "*.jpeg", "*.webp"):
+                    matches = glob.glob(os.path.join(fooocus_out, "**", basename), recursive=True)
+                    if matches:
+                        filepath = os.path.realpath(matches[0])
+                        if not filepath.startswith(fooocus_out + os.sep):
+                            filepath = None
+                        break
 
         if not filepath:
             self.send_response(404)
@@ -1271,17 +1282,18 @@ class GetRoutesMixin:
             filename = unquote(filename)
             BASE_DIR   = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
             videos_dir = os.path.join(BASE_DIR, "_videos")
-            # Construir path absoluto y verificar que esté dentro de videos_dir
-            candidate  = os.path.normpath(os.path.join(videos_dir, filename))
-            if not candidate.startswith(os.path.normpath(videos_dir)):
+            # Seguridad: realpath + verificar contención estricta con separador
+            videos_dir_real = os.path.realpath(videos_dir)
+            candidate  = os.path.realpath(os.path.join(videos_dir, filename))
+            if not candidate.startswith(videos_dir_real + os.sep):
                 self.send_response(403)
                 self.end_headers()
                 self.wfile.write(b'{"error":"Acceso denegado."}')
                 return
             
             video_path = None
-            if os.path.isfile(os.path.join(videos_dir, filename)):
-                video_path = os.path.join(videos_dir, filename)
+            if os.path.isfile(os.path.join(videos_dir_real, filename)):
+                video_path = os.path.join(videos_dir_real, filename)
             else:
                 for job_dir in os.listdir(videos_dir):
                     if os.path.isdir(os.path.join(videos_dir, job_dir)):
@@ -1386,8 +1398,12 @@ class GetRoutesMixin:
             self.end_headers()
             self.wfile.write(body)
         except Exception as e:
+            body_err = json.dumps({"error": str(e)}).encode()
             self.send_response(500)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
             self.end_headers()
+            self.wfile.write(body_err)
 
     def _serve_static_image_lab(self):
         """
@@ -1399,8 +1415,12 @@ class GetRoutesMixin:
             self.send_response(403); self.end_headers(); return
 
         BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        lab_dir = os.path.join(BASE, "_integrations", "ImageLab")
-        filepath = os.path.join(lab_dir, os.path.basename(raw))
+        lab_dir  = os.path.realpath(os.path.join(BASE, "_integrations", "ImageLab"))
+        filepath = os.path.realpath(os.path.join(lab_dir, os.path.basename(raw)))
+
+        # Verificar contención estricta
+        if not filepath.startswith(lab_dir + os.sep):
+            self.send_response(403); self.end_headers(); return
 
         if not os.path.isfile(filepath):
             self.send_response(404); self.end_headers(); return
@@ -1501,4 +1521,248 @@ class GetRoutesMixin:
             self.send_response(500)
             self._send_cors()
             self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    # ── Monetización: Scheduler & YouTube ─────────────────────────────────────
+
+    def _serve_scheduler_status(self):
+        """GET /v1/scheduler/status — Estado del Content Scheduler de producción autónoma."""
+        try:
+            from core import content_scheduler
+            data = content_scheduler.get_state()
+            body = json.dumps(data, ensure_ascii=False, default=str).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_scheduler_niches(self):
+        """GET /v1/scheduler/niches — Banco de nichos y temas disponibles."""
+        try:
+            from core import content_scheduler
+            data = content_scheduler.get_niches()
+            body = json.dumps(data, ensure_ascii=False, default=str).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_youtube_status(self):
+        """GET /v1/youtube/status — Estado de la integración con YouTube (OAuth + config)."""
+        try:
+            BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            import yaml
+            with open(os.path.join(BASE_DIR, "config.yaml"), "r", encoding="utf-8") as f:
+                cfg = yaml.safe_load(f) or {}
+            yt_cfg = cfg.get("youtube", {})
+
+            oauth_path = os.path.join(BASE_DIR, "_integrations", "youtube_oauth.json")
+            oauth_ok   = os.path.isfile(oauth_path)
+            has_refresh = False
+            if oauth_ok:
+                try:
+                    with open(oauth_path, "r", encoding="utf-8") as f:
+                        oauth_data = json.load(f)
+                    has_refresh = bool(oauth_data.get("refresh_token"))
+                except Exception:
+                    pass
+
+            data = {
+                "enabled":          yt_cfg.get("enabled", False),
+                "auto_upload":      yt_cfg.get("auto_upload", True),
+                "default_privacy":  yt_cfg.get("default_privacy", "public"),
+                "default_category": yt_cfg.get("default_category", "28"),
+                "quota_limit":      yt_cfg.get("quota_daily_limit", 5),
+                "oauth_file_exists": oauth_ok,
+                "oauth_configured":  has_refresh,
+                "oauth_path":        oauth_path,
+                "tags_base":         yt_cfg.get("tags_base", []),
+                "ready":             yt_cfg.get("enabled", False) and has_refresh,
+            }
+            body = json.dumps(data, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_youtube_auth_url(self):
+        """GET /v1/youtube/auth/url — Genera la URL OAuth para autorizar la cuenta de YouTube."""
+        try:
+            from core.youtube_uploader import get_oauth_auth_url
+            data = get_oauth_auth_url()
+            body = json.dumps(data, ensure_ascii=False).encode("utf-8")
+            code = 200 if data.get("ok") else 400
+            self.send_response(code)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_video_upload_status(self):
+        """GET /v1/video/upload-status?job_id=N — Estado de upload a YouTube de un job específico."""
+        try:
+            import urllib.parse
+            params = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(self.path).query))
+            job_id_str = params.get("job_id", "0")
+            if not job_id_str.isdigit():
+                self.send_response(400)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "job_id debe ser un entero"}).encode())
+                return
+            from core.youtube_uploader import get_upload_status
+            data = get_upload_status(int(job_id_str))
+            body = json.dumps(data, ensure_ascii=False, default=str).encode("utf-8")
+            self.send_response(200 if data.get("ok") else 404)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    # ── Monetization Hub Endpoints ─────────────────────────────────────────────
+
+    def _serve_revenue_summary(self):
+        """GET /v1/revenue/summary?days=30 — Resumen de ingresos estimados."""
+        try:
+            params = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(self.path).query))
+            days   = int(params.get("days", 30))
+            from core.revenue_tracker import get_summary
+            data = get_summary(days)
+            body = json.dumps(data, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500); self._send_cors(); self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_revenue_timeline(self):
+        """GET /v1/revenue/timeline?days=14 — Ingresos diarios para gráfico."""
+        try:
+            params   = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(self.path).query))
+            days     = int(params.get("days", 14))
+            from core.revenue_tracker import get_timeline
+            timeline = get_timeline(days)
+            body     = json.dumps(timeline, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500); self._send_cors(); self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_revenue_top_jobs(self):
+        """GET /v1/revenue/top — Top videos por ingreso estimado."""
+        try:
+            from core.revenue_tracker import get_top_jobs
+            body = json.dumps(get_top_jobs(), ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500); self._send_cors(); self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_youtube_quota(self):
+        """GET /v1/youtube/quota — Estado de quota diaria de YouTube API."""
+        try:
+            from core.youtube_uploader import get_quota_status
+            body = json.dumps(get_quota_status(), ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500); self._send_cors(); self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_social_status(self):
+        """GET /v1/social/status — Estado de TikTok e Instagram."""
+        try:
+            from core.tiktok_uploader import get_status
+            body = json.dumps(get_status(), ensure_ascii=False, default=str).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500); self._send_cors(); self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_affiliates_status(self):
+        """GET /v1/affiliates/status — Estado del programa de afiliados."""
+        try:
+            from core.affiliate_manager import get_status
+            body = json.dumps(get_status(), ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500); self._send_cors(); self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_affiliates_programs(self):
+        """GET /v1/affiliates/programs — Banco de afiliados por niche."""
+        try:
+            from core.affiliate_manager import get_programs_by_niche
+            body = json.dumps(get_programs_by_niche(), ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500); self._send_cors(); self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_language_status(self):
+        """GET /v1/language/status — Estado del Language Cloner."""
+        try:
+            from core.language_cloner import get_status
+            body = json.dumps(get_status(), ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500); self._send_cors(); self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode())

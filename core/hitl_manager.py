@@ -1,5 +1,5 @@
-"""
-Gravity AI — HITL Manager V10.4 (Human-In-The-Loop)
+﻿"""
+Gravity AI — HITL Manager V12.2 PRO (Human-In-The-Loop)
 Interceptor de herramientas de alto riesgo.
 Cuando el agente quiere ejecutar una tool sensible, la encola
 en 'pending_approvals' y bloquea hasta que el humano aprueba o rechaza

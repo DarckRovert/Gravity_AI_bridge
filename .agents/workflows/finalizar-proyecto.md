@@ -1,4 +1,4 @@
----
+﻿---
 description: Auditoría total, Generación de Documentación, Wiki y Despliegue en DarckRovert.
 ---
 
@@ -27,7 +27,7 @@ description: Auditoría total, Generación de Documentación, Wiki y Despliegue 
 3. **Auditoría y Verificación de Rutas**
    Confirmar que todos los archivos (Suite + Wiki) existen en la raíz y en /wiki. Validar que los enlaces internos funcionen.
 
-4. **Despliegue Git (V10.1 PRO)**
+4. **Despliegue Git (V12.2 PRO)**
    NO ejecutes comandos git manuales. El entorno Diamond-Tier requiere auditoría automática de despliegue y timestamps nativos en Powershell.
    Ejecutar el script de despliegue maestro:
    ```bash

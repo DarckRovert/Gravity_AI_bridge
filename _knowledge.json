@@ -1,6 +1,6 @@
-{
+﻿{
   "project": "Gravity AI Bridge",
-  "version": "10.0 [Diamond-Tier Edition]",
+  "version": "12.2 PRO",
   "status": "Official Release",
   "architecture": "Omni-Tier / Tri-Hardware / Claw-Inspired (Agentic Search & Surgical Edit)",
   "vulnerability_fixes": [
@@ -20,13 +20,13 @@
       "resolution": "Implemented sys.stdin.isatty() validation and explicit EOFError handler in ask_deepseek.py"
     },
     {
-      "id": "V10.1-CLAW",
+      "id": "V12.2 PRO-CLAW",
       "description": "Sincronización con patrones de Claude Code (Claw)",
       "resolution": "Implementación de VerificationAgent y edición quirúrgica de bloques en file_edit_v2.py"
     },
     {
       "id": "PATCH-9.3.1",
-      "description": "Reestructuración Arquitectural Diamond-Tier V10.1: API Unificada y Motor Monitorizado",
+      "description": "Reestructuración Arquitectural Omniscient-Tier V12.2 PRO: API Unificada y Motor Monitorizado",
       "resolution": "Se reemplazó la API REST inexistente de Fooocus 2.5.5 por monitoreo local del directorio OUTPUT_DIR. Se desplegó dashboard unificado con salud real de motor y endpoint centralizado de imágenes."
     }
   ],
@@ -77,6 +77,6 @@
   "author": "DarckRovert",
   "persistent_rules": [
     "[2026-04-24] Optimizaci?n de Dashboard V12: Implementado endpoint /v1/processes y gesti?n de procesos en HardwareMonitor/ToolsPro. Corregida navegaci?n por eventos.",
-    "[2026-04-29] V12.1 ARCHITECTURE UPDATE:"
+    "[2026-04-29] V12.2 PRO ARCHITECTURE UPDATE:"
   ]
 }

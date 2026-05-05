@@ -125,7 +125,7 @@ def handle_stop(handler, data):
 
 def handle_restart(handler, data):
     server_id = data.get("server", "wow_vanilla")
-    threading.Thread(target=game_server_manager.restart, args=(server_id,), daemon=True).start()
+    threading.Thread(target=game_server_manager.restart, args=(server_id,), daemon=True, name=f"GravityGameRestart-{server_id}").start()
     handler.send_response(200)
     handler.send_header("Content-Type", "application/json")
     handler._send_cors()

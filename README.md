@@ -1,11 +1,11 @@
-<div align="center">
+﻿<div align="center">
   <img src="https://img.shields.io/badge/GRAVITY_AI-BRIDGE-fff?style=for-the-badge&logo=python&color=07090e" alt="Gravity AI Bridge"/>
   <br><br>
 
   [![Autor](https://img.shields.io/badge/Author-DarckRovert-818cf8.svg?style=flat-square)](https://github.com/DarckRovert)
   [![Licencia](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
   [![Arquitectura](https://img.shields.io/badge/Architecture-Omniscient--Tier-c69c6d.svg?style=flat-square)]()
-  [![Release](https://img.shields.io/badge/Release-V12.1-6366f1.svg?style=flat-square)]()
+  [![Release](https://img.shields.io/badge/Release-V12.2-6366f1.svg?style=flat-square)]()
   [![Twitch](https://img.shields.io/badge/Twitch-DarckRovert-9146ff.svg?style=flat-square&logo=twitch)](https://twitch.tv/darckrovert)
 
   <p align="center">
@@ -27,7 +27,7 @@
 
 En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Studio), motores de difusión (Fooocus), servidores C++ (MangosD/WoW) y pipelines CI/CD desde una sola máquina resulta en colisiones de hardware, puertos huérfanos, OOM en VRAM y latencias de segundos.
 
-**Gravity AI Bridge V12.1** elimina todos estos problemas con Python nativo puro y un frontend React/Vite de alta respuesta. Su filosofía:
+**Gravity AI Bridge V12.2** elimina todos estos problemas con Python nativo puro y un frontend React/Vite de alta respuesta. Su filosofía:
 
 - **Zero Dependencias Masivas**: Latencia interna en microsegundos, payload de memoria insignificante.
 - **Conciencia Dinámica del Host**: Auto-diagnóstico de RAM y VRAM, ajuste dinámico de `num_ctx` de Ollama en tiempo real según estrés térmico.
@@ -36,7 +36,7 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 
 ---
 
-## 🏛 Módulos del Ecosistema V12.1
+## 🏛 Módulos del Ecosistema V12.2
 
 ### 🧠 Multi-Agent Orchestrator (`core/multi_agent.py`)
 - Dispara peticiones REST concurrentes a múltiples modelos/APIs en paralelo.
@@ -44,7 +44,7 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 - **Reasoning Stripper**: Filtra tokens `<think>` de modelos como DeepSeek-R1 via Regex antes de mostrarlos.
 - **Agent Routing**: Selección dinámica de modelo/proveedor según `--role` (auditor, planner, coder, researcher, executor).
 
-### 🖥️ Dashboard V12.1 React SPA (`frontend/dist`)
+### 🖥️ Dashboard V12.2 React SPA (`frontend/dist`)
 Panel de control unificado con 25 componentes orquestados en tiempo real:
 
 | Panel | Función |
@@ -59,6 +59,7 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 | ⚔️ Game Servers | Control MangosD WoW (start/stop/log/players/backup) |
 | 🤖 Multi-Agent | Comparación/voting multi-modelo simultáneo |
 | 🖥️ Hardware | Perfil GPU/VRAM/NPU/CPU en tiempo real |
+| 💰 Monetización | Hub de ingresos: AdSense, Afiliados CPA, Multi-idioma, Social Uploads |
 | 💰 Cost Center | Costos por proveedor, límites diarios, breakdown |
 | ⚡ Watchdog | Engine Watchdog: lock/unlock de modelo |
 | 💾 Sessions | Sesiones persistentes + workers activos con selector de role |
@@ -73,7 +74,7 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 | 📋 Audit Log | Historial de peticiones con rotación automática |
 | ⚙️ Configuración | API keys, modelo activo, links rápidos |
 
-### 🔄 Multi-Session Bridge V11.0 (`core/session_runner.py`)
+### 🔄 Multi-Session Bridge V12.2 PRO (`core/session_runner.py`)
 - `CapacityWake` + `SessionSpawner`: hasta 32 subprocesos de agente aislados simultáneos.
 - Spawn vía UI con selector de **rol** (auditor/planner/coder/researcher/executor).
 - Kill de workers activos con estado PID en tiempo real.
@@ -95,7 +96,7 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 - Auto-reconexión, `list_tools`, `list_resources`, `read_resource`.
 - Registro global de adaptadores accesible desde el Dashboard.
 
-### 🎬 Video Studio (Cinematic & Monetization) V12.1 PRO
+### 🎬 Video Studio (Cinematic & Monetization) V12.2 PRO
 Pipeline de 5 pasos orquestado en daemon con **Motor de Animación Inteligente (MAI)**:
 1. **LLM (Ollama)** → guión JSON estructurado con N escenas y auto-título.
 2. **Fooocus (CPU/GPU)** → imagen base cinematográfica 16:9/9:16.
@@ -106,6 +107,13 @@ Pipeline de 5 pasos orquestado en daemon con **Motor de Animación Inteligente (
 5. **ffmpeg concat** → video final ensamblado y servido vía streaming.
 
 **Reproductor Web Integrado**: Stream de video nativo y panel de exportación a redes (Shorts, Reels, Facebook).
+
+### 💸 Autonomous Monetization Factory
+Sistema pasivo integrado en el pipeline de renderizado que multiplica los ingresos orgánicos.
+- **Language Cloner**: Traduce guiones (LLM) y genera audio en EN/PT/FR/DE recomponiendo videos con los assets ya renderizados. (Multiplica el CPM orgánico sin gastar GPU).
+- **Affiliate Manager**: Banco de 20+ programas CPA categorizados por nicho. Inyecta CTAs dinámicos en las descripciones de YouTube.
+- **Social Distribution**: Auto-publicación simultánea a **TikTok** y **Instagram Reels** para viralizar contenido corto (Shorts de 58s).
+- **Revenue Tracker**: Dashboard estadístico que proyecta ingresos basados en vistas, CTR y retención por categoría (Finanzas, Historia, etc.).
 
 ### 🎨 Image Queue / Fooocus (`core/image_queue.py`)
 - Bypass nativo del WebSocket Gradio con validación real de output.
@@ -159,7 +167,7 @@ python bridge_server.py
 Dashboard disponible en: `http://localhost:7860`
 
 ### Instalación con Installer (Windows)
-Descargar `Gravity_AI_Bridge_V12.1_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
+Descargar `Gravity_AI_Bridge_V12.2_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
 
 ---
 
@@ -206,7 +214,7 @@ Ver [`SECURITY.md`](SECURITY.md) para política de vulnerabilidades y reporte re
 ---
 
 > [!NOTE]
-> Ecosistema local privado V11.0 Omniscient-Tier.
+> Ecosistema local privado V12.2 PRO Omniscient-Tier.
 > [**📖 WIKI CORPORATIVA**](./wiki/Home.md) | [📜 CONTRIBUCIÓN](./CONTRIBUTING.md) | [🔒 SEGURIDAD](./SECURITY.md)
 
 <br>

@@ -1,6 +1,6 @@
-"""
+﻿"""
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — PROVIDER REGISTRY V10.1                      ║
+║     GRAVITY AI — PROVIDER REGISTRY V12.2 PRO                      ║
 ║     Auto-discovery + hot-reload de todos los plugins        ║
 ╚══════════════════════════════════════════════════════════════╝
 """
@@ -60,7 +60,7 @@ class ProviderRegistry:
                 if not os.path.isdir(cat_dir):
                     continue
                 for fname in sorted(os.listdir(cat_dir)):
-                    if not (fname.endswith("_provider.py") or fname.endswith("_cloud.py")):
+                    if not (fname.endswith("_provider.py") or fname.endswith("_providers.py") or fname.endswith("_cloud.py")):
                         continue
                     if fname.startswith("_"):
                         continue   # skip _base_*.py helpers
@@ -171,7 +171,7 @@ class ProviderRegistry:
 
 
 if __name__ == "__main__":
-    print("Provider Registry V10.1 — Discovery test\n")
+    print("Provider Registry V12.2 PRO — Discovery test\n")
     ProviderRegistry.discover(force=True)
     names = ProviderRegistry.get_names()
     print(f"  Discovered {len(names)} plugin(s): {', '.join(names)}\n")

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import type { PanelId, GravityContext } from '../types';
 import { 
   MessageSquare, Home, Palette, Image as ImageIcon, Video, Rocket, 
   Gamepad2, Bot, Cpu, DollarSign, Activity, Save, BookOpen, 
-  Plug, Wrench, Zap, Bug, ShieldAlert, Wifi, Shield, FileText, Settings, Menu, Bell
+  Plug, Wrench, Zap, Bug, ShieldAlert, Wifi, Shield, FileText, Settings, Menu, Bell,
+  TrendingUp
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -54,7 +55,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
           <Menu size={20} />
         </button>
         <div className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-accent-primary to-accent-secondary bg-clip-text text-transparent">
-          GRAVITY V12.1 PRO
+          GRAVITY V12.2 PRO
         </div>
         
         <div className="flex items-center ml-auto gap-6 text-sm font-medium">
@@ -124,6 +125,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
             <NavItem id="security" icon={Shield} label="Security" />
             <NavItem id="audit" icon={FileText} label="Audit Log" />
             <NavItem id="config" icon={Settings} label="Configuración" />
+
+            <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted mt-6 mb-2 px-2">💰 Monetización</div>
+            <NavItem id="monetization" icon={TrendingUp} label="Monetization Hub" />
           </div>
 
           <div className="p-4 shrink-0 border-t border-border-subtle bg-surface">

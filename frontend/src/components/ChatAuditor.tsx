@@ -5,7 +5,7 @@ import type { Message } from '../types';
 export const ChatAuditor: React.FC = () => {
   const defaultMessage: Message = {
     role: 'system',
-    content: `👋 **Bienvenido a Gravity AI Bridge V12.1 PRO [Organismo Vivo]**\n\nSistema de orquestación unificada en línea con arquitectura React/Vite.\n\n**Módulos Activos:**\n- 🧠 **Gravity Brain**: Telemetría inyectada en tiempo real.\n- 🎨 **Vision Studio**: Renderizado paralelo V12.1 PRO.\n- 🎬 **Video Studio**: FFMPEG orquestado conversacionalmente.\n\n**Atajos rápidos:**\n\`/help\` — Comandos disponibles\n\`/search\` — Búsqueda web\n\`/status\` — Auditoría de sistema`
+    content: `🤖 **Gravity AI V13.0 [Agentic Core Edition] — En Línea**\n\nSistema de orquestación unificada con capacidades de Agente Autónomo de Sistema.\n\n**Módulos Activos:**\n- 🧠 **Gravity Brain V13.0**: LLM con conciencia sistémica total.\n- 📁 **Agentic ToolEngine**: Acceso directo al SO y sistema de archivos.\n- 🎥 **Video Studio**: Fábrica de monetización autónoma + YouTube auto-upload.\n- 💰 **Revenue Tracker**: Afiliados CPA inyectados en cada descripción.\n\n**Comandos Estándar:**\n\`/help\` — Lista completa de comandos\n\`/status\` — Auditoría del sistema en vivo\n\`/video crear <tema>\` — Encola un video\n\n**Herramientas Agentic [NUEVO V13]:**\n\`/fs_ver <ruta>\` — Lee cualquier archivo del proyecto\n\`/fs_listar <ruta>\` — Lista un directorio\n\`/fs_buscar <texto> <ruta>\` — Busca en el código fuente\n\`/terminal <comando>\` — Ejecuta comandos del sistema operativo`
   };
 
   const [messages, setMessages] = useState<Message[]>(() => {
@@ -186,9 +186,10 @@ export const ChatAuditor: React.FC = () => {
 
           <div className="flex gap-3 mt-4 flex-wrap">
             <button onClick={() => injectHint('/search ')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border-subtle text-xs text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"><Search size={14} /> Buscar web</button>
-            <button onClick={() => injectHint('/verify ')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border-subtle text-xs text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"><Shield size={14} /> Verificar archivo</button>
+            <button onClick={() => injectHint('/fs_ver ')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border-subtle text-xs text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"><Shield size={14} /> Verificar archivo</button>
+            <button onClick={() => injectHint('/fs_listar .')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border-subtle text-xs text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"><Brain size={14} /> Listar proyecto</button>
+            <button onClick={() => injectHint('/terminal ')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border-subtle text-xs text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"><DollarSign size={14} /> Terminal</button>
             <button onClick={() => injectHint('!aprende ')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border-subtle text-xs text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"><Brain size={14} /> Persistir regla</button>
-            <button onClick={() => injectHint('/cost')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border-subtle text-xs text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"><DollarSign size={14} /> Ver consumo</button>
             
             <button onClick={() => setMessages([defaultMessage])} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-status-error/10 text-xs text-text-muted hover:text-status-error transition-colors ml-auto"><Trash2 size={14} /> Limpiar Chat</button>
           </div>

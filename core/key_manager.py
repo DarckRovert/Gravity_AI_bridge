@@ -1,6 +1,6 @@
-"""
+﻿"""
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — KEY MANAGER V10.1                            ║
+║     GRAVITY AI — KEY MANAGER V12.2 PRO                            ║
 ║     Almacenamiento cifrado de API keys (DPAPI en Windows)   ║
 ╚══════════════════════════════════════════════════════════════╝
 
@@ -41,6 +41,7 @@ KNOWN_CLOUD_PROVIDERS = {
     "openrouter":   {"display": "OpenRouter",        "key_prefix": "sk-or-","url": "https://openrouter.ai/api/v1"},
     "deepinfra":    {"display": "DeepInfra",         "key_prefix": "",     "url": "https://api.deepinfra.com/v1/openai"},
     "nvidia":       {"display": "Nvidia NIM",        "key_prefix": "nvapi-","url": "https://integrate.api.nvidia.com/v1"},
+    "youtube":      {"display": "YouTube Data API",  "key_prefix": "",     "url": "https://console.cloud.google.com"},
 }
 
 
@@ -75,7 +76,7 @@ def _encrypt(plaintext: str) -> bytes:
             pass
     # Fallback XOR
     salt = _get_machine_salt()
-    key  = hashlib.sha256(salt + b"GravityAI_V10.1").digest()
+    key  = hashlib.sha256(salt + b"GravityAI_V12.2 PRO").digest()
     return b"XOR:" + _xor_cipher(raw, key)
 
 
@@ -83,7 +84,7 @@ def _decrypt(ciphertext: bytes) -> str:
     """Decrypt bytes back to string."""
     if ciphertext.startswith(b"XOR:"):
         salt = _get_machine_salt()
-        key  = hashlib.sha256(salt + b"GravityAI_V10.1").digest()
+        key  = hashlib.sha256(salt + b"GravityAI_V12.2 PRO").digest()
         return _xor_cipher(ciphertext[4:], key).decode("utf-8")
     if platform.system() == "Windows":
         try:
@@ -201,7 +202,7 @@ class KeyManager:
 
 
 if __name__ == "__main__":
-    print("KeyManager V10.1 — Test\n")
+    print("KeyManager V12.2 PRO — Test\n")
     KeyManager.set_key("test_provider", "sk-test-123456789")
     assert KeyManager.has_key("test_provider")
     assert KeyManager.get_key("test_provider") == "sk-test-123456789"

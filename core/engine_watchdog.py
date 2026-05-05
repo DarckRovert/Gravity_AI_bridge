@@ -1,11 +1,11 @@
-"""
+﻿"""
 ╔══════════════════════════════════════════════════════════╗
-║     GRAVITY AI ENGINE WATCHDOG V10.1                      ║
+║     GRAVITY AI ENGINE WATCHDOG V12.2 PRO                      ║
 ║     Auto-Detección, Auto-Switch y Auto-Optimización      ║
 ╚══════════════════════════════════════════════════════════╝
 
 Corre en segundo plano como hilo demonio.
-Delega toda la lógica de detección y routing al V10.1 ProviderManager.
+Delega toda la lógica de detección y routing al V12.2 PROviderManager.
 Persiste la selección en _settings.json.
 """
 
@@ -181,7 +181,7 @@ def start(interval_seconds=30, verbose=False):
 
     try:
         try:
-            from env_optimizer import apply_all
+            from core.env_optimizer import apply_all
             profile, _ = apply_all(persist=False, verbose=verbose)
             _hardware_profile = profile
         except ImportError:
@@ -208,7 +208,7 @@ def start(interval_seconds=30, verbose=False):
                 engine_key = "lemonade"
 
             try:
-                from env_optimizer import build_api_options
+                from core.env_optimizer import build_api_options
                 _current_api_opts = build_api_options(engine_key, profile or {}, user_opts)
             except Exception:
                 _current_api_opts = user_opts

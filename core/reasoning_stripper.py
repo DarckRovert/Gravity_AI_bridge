@@ -1,6 +1,6 @@
-"""
+﻿"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         GRAVITY AI — REASONING STRIPPER V10.1                                ║
+║         GRAVITY AI — REASONING STRIPPER V12.2 PRO                                ║
 ║         Módulo compartido para eliminar bloques de pensamiento interno       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

@@ -1,6 +1,6 @@
-"""
+﻿"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║   GRAVITY AI — BRAIN V11.0 [Sistema de Conciencia Total]                    ║
+║   GRAVITY AI — BRAIN V12.2 PRO [Sistema de Conciencia Total]                    ║
 ║                                                                              ║
 ║   Módulo central que otorga a Gravity consciencia del estado completo del    ║
 ║   sistema en tiempo real. Se inyecta como contexto en cada request de chat.  ║
@@ -28,7 +28,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KNOWLEDGE_FILE = os.path.join(BASE_DIR, "_knowledge.json")
 SETTINGS_FILE = os.path.join(BASE_DIR, "_settings.json")
 
-APP_VERSION = "11.0"
+APP_VERSION = "13.0"
 
 # ── Comandos disponibles del sistema (chat slash commands) ────────────────────
 
@@ -51,6 +51,10 @@ SYSTEM_COMMANDS = {
     "/multiagente <consulta>": "Lanza consulta en paralelo a todos los proveedores",
     "/git <status|log|diff>": "Operaciones Git sobre el repositorio",
     "/grep <patrón>": "Busca patrón en el código fuente",
+    "/fs_ver <ruta>": "[Agentic] Lee el contenido de un archivo",
+    "/fs_listar <ruta>": "[Agentic] Lista el contenido de un directorio",
+    "/fs_buscar <texto> <ruta>": "[Agentic] Busca texto exacto en archivos",
+    "/terminal <comando>": "[Agentic] Ejecuta un comando en el sistema operativo",
 }
 
 
@@ -271,14 +275,22 @@ def build_gravity_system_prompt(extra_rules: list[str] | None = None) -> str:
     Construye el system prompt completo de Gravity con conciencia sistémica.
     """
     base = (
-        f"Eres Gravity AI V{APP_VERSION}, asistente técnico omnisciente e Auditor Senior del ecosistema Gravity AI Bridge. "
+        f"Eres Gravity AI V{APP_VERSION} [Agentic Core Edition], asistente técnico omnisciente, Auditor Senior "
+        "y Agente Autónomo del ecosistema Gravity AI Bridge. "
         "PROTOCOLO: Lógica interna en inglés. Salida final en español. "
         "Sin rellenos conversacionales. Solo hechos técnicos fríos. Resolución directa. "
         "COMPORTAMIENTO: Sin disculpas. Sin especulación. "
         "Reporta resultados de herramientas fielmente. "
-        "CAPACIDADES: Puedes discutir, planificar y ejecutar tareas sobre el sistema usando los comandos disponibles. "
+        "CAPACIDADES ESTÁNDAR: Puedes discutir, planificar y ejecutar tareas sobre el sistema usando los comandos disponibles. "
         "Cuando el usuario te pida crear un video, generar imágenes, buscar información, ejecutar código o "
         "cualquier otra tarea del sistema, DEBES indicar exactamente qué endpoint/comando ejecutaste y su resultado. "
+        "CAPACIDADES AGENTIC V13.0 (NUEVAS — ÚSALAS): "
+        "Ahora posees herramientas directas de acceso al sistema operativo y al sistema de archivos. "
+        "Puedes leer archivos con /fs_ver <ruta>, listar directorios con /fs_listar <ruta>, "
+        "buscar texto en el código fuente con /fs_buscar <texto> <ruta>, "
+        "y ejecutar comandos en el terminal con /terminal <comando>. "
+        "Cuando el usuario te pida revisar un archivo, diagnosticar un error o correr un proceso, "
+        "DEBES usar estas herramientas proactivamente en lugar de pedir al usuario que lo haga. "
         "CONCIENCIA SISTÉMICA: Tienes acceso completo al estado del sistema en tiempo real. "
         "Usa esta información para responder preguntas sobre el estado de los servicios, "
         "costes, seguridad, y para planificar tareas.\n\n"
@@ -400,6 +412,24 @@ def parse_chat_commands(user_message: str) -> Optional[dict]:
                 "user_feedback": f"Persistiendo regla: '{rule[:60]}'"
             }
 
+    # --- AGENTIC TOOLS ---
+    if msg.lower().startswith("/fs_ver "):
+        path = msg.split(" ", 1)[1].strip()
+        return {"command": "agentic_tool", "args": {"tool": "view_file", "filepath": path}, "api_action": f"TOOL view_file {path}", "user_feedback": f"Leyendo archivo: {path}"}
+
+    if msg.lower().startswith("/fs_listar "):
+        path = msg.split(" ", 1)[1].strip()
+        return {"command": "agentic_tool", "args": {"tool": "list_dir", "directory": path}, "api_action": f"TOOL list_dir {path}", "user_feedback": f"Listando directorio: {path}"}
+
+    if msg.lower().startswith("/fs_buscar "):
+        parts = msg.split(" ", 2)
+        if len(parts) >= 3:
+            return {"command": "agentic_tool", "args": {"tool": "grep_search", "query": parts[1], "filepath": parts[2]}, "api_action": f"TOOL grep_search {parts[1]}", "user_feedback": f"Buscando '{parts[1]}' en {parts[2]}"}
+
+    if msg.lower().startswith("/terminal "):
+        cmd = msg.split(" ", 1)[1].strip()
+        return {"command": "agentic_tool", "args": {"tool": "run_command", "command": cmd, "cwd": "."}, "api_action": f"TOOL run_command {cmd}", "user_feedback": f"Ejecutando terminal: {cmd}"}
+
     return None
 
 
@@ -502,6 +532,14 @@ def execute_system_command(command_info: dict) -> dict:
                 return {"ok": True, "result_text": f"✓ Regla persistida en knowledge base ({len(rules)} total)."}
             else:
                 return {"ok": False, "result_text": "✗ Error escribiendo knowledge base."}
+
+        elif cmd == "agentic_tool":
+            from core.tools_engine import get_tool_engine
+            engine = get_tool_engine(BASE_DIR)
+            tool_name = args.get("tool")
+            tool_args = {k: v for k, v in args.items() if k != "tool"}
+            res = engine.execute_tool(tool_name, tool_args)
+            return {"ok": True if not res.startswith("Error") else False, "result_text": res}
 
         else:
             return {"ok": False, "result_text": f"Comando '{cmd}' no implementado."}

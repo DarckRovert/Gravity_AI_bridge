@@ -16,7 +16,7 @@ def _cloud_request_stream(url: str, payload: dict, headers: dict) -> Generator[s
     """Streams SSE from any OpenAI-compatible cloud endpoint. Yields content chunks."""
     data = json.dumps(payload).encode("utf-8")
     req  = urllib.request.Request(url, data=data, headers=headers)
-    with urllib.request.urlopen(req, timeout=300) as r:
+    with urllib.request.urlopen(req, timeout=60) as r:
         for raw in r:
             line = raw.decode("utf-8", errors="ignore").strip()
             if not line.startswith("data:"):
@@ -42,7 +42,7 @@ def _cloud_request_complete(url: str, payload: dict, headers: dict) -> str:
     """Non-streaming cloud request. Returns full content string."""
     data = json.dumps(payload).encode("utf-8")
     req  = urllib.request.Request(url, data=data, headers=headers)
-    with urllib.request.urlopen(req, timeout=300) as r:
+    with urllib.request.urlopen(req, timeout=60) as r:
         d = json.loads(r.read().decode("utf-8"))
     if "choices" in d and d["choices"]:
         return d["choices"][0].get("message", {}).get("content", "")

@@ -1,4 +1,4 @@
----
+﻿---
 name: Reporte de Bug
 about: Crea un reporte para ayudarnos a mejorar Gravity AI Bridge
 title: '[BUG] '
@@ -26,7 +26,7 @@ Si aplica, añade capturas de pantalla para ayudar a explicar el problema.
 **Entorno:**
  - OS: [e.g. Windows 11]
  - Browser [e.g. Chrome, Safari]
- - Version de Gravity AI Bridge [e.g. V12.1 PRO]
+ - Version de Gravity AI Bridge [e.g. V12.2 PRO]
 
 **Contexto Adicional**
 Añade cualquier otro contexto sobre el problema aquí.

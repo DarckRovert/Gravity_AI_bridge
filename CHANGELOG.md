@@ -1,10 +1,28 @@
-# Changelog — Gravity AI Bridge
+﻿# Changelog — Gravity AI Bridge
 
 Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Bridge.
 
 ---
 
-## [V12.1 PRO] Pipeline Estabilizado y Omnisciencia Web · 28/04/2026
+## [V12.2 PRO] Autonomous Monetization Factory · 04/05/2026
+
+**[IMPLEMENTACIÓN DE CANALES AUTÓNOMOS DE INGRESOS]**
+
+### Fábrica de Monetización Pasiva
+- **Language Cloner (`language_cloner.py`)**: Reutiliza renders visuales (0 gasto de GPU) traduciendo guiones y clonando el audio a Inglés, Portugués y Francés. Multiplica el CPM orgánico de AdSense.
+- **Affiliate Manager (`affiliate_manager.py`)**: Banco base de datos con programas CPA categorizados por nicho. Inyecta enlaces y CTAs optimizados en las descripciones de YouTube.
+- **Social Distribution (`tiktok_uploader.py`)**: Integración directa con TikTok Content API v2 e Instagram Graph API v19 para auto-publicar Shorts de 58s.
+- **Revenue Tracker (`revenue_tracker.py`)**: Tracking pasivo que estima y proyecta ganancias basándose en vistas, histórico y nicho de producción.
+
+### Monetization Hub (Dashboard SPA)
+- Nuevo panel central unificado en el Sidebar de Gravity.
+- Trackeo estadístico de 30 días, proyecciones a 6 meses y visualización diaria del timeline de ingresos.
+- Integración en caliente de OAuth 2.0 (YouTube), estado de credenciales de Redes Sociales y botones manuales para disparar clonación de idiomas de videos ya renderizados.
+- Refactorización de endpoints en `mixin_post.py` y `mixin_get.py` para soportar telemetría financiera.
+
+---
+
+## [V12.2 PRO] Pipeline Estabilizado y Omnisciencia Web · 28/04/2026
 
 **[ESTABILIZACIÓN DEL PIPELINE DE VIDEO Y CHAT]**
 
@@ -28,7 +46,7 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
-## [V12.1] Production UI Hardening & Monetization Ready · 24/04/2026
+## [V12.2 PRO] Production UI Hardening & Monetization Ready · 24/04/2026
 
 **[INTERVENCIÓN TOTAL DE ARQUITECTURA FRONTEND]**
 
@@ -47,7 +65,7 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
-## [V12.0] Omniscient-Tier — Fully Autonomous React Ecosystem · 24/04/2026
+## [V12.2 PRO] Omniscient-Tier — Fully Autonomous React Ecosystem · 24/04/2026
 
 **[ESTADO DE PRODUCCIÓN FINAL ALCANZADO]**
 
@@ -63,7 +81,7 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
-## [V10.4] Diamond-Tier — Multi-Session, HITL & Firecrawl · 23/04/2026
+## [V12.2 PRO] Diamond-Tier — Multi-Session, HITL & Firecrawl · 23/04/2026
 
 **[ASIMILACIÓN ARQUITECTÓNICA: OPENCLAUDE]**
 
@@ -78,7 +96,7 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 - `POST /v1/tools/scrape` — Scraping de URL ({url}) con Firecrawl o fallback.
 - `GET /v1/tools/firecrawl/health` — Estado de la API key y modo de scraping.
 
-### Dashboard V10.4 — UI/UX Diamond Tier
+### Dashboard V12.2 PRO — UI/UX Diamond Tier
 - **Rediseño CSS total**: Nueva paleta (`#07090e` bg, `#6366f1` accent, `#8b5cf6` accent2, `#06b6d4` accent3). Animaciones `slideIn`, `hitlPop`, `gradMove`.
 - **Panel HITL**: Solicitudes pendientes con botones Aprobar/Rechazar, stats de sesión (aprobadas/rechazadas), lista de tools de alto riesgo, polling automático cada 8s.
 - **Panel Firecrawl**: Status de API key, scraper interactivo de URL, viewer de resultado en Markdown con badge de fuente y botón copiar.
@@ -92,7 +110,7 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
-## [V10.3] Ultra Evolution Panel & Interactive Tools · 21/04/2026
+## [V12.2 PRO] Ultra Evolution Panel & Interactive Tools · 21/04/2026
 
 ### Mission Control Dashboard
 - Widget grid en vivo de métricas críticas (Tokens, Queue, Models, Costos).
@@ -109,7 +127,7 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
-## [V10.2] Video Studio + RAG en Chat + Admin API · 20/04/2026
+## [V12.2 PRO] Video Studio + RAG en Chat + Admin API · 20/04/2026
 
 ### Video Studio
 - `core/video_pipeline.py`: Pipeline completo CPU-only. LLM → Fooocus → SAPI TTS → ffmpeg clips → concat final.
@@ -131,12 +149,12 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 - Limpieza del repositorio: Eliminados `build/` (~450MB), logs obsoletos.
 
 ### Documentación
-- Wiki completa actualizada a V10.2.
-- `README.md` con módulo Video Studio y badge V10.2.
+- Wiki completa actualizada a V12.2 PRO.
+- `README.md` con módulo Video Studio y badge V12.2 PRO.
 
 ---
 
-## [V10.1.1] Modularización Arquitectónica del Enrutador · 20/04/2026
+## [V12.2 PRO.1] Modularización Arquitectónica del Enrutador · 20/04/2026
 
 ### Refactorización Estructural
 - `bridge_server.py` reducido de 1,323 → ~200 líneas. Lógica migrada a Mixins (`api/routes/mixin_get.py`, `api/routes/mixin_post.py`).
@@ -150,7 +168,7 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
-## [V10.1] Stable Diamond-Tier Integration · 19/04/2026
+## [V12.2 PRO] Stable Diamond-Tier Integration · 19/04/2026
 
 ### Fixes & Seguridad Core
 - Image Queue: 0% falsos positivos de generación (diferenciación real antes/después de POST).

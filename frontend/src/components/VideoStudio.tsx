@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+﻿import { useEffect, useState, useRef } from 'react';
 import { Film, PlayCircle, Clock, CheckCircle2, AlertCircle, RefreshCw, X, Share2, Camera, MonitorPlay, Download, Trash2, Settings, Clapperboard, AudioLines, Sparkles, Layers, SlidersHorizontal } from 'lucide-react';
 
 export const VideoStudio = () => {
@@ -241,7 +241,7 @@ export const VideoStudio = () => {
             <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
               GRAVITY <span className="text-text-muted font-normal">|</span> STUDIO <span className="px-1.5 py-0.5 rounded bg-accent-primary/20 text-accent-primary text-[10px] uppercase font-bold tracking-widest border border-accent-primary/30">Pro Edition</span>
             </h1>
-            <p className="text-xs text-text-muted font-medium mt-0.5">Pipeline Cinemático Autárquico V12.1</p>
+            <p className="text-xs text-text-muted font-medium mt-0.5">Pipeline Cinemático Autárquico V12.2 PRO</p>
           </div>
         </div>
         

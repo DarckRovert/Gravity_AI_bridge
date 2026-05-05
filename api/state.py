@@ -45,7 +45,7 @@ def track_geoip(ip: str):
         except Exception:
             geoip_cache[ip] = {"status": "fail", "country": "Unknown", "city": "Unknown", "isp": "Error de Red"}
             
-    threading.Thread(target=fetch, daemon=True).start()
+    threading.Thread(target=fetch, daemon=True, name=f"GeoIP-{ip}").start()
 
 def register_ip_hit(ip: str):
     with geoip_lock:

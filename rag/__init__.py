@@ -1,1 +1,1 @@
-# rag package — Gravity AI V10.1
+﻿# rag package — Gravity AI V12.2 PRO

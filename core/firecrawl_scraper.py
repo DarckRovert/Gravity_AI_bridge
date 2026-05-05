@@ -1,5 +1,5 @@
-"""
-Gravity AI — Firecrawl Scraper V10.4
+﻿"""
+Gravity AI — Firecrawl Scraper V12.2 PRO
 Scraping de URLs con soporte para API Firecrawl y fallback HTTP nativo.
 Si firecrawl_api_key está vacío, usa urllib como fallback.
 """

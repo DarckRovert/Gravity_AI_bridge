@@ -1,6 +1,6 @@
-"""
+﻿"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         GRAVITY AI — SECURITY MONITOR V10.1                                   ║
+║         GRAVITY AI — SECURITY MONITOR V12.2 PRO                                   ║
 ║         Monitor de procesos, puertos, integridad de archivos y red           ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -111,6 +111,7 @@ _state: dict = {
     "suspicious_ports": [],
     "file_integrity": {},
     "psutil_available": _PSUTIL_OK,
+    "scans_today": 0,
 }
 
 _baseline_hashes: dict[str, str] = {}
@@ -323,6 +324,7 @@ def _monitor_loop() -> None:
                 _state["open_ports"] = ports
                 _state["suspicious_ports"] = suspicious
                 _state["file_integrity"] = integrity
+                _state["scans_today"] = _state.get("scans_today", 0) + 1
 
         except Exception as e:
             with _lock:
@@ -340,6 +342,11 @@ def get_state() -> dict:
         return dict(_state)
 
 
+def scan_processes() -> list[dict]:
+    """Alias público de _scan_processes(). Usado por mixin_post /v1/security/scan."""
+    return _scan_processes()
+
+
 def force_scan() -> dict:
     """Fuerza un escaneo inmediato y retorna el resultado."""
     procs = _scan_processes()
@@ -353,6 +360,7 @@ def force_scan() -> dict:
         _state["open_ports"] = ports
         _state["suspicious_ports"] = suspicious
         _state["file_integrity"] = integrity
+        _state["scans_today"] = _state.get("scans_today", 0) + 1
         return dict(_state)
 
 

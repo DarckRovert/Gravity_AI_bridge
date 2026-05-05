@@ -1,6 +1,6 @@
-"""
+﻿"""
 Gravity AI Bridge — Core Modules
-Consolidation of critical logic for version 9.0 PRO [Diamond-Tier Edition]
+Consolidation of critical logic for version 12.1 PRO [Omniscient-Tier Edition]
 """
 
 # Exponer módulos para importaciones directas desde 'core'
@@ -26,3 +26,13 @@ from . import ide_integrator
 from . import multi_agent
 from . import tool_executor
 from . import turbo_kv
+
+# Módulos de pipeline y orquestación (V12.2 PRO)
+from . import security_monitor
+from . import image_queue
+from . import video_pipeline
+from . import deploy_manager
+from . import game_server_manager
+from . import ai_process_manager
+from . import animation_engine
+from . import gravity_brain

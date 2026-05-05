@@ -1,4 +1,4 @@
-# Guía de API — Gravity AI Bridge V11.0
+﻿# Guía de API — Gravity AI Bridge V12.2 PRO
 **Omniscient-Tier Edition** · Base URL: `http://localhost:7860`
 
 El Bridge expone una API HTTP completamente compatible con el estándar OpenAI, más endpoints propios para gestión del sistema. Cualquier cliente que funcione con OpenAI puede conectarse al Bridge sin modificaciones.
@@ -303,7 +303,7 @@ Lista de sesiones guardadas en `_saves/`.
 
 ---
 
-### `POST /v1/sessions/spawn` *(Nuevo en V11.0)*
+### `POST /v1/sessions/spawn` *(Nuevo en V12.2 PRO)*
 
 Levanta un agente interactivo asíncrono con un rol específico (Auditor, Planner, Coder, etc.) sin bloquear el thread principal.
 
@@ -511,7 +511,7 @@ curl -X POST http://localhost:7860/v1/security/scan \
 
 ---
 
-### `POST /v1/audit/rotate` *(V11.0)*
+### `POST /v1/audit/rotate` *(V12.2 PRO)*
 
 Fuerza la rotación inmediata del audit log activo. El archivo actual se archiva con timestamp y se crea uno nuevo.
 
@@ -522,7 +522,7 @@ curl -X POST http://localhost:7860/v1/audit/rotate -H "Content-Type: application
 
 ---
 
-### `POST /v1/rag/toggle` *(V11.0)*
+### `POST /v1/rag/toggle` *(V12.2 PRO)*
 
 Activa o desactiva el RAG en el flujo de chat en caliente (sin reiniciar el bridge).
 
@@ -533,7 +533,7 @@ curl -X POST http://localhost:7860/v1/rag/toggle -H "Content-Type: application/j
 
 ---
 
-### Endpoints de Firecrawl Scraper *(Nuevo en V11.0)*
+### Endpoints de Firecrawl Scraper *(Nuevo en V12.2 PRO)*
 
 Scrapeo web y extracción a Markdown:
 
@@ -549,7 +549,7 @@ curl http://localhost:7860/v1/tools/firecrawl/health
 
 ---
 
-### Endpoints HITL (Human-in-the-Loop) *(Nuevo en V11.0)*
+### Endpoints HITL (Human-in-the-Loop) *(Nuevo en V12.2 PRO)*
 
 Mecanismo de seguridad para aprobación manual de comandos de riesgo:
 
@@ -603,7 +603,7 @@ Añade un trabajo de generación de imagen a la cola de Fooocus.
 
 ---
 
-## Video Studio V11.0
+## Video Studio V12.2 PRO
 
 ### `POST /v1/video/create`
 
@@ -695,7 +695,7 @@ Retorna el binario MP4 con `Content-Type: video/mp4` y `Content-Disposition: att
 
 ---
 
-### `GET /v1/video/animations` *(Nuevo en V12.1 PRO)*
+### `GET /v1/video/animations` *(Nuevo en V12.2 PRO)*
 
 Retorna el catálogo completo de efectos del Motor de Animación Inteligente (MAI L0/L1/L2) disponibles para usar en el campo `animation_effect` de la API de creación.
 
@@ -801,7 +801,7 @@ print(result.content)
 
 ### Continue.dev (config.yaml)
 ```yaml
-name: Gravity Local V11.0
+name: Gravity Local V12.2 PRO
 version: 10.0.0
 schema: v1
 models:

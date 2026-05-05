@@ -1,16 +1,19 @@
-import os
+﻿import os
 import json
+import logging
 import yaml
 from pathlib import Path
 from typing import Any, Dict
 
+log = logging.getLogger("gravity.config")
+
 class ConfigManager:
     """
     Manages application configuration with YAML support and auto-migration from JSON.
-    Supports profiles (dev, prod, test). V10.1 PRO.
+    Supports profiles (dev, prod, test). V12.2 PRO.
     """
     DEFAULT_CONFIG = {
-        "version": "9.3.1",
+        "version": "12.1.0",
         "profile": "production",
         "server": {
             "host": "0.0.0.0",
@@ -54,11 +57,11 @@ class ConfigManager:
                     if user_config:
                         self._deep_update(self.config, user_config)
             except Exception as e:
-                print(f"[CONFIG ERROR] Falló la carga de {self.config_path}: {e}")
+                log.error(f"[CONFIG] Falló la carga de {self.config_path}: {e}")
 
     def _migrate_from_json(self):
         """Migrates legacy _settings.json to new config.yaml structure."""
-        print(f"[CONFIG] Migrando {self.old_settings_path} a {self.config_path}...")
+        log.info(f"[CONFIG] Migrando {self.old_settings_path} a {self.config_path}...")
         try:
             with open(self.old_settings_path, "r", encoding="utf-8") as f:
                 old = json.load(f)
@@ -74,9 +77,9 @@ class ConfigManager:
             self.config["model"]["stream"] = adv.get("streaming", True)
             
             self.save()
-            print("[CONFIG] Migración completada con éxito.")
+            log.info("[CONFIG] Migración completada con éxito.")
         except Exception as e:
-            print(f"[CONFIG ERROR] Falló la migración: {e}")
+            log.error(f"[CONFIG] Falló la migración: {e}")
 
     def _deep_update(self, base_dict: dict, update_with: dict):
         for k, v in update_with.items():
@@ -91,7 +94,7 @@ class ConfigManager:
             with open(self.config_path, "w", encoding="utf-8") as f:
                 yaml.dump(self.config, f, default_flow_style=False, sort_keys=False)
         except Exception as e:
-            print(f"[CONFIG ERROR] No se pudo guardar {self.config_path}: {e}")
+            log.error(f"[CONFIG] No se pudo guardar {self.config_path}: {e}")
 
     def get(self, key_path: str, default: Any = None) -> Any:
         """Get nested value using dot notation (e.g. 'server.port')."""
