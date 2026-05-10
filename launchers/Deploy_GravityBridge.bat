@@ -37,28 +37,37 @@ echo.
 REM ── Verificar estado git ──────────────────────────────────────────────────────
 git status --short
 echo.
+set "CONFIRM="
 set /p CONFIRM="Confirmar deploy a GitHub? (S/N): "
-if /i not "%CONFIRM%"=="S" (
+if not defined CONFIRM set "CONFIRM=N"
+set CONFIRM=!CONFIRM: =!
+if /i not "!CONFIRM!"=="S" (
     echo  [CANCELADO] Deploy abortado por el usuario.
     pause
     exit /b 0
 )
 
 REM ── Staging, commit y push ────────────────────────────────────────────────────
-echo  [1/3] git add ...
+echo.
+echo  [1/3] Preparando archivos (git add) ...
 git add .
 if %errorlevel% neq 0 ( echo  [ERROR] git add fallo. & pause & exit /b 1 )
 
-echo  [2/3] git commit ...
+echo  [2/3] Guardando version (git commit) ...
 git commit -m "%COMMIT_MSG%"
 if %errorlevel% neq 0 (
     echo  [INFO] Sin cambios que commitear (working tree limpio).
 )
 
-echo  [3/3] git push origin main ...
+echo.
+echo  [3/3] Subiendo a GitHub (git push) ...
+echo  [IMPORTANTE] Por favor NO CIERRES esta ventana hasta que termine...
 git push origin main
 if %errorlevel% neq 0 (
-    echo  [ERROR] git push fallo. Verifica credenciales y conectividad.
+    echo.
+    echo  [ERROR] git push fallo. 
+    echo  1. Verifica tu conexion a internet.
+    echo  2. Asegurate de no haber cerrado la ventana durante la subida.
     pause
     exit /b 1
 )
