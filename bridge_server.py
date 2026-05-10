@@ -254,7 +254,7 @@ def run_server():
     start_orphan_reaper()
     log.info("[V12.2 PRO] OrphanReaper daemon activado.")
 
-    log.info(f"Gravity Bridge V12.2 PRO — http://localhost:{port} | Dashboard: / | API: /v1")
+    log.info(f"Gravity Bridge V13.0 PRO — http://localhost:{port} | Dashboard: / | API: /v1")
     server = ThreadingHTTPServer(("0.0.0.0", port), GravityBridgeHandler)
     try:
         server.serve_forever()
