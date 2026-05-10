@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║          GRAVITY AI - DATA GUARDIAN V13.0 PRO [Diamond-Tier Edition]          ║
 ║          Validación, reparación y saneamiento de archivos de datos           ║

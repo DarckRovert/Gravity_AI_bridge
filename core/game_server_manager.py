@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║         GRAVITY AI — GAME SERVER MANAGER V13.0 PRO                               ║
 ║         Gestión de servidores de juegos desde el Bridge                      ║

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Gravity AI — Anthropic Claude Provider V13.0 PRO
 
 Anthropic usa su propio protocolo Messages API (no OpenAI-compatible).

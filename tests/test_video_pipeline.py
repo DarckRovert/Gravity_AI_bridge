@@ -1,4 +1,4 @@
-﻿"""
+"""
 Tests unitarios para core/video_pipeline.py — V13.0 PRO
 Cubre: cola SQLite, add_job, cancel_job, get_queue_status,
        _generate_script (fallback), _generate_audio (mock),

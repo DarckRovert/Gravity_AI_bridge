@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  GRAVITY AI — ANIMATION ENGINE V1.0                                         ║
 ║  Motor de Animación de Imágenes (MAI) — Gravity Studio V13.0 PRO               ║

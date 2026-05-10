@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  GRAVITY AI — LOG BUFFER V13.0 PRO                                               ║
 ║  Módulo extraído de game_server_manager.py (BUG-punto 4 del plan)            ║

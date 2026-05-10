@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════╗
 ║     GRAVITY AI PROVIDER SCANNER V13.0 PRO — Compatibility Wrapper ║
 ║     Delegates to ProviderManager + ProviderRegistry         ║

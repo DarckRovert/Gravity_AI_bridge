@@ -1,4 +1,4 @@
-﻿"""
+"""
 Gravity AI — Grep Tool V13.0 PRO (Claw Edition)
 Implementación avanzada de búsqueda de patrones inspirada en Claude Code.
 """

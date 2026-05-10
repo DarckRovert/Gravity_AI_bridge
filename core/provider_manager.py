@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║        GRAVITY AI - PROVIDER MANAGER V13.0 PRO [Diamond-Tier Edition]         ║
 ║                     Orquestador universal: local + cloud                     ║

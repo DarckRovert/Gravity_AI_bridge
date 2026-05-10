@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║          GRAVITY AI - CACHE ENGINE V13.0 PRO [Diamond-Tier Edition]           ║
 ║             Optimized with WAL mode and Reasoning-Aware Hashing              ║

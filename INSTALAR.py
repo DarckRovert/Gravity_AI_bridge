@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  GRAVITY AI BRIDGE - INSTALADOR STANDALONE V12.2 PRO [Ecosistema Total]            ║
 ║              Instalador TUI premium con elección de directorio               ║

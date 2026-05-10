@@ -1,4 +1,4 @@
-﻿"""
+"""
 Gravity AI — Web Search Tool V13.0 PRO [Ultra Evolution]
 Sin API key requerida. Usa DuckDuckGo HTML scraping.
 Opcional: Brave Search API (gratuita, 2000 req/mes).

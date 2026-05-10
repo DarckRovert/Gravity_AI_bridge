@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  GRAVITY AI — SESSION RUNNER V13.0 PRO                                           ║
 ║  Multi-Session Bridge con control de capacidad real                          ║

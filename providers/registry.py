@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════╗
 ║     GRAVITY AI — PROVIDER REGISTRY V13.0 PRO                      ║
 ║     Auto-discovery + hot-reload de todos los plugins        ║

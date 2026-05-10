@@ -1,4 +1,4 @@
-﻿"""
+"""
 ide_integrator.py — Gravity AI Bridge V13.0 PRO [Diamond-Tier Edition]
 Modulo aislado para configurar IDEs. Sin dependencias de Rich ni SettingsManager.
 Se puede importar de forma segura desde el instalador.

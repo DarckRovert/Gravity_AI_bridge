@@ -1,4 +1,4 @@
-﻿"""
+"""
 Gravity AI — Tool Base Classes V13.0 PRO
 All tools implement Tool and return ToolResult.
 """

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Gravity AI — Git Tool + File Ops Tool V13.0 PRO
 """
 import os

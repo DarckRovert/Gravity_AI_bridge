@@ -1,4 +1,4 @@
-﻿"""
+"""
 Gravity AI — HITL Manager V13.0 PRO (Human-In-The-Loop)
 Interceptor de herramientas de alto riesgo.
 Cuando el agente quiere ejecutar una tool sensible, la encola

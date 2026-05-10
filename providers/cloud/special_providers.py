@@ -1,4 +1,4 @@
-﻿"""
+"""
 Gravity AI — Azure OpenAI + Cohere + HuggingFace + AWS Bedrock V13.0 PRO
 
 Azure:       OpenAI-compatible pero con auth por header 'api-key' y

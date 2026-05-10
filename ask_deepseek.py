@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║      GRAVITY AI BRIDGE - AUDITOR SENIOR V12.2 PRO [Ecosistema Total]               ║
 ║                   CLI Frontend | RAG | Tools | Multi-model                   ║

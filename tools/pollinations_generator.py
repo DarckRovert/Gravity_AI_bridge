@@ -1,4 +1,4 @@
-﻿"""
+"""
 Gravity AI Bridge V13.0 PRO — Pollinations.ai Image Generator
 Tool: pollinations_generator
 API: https://image.pollinations.ai/prompt/{prompt}

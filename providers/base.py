@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════╗
 ║     GRAVITY AI — PROVIDER BASE CLASSES V13.0 PRO                  ║
 ║     ProviderResult + ProviderPlugin ABC                      ║

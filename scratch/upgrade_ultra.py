@@ -1,4 +1,4 @@
-﻿import re
+import re
 
 PATH = r'F:\Gravity_AI_bridge\core\video_pipeline.py'
 with open(PATH, 'r', encoding='utf-8', errors='replace') as f:

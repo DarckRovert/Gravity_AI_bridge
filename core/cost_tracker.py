@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║          GRAVITY AI - COST TRACKER V13.0 PRO [Diamond-Tier Edition]           ║
 ║                   Tracking de costes cloud en tiempo real                    ║

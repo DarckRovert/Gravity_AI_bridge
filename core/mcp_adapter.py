@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  GRAVITY AI — MCP ADAPTER V13.0 PRO                                              ║
 ║  Model Context Protocol — Stdio Bridge con robustez de producción            ║

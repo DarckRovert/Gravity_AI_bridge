@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║         GRAVITY AI - SESSION MANAGER V13.0 PRO [Diamond-Tier Edition]         ║
 ║                       Sesiones con Fork/Merge + Export                       ║

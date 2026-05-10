@@ -1,4 +1,4 @@
-﻿"""Gravity AI — Ollama Provider V13.0 PRO"""
+"""Gravity AI — Ollama Provider V13.0 PRO"""
 import json
 import time
 from typing import Generator

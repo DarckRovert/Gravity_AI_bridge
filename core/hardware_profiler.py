@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════╗
 ║     GRAVITY AI — HARDWARE PROFILER V13.0 PRO              ║
 ║     Detección multi-GPU, VRAM y cálculo de contexto  ║

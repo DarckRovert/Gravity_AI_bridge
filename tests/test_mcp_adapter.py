@@ -1,4 +1,4 @@
-﻿"""
+"""
 Tests unitarios para core/mcp_adapter.py — V13.0 PRO
 Cubre: connect(), _read_line_timeout(), backoff, health check, call_tool(), disconnect().
 """

@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════════════╗
 ║  GRAVITY AI — TEST SUITE V13.0 PRO                                        ║
 ║  Cobertura crítica: audit_log, image_queue, security_monitor,        ║

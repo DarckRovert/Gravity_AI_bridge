@@ -1,4 +1,4 @@
-﻿"""
+"""
 Gravity AI — Google Gemini Provider V13.0 PRO
 
 Gemini usa la Google Generative Language API (REST).

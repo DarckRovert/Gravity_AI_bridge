@@ -1,4 +1,4 @@
-﻿"""Gravity AI — OpenAI-Compatible Local Providers V13.0 PRO
+"""Gravity AI — OpenAI-Compatible Local Providers V13.0 PRO
 Includes: LM Studio, vLLM, TabbyAPI, Oobabooga, LocalAI, Xinference, Llamafile, Jan AI
 All share the same OpenAI-compatible /v1/chat/completions endpoint.
 """

@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════╗
 ║     GRAVITY AI — KEY MANAGER V13.0 PRO                            ║
 ║     Almacenamiento cifrado de API keys (DPAPI en Windows)   ║

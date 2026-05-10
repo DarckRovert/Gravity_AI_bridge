@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║          GRAVITY AI - BRIDGE SERVER V12.2 PRO [Omniscient-Tier Edition]          ║
 ║            Enrutador Universal OpenAI-Compatible + Multi-Session             ║

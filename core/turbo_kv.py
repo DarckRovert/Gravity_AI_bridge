@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════╗
 ║     GRAVITY AI TURBO KV OPTIMIZER V13.0 PRO [Diamond-Tier Edition]         ║
 ║     Cuantización del KV-Cache — Multi-Engine             ║

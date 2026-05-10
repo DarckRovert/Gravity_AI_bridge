@@ -1,4 +1,4 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════╗
 ║     GRAVITY AI BRIDGE V12.2 PRO — System Tray Manager           ║
 ║     Icono de bandeja del sistema + menú contextual           ║
