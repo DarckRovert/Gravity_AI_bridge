@@ -54,3 +54,5 @@ gravity.db
 rotate_keys.py.bak
 _integrations/*.json
 _archivo/
+_knowledge.json.bak*
+.agents/scratch_openclaude/
