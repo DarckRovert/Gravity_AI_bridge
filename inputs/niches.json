@@ -17,8 +17,9 @@
       "bgm_type": "epico",
       "n_scenes": 65,
       "estimated_cpm_usd": 3.5,
-      "times_used": 0,
-      "last_used": null
+      "times_used": 3,
+      "last_used": "2026-05-09T17:18:10.260664Z",
+      "last_topic_used": "La caída del Imperio Romano"
     },
     {
       "id": "tecnologia_ia",
@@ -36,9 +37,9 @@
       "bgm_type": "synthwave",
       "n_scenes": 62,
       "estimated_cpm_usd": 8.0,
-      "times_used": 1,
-      "last_used": "2026-05-05T14:52:41.011510Z",
-      "last_topic_used": "Cómo ChatGPT genera texto que parece humano"
+      "times_used": 3,
+      "last_used": "2026-05-09T03:42:52.466141Z",
+      "last_topic_used": "El chip cuántico de Google explicado fácil"
     },
     {
       "id": "finanzas_personales",
@@ -55,9 +56,9 @@
       "bgm_type": "corporativo",
       "n_scenes": 64,
       "estimated_cpm_usd": 12.0,
-      "times_used": 1,
-      "last_used": "2026-05-05T03:33:46.024512Z",
-      "last_topic_used": "Los 5 activos que generan ingresos pasivos de verdad"
+      "times_used": 4,
+      "last_used": "2026-05-09T19:55:55.719722Z",
+      "last_topic_used": "Cómo invertir desde cero con poco dinero"
     },
     {
       "id": "misterios_conspiraciones",
@@ -74,8 +75,9 @@
       "bgm_type": "misterio",
       "n_scenes": 62,
       "estimated_cpm_usd": 4.0,
-      "times_used": 0,
-      "last_used": null
+      "times_used": 3,
+      "last_used": "2026-05-09T08:18:21.374338Z",
+      "last_topic_used": "La ciudad perdida de Atlantis: ¿mito o realidad?"
     },
     {
       "id": "ciencia_naturaleza",
@@ -92,8 +94,9 @@
       "bgm_type": "documental",
       "n_scenes": 60,
       "estimated_cpm_usd": 5.0,
-      "times_used": 0,
-      "last_used": null
+      "times_used": 3,
+      "last_used": "2026-05-09T08:00:02.019951Z",
+      "last_topic_used": "Cómo funciona el cerebro humano"
     },
     {
       "id": "motivacion_exito",
@@ -109,8 +112,9 @@
       "bgm_type": "heroico",
       "n_scenes": 60,
       "estimated_cpm_usd": 7.0,
-      "times_used": 0,
-      "last_used": null
+      "times_used": 3,
+      "last_used": "2026-05-09T08:00:00.013321Z",
+      "last_topic_used": "Cómo salir de la mediocridad en 90 días"
     }
   ]
 }

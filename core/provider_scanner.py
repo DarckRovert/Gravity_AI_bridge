@@ -1,10 +1,10 @@
 ﻿"""
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI PROVIDER SCANNER V12.2 PRO — Compatibility Wrapper ║
+║     GRAVITY AI PROVIDER SCANNER V13.0 PRO — Compatibility Wrapper ║
 ║     Delegates to ProviderManager + ProviderRegistry         ║
 ╚══════════════════════════════════════════════════════════════╝
 This file is a BACKWARDS-COMPATIBLE wrapper around the new
-ProviderRegistry/ProviderManager system introduced in V12.2 PRO.
+ProviderRegistry/ProviderManager system introduced in V13.0 PRO.
 All existing callers (health_check.py, engine_watchdog.py, etc.)
 continue to work without modification.
 """

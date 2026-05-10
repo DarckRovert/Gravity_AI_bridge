@@ -1,4 +1,4 @@
-﻿# 🪐 Gravity AI Bridge | Wiki Corporativa V12.2 PRO Omniscient-Tier
+# 🪐 Gravity AI Bridge | Wiki Corporativa V13.0 PRO Omniscient-Tier
 
 Bienvenido al Centro de Conocimiento del Bridge — hub principal para orquestar infraestructuras pesadas con LLMs, multimedia, Game Servers y agentes IA con control total.
 
@@ -19,7 +19,7 @@ Bienvenido al Centro de Conocimiento del Bridge — hub principal para orquestar
 
 ---
 
-## 🚀 Novedades V12.2 PRO Omniscient-Tier
+## 🚀 Novedades V13.0 PRO Omniscient-Tier
 
 ### Arquitectura Frontend SPA (React/Vite)
 - **Eliminación de HTML Estático:** Sustitución completa del dashboard monolítico antiguo por un framework moderno React/Vite.
@@ -39,7 +39,14 @@ Bienvenido al Centro de Conocimiento del Bridge — hub principal para orquestar
 - `POST /v1/tools/scrape` — Scraping de URL
 - `GET /v1/tools/firecrawl/health` — Estado de la configuración Firecrawl
 
-### Dashboard V12.2 PRO
+### 🤖 Multi-Agent Scripting & Automatización (V13.0 PRO)
+- **Market Researcher**: Análisis de competencia en YouTube mediante web scraping. Extrae ganchos y ángulos para enriquecer los guiones automáticamente.
+- **Retention Auditor**: Evalúa y reescribe guiones para garantizar retención del espectador en los primeros 5 segundos.
+- **Generador de Cursos**: Nuevo módulo `course_generator` capaz de diseñar el syllabus completo de un info-producto y encolarlo al Scheduler.
+- **Social Assets Repurposing**: Al terminar un video, genera automáticamente hilos de Twitter, carruseles de Instagram y posts de LinkedIn.
+- **Turbo KV-Cache**: Optimización de VRAM automática que detecta Ollama y aplica `OLLAMA_KV_CACHE_TYPE=q4_0` + Flash Attention, reduciendo consumo drásticamente.
+
+### Dashboard V13.0 PRO
 - **Nuevo Panel HITL Approval**: Aprobación/rechazo en tiempo real con polling cada 8s. Badge rojo en el sidebar cuando hay solicitudes pendientes.
 - **Nuevo Panel Firecrawl**: Scraper interactivo con viewer de resultado Markdown.
 - **Sessions — Role Selector**: Selector de rol al hacer Spawn (auditor/planner/coder/researcher/executor).
@@ -107,5 +114,5 @@ Compatibilidad: OpenAI API v1 (drop-in replacement)
 ---
 
 <div align="center">
-  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V12.2 PRO Omniscient-Tier</i></sub>
+  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V13.0 PRO Omniscient-Tier</i></sub>
 </div>

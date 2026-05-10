@@ -280,7 +280,6 @@ def log_affiliate_injection(job_id: int, niche_id: str, links_used: list[dict]) 
     # Proyección conservadora de ingresos CPA: EPC × CTR 0.5% × 500 views iniciales
     try:
         from core.revenue_tracker import _load_log, _save_log
-        from datetime import datetime, timezone
         n_links = max(len(links_used), 1)
         avg_epc = sum(l.get("epc_usd", 0.5) for l in links_used) / n_links
         estimated_clicks = 500 * 0.005  # 0.5% CTR sobre 500 views

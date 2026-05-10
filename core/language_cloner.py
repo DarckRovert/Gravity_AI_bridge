@@ -27,6 +27,7 @@ FFMPEG_EXE  = os.path.join(BASE_DIR, "_integrations", "ffmpeg", "ffmpeg.exe")
 OUTPUT_DIR  = os.path.join(BASE_DIR, "_videos")
 DB_PATH     = os.path.join(BASE_DIR, "_video_queue.sqlite")
 CONFIG_PATH = os.path.join(BASE_DIR, "config.yaml")
+REMOTION_FPS = 30  # Debe coincidir con fps en remotion_workspace/src/Root.tsx
 
 # Idiomas soportados: código IETF -> config TTS voz + código YouTube
 LANG_CONFIG: dict[str, dict] = {
@@ -58,59 +59,89 @@ def get_enabled_languages() -> list[str]:
 
 def _translate_script(scenes: list[dict], target_lang: str, original_lang: str = "es") -> list[dict]:
     """
-    Traduce el guion de escenas usando el LLM del bridge.
-    Preserva la estructura JSON exacta, solo traduce los campos de texto.
+    Traduce el guion de escenas usando el LLM del bridge con reintentos.
     """
     import urllib.request
     import urllib.error
+    import time
 
     lang_name = {"en": "English", "pt": "Portuguese (Brazil)", "fr": "French", "de": "German"}.get(target_lang, target_lang)
 
-    script_text = json.dumps(scenes, ensure_ascii=False, indent=2)
-    prompt = (
-        f"Translate the following JSON array of video scenes from {original_lang} to {lang_name}.\n"
-        f"Rules:\n"
-        f"- Preserve EXACTLY the JSON structure and all keys.\n"
-        f"- Only translate the values of: title, narration, image_prompt keys.\n"
-        f"- Keep image_prompt values visual and descriptive.\n"
-        f"- Return ONLY the valid JSON array, no extra text.\n\n"
-        f"JSON:\n{script_text}"
-    )
+    from core import provider_manager
 
-    try:
-        payload = json.dumps({
-            "model":       "auto",
-            "messages":    [{"role": "user", "content": prompt}],
-            "temperature": 0.3,
-            "max_tokens":  4096,
-            "stream":      False,
-        }).encode("utf-8")
+    chunk_size = 5
+    all_translated = []
 
-        req = urllib.request.Request(
-            "http://localhost:7860/v1/chat/completions",
-            data=payload,
-            headers={"Content-Type": "application/json; charset=utf-8"},
-            method="POST",
+    for i in range(0, len(scenes), chunk_size):
+        chunk = scenes[i:i + chunk_size]
+        script_text = json.dumps(chunk, ensure_ascii=False, indent=2)
+        prompt = (
+            f"Translate the following JSON array of video scenes from {original_lang} to {lang_name}.\n"
+            f"Rules:\n"
+            f"- Preserve EXACTLY the JSON structure and all keys.\n"
+            f"- Only translate the values of: title, narration, image_prompt keys.\n"
+            f"- Keep image_prompt values visual and descriptive.\n"
+            f"- Return ONLY the valid JSON array, no extra text.\n\n"
+            f"JSON:\n{script_text}"
         )
-        with urllib.request.urlopen(req, timeout=120) as resp:
-            data = json.loads(resp.read().decode())
 
-        raw = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-        # Extraer JSON del response (el LLM puede añadir ```json)
-        start = raw.find("[")
-        end   = raw.rfind("]") + 1
-        if start >= 0 and end > start:
-            translated = json.loads(raw[start:end])
-            if isinstance(translated, list) and len(translated) == len(scenes):
-                log.info(f"[LangCloner] Guion traducido a {target_lang} ({len(translated)} escenas).")
-                return translated
+        success = False
+        for attempt in range(3):
+            try:
+                messages = [{"role": "user", "content": prompt}]
+                best_result, best_model = provider_manager.get_best()
+                if not best_result:
+                    raise RuntimeError("No LLM disponible para traducción")
+                    
+                raw = provider_manager.complete(
+                    messages,
+                    model=best_model,
+                    provider=best_result.name,
+                    options={"temperature": 0.3, "max_tokens": 4096}
+                )
 
-        log.warning(f"[LangCloner] Traducción a {target_lang} retornó JSON inválido. Usando original.")
-        return scenes
+                # Extraer JSON del response
+                start = raw.find("[")
+                end   = raw.rfind("]") + 1
+                if start >= 0 and end > start:
+                    translated_chunk = json.loads(raw[start:end])
+                    if isinstance(translated_chunk, list) and len(translated_chunk) == len(chunk):
+                        all_translated.extend(translated_chunk)
+                        success = True
+                        break
 
-    except Exception as e:
-        log.error(f"[LangCloner] Error traduciendo a {target_lang}: {e}")
-        return scenes
+                log.warning(f"[LangCloner] Intento {attempt+1}: Traducción a {target_lang} retornó JSON inválido.")
+                time.sleep(2)
+            except Exception as e:
+                log.error(f"[LangCloner] Intento {attempt+1}: Error traduciendo a {target_lang}: {e}")
+                time.sleep(2)
+
+        if not success:
+            log.error(f"[LangCloner] Fallaron los 3 intentos de traducción para el chunk {i//chunk_size}. Usando original.")
+            all_translated.extend(chunk)
+
+    log.info(f"[LangCloner] Guion traducido a {target_lang} ({len(all_translated)} escenas).")
+    return all_translated
+
+
+def _translate_title(title: str, target_lang: str, original_lang: str = "es") -> str:
+    """Traduce el título del video al idioma objetivo usando LLM."""
+    if not title:
+        return ""
+    lang_name = {"en": "English", "pt": "Portuguese (Brazil)", "fr": "French", "de": "German"}.get(target_lang, target_lang)
+    prompt = f"Translate the following video title from {original_lang} to {lang_name}. Respond ONLY with the translated text, nothing else. Title: {title}"
+    
+    from core import provider_manager
+    for attempt in range(2):
+        try:
+            messages = [{"role": "user", "content": prompt}]
+            best_result, best_model = provider_manager.get_best()
+            if best_result:
+                raw = provider_manager.complete(messages, model=best_model, provider=best_result.name, options={"temperature": 0.3, "max_tokens": 100})
+                return raw.strip().replace('"', '').replace('\n', '')
+        except Exception as e:
+            log.error(f"[LangCloner] Error traduciendo título a {target_lang}: {e}")
+    return title
 
 
 # ── TTS en el nuevo idioma ────────────────────────────────────────────────────
@@ -174,25 +205,26 @@ def _generate_audio_for_lang(text: str, output_wav: str, lang_code: str) -> bool
 # ── Recomposición del clip con nuevo audio ────────────────────────────────────
 
 def _recompose_clip(image_path: str, audio_wav: str, output_mp4: str,
-                    duration: float, codec: str = "libx264") -> bool:
-    """Recompone un clip usando la imagen ya renderizada + el audio nuevo."""
+                    duration: float, text: str = "", scene_idx: int = 0, codec: str = "libx264") -> bool:
+    """Recompone un clip heredando el motor visual de video_pipeline (animación y subtítulos)."""
     try:
-        cmd = [
-            FFMPEG_EXE, "-y",
-            "-loop", "1", "-i", image_path,
-            "-i", audio_wav,
-            "-c:v", codec, "-preset", "fast",
-            "-c:a", "aac", "-b:a", "128k",
-            "-ar", "44100", "-ac", "2",
-            "-pix_fmt", "yuv420p",
-            "-t", str(duration),
-            "-movflags", "+faststart",
-            output_mp4,
-        ]
-        r = subprocess.run(cmd, capture_output=True, timeout=120,
-                           creationflags=subprocess.CREATE_NO_WINDOW)
-        return r.returncode == 0 and os.path.isfile(output_mp4)
+        from core.video_pipeline import _assemble_clip
+        return _assemble_clip(
+            image_path=image_path,
+            audio_path=audio_wav,
+            output_mp4=output_mp4,
+            fade=True,
+            text=text,
+            subtitles=True,
+            duration_mode="manual",
+            scene_duration=duration,
+            codec=codec,
+            scene_idx=scene_idx,
+            ken_burns=True
+        )
     except Exception as e:
+        import logging
+        log = logging.getLogger("LangCloner")
         log.error(f"[LangCloner] Error recomponiendo clip: {e}")
         return False
 
@@ -227,7 +259,7 @@ def _concat_clips(clip_list: list[str], output_mp4: str) -> bool:
 
 def _get_job_data(source_job_id: int) -> Optional[dict]:
     try:
-        conn = sqlite3.connect(DB_PATH, timeout=10)
+        conn = sqlite3.connect(DB_PATH, timeout=15)
         conn.row_factory = sqlite3.Row
         row = conn.execute(
             "SELECT topic, title, style, output_path, thumbnail_path, niche_id FROM video_jobs WHERE id=?",
@@ -253,7 +285,7 @@ def _register_clone_job(source_job_id: int, lang: str, output_path: str, title: 
                          niche_id: str = "") -> int:
     """Registra el video clonado como un nuevo job en la DB."""
     try:
-        conn = sqlite3.connect(DB_PATH, timeout=10)
+        conn = sqlite3.connect(DB_PATH, timeout=15)
         now  = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         cur  = conn.execute(
             "INSERT INTO video_jobs (topic, title, n_scenes, style, narration_lang, status, progress, "
@@ -316,9 +348,9 @@ def clone_job(source_job_id: int, target_langs: Optional[list[str]] = None) -> d
         clip_paths = []
         for i, scene in enumerate(translated_scenes):
             narration  = scene.get("narration", "")
-            image_path = os.path.join(job_dir, f"scene_{i+1:03d}.jpg")
+            image_path = os.path.join(job_dir, f"scene_{i+1:02d}_image.jpg")
             if not os.path.isfile(image_path):
-                image_path = os.path.join(job_dir, f"scene_{i+1:03d}.png")
+                image_path = os.path.join(job_dir, f"scene_{i+1:02d}_image.png")
             if not os.path.isfile(image_path):
                 log.warning(f"[LangCloner] Imagen scene_{i+1:03d} no encontrada, saltando.")
                 continue
@@ -341,7 +373,7 @@ def clone_job(source_job_id: int, target_langs: Optional[list[str]] = None) -> d
                 except Exception:
                     dur = 8.0
 
-                if _recompose_clip(image_path, audio_wav, clip_mp4, dur):
+                if _recompose_clip(image_path, audio_wav, clip_mp4, dur, text=narration, scene_idx=i):
                     clip_paths.append(clip_mp4)
 
         if not clip_paths:
@@ -353,7 +385,10 @@ def clone_job(source_job_id: int, target_langs: Optional[list[str]] = None) -> d
         ts          = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         final_path  = os.path.join(OUTPUT_DIR, f"clone_{source_job_id}_{lang}_{ts}.mp4")
         suffix      = lang_conf.get("yt_title_suffix", f" [{lang.upper()}]")
-        clone_title = (job_data.get("title") or job_data.get("topic", "Video"))[:95] + suffix
+        
+        base_title  = job_data.get("title") or job_data.get("topic", "Video")
+        translated_title = _translate_title(base_title, lang)
+        clone_title = translated_title[:95] + suffix
 
         if not _concat_clips(clip_paths, final_path):
             results.append({"lang": lang, "ok": False, "error": "Concatenación fallida"})
@@ -372,6 +407,58 @@ def clone_job(source_job_id: int, target_langs: Optional[list[str]] = None) -> d
             lang       = lang,
         )
 
+        # --- START REMOTION SHORTS CLONER ---
+        _shorts_path = final_path.replace('.mp4', '_short.mp4')
+        try:
+            log.info(f"[LangCloner] Generando versión Short para {lang} con Remotion...")
+            from core.whisper_engine import WhisperEngine
+            from core.remotion_engine import RemotionEngine
+
+            # Recortar a máximo 59s (límite YouTube Shorts)
+            temp_short_src = final_path.replace('.mp4', '_temp_short.mp4')
+            subprocess.run([
+                FFMPEG_EXE, '-y', '-i', final_path,
+                '-t', '59', '-c:v', 'copy', '-c:a', 'copy', temp_short_src
+            ], capture_output=True, creationflags=subprocess.CREATE_NO_WINDOW)
+
+            probe = subprocess.run([FFMPEG_EXE, '-i', temp_short_src], capture_output=True, text=True, errors='replace')
+            dur = 59
+            for l in probe.stderr.splitlines():
+                if 'Duration:' in l:
+                    t = l.split('Duration:')[1].split(',')[0].strip()
+                    h, m, s = t.split(':')
+                    dur = int(h) * 3600 + int(m) * 60 + float(s)
+                    break
+            duration_frames = int(dur * REMOTION_FPS)
+
+            w_engine = WhisperEngine(model_size="base")
+            words_data = w_engine.extract_words(temp_short_src, language=lang[:2].lower())
+
+            r_engine = RemotionEngine()
+            props = {"videoPath": temp_short_src, "words": words_data, "durationInFrames": duration_frames}
+
+            output_name = os.path.basename(_shorts_path).replace('.mp4', '')
+            rendered_mp4 = r_engine.render_composition("ShortTemplate", output_name, props)
+
+            if os.path.isfile(rendered_mp4):
+                import shutil
+                shutil.move(rendered_mp4, _shorts_path)
+                log.info(f"[LangCloner] Short {lang} generado exitosamente: {_shorts_path}")
+
+                try:
+                    from core.tiktok_uploader import distribute_short_async
+                    distribute_short_async(job_id=clone_job_id, shorts_path=_shorts_path, title=clone_title)
+                except Exception as _tt_e:
+                    log.warning(f"[LangCloner] Social distribution error: {_tt_e}")
+
+            try:
+                os.remove(temp_short_src)
+            except Exception:
+                pass
+
+        except Exception as rem_e:
+            log.error(f"[LangCloner] Error generando Short con Remotion: {rem_e}")
+        # --- END REMOTION SHORTS CLONER ---
         results.append({"lang": lang, "ok": True, "clone_job_id": clone_job_id,
                         "title": clone_title, "path": final_path})
         log.info(f"[LangCloner] Clon {lang} listo: {clone_title}")

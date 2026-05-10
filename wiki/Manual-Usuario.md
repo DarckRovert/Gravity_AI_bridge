@@ -1,4 +1,4 @@
-﻿# Manual de Usuario — Gravity AI Bridge V12.2 PRO
+# Manual de Usuario — Gravity AI Bridge V13.0 PRO
 **Omniscient-Tier Edition** · [github.com/DarckRovert/Gravity_AI_bridge](https://github.com/DarckRovert/Gravity_AI_bridge) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
 
 ---
@@ -14,7 +14,7 @@ Gravity AI Bridge es un **servidor proxy OpenAI-compatible** que actúa como pun
 ## Instalación
 
 ### Para usuarios finales (sin Python)
-1. Descarga `Gravity_AI_Bridge_V12.2 PRO_Setup.exe`
+1. Descarga `Gravity_AI_Bridge_V13.0 PRO_Setup.exe`
 2. Ejecuta el instalador → "Siguiente" tres veces → "Instalar"
 3. Marca "Iniciar Gravity AI Bridge ahora" al finalizar
 4. Un icono aparecerá en la bandeja del sistema (esquina inferior derecha)
@@ -142,16 +142,19 @@ Los trabajos se procesan en orden FIFO. El panel muestra el estado de cada job: 
 
 ---
 
-### 🎬 Video Studio *(Monetization Ready)*
+### 🎬 Video Studio Multi-Agent *(Monetization Ready)*
 
-Generación automática de videos documentales en modo **CPU-only** (sin GPU dedicada).
+Generación automática de videos documentales orquestada por un **Pipeline Multi-Agente**.
 
-**Flujo automático:**
-1. El LLM genera un guión estructurado (N escenas con título, narración e instrucción visual)
-2. **Fooocus** genera una imagen por escena (CPU ~5 min/imagen)
-3. **Windows SAPI** (pyttsx3) convierte la narración a audio `.wav`
-4. **ffmpeg** ensambla imagen + audio en un clip `.mp4` por escena
-5. **ffmpeg** concatena todos los clips en el video final `.mp4` servido vía streaming.
+**Flujo automático (V13.0 PRO):**
+1. **Market Researcher:** Analiza competidores en YouTube (vía scraping) buscando ángulos virales.
+2. **Writer:** Genera el guion estructurado con base en la investigación.
+3. **Retention Auditor:** Revisa el guion para asegurar retención extrema en los primeros 5s.
+4. **Fooocus:** Genera una imagen cinematográfica por escena (CPU ~5 min/imagen).
+5. **Windows SAPI:** (pyttsx3) convierte la narración a audio `.wav`.
+6. **FFmpeg:** ensambla y aplica efectos (L1/L2) en un clip `.mp4` por escena.
+7. **FFmpeg concat:** junta todo en el video final.
+8. **Social Repurposing:** El `social_assets_generator.py` crea hilos de Twitter, posts de LinkedIn y carruseles de Instagram automáticamente basándose en el guion del video.
 
 **Parámetros del formulario:**
 | Campo | Descripción | Ejemplo |
@@ -180,6 +183,17 @@ Cuando el job termina, puedes hacer clic sobre él en la tabla de historial. Un 
 Podrás descargar la pista maestra en .mp4 directamente o pre-exportar en resoluciones Shorts/Reels/Facebook.
 
 ---
+
+### 🎓 Course Generator & Content Scheduler
+
+Generador automatizado de Info-Productos (cursos o listas de reproducción temáticas).
+
+**Cómo usarlo:**
+1. Ve al endpoint de generación o usa la CLI para disparar un curso.
+2. Proporciona el "Tema general" (ej: "Curso Completo de Python").
+3. El sistema diseñará un syllabus completo con lecciones progresivas optimizadas para YouTube.
+4. El curso se guarda en la base de datos `niches.json`.
+5. El **Content Scheduler** leerá esta base de datos y generará videos diariamente sin tu intervención.
 
 ### 🚀 Deploy Manager
 
@@ -279,6 +293,9 @@ Muestra **todas** las GPUs detectadas en el sistema, incluyendo iGPUs, con su es
 
 **¿Qué es el Contexto Óptimo?**
 Es el número máximo de tokens (palabras aproximadas) que puedes usar en una conversación sin que el modelo se quede sin memoria de GPU. El Bridge lo calcula automáticamente según tu VRAM, el tamaño estimado del modelo y la cuantización del KV-Cache.
+
+**Turbo KV-Cache (V13.0 PRO):**
+El Bridge detecta si estás utilizando Ollama y, de ser así, configura variables de entorno dinámicas (`OLLAMA_KV_CACHE_TYPE=q4_0` y `OLLAMA_FLASH_ATTENTION=1`) para comprimir el consumo de memoria en caché hasta 4 veces, permitiendo contextos masivos en hardware limitado.
 
 ---
 

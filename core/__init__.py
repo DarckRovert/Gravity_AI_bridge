@@ -1,9 +1,8 @@
-﻿"""
-Gravity AI Bridge — Core Modules
-Consolidation of critical logic for version 12.1 PRO [Omniscient-Tier Edition]
+"""
+Gravity AI Bridge — Core Modules V13.0 PRO
 """
 
-# Exponer módulos para importaciones directas desde 'core'
+# Infraestructura base
 from . import config_manager
 from . import data_guardian
 from . import hardware_profiler
@@ -12,22 +11,19 @@ from . import session_manager
 from . import provider_manager
 from . import cache_engine
 from . import cost_tracker
-from . import verification_agent
 from . import audit_log
 from . import metrics
 from . import rate_limiter
-from . import mcp_adapter
 
-# Módulos de lógica avanzada migrados en fase final
-from . import engine_watchdog
-from . import model_selector
-from . import provider_scanner
-from . import ide_integrator
+# Agentes y herramientas
 from . import multi_agent
+from . import mcp_adapter
+from . import verification_agent
+from . import hitl_manager
 from . import tool_executor
-from . import turbo_kv
+from . import turbo_kv       # Optimización KV-cache — conectado a engine_watchdog
 
-# Módulos de pipeline y orquestación (V12.2 PRO)
+# Pipeline de producción (V13.0 PRO)
 from . import security_monitor
 from . import image_queue
 from . import video_pipeline
@@ -36,3 +32,4 @@ from . import game_server_manager
 from . import ai_process_manager
 from . import animation_engine
 from . import gravity_brain
+from . import engine_watchdog

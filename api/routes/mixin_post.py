@@ -1,4 +1,4 @@
-﻿import json, time, uuid, threading, os, sys, mimetypes, glob, traceback, urllib.parse, urllib.request
+import json, time, uuid, threading, os, sys, mimetypes, glob, traceback, urllib.parse, urllib.request
 from core import provider_manager, security_monitor, image_queue, video_pipeline, deploy_manager, game_server_manager, ai_process_manager, engine_watchdog
 from core.audit_log import audit_logger
 from core.metrics import record_request, record_tokens, record_latency, record_error, get_metrics_data
@@ -756,6 +756,35 @@ class PostRoutesMixin:
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
 
+        # /v1/course/generate — Generar un temario (Playlist) de N videos e insertarlo en el scheduler
+        if self.path == "/v1/course/generate":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                title  = data.get("title", "").strip()
+                n_videos = int(data.get("n_videos", 10))
+                lang   = data.get("lang", "es").strip()
+                if not title:
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "Campo 'title' requerido."}).encode())
+                    return
+                from core.course_generator import generate_course
+                ok = generate_course(title, n_videos, lang)
+                body = json.dumps({"ok": ok, "message": "Curso generado y encolado en el Scheduler." if ok else "Error generando curso."}).encode()
+                self.send_response(200 if ok else 500)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
 
 
 
@@ -768,7 +797,7 @@ class PostRoutesMixin:
                 voice_id = data.get('voice_id', '')
                 text     = data.get('text', 'Prueba de voz para Gravity Studio.')[:200]
                 import tempfile
-                import uuid
+
                 tmp = os.path.join(tempfile.gettempdir(), f"gravity_preview_{uuid.uuid4().hex}.wav")
                 ok  = video_pipeline._generate_audio(text, tmp, rate=150, voice_id=voice_id)
                 if ok and os.path.isfile(tmp):
@@ -1431,7 +1460,7 @@ class PostRoutesMixin:
                     _base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
                     kb_data, _ = data_guardian.load_knowledge(os.path.join(_base_dir, "_knowledge.json"))
                     _sys_prompt = (
-                        "Eres Gravity AI V12.2 PRO, Auditor Senior. "
+                        "Eres Gravity AI V13.0 PRO, Auditor Senior. "
                         "PROTOCOLO: Lógica interna en inglés. Salida final en español estrictamente. "
                         "Sin rellenos conversacionales. Solo hechos técnicos fríos. Resolución directa."
                     )
@@ -1569,7 +1598,7 @@ class PostRoutesMixin:
                 pass
             return
 
-        # ── V12.2 Monetization Hub — POST handlers ────────────────────────────
+        # ── V13.0 Monetization Hub — POST handlers ────────────────────────────
 
         # /v1/language/clone — Clonar un job a otros idiomas
         if self.path == "/v1/language/clone":

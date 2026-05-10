@@ -55,7 +55,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
           <Menu size={20} />
         </button>
         <div className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-accent-primary to-accent-secondary bg-clip-text text-transparent">
-          GRAVITY V12.2 PRO
+          GRAVITY V13.0 PRO
         </div>
         
         <div className="flex items-center ml-auto gap-6 text-sm font-medium">

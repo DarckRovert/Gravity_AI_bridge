@@ -1,5 +1,5 @@
 ﻿"""
-Gravity AI — All OpenAI-compatible Cloud Providers V12.2 PRO
+Gravity AI — All OpenAI-compatible Cloud Providers V13.0 PRO
 
 Includes: OpenAI, Groq, Mistral, DeepSeek Cloud,
           Together AI, Fireworks AI, xAI/Grok, Perplexity.

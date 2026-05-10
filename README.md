@@ -1,11 +1,11 @@
-﻿<div align="center">
+<div align="center">
   <img src="https://img.shields.io/badge/GRAVITY_AI-BRIDGE-fff?style=for-the-badge&logo=python&color=07090e" alt="Gravity AI Bridge"/>
   <br><br>
 
   [![Autor](https://img.shields.io/badge/Author-DarckRovert-818cf8.svg?style=flat-square)](https://github.com/DarckRovert)
   [![Licencia](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
   [![Arquitectura](https://img.shields.io/badge/Architecture-Omniscient--Tier-c69c6d.svg?style=flat-square)]()
-  [![Release](https://img.shields.io/badge/Release-V12.2-6366f1.svg?style=flat-square)]()
+  [![Release](https://img.shields.io/badge/Release-V13.0-6366f1.svg?style=flat-square)]()
   [![Twitch](https://img.shields.io/badge/Twitch-DarckRovert-9146ff.svg?style=flat-square&logo=twitch)](https://twitch.tv/darckrovert)
 
   <p align="center">
@@ -27,7 +27,7 @@
 
 En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Studio), motores de difusión (Fooocus), servidores C++ (MangosD/WoW) y pipelines CI/CD desde una sola máquina resulta en colisiones de hardware, puertos huérfanos, OOM en VRAM y latencias de segundos.
 
-**Gravity AI Bridge V12.2** elimina todos estos problemas con Python nativo puro y un frontend React/Vite de alta respuesta. Su filosofía:
+**Gravity AI Bridge V13.0 PRO** elimina todos estos problemas con Python nativo puro y un frontend React/Vite de alta respuesta. Su filosofía:
 
 - **Zero Dependencias Masivas**: Latencia interna en microsegundos, payload de memoria insignificante.
 - **Conciencia Dinámica del Host**: Auto-diagnóstico de RAM y VRAM, ajuste dinámico de `num_ctx` de Ollama en tiempo real según estrés térmico.
@@ -36,7 +36,7 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 
 ---
 
-## 🏛 Módulos del Ecosistema V12.2
+## 🏛 Módulos del Ecosistema V13.0 PRO
 
 ### 🧠 Multi-Agent Orchestrator (`core/multi_agent.py`)
 - Dispara peticiones REST concurrentes a múltiples modelos/APIs en paralelo.
@@ -44,7 +44,7 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 - **Reasoning Stripper**: Filtra tokens `<think>` de modelos como DeepSeek-R1 via Regex antes de mostrarlos.
 - **Agent Routing**: Selección dinámica de modelo/proveedor según `--role` (auditor, planner, coder, researcher, executor).
 
-### 🖥️ Dashboard V12.2 React SPA (`frontend/dist`)
+### 🖥️ Dashboard V13.0 PRO React SPA (`frontend/dist`)
 Panel de control unificado con 25 componentes orquestados en tiempo real:
 
 | Panel | Función |
@@ -74,7 +74,7 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 | 📋 Audit Log | Historial de peticiones con rotación automática |
 | ⚙️ Configuración | API keys, modelo activo, links rápidos |
 
-### 🔄 Multi-Session Bridge V12.2 PRO (`core/session_runner.py`)
+### 🔄 Multi-Session Bridge V13.0 PRO (`core/session_runner.py`)
 - `CapacityWake` + `SessionSpawner`: hasta 32 subprocesos de agente aislados simultáneos.
 - Spawn vía UI con selector de **rol** (auditor/planner/coder/researcher/executor).
 - Kill de workers activos con estado PID en tiempo real.
@@ -96,9 +96,12 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 - Auto-reconexión, `list_tools`, `list_resources`, `read_resource`.
 - Registro global de adaptadores accesible desde el Dashboard.
 
-### 🎬 Video Studio (Cinematic & Monetization) V12.2 PRO
-Pipeline de 5 pasos orquestado en daemon con **Motor de Animación Inteligente (MAI)**:
-1. **LLM (Ollama)** → guión JSON estructurado con N escenas y auto-título.
+### 🎬 Video Studio Multi-Agent (Cinematic & Monetization) V13.0 PRO
+Pipeline de 5 pasos orquestado en daemon con **Agentes Especializados y Motor de Animación Inteligente (MAI)**:
+1. **Pipeline Multi-Agente (Research & Scripting)**:
+   - *Market Researcher*: Analiza YouTube vía web scraping para extraer ganchos y ángulos de competidores.
+   - *Writer*: Genera el guion estructurado con auto-título y descripción SEO.
+   - *Retention Auditor*: Evalúa el guion asegurando ganchos emocionales en los primeros 5s.
 2. **Fooocus (CPU/GPU)** → imagen base cinematográfica 16:9/9:16.
 3. **MAI Engine (L0/L1/L2)** → Anima la imagen generada:
    - *L1 (Procedural)*: `kenburns`, `parallax`, `shake` ultra-rápidos vía FFmpeg.
@@ -106,14 +109,22 @@ Pipeline de 5 pasos orquestado en daemon con **Motor de Animación Inteligente (
 4. **Windows SAPI/pyttsx3** → narración TTS offline sincronizada vía `atempo`.
 5. **ffmpeg concat** → video final ensamblado y servido vía streaming.
 
-**Reproductor Web Integrado**: Stream de video nativo y panel de exportación a redes (Shorts, Reels, Facebook).
+**Reproductor Web Integrado**: Stream de video nativo y panel de exportación a redes.
 
-### 💸 Autonomous Monetization Factory
+### 📚 Course Generator & Scheduler (Info-Productos)
+- **Generación de Cursos (`course_generator.py`)**: Crea el syllabus completo de un curso o lista de reproducción, definiendo lecciones progresivas optimizadas para YouTube.
+- **Content Scheduler (`content_scheduler.py`)**: Automatiza la producción de estos cursos, encolando videos diariamente de forma autónoma sin intervención humana.
+
+### 💸 Autonomous Monetization Factory & Social Repurposing
 Sistema pasivo integrado en el pipeline de renderizado que multiplica los ingresos orgánicos.
-- **Language Cloner**: Traduce guiones (LLM) y genera audio en EN/PT/FR/DE recomponiendo videos con los assets ya renderizados. (Multiplica el CPM orgánico sin gastar GPU).
+- **Social Assets Generator (`social_assets_generator.py`)**: Al terminar un video, extrae su guion y genera automáticamente:
+  - Hilos virales para **Twitter/X**.
+  - Carruseles para **Instagram**.
+  - Posts profesionales para **LinkedIn**.
+- **Language Cloner**: Traduce guiones (LLM) y genera audio en EN/PT/FR/DE recomponiendo videos con los assets ya renderizados.
 - **Affiliate Manager**: Banco de 20+ programas CPA categorizados por nicho. Inyecta CTAs dinámicos en las descripciones de YouTube.
 - **Social Distribution**: Auto-publicación simultánea a **TikTok** y **Instagram Reels** para viralizar contenido corto (Shorts de 58s).
-- **Revenue Tracker**: Dashboard estadístico que proyecta ingresos basados en vistas, CTR y retención por categoría (Finanzas, Historia, etc.).
+- **Revenue Tracker**: Dashboard estadístico que proyecta ingresos basados en vistas, CTR y retención por categoría.
 
 ### 🎨 Image Queue / Fooocus (`core/image_queue.py`)
 - Bypass nativo del WebSocket Gradio con validación real de output.
@@ -141,10 +152,11 @@ Sistema pasivo integrado en el pipeline de renderizado que multiplica los ingres
 - Límite diario configurable; HTTP 429 al superarlo.
 - Rate limiter por IP en ventana de tiempo.
 
-### ⚙️ Engine Watchdog (`core/engine_watchdog.py`)
+### ⚙️ Engine Watchdog & Turbo KV (`core/engine_watchdog.py`)
 - Monitorea el mejor proveedor disponible.
 - Lock/unlock de modelo para fijar en modo manual.
 - Compatible con perfil de hardware (VRAM, CPU cores, RAM).
+- **Turbo KV**: Detecta automáticamente si se usa Ollama y configura en tiempo de ejecución las variables de entorno `OLLAMA_KV_CACHE_TYPE=q4_0` y `OLLAMA_FLASH_ATTENTION=1` para comprimir la cache 4x.
 
 ---
 
@@ -167,7 +179,7 @@ python bridge_server.py
 Dashboard disponible en: `http://localhost:7860`
 
 ### Instalación con Installer (Windows)
-Descargar `Gravity_AI_Bridge_V12.2_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
+Descargar `Gravity_AI_Bridge_V13.0_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
 
 ---
 
@@ -214,7 +226,7 @@ Ver [`SECURITY.md`](SECURITY.md) para política de vulnerabilidades y reporte re
 ---
 
 > [!NOTE]
-> Ecosistema local privado V12.2 PRO Omniscient-Tier.
+> Ecosistema local privado V13.0 PRO Omniscient-Tier.
 > [**📖 WIKI CORPORATIVA**](./wiki/Home.md) | [📜 CONTRIBUCIÓN](./CONTRIBUTING.md) | [🔒 SEGURIDAD](./SECURITY.md)
 
 <br>

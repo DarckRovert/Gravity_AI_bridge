@@ -26,7 +26,7 @@ Si aplica, añade capturas de pantalla para ayudar a explicar el problema.
 **Entorno:**
  - OS: [e.g. Windows 11]
  - Browser [e.g. Chrome, Safari]
- - Version de Gravity AI Bridge [e.g. V12.2 PRO]
+ - Version de Gravity AI Bridge [e.g. V13.0 PRO]
 
 **Contexto Adicional**
 Añade cualquier otro contexto sobre el problema aquí.

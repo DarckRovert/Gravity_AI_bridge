@@ -307,7 +307,7 @@ def _scheduler_loop() -> None:
 
                 job_id = video_pipeline.add_job(
                     topic          = topic,
-                    n_scenes       = int(niche.get("n_scenes", 60)),
+                    n_scenes       = max(6, min(int(niche.get("n_scenes", 8)), 80)),
                     style          = niche.get("style", "documental"),
                     narration_lang = niche.get("lang", "es"),
                     bgm_type       = niche.get("bgm_type", "ninguna"),
@@ -317,6 +317,9 @@ def _scheduler_loop() -> None:
                     use_lore       = True,
                     quality        = "hd",
                     niche_id       = niche_id,
+                    color_grade    = "auto",
+                    animation_effect = "auto",
+                    animation_level  = 1,
                 )
 
                 _mark_topic_used(data, niche_id, topic)
@@ -422,7 +425,7 @@ def queue_now(niche_id: Optional[str] = None, topic: Optional[str] = None) -> di
 
     job_id = video_pipeline.add_job(
         topic          = topic,
-        n_scenes       = int(niche.get("n_scenes", 60)),
+        n_scenes       = max(6, min(int(niche.get("n_scenes", 8)), 80)),
         style          = niche.get("style", "documental"),
         narration_lang = niche.get("lang", "es"),
         bgm_type       = niche.get("bgm_type", "ninguna"),
@@ -432,6 +435,9 @@ def queue_now(niche_id: Optional[str] = None, topic: Optional[str] = None) -> di
         use_lore       = True,
         quality        = "hd",
         niche_id       = niche_id,
+        color_grade    = "auto",
+        animation_effect = "auto",
+        animation_level  = 1,
     )
 
     _mark_topic_used(data, niche_id, topic)

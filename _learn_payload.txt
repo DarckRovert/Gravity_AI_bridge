@@ -1,4 +1,4 @@
-!aprende V12.1 ARCHITECTURE UPDATE:
+!aprende V13.0 ARCHITECTURE UPDATE:
 1. session_runner.py uses threading.BoundedSemaphore(32) and pure threading orphan cleanup. DO NOT USE asyncio.create_subprocess_exec as it conflicts with ThreadingHTTPServer.
 2. mcp_adapter.py uses thread-reader queues for I/O timeouts and exponential backoff (1s to 30s) instead of asyncio.wait_for.
 3. image_queue.py implements an exponential backoff retry loop (5s, 10s, 20s) over Fooocus engine calls while maintaining SQLite persistence.

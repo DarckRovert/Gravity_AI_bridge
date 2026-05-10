@@ -171,46 +171,71 @@ def get_access_token() -> Optional[str]:
 # ── SEO Description builder ────────────────────────────────────────────────────
 
 def _build_seo_description(title: str, niche_id: str = "", tags: Optional[list] = None,
-                           affiliate_block: str = "") -> str:
+                           affiliate_block: str = "", scene_count: int = 0, lang: str = "es") -> str:
     """
-    Genera una descripción optimizada para SEO con:
-    - Resumen del tema en primeras 2 líneas (crítico para buscadores)
-    - Timestamps de capítulos estimados
-    - CTA de suscripción
-    - Bloque de afiliados (si se proporciona)
-    - Links de branding
-    - Hashtags al final (YouTube los extrae automáticamente)
+    Genera una descripción optimizada para SEO adaptada al idioma de destino.
     """
     tags = tags or []
     hashtags = " ".join(f"#{t.replace(' ', '')}" for t in tags[:5]) if tags else "#IA #Tecnologia #DarckRovert"
+
+    _i18n = {
+        "es": {"intro1": "En este video exploramos uno de los temas más fascinantes del momento.", "intro2": "Contenido generado con Gravity AI Bridge — el pipeline de producción autónoma de DarckRovert.", "content": "📌 CONTENIDO DEL VIDEO", "follow": "🔔 SÍGUENOS", "warn1": "⚠️ Este canal sube contenido nuevo cada día.", "warn2": "Suscríbete y activa la campana para no perderte nada.", "chap_intro": "Introducción", "chap_dev": "Desarrollo del tema", "chap_key": "Puntos clave", "chap_concl": "Conclusión"},
+        "en": {"intro1": "In this video we explore one of the most fascinating topics of the moment.", "intro2": "Content generated with Gravity AI Bridge — DarckRovert's autonomous production pipeline.", "content": "📌 VIDEO CONTENT", "follow": "🔔 FOLLOW US", "warn1": "⚠️ This channel uploads new content every day.", "warn2": "Subscribe and hit the bell to not miss anything.", "chap_intro": "Introduction", "chap_dev": "Topic development", "chap_key": "Key points", "chap_concl": "Conclusion"},
+        "pt": {"intro1": "Neste vídeo exploramos um dos temas mais fascinantes do momento.", "intro2": "Conteúdo gerado com Gravity AI Bridge — o pipeline de produção autônoma de DarckRovert.", "content": "📌 CONTEÚDO DO VÍDEO", "follow": "🔔 SIGA-NOS", "warn1": "⚠️ Este canal envia conteúdo novo todos os dias.", "warn2": "Inscreva-se e ative o sininho para não perder nada.", "chap_intro": "Introdução", "chap_dev": "Desenvolvimento do tema", "chap_key": "Pontos chave", "chap_concl": "Conclusão"},
+        "fr": {"intro1": "Dans cette vidéo, nous explorons l'un des sujets les plus fascinants du moment.", "intro2": "Contenu généré avec Gravity AI Bridge — le pipeline de production autonome de DarckRovert.", "content": "📌 CONTENU DE LA VIDÉO", "follow": "🔔 SUIVEZ-NOUS", "warn1": "⚠️ Cette chaîne met en ligne de nouveaux contenus chaque jour.", "warn2": "Abonnez-vous et activez la cloche pour ne rien rater.", "chap_intro": "Introduction", "chap_dev": "Développement du sujet", "chap_key": "Points clés", "chap_concl": "Conclusion"},
+        "de": {"intro1": "In diesem Video erkunden wir eines der faszinierendsten Themen des Moments.", "intro2": "Inhalte generiert mit Gravity AI Bridge — DarckRoverts autonome Produktionspipeline.", "content": "📌 VIDEOINHALT", "follow": "🔔 FOLGE UNS", "warn1": "⚠️ Dieser Kanal lädt jeden Tag neue Inhalte hoch.", "warn2": "Abonnieren Sie und aktivieren Sie die Glocke, um nichts zu verpassen.", "chap_intro": "Einführung", "chap_dev": "Themenentwicklung", "chap_key": "Wichtige Punkte", "chap_concl": "Fazit"}
+    }
+    
+    t = _i18n.get(lang, _i18n["es"])
+
+    # Timestamps: calcular basados en escenas (8s/escena por defecto) o usar hardcoded
+    if scene_count > 0:
+        secs_per_scene = 8
+        def _fmt_ts(total_s: int) -> str:
+            m, s = divmod(total_s, 60)
+            return f"{m:02d}:{s:02d}"
+        chapters = [
+            f"00:00 {t['chap_intro']}",
+            f"{_fmt_ts(secs_per_scene)} {t['chap_dev']}",
+        ]
+        if scene_count >= 4:
+            chapters.append(f"{_fmt_ts(secs_per_scene * (scene_count // 2))} {t['chap_key']}")
+        if scene_count >= 6:
+            chapters.append(f"{_fmt_ts(secs_per_scene * (scene_count - 1))} {t['chap_concl']}")
+        timestamp_lines = chapters
+    else:
+        timestamp_lines = [
+            f"00:00 {t['chap_intro']}",
+            f"00:30 {t['chap_dev']}",
+            f"04:00 {t['chap_key']}",
+            f"07:00 {t['chap_concl']}",
+        ]
+
     lines = [
         f"{title}",
         "",
-        "En este video exploramos uno de los temas más fascinantes del momento.",
-        "Contenido generado con Gravity AI Bridge — el pipeline de producción autónoma de DarckRovert.",
+        t["intro1"],
+        t["intro2"],
         "",
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-        "📌 CONTENIDO DEL VIDEO",
+        t["content"],
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-        "00:00 Introducción",
-        "00:30 Desarrollo del tema",
-        "04:00 Puntos clave",
-        "07:00 Conclusión",
-        "",
     ]
+    lines.extend(timestamp_lines)
+    lines.append("")
     # Insertar bloque de afiliados si existe
     if affiliate_block:
         lines.append(affiliate_block)
         lines.append("")
     lines += [
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-        "🔔 SÍGUENOS",
+        t["follow"],
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
         "▶ Twitch: https://twitch.tv/darckrovert",
         "▶ GitHub: https://github.com/DarckRovert",
         "",
-        "⚠️ Este canal sube contenido nuevo cada día.",
-        "Suscríbete y activa la campana para no perderte nada.",
+        t["warn1"],
+        t["warn2"],
         "",
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
         hashtags,
@@ -223,7 +248,7 @@ def _build_seo_description(title: str, niche_id: str = "", tags: Optional[list] 
 def _update_job_youtube(job_id: int, video_id: str, url: str, status: str,
                          seo_description: str = "") -> None:
     try:
-        conn = sqlite3.connect(DB_PATH, timeout=10)
+        conn = sqlite3.connect(DB_PATH, timeout=15)
         now  = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         conn.execute(
             "UPDATE video_jobs SET youtube_video_id=?, youtube_url=?, uploaded_at=?, upload_status=?, seo_description=? WHERE id=?",
@@ -445,7 +470,7 @@ def upload_video(
     except Exception as _aff_err:
         log.debug(f"[YouTube] Afiliados no disponibles: {_aff_err}")
 
-    seo_desc       = _build_seo_description(title, niche_id, tags, affiliate_block)
+    seo_desc       = _build_seo_description(title, niche_id, tags, affiliate_block, lang=lang)
     metadata_bytes = _build_metadata_bytes(title, seo_desc, tags, category_id, privacy)
 
     # Intentar generar thumbnail CTR mejorado
@@ -491,8 +516,9 @@ def upload_video(
     shorts_url = ""
     if upload_short and cfg.get("upload_shorts", True):
         shorts_path = video_path.replace(".mp4", "_short.mp4")
-        if generate_shorts_clip(video_path, shorts_path):
-            short_title = f"#{title[:80]} #Shorts"
+        if os.path.isfile(shorts_path):
+            log.info(f"[YouTube] Usando Short pre-generado por Remotion: {os.path.basename(shorts_path)}")
+            short_title = f"{title[:80]} #Shorts"
             short_meta  = _build_metadata_bytes(
                 short_title, f"{title}\n\n#Shorts #IA #DarckRovert",
                 tags + ["Shorts"], category_id, privacy
@@ -501,7 +527,7 @@ def upload_video(
             if short_id:
                 shorts_url = f"https://www.youtube.com/shorts/{short_id}"
                 try:
-                    conn = sqlite3.connect(DB_PATH, timeout=10)
+                    conn = sqlite3.connect(DB_PATH, timeout=15)
                     conn.execute(
                         "UPDATE video_jobs SET shorts_path=?, shorts_video_id=? WHERE id=?",
                         (shorts_path, short_id, job_id)
@@ -558,7 +584,7 @@ def upload_job_async(
 
 def get_upload_status(job_id: int) -> dict:
     try:
-        conn = sqlite3.connect(DB_PATH, timeout=10)
+        conn = sqlite3.connect(DB_PATH, timeout=15)
         conn.row_factory = sqlite3.Row
         row = conn.execute(
             "SELECT id, title, youtube_video_id, youtube_url, uploaded_at, upload_status, shorts_video_id FROM video_jobs WHERE id=?",

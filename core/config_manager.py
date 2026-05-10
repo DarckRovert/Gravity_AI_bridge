@@ -1,4 +1,4 @@
-﻿import os
+import os
 import json
 import logging
 import yaml
@@ -10,10 +10,10 @@ log = logging.getLogger("gravity.config")
 class ConfigManager:
     """
     Manages application configuration with YAML support and auto-migration from JSON.
-    Supports profiles (dev, prod, test). V12.2 PRO.
+    Supports profiles (dev, prod, test). V13.0 PRO.
     """
     DEFAULT_CONFIG = {
-        "version": "12.1.0",
+        "version": "13.0.0",
         "profile": "production",
         "server": {
             "host": "0.0.0.0",

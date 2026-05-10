@@ -1,4 +1,4 @@
-# 💰 Manual de Monetización — Gravity AI Bridge V12.2
+# 💰 Manual de Monetización — Gravity AI Bridge V13.0
 
 > Guía completa para activar y operar el sistema de ingresos autónomos.
 
@@ -22,7 +22,7 @@
 
 ## 1. Visión General
 
-Gravity AI Bridge V12.2 incluye una **Content Factory** autónoma que:
+Gravity AI Bridge V13.0 incluye una **Content Factory** autónoma que:
 
 - Genera videos de **8+ minutos** (activa mid-roll ads en YouTube → 4x más RPM)
 - Sube automáticamente a **YouTube** con thumbnails CTR, SEO y afiliados en descripción

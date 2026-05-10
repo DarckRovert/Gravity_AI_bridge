@@ -1,0 +1,26 @@
+{
+    "name": "Dulces Momentos - Pastelería Artesanal",
+    "short_name": "Dulces Momentos",
+    "icons": [
+        {
+            "src": "/img/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "/img/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/img/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#FFF8E7",
+    "theme_color": "#4E342E",
+    "description": "Pastelería artesanal en Lima con delivery a Surco y Lima Metropolitana."
+}

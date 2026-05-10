@@ -1,6 +1,6 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         GRAVITY AI — IMAGE QUEUE V12.2 PRO                                        ║
+║         GRAVITY AI — IMAGE QUEUE V13.0 PRO                                        ║
 ║         Cola persistente SQLite para generación secuencial de imágenes       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -63,7 +63,7 @@ _current_job: Optional[dict] = None
 # ── DB Helpers ─────────────────────────────────────────────────────────────────
 
 def _get_conn() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=15)
     conn.row_factory = sqlite3.Row
     return conn
 

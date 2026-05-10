@@ -1,4 +1,4 @@
-﻿# FAQ — Gravity AI Bridge V12.2 PRO
+﻿# FAQ — Gravity AI Bridge V13.0 PRO
 **Omniscient-Tier Edition** · [Reportar un bug](https://github.com/DarckRovert/Gravity_AI_bridge/issues) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
 
 ---
@@ -223,7 +223,7 @@ python bridge_server.py
 ```
 
 **Instalador (.exe):**
-Descarga y ejecuta el nuevo `Gravity_AI_Bridge_V12.2 PRO_Setup.exe`. El instalador preserva tu `config.yaml` y `_knowledge.json`.
+Descarga y ejecuta el nuevo `Gravity_AI_Bridge_V13.0 PRO_Setup.exe`. El instalador preserva tu `config.yaml` y `_knowledge.json`.
 
 ---
 
@@ -254,7 +254,7 @@ echo {"providers":{}, "daily":{}, "total":{}} > _cost_log.json
 
 ---
 
-## HITL y Seguridad (V12.2 PRO)
+## HITL y Seguridad (V13.0 PRO)
 
 ### ¿Qué es el Human-in-the-Loop (HITL)?
 Es un sistema de seguridad de intercepción. Cuando el agente autónomo intenta ejecutar herramientas de alto riesgo (ej. `shell_exec`, `deploy`, `file_write`), el Bridge pausa la ejecución y solicita aprobación humana desde el Dashboard.
@@ -264,7 +264,7 @@ Por seguridad, el HITL está activado permanentemente en el `bridge_server.py`. 
 
 ---
 
-## Firecrawl Scraper (V12.2 PRO)
+## Firecrawl Scraper (V13.0 PRO)
 
 ### ¿Por qué Firecrawl falla con "API key faltante"?
 Para scrapeos dinámicos (páginas con JavaScript pesado), requieres una API key de [firecrawl.dev](https://firecrawl.dev). Añádela a tu `config.yaml`:
@@ -277,7 +277,7 @@ Sí, en modo fallback nativo. Usará `urllib` para scrapear HTML estático. Si l
 
 ---
 
-## Video Studio & Motor MAI V12.2 PRO
+## Video Studio & Motor MAI V13.0 PRO
 
 ### ¿Qué es el Motor de Animación Inteligente (MAI)?
 El MAI es el nuevo motor de composición cinemática que anima las imágenes generadas por Fooocus antes de ensamblarlas en el video final. Tiene 3 niveles:

@@ -10,12 +10,14 @@ from core.firecrawl_scraper import scrape_url
 
 def search_and_scrape(query: str, max_results: int = 2) -> str:
     """Busca en DuckDuckGo y hace scraping de los resultados principales para extraer conocimiento."""
-    url = f"https://html.duckduckgo.com/html/?q={urllib.parse.quote(query)}"
+    url = "https://html.duckduckgo.com/html/"
+    data = urllib.parse.urlencode({"q": query, "kl": "es-es"}).encode()
     req = urllib.request.Request(
         url,
+        data=data,
         headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Accept": "text/html"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) GravityAI/10.3",
+            "Content-Type": "application/x-www-form-urlencoded"
         }
     )
     

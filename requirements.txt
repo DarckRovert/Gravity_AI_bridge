@@ -1,49 +1,39 @@
-# ── Gravity AI Bridge V12.1 PRO [Omniscient-Tier Edition] — Dependencias ──────
-# CLI / UI
-aiohttp==3.10.10
-colorama==0.4.6
-PyYAML==6.0.2
-gradio>=4.0.0
-rich
-pyfiglet
-pyreadline3
+# ── Gravity AI Bridge V13.0 PRO — Dependencias ───────────────────────────────
 
 # HTTP / Proveedores cloud
 httpx
 requests
 anthropic
 google-generativeai
-
-# Métricas Prometheus
-prometheus_client>=0.20.0
-
-# RAG — Embeddings locales
-sentence-transformers
-pypdf
+PyYAML>=6.0.2
 
 # Seguridad — cifrado de API keys con DPAPI en Windows (obligatorio)
 pywin32
 pymysql
 
-# Tests
-pytest
-pytest-mock
+# RAG — Embeddings locales via ONNX (modelos en rag/models/)
+onnxruntime
+tokenizers
+numpy
 
-# MCP (Model Context Protocol)
-mcp
-
-# Empaquetado Comercial (Fase 2 — Build Instalable)
+# Empaquetado Comercial (PyInstaller)
 pyinstaller
 pystray
 Pillow
 psutil
 
-# Video Studio V12.1 — TTS offline (Windows SAPI)
+# Video Studio — TTS offline (Windows SAPI)
 pyttsx3>=2.90
 
-# MAI — Motor de Animacion Inteligente (V12.1)
-# L2: Integración ComfyUI/LTX-Video via WebSocket
+# Webscraping / MAI (Motor de Animacion Inteligente)
 websocket-client>=1.7.0
 
-# Web scraping contextual (Firecrawl alternativo)
-# firecrawl-py  # Opcional: instalar si tienes API key de Firecrawl
+# MCP (Model Context Protocol)
+mcp
+
+# Tests
+pytest
+pytest-mock
+
+# Opcional: instalar si tienes API key de Firecrawl
+# firecrawl-py

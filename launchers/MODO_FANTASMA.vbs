@@ -10,4 +10,4 @@ WshShell.CurrentDirectory = strRoot
 ' Captura de STDOUT/STDERR en el nivel del bridge
 WshShell.Run "cmd /c ""python bridge_server.py > bridge.log 2>&1""", 0, False
 
-MsgBox "Gravity Bridge Server V12.1 PRO iniciado en modo fantasma. Logs en bridge.log", 64, "Gravity AI"
+MsgBox "Gravity Bridge Server V13.0 PRO iniciado en modo fantasma. Logs en bridge.log", 64, "Gravity AI"

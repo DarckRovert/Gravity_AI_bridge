@@ -1,6 +1,6 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║   GRAVITY AI — BRAIN V12.2 PRO [Sistema de Conciencia Total]                    ║
+║   GRAVITY AI — BRAIN V13.0 PRO [Sistema de Conciencia Total]                    ║
 ║                                                                              ║
 ║   Módulo central que otorga a Gravity consciencia del estado completo del    ║
 ║   sistema en tiempo real. Se inyecta como contexto en cada request de chat.  ║
@@ -228,6 +228,20 @@ def _get_recent_audit(n: int = 5) -> str:
         return f"Audit Log: no disponible ({e})"
 
 
+def _get_active_plan() -> str:
+    """Lee el plan maestro activo (si existe) para inyectarlo en el contexto."""
+    plan_file = os.path.join(BASE_DIR, "_gravity_plan.md")
+    if os.path.isfile(plan_file):
+        try:
+            with open(plan_file, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+            if content:
+                return f"El usuario está trabajando actualmente bajo este PLAN MAESTRO (_gravity_plan.md):\n\n{content}\n\nDEBES adherirte a este plan y recordar al usuario sobre el Modo Interrogatorio si quedan preguntas."
+        except Exception as e:
+            return f"Plan Activo: [Error leyendo archivo: {e}]"
+    return ""
+
+
 def build_system_context() -> str:
     """
     Construye el contexto sistémico completo para inyectar en el system prompt.
@@ -255,6 +269,12 @@ def build_system_context() -> str:
         "",
         _get_recent_audit(5),
     ]
+
+    active_plan = _get_active_plan()
+    if active_plan:
+        sections.append("")
+        sections.append("=== PLAN MAESTRO ACTIVO ===")
+        sections.append(active_plan)
 
     knowledge_rules = _get_knowledge_rules()
     if knowledge_rules:
@@ -309,6 +329,17 @@ def parse_chat_commands(user_message: str) -> Optional[dict]:
     Retorna un dict con: {command, args, api_action} si hay match, o None.
     """
     msg = user_message.strip()
+
+    # /plan <tarea>
+    if msg.lower().startswith("/plan "):
+        tarea = msg.split(" ", 1)[1].strip()
+        if tarea:
+            return {
+                "command": "create_plan",
+                "args": {"tarea": tarea},
+                "api_action": "TOOL create_plan",
+                "user_feedback": f"Analizando y creando plan maestro para: '{tarea[:60]}...'"
+            }
 
     # /video crear <tema>
     if msg.lower().startswith("/video crear ") or msg.lower().startswith("/video create "):
@@ -442,7 +473,37 @@ def execute_system_command(command_info: dict) -> dict:
     args = command_info.get("args", {})
 
     try:
-        if cmd == "video_create":
+        if cmd == "create_plan":
+            tarea = args.get("tarea", "")
+            plan_file = os.path.join(BASE_DIR, "_gravity_plan.md")
+            
+            prompt = (
+                f"Eres el Arquitecto de Gravity AI. Analiza la siguiente solicitud y crea un plan maestro en formato Markdown.\n"
+                f"Solicitud: {tarea}\n\n"
+                "Tu plan DEBE contener obligatoriamente estas tres secciones:\n"
+                "1. **Objetivo Principal**: Resumen claro.\n"
+                "2. **Stack Tecnológico / Módulos Afectados**: Qué archivos o partes de la arquitectura se usarán.\n"
+                "3. **Modo Interrogatorio**: Tres preguntas críticas y altamente técnicas que el usuario debe responder para eliminar zonas grises antes de empezar a programar o ejecutar.\n"
+                "Responde SOLO con el contenido del plan."
+            )
+            try:
+                from core import provider_manager
+                messages = [{"role": "user", "content": prompt}]
+                plan_content = provider_manager.complete(messages, temperature=0.5, max_tokens=1500)
+                if not plan_content:
+                    raise ValueError("Respuesta vacía del proveedor.")
+                
+                with open(plan_file, "w", encoding="utf-8") as f:
+                    f.write(plan_content.strip())
+                
+                return {
+                    "ok": True, 
+                    "result_text": f"✓ Plan Maestro generado y guardado en _gravity_plan.md.\n\nContenido preliminar:\n{plan_content[:600]}...\n\n**IMPORTANTE**: Por favor responde a las preguntas del Modo Interrogatorio para continuar."
+                }
+            except Exception as e:
+                return {"ok": False, "result_text": f"✗ Error al generar el plan: {e}"}
+
+        elif cmd == "video_create":
             from core import video_pipeline
             job_id = video_pipeline.add_job(**args)
             return {

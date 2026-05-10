@@ -37,7 +37,7 @@ class GetRoutesMixin:
                 from dashboard import get_dashboard_html
                 body = get_dashboard_html()
             except Exception:
-                body = b"<h1>Gravity AI Bridge V12</h1><p>No se encontro frontend/dist/index.html. Ejecuta 'npm run build' en /frontend.</p>"
+                body = b"<h1>Gravity AI Bridge V13</h1><p>No se encontro frontend/dist/index.html. Ejecuta 'npm run build' en /frontend.</p>"
             
             try:
                 self.send_response(200)
@@ -205,7 +205,7 @@ class GetRoutesMixin:
         best_p, best_m = provider_manager.get_best()
         scans  = provider_manager.scan_all()
         status = {
-            "version":         "12.1",
+            "version":         "13.0",
             "bridge_online":   True,
             "active_provider": best_p.name if best_p else None,
             "active_model":    best_m,

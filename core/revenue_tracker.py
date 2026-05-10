@@ -172,7 +172,7 @@ def get_summary(days: int = 30) -> dict:
     uploads_total = 0
     uploads_cloned = 0
     try:
-        conn = sqlite3.connect(DB_PATH, timeout=10)
+        conn = sqlite3.connect(DB_PATH, timeout=15)
         uploads_total = conn.execute(
             "SELECT COUNT(*) FROM video_jobs WHERE upload_status='uploaded' AND uploaded_at >= ?",
             (cutoff,)

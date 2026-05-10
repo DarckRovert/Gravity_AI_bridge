@@ -37,10 +37,15 @@ Conciencia total del entorno (`list_dir`). Gravity mapea automáticamente todo t
 
 ---
 
+### Hitos Alcanzados en V13.0 PRO (Agentic Automation)
+1. **Multi-Agent Video Pipeline**: El sistema ya no solo "escribe", sino que investiga (`market_researcher`), redacta y audita (`verification_agent`/Retention Auditor) en una cadena autónoma.
+2. **Social Repurposing**: Un agente secundario (`social_assets_generator`) lee el trabajo terminado y auto-genera hilos para X, LinkedIn e Instagram sin intervención.
+3. **Info-Product Generator**: Gravity puede planificar el temario de un curso completo y delegarlo a su planificador interno (`course_generator` + `content_scheduler`).
+
 ### Siguiente Paso Estratégico (Roadmap de Implementación)
-Para implementar esto en tu arquitectura local-first de Gravity:
+Para implementar las capacidades OS-Level y Browser-Level en tu arquitectura local-first de Gravity:
 1.  **Crear el `ToolManager`**: Un módulo de Python (`core/tools_engine.py`) que registre funciones del SO (leer archivo, reemplazar líneas, ejecutar shell seguro).
 2.  **Tool-Calling (Function Calling)**: Enlazar tu orquestador de LLMs (Ollama/LM Studio) para que las respuestas del modelo retornen llamadas a JSON (`{"name": "replace_file", "args": {...}}`) en lugar de texto plano.
 3.  **Human-In-The-Loop V2**: Ya tienes el `hitl_manager.py`. Esto es vital: cuando Gravity intente modificar su propio código base, el Dashboard arrojará un *popup*: *"Gravity desea editar `video_pipeline.py`. ¿Permitir?"*.
 
-Con estas 4 capas, **Gravity AI Bridge pasará de ser un asistente a ser un "Empleado Virtual" que desarrolla, arregla y maneja el sistema mientras duermes.**
+Con estas capas integradas en V14.0, **Gravity AI Bridge pasará de ser un orquestador de contenido a ser un "Empleado Virtual" que desarrolla, arregla y maneja el sistema mientras duermes.**

@@ -1,6 +1,6 @@
 ﻿"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         GRAVITY AI — SECURITY MONITOR V12.2 PRO                                   ║
+║         GRAVITY AI — SECURITY MONITOR V13.0 PRO                                   ║
 ║         Monitor de procesos, puertos, integridad de archivos y red           ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

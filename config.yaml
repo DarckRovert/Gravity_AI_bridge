@@ -76,7 +76,7 @@ youtube:
   auto_upload: true
   default_category: '28'
   default_privacy: public
-  quota_daily_limit: 5
+  quota_daily_limit: 50
   tags_base:
   - IA
   - Inteligencia Artificial

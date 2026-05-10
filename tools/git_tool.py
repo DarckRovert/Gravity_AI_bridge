@@ -1,5 +1,5 @@
 ﻿"""
-Gravity AI — Git Tool + File Ops Tool V12.2 PRO
+Gravity AI — Git Tool + File Ops Tool V13.0 PRO
 """
 import os
 import re

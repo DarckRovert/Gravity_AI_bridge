@@ -1,5 +1,5 @@
-﻿"""
-Gravity AI — RAG Embedder + Retriever + PDF Parser V12.2 PRO
+"""
+Gravity AI — RAG Embedder + Retriever + PDF Parser V13.0 PRO
 
 Embedder backends (in priority order):
   1. Ollama (nomic-embed-text) — 0 cost, offline, best quality for local
@@ -210,7 +210,8 @@ class RAGEmbedder:
                 results = json.load(f_out)
         except Exception as e:
             # If hybrid fails, fallback to TF-IDF or CPU in current process
-            print(f"[HYBRID ERROR] Fallback to CPU: {e}")
+            err_msg = getattr(e, 'stderr', b'').decode(errors='ignore') or str(e)
+            print(f"[HYBRID ERROR] Fallback to CPU: {err_msg}")
             return cls._embed_tfidf(texts)
         finally:
             # Cleanup

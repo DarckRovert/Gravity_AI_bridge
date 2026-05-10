@@ -1,6 +1,6 @@
 ﻿"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         GRAVITY AI — GAME SERVER MANAGER V12.2 PRO                               ║
+║         GRAVITY AI — GAME SERVER MANAGER V13.0 PRO                               ║
 ║         Gestión de servidores de juegos desde el Bridge                      ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 from typing import Optional
 import hashlib
 
-# Módulos extraídos (V12.2 PRO)
+# Módulos extraídos (V13.0 PRO)
 from core.game_backup import backup_database
 from core.log_buffer import init_server_buffer, start_reader, get_lines, has_buffer
 

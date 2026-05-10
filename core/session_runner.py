@@ -1,10 +1,10 @@
 ﻿"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — SESSION RUNNER V12.2 PRO                                           ║
+║  GRAVITY AI — SESSION RUNNER V13.0 PRO                                           ║
 ║  Multi-Session Bridge con control de capacidad real                          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Cambios V12.2 PRO (vs V12.2 PRO):
+Cambios V13.0 PRO (vs V13.0 PRO):
   - CapacityWake reemplazado por BoundedSemaphore(32) real
   - Limpieza de procesos huérfanos en shutdown()
   - Registro de sesiones con timestamp de inicio y actividad

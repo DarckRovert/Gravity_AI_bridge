@@ -1,11 +1,11 @@
-﻿"""
+"""
 ╔══════════════════════════════════════════════════════════╗
-║     GRAVITY AI ENGINE WATCHDOG V12.2 PRO                      ║
+║     GRAVITY AI ENGINE WATCHDOG V13.0 PRO                      ║
 ║     Auto-Detección, Auto-Switch y Auto-Optimización      ║
 ╚══════════════════════════════════════════════════════════╝
 
 Corre en segundo plano como hilo demonio.
-Delega toda la lógica de detección y routing al V12.2 PROviderManager.
+Delega toda la lógica de detección y routing al V13.0 PROviderManager.
 Persiste la selección en _settings.json.
 """
 
@@ -104,9 +104,24 @@ def _apply_engine_optimization(provider_name, protocol):
             user_opts = {}
 
         api_opts = build_api_options(engine_key, profile, user_opts)
+
+        # Aplicar optimización KV-cache de Ollama via turbo_kv
+        if engine_key == "ollama":
+            try:
+                from core.turbo_kv import get_ollama_kv_options
+                vram_mb = profile.get("vram_mb", 8192)
+                kv_opts = get_ollama_kv_options(vram_mb)
+                # Aplicar env vars de KV-cache al proceso actual
+                import os as _os
+                _os.environ["OLLAMA_KV_CACHE_TYPE"]  = kv_opts.get("OLLAMA_KV_CACHE_TYPE", "q4_0")
+                _os.environ["OLLAMA_FLASH_ATTENTION"] = kv_opts.get("OLLAMA_FLASH_ATTENTION", "1")
+            except Exception:
+                pass
+
         return profile, api_opts
     except Exception:
         return {}, {}
+
 
 
 def _watchdog_loop(interval_seconds=30, verbose=False):

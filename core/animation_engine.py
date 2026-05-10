@@ -1,7 +1,7 @@
 ﻿"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  GRAVITY AI — ANIMATION ENGINE V1.0                                         ║
-║  Motor de Animación de Imágenes (MAI) — Gravity Studio V12.2 PRO               ║
+║  Motor de Animación de Imágenes (MAI) — Gravity Studio V13.0 PRO               ║
 ║                                                                              ║
 ║  Sistema de 3 niveles con fallback progresivo:                              ║
 ║    L0 — FFmpeg nativo (zoompan, filtros básicos) — sin dependencias         ║

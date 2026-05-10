@@ -1,6 +1,33 @@
-﻿# Changelog — Gravity AI Bridge
+# Changelog — Gravity AI Bridge
 
 Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Bridge.
+
+---
+
+## [V13.0 PRO] Agentic Automation & Multi-Agent Pipeline · 09/05/2026
+
+**[EVOLUCIÓN A ECOSISTEMA MULTI-AGENTE AUTÓNOMO]**
+
+### Multi-Agent Scripting & Auditing
+- **Market Researcher (Hack 4)**: Agente autónomo (`market_researcher.py`) que usa Firecrawl/urllib para buscar competidores en YouTube, extrayendo ganchos y ángulos para enriquecer el contexto del guion.
+- **Pipeline Multi-Agente Secuencial**: El proceso de escritura de video ahora se divide en:
+  1. *Researcher*: Analiza el mercado.
+  2. *Writer*: Redacta el guion basado en el briefing.
+  3. *Retention Auditor*: Evalúa y reescribe el guion para garantizar retención en los primeros 5 segundos.
+
+### Course Generator & Content Scheduler (Hack 6)
+- **Info-Product Generator (`course_generator.py`)**: Nuevo módulo y endpoint (`/v1/course/generate`) capaz de crear el syllabus completo de un curso/playlist temático e insertarlo en el Scheduler.
+- **Content Scheduler (`content_scheduler.py`)**: Producción autónoma de videos. Toma temas de `niches.json` y encola videos diariamente.
+
+### Social Assets Repurposing
+- **Social Assets Generator (`social_assets_generator.py`)**: Al finalizar un render de video, el LLM procesa automáticamente el guion y genera:
+  - Hilo viral para Twitter/X.
+  - Carrusel estructurado para Instagram.
+  - Post profesional para LinkedIn.
+
+### Optimización y Limpieza
+- **Turbo KV-Cache (`turbo_kv.py`)**: Conectado directamente al `engine_watchdog.py`. Detecta si el proveedor es Ollama y aplica dinámicamente `OLLAMA_KV_CACHE_TYPE=q4_0` y `OLLAMA_FLASH_ATTENTION=1`, reduciendo drásticamente el consumo de VRAM y RAM.
+- **Limpieza de Core**: Eliminación de módulos obsoletos (`ide_integrator`, `model_selector`, `provider_scanner`) centralizando la lógica en `provider_manager`. Borrados >18 scripts/archivos de prueba temporales (`scratch`, `test_concat`).
 
 ---
 

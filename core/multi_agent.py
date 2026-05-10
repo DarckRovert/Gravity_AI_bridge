@@ -10,6 +10,24 @@ import threading
 from typing import Optional, List, Dict, Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from core.provider_manager import get_plugin, get_all_model_names
+import os
+
+def _inject_master_plan(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Inyecta el Plan Maestro activo como contexto de sistema al inicio si existe."""
+    try:
+        from core.gravity_brain import _get_active_plan
+        plan = _get_active_plan()
+        if plan:
+            # Comprobar si ya está inyectado
+            for m in messages:
+                if m.get("role") == "system" and "PLAN MAESTRO" in m.get("content", ""):
+                    return messages
+            new_msgs = list(messages)
+            new_msgs.insert(0, {"role": "system", "content": plan})
+            return new_msgs
+    except Exception:
+        pass
+    return messages
 
 
 # ── Parallel multi-model comparison ──────────────────────────────────────────
@@ -27,6 +45,7 @@ def compare(
     providers: list of provider names. If None, picks top-N available.
     """
     options = options or {}
+    messages = _inject_master_plan(messages)
 
     if not providers:
         all_models = get_all_model_names()
@@ -138,7 +157,7 @@ def run_pipeline(
     The output of each step is appended as a new user message for the next step.
     """
     options  = options or {}
-    history  = list(initial_messages)
+    history  = _inject_master_plan(list(initial_messages))
     last_out = ""
 
     for step in steps:

@@ -1,4 +1,4 @@
-﻿# Arquitectura — Gravity AI Bridge V12.2 PRO
+# Arquitectura — Gravity AI Bridge V13.0 PRO
 **Omniscient-Tier Edition** · Última actualización: 2026-04-24
 
 ---
@@ -15,7 +15,7 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
                                │ HTTP POST /v1/chat/completions
                                ▼
 ┌────────────────────────────────────────────────────────────────────┐
-│                    GRAVITY AI BRIDGE V12.2 PRO                         │
+│                    GRAVITY AI BRIDGE V13.0 PRO                         │
 │                    bridge_server.py (~200 líneas — Orquestador)    │
 │                    ThreadingHTTPServer :7860                        │
 │                                                                    │
@@ -31,7 +31,7 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
 │  └──────────────────────────────────────────────────────────────┘  │
 │                                                                    │
 │  ┌──────────────────────────────────────────────────────────────┐  │
-│  │             core/session_runner.py (V12.2 PRO)                   │  │
+│  │             core/session_runner.py (V13.0 PRO)                   │  │
 │  │   CapacityWake() + SessionSpawner (Multi-session parallel)   │  │
 │  └──────────────────────────────────────────────────────────────┘  │
 └─────────────────────────┬──────────────────────────────────────────┘
@@ -64,7 +64,7 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
 ```
 F:\Gravity_AI_bridge\
 │
-├── bridge_server.py          ← Orquestador HTTP (~200 líneas, V12.2 PRO.0)
+├── bridge_server.py          ← Orquestador HTTP (~200 líneas, V13.0 PRO.0)
 ├── frontend/                 ← Frontend React/Vite (Reemplaza dashboard.py)
 ├── ask_deepseek.py           ← CLI interactivo del auditor
 ├── gravity_launcher.pyw      ← Launcher silencioso (sin consola)
@@ -73,7 +73,7 @@ F:\Gravity_AI_bridge\
 ├── INSTALAR.py               ← Asistente de configuración inicial
 ├── health_check.py           ← Health check standalone
 │
-├── api/                      ← Capa de enrutamiento modular (V12.2 PRO.0)
+├── api/                      ← Capa de enrutamiento modular (V13.0 PRO.0)
 │   ├── state.py              ← Estado global: Rate Limiter + GeoIP Tracker
 │   └── routes/
 │       ├── mixin_get.py      ← 20+ endpoints GET (dashboard, status, métricas)
@@ -85,9 +85,9 @@ F:\Gravity_AI_bridge\
 │   ├── hardware_profiler.py  ← GPU/VRAM/NPU detection
 │   ├── cost_tracker.py       ← Tracking USD para cloud
 │   ├── multi_agent.py        ← Orquestador parallel/vote
-│   ├── session_manager.py    ← Sesiones con fork de branches + MemDir (V12.2 PRO)
-│   ├── session_runner.py     ← Multi-Session spawners y CapacityWake (V12.2 PRO)
-│   ├── mcp_adapter.py        ← Model Context Protocol client con Reconexión (V12.2 PRO)
+│   ├── session_manager.py    ← Sesiones con fork de branches + MemDir (V13.0 PRO)
+│   ├── session_runner.py     ← Multi-Session spawners y CapacityWake (V13.0 PRO)
+│   ├── mcp_adapter.py        ← Model Context Protocol client con Reconexión (V13.0 PRO)
 │   ├── security_monitor.py   ← Zero-Trust scanning en background
 │   ├── rate_limiter.py       ← Control de acceso por IP/key
 │   ├── audit_log.py          ← Log inmutable de peticiones
@@ -96,8 +96,12 @@ F:\Gravity_AI_bridge\
 │   ├── deploy_manager.py     ← Pipeline npm build + netlify
 │   ├── ai_process_manager.py ← Start/stop de motores locales
 │   ├── image_queue.py        ← Cola de generación de imágenes
+│   ├── video_pipeline.py     ← Core de renderizado de video y orquestación
+│   ├── market_researcher.py  ← Agente de investigación de mercado (YouTube/Firecrawl)
+│   ├── course_generator.py   ← Generador autónomo de info-productos / playlists
+│   ├── social_assets_generator.py ← Repurposing para Twitter/LinkedIn/Instagram
+│   ├── content_scheduler.py  ← Planificador y disparador autónomo de producciones
 │   ├── game_server_manager.py← Control vMaNGOS WoW
-│   ├── model_selector.py     ← Selección por tipo de tarea
 │   ├── turbo_kv.py           ← Optimización KV-Cache (ROCm/CUDA)
 │   ├── ide_integrator.py     ← Configurador de IDEs
 │   ├── reasoning_stripper.py ← Elimina bloques <think>...</think>
@@ -123,7 +127,7 @@ F:\Gravity_AI_bridge\
 │   └── retriever.py          ← Búsqueda semántica vectorial
 │
 ├── frontend/
-│   ├── src/components/       ← 25 componentes React SPA interactivos (V12.2 PRO)
+│   ├── src/components/       ← 25 componentes React SPA interactivos (V13.0 PRO)
 │   └── dist/                 ← Build de producción servido por bridge_server.py
 │
 ├── installer/
@@ -240,16 +244,16 @@ Detecta automáticamente:
 ---
 
 ### session_manager.py
-**Responsabilidad:** Persistencia de conversaciones con soporte de branches y MemDir (V12.2 PRO).
+**Responsabilidad:** Persistencia de conversaciones con soporte de branches y MemDir (V13.0 PRO).
 
 - Las sesiones se guardan como JSON en `_saves/<nombre>.json`
 - Cada sesión contiene: nombre, branch, timestamp, historial completo de mensajes
 - El fork crea una copia independiente de la sesión en una rama nueva
-- **MemDir (V12.2 PRO)**: Inyección dinámica de contexto (archivos `.gravity_mem` y `MEMORY.md`) directo al System Prompt simulando una "memoria de directorio" sin coste extra de RAG vectorial.
+- **MemDir (V13.0 PRO)**: Inyección dinámica de contexto (archivos `.gravity_mem` y `MEMORY.md`) directo al System Prompt simulando una "memoria de directorio" sin coste extra de RAG vectorial.
 
 ---
 
-### session_runner.py (V12.2 PRO)
+### session_runner.py (V13.0 PRO)
 **Responsabilidad:** Orquestación Multi-sesión paralela.
 
 - Define `CapacityWake` para señalización de subprocesos y control de carga.
@@ -280,7 +284,7 @@ Aplica via variables de entorno `OLLAMA_KV_CACHE_TYPE` y `OLLAMA_FLASH_ATTENTION
 
 ---
 
-## Dashboard — 25 Componentes React V12.2 PRO
+## Dashboard — 25 Componentes React V13.0 PRO
 
 | # | Panel | Módulo Backend | Endpoints |
 |:---|:---|:---|:---|
@@ -307,6 +311,8 @@ Aplica via variables de entorno `OLLAMA_KV_CACHE_TYPE` y `OLLAMA_FLASH_ATTENTION
 | 21 | 📡 System Status | metrics + provider_manager | GET /v1/status, GET /metrics |
 | 22 | 📄 Audit Log | audit_logger | GET /v1/audit, POST /v1/audit/rotate |
 | 23 | ⚙️ Configuración | key_manager + ide_integrator | POST /v1/keys, GET /v1/security |
+| 24 | 📈 Social Repurposing | social_assets_generator | N/A (Automático post-video) |
+| 25 | 🎓 Course Gen | course_generator | POST /v1/course/generate |
 
 ---
 
@@ -342,7 +348,7 @@ make_icon.py          → genera assets/gravity_icon.ico (multi-res: 256..16px)
       ↓
 PyInstaller           → empaqueta Python + todas las dependencias → GravityBridge.exe
       ↓
-Inno Setup 6          → crea Gravity_AI_Bridge_V12.2 PRO_Setup.exe
+Inno Setup 6          → crea Gravity_AI_Bridge_V13.0 PRO_Setup.exe
       ↓
 gravity_launcher.pyw  → EXE sin consola que arranca bridge_server + gravity_tray
 ```
@@ -351,7 +357,7 @@ gravity_launcher.pyw  → EXE sin consola que arranca bridge_server + gravity_tr
 | Archivo generado | Descripción |
 |:---|:---|
 | `dist/GravityBridge.exe` | Ejecutable standalone (no requiere Python) |
-| `dist/Gravity_AI_Bridge_V12.2 PRO_Setup.exe` | Instalador completo para distribución |
+| `dist/Gravity_AI_Bridge_V13.0 PRO_Setup.exe` | Instalador completo para distribución |
 
 ### Características del Instalador
 - Instala en `C:\Program Files\Gravity AI Bridge\`

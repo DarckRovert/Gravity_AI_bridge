@@ -36,7 +36,7 @@ if OLD_VF_END in src:
     print("OK: Film Grain VFX añadido a _assemble_clip")
 
 # 3. Actualizar la descripción de la herramienta en el log para reflejar el upgrade
-src = src.replace('Worker daemon iniciado (Cinematic Edition).', 'Worker daemon iniciado (Gravity Studio ULTRA V12.2 PRO - Audio Ducking & VFX Active).')
+src = src.replace('Worker daemon iniciado (Cinematic Edition).', 'Worker daemon iniciado (Gravity Studio ULTRA V13.0 PRO - Audio Ducking & VFX Active).')
 
 with open(PATH, 'w', encoding='utf-8') as f:
     f.write(src)

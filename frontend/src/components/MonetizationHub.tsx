@@ -298,10 +298,12 @@ export const MonetizationHub = () => {
             )}
           </div>
         )}
-        <div className="p-2.5 bg-status-warning/10 border border-status-warning/30 rounded-lg text-[10px] text-text-muted">
-          <AlertTriangle size={10} className="inline mr-1 text-status-warning"/>
-          Activa en <code className="bg-surface px-1 rounded">config.yaml → youtube.enabled: true</code>
-        </div>
+        {!yt?.enabled && (
+          <div className="p-2.5 bg-status-warning/10 border border-status-warning/30 rounded-lg text-[10px] text-text-muted">
+            <AlertTriangle size={10} className="inline mr-1 text-status-warning"/>
+            Activa en <code className="bg-surface px-1 rounded">config.yaml → youtube.enabled: true</code>
+          </div>
+        )}
       </Sec>
 
       {/* Scheduler */}
@@ -316,7 +318,7 @@ export const MonetizationHub = () => {
           <div className="p-2.5 bg-surface rounded-lg">
             <div className="text-[10px] text-text-muted mb-0.5">Último topic generado</div>
             <div className="text-xs font-bold truncate">{sched.last_topic}</div>
-            {sched.last_niche && <div className="text-[10px] text-text-muted">Niche: {sched.last_niche}</div>}
+            {sched.last_niche && <div className="text-[10px] text-text-muted">Nicho: {sched.last_niche}</div>}
           </div>
         )}
         <button onClick={triggerScheduler}
@@ -328,13 +330,13 @@ export const MonetizationHub = () => {
       {/* Language Cloner */}
       <Sec id="lang" title="Language Cloner — Multiplicador de Ingresos" icon={Globe} open={open==='lang'} toggle={toggle}>
         <div className="p-2.5 bg-surface rounded-lg">
-          <div className="text-[10px] text-text-muted mb-1.5">Idiomas habilitados</div>
+          <div className="text-[10px] text-text-muted mb-1.5">Idiomas habilitados (Automático)</div>
           <div className="flex gap-1.5 flex-wrap">
             {(lang?.enabled_languages??[]).length > 0
               ? lang!.enabled_languages.map(l => (
                   <span key={l} className="px-2 py-0.5 bg-accent-primary/20 text-accent-primary rounded text-xs font-bold uppercase">{l}</span>
                 ))
-              : <span className="text-xs text-text-muted italic">Sin idiomas activos</span>
+              : <span className="text-xs text-text-muted italic">Sin idiomas activos en config.yaml</span>
             }
           </div>
         </div>
@@ -342,23 +344,61 @@ export const MonetizationHub = () => {
           <Zap size={10} className="inline mr-1 text-status-success"/>
           Canal EN tiene CPM $8–15 USD (5× más que ES). 2 videos/día → +$60/mes estimado.
         </div>
-        <div className="space-y-2">
-          <div className="text-[10px] text-text-muted font-bold uppercase">Clonar Job Manualmente</div>
-          <div className="flex gap-2">
-            <input value={cloneJobId} onChange={e => setCloneJobId(e.target.value)}
-              placeholder="Job ID" type="number"
-              className="flex-1 px-2 py-1.5 text-xs bg-surface border border-border-subtle rounded-lg focus:border-accent-primary outline-none"/>
-            <input value={cloneLangs} onChange={e => setCloneLangs(e.target.value)}
-              placeholder="en,pt,fr"
-              className="flex-1 px-2 py-1.5 text-xs bg-surface border border-border-subtle rounded-lg focus:border-accent-primary outline-none"/>
-            <button onClick={triggerClone}
-              className="px-3 py-1.5 bg-accent-primary hover:bg-accent-secondary text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
-              <Send size={11}/>
-            </button>
+        
+        <div className="space-y-3 pt-2">
+          <div className="text-[10px] text-text-muted font-bold uppercase tracking-widest border-b border-border-subtle pb-1">Clonación Manual a 1-Click</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-[10px] text-text-muted ml-1">1. Seleccionar Video</label>
+              <select 
+                value={cloneJobId} 
+                onChange={e => setCloneJobId(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-bg border border-border-subtle rounded-lg focus:border-accent-primary outline-none"
+              >
+                <option value="">-- Elige un Job reciente --</option>
+                {topJobs.map(j => (
+                  <option key={j.job_id} value={j.job_id}>Job #{j.job_id} ({j.niche_id})</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] text-text-muted ml-1">2. Seleccionar Idiomas</label>
+              <div className="flex gap-1 flex-wrap">
+                {['en', 'pt', 'fr', 'de', 'it'].map(lg => {
+                  const active = cloneLangs.split(',').map(x=>x.trim()).includes(lg);
+                  return (
+                    <button 
+                      key={lg}
+                      onClick={() => {
+                        let arr = cloneLangs.split(',').map(x=>x.trim()).filter(Boolean);
+                        if(active) arr = arr.filter(x => x !== lg);
+                        else arr.push(lg);
+                        setCloneLangs(arr.join(','));
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all ${
+                        active 
+                          ? 'bg-accent-primary text-white border-transparent' 
+                          : 'bg-surface text-text-muted border border-border-subtle hover:border-accent-primary/50'
+                      }`}
+                    >
+                      {lg}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="text-[10px] text-text-muted">
-          Activar: <code className="bg-surface px-1 rounded">config.yaml → language_cloner.enabled: true</code>
+          <button 
+            onClick={triggerClone}
+            disabled={!cloneJobId || !cloneLangs}
+            className={`w-full py-2.5 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2 ${
+              !cloneJobId || !cloneLangs 
+                ? 'bg-surface text-text-muted cursor-not-allowed' 
+                : 'bg-accent-primary hover:bg-accent-secondary text-white shadow-lg shadow-accent-primary/20'
+            }`}
+          >
+            <Send size={14}/> Lanzar Multiplicador de Ingresos
+          </button>
         </div>
       </Sec>
 
@@ -458,9 +498,9 @@ export const MonetizationHub = () => {
         </Sec>
       )}
 
-      {/* Revenue por Niche */}
+      {/* Revenue por Nicho */}
       {revenue && Object.keys(revenue.by_niche).length > 0 && (
-        <Sec id="niches" title="Ingresos por Niche" icon={BarChart2} open={open==='niches'} toggle={toggle}>
+        <Sec id="niches" title="Ingresos por Nicho" icon={BarChart2} open={open==='niches'} toggle={toggle}>
           <div className="space-y-2.5">
             {Object.entries(revenue.by_niche).sort(([,a],[,b])=>b-a).map(([n,v]) => (
               <div key={n}>

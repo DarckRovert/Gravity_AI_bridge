@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI BRIDGE V12.1 PRO — Silent Launcher               ║
+║     GRAVITY AI BRIDGE V13.0 PRO — Silent Launcher               ║
 ║     Inicia el Bridge + Tray sin mostrar consola              ║
 ╚══════════════════════════════════════════════════════════════╝
 

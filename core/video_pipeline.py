@@ -1,4 +1,4 @@
-﻿
+
 # -- Mapeo de Emociones a Color Grading Dinámico ------------------------------
 EMOTIONAL_GRADES: dict[str, str] = {
     "neutral":   "eq=contrast=1.0:brightness=0.0:saturation=1.0",
@@ -12,7 +12,7 @@ EMOTIONAL_GRADES: dict[str, str] = {
 }
 """
 â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
-â•‘  GRAVITY AI â€” VIDEO STUDIO PIPELINE V12.2 PRO CINEMATIC EDITION                  â•‘
+â•‘  GRAVITY AI â€” VIDEO STUDIO PIPELINE V13.0 PRO CINEMATIC EDITION                  â•‘
 â•‘                                                                              â•‘
 â•‘  Motor cinematogrÃ¡fico de Ãºltima generaciÃ³n con:                             â•‘
 â•‘    â–¸ Character Consistency Engine â€” ancla visual por escena                  â•‘
@@ -67,6 +67,7 @@ TTS_RATE           = 150
 MAX_HISTORY        = 20
 FADE_DURATION      = 0.4    # segundos de fade entre escenas
 DEFAULT_FPS        = 24
+REMOTION_FPS       = 30  # FPS fijo de las composiciones Remotion (Root.tsx)
 DEFAULT_BGM_VOLUME = 0.1   # volumen relativo de la música de fondo (0.0-1.0)
 
 # ── Generadores de BGM locales (sin internet) ─────────────────────────────────
@@ -185,6 +186,14 @@ _current_job  = None
 _started      = False
 _db_initialized = False
 
+# Cache de voces SAPI (TTL 300s) — evita enumerar COM en cada polling del dashboard
+_voices_cache: list[dict] = []
+_voices_cache_ts: float   = 0.0
+_VOICES_CACHE_TTL: float  = 300.0   # segundos
+
+# Timeout de conexion SQLite (WAL mode activo en _init_db)
+DB_CONNECT_TIMEOUT: int = 15
+
 
 # ── Base de datos ─────────────────────────────────────────────────────────────
 
@@ -193,7 +202,8 @@ def _init_db() -> None:
     if _db_initialized:
         return
     _db_initialized = True
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
+    conn.execute("PRAGMA journal_mode=WAL")  # Permite lecturas concurrentes sin bloqueos
     conn.execute("""
         CREATE TABLE IF NOT EXISTS video_jobs (
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -313,7 +323,7 @@ def add_job(
     if style not in CINEMA_STYLES:
         style = DEFAULT_STYLE
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
     cur  = conn.execute(
         "INSERT INTO video_jobs "
         "(topic, n_scenes, voice_speed, voice_id, style, narration_lang, transitions, "
@@ -340,7 +350,7 @@ def add_job(
 def get_queue_status() -> dict:
     """Estado completo de la cola de video para el dashboard."""
     _init_db()
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
     conn.row_factory = sqlite3.Row
     pending  = [dict(r) for r in conn.execute(
         "SELECT * FROM video_jobs WHERE status='pending' ORDER BY id"
@@ -367,7 +377,7 @@ def get_queue_status() -> dict:
 
     if purge_ids:
         try:
-            _pc = sqlite3.connect(DB_PATH)
+            _pc = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
             for _pid in purge_ids:
                 _pc.execute("UPDATE video_jobs SET status='deleted', output_path=NULL WHERE id=?", (_pid,))
             _pc.commit()
@@ -380,7 +390,7 @@ def get_queue_status() -> dict:
 
     # Aggregate stats from DB (all-time)
     try:
-        _sc = sqlite3.connect(DB_PATH)
+        _sc = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
         _row = _sc.execute(
             "SELECT COUNT(*) total, "
             "SUM(CASE WHEN status='done' THEN 1 ELSE 0 END) completed, "
@@ -417,7 +427,7 @@ def get_queue_status() -> dict:
 def cancel_job(job_id: int) -> bool:
     """Cancela un trabajo pendiente. Retorna False si no existe o no estaba pendiente."""
     _init_db()
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
     now  = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     rows = conn.execute(
         "UPDATE video_jobs SET status='cancelled', finished_at=? "
@@ -432,7 +442,7 @@ def cancel_job(job_id: int) -> bool:
 def delete_job(job_id: int) -> dict:
     """Elimina un job de la DB y borra sus archivos físicos del disco."""
     _init_db()
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
     conn.row_factory = sqlite3.Row
     row = conn.execute("SELECT output_path FROM video_jobs WHERE id=?", (job_id,)).fetchone()
     deleted_files: list[str] = []
@@ -479,7 +489,13 @@ def get_available_voices() -> list[dict]:
     Lista TODAS las voces instaladas en el sistema mediante win32com + SAPI directo.
     Detecta voces SAPI5 legacy, OneCore, Neural (Windows 11) y voces de terceros.
     Fallback a pyttsx3 si win32com no está disponible.
+    Cache con TTL de 300s — evita enumerar COM en cada polling del dashboard.
     """
+    global _voices_cache, _voices_cache_ts
+    now_ts = time.time()
+    if _voices_cache and (now_ts - _voices_cache_ts) < _VOICES_CACHE_TTL:
+        return list(_voices_cache)
+
     v_list: list[dict] = []
     seen_ids: set[str] = set()
 
@@ -502,6 +518,8 @@ def get_available_voices() -> list[dict]:
     if os.name == "nt":
         try:
             import win32com.client
+            import pythoncom
+            pythoncom.CoInitialize()
             sapi = win32com.client.Dispatch("SAPI.SpVoice")
             voice_tokens = sapi.GetVoices()
             for i in range(voice_tokens.Count):
@@ -549,6 +567,8 @@ def get_available_voices() -> list[dict]:
     if os.name == "nt":
         try:
             import win32com.client
+            import pythoncom
+            pythoncom.CoInitialize()
             onecore_reg_paths = [
                 r"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech_OneCore\Voices",
                 r"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices",
@@ -582,6 +602,9 @@ def get_available_voices() -> list[dict]:
     else:
         log.info(f"[VideoStudio] Total voces disponibles: {len(v_list)}")
 
+    # Actualizar cache — próximas llamadas dentro de 300s no re-enumeran SAPI
+    _voices_cache    = list(v_list)
+    _voices_cache_ts = time.time()
     return v_list
 
 
@@ -687,9 +710,19 @@ def _get_lore_context(topic: str, limit_chars: int = 4000) -> str:
 
             header_norm = _normalize_topic_for_lore(header_raw)
 
-            # Coincidencia estricta: el topic normalizado debe estar contenido
-            # en el encabezado normalizado del bloque (no al revés)
-            if clean_topic in header_norm or header_norm in clean_topic:
+            # Coincidencia estricta y segura para evitar cruce de lores:
+            if not header_norm or len(header_norm) < 4:
+                continue
+
+            match = False
+            if clean_topic == header_norm:
+                match = True
+            elif len(clean_topic) >= 5 and len(header_norm) >= 5:
+                # Contención mutua estricta
+                if clean_topic in header_norm or header_norm in clean_topic:
+                    match = True
+
+            if match:
                 relevant_blocks.append(
                     f"=== HISTORIA: {header_raw} ===\n{body}"
                 )
@@ -717,10 +750,30 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
     """
     original_topic = topic
     urls = re.findall(r'(https?://\S+)', topic)
+    scraped_successfully = False
+    
     if urls:
         try:
             from core.firecrawl_scraper import scrape_url
             for url in urls[:1]:
+                if "youtube.com" in url or "youtu.be" in url:
+                    log.info("[VideoStudio] URL de YouTube detectada. Obteniendo título oficial vía oEmbed para enlazar lore...")
+                    try:
+                        import requests
+                        oembed_url = f"https://www.youtube.com/oembed?url={url}&format=json"
+                        res = requests.get(oembed_url, timeout=5)
+                        if res.status_code == 200:
+                            yt_data = res.json()
+                            yt_title = yt_data.get("title", "")
+                            if yt_title:
+                                topic = topic.replace(url, f"{yt_title}")
+                                original_topic = topic # Actualizar para que _get_lore_context lo encuentre
+                                log.info(f"[VideoStudio] Título de YouTube recuperado: '{yt_title}'")
+                                # No seteamos scraped_successfully = True para forzar que DuckDuckGo investigue el título
+                    except Exception as yt_e:
+                        log.warning(f"[VideoStudio] Error obteniendo oEmbed de YouTube: {yt_e}")
+                    break
+                    
                 log.info(f"[VideoStudio] URL detectada en topic. Raspando: {url}")
                 # Leemos api_key de config.yaml temporalmente
                 api_key = ""
@@ -737,10 +790,12 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
                     scraped_text = scrape_res.get("content", "")[:4000]
                     topic = topic.replace(url, f"[{url} - CONTENIDO WEB EXTRAÍDO:\n{scraped_text}\n]")
                     log.info("[VideoStudio] URL Raspada e inyectada con éxito en el guion.")
+                    scraped_successfully = True
         except Exception as e:
             log.warning(f"[VideoStudio] Error raspando URL: {e}")
-    else:
-        # Auto-investigación inteligente (conocimiento previo)
+            
+    if not scraped_successfully:
+        # Auto-investigación inteligente (conocimiento previo) o fallback para YouTube
         try:
             from core.web_search import search_and_scrape
             log.info(f"[VideoStudio] Investigando en internet sobre: '{original_topic[:50]}' para nutrir el guion...")
@@ -751,6 +806,14 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
         except Exception as e:
             log.warning(f"[VideoStudio] Error en auto-investigación web: {e}")
 
+        # Análisis de mercado y competidores (Hack 4)
+        try:
+            from core.market_researcher import analyze_competitors
+            competitor_brief = analyze_competitors(original_topic)
+            if competitor_brief:
+                topic = f"{topic}{competitor_brief}"
+        except Exception as e:
+            log.warning(f"[VideoStudio] Error en análisis de mercado: {e}")
     style_info     = CINEMA_STYLES.get(style, CINEMA_STYLES[DEFAULT_STYLE])
     style_prefix   = style_info["prefix"]
     
@@ -816,19 +879,49 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
 
     try:
         from core import provider_manager
+        from core.multi_agent import PipelineStep, run_pipeline
+        import yaml
+        
+        # Leer configuración de Multi-Agentes
+        writer_prov, writer_mod = None, None
+        audit_prov, audit_mod = None, None
+        
+        try:
+            with open(os.path.join(BASE_DIR, "config.yaml"), "r", encoding="utf-8") as f:
+                cfg = yaml.safe_load(f) or {}
+                ar = cfg.get("agent_routing", {})
+                if ar.get("coder"):
+                    writer_prov = ar["coder"].get("provider")
+                    writer_mod = ar["coder"].get("model")
+                if ar.get("auditor"):
+                    audit_prov = ar["auditor"].get("provider")
+                    audit_mod = ar["auditor"].get("model")
+        except Exception:
+            pass
+            
+        best_result, best_model = provider_manager.get_best()
+        if not best_result:
+            raise RuntimeError("No hay proveedor LLM activo")
+            
+        writer_prov = writer_prov or best_result.name
+        writer_mod = writer_mod if writer_mod and writer_mod != "auto" else best_model
+        
+        audit_prov = audit_prov or best_result.name
+        audit_mod = audit_mod if audit_mod and audit_mod != "auto" else best_model
+
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user",   "content": user_prompt},
         ]
-        best_result, best_model = provider_manager.get_best()
-        if not best_result:
-            raise RuntimeError("No hay proveedor LLM activo")
-
-        log.info(f"[VideoStudio] Usando '{best_result.name}/{best_model}' para guión")
-        content = provider_manager.complete(
-            messages, model=best_model, provider=best_result.name,
-            options={"temperature": 0.7}
-        )
+        
+        log.info(f"[VideoStudio] Iniciando pipeline Multi-Agente para el guion (Escritor: {writer_prov}, Auditor: {audit_prov})...")
+        
+        steps = [
+            PipelineStep(provider=writer_prov, model=writer_mod),
+            PipelineStep(provider=audit_prov, model=audit_mod, role="Actúa como un Auditor Experto en Retención de Audiencia. Revisa el JSON anterior. Mejora los ganchos emocionales de la narración en los primeros 5 segundos. Asegúrate de que los image_prompts sean extremadamente cinemáticos y consistentes. Devuelve ÚNICAMENTE EL JSON CORREGIDO, sin explicaciones ni markdown text. Solo JSON puro.")
+        ]
+        
+        content = run_pipeline(steps=steps, initial_messages=messages, options={"temperature": 0.7})
 
         content = content.strip()
         if content.startswith("```"):
@@ -862,14 +955,22 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
     except Exception as e:
         log.warning(f"[VideoStudio] LLM no disponible ({e}). Fallback con escenas gen\u00e9ricas.")
 
-    # Bypass LLM for anchor if we are already in fallback mode to prevent double timeout
+    # Fallback sin LLM: narraciones descriptivas y rotativas para TTS profesional
     anchor = topic[:120]
+    _fallback_narrations = [
+        f"En este fascinante recorrido por {original_topic[:60]}, descubriremos aspectos que transformarán tu perspectiva sobre el mundo.",
+        f"El tema de {original_topic[:60]} esconde secretos que pocos conocen. Prepárate para una exploración profunda y reveladora.",
+        f"Cada detalle de {original_topic[:60]} nos acerca más a comprender fenómenos que moldean nuestra realidad cotidiana.",
+        f"La historia detrás de {original_topic[:60]} es más extraordinaria de lo que imaginas. Acompáñanos en este viaje único.",
+        f"Analizamos en detalle {original_topic[:60]} con datos precisos y perspectivas que cambiarán tu forma de ver este tema.",
+        f"Concluimos nuestra exploración de {original_topic[:60]} con las conclusiones más importantes y lo que significa para el futuro.",
+    ]
     scenes = [
         {
-            "title":            f"Escena {i+1}: {original_topic[:40]}",
+            "title":            f"Capítulo {i+1}",
             "character_anchor": anchor,
-            "image_prompt":     f"{anchor}, cinematic scene {i+1}, {style_prefix}, high detail",
-            "narration":        f"Esta es la escena {i+1} sobre {original_topic[:60]}.",
+            "image_prompt":     f"{anchor}, cinematic scene {i+1}, {style_prefix}, high detail, dramatic lighting",
+            "narration":        _fallback_narrations[i % len(_fallback_narrations)],
             "mood":             "neutral",
         }
         for i in range(n_scenes)
@@ -1396,7 +1497,7 @@ def _assemble_clip(
                 srt_f.write(f"1\n00:00:00,000 --> {fmt_time(clip_dur)}\n{text}\n")
 
             safe_srt = srt_path.replace('\\', '/').replace(':', '\\:')
-            vf_parts.append(f"subtitles='{safe_srt}':force_style='FontSize=20,PrimaryColour=&H00FFFFFF,BorderStyle=3,Outline=2,Shadow=1,Alignment=2,MarginV=20'")
+            vf_parts.append(f"subtitles='{safe_srt}':force_style='FontSize=26,PrimaryColour=&H0000FFFF,BorderStyle=1,Outline=3,Shadow=2,Bold=1,Alignment=2,MarginV=35'")
 
         # -- Cinematic Scene Title Overlay --
         if scene_title:
@@ -1656,9 +1757,10 @@ def _concatenate_clips(clip_paths: list[str], output_mp4: str, bgm_type: str = "
             if r_concat.returncode == 0 and os.path.isfile(temp_concat):
                 # Paso 2: Mezclar BGM
                 filter_str = (
-                    f"[0:a]aresample=44100,volume=1.0[narr];"
+                    f"[0:a]aresample=44100,volume=1.2,asplit[sc][narr];"
                     f"[1:a]aresample=44100,volume={bgm_volume:.3f}[bgm];"
-                    f"[narr][bgm]amix=inputs=2:duration=first:dropout_transition=2[aout]"
+                    f"[bgm][sc]sidechaincompress=threshold=0.03:ratio=5:level_sc=0.8:attack=20:release=500[bgm_duck];"
+                    f"[narr][bgm_duck]amix=inputs=2:duration=first:dropout_transition=2,volume=1.8[aout]"
                 )
                 cmd = [
                     FFMPEG_EXE, "-y",
@@ -1820,14 +1922,15 @@ def _update_job(job_id: int, **kwargs) -> None:
     sql    = "UPDATE video_jobs SET " + ", ".join(f"{k}=?" for k in fields)
     sql   += " WHERE id=?"
     values = list(fields.values()) + [job_id]
-    conn   = sqlite3.connect(DB_PATH)
+    conn   = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
+    conn.execute("PRAGMA journal_mode=WAL")
     conn.execute(sql, values)
     conn.commit()
     conn.close()
 
 
 def _check_cancelled(job_id: int):
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
     status = conn.execute("SELECT status FROM video_jobs WHERE id=?", (job_id,)).fetchone()
     conn.close()
     if status and status[0] == 'cancelled':
@@ -1918,6 +2021,8 @@ def _process_job(
         total_steps = n_scenes * 3 + 1
         step        = 0
         clip_paths: list[str] = []
+        scenes_payload = []
+        scenes_payload = []
 
         # -- Intro card opcional
         if intro_card:
@@ -2016,30 +2121,105 @@ def _process_job(
                 else:
                     log.info(f"[VideoStudio] [MAI-L2] ComfyUI no disponible. Fallback a L1 ({effective_animation}).")
 
-            if _assemble_clip(_animated_src, audio_path if audio_ok else None, clip_path, fade=transitions, resolution=resolution, text=narration, subtitles=subtitles, fps=fps, scene_duration=scene_duration, duration_mode=duration_mode, codec=codec, ken_burns=ken_burns, color_grade=_cgrade, scene_idx=scene_num, scene_title=scene_title, animation_effect=effective_animation):
-                clip_paths.append(clip_path)
-                with _lock:
-                    if _current_job and scene_num not in _current_job.get("scenes_done", []):
-                        _current_job.setdefault("scenes_done", []).append(scene_num)
-            else:
-                raise RuntimeError(f"Error al ensamblar el clip de la escena {scene_num}.")
+            # --- START REMOTION SCENE GATHERING ---
+            # REMOTION_FPS es distinto de fps (el fps de FFmpeg/clips).
+            # Remotion siempre renderiza a 30fps (Root.tsx). El cálculo de
+            # durationInFrames DEBE usar REMOTION_FPS o los subtítulos desincronizarán.
+            _dur_frames = int(scene_duration * REMOTION_FPS)
+            _words = []
+            if audio_ok and os.path.isfile(audio_path):
+                import subprocess
+                try:
+                    probe = subprocess.run([FFMPEG_EXE, '-i', audio_path], capture_output=True, text=True, errors='replace')
+                    _dur = float(scene_duration)
+                    for l in probe.stderr.splitlines():
+                        if 'Duration:' in l:
+                            t = l.split('Duration:')[1].split(',')[0].strip()
+                            h, m, s = t.split(':')
+                            _dur = int(h) * 3600 + int(m) * 60 + float(s)
+                            break
+                    _dur_frames = int(_dur * REMOTION_FPS)
 
-        # â”€â”€ PASO 5: Video final â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        _update_job(job_id, progress=95, current_step="Concatenando clips en video final...")
+                    if subtitles:
+                        from core.whisper_engine import WhisperEngine
+                        _we = WhisperEngine(model_size="base")
+                        _words = _we.extract_words(audio_path, language=narration_lang[:2])
+                except Exception as e:
+                    log.warning(f"[VideoStudio] Error calculando tiempos para {audio_path}: {e}")
+
+            scenes_payload.append({
+                "imagePath": _animated_src,
+                "audioPath": audio_path if audio_ok else "",
+                "durationInFrames": _dur_frames,
+                "words": _words
+            })
+            with _lock:
+                if _current_job and scene_num not in _current_job.get('scenes_done', []):
+                    _current_job.setdefault('scenes_done', []).append(scene_num)
+            # --- END REMOTION SCENE GATHERING ---
+
+        # ── PASO 5: Video final ──────────────────────────────────────
+        _update_job(job_id, progress=95, current_step="Renderizando video principal con Remotion...")
         with _lock:
             if _current_job:
                 _current_job["progress"] = 95
-                _current_job["current_step"] = "Concatenando video final..."
+                _current_job["current_step"] = "Renderizando video principal..."
 
         ts         = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         safe_topic = "".join(c for c in topic[:30] if c.isalnum() or c in " _-").strip().replace(" ", "_")
         final_path = os.path.join(OUTPUT_DIR, f"video_{job_id}_{safe_topic}_{ts}.mp4")
 
-        if clip_paths and _concatenate_clips(clip_paths, final_path, bgm_type, bgm_volume, codec, resolution):
+        # Renderizar main video con Remotion
+        total_duration_frames = sum(s.get("durationInFrames", 150) for s in scenes_payload)
+        main_video_rendered = False
+        try:
+            from core.remotion_engine import RemotionEngine
+            r_engine = RemotionEngine()
+            long_props = {
+                "scenes": scenes_payload,
+                "durationInFrames": total_duration_frames
+            }
+            output_name = f"main_long_{job_id}_{ts}"
+            main_rendered_path = r_engine.render_composition("LongTemplate", output_name, long_props)
+            if main_rendered_path and os.path.isfile(main_rendered_path):
+                clip_paths.append(main_rendered_path)
+                main_video_rendered = True
+        except Exception as rem_e:
+            # Persistir stderr real en la DB para diagnóstico
+            _update_job(job_id, error=str(rem_e)[:1000])
+            log.error(f"[VideoStudio] Error en Remotion LongTemplate: {rem_e}")
+
+        # Si el render principal tuvo éxito, decidir cómo producir el archivo final:
+        # 1. Si hay intro_card O hay BGM → necesitamos _concatenate_clips (ffmpeg)
+        # 2. Si NO hay intro_card Y bgm_type=='ninguna' → el MP4 de Remotion ES el final, solo copiar
+        if main_video_rendered:
+            intro_clips = [p for p in clip_paths if p != main_rendered_path]
+            needs_concat = bool(intro_clips) or bgm_type != "ninguna"
+            if needs_concat:
+                if _concatenate_clips(clip_paths, final_path, bgm_type, bgm_volume, codec, resolution):
+                    pass  # final_path escrito por _concatenate_clips
+                else:
+                    # Fallback: usar solo el video Remotion sin BGM si concat falla
+                    import shutil
+                    shutil.copy2(main_rendered_path, final_path)
+                    log.warning(f"[VideoStudio] Fallback: video sin BGM/intro (concat falló).")
+            else:
+                # Sin intro_card y sin BGM: el output de Remotion es el archivo final directamente
+                import shutil
+                shutil.copy2(main_rendered_path, final_path)
+            render_ok = os.path.isfile(final_path) and os.path.getsize(final_path) > 0
+        else:
+            render_ok = False
+
+        if render_ok:
             now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
             _update_job(job_id, status="done", progress=100,
                         current_step="Completado", output_path=final_path,
                         finished_at=now)
+            with _lock:
+                if _current_job:
+                    _current_job["progress"] = 100
+                    _current_job["current_step"] = "Completado"
             log.info(f"[VideoStudio] Job #{job_id} completado -> {final_path}")
             # -- Thumbnail
             thumb_path = os.path.join(OUTPUT_DIR, f'thumb_{job_id}.jpg')
@@ -2070,30 +2250,92 @@ def _process_job(
             except Exception:
                 pass
 
-            # ── YouTube Auto-Upload (inyecta afiliados + registra en revenue) ─
+            # ── Generar Activos Sociales (Hack 3: Multiplicación de Contenido) ──
             try:
-                from core.youtube_uploader import upload_job_async
-                upload_job_async(
-                    job_id     = job_id,
-                    video_path = final_path,
-                    title      = title or topic[:100],
-                    thumb_path = thumb_path if os.path.isfile(thumb_path) else "",
-                    niche_id   = _niche_id,
-                    lang       = _niche_lang,
+                from core.social_assets_generator import generate_social_assets
+                social_output_path = os.path.join(job_dir, "social_assets.txt")
+                generate_social_assets(
+                    job_id=job_id,
+                    script_path=script_json_path,
+                    output_path=social_output_path,
+                    lang=_niche_lang
                 )
-            except Exception as _yt_e:
-                log.warning(f"[VideoStudio] YouTube upload dispatch error: {_yt_e}")
+            except Exception as _sa_e:
+                log.warning(f"[VideoStudio] Error generando activos sociales: {_sa_e}")
+
+            # ── YouTube Auto-Upload (inyecta afiliados + registra en revenue) ─
 
             # ── Social Distribution (TikTok / Instagram Reels) ────────────────
             try:
+                _shorts_path = final_path.replace('.mp4', '_short.mp4')
+                
+                # 1. Remotion Shorts Generator
+                try:
+                    log.info("[VideoStudio] Iniciando generación de Short interactivo con Remotion y Whisper...")
+                    from core.whisper_engine import WhisperEngine
+                    from core.remotion_engine import RemotionEngine
+                    import subprocess
+                    
+                    temp_short_src = final_path.replace('.mp4', '_temp_short.mp4')
+                    subprocess.run([
+                        FFMPEG_EXE, '-y', '-i', final_path, 
+                        '-t', '59', '-c:v', 'copy', '-c:a', 'copy', temp_short_src
+                    ], capture_output=True, creationflags=subprocess.CREATE_NO_WINDOW)
+                    
+                    probe = subprocess.run([FFMPEG_EXE, '-i', temp_short_src], capture_output=True, text=True, errors='replace')
+                    dur = 59
+                    for l in probe.stderr.splitlines():
+                        if 'Duration:' in l:
+                            t = l.split('Duration:')[1].split(',')[0].strip()
+                            h, m, s = t.split(':')
+                            dur = int(h) * 3600 + int(m) * 60 + float(s)
+                            break
+                    duration_frames = int(dur * REMOTION_FPS)
+                    
+                    w_engine = WhisperEngine(model_size="base")
+                    words_data = w_engine.extract_words(temp_short_src, language=narration_lang[:2])
+                    
+                    r_engine = RemotionEngine()
+                    props = {"videoPath": temp_short_src, "words": words_data, "durationInFrames": duration_frames}
+                    
+                    output_name = os.path.basename(_shorts_path).replace('.mp4', '')
+                    rendered_mp4 = r_engine.render_composition("ShortTemplate", output_name, props)
+                    
+                    if os.path.isfile(rendered_mp4):
+                        import shutil
+                        shutil.move(rendered_mp4, _shorts_path)
+                        log.info(f"[VideoStudio] Short generado exitosamente: {_shorts_path}")
+                        
+                    try:
+                        os.remove(temp_short_src)
+                    except:
+                        pass
+                except Exception as rem_e:
+                    log.error(f"[VideoStudio] Error generando Short con Remotion: {rem_e}")
+
+                # 2. YouTube Upload (Long + Short)
+                try:
+                    from core.youtube_uploader import upload_job_async
+                    upload_job_async(
+                        job_id     = job_id,
+                        video_path = final_path,
+                        title      = title or topic[:100],
+                        thumb_path = thumb_path if os.path.isfile(thumb_path) else "",
+                        niche_id   = _niche_id,
+                        lang       = _niche_lang,
+                    )
+                except Exception as _yt_e:
+                    log.warning(f"[VideoStudio] YouTube upload dispatch error: {_yt_e}")
+
+                # 3. Social Distribution (TikTok / Instagram)
                 from core.tiktok_uploader import distribute_short_async
-                _shorts_path = final_path.replace(".mp4", "_short.mp4")
                 if os.path.isfile(_shorts_path):
                     distribute_short_async(
                         job_id      = job_id,
                         shorts_path = _shorts_path,
                         title       = title or topic[:100],
                     )
+
             except Exception as _tt_e:
                 log.warning(f"[VideoStudio] Social distribution error: {_tt_e}")
 
@@ -2113,14 +2355,16 @@ def _process_job(
                     os.makedirs(inputs_dir, exist_ok=True)
                     lore_path = os.path.join(inputs_dir, "cinematic_lore.txt")
                     with open(lore_path, "a", encoding="utf-8") as f:
-                        f.write(f"\n\n=== HISTORIA: {title or topic} ===\n")
+                        # Guardar siempre referenciado al topic original para encadenado seguro
+                        safe_title = topic if len(topic) < 100 and not topic.startswith("http") else (title or "Historia_Generada")
+                        f.write(f"\n\n=== HISTORIA: {safe_title} ===\n")
                         for s in scenes:
                             f.write(f"Escena: {s.get('title', '')}\n")
                             f.write(f"Narración: {s.get('narration', '')}\n")
                 except Exception as e:
                     log.warning(f"[VideoStudio] Error guardando lore: {e}")
         else:
-            raise RuntimeError("No se pudieron generar clips.")
+            raise RuntimeError(f"Remotion render falló. Verifica los logs de RemotionEngine para detalles.")
 
     except Exception as e:
         if str(e) == "Proceso cancelado por el usuario.":
@@ -2168,7 +2412,7 @@ def _worker_loop() -> None:
     _init_db()
     while True:
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
             conn.row_factory = sqlite3.Row
             row  = conn.execute(
                 "SELECT * FROM video_jobs WHERE status='pending' ORDER BY id LIMIT 1"
@@ -2220,7 +2464,7 @@ def start() -> None:
     _init_db()
     t = threading.Thread(target=_worker_loop, name="GravityVideoWorker", daemon=True)
     t.start()
-    log.info("[VideoStudio] Worker daemon iniciado (Gravity Studio ULTRA V12.2 PRO - Audio Ducking & VFX Active).")
+    log.info("[VideoStudio] Worker daemon iniciado (Gravity Studio ULTRA V13.0 PRO - Audio Ducking & VFX Active).")
 
 
 # â”€â”€ API pÃºblica â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
