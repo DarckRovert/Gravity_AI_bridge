@@ -14,9 +14,15 @@ from api.state import check_rate_limit, register_ip_hit, geoip_cache, recent_ips
 class GetRoutesMixin:
     # ── Dashboard SPA ─────────────────────────────────────────────────────────
     def _serve_dashboard(self):
-        """Sirve el index.html del nuevo frontend React V12 (dist)."""
+        """Sirve el index.html del nuevo frontend React V12 (dist) o (web) en prod."""
+        import sys
         BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        index_path = os.path.join(BASE, "frontend", "dist", "index.html")
+        if getattr(sys, "frozen", False):
+            BASE = sys._MEIPASS if hasattr(sys, "_MEIPASS") else os.path.dirname(os.path.abspath(sys.executable))
+        
+        index_path = os.path.join(BASE, "web", "index.html")
+        if not os.path.isfile(index_path):
+            index_path = os.path.join(BASE, "frontend", "dist", "index.html")
         
         if os.path.isfile(index_path):
             try:
@@ -50,12 +56,18 @@ class GetRoutesMixin:
                 pass
 
     def _serve_frontend_static(self):
-        """Sirve archivos estaticos (.js, .css, .svg) desde frontend/dist."""
+        """Sirve archivos estaticos (.js, .css, .svg) desde frontend/dist o web."""
+        import sys
         path_clean = self.path.split("?")[0]
         rel_path = path_clean.lstrip("/")
 
         BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        dist_path = os.path.realpath(os.path.join(BASE, "frontend", "dist"))
+        if getattr(sys, "frozen", False):
+            BASE = sys._MEIPASS if hasattr(sys, "_MEIPASS") else os.path.dirname(os.path.abspath(sys.executable))
+            dist_path = os.path.realpath(os.path.join(BASE, "web"))
+        else:
+            dist_path = os.path.realpath(os.path.join(BASE, "frontend", "dist"))
+            
         filepath  = os.path.realpath(os.path.join(dist_path, rel_path))
 
         # Seguridad: verificar que el path resuelto esté dentro del directorio permitido

@@ -72,15 +72,15 @@ echo.
 
 if exist "GravityBridge.spec" (
     echo  [INFO] Usando GravityBridge.spec existente...
-    pyinstaller GravityBridge.spec --noconfirm --distpath dist --workpath build --clean
+    python -m PyInstaller GravityBridge.spec --noconfirm --distpath dist --workpath build --clean
 ) else (
     echo  [INFO] GravityBridge.spec no encontrado. Generando desde flags...
-    pyinstaller gravity_launcher.pyw ^
+    python -m PyInstaller gravity_launcher.pyw ^
       --name GravityBridge ^
       --onefile ^
       --noconsole ^
       --icon assets\gravity_icon.ico ^
-      --add-data "web;web" ^
+      --add-data "frontend\dist;web" ^
       --add-data "core;core" ^
       --add-data "rag;rag" ^
       --add-data "providers;providers" ^
