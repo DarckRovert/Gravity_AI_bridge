@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Optimization -->
+    <title>Gravity AI Bridge V15.0 PRO | Orquestador de IA Local-First Omniscient-Tier</title>
+    <meta name="description" content="Orquestador universal local-first que une LLMs locales (Ollama, LM Studio), pipelines de video, OBS Studio y automatización del sistema sin suscripciones. Control absoluto en 1 PC.">
+    <meta name="keywords" content="IA local, AI Bridge, Ollama, LM Studio, DeepSeek-R1, Fooocus, automatización, programadores, local first, OBS automation, MangosD WoW, Python, React">
+    <meta name="author" content="DarckRovert">
+    
+    <!-- OpenGraph (para redes sociales) -->
+    <meta property="og:title" content="Gravity AI Bridge V15.0 PRO | Orquestador de IA Local-First">
+    <meta property="og:description" content="Controla tus modelos de IA locales, automatiza videos para redes sociales, inyecta overlays dinámicos a OBS y gestiona tus servidores de juego desde un único panel premium React local.">
+    <meta property="og:type" content="website">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS Link -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌌</text></svg>">
+</head>
+<body>
+    <!-- Interactive Background Canvas (Gravity Particle Field) -->
+    <canvas id="gravity-bg"></canvas>
+
+    <!-- Header Navigation -->
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo-area" id="brand-logo">
+                <span class="logo-icon">🌌</span>
+                <div class="logo-text">
+                    <span class="brand-name">GRAVITY <span class="accent-text">AI</span></span>
+                    <span class="brand-sub">BRIDGE V15.0 PRO</span>
+                </div>
+            </div>
+            <nav class="desktop-nav" aria-label="Navegación Principal">
+                <a href="#features" class="nav-link">Características</a>
+                <a href="#terminal-section" class="nav-link">Terminal Interactiva</a>
+                <a href="#arena" class="nav-link">Debate Arena</a>
+                <a href="#hitl-section" class="nav-link">Seguridad HITL</a>
+                <a href="#monetization" class="nav-link">Monetización</a>
+                <a href="#installer" class="nav-link docs-badge">Instalación</a>
+            </nav>
+            <div class="header-actions">
+                <a href="https://github.com/DarckRovert/Gravity_AI_bridge" target="_blank" class="github-btn" id="github-link" aria-label="Ver en GitHub">
+                    <svg viewBox="0 0 24 24" class="svg-icon" aria-hidden="true">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    <span>GitHub</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        
+        <!-- Hero Section -->
+        <section class="hero-section" id="hero">
+            <div class="hero-container">
+                <div class="badge-container">
+                    <span class="pulse-badge"></span>
+                    <span class="badge-label">Omniscient-Tier Local-First AI Factory</span>
+                </div>
+                <h1 class="hero-title">
+                    Tu máquina local ya no es solo una PC.<br>
+                    <span class="gradient-text">Es un Imperio de IA Privado.</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Libera el verdadero poder de tu hardware. <strong>Gravity AI Bridge V15.0 PRO</strong> es el orquestador asíncrono universal en Python y React que unifica clústeres de IA locales, generación de video cinemático, control de OBS Studio en vivo, servidores de juegos y automatización sin enviar un solo byte a la nube.
+                </p>
+                <div class="hero-ctas">
+                    <a href="#terminal-section" class="primary-cta-btn" id="cta-start">
+                        <span>Iniciar Terminal Interactiva</span>
+                        <svg viewBox="0 0 24 24" class="arrow-icon" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </a>
+                    <a href="#features" class="secondary-cta-btn" id="cta-explore">Ver Módulos del Sistema</a>
+                </div>
+                
+                <!-- Quick Architecture Badges -->
+                <div class="arch-badges">
+                    <div class="arch-badge"><span class="badge-icon">⚡</span> Zero-Cloud Latency</div>
+                    <div class="arch-badge"><span class="badge-icon">📦</span> Zero Heavy Dependencies</div>
+                    <div class="arch-badge"><span class="badge-icon">🛡️</span> HITL Protected</div>
+                    <div class="arch-badge"><span class="badge-icon">🎮</span> WoW & OBS Ready</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Terminal Section -->
+        <section class="terminal-section" id="terminal-section">
+            <div class="section-container">
+                <div class="section-header text-center">
+                    <span class="section-tag">Demostración Técnica</span>
+                    <h2 class="section-title">Control Absoluto por Consola</h2>
+                    <p class="section-desc">Interactúa directamente con la simulación del demonio de Gravity. Haz clic en las sugerencias de comando o escribe tu propia instrucción para ver las respuestas del sistema en tiempo real.</p>
+                </div>
+                
+                <div class="terminal-wrapper">
+                    <!-- Console UI -->
+                    <div class="terminal-container">
+                        <div class="terminal-header">
+                            <div class="terminal-dots">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                            </div>
+                            <div class="terminal-title">gravity@localhost:~ (V15.0 PRO Daemon)</div>
+                            <div class="terminal-status"><span class="status-indicator online"></span> ONLINE</div>
+                        </div>
+                        
+                        <div class="terminal-body" id="terminal-screen" role="log" aria-live="polite">
+                            <div class="terminal-line system-msg">Initializing Gravity AI Bridge Core Engine V15.0 PRO...</div>
+                            <div class="terminal-line system-msg">Host Conscious Watchdog: ACTIVE (AMD Ryzen NPU detected)</div>
+                            <div class="terminal-line system-msg">Turbo KV Compression: ENABLED (Flash Attention active)</div>
+                            <div class="terminal-line system-msg">Type <span class="highlight">help</span> to list all available commands.</div>
+                            <div class="terminal-line empty"></div>
+                            
+                            <!-- Input Prompt -->
+                            <div class="terminal-input-row">
+                                <span class="terminal-prompt">gravity:~$</span>
+                                <input type="text" id="terminal-input" autocomplete="off" spellcheck="false" placeholder="Escribe un comando... (ej. gravity status)" aria-label="Consola interactiva de comandos Gravity">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Command Quick Actions -->
+                    <div class="command-suggestions">
+                        <h3>Comandos rápidos sugeridos</h3>
+                        <div class="suggestion-grid">
+                            <button class="cmd-btn" data-command="gravity status" id="btn-cmd-status">
+                                <span class="cmd-name">gravity status</span>
+                                <span class="cmd-desc">Ver estado de hardware, VRAM y modelos activos</span>
+                            </button>
+                            <button class="cmd-btn" data-command="gravity spawn coder" id="btn-cmd-spawn">
+                                <span class="cmd-name">gravity spawn coder</span>
+                                <span class="cmd-desc">Lanzar un subproceso de agente asíncrono</span>
+                            </button>
+                            <button class="cmd-btn" data-command="gravity vote 'diseñar cola paralela'" id="btn-cmd-vote">
+                                <span class="cmd-name">gravity vote ...</span>
+                                <span class="cmd-desc">Debate paralelo con eliminación de &lt;think&gt;</span>
+                            </button>
+                            <button class="cmd-btn" data-command="gravity spark --color neon-violet" id="btn-cmd-spark">
+                                <span class="cmd-name">gravity spark ...</span>
+                                <span class="cmd-desc">Inyectar overlay HTML dinámico a OBS Studio</span>
+                            </button>
+                            <button class="cmd-btn" data-command="gravity deploy" id="btn-cmd-deploy">
+                                <span class="cmd-name">gravity deploy</span>
+                                <span class="cmd-desc">Simular pipeline automatizado Netlify</span>
+                            </button>
+                            <button class="cmd-btn" data-command="help" id="btn-cmd-help">
+                                <span class="cmd-name">help</span>
+                                <span class="cmd-desc">Mostrar todos los comandos de la demo</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Core Features Grid -->
+        <section class="features-section" id="features">
+            <div class="section-container">
+                <div class="section-header text-center">
+                    <span class="section-tag">Arquitectura Omniscient-Tier</span>
+                    <h2 class="section-title">Ingeniería sin Concesiones</h2>
+                    <p class="section-desc">Gravity AI Bridge está programado para ser extremadamente ligero pero infinitamente potente. Olvídate de dependencias masivas que ralentizan tu máquina; esto es rendimiento puro.</p>
+                </div>
+                
+                <div class="features-grid">
+                    <!-- Card 1: Multi-Agent Orchestrator -->
+                    <div class="feature-card" tabindex="0">
+                        <div class="card-glow"></div>
+                        <div class="feature-icon">🧠</div>
+                        <h3>Multi-Agent Orchestrator</h3>
+                        <p>Dispara consultas concurrentes en paralelo a múltiples modelos. Su sistema de votación consensuada y debate permite extraer la mejor lógica y depurar errores antes de entregártelos.</p>
+                        <div class="tech-stack-badges">
+                            <span>core/multi_agent.py</span>
+                            <span>SSE Streaming</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Card 2: Dynamic Watchdog & Turbo KV -->
+                    <div class="feature-card" tabindex="0">
+                        <div class="card-glow"></div>
+                        <div class="feature-icon">⚡</div>
+                        <h3>Watchdog & Turbo KV</h3>
+                        <p>Monitoreo dinámico del Host. Detecta estrés térmico y uso de VRAM/NPU en tiempo real. Configura automáticamente <code>OLLAMA_KV_CACHE_TYPE=q4_0</code> comprimiendo el consumo de caché 4 veces.</p>
+                        <div class="tech-stack-badges">
+                            <span>core/engine_watchdog.py</span>
+                            <span>Auto-Scale</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: OBS Control & Gravity Spark -->
+                    <div class="feature-card" tabindex="0">
+                        <div class="card-glow"></div>
+                        <div class="feature-icon">📡</div>
+                        <h3>Gravity Spark (OBS Engine)</h3>
+                        <p>Control de OBS vía WebSockets v5. Olvídate de overlays fijos: genera código HTML/CSS/JS animado por IA al vuelo e inyéctalo directamente como <i>Browser Source</i> en OBS sin reiniciar.</p>
+                        <div class="tech-stack-badges">
+                            <span>core/obs_spark_engine.py</span>
+                            <span>WebSocket v5</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Video Studio & MAI Engine -->
+                    <div class="feature-card" tabindex="0">
+                        <div class="card-glow"></div>
+                        <div class="feature-icon">🎬</div>
+                        <h3>Video Studio & MAI Engine</h3>
+                        <p>Pipeline completo de generación de video con consistencia visual inter-escena. Anima imágenes fijas con efectos Ken Burns o modelos ComfyUI LTX-Video. Narración TTS integrada offline.</p>
+                        <div class="tech-stack-badges">
+                            <span>core/animation_engine.py</span>
+                            <span>FFmpeg L1/L2</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 5: HITL Security Approval -->
+                    <div class="feature-card" tabindex="0">
+                        <div class="card-glow"></div>
+                        <div class="feature-icon">🛡️</div>
+                        <h3>Human-In-The-Loop (HITL)</h3>
+                        <p>Tus datos y tu máquina están a salvo. Cuando un agente intenta ejecutar un comando sensible o reescribir un archivo del sistema, el sistema lo intercepta encolándolo hasta tu aprobación.</p>
+                        <div class="tech-stack-badges">
+                            <span>core/hitl_manager.py</span>
+                            <span>Anti-Breakout</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 6: Game Server Control WoW -->
+                    <div class="feature-card" tabindex="0">
+                        <div class="card-glow"></div>
+                        <div class="feature-icon">⚔️</div>
+                        <h3>Game Servers Integrados</h3>
+                        <p>Controla tus servidores locales (e.g. MangosD de World of Warcraft). Pre-flight MySQL para evitar corrupción, copias de seguridad automáticas <code>mysqldump</code> y balanceo de hilos.</p>
+                        <div class="tech-stack-badges">
+                            <span>core/game_server_manager.py</span>
+                            <span>Pre-flight MySQL</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Multi-Agent Debate Arena (Interactive Simulation) -->
+        <section class="arena-section" id="arena">
+            <div class="section-container">
+                <div class="section-header text-center">
+                    <span class="section-tag">Interactive Simulation</span>
+                    <h2 class="section-title">Debate Multi-Agente & Reasoning Stripper</h2>
+                    <p class="section-desc">Mira cómo funciona la lógica distribuida de Gravity. Al proponer una tarea, varios modelos debaten entre sí en paralelo. El sistema aplica Regex en caliente para limpiar los tags de pensamiento antes de renderizar la respuesta final.</p>
+                </div>
+                
+                <div class="arena-grid">
+                    <!-- Agents Controls -->
+                    <div class="arena-controls">
+                        <h3>Configuración del Debate</h3>
+                        <div class="form-group">
+                            <label for="debate-prompt">Selecciona un Prompt técnico:</label>
+                            <select id="debate-prompt" class="custom-select">
+                                <option value="0">Optimizar un algoritmo de búsqueda binaria asíncrono en Rust</option>
+                                <option value="1">Diseñar un middleware de límite de peticiones (Rate Limiter) thread-safe</option>
+                                <option value="2">Explicar la diferencia entre semáforos y mutexes en sistemas de tiempo real</option>
+                            </select>
+                        </div>
+                        
+                        <div class="agent-toggles">
+                            <h4>Modelos que debatirán:</h4>
+                            <div class="agent-badge active">🤖 DeepSeek-R1 (Reasoner)</div>
+                            <div class="agent-badge active">🤖 Llama-3.1-8B (Coder)</div>
+                            <div class="agent-badge active">🤖 Mistral-7B (Auditor)</div>
+                        </div>
+                        
+                        <button class="primary-action-btn" id="start-debate-btn">
+                            <span>Iniciar Debate en Vivo</span>
+                        </button>
+                        
+                        <div class="stripper-toggle-container">
+                            <label class="switch-label" for="stripper-toggle">
+                                <input type="checkbox" id="stripper-toggle" checked>
+                                <span class="slider round"></span>
+                            </label>
+                            <span class="toggle-text">Activar <b>Reasoning Stripper</b> (Filtro <code>&lt;think&gt;</code>)</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Debate Stream Screen -->
+                    <div class="arena-display-container">
+                        <div class="arena-tabs">
+                            <button class="arena-tab active" data-agent="reasoner" id="tab-reasoner">DeepSeek-R1</button>
+                            <button class="arena-tab" data-agent="coder" id="tab-coder">Llama-3.1-8B</button>
+                            <button class="arena-tab" data-agent="auditor" id="tab-auditor">Mistral (Auditor)</button>
+                            <button class="arena-tab consensus-tab" data-agent="consensus" id="tab-consensus">Consenso Final</button>
+                        </div>
+                        
+                        <div class="arena-body" id="arena-stream" role="log" aria-live="polite">
+                            <div class="arena-placeholder">Presiona "Iniciar Debate en Vivo" para ver fluir la inferencia asíncrona local y el debate de modelos en paralelo.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Hardware & Watchdog Simulation -->
+        <section class="hardware-section" id="hardware-section">
+            <div class="section-container">
+                <div class="section-header text-center">
+                    <span class="section-tag">Host Awareness</span>
+                    <h2 class="section-title">Observabilidad y Monitor de Hardware Local</h2>
+                    <p class="section-desc">Gravity es consciente del estado de tu hardware. Al sobrecargar la VRAM de tu GPU, el Watchdog bloquea nuevos procesos, libera caché y optimiza los hilos de Ollama para evitar congelamientos.</p>
+                </div>
+                
+                <div class="hardware-grid">
+                    <!-- Hardware Metrics Simulated -->
+                    <div class="hardware-metrics">
+                        <div class="metric-box">
+                            <div class="metric-header">
+                                <span>VRAM (GPU AMD/Nvidia)</span>
+                                <span class="metric-val" id="vram-val">4.2 GB / 12 GB</span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar purple" id="vram-bar" style="width: 35%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-box">
+                            <div class="metric-header">
+                                <span>RAM Principal</span>
+                                <span class="metric-val" id="ram-val">14.1 GB / 32 GB</span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar blue" id="ram-bar" style="width: 44%"></div>
+                            </div>
+                        </div>
+
+                        <div class="metric-box">
+                            <div class="metric-header">
+                                <span>Temperatura Hotspot</span>
+                                <span class="metric-val" id="temp-val">58°C</span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar orange" id="temp-bar" style="width: 58%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="watchdog-logs">
+                            <h4>Logs del Engine Watchdog:</h4>
+                            <div class="log-screen" id="watchdog-log-screen">
+                                <div class="log-line">[SYSTEM] Watchdog daemon initialized. Monitoring GPU frame buffer...</div>
+                                <div class="log-line">[INFO] Current VRAM usage within safe margins (35%). Lock status: UNLOCKED.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Watchdog Interactive Control -->
+                    <div class="watchdog-actions">
+                        <h3>Simular sobrecarga de VRAM</h3>
+                        <p>Interactúa con el monitor. Fuerza una sobrecarga de VRAM ejecutando un modelo secundario grande de 70B para ver cómo actúa el <b>Engine Watchdog</b> y activa el <b>Turbo KV</b>.</p>
+                        
+                        <div class="action-buttons-group">
+                            <button class="hardware-action-btn warning-btn" id="heavy-model-btn">
+                                <span>Cargar Modelo Llama-3-70B (Sobrecarga)</span>
+                            </button>
+                            <button class="hardware-action-btn success-btn" id="optimize-kv-btn" disabled>
+                                <span>Activar Turbo KV (Comprimir 4x)</span>
+                            </button>
+                            <button class="hardware-action-btn" id="reset-hardware-btn">
+                                <span>Restablecer Hardware</span>
+                            </button>
+                        </div>
+                        
+                        <div class="hardware-explanation">
+                            <div class="alert-box" id="hardware-alert">
+                                <span class="alert-icon">✓</span>
+                                <span class="alert-text" id="hardware-alert-text">El sistema opera en rangos normales de temperatura y memoria.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HITL Security Approval Simulator -->
+        <section class="hitl-section" id="hitl-section">
+            <div class="section-container">
+                <div class="section-header text-center">
+                    <span class="section-tag">Human In The Loop</span>
+                    <h2 class="section-title">Sandbox Seguro contra Escapes</h2>
+                    <p class="section-desc">Los agentes inteligentes de código pueden equivocarse. Gravity intercepta todas las llamadas del sistema de alta peligrosidad (lecturas/escrituras masivas, git push, scripts de bash) y los mantiene en cola hasta que tú les des el visto bueno en el panel.</p>
+                </div>
+                
+                <div class="hitl-simulator-container">
+                    <div class="hitl-card-wrapper">
+                        <!-- HITL Alert Badge -->
+                        <div class="hitl-header-alert">
+                            <span class="hitl-badge-icon">⚠️</span>
+                            <span>SOLICITUD DE APROBACIÓN DE SEGURIDAD INTERCEPTADA</span>
+                        </div>
+                        
+                        <div class="hitl-card-body">
+                            <div class="hitl-details-row">
+                                <span class="detail-title">Origen:</span>
+                                <span class="detail-val font-mono">Agent-Executor-Worker-3</span>
+                            </div>
+                            <div class="hitl-details-row">
+                                <span class="detail-title">Herramienta:</span>
+                                <span class="detail-val font-mono highlight-text">shell_exec (Comando del Sistema)</span>
+                            </div>
+                            <div class="hitl-details-row">
+                                <span class="detail-title">Comando Solicitado:</span>
+                                <div class="command-block" id="hitl-command">
+                                    git push origin main --force
+                                </div>
+                            </div>
+                            <div class="hitl-details-row">
+                                <span class="detail-title">Explicación del Agente:</span>
+                                <p class="agent-rationale" id="hitl-rationale">He corregido el bug en la lógica de las cookies de sesión local. Necesito forzar el empuje a la rama principal de producción en GitHub para aplicar los cambios de inmediato.</p>
+                            </div>
+                            <div class="hitl-timeout">
+                                <span class="timeout-label">Rechazo automático en:</span>
+                                <span class="timeout-timer" id="hitl-timer">120s</span>
+                            </div>
+                        </div>
+                        
+                        <div class="hitl-card-footer">
+                            <button class="hitl-btn reject" id="hitl-reject-btn">Rechazar Operación</button>
+                            <button class="hitl-btn approve" id="hitl-approve-btn">Aprobar y Ejecutar</button>
+                        </div>
+                    </div>
+                    
+                    <div class="hitl-instructions">
+                        <h3>Simular otra herramienta peligrosa</h3>
+                        <p>Selecciona una acción sensible del agente para ver cómo el gestor de HITL la intercepta en la cola thread-safe de la máquina local:</p>
+                        <div class="hitl-tools-selector">
+                            <button class="tool-sel-btn active" data-tool="git" id="btn-hitl-git">Git Force Push</button>
+                            <button class="tool-sel-btn" data-tool="delete" id="btn-hitl-delete">Borrar Caché Sqlite</button>
+                            <button class="tool-sel-btn" data-tool="write" id="btn-hitl-write">Sobrescribir bridge_server.py</button>
+                        </div>
+                        <div class="hitl-result-status" id="hitl-result-log">
+                            Esperando interacción del programador...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Autonomous Monetization Calculator -->
+        <section class="monetization-section" id="monetization">
+            <div class="section-container">
+                <div class="section-header text-center">
+                    <span class="section-tag">Passive Revenue Engine</span>
+                    <h2 class="section-title">Autonomous Monetization Factory</h2>
+                    <p class="section-desc">Multiplica tus ingresos orgánicos. Gravity renderiza videos con el MAI Engine, extrae guiones para generar hilos virales en Twitter/X y carruseles en Instagram, traduce el contenido a 5 idiomas, inyecta CTAs dinámicos de afiliados CPA y calcula el alcance estimado en tu nicho.</p>
+                </div>
+                
+                <div class="monetization-grid">
+                    <!-- Projections Form -->
+                    <div class="monetization-inputs">
+                        <h3>Simulador de Alcance de Contenido</h3>
+                        <p>Ajusta los parámetros para calcular la potencia de distribución masiva de tu Fábrica de Monetización Local.</p>
+                        
+                        <div class="calc-range-group">
+                            <label for="range-videos">Videos Automatizados por Día:</label>
+                            <div class="range-value-row">
+                                <input type="range" id="range-videos" min="1" max="10" value="3">
+                                <span class="range-val" id="val-videos">3</span>
+                            </div>
+                        </div>
+
+                        <div class="calc-range-group">
+                            <label for="range-languages">Idiomas Clonados (Language Cloner):</label>
+                            <div class="range-value-row">
+                                <input type="range" id="range-languages" min="1" max="5" value="2">
+                                <span class="range-val" id="val-languages">2</span>
+                            </div>
+                        </div>
+
+                        <div class="calc-range-group">
+                            <label for="range-channels">Canales de Distribución Activos:</label>
+                            <div class="range-value-row">
+                                <input type="range" id="range-channels" min="1" max="4" value="2">
+                                <span class="range-val" id="val-channels">2 (TikTok + YouTube)</span>
+                            </div>
+                        </div>
+                        
+                        <div class="monetization-features-list">
+                            <div class="m-feat"><span class="m-feat-icon">✓</span> Inyección dinámica de enlaces CPA por nicho</div>
+                            <div class="m-feat"><span class="m-feat-icon">✓</span> Hilos de X/LinkedIn autogenerados post-render</div>
+                            <div class="m-feat"><span class="m-feat-icon">✓</span> Audio multilingüe sincronizado con atempo</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Projections Results Card -->
+                    <div class="monetization-results">
+                        <div class="results-glowing-card">
+                            <h4>Proyección Anual Estimada de Impacto Orgánico</h4>
+                            <div class="impact-metric-grid">
+                                <div class="impact-metric-box">
+                                    <span class="m-title">Videos Publicados / Año</span>
+                                    <span class="m-val" id="m-pub-videos">2,190</span>
+                                </div>
+                                <div class="impact-metric-box">
+                                    <span class="m-title">Impacto en Hilos / Posts</span>
+                                    <span class="m-val" id="m-social-assets">4,380</span>
+                                </div>
+                                <div class="impact-metric-box">
+                                    <span class="m-title">Vistas Orgánicas Proyectadas</span>
+                                    <span class="m-val cyan-text" id="m-views">8.7M</span>
+                                </div>
+                                <div class="impact-metric-box">
+                                    <span class="m-title">Ingresos CPA Estimados / Año</span>
+                                    <span class="m-val green-text" id="m-revenue">$17,520 USD</span>
+                                </div>
+                            </div>
+                            <p class="impact-disclaimer">Estimación conservadora basada en un CTR del 1.2% y un CPM de afiliados promedio de $2.00 USD. Sin pagar pautas publicitarias, 100% orgánico y renderizado localmente en tu hardware.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Configuration & Deployment -->
+        <section class="installer-section" id="installer">
+            <div class="section-container">
+                <div class="section-header text-center">
+                    <span class="section-tag">Despliegue e Inicio</span>
+                    <h2 class="section-title">Instalación en 1-Clic para Desarrolladores</h2>
+                    <p class="section-desc">Monta tu orquestador local en segundos. Sin nubes complejas ni Kubernetes: un simple archivo de configuración YAML te da el control de todo el host.</p>
+                </div>
+                
+                <div class="installer-grid">
+                    <!-- Config Code Block -->
+                    <div class="config-block">
+                        <div class="code-header">
+                            <span class="code-title">config.yaml</span>
+                            <button class="copy-btn" id="copy-yaml-btn">Copiar</button>
+                        </div>
+                        <pre class="code-pre"><code><span class="c-comment"># Servidor del panel de control de Gravity</span>
+<span class="c-key">server</span>:
+  <span class="c-key">port</span>: <span class="c-val">7860</span>
+  <span class="c-key">host</span>: <span class="c-val">"127.0.0.1"</span>
+
+<span class="c-comment"># Enrutador de Agentes Locales</span>
+<span class="c-key">agent_routing</span>:
+  <span class="c-key">auditor</span>:
+    <span class="c-key">provider</span>: <span class="c-val">ollama</span>
+    <span class="c-key">model</span>: <span class="c-val">"deepseek-r1:8b"</span>
+  <span class="c-key">planner</span>:
+    <span class="c-key">provider</span>: <span class="c-val">lm_studio</span>
+    <span class="c-key">model</span>: <span class="c-val">"llama-3.1-8b"</span>
+
+<span class="c-comment"># Parámetros del Watchdog de VRAM</span>
+<span class="c-key">watchdog</span>:
+  <span class="c-key">vram_threshold_pct</span>: <span class="c-val">85.0</span>
+  <span class="c-key">turbo_kv_enabled</span>: <span class="c-val">true</span></code></pre>
+                    </div>
+                    
+                    <!-- Quick Setup Instructions -->
+                    <div class="setup-steps">
+                        <h3>Guía de Inicio Rápido</h3>
+                        
+                        <div class="step-row">
+                            <span class="step-num">1</span>
+                            <div class="step-text">
+                                <strong>Clona el repositorio</strong>
+                                <pre class="inline-code">git clone https://github.com/DarckRovert/Gravity_AI_bridge.git</pre>
+                            </div>
+                        </div>
+
+                        <div class="step-row">
+                            <span class="step-num">2</span>
+                            <div class="step-text">
+                                <strong>Instala las dependencias</strong>
+                                <pre class="inline-code">pip install -r requirements.txt</pre>
+                            </div>
+                        </div>
+
+                        <div class="step-row">
+                            <span class="step-num">3</span>
+                            <div class="step-text">
+                                <strong>Compila y ejecuta</strong>
+                                <p>Corre el instalador o inicializa el bridge local:</p>
+                                <pre class="inline-code">python bridge_server.py</pre>
+                            </div>
+                        </div>
+                        
+                        <div class="netlify-badge-info">
+                            <span class="netlify-icon">☁️</span>
+                            <p><strong>¿Listo para desplegar tu Dashboard?</strong> Puedes subir la interfaz de forma estática a Netlify en segundos arrastrando la carpeta <code>frontend/dist</code> para controlarla desde cualquier lugar de tu red WAN con seguridad cifrada.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-left">
+                <span class="footer-logo">🌌 GRAVITY AI BRIDGE</span>
+                <p>Ecosistema local privado de automatización y orquestación Omniscient-Tier.</p>
+            </div>
+            <div class="footer-right">
+                <div class="footer-links">
+                    <h4>Desarrollador</h4>
+                    <a href="https://github.com/DarckRovert" target="_blank">GitHub Profile</a>
+                    <a href="https://twitch.tv/darckrovert" target="_blank">Twitch Stream</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Documentación</h4>
+                    <a href="#installer">Instalación</a>
+                    <a href="#features">Módulos</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom text-center">
+            <p>© 2026 DarckRovert · Gravity AI Bridge. Todos los derechos de arquitectura reservados. Uso estrictamente no comercial.</p>
+        </div>
+    </footer>
+
+    <!-- Custom Javascript Link -->
+    <script src="script.js"></script>
+</body>
+</html>
