@@ -1720,58 +1720,354 @@ input:checked + .slider:before {
 }
 
 /* --- Responsive Adaptability --- */
+/* --- Hamburger Menu Button --- */
+.hamburger-btn {
+    display: none; /* Hidden by default on desktop */
+    flex-direction: column;
+    justify-content: space-between;
+    width: 24px;
+    height: 18px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 200;
+    outline: none;
+}
+
+.hamburger-line {
+    width: 100%;
+    height: 2px;
+    background-color: var(--text-primary);
+    border-radius: 2px;
+    transition: var(--transition-smooth);
+}
+
+/* Transform Hamburger button to 'X' when active */
+.hamburger-btn.active .hamburger-line:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+    background-color: var(--accent-purple);
+}
+
+.hamburger-btn.active .hamburger-line:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger-btn.active .hamburger-line:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+    background-color: var(--accent-purple);
+}
+
+/* --- Mobile Navigation Drawer (Glassmorphic Side Panel) --- */
+.mobile-nav-overlay {
+    position: fixed;
+    top: 0;
+    right: -100%; /* Hidden on the right */
+    width: 300px;
+    height: 100vh;
+    background: rgba(5, 7, 15, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-left: 1px solid var(--border-hover);
+    z-index: 150;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 32px;
+    transition: var(--transition-smooth);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.7);
+}
+
+.mobile-nav-overlay.active {
+    right: 0; /* Slide in */
+}
+
+.mobile-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.mobile-nav-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 1.15rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    transition: var(--transition-smooth);
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    position: relative;
+}
+
+.mobile-nav-link:hover, .mobile-nav-link:active {
+    color: var(--accent-purple);
+    border-bottom-color: var(--accent-purple);
+    padding-left: 8px;
+}
+
+.mobile-docs-badge::after {
+    content: 'NEW';
+    background-color: var(--accent-purple);
+    color: white;
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-weight: bold;
+    margin-left: 10px;
+    vertical-align: middle;
+}
+
+.mobile-github-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(135deg, var(--accent-purple) 0%, #7c3aed 100%);
+    border: none;
+    padding: 14px;
+    border-radius: var(--border-radius-sm);
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    transition: var(--transition-smooth);
+    margin-top: 20px;
+    box-shadow: 0 4px 15px var(--accent-purple-glow);
+}
+
+.mobile-github-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+/* --- Floating Back to Top with Cyberpunk Progress Ring --- */
+#scroll-top-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(13, 17, 30, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    z-index: 120;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px) scale(0.8);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+#scroll-top-btn.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+#scroll-top-btn:hover {
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 15px var(--accent-purple-glow);
+    transform: translateY(-4px) scale(1.05);
+}
+
+#scroll-top-btn .arrow-up {
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    transition: var(--transition-smooth);
+}
+
+#scroll-top-btn:hover .arrow-up {
+    color: var(--accent-purple);
+    transform: scale(1.2);
+}
+
+/* Progress ring overlay SVG */
+.progress-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: rotate(-90deg); /* Start progress from the top */
+    pointer-events: none;
+}
+
+.progress-ring-circle {
+    transition: stroke-dashoffset 0.1s linear;
+    stroke-linecap: round;
+}
+
+/* --- Responsive Adaptability --- */
 @media (max-width: 1024px) {
-    .terminal-wrapper {
-        grid-template-columns: 1fr;
+    .section-container {
+        padding: 60px 20px;
     }
-    .arena-grid {
+    .terminal-wrapper, .arena-grid, .hardware-grid, .hitl-simulator-container, .monetization-grid, .installer-grid {
         grid-template-columns: 1fr;
+        gap: 24px;
     }
-    .hardware-grid {
-        grid-template-columns: 1fr;
-    }
-    .hitl-simulator-container {
-        grid-template-columns: 1fr;
-    }
-    .monetization-grid {
-        grid-template-columns: 1fr;
-    }
-    .installer-grid {
-        grid-template-columns: 1fr;
+    .terminal-container, .arena-display-container, .hitl-card-wrapper, .config-block {
+        max-width: 100%;
     }
 }
 
 @media (max-width: 768px) {
-    .main-header {
-        position: relative;
-    }
+    /* Main Navigation Responsive Shift */
     .desktop-nav {
-        display: none; /* simple fallback for landing, focus is technical content */
+        display: none;
+    }
+    .hamburger-btn {
+        display: flex; /* Show menu toggle */
+    }
+    .github-btn {
+        display: none; /* Hide on mobile to save space, shown in drawer */
+    }
+    
+    /* Header layout correction */
+    .main-header {
+        position: fixed;
+        height: 70px;
+    }
+    .header-container {
+        padding: 0 16px;
+    }
+    
+    /* Hero Responsiveness */
+    .hero-section {
+        padding-top: 130px;
+        padding-bottom: 40px;
     }
     .hero-title {
-        font-size: 2.3rem;
+        font-size: 2.2rem;
+        line-height: 1.2;
     }
     .hero-subtitle {
-        font-size: 1.05rem;
+        font-size: 1rem;
+        margin-bottom: 28px;
     }
     .hero-ctas {
         flex-direction: column;
         width: 100%;
+        gap: 12px;
     }
     .primary-cta-btn, .secondary-cta-btn {
+        width: 100%;
         justify-content: center;
+        padding: 14px 24px;
     }
+    .arch-badges {
+        gap: 10px;
+        padding-top: 24px;
+    }
+    
+    /* Section Headers */
     .section-title {
-        font-size: 1.9rem;
+        font-size: 1.8rem;
     }
+    .section-desc {
+        font-size: 0.95rem;
+        margin-bottom: 32px;
+    }
+    
+    /* Grid Adaptability */
     .features-grid {
         grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    /* Terminal Console tweaks */
+    .terminal-body {
+        height: 340px;
+        padding: 16px;
+        font-size: 0.8rem;
+    }
+    .command-suggestions {
+        padding: 16px;
+    }
+    .suggestion-grid {
+        gap: 8px;
+    }
+    .cmd-btn {
+        padding: 8px 12px;
+    }
+    
+    /* Arena tweaks */
+    .arena-body {
+        height: 320px;
+        padding: 16px;
+        font-size: 0.8rem;
+    }
+    .arena-tabs {
+        flex-wrap: wrap;
+    }
+    .arena-tab {
+        padding: 12px 8px;
+        font-size: 0.8rem;
+    }
+    .arena-controls {
+        padding: 20px;
+    }
+    
+    /* Hardware dashboard */
+    .hardware-metrics, .watchdog-actions {
+        padding: 20px;
+    }
+    
+    /* HITL card */
+    .hitl-card-body {
+        padding: 16px;
+        gap: 12px;
+    }
+    .hitl-card-footer {
+        flex-direction: column;
+    }
+    .hitl-btn.reject {
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .hitl-instructions {
+        padding: 20px;
+    }
+    
+    /* Calculator */
+    .monetization-inputs {
+        padding: 20px;
+    }
+    .results-glowing-card {
+        padding: 24px;
     }
     .impact-metric-grid {
         grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    .range-val {
+        width: auto;
+    }
+    
+    /* Installer guide */
+    .code-pre {
+        padding: 16px;
+    }
+    .code-pre code {
+        font-size: 0.75rem;
+    }
+    .step-row {
+        gap: 12px;
+    }
+    
+    /* Footer responsiveness */
+    .footer-container {
+        flex-direction: column;
+        gap: 32px;
     }
     .footer-right {
-        gap: 30px;
-        flex-wrap: wrap;
+        flex-direction: column;
+        gap: 24px;
     }
 }

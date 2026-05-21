@@ -225,7 +225,6 @@ class NvidiaProvider(OpenAICompatCloudProvider):
     _available_models = [
         "meta/llama-3.3-70b-instruct",
         "meta/llama-3.1-8b-instruct",
-        "nvidia/llama-3.1-nemotron-70b-instruct",
         "deepseek-ai/deepseek-r1",
         "mistralai/mixtral-8x22b-instruct-v0.1"
     ]

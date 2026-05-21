@@ -9,9 +9,12 @@ import threading
 import time
 from core.logger import log
 
+import logging
 try:
     import obsws_python as obs
     OBS_AVAILABLE = True
+    # Silenciar logger interno de la biblioteca obsws_python para evitar spam de tracebacks en consola
+    logging.getLogger("obsws_python").setLevel(logging.CRITICAL)
 except ImportError:
     obs = None
     OBS_AVAILABLE = False

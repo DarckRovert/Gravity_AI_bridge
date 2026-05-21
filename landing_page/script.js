@@ -1100,4 +1100,100 @@ watchdog:
         });
     }
 
+    // ==========================================
+    // 8. MOBILE HAMBURGER NAVIGATION DRAWER
+    // ==========================================
+    const hamburgerToggle = document.getElementById('hamburger-toggle');
+    const mobileNav = document.getElementById('mobile-nav');
+    const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+
+    if (hamburgerToggle && mobileNav) {
+        const toggleMenu = () => {
+            const isOpened = hamburgerToggle.classList.contains('active');
+            if (isOpened) {
+                hamburgerToggle.classList.remove('active');
+                mobileNav.classList.remove('active');
+                hamburgerToggle.setAttribute('aria-expanded', 'false');
+                mobileNav.setAttribute('aria-hidden', 'true');
+            } else {
+                hamburgerToggle.classList.add('active');
+                mobileNav.classList.add('active');
+                hamburgerToggle.setAttribute('aria-expanded', 'true');
+                mobileNav.setAttribute('aria-hidden', 'false');
+            }
+        };
+
+        hamburgerToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleMenu();
+        });
+
+        // Close menu when clicking a link
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                hamburgerToggle.classList.remove('active');
+                mobileNav.classList.remove('active');
+                hamburgerToggle.setAttribute('aria-expanded', 'false');
+                mobileNav.setAttribute('aria-hidden', 'true');
+            });
+        });
+
+        // Close menu when clicking outside of the drawer
+        document.addEventListener('click', (e) => {
+            const isMenuOpen = mobileNav.classList.contains('active');
+            if (isMenuOpen && !mobileNav.contains(e.target) && e.target !== hamburgerToggle) {
+                hamburgerToggle.classList.remove('active');
+                mobileNav.classList.remove('active');
+                hamburgerToggle.setAttribute('aria-expanded', 'false');
+                mobileNav.setAttribute('aria-hidden', 'true');
+            }
+        });
+    }
+
+    // ==========================================
+    // 9. CYBERPUNK SCROLL PROGRESS INDICATOR & BACK TO TOP
+    // ==========================================
+    const scrollTopBtn = document.getElementById('scroll-top-btn');
+    const progressCircle = document.querySelector('.progress-ring-circle');
+
+    if (scrollTopBtn && progressCircle) {
+        const radius = progressCircle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+
+        // Init circle dasharray and offset
+        progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+        progressCircle.style.strokeDashoffset = circumference;
+
+        const updateScrollProgress = () => {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            
+            // Toggle visibility of button
+            if (scrollTop > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+
+            // Calculate percentage
+            if (docHeight > 0) {
+                const scrollPercent = scrollTop / docHeight;
+                const offset = circumference - (scrollPercent * circumference);
+                progressCircle.style.strokeDashoffset = offset;
+            }
+        };
+
+        // Click handler to smooth scroll back to top
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        window.addEventListener('scroll', updateScrollProgress);
+        // Run initial check in case page starts scrolled
+        updateScrollProgress();
+    }
+
 });
