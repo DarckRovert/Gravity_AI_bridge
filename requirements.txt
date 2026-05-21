@@ -8,7 +8,7 @@ google-generativeai
 PyYAML>=6.0.2
 
 # Seguridad — cifrado de API keys con DPAPI en Windows (obligatorio)
-pywin32
+pywin32; sys_platform == 'win32'
 pymysql
 
 # RAG — Embeddings locales via ONNX (modelos en rag/models/)
