@@ -7,7 +7,7 @@ export const CostCenter = () => {
   useEffect(() => {
     const fetchCost = async () => {
       try {
-        const res = await fetch('http://localhost:7860/v1/cost');
+        const res = await fetch('/v1/cost');
         if (res.ok) setCost(await res.json());
       } catch (e) {}
     };
@@ -53,7 +53,7 @@ export const CostCenter = () => {
           <Card 
             title="Coste Sesión" 
             value={`$${Number(cost?.session_cost || 0).toFixed(5)}`} 
-            sub={`Tokens: ${cost?.session_tokens || 0}`}
+            sub={`Tokens: ${(cost?.session_tokens?.input || 0) + (cost?.session_tokens?.output || 0)}`}
             icon={TrendingUp} color="text-accent-primary" 
           />
           <Card 
@@ -82,8 +82,8 @@ export const CostCenter = () => {
                   <div key={prov} className="flex items-center justify-between p-4 rounded-xl bg-card border border-border-subtle hover:border-accent-primary/30 transition-all">
                     <div className="font-bold text-text-primary">{prov}</div>
                     <div className="text-right">
-                      <div className="text-sm font-bold text-accent-primary">${Number(val || 0).toFixed(5)}</div>
-                      <div className="text-[10px] text-text-muted uppercase">Tokens: {cost?.session_tokens || 0}</div>
+                      <div className="text-sm font-bold text-accent-primary">${Number(val?.total_cost || 0).toFixed(5)}</div>
+                      <div className="text-[10px] text-text-muted uppercase">Tokens: {(val?.input_tokens || 0) + (val?.output_tokens || 0)}</div>
                     </div>
                   </div>
                 ))
@@ -104,13 +104,15 @@ export const CostCenter = () => {
                   <circle 
                     cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="12" fill="transparent" 
                     strokeDasharray={502} 
-                    strokeDashoffset={502 - (502 * (Number(cost?.daily_limit) > 0 ? (Number(cost?.daily_cost) / Number(cost?.daily_limit)) : 0))}
-                    className="text-status-warning transition-all duration-1000"
+                    strokeDashoffset={502 - (502 * Math.min(1, (Number(cost?.daily_limit) > 0 ? (Number(cost?.daily_cost) / Number(cost?.daily_limit)) : 0)))}
+                    className={`${Number(cost?.daily_cost) > Number(cost?.daily_limit) ? 'text-status-error' : 'text-status-warning'} transition-all duration-1000`}
                     strokeLinecap="round"
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-3xl font-extrabold text-text-primary">{Math.round((Number(cost?.daily_limit) > 0 ? (Number(cost?.daily_cost) / Number(cost?.daily_limit)) : 0) * 100)}%</span>
+                  <span className={`text-3xl font-extrabold ${Number(cost?.daily_cost) > Number(cost?.daily_limit) ? 'text-status-error' : 'text-text-primary'}`}>
+                    {Math.round((Number(cost?.daily_limit) > 0 ? (Number(cost?.daily_cost) / Number(cost?.daily_limit)) : 0) * 100)}%
+                  </span>
                   <span className="text-[10px] text-text-muted font-bold uppercase">del límite</span>
                 </div>
               </div>

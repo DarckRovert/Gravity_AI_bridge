@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║      GRAVITY AI BRIDGE - AUDITOR SENIOR V12.2 PRO [Ecosistema Total]               ║
+║      GRAVITY AI BRIDGE - AUDITOR SENIOR V15.0 PRO [Ecosistema Total]               ║
 ║                   CLI Frontend | RAG | Tools | Multi-model                   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
@@ -35,7 +35,7 @@ from rich          import box
 import pyfiglet
 
 
-# ── V12.2 PRO Integrations ──────────────────────────────────────────────────────────
+# ── V15.0 PRO Integrations ──────────────────────────────────────────────────────────
 from core import provider_manager
 from core.config_manager import config
 from core.session_manager import SessionManager
@@ -64,7 +64,7 @@ KNOWLEDGE_FILE = os.path.join(BASE_DIR, "_knowledge.json")
 console = Console()
 
 class SettingsManager:
-    """Surgical wrapper for ConfigManager V12.2 PRO compatibility."""
+    """Surgical wrapper for ConfigManager V15.0 PRO compatibility."""
     def __init__(self):
         self.config = config
         self.data = {
@@ -106,7 +106,7 @@ def first_run_check():
     _console.print(f"[bold bright_cyan]{fig.renderText('GRAVITY AI').rstrip()}[/]")
     _console.print(Panel(
         Align.center(
-            "[bold white]Bienvenido a Gravity AI Bridge V12.2 PRO[/]\n"
+            "[bold white]Bienvenido a Gravity AI Bridge V15.0 PRO[/]\n"
             "[dim]Primera ejecución detectada. Configuración inicial.[/]"
         ),
         border_style="cyan", box=box.DOUBLE, padding=(1, 6)
@@ -179,7 +179,7 @@ class AuditorCLI:
     def __init__(self, role=None):
         self.sm = SettingsManager()
         
-        # V12.2 PRO Agent Routing
+        # V15.0 PRO Agent Routing
         if role:
             routing = config.get("agent_routing", {})
             if role in routing:
@@ -216,7 +216,7 @@ class AuditorCLI:
         mode = self.sm.mode
         if mode == "Omni-Audit":
             base += (
-                "\nMODO: Omni-Audit (V12.2 PRO Premium). "
+                "\nMODO: Omni-Audit (V15.0 PRO Premium). "
                 "CRÍTICO: Análisis de arquitectura zero-trust. Alta precisión matemática. "
                 "Detecta race conditions, memory leaks y fallos de lógica con 99% de precisión. "
                 "Provee razonamiento técnico detallado para cada cambio propuesto. "
@@ -316,9 +316,10 @@ class AuditorCLI:
         t.add_row("/plan <tarea>", "Activa el modo planificación antes de codificar.")
         t.add_row("/verify <archivo>", "Audita un archivo con el Agente de Verificación.")
         t.add_row("/mcp <ruta>", "Conecta con un servidor MCP externo (stdio).")
+        t.add_row("/cache [on|off|clear]", "Gestiona la caché de respuestas LLM (por defecto OFF).")
         t.add_row("!aprende <texto>", "Persiste una regla en el knowledge base local.")
         t.add_row("/exit", "Sale del auditor guardando el historial de razonamiento.")
-        console.print(Panel(t, title="[bold cyan]Comandos Disponibles - Gravity AI V12.2 PRO[/]", border_style="blue"))
+        console.print(Panel(t, title="[bold cyan]Comandos Disponibles - Gravity AI V15.0 PRO[/]", border_style="blue"))
 
     def cmd_providers(self):
         scans = provider_manager.scan_all()
@@ -663,6 +664,23 @@ class AuditorCLI:
             self.history.append({"role": "user", "content": f"Contexto Web Inyectado:\n{out}"})
             return True
 
+        if cmd == "/cache":
+            sub = args.strip().lower()
+            if sub == "on":
+                CacheEngine.enable()
+                console.print("[green]✓ Caché LLM activada.[/]")
+            elif sub == "off":
+                CacheEngine.disable()
+                console.print("[yellow]✓ Caché LLM deshabilitada (siempre generará respuestas nuevas).[/]")
+            elif sub == "clear":
+                cnt = CacheEngine.clear()
+                console.print(f"[green]✓ Caché purgada en SQLite ({cnt} registros eliminados).[/]")
+            else:
+                st = CacheEngine.stats()
+                enabled_str = "[green]ON[/]" if st['enabled'] else "[yellow]OFF[/]"
+                console.print(f"Estado de Caché: {enabled_str} | Registros: {st['entries']} ({st['size_kb']} KB) | Hit Rate: {st['hit_rate']}")
+            return True
+
         return False
 
     def _picker_ui(self):
@@ -742,7 +760,7 @@ class AuditorCLI:
 
                 console.print(f"[dim]→ {tgt_p} / {tgt_m}[/]")
 
-                # V12.2 PRO: Inyectar MemDir (conocimiento de directorio) antes de buscar RAG
+                # V15.0 PRO: Inyectar MemDir (conocimiento de directorio) antes de buscar RAG
                 mem_tokens = self.session.inject_mem_dir(BASE_DIR)
                 if mem_tokens > 0:
                     console.print(f"[dim]MemDir inyectado ({mem_tokens} tokens)[/]")
@@ -825,7 +843,7 @@ if __name__ == "__main__":
 
     _parser = _ap.ArgumentParser(
         prog="ask_deepseek",
-        description="Gravity AI Bridge V12.2 PRO CLI",
+        description="Gravity AI Bridge V15.0 PRO CLI",
         add_help=False,
     )
     _parser.add_argument("prompt", nargs="*", help="Prompt directo (modo pipe)")

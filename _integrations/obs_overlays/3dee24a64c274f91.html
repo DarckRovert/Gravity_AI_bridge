@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { margin: 0; background: transparent; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Courier New', monospace; overflow: hidden; }
+        .holo-wrap { position: relative; width: 300px; height: 300px; display: flex; justify-content: center; align-items: center; }
+        
+        /* Concéntricos SVG */
+        svg { position: absolute; width: 100%; height: 100%; filter: drop-shadow(0 0 10px #0f0); }
+        .r1 { stroke: rgba(0,255,0,0.8); stroke-width: 2; stroke-dasharray: 4 10; animation: spin 20s linear infinite; }
+        .r2 { stroke: rgba(0,255,0,0.5); stroke-width: 10; stroke-dasharray: 50 20 10 20; animation: spin 15s linear infinite reverse; }
+        .r3 { stroke: rgba(0,255,0,0.3); stroke-width: 40; stroke-dasharray: 2 4; animation: spin 30s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Escaneo Radar */
+        .radar { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(rgba(0,255,0,0.4) 0deg, transparent 60deg); animation: spin 2s linear infinite; }
+        
+        /* Central Content */
+        .center { position: relative; z-index: 10; text-align: center; color: #0f0; text-shadow: 0 0 8px #0f0; background: rgba(0,10,0,0.8); border-radius: 50%; width: 160px; height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px solid #0f0; box-shadow: inset 0 0 20px #0f0; }
+        .time { font-size: 26px; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px; }
+        .sys { font-size: 10px; opacity: 0.8; }
+        
+        /* Blips (Puntos detectados) */
+        .blip { position: absolute; width: 6px; height: 6px; background: #fff; border-radius: 50%; box-shadow: 0 0 10px #fff; opacity: 0; }
+        @keyframes fadeOut { 0% { opacity: 1; transform: scale(1.5); } 100% { opacity: 0; transform: scale(1); } }
+    </style>
+</head>
+<body>
+    <div class="holo-wrap" id="w">
+        <svg viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="90" fill="none" class="r1"/>
+            <circle cx="100" cy="100" r="75" fill="none" class="r2"/>
+            <circle cx="100" cy="100" r="50" fill="none" class="r3"/>
+        </svg>
+        <div class="radar"></div>
+        <div class="center">
+            <div class="time" id="t">00:00:00</div>
+            <div class="sys" id="s">CPU: 12% | RAM: 45%</div>
+        </div>
+    </div>
+    <script>
+        // Clock & LLM Status Fetch
+        async function fetchSys() {
+            try {
+                let res = await fetch('http://127.0.0.1:7860/v1/status');
+                let data = await res.json();
+                let model = data.active_model || 'NO MODEL';
+                let provider = data.active_provider || 'NO PROV';
+                if(model.length > 10) model = model.substring(0,10) + '..';
+                document.getElementById('s').innerText = `PRV: ${provider.toUpperCase()} | MOD: ${model.toUpperCase()}`;
+            } catch(e) {
+                document.getElementById('s').innerText = 'GRAVITY API OFFLINE';
+            }
+        }
+
+        setInterval(()=>{
+            const d = new Date();
+            document.getElementById('t').innerText = String(d.getHours()).padStart(2,'0')+":"+String(d.getMinutes()).padStart(2,'0')+":"+String(d.getSeconds()).padStart(2,'0');
+        }, 1000);
+        
+        setInterval(fetchSys, 3000);
+        fetchSys();
+
+        // Radar Blips
+        const w = document.getElementById('w');
+        setInterval(()=>{
+            if(Math.random()>0.5){
+                let b = document.createElement('div'); b.className = 'blip';
+                let angle = Math.random() * Math.PI * 2;
+                let r = Math.random() * 40 + 60; // radius between 60 and 100
+                b.style.left = (150 + Math.cos(angle)*r - 3) + 'px';
+                b.style.top = (150 + Math.sin(angle)*r - 3) + 'px';
+                b.style.animation = 'fadeOut 1.5s forwards';
+                w.appendChild(b);
+                setTimeout(()=>b.remove(), 1500);
+            }
+        }, 800);
+    </script>
+</body>
+</html>

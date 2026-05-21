@@ -1,6 +1,6 @@
-# 🪐 Gravity AI Bridge | Wiki Corporativa V13.0 PRO Omniscient-Tier
+# 🪐 Gravity AI Bridge | Wiki Corporativa V15.0 PRO Omniscient-Tier
 
-Bienvenido al Centro de Conocimiento del Bridge — hub principal para orquestar infraestructuras pesadas con LLMs, multimedia, Game Servers y agentes IA con control total.
+Bienvenido al Centro de Conocimiento del Bridge — hub principal para orquestar infraestructuras pesadas con LLMs, multimedia, Game Servers, OBS Studio y agentes IA con control total.
 
 ---
 
@@ -13,45 +13,37 @@ Bienvenido al Centro de Conocimiento del Bridge — hub principal para orquestar
 | 3 | [📖 Guía de API Detallada](./Guia-API.md) | Ejemplos `curl` y JSON completos |
 | 4 | [📑 Manual de Usuario](./Manual-Usuario.md) | Instructivo paso a paso del Dashboard |
 | 5 | [❓ FAQ](./FAQ.md) | Preguntas frecuentes y troubleshooting |
-| 6 | [🏠 Game Server Guide](./Game-Server-Guide.md) | Gestión de servidores WoW MangosD |
+| 6 | [⚔️ Game Server Guide](./Game-Server-Guide.md) | Gestión de servidores WoW MangosD |
 | 7 | [🚀 Deploy Externo VPS](./Deploy_Externo_VPS.md) | Configuración de despliegue en VPS |
-| 8 | [🔒 Seguridad](../SECURITY.md) | Política de seguridad y vulnerabilidades |
+| 8 | [🧠 Plan Evolución Agéntica](./Plan-Evolucion-Agentic.md) | Roadmap y diseño del Agentic Core V15.0/V16.0 |
+| 9 | [💰 Manual de Monetización](./Monetizacion-Manual.md) | Operación de la Content Factory y monetización pasiva |
+| 10 | [🔒 Seguridad](../SECURITY.md) | Política de seguridad y vulnerabilidades |
+
 
 ---
 
-## 🚀 Novedades V13.0 PRO Omniscient-Tier
+## 🚀 Novedades V15.0 PRO Omniscient-Tier
 
-### Arquitectura Frontend SPA (React/Vite)
-- **Eliminación de HTML Estático:** Sustitución completa del dashboard monolítico antiguo por un framework moderno React/Vite.
-- **Interconectividad Total:** Los 25 componentes operativos ahora interactúan directamente con el backend Python a través del Bridge REST API.
-- **Reproductor de Video Embebido:** Previsualización de videos renderizados directamente en el frontend usando `/v1/video/stream`.
+### Real-Time VTuber Engine V4.0 (Aletheia V2V)
+- **LivePortrait ONNX Integrado**: Se descartó la transformación ineficiente "frame-by-frame" con SD-Turbo. El sistema ahora utiliza `FasterLivePortrait` puro a 30-60 FPS procesando exclusivamente por DirectML en GPU AMD/NVIDIA.
+- **Doble Fase V4.0 (Generar una vez, conducir en tiempo real)**:
+  1. *Fase Generativa (Init)*: SD-Turbo se invoca una sola vez al cambiar de preset para generar un `reference_avatar` estático pero perfecto (evitando el flickering).
+  2. *Fase Animación (Live)*: LivePortrait intercepta la webcam para trasladar parpadeos, rotación de cabeza y tracking labial al avatar maestro de manera hiperfluida.
 
-### Control de Hardware y Seguridad
-- **Hook Activo:** Las interfaces de aniquilación de sesiones (`/v1/sessions/kill`), seguridad y monitoreo de procesos, reaccionan con 0% de maquetas desconectadas.
-- **Saneamiento UI:** Endpoints como `seed`, `enhance` de *Vision Studio*, y los selectores reales de modo y n_agents en *MultiAgent* fueron completamente integrados.
+### OBS Studio Control & Gravity Spark
+- **OBS WebSocket v5 Integrado**: Auto-conexión activa y control total de escenas, fuentes, mute/volumen, streaming y grabación desde la API REST.
+- **Gravity Spark (Motor de Overlays AI)**: Genera código HTML/JS autocontenido en tiempo real usando tu LLM local, inyectándolo directamente como `Browser Source` en OBS. Permite modificar overlays al vuelo mediante chat ("hazlo azul", "borde neón").
+
+### Fábrica de Monetización Pasiva & Social Assets (V15.0)
+- **Language Cloner**: Reutiliza renders visuales (0 gasto de GPU) traduciendo guiones (LLM) y clonando el audio a Inglés, Portugués y Francés. Multiplica el CPM orgánico de AdSense.
+- **Affiliate Manager**: Banco de base de datos con programas CPA categorizados por nicho. Inyecta enlaces y CTAs optimizados en las descripciones de YouTube.
+- **Social Distribution (TikTok & Instagram)**: Integración directa con TikTok Content API v2 e Instagram Graph API v19 para auto-publicar Shorts de 58s.
+- **Revenue Tracker**: Tracking pasivo que estima y proyecta ganancias basándose en vistas, histórico y nicho de producción.
+
+### Módulos Core Robustecidos
+- **Turbo KV-Cache**: Conectado directamente al `engine_watchdog.py`. Detecta si el proveedor es Ollama y aplica dinámicamente `OLLAMA_KV_CACHE_TYPE=q4_0` y `OLLAMA_FLASH_ATTENTION=1`, reduciendo drásticamente el consumo de VRAM y RAM.
 - **`core/hitl_manager.py`** — Human-in-the-Loop: intercepta tools de alto riesgo (code_runner, shell_exec, file_write, deploy, git_push, etc.) y requiere aprobación humana desde el Dashboard antes de ejecutarlas. Cola thread-safe con timeout de 120s.
 - **`core/firecrawl_scraper.py`** — Scraping web en Markdown limpio: usa Firecrawl API si hay API key configurada, fallback HTTP nativo (`urllib`) si no. Sin dependencias externas.
-
-### Nuevos Endpoints
-- `GET /v1/hitl/pending` — Lista solicitudes de aprobación pendientes
-- `POST /v1/hitl/approve` — Aprueba una acción del agente
-- `POST /v1/hitl/reject` — Rechaza una acción del agente
-- `POST /v1/tools/scrape` — Scraping de URL
-- `GET /v1/tools/firecrawl/health` — Estado de la configuración Firecrawl
-
-### 🤖 Multi-Agent Scripting & Automatización (V13.0 PRO)
-- **Market Researcher**: Análisis de competencia en YouTube mediante web scraping. Extrae ganchos y ángulos para enriquecer los guiones automáticamente.
-- **Retention Auditor**: Evalúa y reescribe guiones para garantizar retención del espectador en los primeros 5 segundos.
-- **Generador de Cursos**: Nuevo módulo `course_generator` capaz de diseñar el syllabus completo de un info-producto y encolarlo al Scheduler.
-- **Social Assets Repurposing**: Al terminar un video, genera automáticamente hilos de Twitter, carruseles de Instagram y posts de LinkedIn.
-- **Turbo KV-Cache**: Optimización de VRAM automática que detecta Ollama y aplica `OLLAMA_KV_CACHE_TYPE=q4_0` + Flash Attention, reduciendo consumo drásticamente.
-
-### Dashboard V13.0 PRO
-- **Nuevo Panel HITL Approval**: Aprobación/rechazo en tiempo real con polling cada 8s. Badge rojo en el sidebar cuando hay solicitudes pendientes.
-- **Nuevo Panel Firecrawl**: Scraper interactivo con viewer de resultado Markdown.
-- **Sessions — Role Selector**: Selector de rol al hacer Spawn (auditor/planner/coder/researcher/executor).
-- **Rediseño CSS completo**: Nueva paleta Diamond `#07090e/#6366f1`, animaciones premium, tipografía Inter 900.
-- **Fix Bug switchTab**: Eliminada colisión de override doble en JavaScript.
 
 ---
 
@@ -64,7 +56,9 @@ Bienvenido al Centro de Conocimiento del Bridge — hub principal para orquestar
 | 🎨 Vision Studio | `/vision` | Fooocus UI embebido (iframe) |
 | 🖼️ Image Queue | `/queue` | Cola de generación Fooocus con SSE |
 | 🎬 Video Studio | `/video` | Pipeline CPU-only LLM→TTS→ffmpeg |
-| 🎨 Image Lab | `/imagelab` | Generación Pollinations.ai con historial |
+| 👤 Aletheia V2V Studio | `/v2v` | VTuber animado en vivo con FasterLivePortrait a 30-60 FPS |
+| 📹 OBS Studio Controller | `/obs` | Control total de escenas y fuentes con OBS WebSocket v5 |
+| 🖼️ Image Lab | `/imagelab` | Generación Pollinations.ai con historial |
 | 🚀 Deploy | `/deploy` | FabricaWeb CI/CD pipeline |
 | ⚔️ Game Servers | `/gameserver` | Control MangosD WoW |
 | 🤖 Multi-Agent | `/multiagent` | Comparación/voting multi-modelo |
@@ -81,6 +75,7 @@ Bienvenido al Centro de Conocimiento del Bridge — hub principal para orquestar
 | 📡 System Status | `/status` | Estado completo de backends |
 | 🔒 Security | `/security` | Monitor de procesos y puertos |
 | 📋 Audit Log | `/audit` | Historial de peticiones |
+| 💸 Monetization Hub | `/monetization` | Centro de ingresos pasivos, SEO, CPA y automatización de nichos |
 | ⚙️ Configuración | `/config` | API keys y configuración general |
 
 ---
@@ -114,5 +109,5 @@ Compatibilidad: OpenAI API v1 (drop-in replacement)
 ---
 
 <div align="center">
-  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V13.0 PRO Omniscient-Tier</i></sub>
+  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V15.0 PRO Omniscient-Tier</i></sub>
 </div>

@@ -181,6 +181,22 @@ class ComfyUIClient:
             pass
         return output_files
 
+    def extract_tags(self, prompt_id: str) -> list[str]:
+        """Extrae la lista de tags (texto) generados del historial."""
+        tags: list[str] = []
+        try:
+            history    = self.get_history(prompt_id)
+            prompt_data = history.get(prompt_id, {})
+            outputs    = prompt_data.get("outputs", {})
+
+            for _node_id, node_output in outputs.items():
+                if "tags" in node_output:
+                    if isinstance(node_output["tags"], list):
+                        tags.extend(node_output["tags"])
+        except Exception:
+            pass
+        return tags
+
     def build_img2video_workflow(
         self,
         image_path: str,

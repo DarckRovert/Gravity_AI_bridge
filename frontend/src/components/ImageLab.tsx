@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Palette, Image as ImageIcon, Sparkles, RefreshCw, Download, Sliders } from 'lucide-react';
 
+  const ASPECT_OPTIONS = [
+    { label: '1:1 Square',    width: 1024, height: 1024 },
+    { label: '16:9 Wide',     width: 1344, height: 768  },
+    { label: '9:16 Portrait', width: 768,  height: 1344 },
+    { label: '4:3 Standard',  width: 1152, height: 896  },
+    { label: '3:2 Photo',     width: 1216, height: 832  },
+  ];
+
 export const ImageLab = () => {
+
   const [images, setImages] = useState<any[]>([]);
   const [prompt, setPrompt] = useState('');
-  const [width, setWidth] = useState(1024);
-  const [height, setHeight] = useState(1024);
+  const [aspect, setAspect] = useState(0);
   const [provider, setProvider] = useState('Pollinations.ai');
   const [model, setModel] = useState('flux');
   const [seed, setSeed] = useState('');
@@ -15,7 +23,7 @@ export const ImageLab = () => {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch('http://localhost:7860/v1/image/lab/history');
+      const res = await fetch('/v1/image/lab/history');
       if (res.ok) {
         const data = await res.json();
         setImages(data.images || []);
@@ -33,7 +41,8 @@ export const ImageLab = () => {
     if (!prompt.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:7860/v1/image/generate', {
+      const { width, height } = ASPECT_OPTIONS[aspect];
+      const res = await fetch('/v1/image/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, width, height, model, enhance: enhance, provider, seed: seed.trim() || undefined })
@@ -108,21 +117,11 @@ export const ImageLab = () => {
                 )}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2">Ancho</label>
-                    <select value={width} onChange={(e) => setWidth(+e.target.value)} className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none">
-                      <option value={512}>512px</option>
-                      <option value={832}>832px</option>
-                      <option value={1024}>1024px</option>
-                      <option value={1280}>1280px</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2">Alto</label>
-                    <select value={height} onChange={(e) => setHeight(+e.target.value)} className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none">
-                      <option value={512}>512px</option>
-                      <option value={832}>832px</option>
-                      <option value={1024}>1024px</option>
-                      <option value={1216}>1216px</option>
+                    <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-2">Relación de Aspecto</label>
+                    <select value={aspect} onChange={(e) => setAspect(+e.target.value)} className="w-full bg-surface border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary outline-none">
+                      {ASPECT_OPTIONS.map((opt, i) => (
+                        <option key={i} value={i}>{opt.label} ({opt.width}x{opt.height})</option>
+                      ))}
                     </select>
                   </div>
                   <div>

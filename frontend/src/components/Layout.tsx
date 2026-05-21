@@ -1,10 +1,10 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { PanelId, GravityContext } from '../types';
 import { 
   MessageSquare, Home, Palette, Image as ImageIcon, Video, Rocket, 
   Gamepad2, Bot, Cpu, DollarSign, Activity, Save, BookOpen, 
   Plug, Wrench, Zap, Bug, ShieldAlert, Wifi, Shield, FileText, Settings, Menu, Bell,
-  TrendingUp
+  TrendingUp, Video as VideoIcon, Radio
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -20,7 +20,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
   useEffect(() => {
     const fetchCtx = async () => {
       try {
-        const res = await fetch('http://localhost:7860/v1/gravity/context');
+        const res = await fetch('/v1/gravity/context');
         if (res.ok) setCtx(await res.json());
       } catch (e) {
         console.warn('Bridge offline or not accessible:', e);
@@ -55,7 +55,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
           <Menu size={20} />
         </button>
         <div className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-accent-primary to-accent-secondary bg-clip-text text-transparent">
-          GRAVITY V13.0 PRO
+          GRAVITY V15.0 PRO
         </div>
         
         <div className="flex items-center ml-auto gap-6 text-sm font-medium">
@@ -66,7 +66,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
             <button 
               onClick={async () => {
                 if(!confirm("¿Liberar RAM deteniendo motores IA?")) return;
-                await fetch('http://localhost:7860/v1/ai/stop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provider: 'Fooocus' }) });
+                await fetch('/v1/ai/stop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provider: 'Fooocus' }) });
                 window.location.reload();
               }}
               className="flex items-center gap-2 px-3 py-1 rounded-full bg-status-error/20 border border-status-error/40 text-status-error text-xs font-black animate-pulse hover:bg-status-error hover:text-white transition-all"
@@ -101,6 +101,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
             <NavItem id="vision" icon={Palette} label="Vision Studio" />
             <NavItem id="queue" icon={ImageIcon} label="Image Queue" />
             <NavItem id="video" icon={Video} label="Video Studio" />
+            <NavItem id="v2v" icon={VideoIcon} label="V2V Live Studio" />
+            <NavItem id="obs" icon={Radio} label="OBS Studio" />
             <NavItem id="imagelab" icon={Palette} label="Image Lab" />
             <NavItem id="deploy" icon={Rocket} label="Deploy" />
             <NavItem id="gameserver" icon={Gamepad2} label="Game Servers" />

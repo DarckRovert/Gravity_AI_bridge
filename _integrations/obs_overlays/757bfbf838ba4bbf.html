@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body {
+    background-color: rgba(0,0,0,0);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  .chat-container {
+    width: 300px;
+    height: 400px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid #03A9F4;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    overflow-y: auto;
+  }
+  .chat-container::-webkit-scrollbar {
+    width: 10px;
+  }
+  .chat-container::-webkit-scrollbar-thumb {
+    background: #03A9F4;
+    border-radius: 10px;
+  }
+  .mensaje {
+    margin-bottom: 10px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid #03A9F4;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+  }
+  .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #ccc;
+    margin-right: 10px;
+  }
+  .nombre {
+    font-family: monospace;
+    color: #fff;
+    font-size: 14px;
+  }
+  .texto {
+    font-family: monospace;
+    color: #fff;
+    font-size: 14px;
+  }
+  .neon {
+    animation: neon 2s infinite;
+  }
+  @keyframes neon {
+    0% {
+      box-shadow: 0 0 10px #03A9F4;
+    }
+    50% {
+      box-shadow: 0 0 20px #03A9F4;
+    }
+    100% {
+      box-shadow: 0 0 10px #03A9F4;
+    }
+  }
+  .destello {
+    animation: destello 0.5s;
+  }
+  @keyframes destello {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="chat-container" id="chat-container">
+</div>
+<script>
+  const chatContainer = document.getElementById('chat-container');
+  const colores = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+  const nombres = ['Usuario1', 'Usuario2', 'Usuario3', 'Usuario4', 'Usuario5', 'Usuario6'];
+  let ultimoMensaje = 0;
+  setInterval(() => {
+    const mensaje = document.createElement('div');
+    mensaje.className = 'mensaje';
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.style.background = `url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHgAAAABJRU5ErkJggg==) no-repeat center`;
+    avatar.style.backgroundSize = 'cover';
+    mensaje.appendChild(avatar);
+    const nombre = document.createElement('span');
+    nombre.className = 'nombre';
+    nombre.textContent = nombres[Math.floor(Math.random() * nombres.length)];
+    nombre.style.color = colores[Math.floor(Math.random() * colores.length)];
+    mensaje.appendChild(nombre);
+    const texto = document.createElement('span');
+    texto.className = 'texto';
+    texto.textContent = 'Mensaje de ejemplo';
+    mensaje.appendChild(texto);
+    mensaje.classList.add('destello');
+    chatContainer.appendChild(mensaje);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    ultimoMensaje++;
+    if (ultimoMensaje > 10) {
+      chatContainer.removeChild(chatContainer.firstChild);
+      ultimoMensaje--;
+    }
+  }, Math.floor(Math.random() * 3000) + 2000);
+</script>
+</html>

@@ -4,8 +4,7 @@ Internal (starts with _), not auto-discovered by registry.
 """
 import json
 import time
-import urllib.request
-import urllib.error
+import requests
 from typing import Generator
 
 from providers.base import ProviderPlugin, ProviderResult
@@ -13,39 +12,47 @@ from core.key_manager import KeyManager
 
 
 def _cloud_request_stream(url: str, payload: dict, headers: dict) -> Generator[str, None, None]:
-    """Streams SSE from any OpenAI-compatible cloud endpoint. Yields content chunks."""
-    data = json.dumps(payload).encode("utf-8")
-    req  = urllib.request.Request(url, data=data, headers=headers)
-    with urllib.request.urlopen(req, timeout=60) as r:
-        for raw in r:
-            line = raw.decode("utf-8", errors="ignore").strip()
-            if not line.startswith("data:"):
-                continue
-            d_str = line[5:].strip()
-            if d_str == "[DONE]":
-                break
-            try:
-                d = json.loads(d_str)
-                if "choices" in d and d["choices"]:
-                    delta   = d["choices"][0].get("delta", {})
-                    r_chunk = delta.get("reasoning_content", "")
-                    chunk   = delta.get("content", "")
-                    if r_chunk:
-                        yield "<think>" + r_chunk + "</think>"
-                    if chunk:
-                        yield chunk
-            except Exception:
-                pass
+    """Streams SSE from any OpenAI-compatible cloud endpoint using requests library."""
+    try:
+        with requests.post(url, json=payload, headers=headers, stream=True, timeout=60) as r:
+            r.raise_for_status()
+            for line in r.iter_lines(decode_unicode=True):
+                if not line:
+                    continue
+                line = line.strip()
+                if not line.startswith("data:"):
+                    continue
+                d_str = line[5:].strip()
+                if d_str == "[DONE]":
+                    break
+                try:
+                    d = json.loads(d_str)
+                    if "choices" in d and d["choices"]:
+                        delta   = d["choices"][0].get("delta", {})
+                        r_chunk = delta.get("reasoning_content", "")
+                        chunk   = delta.get("content", "")
+                        if r_chunk:
+                            yield "<think>" + r_chunk + "</think>"
+                        if chunk:
+                            yield chunk
+                except Exception:
+                    pass
+    except Exception as e:
+        import logging
+        logging.getLogger("gravity").error(f"[CloudStream] Error streaming from {url}: {e}")
 
 
 def _cloud_request_complete(url: str, payload: dict, headers: dict) -> str:
-    """Non-streaming cloud request. Returns full content string."""
-    data = json.dumps(payload).encode("utf-8")
-    req  = urllib.request.Request(url, data=data, headers=headers)
-    with urllib.request.urlopen(req, timeout=60) as r:
-        d = json.loads(r.read().decode("utf-8"))
-    if "choices" in d and d["choices"]:
-        return d["choices"][0].get("message", {}).get("content", "")
+    """Non-streaming cloud request using requests library."""
+    try:
+        r = requests.post(url, json=payload, headers=headers, timeout=60)
+        r.raise_for_status()
+        d = r.json()
+        if "choices" in d and d["choices"]:
+            return d["choices"][0].get("message", {}).get("content", "")
+    except Exception as e:
+        import logging
+        logging.getLogger("gravity").error(f"[CloudComplete] Error fetching from {url}: {e}")
     return ""
 
 

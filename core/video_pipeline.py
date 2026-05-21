@@ -12,7 +12,7 @@ EMOTIONAL_GRADES: dict[str, str] = {
 }
 """
 â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
-â•‘  GRAVITY AI â€” VIDEO STUDIO PIPELINE V13.0 PRO CINEMATIC EDITION                  â•‘
+â•‘  GRAVITY AI â€” VIDEO STUDIO PIPELINE V15.0 PRO CINEMATIC EDITION                  â•‘
 â•‘                                                                              â•‘
 â•‘  Motor cinematogrÃ¡fico de Ãºltima generaciÃ³n con:                             â•‘
 â•‘    â–¸ Character Consistency Engine â€” ancla visual por escena                  â•‘
@@ -320,6 +320,17 @@ def add_job(
 ) -> int:
     """Encola un nuevo trabajo de video. Retorna el ID generado."""
     _init_db()
+    
+    # Inyectar default animation_level desde config si no fue forzado explícitamente a algo distinto de 1
+    if animation_level == 1:
+        try:
+            import yaml
+            with open(os.path.join(BASE_DIR, 'config.yaml'), 'r', encoding='utf-8') as _fc:
+                _cfg_c = yaml.safe_load(_fc) or {}
+                animation_level = int(_cfg_c.get('comfyui', {}).get('animation_level', 1))
+        except Exception:
+            pass
+
     if style not in CINEMA_STYLES:
         style = DEFAULT_STYLE
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -657,6 +668,58 @@ def _extract_visual_anchor(topic: str) -> str:
         log.warning(f"[VideoStudio] LLM anchor fallback ({e}). Usando topic como anchor.")
 
     return topic[:120]
+
+
+def _get_scene_visual_context(image_path: str) -> str:
+    """
+    Extrae tags visuales de la escena N-1 para mantener consistencia visual en la escena N
+    utilizando WD14 Tagger via ComfyUI.
+    """
+    try:
+        from _integrations.comfy_client import ComfyUIClient
+        client = ComfyUIClient()
+        if not client.is_online():
+            return ""
+
+        workflow_path = os.path.join(BASE_DIR, "_integrations", "workflow_img2prompt.json")
+        if not os.path.exists(workflow_path):
+            return ""
+
+        with open(workflow_path, "r", encoding="utf-8") as f:
+            workflow = json.load(f)
+
+        # Actualizar ruta de imagen (el nodo LoadImage en ComfyUI lee archivos locales si se le da ruta absoluta o los copia a input)
+        # Nota: LoadImage en ComfyUI portable usualmente requiere que la imagen esté en la carpeta 'input'. 
+        # Para forzar ruta absoluta se puede usar LoadImage absolute path custom node, pero para evitar dependencias,
+        # copiaremos la imagen al dir input de ComfyUI.
+        import shutil
+        input_dir = os.path.join(BASE_DIR, "_integrations", "ComfyUI_windows_portable", "ComfyUI", "input")
+        if not os.path.exists(input_dir):
+            os.makedirs(input_dir, exist_ok=True)
+        img_name = f"img2prompt_{os.path.basename(image_path)}"
+        shutil.copy2(image_path, os.path.join(input_dir, img_name))
+        
+        workflow["1"]["inputs"]["image"] = img_name
+
+        prompt_id = client.queue_prompt(workflow)
+        
+        # Esperar finalización (timeout corto, si el tagger tarda más de 30s fallamos rápido)
+        elapsed = 0
+        while elapsed < 30:
+            tags = client.extract_tags(prompt_id)
+            if tags:
+                try: os.remove(os.path.join(input_dir, img_name))
+                except: pass
+                # El tagger de pysssss devuelve a veces una lista de tags unidos por comas en el primer elemento
+                if len(tags) == 1 and isinstance(tags[0], str):
+                    return tags[0]
+                return ", ".join(tags)
+            time.sleep(2)
+            elapsed += 2
+            
+    except Exception as e:
+        log.debug(f"[VideoStudio] Error en img2prompt (ComfyUI offline/Tagger fail): {e}")
+    return ""
 
 
 # ── Paso 2: Generación de guión via LLM ──────────────────────────────────────
@@ -2035,13 +2098,23 @@ def _process_job(
             if _create_title_card(title or "Video Promocional", style_info.get("label", "Cinema Studio"), intro_path, w_ic, h_ic, fps, 3.5, codec):
                 clip_paths.insert(0, intro_path)
 
+        previous_scene_image = None
+
         for i, scene in enumerate(scenes):
             scene_num   = i + 1
             scene_title = scene.get("title", f"Escena {scene_num}")
             narration   = scene.get("narration", "")
 
-            # â”€â”€ Construir prompt con anchor garantizado â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            # ── Extraer contexto visual de la escena anterior (si existe) ──
+            scene_visual_context = ""
+            if previous_scene_image:
+                scene_visual_context = _get_scene_visual_context(previous_scene_image)
+
+            # ── Construir prompt con anchor garantizado ──
             raw_prompt      = scene.get("image_prompt", topic)
+            if scene_visual_context:
+                raw_prompt = f"{scene_visual_context}, {raw_prompt}"
+                
             anchored_prompt = (
                 f"{visual_anchor}, {raw_prompt}, {style_prefix}"
                 if visual_anchor.lower() not in raw_prompt.lower()
@@ -2069,7 +2142,9 @@ def _process_job(
                 _create_placeholder_image(scene_title, placeholder)
                 img_path = placeholder
 
-            # â”€â”€ PASO 3: TTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            previous_scene_image = img_path
+
+            # ── PASO 3: TTS ──────────────────────────────────────────────
             _check_cancelled(job_id)
             step += 1
             pct = int(step / total_steps * 100)
@@ -2464,7 +2539,7 @@ def start() -> None:
     _init_db()
     t = threading.Thread(target=_worker_loop, name="GravityVideoWorker", daemon=True)
     t.start()
-    log.info("[VideoStudio] Worker daemon iniciado (Gravity Studio ULTRA V13.0 PRO - Audio Ducking & VFX Active).")
+    log.info("[VideoStudio] Worker daemon iniciado (Gravity Studio ULTRA V15.0 PRO - Audio Ducking & VFX Active).")
 
 
 # â”€â”€ API pÃºblica â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

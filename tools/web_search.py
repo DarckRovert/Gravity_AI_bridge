@@ -7,7 +7,6 @@ import re
 import urllib.request
 import urllib.parse
 from tools.base_tool import Tool, ToolResult
-from core.key_manager import KeyManager
 
 DDG_URL   = "https://html.duckduckgo.com/html/"
 BRAVE_URL = "https://api.search.brave.com/res/v1/web/search"
@@ -73,6 +72,7 @@ class WebSearch(Tool):
     description = "Searches the web and returns top results as context"
 
     def execute(self, query: str, **kwargs) -> ToolResult:
+        from core.key_manager import KeyManager
         brave_key = KeyManager.get_key("brave_search")
         if brave_key:
             results = _brave_search(query, brave_key)

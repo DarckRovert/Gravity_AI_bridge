@@ -6,7 +6,7 @@ import {
   AlertTriangle, Info, Send
 } from 'lucide-react';
 
-const API = 'http://localhost:7860';
+const API = '';
 
 interface RevenueData {
   period_days: number; total_revenue_usd: number; youtube_usd: number;

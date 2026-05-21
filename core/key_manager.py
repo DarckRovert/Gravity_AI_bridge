@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — KEY MANAGER V13.0 PRO                            ║
+║     GRAVITY AI — KEY MANAGER V15.0 PRO                            ║
 ║     Almacenamiento cifrado de API keys (DPAPI en Windows)   ║
 ╚══════════════════════════════════════════════════════════════╝
 
@@ -76,7 +76,7 @@ def _encrypt(plaintext: str) -> bytes:
             pass
     # Fallback XOR
     salt = _get_machine_salt()
-    key  = hashlib.sha256(salt + b"GravityAI_V13.0 PRO").digest()
+    key  = hashlib.sha256(salt + b"GravityAI_V15.0 PRO").digest()
     return b"XOR:" + _xor_cipher(raw, key)
 
 
@@ -84,7 +84,7 @@ def _decrypt(ciphertext: bytes) -> str:
     """Decrypt bytes back to string."""
     if ciphertext.startswith(b"XOR:"):
         salt = _get_machine_salt()
-        key  = hashlib.sha256(salt + b"GravityAI_V13.0 PRO").digest()
+        key  = hashlib.sha256(salt + b"GravityAI_V15.0 PRO").digest()
         return _xor_cipher(ciphertext[4:], key).decode("utf-8")
     if platform.system() == "Windows":
         try:
@@ -202,7 +202,7 @@ class KeyManager:
 
 
 if __name__ == "__main__":
-    print("KeyManager V13.0 PRO — Test\n")
+    print("KeyManager V15.0 PRO — Test\n")
     KeyManager.set_key("test_provider", "sk-test-123456789")
     assert KeyManager.has_key("test_provider")
     assert KeyManager.get_key("test_provider") == "sk-test-123456789"

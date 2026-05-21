@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import yaml
+import shutil
 from pathlib import Path
 from typing import Any, Dict
 
@@ -10,7 +11,7 @@ log = logging.getLogger("gravity.config")
 class ConfigManager:
     """
     Manages application configuration with YAML support and auto-migration from JSON.
-    Supports profiles (dev, prod, test). V13.0 PRO.
+    Supports profiles (dev, prod, test). V15.0 PRO.
     """
     DEFAULT_CONFIG = {
         "version": "13.0.0",
@@ -40,6 +41,15 @@ class ConfigManager:
         self.old_settings_path = Path(old_settings)
         self.config = self.DEFAULT_CONFIG.copy()
         
+        # Copiar de plantilla .example si no existe el config principal
+        example_path = self.config_path.with_name(self.config_path.name + ".example")
+        if not self.config_path.exists() and example_path.exists():
+            try:
+                shutil.copy(example_path, self.config_path)
+                log.info(f"[CONFIG] Creado config.yaml inicial a partir de {example_path.name}")
+            except Exception as e:
+                log.error(f"[CONFIG] No se pudo copiar {example_path.name} a {self.config_path.name}: {e}")
+
         self.load()
 
     def load(self):

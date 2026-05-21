@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║   GRAVITY AI — BRAIN V13.0 PRO [Sistema de Conciencia Total]                    ║
+║   GRAVITY AI — BRAIN V15.0 PRO [Sistema de Conciencia Total]                    ║
 ║                                                                              ║
 ║   Módulo central que otorga a Gravity consciencia del estado completo del    ║
 ║   sistema en tiempo real. Se inyecta como contexto en cada request de chat.  ║
@@ -304,7 +304,7 @@ def build_gravity_system_prompt(extra_rules: list[str] | None = None) -> str:
         "CAPACIDADES ESTÁNDAR: Puedes discutir, planificar y ejecutar tareas sobre el sistema usando los comandos disponibles. "
         "Cuando el usuario te pida crear un video, generar imágenes, buscar información, ejecutar código o "
         "cualquier otra tarea del sistema, DEBES indicar exactamente qué endpoint/comando ejecutaste y su resultado. "
-        "CAPACIDADES AGENTIC V13.0 (NUEVAS — ÚSALAS): "
+        "CAPACIDADES AGENTIC V15.0 (NUEVAS — ÚSALAS): "
         "Ahora posees herramientas directas de acceso al sistema operativo y al sistema de archivos. "
         "Puedes leer archivos con /fs_ver <ruta>, listar directorios con /fs_listar <ruta>, "
         "buscar texto en el código fuente con /fs_buscar <texto> <ruta>, "

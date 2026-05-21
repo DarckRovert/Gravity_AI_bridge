@@ -8,8 +8,8 @@ export const Security = () => {
   const fetchSecurity = async () => {
     try {
       const [sRes, gRes] = await Promise.all([
-        fetch('http://localhost:7860/v1/security'),
-        fetch('http://localhost:7860/v1/security/geoip')
+        fetch('/v1/security'),
+        fetch('/v1/security/geoip')
       ]);
       if (sRes.ok) setSec(await sRes.json());
       if (gRes.ok) {
@@ -28,7 +28,7 @@ export const Security = () => {
   const killProcess = async (pid: number) => {
     if (!confirm(`¿Seguro que deseas terminar el proceso con PID ${pid}?`)) return;
     try {
-      await fetch('http://localhost:7860/v1/security/kill', {
+      await fetch('/v1/security/kill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pid })
@@ -54,8 +54,8 @@ export const Security = () => {
             </div>
           </div>
           <div className={`px-4 py-2 rounded-xl border font-black text-xs uppercase tracking-widest flex items-center gap-2
-            ${sec?.integrity_alert ? 'bg-status-error text-white border-status-error animate-pulse' : 'bg-status-success/10 text-status-success border-status-success/20'}`}>
-            <Lock size={14} /> {sec?.integrity_alert ? 'CRITICAL BREACH' : 'ENFORCED'}
+            ${sec?.status === 'warning' || sec?.status === 'error' ? 'bg-status-error text-white border-status-error animate-pulse' : 'bg-status-success/10 text-status-success border-status-success/20'}`}>
+            <Lock size={14} /> {sec?.status === 'warning' || sec?.status === 'error' ? 'THREAT DETECTED' : 'ENFORCED'}
           </div>
         </div>
 
@@ -68,7 +68,8 @@ export const Security = () => {
                 <Cpu size={18} className="text-accent-primary" /> Procesos Sospechosos
               </h3>
               <div className="space-y-3">
-                {sec?.suspicious_processes?.length > 0 ? sec.suspicious_processes.map((p: any, i: number) => (
+                {(sec?.processes?.filter((p: any) => p.suspicious) || []).length > 0
+                  ? (sec.processes.filter((p: any) => p.suspicious) as any[]).map((p: any, i: number) => (
                   <div key={i} className="p-4 rounded-xl bg-status-error/5 border border-status-error/20 flex items-center justify-between group hover:bg-status-error/10 transition-all">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-lg bg-status-error/20 flex items-center justify-center text-status-error">
@@ -76,7 +77,7 @@ export const Security = () => {
                       </div>
                       <div>
                         <div className="font-bold text-text-primary text-sm">{p.name} <span className="text-text-muted text-xs">PID: {p.pid}</span></div>
-                        <div className="text-[10px] font-bold text-status-error uppercase tracking-tighter">{p.reason || 'Anomalía Detectada'}</div>
+                        <div className="text-[10px] font-bold text-status-error uppercase tracking-tighter">{p.reason || 'Proceso sospechoso detectado'}</div>
                       </div>
                     </div>
                     <button 
@@ -122,14 +123,14 @@ export const Security = () => {
             <div className="glass-panel p-6 rounded-2xl border border-border-subtle space-y-6">
               <h3 className="text-sm font-black text-text-primary uppercase tracking-widest">Estado Global</h3>
               <div className="space-y-4">
-                <StatItem label="Nivel de Alerta" value={sec?.integrity_alert ? 'HIGH' : 'LOW'} color={sec?.integrity_alert ? 'text-status-error' : 'text-status-success'} />
+                <StatItem label="Nivel de Alerta" value={sec?.status === 'warning' ? 'HIGH' : sec?.status === 'error' ? 'CRITICAL' : 'LOW'} color={sec?.status !== 'ok' && sec?.status ? 'text-status-error' : 'text-status-success'} />
                 <StatItem label="Escaneos hoy" value={sec?.scans_today || 0} />
-                <StatItem label="Puertos Abiertos" value={sec?.listening_ports?.length || 0} />
-                <StatItem label="Integridad Core" value="Verificada" color="text-status-success" />
+                <StatItem label="Puertos Abiertos" value={sec?.listening_ports?.length || sec?.open_ports?.length || 0} />
+                <StatItem label="Score Seguridad" value={`${sec?.score ?? 100}/100`} color={sec?.score < 70 ? 'text-status-error' : 'text-status-success'} />
               </div>
               <div className="pt-4 border-t border-border-subtle">
                 <button 
-                  onClick={() => fetch('http://localhost:7860/v1/security/scan', { method: 'POST' }).then(() => { alert('Escaneo forzado iniciado'); fetchSecurity(); })}
+                  onClick={() => fetch('/v1/security/scan', { method: 'POST' }).then(() => { alert('Escaneo forzado iniciado'); fetchSecurity(); })}
                   className="w-full py-3 rounded-xl bg-accent-primary text-white text-xs font-black uppercase tracking-widest hover:scale-105 transition-all"
                 >
                   Ejecutar Escaneo Total

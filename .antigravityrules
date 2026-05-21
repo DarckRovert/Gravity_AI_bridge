@@ -26,6 +26,7 @@ Este proyecto está bajo la supervisión del Bridge de Gravity AI. Todo agente d
 - **Verificación Adversarial**: Todo código crítico debe ser auditado mediante el agente de verificación:
   `python F:\Gravity_AI_bridge\core\verification_agent.py --file ruta/del/archivo.py`
 - **Integridad de Datos**: Cualquier error de persistencia detectado debe ser reportado al `data_guardian.py` para corrección atómica.
+- **Protección Antifiltrado de Secretos**: Queda estrictamente prohibido rastrear, indexar o confirmar en Git cualquier archivo con API keys reales, credenciales locales o tokens (como `config.yaml` o `_keystore.bin`). Estos archivos deben estar excluidos en `.gitignore` y mantenerse desrastreados (`git rm --cached`). El agente debe auditar que no existan secretos expuestos en staging antes de finalizar cualquier tarea.
 
 ## 6. Cierre de Sesión
 - **Memoria Persistente**: Tras resolver un error complejo, sugiere al usuario la actualización de la base de conocimiento mediante el comando `!aprende`.

@@ -1,5 +1,5 @@
 """
-Gravity AI Bridge — Core Modules V13.0 PRO
+Gravity AI Bridge — Core Modules V15.0 PRO
 """
 
 # Infraestructura base
@@ -23,7 +23,7 @@ from . import hitl_manager
 from . import tool_executor
 from . import turbo_kv       # Optimización KV-cache — conectado a engine_watchdog
 
-# Pipeline de producción (V13.0 PRO)
+# Pipeline de producción (V15.0 PRO)
 from . import security_monitor
 from . import image_queue
 from . import video_pipeline

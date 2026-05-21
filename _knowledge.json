@@ -1,7 +1,7 @@
-﻿{
+{
   "project": "Gravity AI Bridge",
-  "version": "12.2 PRO",
-  "status": "Official Release",
+  "version": "15.0 PRO",
+  "status": "Official Release Omniscient-Tier",
   "architecture": "Omni-Tier / Tri-Hardware / Claw-Inspired (Agentic Search & Surgical Edit)",
   "vulnerability_fixes": [
     {
@@ -28,14 +28,19 @@
       "id": "PATCH-9.3.1",
       "description": "Reestructuración Arquitectural Omniscient-Tier V13.0 PRO: API Unificada y Motor Monitorizado",
       "resolution": "Se reemplazó la API REST inexistente de Fooocus 2.5.5 por monitoreo local del directorio OUTPUT_DIR. Se desplegó dashboard unificado con salud real de motor y endpoint centralizado de imágenes."
+    },
+    {
+      "id": "V15.0 PRO-VTUBER",
+      "description": "Bypass de compilación de LivePortrait en Windows Server sin dependencias de MSVC Build Tools",
+      "resolution": "Se portó el modelo FasterLivePortrait de PyTorch a puros pesos ONNX aislados con DirectML acelerado por hardware, eliminando dependencias locales de MSVC."
     }
   ],
   "hardware_logic": {
-    "primary_accelerator": "AMD Radeon/Ryzen (CPU-Safe Compute puro)",
-    "npu_target": "AMD Ryzen AI (XDNA)",
-    "rag_embedder": "ONNX Runtime (onnx_cpu)",
+    "primary_accelerator": "AMD Radeon/Ryzen (CPU-Safe Compute puro o DirectML GPU)",
+    "npu_target": "AMD Ryzen AI (XDNA Architecture)",
+    "rag_embedder": "ONNX Runtime (onnx_cpu / onnx_directml)",
     "optimal_ctx_calc": "45% of total VRAM allocated to KV-cache",
-    "mcp_support": "Habilitado vía core/mcp_adapter.py"
+    "mcp_support": "Habilitado de forma nativa vía core/mcp_adapter.py y expuesto en /v1/mcp"
   },
   "core_protection": {
     "active": true,
@@ -68,15 +73,16 @@
     "api_url": "http://127.0.0.1:7861",
     "backend": "CPU-Safe Computation (fp32 euler)",
     "launch_script": "F:\\Gravity_AI_bridge\\_integrations\\Fooocus\\run_amd.bat",
-    "gravity_tool": "tools/fooocus_client.py (Monitorea el status vía health check /)",
+    "gravity_tool": "tools/fooocus_client.py (Monitorea el status vía health check)",
     "dashboard_ui": "tools/fooocus_studio_ui.py (Arquitectura de polling de disco local)",
     "output_dir": "_integrations/Fooocus/Fooocus/outputs",
     "notes": "Fooocus se corre estrictamente bajo flags --always-cpu. El API HTTP Rest no está activo, la comunicación entre Bridge y Fooocus es a través del sistema de archivos local para imágenes generadas."
   },
-  "last_audit": "2026-04-13",
+  "last_audit": "2026-05-21",
   "author": "DarckRovert",
   "persistent_rules": [
-    "[2026-04-24] Optimizaci?n de Dashboard V12: Implementado endpoint /v1/processes y gesti?n de procesos en HardwareMonitor/ToolsPro. Corregida navegaci?n por eventos.",
-    "[2026-04-29] V13.0 PRO ARCHITECTURE UPDATE:"
+    "[2026-04-24] Optimización de Dashboard V12: Implementado endpoint /v1/processes y gestión de procesos en HardwareMonitor/ToolsPro. Corregida navegación por eventos.",
+    "[2026-04-29] V13.0 PRO ARCHITECTURE UPDATE: Sincronización multi-agente, automatización del Scheduler y auditoría de retención de video.",
+    "[2026-05-21] V15.0 PRO ARCHITECTURE UPDATE: Refactorización y reescritura de la base de conocimiento de la wiki corporativa a la arquitectura real V15.0 PRO Omniscient-Tier (26 paneles, DirectML, Watchdog, SRP-6a y Monetización)."
   ]
 }

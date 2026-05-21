@@ -10,17 +10,29 @@ export const Firecrawl = () => {
   const handleCrawl = async () => {
     if (!url.trim()) return;
     setCrawling(true);
-    // Simula el proceso ya que la API no tiene un endpoint directo aún
-    setTimeout(() => {
-      alert(`Scraping completado para: ${url}\nDatos enviados a memoria semántica.`);
-      setCrawling(false);
+    try {
+      const res = await fetch('/v1/tools/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url.trim() })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        alert(`Extracción completada para: ${url}\n\nContenido enviado a memoria semántica.\nTokens aprox: ${Math.round((data.content?.length || 0) / 4)}`);
+      } else {
+        alert(`Error en crawl: ${data.error || 'Sin contenido extraído'}`);
+      }
       setUrl('');
-    }, 2000);
+    } catch (e) {
+      alert('Error de conexión con el backend de Firecrawl');
+    } finally {
+      setCrawling(false);
+    }
   };
 
   const fetchHealth = async () => {
     try {
-      const res = await fetch('http://localhost:7860/v1/tools/firecrawl/health');
+      const res = await fetch('/v1/tools/firecrawl/health');
       if (res.ok) setHealth(await res.json());
     } catch (e) {} finally {
       setLoading(false);

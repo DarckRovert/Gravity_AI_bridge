@@ -4,6 +4,23 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
+## [V15.0 PRO] Real-Time VTuber Engine V4.0 · 13/05/2026
+
+**[EVOLUCIÓN A ARQUITECTURA "GENERATE ONCE, DRIVE REAL-TIME"]**
+
+### Motor de Transferencia Neural de Movimiento
+- **LivePortrait ONNX Integrado**: Se descartó la transformación ineficiente "frame-by-frame" con SD-Turbo. Ahora el sistema utiliza `FasterLivePortrait` puro a 30-60 FPS, procesando exclusivamente por DirectML.
+- **Bypass de Compilación C++**: Se modificó estructuralmente el código base de LivePortrait (mock de la clase `Face` de Insightface) aislando la inferencia a puros pesos ONNX, eliminando al 100% la dependencia de MSVC Build Tools.
+- **Doble Fase V4.0**:
+  1. *Fase Generativa (Init)*: SD-Turbo se invoca *una sola vez* al cambiar de preset para generar un `reference_avatar` estático pero perfecto (evitando el flickering).
+  2. *Fase Animación (Live)*: LivePortrait intercepta la webcam para trasladar parpadeos, respiración, rotación de cabeza y tracking labial al avatar maestro de manera hiperfluida.
+
+### Actualización de UI (V2V Studio)
+- Añadido disparador explícito **"Generar Avatar Base (SD-Turbo)"** para independizar el diseño de la sesión activa de streaming.
+- Sincronización WebSocket optimizada con telemetría de estados separada (`base_dirty` y `bg_dirty`).
+
+---
+
 ## [V13.0 PRO] Agentic Automation & Multi-Agent Pipeline · 09/05/2026
 
 **[EVOLUCIÓN A ECOSISTEMA MULTI-AGENTE AUTÓNOMO]**

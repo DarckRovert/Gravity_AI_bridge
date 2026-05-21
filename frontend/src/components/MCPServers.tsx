@@ -7,7 +7,7 @@ export const MCPServers = () => {
 
   const fetchMCP = async () => {
     try {
-      const res = await fetch('http://localhost:7860/v1/mcp/status');
+      const res = await fetch('/v1/mcp/status');
       if (res.ok) {
         const data = await res.json();
         setServers(data.mcp_servers || []);

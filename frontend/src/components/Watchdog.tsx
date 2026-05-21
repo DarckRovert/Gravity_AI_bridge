@@ -6,7 +6,7 @@ export const Watchdog = () => {
 
   const fetchWatchdog = async () => {
     try {
-      const res = await fetch('http://localhost:7860/v1/watchdog');
+      const res = await fetch('/v1/watchdog');
       if (res.ok) setData(await res.json());
     } catch (e) {}
   };
@@ -71,10 +71,10 @@ export const Watchdog = () => {
                     <Cpu size={18} className="text-accent-secondary" /> Puntos de Control (Checkpoints)
                  </h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Checkpoint label="Model Load Integrity" ok={true} />
-                    <Checkpoint label="VRAM Garbage Collection" ok={true} />
-                    <Checkpoint label="Socket Heartbeat" ok={data?.status === 'ok'} />
-                    <Checkpoint label="Worker Pool Sync" ok={true} />
+                    <Checkpoint label="Model Load Integrity" ok={data?.checkpoints?.model_integrity ?? true} />
+                    <Checkpoint label="VRAM Garbage Collection" ok={data?.checkpoints?.vram_gc ?? true} />
+                    <Checkpoint label="Socket Heartbeat" ok={data?.checkpoints?.socket_heartbeat ?? (data?.status === 'ok')} />
+                    <Checkpoint label="Worker Pool Sync" ok={data?.checkpoints?.worker_pool ?? true} />
                  </div>
               </div>
            </div>
@@ -88,7 +88,17 @@ export const Watchdog = () => {
                        <div className="text-lg font-black text-text-primary">RESTART_ON_FREEZE</div>
                        <p className="text-[10px] text-text-muted mt-2">Si un provider no responde en 45s, se reinicia el socket y se marca como "Degradado".</p>
                     </div>
-                    <button className="w-full py-3 rounded-xl bg-surface border border-border-subtle text-xs font-black text-text-muted hover:text-text-primary transition-all flex items-center justify-center gap-2">
+                    {data?.active_provider && (
+                      <div className="p-4 rounded-xl bg-surface border border-border-subtle">
+                        <div className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Proveedor Activo</div>
+                        <div className="text-sm font-black text-text-primary">{data.active_provider}</div>
+                        <div className="text-[10px] font-bold text-accent-secondary mt-1 truncate">{data.active_model}</div>
+                      </div>
+                    )}
+                    <button 
+                      onClick={fetchWatchdog}
+                      className="w-full py-3 rounded-xl bg-surface border border-border-subtle text-xs font-black text-text-muted hover:text-text-primary transition-all flex items-center justify-center gap-2"
+                    >
                        <RefreshCw size={14} /> Forzar Re-escaneo
                     </button>
                  </div>

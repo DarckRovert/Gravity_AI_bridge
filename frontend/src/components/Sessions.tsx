@@ -8,8 +8,8 @@ export const Sessions = () => {
   const fetchData = async () => {
     try {
       const [sRes, aRes] = await Promise.all([
-        fetch('http://localhost:7860/v1/sessions'),
-        fetch('http://localhost:7860/v1/sessions/active')
+        fetch('/v1/sessions'),
+        fetch('/v1/sessions/active')
       ]);
       if (sRes.ok) {
         const data = await sRes.json();
@@ -30,7 +30,7 @@ export const Sessions = () => {
 
   const spawnSession = async (id: string) => {
      try {
-       await fetch('http://localhost:7860/v1/sessions/spawn', {
+       await fetch('/v1/sessions/spawn', {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
          body: JSON.stringify({ session_id: id })
@@ -42,7 +42,7 @@ export const Sessions = () => {
   const deleteSession = async (id: string) => {
     if (!confirm(`¿Eliminar la sesión ${id} permanentemente?`)) return;
     try {
-      await fetch('http://localhost:7860/v1/sessions/kill', {
+      await fetch('/v1/sessions/kill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session_id: id })

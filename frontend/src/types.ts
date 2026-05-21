@@ -62,4 +62,6 @@ export type PanelId =
   | 'security'
   | 'audit'
   | 'config'
-  | 'monetization';
+  | 'monetization'
+  | 'v2v'
+  | 'obs';

@@ -1,12 +1,12 @@
 @echo off
-title Gravity AI Bridge V13.0 PRO -- Arranque Completo
+title Gravity AI Bridge V15.0 PRO -- Arranque Completo
 setlocal enabledelayedexpansion
 color 0B
 cls
 
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|          GRAVITY AI BRIDGE V13.0 PRO [Ecosistema Total]                 ^|
+echo  ^|          GRAVITY AI BRIDGE V15.0 PRO [Ecosistema Total]                 ^|
 echo  ^|          Motor de Animacion (MAI) L0/L1/L2 habilitado                   ^|
 echo  +--------------------------------------------------------------------------+
 echo.
@@ -26,15 +26,18 @@ if not exist "%ROOT%\bridge_server.py" (
     exit /b 1
 )
 
-REM ── 1. Liberar puertos previos (7860, 7861, 7862) ─────────────────────────────
-echo  [1/4] Liberando puertos previos (7860, 7861, 7862)...
-for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7861 " ^| findstr LISTENING') do (
-    taskkill /F /PID %%p >nul 2>&1
-)
+REM ── 1. Liberar puertos previos (7860, 7861, 7862, 7863) ────────────────────
+echo  [1/4] Liberando puertos previos (7860, 7861, 7862, 7863)...
 for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7860 " ^| findstr LISTENING') do (
     taskkill /F /PID %%p >nul 2>&1
 )
+for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7861 " ^| findstr LISTENING') do (
+    taskkill /F /PID %%p >nul 2>&1
+)
 for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7862 " ^| findstr LISTENING') do (
+    taskkill /F /PID %%p >nul 2>&1
+)
+for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7863 " ^| findstr LISTENING') do (
     taskkill /F /PID %%p >nul 2>&1
 )
 timeout /t 2 /nobreak >nul
@@ -114,16 +117,17 @@ echo  [OK] Studio UI iniciado.
 :launch_done
 echo.
 echo  +--------------------------------------------------------------------------+
+echo  ^|          GRAVITY AI BRIDGE V15.0 PRO — Ecosistema Completo               ^|
+echo  +--------------------------------------------------------------------------+
+echo  ^|   Dashboard Web:    http://localhost:7860  (Chat, V2V, Video Studio)    ^|
+echo  ^|   Fooocus Motor:    http://127.0.0.1:7861  (API generacion imagenes)    ^|
+echo  ^|   Fooocus Studio:   http://127.0.0.1:7862  (UI de generacion)           ^|
+echo  ^|   V2V WebSocket:    ws://127.0.0.1:7863    (Motor en vivo)              ^|
+echo  ^|   MAI L2 ComfyUI:   http://localhost:8188  (si activo)                  ^|
 echo  ^|                                                                          ^|
-echo  ^|   Dashboard Web:    http://localhost:7860       (Chat, Status, Audit)    ^|
-echo  ^|   Video Studio:     http://localhost:7860       (Tab VideoStudio)        ^|
-echo  ^|   MAI L2 (ComfyUI): http://localhost:8188       (si activo)             ^|
-echo  ^|   Fooocus Motor:    http://127.0.0.1:7861       (API de generacion)     ^|
-echo  ^|   Vision Studio:    http://127.0.0.1:7862       (UI de generacion)      ^|
-echo  ^|                                                                          ^|
+echo  ^|   [!] V2V Engine: inicia desde el panel V2V Live Studio                 ^|
 echo  ^|   [!] Fooocus CPU tarda ~60-120s en cargar. Imagen: 3-8 min             ^|
-echo  ^|   [!] MAI L2 requiere ComfyUI corriendo en :8188                        ^|
-echo  ^|   [!] NO cierres la ventana del motor Fooocus mientras trabajas         ^|
+echo  ^|   [!] NO cierres ventanas de motores mientras trabajas                  ^|
 echo  ^|                                                                          ^|
 echo  +--------------------------------------------------------------------------+
 echo.
@@ -131,5 +135,5 @@ echo  Abriendo el Dashboard principal en tu navegador...
 timeout /t 2 /nobreak >nul
 start http://127.0.0.1:7860/
 echo.
-echo  [LISTO] Ecosistema Gravity AI V13.0 PRO iniciado. Esta ventana puede cerrarse.
+echo  [LISTO] Ecosistema Gravity AI V15.0 PRO iniciado. Esta ventana puede cerrarse.
 pause

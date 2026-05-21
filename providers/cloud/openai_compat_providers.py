@@ -232,3 +232,58 @@ class NvidiaProvider(OpenAICompatCloudProvider):
 
     def get_cost_per_million_tokens(self, model: str) -> dict:
         return {"input": 1.00, "output": 1.00}  # Approximate generic cost
+
+
+# ── OpenRouter ────────────────────────────────────────────────────────────────
+class OpenRouterProvider(OpenAICompatCloudProvider):
+    name              = "OpenRouter"
+    _base_url         = "https://openrouter.ai/api/v1"
+    _key_id           = "openrouter"
+    supports_vision   = True
+    supports_function_calling = True
+    default_context   = 128000
+    _available_models = [
+        "google/gemini-2.5-flash", "google/gemini-2.5-pro",
+        "meta-llama/llama-3.3-70b-instruct", "deepseek/deepseek-r1",
+        "anthropic/claude-3.5-sonnet", "openai/gpt-4o-mini",
+    ]
+
+    def get_cost_per_million_tokens(self, model: str) -> dict:
+        return {"input": 1.00, "output": 1.00}
+
+
+# ── Universal AI ──────────────────────────────────────────────────────────────
+class UniversalProvider(OpenAICompatCloudProvider):
+    name              = "Universal AI"
+    _key_id           = "universal"
+    supports_vision   = True
+    supports_function_calling = True
+    default_context   = 128000
+
+    @property
+    def _base_url(self) -> str:
+        try:
+            import json as _j
+            import os as _os
+            _base = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+            with open(_os.path.join(_base, "_settings.json"), "r", encoding="utf-8") as _f:
+                _settings = _j.load(_f)
+            return _settings.get("universal_base_url", "https://openrouter.ai/api/v1").strip()
+        except Exception:
+            return "https://openrouter.ai/api/v1"
+
+    @property
+    def _available_models(self) -> list[str]:
+        try:
+            import json as _j
+            import os as _os
+            _base = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+            with open(_os.path.join(_base, "_settings.json"), "r", encoding="utf-8") as _f:
+                _settings = _j.load(_f)
+            custom_model = _settings.get("universal_model", "google/gemini-2.5-flash").strip()
+            return [custom_model]
+        except Exception:
+            return ["google/gemini-2.5-flash"]
+
+    def get_cost_per_million_tokens(self, model: str) -> dict:
+        return {"input": 1.00, "output": 1.00}

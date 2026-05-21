@@ -37,9 +37,9 @@
       "bgm_type": "synthwave",
       "n_scenes": 62,
       "estimated_cpm_usd": 8.0,
-      "times_used": 3,
-      "last_used": "2026-05-09T03:42:52.466141Z",
-      "last_topic_used": "El chip cuántico de Google explicado fácil"
+      "times_used": 4,
+      "last_used": "2026-05-10T06:22:40.940633Z",
+      "last_topic_used": "La carrera espacial entre SpaceX y China"
     },
     {
       "id": "finanzas_personales",
@@ -75,9 +75,9 @@
       "bgm_type": "misterio",
       "n_scenes": 62,
       "estimated_cpm_usd": 4.0,
-      "times_used": 3,
-      "last_used": "2026-05-09T08:18:21.374338Z",
-      "last_topic_used": "La ciudad perdida de Atlantis: ¿mito o realidad?"
+      "times_used": 4,
+      "last_used": "2026-05-10T15:50:53.911965Z",
+      "last_topic_used": "El misterio de las líneas de Nazca en Perú"
     },
     {
       "id": "ciencia_naturaleza",
@@ -94,9 +94,9 @@
       "bgm_type": "documental",
       "n_scenes": 60,
       "estimated_cpm_usd": 5.0,
-      "times_used": 3,
-      "last_used": "2026-05-09T08:00:02.019951Z",
-      "last_topic_used": "Cómo funciona el cerebro humano"
+      "times_used": 4,
+      "last_used": "2026-05-10T08:00:02.020755Z",
+      "last_topic_used": "Los 10 lugares más extremos de la Tierra"
     },
     {
       "id": "motivacion_exito",
@@ -112,9 +112,9 @@
       "bgm_type": "heroico",
       "n_scenes": 60,
       "estimated_cpm_usd": 7.0,
-      "times_used": 3,
-      "last_used": "2026-05-09T08:00:00.013321Z",
-      "last_topic_used": "Cómo salir de la mediocridad en 90 días"
+      "times_used": 4,
+      "last_used": "2026-05-10T08:00:00.014612Z",
+      "last_topic_used": "El método que usan los millonarios para no perder el tiempo"
     }
   ]
 }

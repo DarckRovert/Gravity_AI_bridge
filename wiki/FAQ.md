@@ -1,328 +1,97 @@
-﻿# FAQ — Gravity AI Bridge V13.0 PRO
+# 🪐 FAQ — Gravity AI Bridge V15.0 PRO
 **Omniscient-Tier Edition** · [Reportar un bug](https://github.com/DarckRovert/Gravity_AI_bridge/issues) · [twitch.tv/darckrovert](https://twitch.tv/darckrovert)
 
 ---
 
-## Instalación y Requisitos
+## 📡 Instalación, Requisitos y Hardware
 
 ### ¿Necesito instalar Python para usar Gravity AI Bridge?
-**No**, si usas el instalador `.exe`. El ejecutable generado con PyInstaller incluye el intérprete Python y todas las dependencias. El usuario final solo necesita Windows 10 (1809+) x64.
+**No**, si descargas el instalador comercial standalone `.exe`. El paquete empaquetado mediante PyInstaller e Inno Setup contiene un entorno autocontenido de Python preconfigurado y todas las librerías binarias necesarias.
 
-Si eres desarrollador y quieres ejecutarlo desde el código fuente, sí necesitas Python 3.11+.
+Si eres desarrollador o deseas modificar el comportamiento del micro-kernel, puedes realizar la instalación clásica clonando el repositorio y ejecutando `pip install -r requirements.txt`.
 
----
+### ¿Necesito una GPU dedicada de gama alta para ejecutar el bridge?
+No. El micro-kernel está diseñado para ser ultra-eficiente:
+- **Solo CPU:** Funciona perfectamente con modelos locales cuantizados pequeños (ej: `gemma3:4b` o `qwen2.5-coder:7b`) a una velocidad de inferencia moderada.
+- **iGPU AMD / Intel Arc:** Detecta y aprovecha la memoria gráfica compartida para acelerar los tensores de inferencia.
+- **GPU NVIDIA (CUDA) o AMD (ROCm):** Rendimiento máximo optimizado. El bridge perfila el hardware al arrancar y habilita el soporte nativo correspondiente.
 
-### ¿Necesito una GPU dedicada?
-No. El Bridge funciona perfectamente con:
-- **Solo CPU** — más lento, pero funcional con modelos pequeños (~7B cuantizados)
-- **iGPU AMD/Intel** — Los modelos usan la VRAM compartida disponible
-- **GPU NVIDIA** (CUDA) — Rendimiento óptimo
-- **GPU AMD dedicada** (ROCm en Windows) — Requiere ROCm runtime instalado
-
-El panel **Hardware Monitor** detecta automáticamente tu configuración y calcula el contexto óptimo para tu hardware específico.
+### ¿El asistente `build_installer.bat` requiere privilegios de administrador?
+No para el proceso de compilación (PyInstaller). Sin embargo, el archivo ejecutable resultante (`Gravity_AI_Bridge_V15.0_Setup.exe`) sí requerirá permisos de administrador para poder copiar los binarios a `C:\Program Files\` y registrar los servicios del Launcher silencioso.
 
 ---
 
-### ¿Por qué falla el Build del instalador con "Icon not found"?
-El archivo `assets/gravity_icon.ico` no existía. Desde la versión actual del `build_installer.bat` esto se detecta automáticamente y se genera. Si ves este error en una versión antigua, ejecuta:
-```bash
-python make_icon.py
-```
-Eso genera el `.ico` con todos los tamaños (256, 128, 64, 48, 32, 16 px) y el build continúa.
+## 🧠 Inferencia y Proveedores de IA
+
+### ¿Qué motores locales detecta de forma automática?
+El micro-kernel escanea activamente los siguientes puertos estándar al arrancar:
+- **Ollama:** Puerto `:11434`
+- **LM Studio:** Puerto `:1234`
+- **KoboldCPP:** Puerto `:5001`
+- **Jan AI:** Puerto `:1337`
+- **Lemonade:** Puerto `:8000` (Optimizado para ROCm)
+
+Si cualquiera de estos motores está en ejecución, el bridge catalogará sus modelos y los expondrá como disponibles para su consumo inmediato.
+
+### ¿Qué proveedores en la nube soporta el bridge?
+Soporta integración nativa con Anthropic, OpenAI, Google Gemini, Groq y Mistral AI. Puedes ingresar las API keys de forma interactiva en la pestaña de configuración del Dashboard. Las claves se almacenan de forma segura cifradas con DPAPI de Windows.
+
+### ¿Cómo funciona el Engine Watchdog y el auto-switch?
+El Watchdog es un daemon en segundo plano que evalúa cada 30 segundos la disponibilidad y latencia (ping) de todos los motores activos.
+- Si el modelo virtual `"gravity-bridge-auto"` está seleccionado, el bridge redirige tus peticiones al motor local más rápido y saludable.
+- Si el proveedor local falla de forma consecutiva o experimenta una degradación severa, el Watchdog conmuta inmediatamente a un proveedor cloud de respaldo (ej: Gemini o Claude) en menos de 30 segundos para evitar cortes.
+- Si fijas manualmente un modelo (ej: `/modelo deepseek-r1:14b`), el sistema entra en estado **LOCKED** y deshabilita el auto-switch hasta que presiones "🔓 Forzar Unlock" en el Dashboard.
 
 ---
 
-### ¿Por qué el build falla con "PyInstaller not found" o "No se pudo instalar"?
-Causas posibles y soluciones:
+## 🎬 Video Studio & Motor de Animación MAI
 
-| Causa | Solución |
-|:---|:---|
-| Sin conexión a internet | Conecta a internet o usa un mirror interno |
-| Firewall corporativo bloquea PyPI | Usa `--proxy http://tu-proxy:puerto` |
-| Python no está en el PATH | Reinstala Python marcando "Add to PATH" |
-| Permisos insuficientes | Ejecuta la terminal como Administrador |
+### ¿Qué diferencia a los niveles del Motor de Animación Inteligente (MAI)?
+El pipeline de generación de video cuenta con tres tiers de renderizado cinematográfico para dar vida a las imágenes fijas:
+- **Tier L0 (Estático):** Compila las imágenes tal y como son exportadas por el generador (ideal para previsualizaciones rápidas).
+- **Tier L1 (Procedural):** Aplica transformaciones matemáticas dinámicas en tiempo real mediante filtros complejos de ffmpeg (`kenburns`, `parallax`, `shake`, `vignette_drift`). Es ultra-rápido y no consume recursos de GPU.
+- **Tier L2 (Generativo AI):** Exporta el fotograma inicial a tu servidor de ComfyUI e invoca workflows generativos de interpolación de fotogramas (Stable Video Diffusion / AnimateDiff) para generar clips de video fluidos.
 
-Instalación manual de respaldo:
-```bash
-pip install pyinstaller --trusted-host pypi.org --trusted-host files.pythonhosted.org
-```
+### ¿Qué ocurre si Fooocus no está en ejecución al crear un video?
+El micro-kernel de video detectará que el puerto `:7861` no responde. Para evitar un fallo catastrófico del render y la interrupción del pipeline de ffmpeg, el sistema sustituirá automáticamente las imágenes de las escenas por fotogramas negros manteniendo la narración TTS y los subtítulos sincronizados funcionales.
 
 ---
 
-### ¿El `build_installer.bat` necesita ejecutarse como Administrador?
-**No**. El proceso de build (PyInstaller) no requiere permisos elevados. El **instalador resultante** sí necesita permisos de administrador para instalarse en `Program Files`, pero el build en sí no.
+## 💰 Monetización Pasiva y Publicación Autónoma
+
+### ¿El Content Scheduler genera y sube videos en segundo plano?
+Sí. Al activar el planificador autónomo, el sistema lee periódicamente el archivo de base de datos de nichos (`niches.json`), autogenera el syllabus del curso o tema programado, produce los videos en la cola y los distribuye de forma headless a YouTube (vía OAuth2 y Content API) y TikTok (vía Content API v2).
+
+### ¿Cómo funciona el multiplicador de CPM `language_cloner`?
+Cuando un video finaliza su producción en español, puedes enviarlo a `/v1/language/clone`. El sistema traducirá los guiones cinematográficos de forma asíncrona al inglés, portugués o francés, y sintetizará la voz narradora en esos idiomas manteniendo la misma pista de video base. Esto permite atacar mercados de alto CPM de forma instantánea sin costes de renderizado visual adicionales.
+
+### ¿Dónde se configuran los enlaces de afiliación CPA?
+Mediante el panel **Monetización Hub** (o el endpoint `/v1/affiliates/program/add`). Registras tu enlace, nombre del producto y un template de llamada a la acción (CTA) asignado a un nicho comercial. El `affiliate_manager` inyectará automáticamente estos enlaces en la caja de descripción de las subidas de YouTube y TikTok correspondientes al nicho del video.
 
 ---
 
-## Proveedores y Modelos
+## 📽️ OBS Studio y Overlays Gravity Spark
 
-### ¿Qué motores de IA locales soporta?
-| Motor | Puerto por defecto | Obtener |
-|:---|:---|:---|
-| **Ollama** | 11434 | [ollama.com](https://ollama.com) |
-| **LM Studio** | 1234 | [lmstudio.ai](https://lmstudio.ai) |
-| **KoboldCPP** | 5001 | [github.com/LostRuins/koboldcpp](https://github.com/LostRuins/koboldcpp) |
-| **Jan AI** | 1337 | [jan.ai](https://jan.ai) |
-| **Lemonade** | 8000 | AMD ROCm Edge |
+### ¿Cómo vinculo el bridge con mi OBS Studio para transmisiones en vivo?
+1. En OBS Studio, ve a **Herramientas > Ajustes del servidor WebSocket**. Activa el servidor en el puerto `4455` y copia la contraseña.
+2. Ingresa estas credenciales en el panel de configuración del Dashboard de Gravity.
+3. El bridge mantendrá un cliente WebSocket persistente que te permitirá automatizar cambios de escenas, mute de audios y control de grabaciones desde la API.
 
-El Bridge los detecta automáticamente por puerto. No es necesario configurar nada si están corriendo con el puerto por defecto.
+### ¿Qué hace el generador de overlays Gravity Spark?
+Utiliza la inteligencia del LLM local para generar al vuelo código HTML, hojas de estilo CSS y lógica JavaScript interactiva basándose en un prompt en lenguaje natural (ej: *"Crea un widget de barra de salud cyberpunk interactiva"*). El bridge escribe el archivo en disco, inicia un servidor web estático y añade de forma automática una Browser Source en la escena activa de tu OBS Studio.
 
 ---
 
-### ¿Qué proveedores cloud soporta?
-| Proveedor | Modelos |
-|:---|:---|
-| **Anthropic** | Claude 3.5 Sonnet, Claude 3.7 Opus |
-| **OpenAI** | GPT-4o, GPT-4o-mini, o1, o3 |
-| **Google** | Gemini 2.0 Flash, Gemini 1.5 Pro |
-| **Groq** | LLaMA 3.3 70B, Mixtral (ultra-rápido) |
-| **Mistral AI** | Mistral Large, Mistral Nemo |
+## 🔐 Seguridad y Privacidad
 
-Configura la API key en el panel Configuración del Dashboard. Las keys se cifran localmente con DPAPI de Windows.
+### ¿Mis API keys están seguras si subo el código a GitHub?
+Sí. El bridge **nunca almacena las API keys en texto plano** en sus archivos de configuración ni base de datos. Utiliza la API de Protección de Datos de Windows (DPAPI) para cifrar los tokens a nivel de kernel utilizando tu firma de cuenta de usuario del sistema operativo. Los datos cifrados solo pueden ser leídos en tu misma máquina y bajo tu usuario.
+
+### ¿El micro-kernel de RAG envía mis documentos a servidores externos?
+No. El proceso de parsing, segmentación lógica (chunking), generación de embeddings y almacenamiento vectorial se realiza de forma **100% local** en tu equipo mediante modelos locales integrados. Tus documentos nunca salen de tu máquina.
 
 ---
 
-### ¿Puedo tener Ollama y LM Studio corriendo al mismo tiempo?
-Sí. El Bridge detecta ambos y usa el de menor latencia automáticamente. Si quieres fijar uno:
-```
-/usar ollama        → Fija Ollama como proveedor
-/usar lmstudio      → Fija LM Studio como proveedor
-/auto               → Vuelve al auto-switch
-```
-
----
-
-### ¿Cómo sé qué modelo está usando el Bridge?
-- En el sidebar del Dashboard, esquina inferior izquierda → "Modelo Activo"
-- En el panel **System Status** → campo "Proveedor / Modelo"
-- En el panel **Engine Watchdog** → "Motor Activo"
-
----
-
-### ¿Qué modelo es el más recomendado para empezar?
-Para VRAM entre 4-8 GB:
-```bash
-ollama pull qwen2.5-coder:7b    # 4.7 GB · código excelente
-ollama pull gemma3:4b           # 3.3 GB · muy rápido en CPU
-```
-Para VRAM 8-16 GB:
-```bash
-ollama pull qwen2.5-coder:32b   # 19 GB · el mejor para código local
-ollama pull deepseek-r1:14b     # 9 GB · razonamiento profundo
-```
-
----
-
-## Dashboard y Funcionalidades
-
-### ¿Por qué el Cost Center siempre muestra $0.0000?
-Porque los **proveedores locales son gratuitos**. El Cost Center solo registra costes de proveedores cloud que cobran por token (Anthropic, OpenAI, Gemini, Groq, Mistral). Si solo usas Ollama o LM Studio, el coste es siempre $0.
-
----
-
-### ¿Cómo funciona el Engine Watchdog?
-El Watchdog es un hilo daemon que corre cada 30 segundos. Su lógica:
-1. Pide al `provider_manager` un escaneo de todos los proveedores
-2. Selecciona el de menor latencia que esté respondiendo correctamente
-3. Si el proveedor activo falla 2 veces consecutivas, cambia al siguiente
-4. Si el modelo está en modo **LOCKED**, no hace ningún cambio aunque haya algo mejor
-
-Para volver al modo automático: panl Watchdog → botón "🔓 Forzar Unlock".
-
----
-
-### ¿El RAG envía mis documentos a internet?
-**No.** El motor RAG usa embeddings generados localmente con `sentence-transformers`. El proceso completo (indexado + consulta) ocurre en tu máquina. Ningún fragmento de tus documentos sale de tu equipo.
-
----
-
-### ¿Cómo guardo y cargo conversaciones?
-Desde el CLI del Bridge:
-```
-/guardar mi-analisis-de-codigo    → Guarda el historial actual
-/cargar mi-analisis-de-codigo     → Restaura esa sesión
-/sesiones                         → Lista todas las sesiones guardadas
-/fork variante-alternativa        → Crea una rama sin borrar el original
-```
-Las sesiones aparecen también en el panel **Sessions** del Dashboard.
-
----
-
-### ¿Qué es el Model Context Protocol (MCP)?
-MCP es un estándar abierto que permite que el Bridge se conecte a servidores que exponen herramientas como:
-- Lectura/escritura de archivos del sistema
-- Búsqueda en repositorios GitHub
-- Consultas a bases de datos (SQLite, PostgreSQL)
-- Búsqueda web
-
-Es compatible con Continue.dev, Claude Desktop y cualquier cliente que soporte MCP. Se configura en `config.yaml` bajo la clave `mcp_servers`.
-
----
-
-### ¿Puedo usar el Bridge desde un IDE como VS Code?
-Sí. Desde el panel **Configuración** → sección **IDE Setup**, puedes configurar automáticamente:
-- **Continue.dev** — Extensión VS Code con chat y autocompletado
-- **Aider** — AI pair programmer en terminal
-- **Cursor** — VS Code fork con IA integrada
-
-O desde la terminal:
-```bash
-python core/ide_integrator.py todo    # Configura los tres a la vez
-```
-
----
-
-## Red y Seguridad
-
-### ¿Puedo acceder al Dashboard desde otro dispositivo en la red local?
-Sí. El servidor escucha en `0.0.0.0:7860`, lo que significa que acepta conexiones de cualquier IP de tu red. Desde otro dispositivo usa:
-```
-http://IP_DE_TU_PC:7860
-```
-Puedes ver tu IP local con `ipconfig` en PowerShell.
-
----
-
-### ¿Cómo expongo el servidor WoW a internet?
-1. Configura el port forwarding en tu router para los puertos **8085** (juego) y **3724** (autenticación), apuntando a la IP local de tu PC
-2. Obtén tu IP pública: busca "mi ip" en Google
-3. En el Dashboard → panel **Game Servers** → botón "Exponer WAN"
-4. Ingresa tu IP pública o dominio DDNS en el modal
-5. El Bridge actualiza `mangosd.conf` y `realmd.conf` automáticamente
-
-Para un servidor 24/7 estable, considera usar un VPS. Ver [Deploy Externo VPS](Deploy_Externo_VPS.md).
-
----
-
-### ¿Mis API keys de cloud están seguras?
-Sí. Las keys se cifran usando **DPAPI (Windows Data Protection API)**, que vincula el cifrado a tu identidad de usuario de Windows. Solo tú, en tu equipo, puedes descifrar las keys. Nunca se almacenan en texto plano en ningún archivo del proyecto.
-
----
-
-### ¿El Bridge tiene autenticación para evitar que otros lo usen?
-Por defecto no requiere autenticación (útil en LAN privada). Para restringir el acceso:
-```yaml
-# config.yaml
-security:
-  allowed_keys:
-    - "mi-key-privada-1234"
-    - "key-de-continue-dev"
-```
-Solo las peticiones con `Authorization: Bearer <key>` coincidente pasarán.
-
----
-
-## Mantenimiento
-
-### ¿Cómo actualizo a una nueva versión?
-**Modo desarrollador:**
-```bash
-git pull origin main
-pip install -r requirements.txt
-python bridge_server.py
-```
-
-**Instalador (.exe):**
-Descarga y ejecuta el nuevo `Gravity_AI_Bridge_V13.0 PRO_Setup.exe`. El instalador preserva tu `config.yaml` y `_knowledge.json`.
-
----
-
-### ¿Cómo limpio el audit log sin perder información?
-El audit log (`_audit_log.jsonl`) crece indefinidamente. Para archivarlo:
-```bash
-# Mover el log actual a un archivo con fecha
-move _audit_log.jsonl _audit_log_2026-04.jsonl
-# El bridge creará uno nuevo automáticamente
-```
-
----
-
-### ¿Cómo reinicio el cost tracker?
-Reinicia el Bridge. El `session_cost` se reinicia automáticamente. El `daily_cost` se reinicia a medianoche.
-
-Para borrar el historial completo:
-```bash
-echo {"providers":{}, "daily":{}, "total":{}} > _cost_log.json
-```
-
----
-
-### ¿Dónde reporto bugs o sugiero mejoras?
-- **GitHub Issues:** [github.com/DarckRovert/Gravity_AI_bridge/issues](https://github.com/DarckRovert/Gravity_AI_bridge/issues)
-- **Twitch:** [twitch.tv/darckrovert](https://twitch.tv/darckrovert) (en directo)
-- **CONTRIBUTING.md** — Para contribuir con código directamente
-
----
-
-## HITL y Seguridad (V13.0 PRO)
-
-### ¿Qué es el Human-in-the-Loop (HITL)?
-Es un sistema de seguridad de intercepción. Cuando el agente autónomo intenta ejecutar herramientas de alto riesgo (ej. `shell_exec`, `deploy`, `file_write`), el Bridge pausa la ejecución y solicita aprobación humana desde el Dashboard.
-
-### ¿Puedo desactivar HITL?
-Por seguridad, el HITL está activado permanentemente en el `bridge_server.py`. Si necesitas ejecución 100% autónoma, debes modificar `hitl_manager.py` bajo tu propio riesgo.
-
----
-
-## Firecrawl Scraper (V13.0 PRO)
-
-### ¿Por qué Firecrawl falla con "API key faltante"?
-Para scrapeos dinámicos (páginas con JavaScript pesado), requieres una API key de [firecrawl.dev](https://firecrawl.dev). Añádela a tu `config.yaml`:
-```yaml
-firecrawl_api_key: "fc-tu-api-key-aqui"
-```
-
-### ¿Firecrawl funciona sin API key?
-Sí, en modo fallback nativo. Usará `urllib` para scrapear HTML estático. Si la página requiere renderizado de JavaScript, la extracción de contenido será incompleta.
-
----
-
-## Video Studio & Motor MAI V13.0 PRO
-
-### ¿Qué es el Motor de Animación Inteligente (MAI)?
-El MAI es el nuevo motor de composición cinemática que anima las imágenes generadas por Fooocus antes de ensamblarlas en el video final. Tiene 3 niveles:
-- **L0 (Estático):** Escala base sin animación (útil para debug).
-- **L1 (Procedural):** Efectos calculados matemáticamente por FFmpeg (`kenburns`, `parallax`, `shake`, `vignette_drift`). Son instantáneos.
-- **L2 (Generativo AI):** Conversión Image-to-Video utilizando un servidor ComfyUI externo.
-
-### ¿Cómo activo la animación Image-to-Video (MAI L2)?
-1. Necesitas tener **ComfyUI** corriendo localmente en el puerto `8188`.
-2. Dentro de ComfyUI debe estar cargado el workflow por defecto `Gravity_I2V_API.json` (que usa modelos como LTX-Video o SVD).
-3. En el Dashboard, selecciona el preset "Cine L2" o activa el efecto "AI Image-to-Video (L2)" en el menú desplegable avanzado de animación.
-Si ComfyUI no responde, el sistema hará *fallback automático* a un efecto L1 (Ken Burns) sin bloquear tu render.
-
-### ¿Cuánto tarda en generarse un video?
-Depende del hardware y el número de escenas. En el **Ryzen 7 8700G** (CPU puro, sin GPU dedicada):
-- ~5 minutos por imagen (Fooocus CPU)
-- ~10 segundos de TTS (voces SAPI Windows)
-- ~20 segundos de ensamblado ffmpeg por clip
-- ~30 segundos de concatenación final
-
-Total estimado para 6 escenas: **30–35 minutos**.
-
----
-
-### ¿Qué pasa si Fooocus no está corriendo?
-El pipeline detecta el error y genera una imagen de marcador negro por cada escena que falle. El video se ensambla igualmente con audio y texto. No bloquea la generación.
-
----
-
-### ¿Qué pasa si el LLM (Ollama) no está corriendo?
-El pipeline usa un guión de ejemplo genérico con N escenas. El resultado es funcional pero sin personalización del contenido. Para aprovechar el Video Studio al máximo, ten Ollama corriendo antes de crear un video.
-
----
-
-### ¿Puedo cancelar un video en proceso?
-Solo si el job todavía está en estado `pending`. Un job `running` no puede interrumpirse sin reiniciar el bridge (el pipeline corre en un hilo daemon bloqueante por escena). La próxima versión añadirá soporte para interrupción por señal.
-
----
-
-### ¿En qué formato se genera el video?
-MP4 con codec H.264 (`libx264 -preset fast`) a 24 fps. El audio usa AAC a 128 kbps. Compatible con todos los reproductores modernos y plataformas de video.
-
----
-
-### ¿Dónde se guardan los videos generados?
-En `F:\Gravity_AI_bridge\_videos\`. Los archivos temporales por escena se guardan en `_videos\job_N\` y se eliminan automáticamente al finalizar la concatenación.
-
----
+<div align="center">
+  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V15.0 PRO Omniscient-Tier · Centro de Soporte y Preguntas Frecuentes</i></sub>
+</div>

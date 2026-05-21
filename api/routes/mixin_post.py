@@ -1,4 +1,4 @@
-import json, time, uuid, threading, os, sys, mimetypes, glob, traceback, urllib.parse, urllib.request
+import json, time, uuid, threading, os, sys, mimetypes, glob, traceback, yaml, urllib.parse, urllib.request, subprocess, psutil
 from core import provider_manager, security_monitor, image_queue, video_pipeline, deploy_manager, game_server_manager, ai_process_manager, engine_watchdog
 from core.audit_log import audit_logger
 from core.metrics import record_request, record_tokens, record_latency, record_error, get_metrics_data
@@ -8,6 +8,7 @@ from core.reasoning_stripper import ReasoningStripper
 
 class PostRoutesMixin:
     def do_POST(self):
+        print('DEBUG do_POST path:', repr(self.path))
 
         # /v1/scheduler/trigger — Encolar un video ahora (override manual del scheduler)
         if self.path == "/v1/scheduler/trigger":
@@ -161,6 +162,72 @@ class PostRoutesMixin:
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
 
+        # /v1/cost/limit — Actualizar límite diario de gasto
+        if self.path == "/v1/cost/limit":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                limit  = float(data.get("limit_usd", 10.0))
+                from core.cost_tracker import CostTracker
+                CostTracker.set_daily_limit(limit)
+                body = json.dumps({"ok": True, "limit_usd": limit}).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/rag/ingest — Ingestión de archivos PDF/TXT al índice RAG
+        if self.path == "/v1/rag/ingest":
+            try:
+                import cgi, io
+                content_type = self.headers.get("Content-Type", "")
+                length = int(self.headers.get("Content-Length", 0))
+                body = self.rfile.read(length)
+                # Parse multipart/form-data
+                environ = {"REQUEST_METHOD": "POST", "CONTENT_TYPE": content_type, "CONTENT_LENGTH": str(length)}
+                form = cgi.FieldStorage(fp=io.BytesIO(body), environ=environ, keep_blank_values=True)
+                BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                sources_dir = os.path.join(BASE_DIR, "_rag_sources")
+                os.makedirs(sources_dir, exist_ok=True)
+                indexed = 0
+                for field_name in form.keys():
+                    items = form[field_name]
+                    if not isinstance(items, list): items = [items]
+                    for item in items:
+                        if item.filename:
+                            safe_name = os.path.basename(item.filename)
+                            dest = os.path.join(sources_dir, safe_name)
+                            with open(dest, "wb") as f:
+                                f.write(item.file.read())
+                            indexed += 1
+                # Trigger background re-indexing if rag_engine is available
+                try:
+                    from core.rag_engine import ingest_directory
+                    import threading
+                    t = threading.Thread(target=ingest_directory, args=(sources_dir,), daemon=True)
+                    t.start()
+                except Exception:
+                    pass
+                body_resp = json.dumps({"ok": True, "indexed": indexed, "message": f"{indexed} archivo(s) guardados. Re-indexación iniciada."}).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body_resp)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            return
+
         # /v1/rag/toggle — Activar o desactivar RAG en _settings.json
         if self.path == "/v1/rag/toggle":
             try:
@@ -185,6 +252,96 @@ class PostRoutesMixin:
                 self.wfile.write(body)
             except Exception as e:
                 self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/model/lock — Bloquear un modelo y proveedor específico en _settings.json
+        if self.path == "/v1/model/lock":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                provider = data.get("provider", "").strip()
+                model    = data.get("model", "").strip()
+                lock     = bool(data.get("lock", True))
+
+                BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                settings_path = os.path.join(BASE_DIR, "_settings.json")
+                
+                with open(settings_path, "r", encoding="utf-8") as f:
+                    settings = json.load(f)
+                
+                if not lock:
+                    settings["model_locked"] = False
+                    settings.pop("locked_provider", None)
+                    settings.pop("locked_model", None)
+                else:
+                    if not provider or not model:
+                        self.send_response(400)
+                        self.send_header("Content-Type", "application/json")
+                        self._send_cors()
+                        self.end_headers()
+                        self.wfile.write(json.dumps({"error": "provider y model son requeridos para bloquear"}).encode())
+                        return
+                    settings["model_locked"] = True
+                    settings["locked_provider"] = provider
+                    settings["locked_model"] = model
+
+                with open(settings_path, "w", encoding="utf-8") as f:
+                    json.dump(settings, f, indent=4, ensure_ascii=False)
+                
+                body = json.dumps({
+                    "ok": True, 
+                    "model_locked": settings["model_locked"],
+                    "locked_provider": settings.get("locked_provider"),
+                    "locked_model": settings.get("locked_model")
+                }).encode()
+                
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/universal/config — Guardar configuración del proveedor Universal AI
+        if self.path == "/v1/universal/config":
+            try:
+                length   = int(self.headers.get("Content-Length", 0))
+                data     = json.loads(self.rfile.read(length)) if length else {}
+                base_url = data.get("universal_base_url", "").strip()
+                model    = data.get("universal_model", "").strip()
+                
+                BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                settings_path = os.path.join(BASE_DIR, "_settings.json")
+                
+                with open(settings_path, "r", encoding="utf-8") as f:
+                    settings = json.load(f)
+                
+                if base_url:
+                    settings["universal_base_url"] = base_url
+                if model:
+                    settings["universal_model"] = model
+                    
+                with open(settings_path, "w", encoding="utf-8") as f:
+                    json.dump(settings, f, indent=4, ensure_ascii=False)
+                    
+                body = json.dumps({"ok": True}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
@@ -241,8 +398,6 @@ class PostRoutesMixin:
             return
 
 
-
-        # /v1/agent/compare — Multi-Agent Orchestrator
         if self.path == "/v1/agent/compare":
             try:
                 length   = int(self.headers.get("Content-Length", 0))
@@ -251,7 +406,7 @@ class PostRoutesMixin:
                 n_models = int(data.get("n_models", 3))
                 mode     = data.get("mode", "parallel")
                 from core import multi_agent
-                if mode == "vote":
+                if mode in ("vote", "consensus"):
                     result = multi_agent.vote(messages, n_models=n_models)
                     results = [result]
                 else:
@@ -271,15 +426,21 @@ class PostRoutesMixin:
         # /v1/fabricaweb/deploy
         if self.path == "/v1/fabricaweb/deploy":
             try:
-                # Dispara el pipeline sin bloquear al cliente
-                threading.Thread(target=deploy_manager.run_deploy_pipeline, daemon=True, name="GravityFabricaDeploy").start()
-                self.send_response(200)
+                length = int(self.headers.get("Content-Length", 0))
+                data = json.loads(self.rfile.read(length)) if length else {}
+                project_path = data.get("project_path")
+                
+                # Dispara el pipeline (deploy_manager.start_deploy ya maneja el hilo interno)
+                result = deploy_manager.start_deploy(project_path)
+                
+                self.send_response(200 if result.get("started") else 400)
                 self.send_header("Content-Type", "application/json")
                 self._send_cors()
                 self.end_headers()
-                self.wfile.write(json.dumps({"ok": True, "message": "Deploy hacia FabricaWeb iniciado", "job_id": "fabricaweb_deploy"}).encode())
+                self.wfile.write(json.dumps({"ok": result.get("started", False), "message": result.get("reason", "Deploy hacia FabricaWeb iniciado"), "job_id": "fabricaweb_deploy"}).encode())
             except Exception as e:
                 self.send_response(500)
+                self._send_cors()
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
@@ -347,7 +508,6 @@ class PostRoutesMixin:
                                           width=width, height=height, model=model,
                                           seed=seed, enhance=enhance, negative_prompt=negative_prompt)
                     except Exception as e:
-                        import traceback
                         log.error(f"[ImageLab] Error en poll_gen: {traceback.format_exc()}")
                         raise e
 
@@ -616,6 +776,54 @@ class PostRoutesMixin:
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
 
+        # /v1/queue/delete — Elimina un job por ID
+        if self.path.startswith("/v1/queue/delete"):
+            try:
+                from urllib.parse import parse_qs, urlparse
+                qs     = parse_qs(urlparse(self.path).query)
+                job_id = qs.get("id", [None])[0]
+                if not job_id:
+                    length = int(self.headers.get("Content-Length", 0))
+                    data   = json.loads(self.rfile.read(length)) if length else {}
+                    job_id = data.get("id") or data.get("job_id")
+                if not job_id:
+                    self.send_response(400); self.send_header("Content-Type", "application/json"); self._send_cors(); self.end_headers()
+                    self.wfile.write(b'{"error":"id requerido"}'); return
+                from core.image_queue import _get_conn, _notify_update
+                with _get_conn() as conn:
+                    cur = conn.execute("DELETE FROM image_jobs WHERE id=?", (job_id,))
+                    ok = cur.rowcount > 0
+                _notify_update()
+                body = json.dumps({"ok": ok, "job_id": job_id, "message": "Eliminado" if ok else "Job no encontrado"}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self.send_header("Content-Type", "application/json"); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/queue/clear_history — Limpia todo el historial
+        if self.path == "/v1/queue/clear_history":
+            try:
+                from core.image_queue import _get_conn, _notify_update
+                with _get_conn() as conn:
+                    cur = conn.execute("DELETE FROM image_jobs WHERE status IN ('done', 'failed', 'cancelled')")
+                    ok = cur.rowcount > 0
+                _notify_update()
+                body = json.dumps({"ok": True, "message": "Historial limpiado"}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self.send_header("Content-Type", "application/json"); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
         if self.path == "/v1/deploy":
             try:
                 length       = int(self.headers.get("Content-Length", 0))
@@ -707,7 +915,16 @@ class PostRoutesMixin:
                 intro_card     = bool(data.get("intro_card", False))
                 color_grade    = str(data.get("color_grade", "auto")).strip()
                 animation_effect = str(data.get("animation_effect", "auto")).strip()
-                animation_level  = int(data.get("animation_level", 1))
+                # Configuración de animación desde config.yaml
+                _def_anim = 1
+                try:
+                    _bdir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                    with open(os.path.join(_bdir, 'config.yaml'), 'r', encoding='utf-8') as _fc:
+                        _cfg_c = yaml.safe_load(_fc) or {}
+                        _def_anim = int(_cfg_c.get('comfyui', {}).get('animation_level', 1))
+                except Exception:
+                    pass
+                animation_level  = int(data.get("animation_level", _def_anim))
                 job_id         = video_pipeline.add_job(
                     topic          = topic,
                     n_scenes       = n_scenes,
@@ -1032,13 +1249,13 @@ class PostRoutesMixin:
                     return
                 import signal as _signal
                 try:
-                    import psutil
+                    # psutil ya importado
                     p = psutil.Process(pid)
                     pname = p.name()
                     p.terminate()
                     body = json.dumps({"ok": True, "message": f"Proceso {pname} (PID {pid}) terminado.", "pid": pid}).encode()
                 except ImportError:
-                    import subprocess
+                    # subprocess ya importado
                     if sys.platform == "win32":
                         subprocess.run(["taskkill", "/PID", str(pid), "/F"], capture_output=True)
                     body = json.dumps({"ok": True, "message": f"Kill enviado a PID {pid}.", "pid": pid}).encode()
@@ -1202,7 +1419,7 @@ class PostRoutesMixin:
                 api_key = ""
                 try:
                     BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-                    import yaml
+                    # BASE_DIR ya calculado
                     with open(os.path.join(BASE_DIR, "config.yaml"), "r", encoding="utf-8") as f:
                         cfg = yaml.safe_load(f)
                     api_key = cfg.get("firecrawl_api_key", "") or ""
@@ -1221,11 +1438,6 @@ class PostRoutesMixin:
                 self._send_cors()
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
-            return
-
-        if self.path not in ("/v1/chat/completions", "/v1/completions", "/v1/gravity/chat"):
-            self.send_response(404)
-            self.end_headers()
             return
 
         # ── /v1/gravity/chat — Chat con conciencia sistémica completa ─────────
@@ -1254,7 +1466,6 @@ class PostRoutesMixin:
                             _base_dir_scrape = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
                             api_key = ""
                             try:
-                                import yaml
                                 with open(os.path.join(_base_dir_scrape, "config.yaml"), "r", encoding="utf-8") as f:
                                     api_key = yaml.safe_load(f).get("firecrawl_api_key", "")
                             except: pass
@@ -1273,7 +1484,6 @@ class PostRoutesMixin:
                 # Detectar comandos del sistema
                 from core.gravity_brain import parse_chat_commands, execute_system_command, build_gravity_system_prompt
                 from core import data_guardian
-                from core.reasoning_stripper import ReasoningStripper
 
                 cmd_info = parse_chat_commands(user_msg)
                 if cmd_info:
@@ -1299,12 +1509,12 @@ class PostRoutesMixin:
                         self._send_cors()
                         self.end_headers()
                         chunk = {
-                            "id": chat_id, "object": "chat.completion.chunk", "model": "gravity-brain-v11",
+                            "id": chat_id, "object": "chat.completion.chunk", "model": "gravity-brain-v15",
                             "choices": [{"index": 0, "delta": {"content": response_content}, "finish_reason": None}]
                         }
                         self.wfile.write(f"data: {json.dumps(chunk)}\n\n".encode("utf-8"))
                         final = {
-                            "id": chat_id, "object": "chat.completion.chunk", "model": "gravity-brain-v11",
+                            "id": chat_id, "object": "chat.completion.chunk", "model": "gravity-brain-v15",
                             "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}]
                         }
                         self.wfile.write(f"data: {json.dumps(final)}\n\n".encode("utf-8"))
@@ -1314,7 +1524,7 @@ class PostRoutesMixin:
                         body = json.dumps({
                             "id": f"chatcmpl-gravity-{uuid.uuid4().hex[:10]}",
                             "object": "chat.completion",
-                            "model": "gravity-brain-v11",
+                            "model": "gravity-brain-v15",
                             "choices": [{"index": 0, "message": {"role": "assistant", "content": response_content}, "finish_reason": "stop"}],
                             "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
                         }).encode("utf-8")
@@ -1352,7 +1562,10 @@ class PostRoutesMixin:
                         from rag.retriever import RAGRetriever
                         rag_ctx = RAGRetriever.retrieve_as_context(user_msg[:500], top_k=3)
                         if rag_ctx:
-                            messages_out.append({"role": "system", "content": rag_ctx})
+                            if messages_out and messages_out[0].get("role") == "system":
+                                messages_out[0]["content"] += f"\n\n[CONTEXTO RAG/CONOCIMIENTO EXTRA]:\n{rag_ctx}"
+                            else:
+                                messages_out.insert(0, {"role": "system", "content": rag_ctx})
                             log.info("[GravityChat] RAG inyectado")
                 except Exception:
                     pass
@@ -1417,7 +1630,6 @@ class PostRoutesMixin:
                     self.end_headers()
                     self.wfile.write(body)
             except Exception as e:
-                import traceback
                 log.error(f"[GravityChat] Error: {e}", exc_info=True)
                 try:
                     body = json.dumps({"error": str(e)}).encode("utf-8")
@@ -1432,170 +1644,172 @@ class PostRoutesMixin:
 
 
         # Rate limiting
-        ip         = self.client_address[0]
-        auth_hdr   = self.headers.get("Authorization", "")
-        api_key    = auth_hdr.split(" ")[-1] if " " in auth_hdr else auth_hdr
-        allowed, reason = check_access(ip, api_key)
-        if not allowed:
-            self.send_response(429)
-            self.send_header("Content-Type", "application/json")
-            self.end_headers()
-            self.wfile.write(json.dumps({"error": reason}).encode())
-            record_error("rate_limit")
-            return
-
-        try:
-            content_length = int(self.headers.get("Content-Length", 0))
-            post_data      = self.rfile.read(content_length)
-            payload        = json.loads(post_data.decode("utf-8"))
-            messages       = payload.get("messages", [])
-            req_model      = payload.get("model", "gravity-bridge-auto")
-            is_streaming   = payload.get("stream", True)
-            options        = {k: payload[k] for k in ("temperature", "top_p", "max_tokens", "stop") if k in payload}
-
-            # ── Auto-inyección de Personalidad (Knowledge Base) ──
-            if not any(m.get("role") == "system" for m in messages):
-                try:
-                    from core import data_guardian
-                    _base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-                    kb_data, _ = data_guardian.load_knowledge(os.path.join(_base_dir, "_knowledge.json"))
-                    _sys_prompt = (
-                        "Eres Gravity AI V13.0 PRO, Auditor Senior. "
-                        "PROTOCOLO: Lógica interna en inglés. Salida final en español estrictamente. "
-                        "Sin rellenos conversacionales. Solo hechos técnicos fríos. Resolución directa."
-                    )
-                    if kb_data and "persistent_rules" in kb_data and kb_data["persistent_rules"]:
-                        _sys_prompt += "\n\nCONOCIMIENTO CRÍTICO:\n" + "\n".join(kb_data["persistent_rules"])
-                    messages.insert(0, {"role": "system", "content": _sys_prompt})
-                except Exception as e:
-                    log.error(f"Error cargando personalidad para el bridge: {e}")
-
-            # ── Inyección RAG (si está activada en _settings.json) ──
-            try:
-                _base_dir_rag = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-                _settings_path = os.path.join(_base_dir_rag, "_settings.json")
-                with open(_settings_path, "r", encoding="utf-8") as _sf:
-                    _rag_enabled = json.load(_sf).get("rag_enabled", False)
-                if _rag_enabled:
-                    # Extraer la última query del usuario para la búsqueda
-                    _user_msgs = [m for m in messages if m.get("role") == "user"]
-                    if _user_msgs:
-                        _query = _user_msgs[-1].get("content", "")[:500]
-                        from rag.retriever import RAGRetriever
-                        _rag_context = RAGRetriever.retrieve_as_context(_query, top_k=4)
-                        if _rag_context:
-                            # Añadir como mensaje system adicional (no sobreescribe el de personalidad)
-                            messages.append({"role": "system", "content": _rag_context})
-                            log.info(f"[RAG] Contexto inyectado ({len(_rag_context)} chars) para query: {_query[:60]}...")
-            except Exception as _rag_err:
-                log.debug(f"[RAG] Skip — {_rag_err}")  # Silencioso si RAG no está disponible
-
-            target_prov = None
-            target_mod  = req_model
-            if req_model == "gravity-bridge-auto":
-                bp, bm = provider_manager.get_best()
-                if bp:
-                    target_prov, target_mod = bp.name, bm
-            else:
-                for r in provider_manager.scan_all():
-                    if r.is_healthy and any(m["name"] == req_model for m in r.models):
-                        target_prov = r.name
-                        break
-
-            if not target_prov:
-                self.send_response(503)
+        if self.path == "/v1/chat/completions":
+            ip         = self.client_address[0]
+            auth_hdr   = self.headers.get("Authorization", "")
+            api_key    = auth_hdr.split(" ")[-1] if " " in auth_hdr else auth_hdr
+            allowed, reason = check_access(ip, api_key)
+            if not allowed:
+                self.send_response(429)
+                self.send_header("Content-Type", "application/json")
                 self.end_headers()
-                self.wfile.write(b'{"error":"No provider available."}')
-                record_error("no_provider")
+                self.wfile.write(json.dumps({"error": reason}).encode())
+                record_error("rate_limit")
                 return
 
-            record_request(target_prov, target_mod)
-            chat_id     = f"chatcmpl-{uuid.uuid4().hex[:12]}"
-            start_time  = time.time()
-            input_chars = sum(len(m.get("content", "")) for m in messages)
-            input_tokens = input_chars // 4
-            record_tokens("input", target_prov, target_mod, input_tokens)
-            stripper = ReasoningStripper()
+            try:
+                content_length = int(self.headers.get("Content-Length", 0))
+                post_data      = self.rfile.read(content_length)
+                payload        = json.loads(post_data.decode("utf-8"))
+                messages       = payload.get("messages", [])
+                req_model      = payload.get("model", "gravity-bridge-auto")
+                is_streaming   = payload.get("stream", True)
+                options        = {k: payload[k] for k in ("temperature", "top_p", "max_tokens", "stop") if k in payload}
 
-            if is_streaming:
-                self.send_response(200)
-                self.send_header("Content-Type", "text/event-stream")
-                self.send_header("Cache-Control", "no-cache")
-                self._send_cors()
-                self.end_headers()
-                output_chars = 0
-                for chunk_text in provider_manager.stream(messages, model=target_mod, provider=target_prov, options=options):
-                    if not chunk_text:
-                        continue
-                    clean = stripper.process_chunk(chunk_text)
-                    if not clean:
-                        continue
-                    output_chars += len(clean)
-                    chunk = {
+                # ── Auto-inyección de Personalidad (Knowledge Base) ──
+                if not any(m.get("role") == "system" for m in messages):
+                    try:
+                        from core import data_guardian
+                        _base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                        kb_data, _ = data_guardian.load_knowledge(os.path.join(_base_dir, "_knowledge.json"))
+                        _sys_prompt = (
+                            "Eres Gravity AI V15.0 PRO, Auditor Senior. "
+                            "PROTOCOLO: Lógica interna en inglés. Salida final en español estrictamente. "
+                            "Sin rellenos conversacionales. Solo hechos técnicos fríos. Resolución directa."
+                        )
+                        if kb_data and "persistent_rules" in kb_data and kb_data["persistent_rules"]:
+                            _sys_prompt += "\n\nCONOCIMIENTO CRÍTICO:\n" + "\n".join(kb_data["persistent_rules"])
+                        messages.insert(0, {"role": "system", "content": _sys_prompt})
+                    except Exception as e:
+                        log.error(f"Error cargando personalidad para el bridge: {e}")
+
+                # ── Inyección RAG (si está activada en _settings.json) ──
+                try:
+                    _base_dir_rag = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                    _settings_path = os.path.join(_base_dir_rag, "_settings.json")
+                    with open(_settings_path, "r", encoding="utf-8") as _sf:
+                        _rag_enabled = json.load(_sf).get("rag_enabled", False)
+                    if _rag_enabled:
+                        # Extraer la última query del usuario para la búsqueda
+                        _user_msgs = [m for m in messages if m.get("role") == "user"]
+                        if _user_msgs:
+                            _query = _user_msgs[-1].get("content", "")[:500]
+                            from rag.retriever import RAGRetriever
+                            _rag_context = RAGRetriever.retrieve_as_context(_query, top_k=4)
+                            if _rag_context:
+                                if messages and messages[0].get("role") == "system":
+                                    messages[0]["content"] += f"\n\n[CONTEXTO RAG/CONOCIMIENTO EXTRA]:\n{_rag_context}"
+                                else:
+                                    messages.insert(0, {"role": "system", "content": _rag_context})
+                                log.info(f"[RAG] Contexto inyectado ({len(_rag_context)} chars) para query: {_query[:60]}...")
+                except Exception as _rag_err:
+                    log.debug(f"[RAG] Skip — {_rag_err}")  # Silencioso si RAG no está disponible
+
+                target_prov = None
+                target_mod  = req_model
+                if req_model == "gravity-bridge-auto":
+                    bp, bm = provider_manager.get_best()
+                    if bp:
+                        target_prov, target_mod = bp.name, bm
+                else:
+                    for r in provider_manager.scan_all():
+                        if r.is_healthy and any(m["name"] == req_model for m in r.models):
+                            target_prov = r.name
+                            break
+
+                if not target_prov:
+                    self.send_response(503)
+                    self.end_headers()
+                    self.wfile.write(b'{"error":"No provider available."}')
+                    record_error("no_provider")
+                    return
+
+                record_request(target_prov, target_mod)
+                chat_id     = f"chatcmpl-{uuid.uuid4().hex[:12]}"
+                start_time  = time.time()
+                input_chars = sum(len(m.get("content", "")) for m in messages)
+                input_tokens = input_chars // 4
+                record_tokens("input", target_prov, target_mod, input_tokens)
+                stripper = ReasoningStripper()
+
+                if is_streaming:
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/event-stream")
+                    self.send_header("Cache-Control", "no-cache")
+                    self._send_cors()
+                    self.end_headers()
+                    output_chars = 0
+                    for chunk_text in provider_manager.stream(messages, model=target_mod, provider=target_prov, options=options):
+                        if not chunk_text:
+                            continue
+                        clean = stripper.process_chunk(chunk_text)
+                        if not clean:
+                            continue
+                        output_chars += len(clean)
+                        chunk = {
+                            "id": chat_id, "object": "chat.completion.chunk", "model": target_mod,
+                            "choices": [{"index": 0, "delta": {"content": clean}, "finish_reason": None}]
+                        }
+                        try:
+                            self.wfile.write(f"data: {json.dumps(chunk)}\n\n".encode("utf-8"))
+                            self.wfile.flush()
+                        except Exception as write_err:
+                            log.debug(f"[Streaming] Socket cerrado durante escritura: {write_err}")
+                            break
+                    # Final [DONE]
+                    final = {
                         "id": chat_id, "object": "chat.completion.chunk", "model": target_mod,
-                        "choices": [{"index": 0, "delta": {"content": clean}, "finish_reason": None}]
+                        "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}]
                     }
                     try:
-                        self.wfile.write(f"data: {json.dumps(chunk)}\n\n".encode("utf-8"))
+                        self.wfile.write(f"data: {json.dumps(final)}\n\n".encode("utf-8"))
+                        self.wfile.write(b"data: [DONE]\n\n")
                         self.wfile.flush()
-                    except Exception as write_err:
-                        log.debug(f"[Streaming] Socket cerrado durante escritura: {write_err}")
-                        break
-                # Final [DONE]
-                final = {
-                    "id": chat_id, "object": "chat.completion.chunk", "model": target_mod,
-                    "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}]
-                }
+                    except Exception:
+                        pass
+                    output_tokens = output_chars // 4
+                    record_tokens("output", target_prov, target_mod, output_tokens)
+                else:
+                    raw_text     = provider_manager.complete(messages, model=target_mod, provider=target_prov, options=options)
+                    full_text    = stripper.process_chunk(raw_text)
+                    output_chars = len(full_text)
+                    output_tokens = output_chars // 4
+                    record_tokens("output", target_prov, target_mod, output_tokens)
+                    resp = {
+                        "id": chat_id, "object": "chat.completion", "model": target_mod,
+                        "choices": [{"index": 0, "message": {"role": "assistant", "content": full_text}, "finish_reason": "stop"}],
+                        "usage": {"prompt_tokens": input_tokens, "completion_tokens": output_tokens, "total_tokens": input_tokens + output_tokens}
+                    }
+                    body = json.dumps(resp).encode()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.send_header("Content-Length", str(len(body)))
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(body)
+
+                elapsed = time.time() - start_time
+                record_latency(target_prov, target_mod, elapsed)
+                from core.cost_tracker import CostTracker
+                plugin = provider_manager.get_plugin(target_prov)
+                usd    = 0.0
+                if plugin and getattr(plugin, "category", "") == "cloud":
+                    usd = CostTracker.estimate(target_prov, target_mod, input_chars, output_chars)
+                    CostTracker.record(target_prov, target_mod, input_tokens, output_tokens, usd)
+                audit_logger.record(chat_id, target_prov, target_mod, input_tokens, output_tokens, usd, elapsed * 1000)
+
+            except Exception as e:
+                log.error(f"Error in POST /v1/chat/completions: {e}", exc_info=True)
+                record_error("internal_error")
                 try:
-                    self.wfile.write(f"data: {json.dumps(final)}\n\n".encode("utf-8"))
-                    self.wfile.write(b"data: [DONE]\n\n")
-                    self.wfile.flush()
+                    body = json.dumps({"error": str(e)}).encode("utf-8")
+                    self.send_response(500)
+                    self.send_header("Content-Type", "application/json; charset=utf-8")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
                 except Exception:
                     pass
-                output_tokens = output_chars // 4
-                record_tokens("output", target_prov, target_mod, output_tokens)
-            else:
-                raw_text     = provider_manager.complete(messages, model=target_mod, provider=target_prov, options=options)
-                full_text    = stripper.process_chunk(raw_text)
-                output_chars = len(full_text)
-                output_tokens = output_chars // 4
-                record_tokens("output", target_prov, target_mod, output_tokens)
-                resp = {
-                    "id": chat_id, "object": "chat.completion", "model": target_mod,
-                    "choices": [{"index": 0, "message": {"role": "assistant", "content": full_text}, "finish_reason": "stop"}],
-                    "usage": {"prompt_tokens": input_tokens, "completion_tokens": output_tokens, "total_tokens": input_tokens + output_tokens}
-                }
-                body = json.dumps(resp).encode()
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self.send_header("Content-Length", str(len(body)))
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(body)
-
-            elapsed = time.time() - start_time
-            record_latency(target_prov, target_mod, elapsed)
-            from core.cost_tracker import CostTracker
-            plugin = provider_manager.get_plugin(target_prov)
-            usd    = 0.0
-            if plugin and getattr(plugin, "category", "") == "cloud":
-                usd = CostTracker.estimate(target_prov, target_mod, input_chars, output_chars)
-                CostTracker.record(target_prov, target_mod, input_tokens, output_tokens, usd)
-            audit_logger.record(chat_id, target_prov, target_mod, input_tokens, output_tokens, usd, elapsed * 1000)
-
-        except Exception as e:
-            import traceback
-            log.error(f"Error in POST /v1/chat/completions: {e}", exc_info=True)
-            record_error("internal_error")
-            try:
-                body = json.dumps({"error": str(e)}).encode("utf-8")
-                self.send_response(500)
-                self.send_header("Content-Type", "application/json; charset=utf-8")
-                self.send_header("Content-Length", str(len(body)))
-                self.end_headers()
-                self.wfile.write(body)
-            except Exception:
-                pass
             return
 
         # ── V13.0 Monetization Hub — POST handlers ────────────────────────────
@@ -1693,3 +1907,296 @@ class PostRoutesMixin:
                 self.send_response(500); self._send_cors(); self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
+
+        # ── OBS Control: /v1/obs/* ──────────────────────────────────────────────
+
+        # POST /v1/obs/connect
+        if self.path == "/v1/obs/connect":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                from core.obs_client import get_client
+                cl = get_client()
+                cfg_host = data.get("host", "127.0.0.1")
+                cfg_port = int(data.get("port", 4455))
+                cfg_pass = data.get("password", "JZe2JTFSolWLni2i")
+                cl.configure(cfg_host, cfg_port, cfg_pass)
+                result = cl.connect()
+                body = json.dumps(result, indent=2).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 503)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors(); self.end_headers(); self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            return
+
+        # POST /v1/obs/scene/switch
+        if self.path == "/v1/obs/scene/switch":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                scene_name = data.get("scene_name", "").strip()
+                if not scene_name:
+                    self.send_response(400); self._send_cors(); self.end_headers()
+                    self.wfile.write(json.dumps({"error": "scene_name requerido"}).encode()); return
+                from core.obs_client import get_client
+                result = get_client().switch_scene(scene_name)
+                body = json.dumps(result).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors(); self.end_headers(); self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            return
+
+        # POST /v1/obs/source/toggle
+        if self.path == "/v1/obs/source/toggle":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                scene_name   = data.get("scene_name", "").strip()
+                scene_item_id = int(data.get("scene_item_id", 0))
+                if not scene_name or not scene_item_id:
+                    self.send_response(400); self._send_cors(); self.end_headers()
+                    self.wfile.write(json.dumps({"error": "scene_name y scene_item_id requeridos"}).encode()); return
+                from core.obs_client import get_client
+                result = get_client().toggle_item_visible(scene_name, scene_item_id)
+                body = json.dumps(result).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors(); self.end_headers(); self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            return
+
+        # POST /v1/obs/source/visible
+        if self.path == "/v1/obs/source/visible":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                scene_name    = data.get("scene_name", "").strip()
+                scene_item_id = int(data.get("scene_item_id", 0))
+                visible       = bool(data.get("visible", True))
+                if not scene_name or not scene_item_id:
+                    self.send_response(400); self._send_cors(); self.end_headers()
+                    self.wfile.write(json.dumps({"error": "scene_name y scene_item_id requeridos"}).encode()); return
+                from core.obs_client import get_client
+                result = get_client().set_item_visible(scene_name, scene_item_id, visible)
+                body = json.dumps(result).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors(); self.end_headers(); self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            return
+
+        # POST /v1/obs/stream/start
+        if self.path == "/v1/obs/stream/start":
+            try:
+                from core.obs_client import get_client
+                result = get_client().start_stream()
+                body = json.dumps(result).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors(); self.end_headers(); self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            return
+
+        # POST /v1/obs/stream/stop
+        if self.path == "/v1/obs/stream/stop":
+            try:
+                from core.obs_client import get_client
+                result = get_client().stop_stream()
+                body = json.dumps(result).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors(); self.end_headers(); self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            return
+
+        # POST /v1/obs/stream/toggle
+        if self.path == "/v1/obs/stream/toggle":
+            try:
+                from core.obs_client import get_client
+                result = get_client().toggle_stream()
+                body = json.dumps(result).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors(); self.end_headers(); self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            return
+
+        # POST /v1/obs/record/start
+        if self.path == "/v1/obs/record/start":
+            try:
+                from core.obs_client import get_client
+                result = get_client().start_record()
+                body = json.dumps(result).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors(); self.end_headers(); self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            return
+
+        # POST /v1/obs/record/stop
+        if self.path == "/v1/obs/record/stop":
+            try:
+                from core.obs_client import get_client
+                result = get_client().stop_record()
+                body = json.dumps(result).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors(); self.end_headers(); self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            return
+
+        # POST /v1/obs/record/toggle
+        if self.path == "/v1/obs/record/toggle":
+            try:
+                from core.obs_client import get_client
+                result = get_client().toggle_record()
+                body = json.dumps(result).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors(); self.end_headers(); self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            return
+
+        # POST /v1/obs/audio/mute
+        if self.path == "/v1/obs/audio/mute":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                input_name = data.get("input_name", "").strip()
+                if not input_name:
+                    self.send_response(400); self._send_cors(); self.end_headers()
+                    self.wfile.write(json.dumps({"error": "input_name requerido"}).encode()); return
+                from core.obs_client import get_client
+                result = get_client().toggle_mute(input_name)
+                body = json.dumps(result).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors(); self.end_headers(); self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            return
+
+        # POST /v1/obs/audio/volume
+        if self.path == "/v1/obs/audio/volume":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                input_name = data.get("input_name", "").strip()
+                volume_db  = float(data.get("volume_db", 0.0))
+                if not input_name:
+                    self.send_response(400); self._send_cors(); self.end_headers()
+                    self.wfile.write(json.dumps({"error": "input_name requerido"}).encode()); return
+                from core.obs_client import get_client
+                result = get_client().set_volume(input_name, volume_db)
+                body = json.dumps(result).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors(); self.end_headers(); self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            return
+
+        # ── Gravity Spark: /v1/obs/spark/* ─────────────────────────────────────
+
+        # POST /v1/obs/spark/generate — Genera overlay con IA local e inyecta en OBS
+        if self.path == "/v1/obs/spark/generate":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                prompt = data.get("prompt", "").strip()
+                if not prompt:
+                    self.send_response(400); self._send_cors(); self.end_headers()
+                    self.wfile.write(json.dumps({"error": "Campo 'prompt' requerido"}).encode()); return
+                from core.obs_spark_engine import generate_overlay
+                from core.config_manager import config
+                port = config.get("server.port", 7860)
+                use_cache = data.get("use_cache", True)
+                result = generate_overlay(
+                    prompt      = prompt,
+                    scene_name  = data.get("scene_name", ""),
+                    width       = int(data.get("width",  400)),
+                    height      = int(data.get("height", 300)),
+                    x           = int(data.get("x", 0)),
+                    y           = int(data.get("y", 0)),
+                    bridge_port = port,
+                    use_cache   = use_cache,
+                )
+                body = json.dumps(result, indent=2, ensure_ascii=False).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 500)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors(); self.end_headers(); self.wfile.write(body)
+            except Exception as e:
+                log.error(f"[GravitySpark] /v1/obs/spark/generate error: {traceback.format_exc()}")
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            return
+
+        # POST /v1/obs/spark/edit — Edita overlay existente con nuevo prompt
+        if self.path == "/v1/obs/spark/edit":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                overlay_id = data.get("overlay_id", "").strip()
+                new_prompt = data.get("prompt", "").strip()
+                if not overlay_id or not new_prompt:
+                    self.send_response(400); self._send_cors(); self.end_headers()
+                    self.wfile.write(json.dumps({"error": "overlay_id y prompt requeridos"}).encode()); return
+                from core.obs_spark_engine import edit_overlay
+                result = edit_overlay(overlay_id, new_prompt)
+                body = json.dumps(result, indent=2).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors(); self.end_headers(); self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            return
+
+        # POST /v1/obs/spark/remove — Elimina overlay de OBS y disco
+        if self.path == "/v1/obs/spark/remove":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                overlay_id = data.get("overlay_id", "").strip()
+                if not overlay_id:
+                    self.send_response(400); self._send_cors(); self.end_headers()
+                    self.wfile.write(json.dumps({"error": "overlay_id requerido"}).encode()); return
+                from core.obs_spark_engine import remove_overlay
+                result = remove_overlay(overlay_id)
+                body = json.dumps(result, indent=2).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors(); self.end_headers(); self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500); self._send_cors(); self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            return
+
+        # Fallback 404 para cualquier otra ruta POST
+        self.send_response(404)
+        self._send_cors()
+        self.end_headers()
+        self.wfile.write(json.dumps({"error": "POST path not found"}).encode())

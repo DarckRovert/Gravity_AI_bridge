@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI BRIDGE V12.2 PRO — System Tray Manager           ║
+║     GRAVITY AI BRIDGE V15.0 PRO — System Tray Manager           ║
 ║     Icono de bandeja del sistema + menú contextual           ║
 ╚══════════════════════════════════════════════════════════════╝
 
@@ -93,7 +93,7 @@ def _status_text() -> str:
 
 def _build_menu(pystray):
     return pystray.Menu(
-        pystray.MenuItem("Gravity AI Bridge V12.2 PRO", None, enabled=False),
+        pystray.MenuItem("Gravity AI Bridge V15.0 PRO", None, enabled=False),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("🌐 Abrir Dashboard", _open_dashboard, default=True),
         pystray.Menu.SEPARATOR,
@@ -116,7 +116,7 @@ def _pulse_loop(icon):
         time.sleep(0.8)
     # Icono estático una vez online
     icon.icon = _load_icon()
-    icon.title = "Gravity AI Bridge V12.2 PRO — Online"
+    icon.title = "Gravity AI Bridge V15.0 PRO — Online"
 
 
 # ── Entry Point ───────────────────────────────────────────────────────────────
@@ -134,7 +134,7 @@ def run_tray():
     icon = pystray.Icon(
         name    = "GravityAIBridge",
         icon    = img,
-        title   = "Gravity AI Bridge V12.2 PRO — Iniciando...",
+        title   = "Gravity AI Bridge V15.0 PRO — Iniciando...",
         menu    = menu,
     )
 

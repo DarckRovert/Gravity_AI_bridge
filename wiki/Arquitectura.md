@@ -1,11 +1,11 @@
-# Arquitectura — Gravity AI Bridge V13.0 PRO
-**Omniscient-Tier Edition** · Última actualización: 2026-04-24
+# Arquitectura — Gravity AI Bridge V15.0 PRO
+**Omniscient-Tier Edition** · Última actualización: 2026-05-21
 
 ---
 
 ## Visión General
 
-Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy universal OpenAI-compatible. No es un reemplazo de los modelos de IA sino un **orquestador** que los gestiona, monitorea y expone como si fueran uno solo.
+Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy universal OpenAI-compatible. No es un reemplazo de los modelos de IA sino un **orquestador** que los gestiona, monitorea y expone como si fueran uno solo, integrando un entorno de automatización de video (V2V Engine), OBS Studio y monetización autónoma.
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
@@ -15,7 +15,7 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
                                │ HTTP POST /v1/chat/completions
                                ▼
 ┌────────────────────────────────────────────────────────────────────┐
-│                    GRAVITY AI BRIDGE V13.0 PRO                         │
+│                    GRAVITY AI BRIDGE V15.0 PRO                         │
 │                    bridge_server.py (~200 líneas — Orquestador)    │
 │                    ThreadingHTTPServer :7860                        │
 │                                                                    │
@@ -31,7 +31,7 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
 │  └──────────────────────────────────────────────────────────────┘  │
 │                                                                    │
 │  ┌──────────────────────────────────────────────────────────────┐  │
-│  │             core/session_runner.py (V13.0 PRO)                   │  │
+│  │             core/session_runner.py (V15.0 PRO)                   │  │
 │  │   CapacityWake() + SessionSpawner (Multi-session parallel)   │  │
 │  └──────────────────────────────────────────────────────────────┘  │
 └─────────────────────────┬──────────────────────────────────────────┘
@@ -64,7 +64,7 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
 ```
 F:\Gravity_AI_bridge\
 │
-├── bridge_server.py          ← Orquestador HTTP (~200 líneas, V13.0 PRO.0)
+├── bridge_server.py          ← Orquestador HTTP (~200 líneas, V15.0 PRO)
 ├── frontend/                 ← Frontend React/Vite (Reemplaza dashboard.py)
 ├── ask_deepseek.py           ← CLI interactivo del auditor
 ├── gravity_launcher.pyw      ← Launcher silencioso (sin consola)
@@ -73,21 +73,21 @@ F:\Gravity_AI_bridge\
 ├── INSTALAR.py               ← Asistente de configuración inicial
 ├── health_check.py           ← Health check standalone
 │
-├── api/                      ← Capa de enrutamiento modular (V13.0 PRO.0)
+├── api/                      ← Capa de enrutamiento modular (V15.0 PRO)
 │   ├── state.py              ← Estado global: Rate Limiter + GeoIP Tracker
 │   └── routes/
 │       ├── mixin_get.py      ← 20+ endpoints GET (dashboard, status, métricas)
 │       └── mixin_post.py     ← Endpoints POST + lógica LLM (stream/complete)
 │
-├── core/                     ← Módulos del micro-kernel (29 módulos)
+├── core/                     ← Módulos del micro-kernel (54 módulos en V15.0)
 │   ├── provider_manager.py   ← Escaneo y selección de proveedores
 │   ├── engine_watchdog.py    ← Auto-switch con lock/unlock
 │   ├── hardware_profiler.py  ← GPU/VRAM/NPU detection
 │   ├── cost_tracker.py       ← Tracking USD para cloud
 │   ├── multi_agent.py        ← Orquestador parallel/vote
-│   ├── session_manager.py    ← Sesiones con fork de branches + MemDir (V13.0 PRO)
-│   ├── session_runner.py     ← Multi-Session spawners y CapacityWake (V13.0 PRO)
-│   ├── mcp_adapter.py        ← Model Context Protocol client con Reconexión (V13.0 PRO)
+│   ├── session_manager.py    ← Sesiones con fork de branches + MemDir (V15.0 PRO)
+│   ├── session_runner.py     ← Multi-Session spawners y CapacityWake (V15.0 PRO)
+│   ├── mcp_adapter.py        ← Model Context Protocol client con Reconexión (V15.0 PRO)
 │   ├── security_monitor.py   ← Zero-Trust scanning en background
 │   ├── rate_limiter.py       ← Control de acceso por IP/key
 │   ├── audit_log.py          ← Log inmutable de peticiones
@@ -101,6 +101,12 @@ F:\Gravity_AI_bridge\
 │   ├── course_generator.py   ← Generador autónomo de info-productos / playlists
 │   ├── social_assets_generator.py ← Repurposing para Twitter/LinkedIn/Instagram
 │   ├── content_scheduler.py  ← Planificador y disparador autónomo de producciones
+│   ├── affiliate_manager.py  ← Banco CPA y orquestador de afiliación pasiva
+│   ├── language_cloner.py    ← Traducción y clonación de audio en múltiples idiomas
+│   ├── tiktok_uploader.py    ← Distribución automatizada a TikTok / Instagram Reels
+│   ├── revenue_tracker.py    ← Telemetría financiera y estimación pasiva de ingresos
+│   ├── obs_client.py         ← Driver WebSocket v5 para el control nativo de OBS Studio
+│   ├── obs_spark_engine.py   ← Motor Gravity Spark para inyección al vuelo de Overlays AI
 │   ├── game_server_manager.py← Control vMaNGOS WoW
 │   ├── turbo_kv.py           ← Optimización KV-Cache (ROCm/CUDA)
 │   ├── ide_integrator.py     ← Configurador de IDEs
@@ -120,14 +126,15 @@ F:\Gravity_AI_bridge\
 │   ├── grep_tool.py          ← Búsqueda regex en filesystem
 │   ├── web_search.py         ← DuckDuckGo sin API key
 │   ├── native_trigger.py     ← Notificaciones del SO
-│   └── fooocus_client.py     ← Cliente HTTP para Fooocus
+│   ├── pollinations_generator.py ← Generador dinámico de imágenes vía Flux en cloud
+│   └── fooocus_client.py     ← Cliente HTTP legacy para Fooocus
 │
 ├── rag/                      ← Retrieval Augmented Generation
 │   ├── indexer.py            ← Generación de embeddings y chunks
 │   └── retriever.py          ← Búsqueda semántica vectorial
 │
 ├── frontend/
-│   ├── src/components/       ← 25 componentes React SPA interactivos (V13.0 PRO)
+│   ├── src/components/       ← 26 componentes React SPA interactivos (V15.0 PRO)
 │   └── dist/                 ← Build de producción servido por bridge_server.py
 │
 ├── installer/
@@ -244,20 +251,44 @@ Detecta automáticamente:
 ---
 
 ### session_manager.py
-**Responsabilidad:** Persistencia de conversaciones con soporte de branches y MemDir (V13.0 PRO).
+**Responsabilidad:** Persistencia de conversaciones con soporte de branches y MemDir (V15.0 PRO).
 
 - Las sesiones se guardan como JSON en `_saves/<nombre>.json`
 - Cada sesión contiene: nombre, branch, timestamp, historial completo de mensajes
 - El fork crea una copia independiente de la sesión en una rama nueva
-- **MemDir (V13.0 PRO)**: Inyección dinámica de contexto (archivos `.gravity_mem` y `MEMORY.md`) directo al System Prompt simulando una "memoria de directorio" sin coste extra de RAG vectorial.
+- **MemDir (V15.0 PRO)**: Inyección dinámica de contexto (archivos `.gravity_mem` y `MEMORY.md`) directo al System Prompt simulando una "memoria de directorio" sin coste extra de RAG vectorial.
 
 ---
 
-### session_runner.py (V13.0 PRO)
+### session_runner.py (V15.0 PRO)
 **Responsabilidad:** Orquestación Multi-sesión paralela.
 
 - Define `CapacityWake` para señalización de subprocesos y control de carga.
 - Exporta `SessionSpawner` para levantar un agente de CLI aislado (`ask_deepseek.py --session`) sin colisionar el bridge principal.
+
+---
+
+### obs_client.py & obs_spark_engine.py (V15.0 PRO)
+**Responsabilidad:** Control de transmisión y overlays dinámicos vía IA.
+
+- **`obs_client.py`**: Driver de comunicación WebSocket v5 de OBS. Administra cambios de escena, toggles de fuente, volumen de audios, mute y switches de streaming y grabación en tiempo real.
+- **`obs_spark_engine.py`**: Motor Gravity Spark. Interpreta el contexto sistémico del LLM y autogenera fragmentos HTML/CSS/JS inyectados en caliente como `Browser Source` de OBS Studio, permitiendo overlays adaptativos en vivo por voz/chat sin recargar.
+
+---
+
+### affiliate_manager.py & language_cloner.py (V15.0 PRO)
+**Responsabilidad:** Suite de monetización autónoma de contenidos multimedia.
+
+- **`affiliate_manager.py`**: Ingesta y priorización dinámica de enlaces de afiliados CPA de acuerdo con la categoría y nicho del video generado en la cola. Inyecta CTAs en las descripciones de publicación final.
+- **`language_cloner.py`**: Multiplicador de CPM. Traduce guiones cinematográficos y genera audios TTS clonados en inglés, francés y portugués (0% uso extra de render visual).
+
+---
+
+### tiktok_uploader.py & revenue_tracker.py (V15.0 PRO)
+**Responsabilidad:** Distribución viral y analítica de rentabilidad pasiva.
+
+- **`tiktok_uploader.py`**: Interfaz nativa para publicación headless a TikTok Content API v2 e Instagram Graph API.
+- **`revenue_tracker.py`**: Realiza auditoría financiera silenciosa y estima el retorno en dólares según volumen orgánico de vistas por nicho.
 
 ---
 
@@ -284,7 +315,7 @@ Aplica via variables de entorno `OLLAMA_KV_CACHE_TYPE` y `OLLAMA_FLASH_ATTENTION
 
 ---
 
-## Dashboard — 25 Componentes React V13.0 PRO
+## Dashboard — 26 Componentes React V15.0 PRO
 
 | # | Panel | Módulo Backend | Endpoints |
 |:---|:---|:---|:---|
@@ -293,26 +324,27 @@ Aplica via variables de entorno `OLLAMA_KV_CACHE_TYPE` y `OLLAMA_FLASH_ATTENTION
 | 3 | 🎨 Vision Studio | fooocus_client | GET /v1/fooocus/status, POST /v1/generate |
 | 4 | 🖼️ Image Queue | image_queue | GET /v1/queue, POST /v1/queue/add |
 | 5 | 🎥 Video Studio | video_pipeline | GET /v1/video/status, POST /v1/video/create |
-| 6 | 🎨 Image Lab | image_lab | POST /v1/generate (modo lab) |
+| 6 | 🎨 Image Lab | image_lab (pollinations) | POST /v1/generate (modo lab) |
 | 7 | 🎦 Largometraje | video_pipeline | POST /v1/video/create (100 escenas) |
 | 8 | 🚀 Deploy | deploy_manager | GET /v1/deploy/status, POST /v1/deploy |
 | 9 | ⚔️ Game Servers | game_server_manager | GET /v1/gameserver/status + 6 POST |
 | 10 | 🤖 Multi-Agent | multi_agent | POST /v1/agent/compare |
 | 11 | 🖥️ Hardware | hardware_profiler | GET /v1/hardware |
-| 12 | 💰 Cost Center | cost_tracker | GET /v1/cost |
-| 13 | ⚡ Watchdog | engine_watchdog | GET /v1/watchdog, POST /v1/watchdog/unlock |
-| 14 | 💾 Sessions | session_manager + session_runner | GET /v1/sessions, POST /v1/sessions/spawn |
-| 15 | 📚 RAG | rag/retriever | GET /v1/rag/status, POST /v1/rag/toggle |
-| 16 | 🔌 MCP Servers | mcp_adapter | GET /v1/mcp/status, GET /v1/mcp/resource |
-| 17 | 🛠️ Tools | tools/* | POST /v1/tools/run, /search, /git, /grep |
-| 18 | ⚡ Tools Pro | tools/* | POST /v1/tools/run, /search, /git, /grep |
-| 19 | 🕷️ Firecrawl | firecrawl_scraper | POST /v1/tools/scrape, GET /v1/tools/firecrawl/health |
-| 20 | 🛡️ HITL Approval | hitl_manager | GET /v1/hitl/pending, POST /v1/hitl/approve, /reject |
-| 21 | 📡 System Status | metrics + provider_manager | GET /v1/status, GET /metrics |
-| 22 | 📄 Audit Log | audit_logger | GET /v1/audit, POST /v1/audit/rotate |
-| 23 | ⚙️ Configuración | key_manager + ide_integrator | POST /v1/keys, GET /v1/security |
-| 24 | 📈 Social Repurposing | social_assets_generator | N/A (Automático post-video) |
-| 25 | 🎓 Course Gen | course_generator | POST /v1/course/generate |
+| 12 | 💰 Monetización Hub | affiliate_manager + language_cloner | GET /v1/revenue/stats, POST /v1/language/clone |
+| 13 | 💰 Cost Center | cost_tracker | GET /v1/cost |
+| 14 | ⚡ Watchdog | engine_watchdog | GET /v1/watchdog, POST /v1/watchdog/unlock |
+| 15 | 💾 Sessions | session_manager + session_runner | GET /v1/sessions, POST /v1/sessions/spawn |
+| 16 | 📚 RAG | rag/retriever | GET /v1/rag/status, POST /v1/rag/toggle |
+| 17 | 🔌 MCP Servers | mcp_adapter | GET /v1/mcp/status, GET /v1/mcp/resource |
+| 18 | 🛠️ Tools | tools/* | POST /v1/tools/run, /search, /git, /grep |
+| 19 | ⚡ Tools Pro | tools/* | POST /v1/tools/run, /search, /git, /grep |
+| 20 | 🕷️ Firecrawl | firecrawl_scraper | POST /v1/tools/scrape, GET /v1/tools/firecrawl/health |
+| 21 | 🛡️ HITL Approval | hitl_manager | GET /v1/hitl/pending, POST /v1/hitl/approve, /reject |
+| 22 | 🎭 VTuber Studio (V2V) | v2v_pipeline + v2v_server | POST /v1/v2v/init, POST /v1/v2v/drive |
+23 | 📽️ OBS Controller | obs_client + obs_spark_engine | POST /v1/obs/scene, POST /v1/obs/spark/overlay |
+| 24 | 📡 System Status | metrics + provider_manager | GET /v1/status, GET /metrics |
+| 25 | 📄 Audit Log | audit_logger | GET /v1/audit, POST /v1/audit/rotate |
+| 26 | ⚙️ Configuración | key_manager + ide_integrator | POST /v1/keys, GET /v1/security |
 
 ---
 
@@ -348,7 +380,7 @@ make_icon.py          → genera assets/gravity_icon.ico (multi-res: 256..16px)
       ↓
 PyInstaller           → empaqueta Python + todas las dependencias → GravityBridge.exe
       ↓
-Inno Setup 6          → crea Gravity_AI_Bridge_V13.0 PRO_Setup.exe
+Inno Setup 6          → crea Gravity_AI_Bridge_V15.0_Setup.exe
       ↓
 gravity_launcher.pyw  → EXE sin consola que arranca bridge_server + gravity_tray
 ```
@@ -357,7 +389,7 @@ gravity_launcher.pyw  → EXE sin consola que arranca bridge_server + gravity_tr
 | Archivo generado | Descripción |
 |:---|:---|
 | `dist/GravityBridge.exe` | Ejecutable standalone (no requiere Python) |
-| `dist/Gravity_AI_Bridge_V13.0 PRO_Setup.exe` | Instalador completo para distribución |
+| `dist/Gravity_AI_Bridge_V15.0_Setup.exe` | Instalador completo para distribución |
 
 ### Características del Instalador
 - Instala en `C:\Program Files\Gravity AI Bridge\`

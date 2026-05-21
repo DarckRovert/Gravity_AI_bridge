@@ -13,7 +13,7 @@ export const MultiAgent = () => {
     setLoading(true);
     setResponses([]);
     try {
-      const res = await fetch('http://localhost:7860/v1/agent/compare', {
+      const res = await fetch('/v1/agent/compare', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: query, n_models: nModels, mode: mode })
@@ -127,8 +127,14 @@ export const MultiAgent = () => {
               <div className="p-4 rounded-xl bg-card border border-border-subtle text-sm text-text-muted leading-relaxed max-h-[300px] overflow-y-auto scrollbar-hide italic">
                 "{resp.response}"
               </div>
-              <button className="w-full py-2 text-[10px] font-black uppercase tracking-widest text-accent-primary hover:bg-accent-primary/5 rounded-lg transition-colors flex items-center justify-center gap-2">
-                <Sparkles size={12} /> Seleccionar como respuesta maestra
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(resp.response);
+                  alert('Respuesta copiada al portapapeles');
+                }}
+                className="w-full py-2 text-[10px] font-black uppercase tracking-widest text-accent-primary hover:bg-accent-primary/5 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <Sparkles size={12} /> Copiar Respuesta
               </button>
             </div>
           )) : !loading && query && (

@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║        GRAVITY AI - PROVIDER MANAGER V13.0 PRO [Diamond-Tier Edition]         ║
+║        GRAVITY AI - PROVIDER MANAGER V15.0 PRO [Diamond-Tier Edition]         ║
 ║                     Orquestador universal: local + cloud                     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
@@ -139,6 +139,23 @@ def get_best(task: str = "any") -> tuple[ProviderResult | None, str | None]:
     Local-first. If all local providers are offline, promotes cloud.
     If all providers are unhealthy, returns (None, None) — never raises.
     """
+    # Si hay bloqueo global de modelo activo, lo honramos inmediatamente
+    try:
+        import json as _j
+        import os as _os
+        _base = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
+        with open(_os.path.join(_base, "_settings.json"), "r", encoding="utf-8") as _f:
+            _settings = _j.load(_f)
+        if _settings.get("model_locked", False):
+            locked_p = _settings.get("locked_provider")
+            locked_m = _settings.get("locked_model")
+            if locked_p and locked_m:
+                for r in scan_all():
+                    if r.name == locked_p:
+                        return r, locked_m
+    except Exception:
+        pass
+
     results = scan_all()
     healthy = [r for r in results if r.is_healthy and r.models]
     if not healthy:
@@ -204,6 +221,23 @@ def stream(
     """
     options = options or {}
 
+    # Honor global model lock from _settings.json if not explicitly overridden by calling function
+    if not provider and not model:
+        try:
+            import json as _j
+            import os as _os
+            _base = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
+            with open(_os.path.join(_base, "_settings.json"), "r", encoding="utf-8") as _f:
+                _settings = _j.load(_f)
+            if _settings.get("model_locked", False):
+                locked_p = _settings.get("locked_provider")
+                locked_m = _settings.get("locked_model")
+                if locked_p and locked_m:
+                    provider = locked_p
+                    model = locked_m
+        except Exception:
+            pass
+
     if provider:
         plugin = get_plugin(provider)
     else:
@@ -247,7 +281,7 @@ def get_cost_estimate(provider_name: str, model: str, input_chars: int, output_c
 
 
 if __name__ == "__main__":
-    print("Provider Manager V13.0 PRO — Universal scan\n")
+    print("Provider Manager V15.0 PRO — Universal scan\n")
     results = scan_all(force=True)
     for r in results:
         tag = "✅" if r.is_healthy else "🔴"

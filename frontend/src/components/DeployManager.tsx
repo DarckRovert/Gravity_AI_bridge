@@ -8,7 +8,7 @@ export const DeployManager = () => {
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch('http://localhost:7860/v1/fabricaweb/status');
+      const res = await fetch('/v1/fabricaweb/status');
       if (res.ok) setStatus(await res.json());
     } catch (e) {}
   };
@@ -22,7 +22,7 @@ export const DeployManager = () => {
   const runDeploy = async () => {
     setLoading(true);
     try {
-      await fetch('http://localhost:7860/v1/fabricaweb/deploy', { 
+      await fetch('/v1/fabricaweb/deploy', { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ project_path: projectPath || undefined })

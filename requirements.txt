@@ -1,4 +1,4 @@
-# ── Gravity AI Bridge V13.0 PRO — Dependencias ───────────────────────────────
+# ── Gravity AI Bridge V15.0 PRO — Dependencias ───────────────────────────────
 
 # HTTP / Proveedores cloud
 httpx
@@ -21,12 +21,16 @@ pyinstaller
 pystray
 Pillow
 psutil
+prometheus_client
 
 # Video Studio — TTS offline (Windows SAPI)
 pyttsx3>=2.90
 
 # Webscraping / MAI (Motor de Animacion Inteligente)
 websocket-client>=1.7.0
+
+# OBS Studio Control (Gravity OBS + Gravity Spark)
+obsws-python>=1.7.0
 
 # MCP (Model Context Protocol)
 mcp

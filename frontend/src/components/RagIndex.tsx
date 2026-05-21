@@ -9,7 +9,7 @@ export const RagIndex = () => {
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch('http://localhost:7860/v1/rag/status');
+      const res = await fetch('/v1/rag/status');
       if (res.ok) setStatus(await res.json());
     } catch (e) {}
   };
@@ -22,7 +22,7 @@ export const RagIndex = () => {
     if (!query.trim()) return;
     setSearching(true);
     try {
-      const res = await fetch(`http://localhost:7860/v1/rag/search?query=${encodeURIComponent(query)}`);
+      const res = await fetch(`/v1/rag/search?query=${encodeURIComponent(query)}`);
       if (res.ok) {
         const data = await res.json();
         setResults(data.results || []);
@@ -49,9 +49,28 @@ export const RagIndex = () => {
             </div>
           </div>
           <div className="flex gap-3">
-            <button className="flex items-center gap-2 px-4 py-2 bg-surface border border-border-subtle rounded-xl text-sm font-bold hover:bg-card transition-all">
+            <label className="flex items-center gap-2 px-4 py-2 bg-accent-secondary text-white rounded-xl text-sm font-bold hover:scale-105 transition-all cursor-pointer shadow-lg">
               <Upload size={16} /> Indexar PDF/TXT
-            </button>
+              <input
+                type="file"
+                accept=".pdf,.txt,.md,.docx"
+                multiple
+                className="hidden"
+                onChange={async (e) => {
+                  const files = Array.from(e.target.files || []);
+                  if (!files.length) return;
+                  const fd = new FormData();
+                  files.forEach(f => fd.append('files', f));
+                  try {
+                    const res = await fetch('/v1/rag/ingest', { method: 'POST', body: fd });
+                    const data = await res.json();
+                    if (data.ok) { alert(`✅ ${data.indexed || files.length} documento(s) indexados correctamente.`); fetchStatus(); }
+                    else alert(`❌ Error: ${data.error || 'Fallo al indexar'}`);
+                  } catch { alert('❌ Error de conexión con el backend RAG'); }
+                  e.target.value = '';
+                }}
+              />
+            </label>
           </div>
         </div>
 

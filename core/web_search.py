@@ -34,7 +34,8 @@ def search_and_scrape(query: str, max_results: int = 2) -> str:
         if url_match.startswith("//duckduckgo.com/l/?uddg="):
             url_match = urllib.parse.unquote(url_match.split("uddg=")[1].split("&")[0])
             
-        results.append(url_match)
+        snippet_text = html.unescape(re.sub(r'<[^>]+>', '', match.group(2).strip()))
+        results.append((url_match, snippet_text))
         if len(results) >= max_results:
             break
             
@@ -42,10 +43,16 @@ def search_and_scrape(query: str, max_results: int = 2) -> str:
         return ""
         
     knowledge = []
-    for link in results:
+    for link, snippet in results:
+        if "youtube.com" in link or "youtu.be" in link:
+            knowledge.append(f"--- FUENTE: {link} ---\n{snippet}\n")
+            continue
+            
         scrape_res = scrape_url(link)
-        if scrape_res.get("ok"):
+        if scrape_res.get("ok") and len(scrape_res.get("content", "")) > 50:
             text = scrape_res.get("content", "")[:3000]
             knowledge.append(f"--- FUENTE: {link} ---\n{text}\n")
+        else:
+            knowledge.append(f"--- FUENTE: {link} ---\n{snippet}\n")
             
     return "\n".join(knowledge)

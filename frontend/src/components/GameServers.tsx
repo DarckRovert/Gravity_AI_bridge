@@ -9,7 +9,7 @@ export const GameServers = () => {
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch('http://localhost:7860/v1/gameserver/status');
+      const res = await fetch('/v1/gameserver/status');
       if (res.ok) {
         const data = await res.json();
         // El backend devuelve { servers: { id: status_obj, ... } }
@@ -35,7 +35,7 @@ export const GameServers = () => {
 
   const toggleServer = async (id: string, action: 'start' | 'stop') => {
     try {
-      const res = await fetch(`http://localhost:7860/v1/gameserver/${action}`, {
+      const res = await fetch(`/v1/gameserver/${action}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ server: id })
@@ -52,7 +52,7 @@ export const GameServers = () => {
 
   const handleBackup = async () => {
     try {
-      const res = await fetch('http://localhost:7860/v1/gameserver/backup', { method: 'POST' });
+      const res = await fetch('/v1/gameserver/backup', { method: 'POST' });
       const data = await res.json();
       alert(data.msg || data.error || 'Backup iniciado');
     } catch(e) {
@@ -63,7 +63,7 @@ export const GameServers = () => {
   const handleRegister = async () => {
     if(!regUser || !regPass) return;
     try {
-      const res = await fetch('http://localhost:7860/v1/gameserver/register', {
+      const res = await fetch('/v1/gameserver/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ server: 'wow_vanilla', username: regUser, password: regPass })
@@ -80,7 +80,7 @@ export const GameServers = () => {
     const cmd = prompt(`Ingresa un comando de consola para ${id}:`);
     if(!cmd) return;
     try {
-      const res = await fetch('http://localhost:7860/v1/gameserver/command', {
+      const res = await fetch('/v1/gameserver/command', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ server: id, command: cmd })

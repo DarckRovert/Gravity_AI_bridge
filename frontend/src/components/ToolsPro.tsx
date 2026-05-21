@@ -67,8 +67,23 @@ export const ToolsPro = () => {
       if (mode === 'process') {
         setProcesses(data.processes || []);
         setResult('Lista de procesos actualizada.');
+      } else if (mode === 'run') {
+        // backend returns {ok, stdout, stderr, exit_code}
+        const out = data.stdout || '';
+        const err = data.stderr || '';
+        setResult((out + (err ? '\n--- stderr ---\n' + err : '')).trim() || '(sin salida)');
+      } else if (mode === 'grep') {
+        // backend returns {ok, matches, count, raw}
+        setResult(data.raw || data.matches?.map((m: any) => m.line).join('\n') || '(sin coincidencias)');
+      } else if (mode === 'search') {
+        // backend returns {ok, results: [{title, url, snippet}]}
+        const items = data.results || [];
+        setResult(items.length > 0
+          ? items.map((r: any) => `${r.title}\n${r.url}\n${r.snippet || ''}\n`).join('\n---\n')
+          : data.raw || JSON.stringify(data, null, 2));
       } else {
-        setResult(typeof data.output === 'string' ? data.output : (data.matches ? data.raw : JSON.stringify(data, null, 2)));
+        // git, generic
+        setResult(data.output || JSON.stringify(data, null, 2));
       }
     } catch (e: any) {
       setError(e.message);
@@ -80,7 +95,7 @@ export const ToolsPro = () => {
   const killProcess = async (pid: number, name: string) => {
     if (!confirm(`¿Estás seguro de matar el proceso ${name} (PID: ${pid})?`)) return;
     try {
-      const res = await fetch(`http://localhost:7860/v1/security/kill`, {
+      const res = await fetch(`/v1/security/kill`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pid })

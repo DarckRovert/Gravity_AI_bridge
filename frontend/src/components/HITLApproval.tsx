@@ -8,7 +8,7 @@ export const HITLApproval = () => {
 
   const fetchPending = async () => {
     try {
-      const res = await fetch('http://localhost:7860/v1/hitl/pending');
+      const res = await fetch('/v1/hitl/pending');
       if (res.ok) {
         const data = await res.json();
         setPending(data.pending || []);
@@ -27,7 +27,7 @@ export const HITLApproval = () => {
   const decide = async (id: string, action: 'approve' | 'reject') => {
     setProcessing(id);
     try {
-      const res = await fetch(`http://localhost:7860/v1/hitl/${action}`, {
+      const res = await fetch(`/v1/hitl/${action}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ request_id: id })

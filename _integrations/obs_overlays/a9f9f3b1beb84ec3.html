@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+  background-color: rgba(0,0,0,0);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.titulo {
+  font-family: monospace;
+  font-size: 40px;
+  color: #00ff00;
+  text-align: center;
+  margin-top: 20vh;
+  animation: neon 2s infinite;
+}
+
+@keyframes neon {
+  0% {
+    text-shadow: 0 0 10px #00ff00;
+  }
+  50% {
+    text-shadow: 0 0 20px #00ff00;
+  }
+  100% {
+    text-shadow: 0 0 10px #00ff00;
+  }
+}
+
+.subtitulo {
+  font-family: Arial;
+  font-size: 20px;
+  color: #ffffff;
+  text-align: center;
+  margin-top: 10px;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.datos {
+  font-family: Verdana;
+  font-size: 18px;
+  color: #cccccc;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.datos span {
+  font-size: 24px;
+  color: #ff0000;
+  animation: contador 1s infinite;
+}
+
+@keyframes contador {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+</style>
+</head>
+<body>
+<div class="titulo">Bienvenidos a Gravity...</div>
+<div class="subtitulo">Programa libre creado por DarckRovert para acortar la brecha tecnológica</div>
+<div class="datos">Seguidores: <span id="seguidores">1000</span> | Chat: <span id="chat">50</span></div>
+<script>
+setInterval(() => {
+  document.getElementById("seguidores").innerHTML = Math.floor(Math.random() * 1000);
+  document.getElementById("chat").innerHTML = Math.floor(Math.random() * 50);
+}, 1000);
+</script>
+</body>
+</html>

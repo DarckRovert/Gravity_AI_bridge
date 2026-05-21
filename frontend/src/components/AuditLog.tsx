@@ -8,7 +8,7 @@ export const AuditLog = () => {
 
   const fetchLogs = async () => {
     try {
-      const res = await fetch('http://localhost:7860/v1/audit');
+      const res = await fetch('/v1/audit');
       if (res.ok) {
         const data = await res.json();
         setLogs(data.data || []);
@@ -27,7 +27,7 @@ export const AuditLog = () => {
   const rotateLogs = async () => {
     if (!confirm('¿Seguro que deseas rotar (archivar) los logs actuales?')) return;
     try {
-      await fetch('http://localhost:7860/v1/audit/rotate', { method: 'POST' });
+      await fetch('/v1/audit/rotate', { method: 'POST' });
       fetchLogs();
     } catch (e) {
       alert('Error al rotar logs');

@@ -10,7 +10,7 @@ export const MissionControl: React.FC = () => {
   const fetchCtx = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:7860/v1/gravity/context');
+      const res = await fetch('/v1/gravity/context');
       if (res.ok) setCtx(await res.json());
     } catch (e) {}
     finally { setLoading(false); }
@@ -23,23 +23,28 @@ export const MissionControl: React.FC = () => {
   }, []);
 
   const releaseRam = async () => {
-    if (!confirm("¿Deseas detener Fooocus para ahorrar RAM?")) return;
+    if (!confirm("¿Deseas detener los motores pesados (Fooocus, Ollama, LM Studio, ComfyUI) para ahorrar RAM?")) return;
     setLoading(true);
+    let successCount = 0;
+    const enginesToKill = ['Fooocus', 'Ollama', 'LM Studio', 'ComfyUI'];
+    
     try {
-      const res = await fetch('http://localhost:7860/v1/ai/stop', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider: 'Fooocus' })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        showToast('success', data.message || "RAM liberada correctamente.");
-      } else {
-        showToast('error', data.error || "Error al liberar RAM");
+      for (const engine of enginesToKill) {
+        const res = await fetch('/v1/ai/stop', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider: engine })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) successCount++;
+        }
       }
-      fetchCtx();
+      
+      showToast('success', `Operación completada. Se liberaron ${successCount} motores.`);
+      await fetchCtx();
     } catch (e) {
-      showToast('error', "Error de conexión con el bridge");
+      showToast('error', "Error de conexión con el bridge al intentar liberar RAM");
     } finally {
       setLoading(false);
     }
@@ -141,7 +146,7 @@ export const MissionControl: React.FC = () => {
                 { id: 'bridge', name: 'Bridge Server', staticStatus: 'Puerto 7860', isOk: true },
                 { id: 'Pollinations.ai', name: 'Pollinations.ai', isProvider: true, canStop: false },
                 { id: 'Fooocus', name: 'Fooocus Motor', isProvider: true, canStop: true },
-                { id: 'ComfyUI', name: 'MAI L2 (ComfyUI)', isProvider: true, canStop: false },
+                { id: 'ComfyUI', name: 'MAI L2 (ComfyUI)', isProvider: true, canStop: true },
                 { id: 'LM Studio', name: 'LM Studio', isProvider: true, canStop: true },
                 { id: 'Ollama', name: 'Ollama', isProvider: true, canStop: true }
               ].map((srv) => {
@@ -162,7 +167,7 @@ export const MissionControl: React.FC = () => {
                       <button 
                         onClick={() => {
                            if(confirm(`¿Detener ${srv.name}?`)) {
-                             fetch('http://localhost:7860/v1/ai/stop', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({provider: srv.id}) }).then(() => fetchCtx());
+                             fetch('/v1/ai/stop', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({provider: srv.id}) }).then(() => fetchCtx());
                            }
                         }}
                         className="px-2 py-1 text-[10px] uppercase font-black tracking-widest text-status-error bg-status-error/10 hover:bg-status-error hover:text-white rounded transition-all opacity-0 group-hover:opacity-100"
@@ -174,7 +179,7 @@ export const MissionControl: React.FC = () => {
                       <button 
                         onClick={() => {
                            if(confirm(`¿RUN ${srv.name}?`)) {
-                             fetch('http://localhost:7860/v1/ai/start', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({provider: srv.id}) }).then(() => fetchCtx());
+                             fetch('/v1/ai/start', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({provider: srv.id}) }).then(() => fetchCtx());
                            }
                         }}
                         className="px-2 py-1 text-[10px] uppercase font-black tracking-widest text-status-success bg-status-success/10 hover:bg-status-success hover:text-white rounded transition-all opacity-0 group-hover:opacity-100"
@@ -219,7 +224,7 @@ export const MissionControl: React.FC = () => {
             {[1,2,3].map(i => (
               <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-card border border-border-subtle">
                 <div className="text-xs text-text-muted font-mono w-20">10:42:{10+i} AM</div>
-                <div className="flex-1 text-sm text-text-primary">Servicio base sincronizado con Gravity Brain V12.</div>
+                <div className="flex-1 text-sm text-text-primary">Servicio base sincronizado con Gravity Brain V15.0 PRO.</div>
                 <div className="px-2 py-1 rounded bg-status-success/10 text-status-success text-[10px] font-bold">INFO</div>
               </div>
             ))}

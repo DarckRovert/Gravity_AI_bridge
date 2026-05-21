@@ -10,8 +10,8 @@ export const HardwareMonitor = () => {
   const fetchData = async () => {
     try {
       const [statsRes, procRes] = await Promise.all([
-        fetch('http://localhost:7860/v1/hardware/stats'),
-        fetch('http://localhost:7860/v1/processes')
+        fetch('/v1/hardware/stats'),
+        fetch('/v1/processes')
       ]);
       if (statsRes.ok) setStats(await statsRes.json());
       if (procRes.ok) {
@@ -31,7 +31,7 @@ export const HardwareMonitor = () => {
     if (!confirm(`¿Deseas finalizar el proceso ${name} (PID: ${pid})?`)) return;
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:7860/v1/security/kill`, {
+      const res = await fetch(`/v1/security/kill`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pid })
@@ -195,8 +195,8 @@ export const HardwareMonitor = () => {
                    <HardDrive size={20} className="text-text-muted" />
                 </div>
                 <div>
-                   <div className="text-[10px] font-black text-text-muted uppercase tracking-widest">Almacenamiento</div>
-                   <div className="text-lg font-black text-text-primary">1.2 TB <span className="text-xs text-text-muted font-medium">LIBRES</span></div>
+                   <div className="text-[10px] font-black text-text-muted uppercase tracking-widest">Almacenamiento ({(stats?.disk_total_gb / 1024).toFixed(1)} TB)</div>
+                   <div className="text-lg font-black text-text-primary">{stats?.disk_free_gb >= 1024 ? (stats.disk_free_gb / 1024).toFixed(1) + ' TB' : (stats?.disk_free_gb || 0).toFixed(1) + ' GB'} <span className="text-xs text-text-muted font-medium">LIBRES</span></div>
                 </div>
              </div>
           </div>

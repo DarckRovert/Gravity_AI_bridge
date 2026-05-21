@@ -101,13 +101,21 @@ class RAGEmbedder:
         
         # PHASE 3: Gravity Hybrid Delegation (Conda Support)
         # If current python is 3.14+, we delegate to a 3.11 environment to use NPU
-        if sys.version_info.major == 3 and sys.version_info.minor >= 14:
+        import shutil
+        if sys.version_info.major == 3 and sys.version_info.minor >= 14 and shutil.which("conda"):
             return cls._embed_hybrid_conda(texts)
+        elif sys.version_info.major == 3 and sys.version_info.minor >= 14:
+            # conda not available, fallback directly to TF-IDF
+            return cls._embed_tfidf(texts)
 
         if not cls._onnx_session:
-            import onnxruntime
-            from tokenizers import Tokenizer
-            import numpy
+            try:
+                import onnxruntime
+                from tokenizers import Tokenizer
+                import numpy
+            except ImportError:
+                # onnxruntime/tokenizers not installed in this environment — fallback to TF-IDF
+                return cls._embed_tfidf(texts)
             
             # ENFORCE ABSOLUTE CANONICAL PATHS FOR NPU DRIVER (Awakening V2)
             install_dir = r"C:\Program Files\RyzenAI\1.7.1"
@@ -209,9 +217,10 @@ class RAGEmbedder:
             with open(out_path, "r") as f_out:
                 results = json.load(f_out)
         except Exception as e:
-            # If hybrid fails, fallback to TF-IDF or CPU in current process
+            # If hybrid fails, fallback to TF-IDF in current process
             err_msg = getattr(e, 'stderr', b'').decode(errors='ignore') or str(e)
-            print(f"[HYBRID ERROR] Fallback to CPU: {err_msg}")
+            import logging
+            logging.getLogger("gravity.rag").debug(f"[HYBRID] Conda delegation failed, using TF-IDF: {err_msg}")
             return cls._embed_tfidf(texts)
         finally:
             # Cleanup

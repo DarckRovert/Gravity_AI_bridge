@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+  background-color: rgba(0,0,0,0);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let angle = 0;
+let speed = 0.01;
+let latency = 0;
+
+function fetchLatency() {
+  // Simulación de fetch a la API local de Gravity
+  latency = Math.random() * 100;
+  speed = latency / 1000;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Dibujar exagono wireframe 3D
+  const vertices = [
+    [-1, -1, 1],
+    [1, -1, 1],
+    [1, 1, 1],
+    [-1, 1, 1],
+    [-1, -1, -1],
+    [1, -1, -1],
+    [1, 1, -1],
+    [-1, 1, -1]
+  ];
+  const edges = [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 0],
+    [4, 5],
+    [5, 6],
+    [6, 7],
+    [7, 4],
+    [0, 4],
+    [1, 5],
+    [2, 6],
+    [3, 7]
+  ];
+  
+  for (let i = 0; i < edges.length; i++) {
+    const v1 = vertices[edges[i][0]];
+    const v2 = vertices[edges[i][1]];
+    
+    // Rotar vértices
+    const x1 = v1[0] * Math.cos(angle) - v1[2] * Math.sin(angle);
+    const z1 = v1[0] * Math.sin(angle) + v1[2] * Math.cos(angle);
+    const x2 = v2[0] * Math.cos(angle) - v2[2] * Math.sin(angle);
+    const z2 = v2[0] * Math.sin(angle) + v2[2] * Math.cos(angle);
+    
+    // Proyectar vértices
+    const sx1 = x1 * 200 / (4 - z1) + canvas.width / 2;
+    const sy1 = v1[1] * 200 / (4 - z1) + canvas.height / 2;
+    const sx2 = x2 * 200 / (4 - z2) + canvas.width / 2;
+    const sy2 = v2[1] * 200 / (4 - z2) + canvas.height / 2;
+    
+    ctx.beginPath();
+    ctx.moveTo(sx1, sy1);
+    ctx.lineTo(sx2, sy2);
+    ctx.stroke();
+  }
+  
+  // Dibujar orbe brillante palpitante
+  ctx.beginPath();
+  ctx.arc(canvas.width / 2, canvas.height / 2, 20 + 10 * Math.sin(angle * 2), 0, 2 * Math.PI);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+  ctx.fill();
+  
+  angle += speed;
+  requestAnimationFrame(draw);
+}
+
+fetchLatency();
+draw();
+setInterval(fetchLatency, 1000);
+</script>
+</html>

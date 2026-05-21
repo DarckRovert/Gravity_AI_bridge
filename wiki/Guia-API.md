@@ -1,35 +1,41 @@
-# Guía de API — Gravity AI Bridge V13.0 PRO
+# 📖 Guía de Integración y API — Gravity AI Bridge V15.0 PRO
 **Omniscient-Tier Edition** · Base URL: `http://localhost:7860`
 
-El Bridge expone una API HTTP completamente compatible con el estándar OpenAI, más endpoints propios para gestión del sistema. Cualquier cliente que funcione con OpenAI puede conectarse al Bridge sin modificaciones.
+El Bridge expone una API HTTP completamente compatible con el estándar OpenAI, además de un potente micro-kernel con más de 54 módulos especializados para orquestación inteligente (Video Studio, Overlays OBS, Monetización Pasiva, Agentes Multi-sesión y RAG). Cualquier cliente compatible con la especificación OpenAI puede conectarse al Bridge de forma inmediata.
 
 ---
 
-## Autenticación
+## 🔐 Seguridad y Autenticación
 
-Por defecto no se requiere autenticación. Cuando se configura `allowed_keys` en `config.yaml`, todas las peticiones deben incluir:
+### 1. Autenticación de Clientes Externos
+Por defecto, la API no requiere autenticación en entornos locales seguros. Sin embargo, al configurar la directiva `allowed_keys` en el archivo `config.yaml`, todas las peticiones entrantes deberán proporcionar la cabecera estándar:
 
 ```http
-Authorization: Bearer tu-api-key
+Authorization: Bearer tu-api-key-del-bridge
 ```
 
-Las API keys de proveedores cloud (Anthropic, OpenAI, etc.) se configuran en el Dashboard → Configuración, no en este header.
+### 2. Cifrado de Credenciales Cloud (DPAPI)
+Las API keys de proveedores en la nube (OpenAI, Anthropic, Gemini, Groq, Mistral, Firecrawl) no se guardan en texto plano en la configuración. Se transmiten mediante el endpoint seguro `/v1/keys` y se encriptan utilizando la API de Protección de Datos de Windows (DPAPI). Esto asegura que únicamente la identidad del usuario de Windows que ejecuta el bridge pueda descifrarlas en tiempo de ejecución.
 
 ---
 
-## Endpoints Compatibles OpenAI
+## 🧠 Endpoints Compatibles OpenAI
 
-### `POST /v1/chat/completions`
+### 1. `POST /v1/chat/completions`
+El endpoint principal de inferencia. Es totalmente transparente para librerías oficiales de OpenAI en Python, Node.js, LangChain, Continue.dev o Aider.
 
-El endpoint principal. Compatible con cualquier cliente OpenAI (Python SDK, LangChain, Continue.dev, etc.).
+#### Características Especiales del Bridge:
+- **Auto-selección Inteligente (`gravity-bridge-auto`):** Si solicitas este modelo virtual, el bridge consultará periódicamente el `provider_manager` y enrutará la petición al modelo local más rápido y saludable en Ollama/LM Studio. Si todos fallan o la carga es extrema, conmuta automáticamente a un proveedor cloud de respaldo en menos de 30 segundos (Watchdog activo).
+- **Inyección de Personalidad (data_guardian):** Si la petición no incluye un system prompt, el micro-kernel carga de forma transparente las reglas de personalidad y directrices críticas configuradas en `_knowledge.json`.
+- **RAG Vectorial Transparente:** Si la inyección RAG está habilitada en `_settings.json`, el bridge extrae la última consulta del usuario, ejecuta una búsqueda semántica de alta velocidad en `_rag_index` (usando el motor vectorial local) e introduce el fragmento recuperado como contexto en el System Prompt al vuelo, sin coste adicional.
+- **Reasoning Stripper:** Procesa de forma interactiva el streaming SSE y remueve por completo los bloques `<think>...</think>` que generan los modelos de razonamiento (como DeepSeek-R1) antes de enviárselos al cliente final, logrando una interfaz limpia.
 
-**Request (streaming — por defecto):**
+#### Request en Streaming (Por defecto en IDEs y chats interactivos):
 ```json
 {
   "model": "gravity-bridge-auto",
   "messages": [
-    {"role": "system", "content": "Eres un asistente técnico."},
-    {"role": "user", "content": "¿Cómo funciona un transformer?"}
+    {"role": "user", "content": "¿Cómo optimizo mi configuración de GPU en AMD ROCm?"}
   ],
   "stream": true,
   "temperature": 0.7,
@@ -37,815 +43,253 @@ El endpoint principal. Compatible con cualquier cliente OpenAI (Python SDK, Lang
 }
 ```
 
-**Respuesta en streaming (Server-Sent Events):**
-```
-data: {"id":"chatcmpl-a1b2c3","object":"chat.completion.chunk","model":"qwen2.5-coder:32b","choices":[{"index":0,"delta":{"content":"Un"},"finish_reason":null}]}
+#### Respuesta SSE (Server-Sent Events):
+```http
+data: {"id":"chatcmpl-g1h3n5","object":"chat.completion.chunk","model":"qwen2.5-coder:32b","choices":[{"index":0,"delta":{"content":"Para"},"finish_reason":null}]}
 
-data: {"id":"chatcmpl-a1b2c3","object":"chat.completion.chunk","model":"qwen2.5-coder:32b","choices":[{"index":0,"delta":{"content":" transformer"},"finish_reason":null}]}
-
-data: {"id":"chatcmpl-a1b2c3","object":"chat.completion.chunk","model":"qwen2.5-coder:32b","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+data: {"id":"chatcmpl-g1h3n5","object":"chat.completion.chunk","model":"qwen2.5-coder:32b","choices":[{"index":0,"delta":{"content":" optimizar"},"finish_reason":null}]}
 
 data: [DONE]
 ```
 
-**Request (sin streaming):**
-```json
-{
-  "model": "gravity-bridge-auto",
-  "messages": [{"role": "user", "content": "¿Qué es ROCm?"}],
-  "stream": false
-}
-```
+---
 
-**Respuesta sin streaming:**
-```json
-{
-  "id": "chatcmpl-a1b2c3",
-  "object": "chat.completion",
-  "model": "qwen2.5-coder:32b",
-  "choices": [{
-    "index": 0,
-    "message": {"role": "assistant", "content": "ROCm (Radeon Open Compute) es..."},
-    "finish_reason": "stop"
-  }],
-  "usage": {
-    "prompt_tokens": 12,
-    "completion_tokens": 148,
-    "total_tokens": 160
-  }
-}
-```
+## 🪐 Conciencia Sistémica: `POST /v1/gravity/chat`
 
-**Selección de modelo:**
-- `"gravity-bridge-auto"` — El Bridge elige el mejor proveedor disponible automáticamente
-- `"qwen2.5-coder:32b"` — Nombre exacto de un modelo en Ollama/LM Studio → el Bridge lo busca en todos los proveedores
+El endpoint `/v1/gravity/chat` es la joya de la corona del bridge en su versión **V15.0 PRO**. A diferencia de una petición de chat convencional, este endpoint otorga al modelo **acceso directo y conciencia de todo el sistema operativo e infraestructura del bridge**.
 
-**Ejemplo con Python SDK de OpenAI:**
-```python
-from openai import OpenAI
+### Mecánica de Funcionamiento:
+1. **Inyección de Contexto del Sistema (System Context):** El bridge invoca a `gravity_brain.py` para construir un Prompt dinámico masivo que describe en tiempo real:
+   - Estado del hardware (GPU activa, VRAM libre, procesador, temperatura).
+   - Cola de reproducción y estado de publicación del Content Scheduler.
+   - Estado de la conexión a OBS Studio y overlays inyectados.
+   - Workers asíncronos y sub-sesiones activas en background.
+   - Estado y latencia de los motores locales (Ollama/LM Studio/Fooocus).
+2. **Scraping Web Automático y Silencioso:** Si el prompt del usuario contiene una URL (ej. `"Analiza https://news.ycombinator.com y dime qué opinas"`), el bridge detecta el enlace, invoca asíncronamente el extractor premium de Firecrawl (o el parser estático de fallback), convierte el contenido web a Markdown limpio y lo inyecta directamente al prompt antes de enviarlo al LLM.
+3. **Ejecución Heurística de Comandos:** Si el LLM detecta que el usuario le pide una acción de control (ej. `"Detén el servidor de WoW"`, `"Cambia la escena de OBS a 'En Vivo'"` o `"Genera un short sobre agujeros negros"`), la API de chat no solo responde con texto, sino que **ejecuta la llamada a la API nativa correspondiente de forma interna y devuelve el feedback visual al chat**.
 
-client = OpenAI(
-    base_url="http://localhost:7860/v1",
-    api_key="gravity-local"  # Cualquier string si no hay whitelist configurado
-)
-
-response = client.chat.completions.create(
-    model="gravity-bridge-auto",
-    messages=[{"role": "user", "content": "Explica async/await en Python"}],
-    stream=True
-)
-
-for chunk in response:
-    print(chunk.choices[0].delta.content or "", end="", flush=True)
-```
-
-**Ejemplo con curl:**
 ```bash
-curl http://localhost:7860/v1/chat/completions \
+curl -X POST http://localhost:7860/v1/gravity/chat \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gravity-bridge-auto",
-    "messages": [{"role": "user", "content": "Hola"}],
+    "messages": [{"role": "user", "content": "Scrapea https://example.com e inyecta un overlay en OBS con el título"}],
     "stream": false
   }'
 ```
 
 ---
 
-### `GET /v1/models`
+## 💾 Workers Asíncronos: `/v1/sessions/spawn`
 
-Lista de modelos disponibles en todos los proveedores activos. Compatible con el selector de modelos de Continue.dev y otros clientes.
+Para tareas intensivas de desarrollo, auditoría y análisis en paralelo, el Bridge V15.0 PRO implementa un orquestador multi-sesión basado en `session_runner.py`.
 
-**Respuesta:**
-```json
-{
-  "object": "list",
-  "data": [
-    {
-      "id": "gravity-bridge-auto",
-      "object": "model",
-      "owned_by": "gravity-ai",
-      "provider": "auto"
-    },
-    {
-      "id": "qwen2.5-coder:32b",
-      "object": "model",
-      "owned_by": "ollama",
-      "provider": "ollama"
-    },
-    {
-      "id": "claude-3-5-sonnet-20241022",
-      "object": "model",
-      "owned_by": "anthropic",
-      "provider": "anthropic"
-    }
-  ]
-}
-```
-
----
-
-## Endpoints de Sistema
-
-### `GET /health`
-
-Health check mínimo. Retorna 200 si el servidor está online.
-
-```bash
-curl http://localhost:7860/health
-# → HTTP 200 OK
-```
-
----
-
-### `GET /v1/status`
-
-Estado completo: proveedores, modelo activo, uptime.
-
-```bash
-curl http://localhost:7860/v1/status
-```
-
-```json
-{
-  "providers": [
-    {
-      "name": "ollama",
-      "healthy": true,
-      "latency_ms": 42,
-      "models": [
-        {"name": "qwen2.5-coder:32b"},
-        {"name": "deepseek-r1:14b"}
-      ]
-    },
-    {
-      "name": "lmstudio",
-      "healthy": false,
-      "latency_ms": null,
-      "error": "Connection refused"
-    }
-  ],
-  "active_provider": "ollama",
-  "active_model": "qwen2.5-coder:32b",
-  "model_locked": false,
-  "uptime_s": 7234,
-  "total_requests": 142
-}
-```
-
----
-
-### `GET /v1/hardware`
-
-Perfil de hardware para inferencia de IA.
-
-```json
-{
-  "gpu_name": "AMD Radeon RX 6800 XT",
-  "gpu_type": "rocm",
-  "is_igpu": false,
-  "gfx_version": "gfx1031",
-  "vram_mb": 16384,
-  "total_ram_mb": 32768,
-  "optimal_ctx": 65536,
-  "kv_quant": "q8_0",
-  "model_size_b": 32,
-  "npu_name": null,
-  "all_gpus": [
-    {
-      "name": "AMD Radeon RX 6800 XT",
-      "is_igpu": false,
-      "vram_mb": 16384,
-      "vendor": "amd",
-      "gpu_type": "rocm",
-      "gfx_version": "gfx1031"
-    },
-    {
-      "name": "AMD Radeon Graphics",
-      "is_igpu": true,
-      "vram_mb": 0,
-      "vendor": "amd",
-      "gpu_type": "rocm",
-      "gfx_version": "gfx90c"
-    }
-  ]
-}
-```
-
----
-
-### `GET /v1/cost`
-
-Costes de la sesión actual y del día.
-
-```json
-{
-  "session_cost": 0.0024,
-  "daily_cost": 0.0087,
-  "daily_limit": 10.0,
-  "over_limit": false,
-  "session_tokens": {
-    "input": 3200,
-    "output": 1800
-  },
-  "daily_breakdown": {
-    "anthropic": {
-      "calls": 4,
-      "input_tokens": 3200,
-      "output_tokens": 1800,
-      "total_cost": 0.0087
-    }
-  }
-}
-```
-
-> **Nota:** Si solo usas proveedores locales, todos los valores son `0` o `{}`. Esto es correcto — los modelos locales son gratuitos.
-
----
-
-### `GET /v1/watchdog`
-
-Estado del Engine Watchdog y lock de modelo.
-
-```json
-{
-  "active_provider": "ollama",
-  "active_model": "qwen2.5-coder:32b",
-  "model_locked": false,
-  "last_switch": "2026-04-17T01:30:00",
-  "hardware": {
-    "gpu_name": "AMD Radeon RX 6800 XT",
-    "vram_mb": 16384,
-    "gpu_type": "rocm"
-  }
-}
-```
-
----
-
-### `GET /v1/sessions`
-
-Lista de sesiones guardadas en `_saves/`.
-
-```json
-{
-  "count": 3,
-  "sessions": [
-    {
-      "name": "debug-bridge-server",
-      "branch": "main",
-      "turns": 32,
-      "saved_at": "2026-04-17 01:00:00"
-    }
-  ]
-}
-```
-
----
-
-### `POST /v1/sessions/spawn` *(Nuevo en V13.0 PRO)*
-
-Levanta un agente interactivo asíncrono con un rol específico (Auditor, Planner, Coder, etc.) sin bloquear el thread principal.
+### Spawnear una Sub-Sesión Aislada:
+Este comando levanta una instancia independiente del agente CLI (`ask_deepseek.py --session`) que ejecuta tareas de fondo, liberando de carga el hilo del servidor web principal. Puedes asignar un rol específico para condicionar su comportamiento y reglas de seguridad Zero-Trust.
 
 ```bash
 curl -X POST http://localhost:7860/v1/sessions/spawn \
   -H "Content-Type: application/json" \
-  -d '{"role": "auditor"}'
+  -d {
+    "session_id": "auditoria-modulo-core",
+    "role": "auditor"
+  }
+```
+*Roles válidos:* `auditor` (lectura rigurosa), `planner` (diseño), `coder` (modificación controlada), `researcher` (búsqueda intensiva) y `executor` (ejecución de comandos).
+
+### Terminar un Worker Activo:
+Si un worker se degrada o excede el tiempo de ejecución seguro, puedes forzar su finalización inmediata.
+```bash
+curl -X POST http://localhost:7860/v1/sessions/kill \
+  -H "Content-Type: application/json" \
+  -d '{"pid": 15420}'
 ```
 
-**Respuesta:**
+---
+
+## 🎬 Suite de Video Automático & Animaciones MAI (L0/L1/L2)
+
+El módulo de Video Studio automatiza por completo la producción de infoproductos y contenido audiovisual mediante síntesis TTS local y orquestación ffmpeg.
+
+### 1. `POST /v1/video/create`
+Inicia un pipeline que genera guiones a través del LLM, crea prompts de imagen, los encola secuencialmente en Fooocus, sintetiza el audio narrativo mediante voces locales SAPI5 y compila el video final con transiciones, subtítulos sincronizados y animaciones.
+
 ```json
 {
-  "ok": true,
-  "role": "auditor",
-  "pid": 20492,
-  "message": "Auditor spawned in detached console"
+  "topic": "La Crisis de los Misiles en Cuba en 3 minutos",
+  "n_scenes": 6,
+  "voice_id": "Microsoft Helena Desktop",
+  "voice_speed": 145,
+  "animation_effect": "parallax",
+  "animation_level": 2,
+  "subtitles": true
 }
 ```
 
+#### Parámetro Crítico `animation_effect`:
+- `"auto"` **(Tier L0):** Animaciones dinámicas básicas adaptadas heurísticamente por escena.
+- `"kenburns"` / `"parallax"` / `"shake"` **(Tier L1):** Movimientos clásicos cinematográficos, zoom 2D o paneos de cámara mediante matriz de transformación de ffmpeg.
+- `"comfyui_l2_i2v"` **(Tier L2 - Premium):** Exporta los fotogramas iniciales al cliente local de ComfyUI y utiliza Stable Video Diffusion (SVD) o AnimateDiff para generar una interpolación de video fotorrealista basada en la imagen (requiere hardware dedicado y ComfyUI activo).
+
 ---
 
-### `GET /v1/rag/status`
+## 💰 Suite de Monetización Pasiva Autónoma
 
-Estado del índice RAG.
+El micro-kernel V15.0 PRO incluye un ecosistema de automatización financiera diseñado para alimentar canales de contenido automatizado en piloto automático.
 
-```json
-{
-  "rag_dir": "F:/Gravity_AI_bridge/_rag_index",
-  "doc_count": 8,
-  "chunk_count": 247,
-  "size_mb": 1.24,
-  "online": true
-}
+```
+┌────────────────────────┐      ┌─────────────────────────┐      ┌────────────────────────┐
+│   Content Scheduler    ├─────►│  Video Creation Engine  ├─────►│  affiliate_manager     │
+│   (niches.json queue)  │      │  (Synthesis + Video)    │      │  (Inject CPA/Links)    │
+└────────────────────────┘      └─────────────────────────┘      └───────────┬────────────┘
+                                                                             │
+                                                                             ▼
+┌────────────────────────┐      ┌─────────────────────────┐      ┌────────────────────────┐
+│  language_cloner       │◄─────┤   Social Distribution   │◄─────┤   YouTube Content API  │
+│  (Clones to EN/FR/PT)  │      │   (TikTok Headless API) │      │   (OAuth2 Headless)    │
+└────────────────────────┘      └─────────────────────────┘      └────────────────────────┘
 ```
 
----
+### Endpoints Clave para la Integración Financiera:
 
-### `GET /v1/audit`
-
-Últimas N entradas del audit log.
-
+#### 1. Ingesta y Priorización de Enlaces CPA (`POST /v1/affiliates/program/add`)
+Registra productos de afiliación comercial en un nicho específico. El `affiliate_manager` seleccionará dinámicamente el mejor producto basado en el tema del video generado y construirá llamadas a la acción (CTAs) persuasivas para insertarlas en la descripción de las publicaciones de YouTube y TikTok.
 ```json
 {
-  "entries": [
-    {
-      "id": "chatcmpl-a1b2c3",
-      "provider": "ollama",
-      "model": "qwen2.5-coder:32b",
-      "input_tokens": 312,
-      "output_tokens": 148,
-      "cost_usd": 0.0,
-      "latency_ms": 2341,
-      "timestamp": "2026-04-17T01:44:00"
-    }
-  ],
-  "total": 142
-}
-```
-
----
-
-### `GET /v1/security`
-
-Resultado del último escaneo de seguridad Zero-Trust.
-
----
-
-### `GET /v1/queue`
-
-Estado de la cola de generación de imágenes.
-
----
-
-### `GET /v1/deploy/status`
-
-Estado del último pipeline de deploy a Netlify.
-
----
-
-### `GET /v1/gameserver/status`
-
-Estado de los servidores de juego configurados.
-
-```json
-{
-  "wow_vanilla": {
-    "display_name": "WoW Vanilla (MaNGOS)",
-    "status": "online",
-    "worldserver": true,
-    "realmd": true,
-    "players_online": 3,
-    "uptime": "2h 14m"
+  "niche_id": "desarrollo_software",
+  "program": {
+    "product_name": "Hosting Premium Descuento 70%",
+    "affiliate_link": "https://host.com/gravity-ref",
+    "payout_usd": 15.0,
+    "cta_template": "👉 Optimiza tu servidor web hoy con un 70% de descuento usando este enlace: {link}"
   }
 }
 ```
 
----
-
-## Endpoints POST de Acción
-
-### `POST /v1/agent/compare`
-
-Multi-Agent Orchestrator — envía un prompt a múltiples modelos en paralelo.
-
+#### 2. Multiplicador de CPM: Clonador de Idiomas (`POST /v1/language/clone`)
+Para maximizar los retornos de inversión en canales angloparlantes o europeos con altos CPMs, este endpoint toma un video completamente procesado (Job ID), traduce de forma asíncrona sus guiones cinematográficos y genera audios narrativos clonando la entonación en inglés, portugués o francés. **Logra un 300% de alcance internacional con un 0% de renderizado visual extra**.
 ```bash
-curl -X POST http://localhost:7860/v1/agent/compare \
+curl -X POST http://localhost:7860/v1/language/clone \
   -H "Content-Type: application/json" \
   -d '{
-    "prompt": "¿Cuál es la diferencia entre ROCm y CUDA?",
-    "mode": "parallel",
-    "n_models": 3
+    "job_id": 42,
+    "languages": ["en", "pt"]
   }'
 ```
 
-**Parámetros:**
-| Campo | Tipo | Por defecto | Opciones |
-|:---|:---|:---|:---|
-| `prompt` | string | requerido | — |
-| `mode` | string | `"parallel"` | `"parallel"`, `"vote"` |
-| `n_models` | int | `3` | 2, 3, 4 |
-| `messages` | array | — | Alternativa a `prompt` si quieres historial |
-
-**Respuesta:**
+#### 3. Distribución Directa a Redes (`POST /v1/social/distribute`)
+Envía de forma Headless y programática un video corto procesado a la cola de publicación nativa de TikTok Content API v2 e Instagram Reels API.
 ```json
 {
-  "ok": true,
-  "mode": "parallel",
-  "results": [
-    {
-      "provider": "ollama",
-      "model": "qwen2.5-coder:32b",
-      "response": "ROCm es el stack de compute de AMD...",
-      "elapsed": "2.3s"
-    },
-    {
-      "provider": "ollama",
-      "model": "deepseek-r1:14b",
-      "response": "La principal diferencia está en...",
-      "elapsed": "3.1s"
-    }
-  ]
+  "job_id": 42
 }
 ```
 
-En modo `vote`, el resultado ganador incluye `"vote_score"` con la puntuación.
-
 ---
 
-### `POST /v1/watchdog/unlock`
+## 📽️ Control de OBS Studio y Overlays Spark AI
 
-Desbloquea el modelo fijado manualmente y reactiva el auto-switch.
+La API del micro-kernel permite un control bidireccional absoluto de tus directos o grabaciones mediante WebSocket v5.
+
+### 1. Control de Escenas y Mezclador de Audio:
+- **POST `/v1/obs/scene/switch`:** Cambia de escena en caliente (`{"scene_name": "Escena Juego"}`).
+- **POST `/v1/obs/audio/volume`:** Modifica el volumen de micrófonos o capturadoras (`{"input_name": "Mic", "volume_db": -6.5}`).
+- **POST `/v1/obs/stream/toggle`:** Arranca o detiene la transmisión a Twitch/YouTube.
+
+### 2. Motor Gravity Spark: Overlays Dinámicos e Interactivos
+En lugar de consumir overlays estáticos, el endpoint `/v1/obs/spark/generate` utiliza el LLM para autogenerar fragmentos completos de código HTML/CSS/JS adaptativo en vivo y los inyecta de forma transparente como *Browser Source* en OBS Studio en la escena que indiques.
 
 ```bash
-curl -X POST http://localhost:7860/v1/watchdog/unlock \
+curl -X POST http://localhost:7860/v1/obs/spark/generate \
   -H "Content-Type: application/json" \
-  -d '{}'
+  -d '{
+    "prompt": "Crea una barra de donaciones interactiva con estética cyberpunk roja y animaciones de glitch en las fuentes",
+    "scene_name": "Live Streaming",
+    "width": 800,
+    "height": 150,
+    "x": 560,
+    "y": 900
+  }'
 ```
 
-**Respuesta:**
-```json
-{"ok": true, "message": "Modelo desbloqueado. Auto-switch reactivo."}
-```
-
----
-
-### `POST /v1/keys`
-
-Guarda una API key de proveedor cloud, cifrada con DPAPI.
-
+#### Modificación en Caliente (Hot-Swapping):
+Si necesitas reajustar visualmente el overlay durante el directo, puedes enviar un prompt correctivo al mismo `overlay_id`. El bridge compila la modificación en background y actualiza el DOM del Browser Source de OBS en milisegundos sin parpadeos ni recargas.
 ```bash
-curl -X POST http://localhost:7860/v1/keys \
+curl -X POST http://localhost:7860/v1/obs/spark/edit \
   -H "Content-Type: application/json" \
-  -d '{"provider": "anthropic", "key": "sk-ant-..."}'
-```
-
-```json
-{"ok": true, "provider": "anthropic"}
-```
-
----
-
-### `POST /v1/ai/start` / `POST /v1/ai/stop`
-
-Inicia o detiene un motor de IA local.
-
-```json
-{"provider": "LM Studio"}
-```
-
-```json
-{"success": true, "message": "LM Studio iniciado."}
+  -d '{
+    "overlay_id": "spark-bar-5420",
+    "prompt": "Cambia el color de acento a amarillo fluorescente y acelera las transiciones de carga"
+  }'
 ```
 
 ---
 
-### `POST /v1/security/scan`
+## 💻 Integración Práctica con Herramientas del Desarrollador
 
-Fuerza un escaneo de seguridad Zero-Trust inmediato.
+### 1. Conexión con LangChain (Python)
+Cualquier framework moderno de agentes puede utilizar el bridge local como backend principal de inferencia de alto rendimiento y cero coste.
 
-```bash
-curl -X POST http://localhost:7860/v1/security/scan \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
----
-
-### `POST /v1/audit/rotate` *(V13.0 PRO)*
-
-Fuerza la rotación inmediata del audit log activo. El archivo actual se archiva con timestamp y se crea uno nuevo.
-
-```bash
-curl -X POST http://localhost:7860/v1/audit/rotate -H "Content-Type: application/json" -d '{}'
-# → {"ok": true, "archived": "_audit_log_20260420_190000.jsonl"}
-```
-
----
-
-### `POST /v1/rag/toggle` *(V13.0 PRO)*
-
-Activa o desactiva el RAG en el flujo de chat en caliente (sin reiniciar el bridge).
-
-```bash
-curl -X POST http://localhost:7860/v1/rag/toggle -H "Content-Type: application/json" -d '{}'
-# → {"ok": true, "rag_enabled": false}
-```
-
----
-
-### Endpoints de Firecrawl Scraper *(Nuevo en V13.0 PRO)*
-
-Scrapeo web y extracción a Markdown:
-
-```bash
-# Scrapear URL
-curl -X POST http://localhost:7860/v1/tools/scrape \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com", "mode": "markdown"}'
-
-# Health check Firecrawl API (GET)
-curl http://localhost:7860/v1/tools/firecrawl/health
-```
-
----
-
-### Endpoints HITL (Human-in-the-Loop) *(Nuevo en V13.0 PRO)*
-
-Mecanismo de seguridad para aprobación manual de comandos de riesgo:
-
-```bash
-# Ver solicitudes pendientes (GET)
-curl http://localhost:7860/v1/hitl/pending
-
-# Aprobar solicitud (POST)
-curl -X POST http://localhost:7860/v1/hitl/approve \
-  -H "Content-Type: application/json" \
-  -d '{"request_id": "req-1234abcd"}'
-
-# Rechazar solicitud (POST)
-curl -X POST http://localhost:7860/v1/hitl/reject \
-  -H "Content-Type: application/json" \
-  -d '{"request_id": "req-1234abcd", "reason": "No autorizado por el operador"}'
-```
-
----
-
-### `POST /v1/deploy`
-
-Inicia el pipeline `npm run build` → `netlify deploy --prod`.
-
-```json
-{"project_path": "C:/Users/darck/proyectos/mi-web"}
-```
-
-```json
-{"started": true, "project": "mi-web"}
-```
-
----
-
-### `POST /v1/course/generate` *(Nuevo en V13.0 PRO)*
-
-Genera automáticamente el syllabus de un curso/playlist y lo encola en el Content Scheduler (`niches.json`) para producción continua.
-
-```bash
-curl -X POST http://localhost:7860/v1/course/generate \
-  -H "Content-Type: application/json" \
-  -d '{"topic": "Curso Completo de Python", "n_videos": 5, "lang": "es"}'
-```
-
-**Parámetros:**
-| Campo | Tipo | Por defecto | Opciones |
-|:---|:---|:---|:---|
-| `topic` | string | requerido | El tema o título del curso a generar |
-| `n_videos` | int | `10` | Cantidad de lecciones/videos |
-| `lang` | string | `"es"` | Idioma (ej. "es", "en", "pt") |
-
-**Respuesta:**
-```json
-{
-  "ok": true,
-  "message": "Syllabus generado con éxito y encolado en el Scheduler."
-}
-```
-
----
-
-### `POST /v1/queue/add`
-
-Añade un trabajo de generación de imagen a la cola de Fooocus.
-
-```json
-{
-  "prompt": "A majestic dragon flying over a medieval castle, fantasy art, detailed",
-  "performance": "Quality",
-  "width": 1024,
-  "height": 1024
-}
-```
-
-```json
-{"ok": true, "job_id": "job_a1b2c3d4"}
-```
-
----
-
-## Video Studio V13.0 PRO
-
-### `POST /v1/video/create`
-
-Encola un nuevo trabajo de generación de video. El pipeline corre en background (no bloquea la respuesta).
-
-```json
-{
-  "topic":      "La historia del jazz y su influencia en la música moderna",
-  "n_scenes":   6,
-  "voice_speed": 150
-}
-```
-
-| `topic` | string | **requerido** | Tema del video en lenguaje natural |
-| `n_scenes` | int | `6` | Número de escenas (4–10) |
-| `voice_speed` | int | `150` | Palabras por minuto de la voz SAPI |
-| `animation_effect` | string | `"auto"` | Efecto MAI (ej. `kenburns`, `parallax`, `shake`, `comfyui_l2_i2v`) |
-| `animation_level` | int | `1` | Nivel de intensidad del efecto (1-3) |
-
-**Respuesta:**
-```json
-{
-  "ok": true,
-  "job_id": 1,
-  "message": "Video encolado (job #1). El proceso toma ~30 min en CPU.",
-  "n_scenes": 6
-}
-```
-
----
-
-### `POST /v1/video/cancel`
-
-Cancela un trabajo **pendiente** (no puede cancelar uno que ya está procesándose).
-
-```json
-{"job_id": 3}
-```
-
-```json
-{"ok": true}
-```
-
----
-
-### `GET /v1/video/status`
-
-Estado completo de la cola de video: pendientes, job activo con progreso en tiempo real e historial de los últimos 20 jobs.
-
-```json
-{
-  "ffmpeg_ok": true,
-  "pending_count": 1,
-  "pending_jobs": [{"id": 2, "topic": "El universo observable", "n_scenes": 6}],
-  "current_job": {
-    "id": 1,
-    "topic": "La historia del jazz",
-    "progress": 45,
-    "step": "[3/6] Generando imagen: Escena 3 — Los años dorados del bebop"
-  },
-  "history": [
-    {
-      "id": 1,
-      "topic": "La historia del jazz",
-      "status": "done",
-      "n_scenes": 6,
-      "output_path": "F:/Gravity_AI_bridge/_videos/video_1_La_historia_del_jazz_20260420.mp4",
-      "created_at": "2026-04-20T19:00:00Z",
-      "finished_at": "2026-04-20T19:32:14Z"
-    }
-  ]
-}
-```
-
-El campo `current_job` es `null` si no hay ningún job procesándose.
-
----
-
-### `GET /v1/video/download?file=nombre.mp4`
-
-Descarga el archivo `.mp4` generado. El parámetro `file` debe ser solo el nombre del archivo (sin ruta).
-
-```bash
-curl "http://localhost:7860/v1/video/download?file=video_1_La_historia_del_jazz_20260420.mp4" \
-  --output video.mp4
-```
-
-Retorna el binario MP4 con `Content-Type: video/mp4` y `Content-Disposition: attachment`.
-
----
-
-### `GET /v1/video/animations` *(Nuevo en V13.0 PRO)*
-
-Retorna el catálogo completo de efectos del Motor de Animación Inteligente (MAI L0/L1/L2) disponibles para usar en el campo `animation_effect` de la API de creación.
-
-```bash
-curl http://localhost:7860/v1/video/animations
-```
-
-```json
-{
-  "effects": [
-    {"id": "auto", "name": "Automático por Escena", "tier": "L0"},
-    {"id": "kenburns", "name": "Ken Burns Clásico", "tier": "L1"},
-    {"id": "parallax", "name": "Parallax 3D Depth", "tier": "L1"},
-    {"id": "comfyui_l2_i2v", "name": "AI Image-to-Video", "tier": "L2"}
-  ],
-  "levels": [1, 2, 3]
-}
-```
-
----
-
-### `POST /v1/generate`
-
-Generación de imagen directa (sin cola) via Fooocus API.
-
-```json
-{
-  "prompt": "Cyberpunk cityscape at night, rain, neon lights",
-  "negative_prompt": "blurry, low quality",
-  "width": 1024,
-  "height": 1024,
-  "performance": "Speed",
-  "style_selections": ["Fooocus V2", "Futuristic"],
-  "num_images": 1
-}
-```
-
----
-
-### Endpoints de Game Server
-
-```bash
-# Iniciar servidor
-curl -X POST http://localhost:7860/v1/gameserver/start \
-  -d '{"server": "wow_vanilla"}'
-
-# Detener servidor
-curl -X POST http://localhost:7860/v1/gameserver/stop \
-  -d '{"server": "wow_vanilla"}'
-
-# Reiniciar
-curl -X POST http://localhost:7860/v1/gameserver/restart \
-  -d '{"server": "wow_vanilla"}'
-
-# Enviar comando de administrador (via SOAP)
-curl -X POST http://localhost:7860/v1/gameserver/command \
-  -d '{"server": "wow_vanilla", "command": ".server info"}'
-
-# Registrar cuenta de jugador
-curl -X POST http://localhost:7860/v1/gameserver/register \
-  -d '{"server": "wow_vanilla", "username": "jugador1", "password": "Pass123!"}'
-
-# Exponer a internet (actualiza configs MaNGOS)
-curl -X POST http://localhost:7860/v1/gameserver/expose \
-  -d '{"server": "wow_vanilla", "public_address": "203.0.113.45"}'
-```
-
----
-
-## Códigos de Estado HTTP
-
-| Código | Significado |
-|:---|:---|
-| `200` | OK — petición procesada correctamente |
-| `400` | Bad Request — parámetros inválidos o faltantes |
-| `404` | Not Found — endpoint no existe |
-| `429` | Too Many Requests — rate limit excedido |
-| `503` | Service Unavailable — ningún proveedor de IA disponible |
-| `500` | Internal Server Error — error inesperado en el Bridge |
-
-Todos los errores retornan JSON:
-```json
-{"error": "descripción del error"}
-```
-
----
-
-## Integración con Herramientas Externas
-
-### LangChain (Python)
 ```python
 from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(
     openai_api_base="http://localhost:7860/v1",
-    openai_api_key="gravity-local",
-    model_name="gravity-bridge-auto"
+    openai_api_key="gravity-local",  # Arbitrario si no se configuró whitelist
+    model_name="gravity-bridge-auto",
+    temperature=0.2
 )
 
-result = llm.invoke("Explica cómo funciona el attention mechanism")
-print(result.content)
+response = llm.invoke("Analiza el rendimiento del recolector de basura de Python.")
+print(response.content)
 ```
 
-### Continue.dev (config.yaml)
-```yaml
-name: Gravity Local V13.0 PRO
-version: 10.0.0
-schema: v1
-models:
-  - name: "Gravity Bridge"
-    provider: openai
-    model: gravity-bridge-auto
-    apiBase: "http://localhost:7860/v1"
-    apiKey: "gravity-local"
+### 2. Configuración en Continue.dev (`config.json`)
+Sustituye la inferencia cloud en tu entorno de desarrollo IDE por Qwen2.5-Coder o DeepSeek-R1 ejecutándose directamente en tu GPU local mediante el Bridge.
+
+```json
+{
+  "models": [
+    {
+      "title": "Gravity Bridge V15.0 PRO",
+      "provider": "openai",
+      "model": "gravity-bridge-auto",
+      "apiBase": "http://localhost:7860/v1",
+      "apiKey": "gravity-local"
+    }
+  ],
+  "tabAutocompleteModel": {
+    "title": "Gravity Autocomplete",
+    "provider": "openai",
+    "model": "gravity-bridge-auto",
+    "apiBase": "http://localhost:7860/v1",
+    "apiKey": "gravity-local"
+  }
+}
 ```
 
-### Aider
+### 3. Ejecución Directa con Aider CLI
+El bridge acelerado te permite co-programar en terminal consumiendo tus motores locales de forma gratuita y eficiente:
 ```bash
 aider --openai-api-base http://localhost:7860/v1 --model openai/gravity-bridge-auto
 ```
 
-### Open WebUI (alternativa al Dashboard)
-```
-OPENAI_API_BASE_URL=http://localhost:7860/v1
-OPENAI_API_KEY=gravity-local
-```
+---
+
+## 📊 Códigos de Estado y Respuestas de Error
+
+Todas las peticiones del Bridge devuelven códigos HTTP estándar y estructuras de error JSON autoexplicativas para facilitar el debugging en tus desarrollos:
+
+| Código HTTP | Causa de la Respuesta | Estructura del Body |
+|:---|:---|:---|
+| `200` | OK — Petición procesada exitosamente | Estructura específica del endpoint |
+| `400` | Bad Request — Parámetros inválidos o ausentes | `{"error": "Detalle del parámetro faltante"}` |
+| `401` | Unauthorized — API key inválida o ausente | `{"error": "Acceso denegado: API key requerida"}` |
+| `429` | Too Many Requests — Límite de Rate Limiting excedido | `{"error": "Too Many Requests. Límite de IP/Key superado", "retry_after": 60}` |
+| `503` | Service Unavailable — Sin proveedores disponibles | `{"error": "No hay ningún motor de IA local o cloud disponible en este momento"}` |
+| `500` | Internal Server Error — Excepción en el micro-kernel | `{"error": "Traceback interno del error en bridge_server.py"}` |
+
+---
+
+<div align="center">
+  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V15.0 PRO Omniscient-Tier · Centro de Desarrollo & API Nativos</i></sub>
+</div>

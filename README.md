@@ -5,7 +5,7 @@
   [![Autor](https://img.shields.io/badge/Author-DarckRovert-818cf8.svg?style=flat-square)](https://github.com/DarckRovert)
   [![Licencia](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
   [![Arquitectura](https://img.shields.io/badge/Architecture-Omniscient--Tier-c69c6d.svg?style=flat-square)]()
-  [![Release](https://img.shields.io/badge/Release-V13.0-6366f1.svg?style=flat-square)]()
+  [![Release](https://img.shields.io/badge/Release-V15.0-6366f1.svg?style=flat-square)]()
   [![Twitch](https://img.shields.io/badge/Twitch-DarckRovert-9146ff.svg?style=flat-square&logo=twitch)](https://twitch.tv/darckrovert)
 
   <p align="center">
@@ -27,7 +27,7 @@
 
 En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Studio), motores de difusión (Fooocus), servidores C++ (MangosD/WoW) y pipelines CI/CD desde una sola máquina resulta en colisiones de hardware, puertos huérfanos, OOM en VRAM y latencias de segundos.
 
-**Gravity AI Bridge V13.0 PRO** elimina todos estos problemas con Python nativo puro y un frontend React/Vite de alta respuesta. Su filosofía:
+**Gravity AI Bridge V15.0 PRO** elimina todos estos problemas con Python nativo puro y un frontend React/Vite de alta respuesta. Su filosofía:
 
 - **Zero Dependencias Masivas**: Latencia interna en microsegundos, payload de memoria insignificante.
 - **Conciencia Dinámica del Host**: Auto-diagnóstico de RAM y VRAM, ajuste dinámico de `num_ctx` de Ollama en tiempo real según estrés térmico.
@@ -36,7 +36,7 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 
 ---
 
-## 🏛 Módulos del Ecosistema V13.0 PRO
+## 🏛 Módulos del Ecosistema V15.0 PRO
 
 ### 🧠 Multi-Agent Orchestrator (`core/multi_agent.py`)
 - Dispara peticiones REST concurrentes a múltiples modelos/APIs en paralelo.
@@ -44,7 +44,7 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 - **Reasoning Stripper**: Filtra tokens `<think>` de modelos como DeepSeek-R1 via Regex antes de mostrarlos.
 - **Agent Routing**: Selección dinámica de modelo/proveedor según `--role` (auditor, planner, coder, researcher, executor).
 
-### 🖥️ Dashboard V13.0 PRO React SPA (`frontend/dist`)
+### 🖥️ Dashboard V15.0 PRO React SPA (`frontend/dist`)
 Panel de control unificado con 25 componentes orquestados en tiempo real:
 
 | Panel | Función |
@@ -74,7 +74,7 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 | 📋 Audit Log | Historial de peticiones con rotación automática |
 | ⚙️ Configuración | API keys, modelo activo, links rápidos |
 
-### 🔄 Multi-Session Bridge V13.0 PRO (`core/session_runner.py`)
+### 🔄 Multi-Session Bridge V15.0 PRO (`core/session_runner.py`)
 - `CapacityWake` + `SessionSpawner`: hasta 32 subprocesos de agente aislados simultáneos.
 - Spawn vía UI con selector de **rol** (auditor/planner/coder/researcher/executor).
 - Kill de workers activos con estado PID en tiempo real.
@@ -96,7 +96,7 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 - Auto-reconexión, `list_tools`, `list_resources`, `read_resource`.
 - Registro global de adaptadores accesible desde el Dashboard.
 
-### 🎬 Video Studio Multi-Agent (Cinematic & Monetization) V13.0 PRO
+### 🎬 Video Studio Multi-Agent (Cinematic & Monetization) V15.0 PRO
 Pipeline de 5 pasos orquestado en daemon con **Agentes Especializados y Motor de Animación Inteligente (MAI)**:
 1. **Pipeline Multi-Agente (Research & Scripting)**:
    - *Market Researcher*: Analiza YouTube vía web scraping para extraer ganchos y ángulos de competidores.
@@ -135,6 +135,11 @@ Sistema pasivo integrado en el pipeline de renderizado que multiplica los ingres
 - Subproceso MangosD con Ring-Buffer Deque de 500 líneas en RAM.
 - Pre-flight MySQL antes de arrancar (evita corrupción de Character-Files).
 - Auto-backup `mysqldump` en cierre, historial de jugadores, exposición WAN.
+
+### 🎥 OBS Studio Control & Gravity Spark V15.0 PRO (`core/obs_client.py` & `core/obs_spark_engine.py`)
+- **Control Total de OBS**: Auto-conexión vía WebSocket v5. Gestiona escenas, fuentes, mute/volumen, streaming y grabación desde la API.
+- **Gravity Spark (Motor de Overlays AI)**: Reemplaza costosos servicios de overlays web. Genera código HTML/JS autocontenido en tiempo real usando tu LLM local, inyectándolo directamente como `Browser Source` en OBS.
+- Capacidad de **modificar overlays al vuelo** ("hazlo azul", "añade un borde neón") sin recargar OBS.
 
 ### 🧠 RAG (`rag/`)
 - Indexación de documentos locales en `_rag_index/`.
@@ -179,29 +184,25 @@ python bridge_server.py
 Dashboard disponible en: `http://localhost:7860`
 
 ### Instalación con Installer (Windows)
-Descargar `Gravity_AI_Bridge_V13.0_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
+Descargar `Gravity_AI_Bridge_V15.0_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
 
 ---
 
-## ⚙️ Configuración Inicial
+## ⚙️ Configuración Inicial y Seguridad de APIs
 
-```yaml
-# config.yaml — campos clave
-server:
-  port: 7860
+Para garantizar la máxima seguridad del ecosistema, **todos los datos sensibles y API keys locales han sido completamente purgados del repositorio público** (`config.yaml` y claves encriptadas se excluyen automáticamente a través de `.gitignore`).
 
-# Firecrawl API (opcional — sin key usa fallback HTML)
-firecrawl_api_key: ""
+### 🚀 Inicialización Automática (Zero-Configuration)
+Al iniciar el Bridge por primera vez (`python bridge_server.py`), el núcleo detecta automáticamente la ausencia de `config.yaml` y **crea una copia limpia a partir de [config.yaml.example](config.yaml.example)** sin credenciales reales. ¡Listo para arrancar al instante!
 
-# Agent Routing
-agent_routing:
-  auditor:
-    provider: ollama
-    model: deepseek-r1:8b
-  planner:
-    provider: lm_studio
-    model: llama-3.1-8b
-```
+### 🖥️ Configuración Interactiva desde el Dashboard
+No necesitas editar archivos de texto manualmente. Una vez iniciado el servidor, accede al Dashboard en **`http://localhost:7860`** y dirígete al panel **System Settings** (icono de engranaje):
+
+1. **Gestión de API Keys**: Introduce tus llaves de **OpenAI, Anthropic, Groq, Nvidia, u OpenRouter** de forma visual.
+2. **Cifrado Local Seguro**: Las llaves introducidas en la UI se cifran automáticamente en tu máquina física utilizando **Windows DPAPI** y se almacenan localmente de forma inmutable en tu almacén personal (`_keystore.bin`). Nadie más tendrá acceso a ellas.
+3. **Proveedor Universal AI**: Puedes configurar cualquier endpoint compatible con OpenAI (Base URL + Model Name + API Key) de manera extremadamente sencilla.
+4. **Límites de Costos**: Ajusta el presupuesto diario en dólares desde la barra deslizadora directamente en la UI.
+
 
 ---
 
@@ -226,7 +227,7 @@ Ver [`SECURITY.md`](SECURITY.md) para política de vulnerabilidades y reporte re
 ---
 
 > [!NOTE]
-> Ecosistema local privado V13.0 PRO Omniscient-Tier.
+> Ecosistema local privado V15.0 PRO Omniscient-Tier.
 > [**📖 WIKI CORPORATIVA**](./wiki/Home.md) | [📜 CONTRIBUCIÓN](./CONTRIBUTING.md) | [🔒 SEGURIDAD](./SECURITY.md)
 
 <br>

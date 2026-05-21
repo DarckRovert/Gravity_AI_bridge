@@ -1,5 +1,5 @@
 """
-Gravity AI Bridge V10.1 PRO — Fooocus (CPU) Satellite Client
+Gravity AI Bridge V15.0 PRO — Fooocus (CPU) Satellite Client
 Tool: fooocus_client
 Endpoint: http://127.0.0.1:7861 (Fooocus HTTP API — modo CPU)
 Hardware: AMD Ryzen 7 8700G — CPU puro (sin DirectML, sin crash)
@@ -402,7 +402,7 @@ def batch_generate(
 # ─── Self-test ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    print("[Gravity :: Fooocus Client V10.1] Health check...")
+    print("[Gravity :: Fooocus Client V15.0 PRO] Health check...")
     status: HealthStatus = health_check()
     print(f"  Online : {status['online']}")
     print(f"  Version: {status['version']}")

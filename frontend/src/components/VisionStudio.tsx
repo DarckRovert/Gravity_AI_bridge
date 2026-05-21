@@ -14,10 +14,10 @@ const MODELS = ['flux', 'flux-realism', 'flux-anime', 'flux-3d', 'turbo'];
 
 const ASPECT_OPTIONS = [
   { label: '1:1 Square',    width: 1024, height: 1024 },
-  { label: '16:9 Wide',     width: 1280, height: 720  },
-  { label: '9:16 Portrait', width: 720,  height: 1280 },
-  { label: '4:3 Standard',  width: 1024, height: 768  },
-  { label: '3:2 Photo',     width: 1024, height: 683  },
+  { label: '16:9 Wide',     width: 1344, height: 768  },
+  { label: '9:16 Portrait', width: 768,  height: 1344 },
+  { label: '4:3 Standard',  width: 1152, height: 896  },
+  { label: '3:2 Photo',     width: 1216, height: 832  },
 ];
 
 export const VisionStudio = () => {
@@ -47,7 +47,7 @@ export const VisionStudio = () => {
     setImageUrl(null);
     try {
       const { width, height } = ASPECT_OPTIONS[aspect];
-      const res = await fetch('http://localhost:7860/v1/image/generate', {
+      const res = await fetch('/v1/image/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

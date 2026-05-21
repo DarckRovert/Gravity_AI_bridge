@@ -1,11 +1,11 @@
 """
 ╔══════════════════════════════════════════════════════════╗
-║     GRAVITY AI ENGINE WATCHDOG V13.0 PRO                      ║
+║     GRAVITY AI ENGINE WATCHDOG V15.0 PRO                      ║
 ║     Auto-Detección, Auto-Switch y Auto-Optimización      ║
 ╚══════════════════════════════════════════════════════════╝
 
 Corre en segundo plano como hilo demonio.
-Delega toda la lógica de detección y routing al V13.0 PROviderManager.
+Delega toda la lógica de detección y routing al V15.0 PROviderManager.
 Persiste la selección en _settings.json.
 """
 

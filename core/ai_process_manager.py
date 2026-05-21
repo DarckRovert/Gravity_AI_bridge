@@ -63,6 +63,16 @@ def discover_apps():
     if os.path.exists(jan):
         found_paths["Jan AI"] = jan
 
+    # 5. ComfyUI
+    comfyui = os.path.join(base_dir, "_integrations", "ComfyUI_windows_portable", "run_amd_cpu.bat")
+    if os.path.exists(comfyui):
+        found_paths["ComfyUI"] = comfyui
+
+    # 6. V2V Engine
+    v2v = os.path.join(base_dir, "_integrations", "v2v_engine", "run_v2v.bat")
+    if os.path.exists(v2v):
+        found_paths["V2V Engine"] = v2v
+
     if not found_paths:
         return {}
 
@@ -96,8 +106,15 @@ def start_engine(provider_name):
 
     try:
         DETACHED_PROCESS = 0x00000008
+        CREATE_NEW_CONSOLE = 0x00000010
         CREATE_NO_WINDOW = 0x08000000
-        proc_flags = DETACHED_PROCESS | CREATE_NO_WINDOW
+        
+        # Para V2V, necesitamos consola visible para que la GUI de OpenCV no de problemas
+        if "v2v" in provider_name.lower():
+            proc_flags = CREATE_NEW_CONSOLE
+        else:
+            proc_flags = DETACHED_PROCESS | CREATE_NO_WINDOW
+            
         env = os.environ.copy()
 
         if path.endswith(".bat"):
@@ -137,6 +154,10 @@ def stop_engine(provider_name):
         targets = ["Jan.exe"]
     elif "fooocus" in pn:
         targets = []  # Evitamos targets genéricos para no matar procesos del bridge
+    elif "comfyui" in pn:
+        targets = []  # Igual que Fooocus
+    elif "v2v" in pn:
+        targets = []  # V2V
     else:
         return {"success": False, "error": "Firma del motor no registrada aún. No puedo apagar."}
 
@@ -153,6 +174,20 @@ def stop_engine(provider_name):
             # Límite riguroso para Fooocus (no matar al servidor bridge u otros pythons)
             if "fooocus" in pn and "python.exe" in name.lower():
                 if "launch.py" in cmdline or "Fooocus" in p_cwd:
+                    proc.kill()
+                    killed += 1
+                    continue
+
+            # Límite riguroso para ComfyUI
+            if "comfyui" in pn and "python.exe" in name.lower():
+                if "comfyui\\main.py" in cmdline.lower() or "comfyui" in p_cwd.lower():
+                    proc.kill()
+                    killed += 1
+                    continue
+
+            # Límite riguroso para V2V
+            if "v2v" in pn and "python.exe" in name.lower():
+                if "v2v_pipeline.py" in cmdline.lower() or "v2v_server.py" in cmdline.lower() or "v2v_engine" in p_cwd.lower():
                     proc.kill()
                     killed += 1
                     continue

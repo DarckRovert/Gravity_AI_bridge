@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         GRAVITY AI — SECURITY MONITOR V13.0 PRO                                   ║
+║         GRAVITY AI — SECURITY MONITOR V15.0 PRO                                   ║
 ║         Monitor de procesos, puertos, integridad de archivos y red           ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -39,6 +39,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WHITELIST_PORTS: set = {
     7860,   # Gravity Bridge
     7861,   # Fooocus
+    7862,   # Fooocus Studio UI
+    7863,   # V2V WebSocket Engine
     11434,  # Ollama
     1234,   # LM Studio default
     8080,   # Jan AI / HTTP alt
@@ -57,6 +59,7 @@ WHITELIST_PORTS: set = {
     4000,   # GraphQL / dev
     9090,   # Prometheus
     9229,   # Node debugger
+    8188,   # ComfyUI
 }
 
 # Procesos legítimos que pueden abrir puertos aleatorios sin ser sospechosos.

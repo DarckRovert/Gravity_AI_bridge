@@ -1,7 +1,7 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  GRAVITY AI — ANIMATION ENGINE V1.0                                         ║
-║  Motor de Animación de Imágenes (MAI) — Gravity Studio V13.0 PRO               ║
+║  Motor de Animación de Imágenes (MAI) — Gravity Studio V15.0 PRO               ║
 ║                                                                              ║
 ║  Sistema de 3 niveles con fallback progresivo:                              ║
 ║    L0 — FFmpeg nativo (zoompan, filtros básicos) — sin dependencias         ║
@@ -326,7 +326,24 @@ def animate_with_comfyui(
             _sys.path.insert(0, _int_dir)
 
         from comfy_client import ComfyUIClient
-        client = ComfyUIClient()
+        
+        host, port = "127.0.0.1", 8188
+        try:
+            import yaml
+            with open(os.path.join(_base, "config.yaml"), "r", encoding="utf-8") as f:
+                _cfg = yaml.safe_load(f) or {}
+                _c_url = _cfg.get("comfyui", {}).get("url", "http://127.0.0.1:8188")
+                if "://" in _c_url:
+                    _c_url = _c_url.split("://")[1]
+                if ":" in _c_url:
+                    host, port_str = _c_url.split(":")
+                    port = int(port_str)
+                else:
+                    host = _c_url
+        except Exception:
+            pass
+
+        client = ComfyUIClient(host=host, port=port)
 
         if not client.is_online():
             return None

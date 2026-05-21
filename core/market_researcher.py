@@ -15,7 +15,7 @@ def analyze_competitors(topic: str) -> str:
     log.info(f"[MarketResearch] Analizando a la competencia para: '{topic}'")
     
     # 1. Buscar en DuckDuckGo resultados de YouTube y artículos top
-    query = f"site:youtube.com {topic}"
+    query = f"{topic} youtube video"
     raw_data = search_and_scrape(query, max_results=3)
     
     if not raw_data:

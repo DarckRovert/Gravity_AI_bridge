@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Film, PlayCircle, Clock, CheckCircle2, AlertCircle, RefreshCw, X, Share2, Camera, MonitorPlay, Download, Trash2, Settings, Clapperboard, AudioLines, Sparkles, Layers, SlidersHorizontal } from 'lucide-react';
 
 export const VideoStudio = () => {
@@ -107,14 +107,14 @@ export const VideoStudio = () => {
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch('http://localhost:7860/v1/video/status');
+      const res = await fetch('/v1/video/status');
       if (res.ok) setStatus(await res.json());
     } catch (e) {}
   };
 
   const fetchVoices = async () => {
     try {
-      const res = await fetch('http://localhost:7860/v1/video/voices');
+      const res = await fetch('/v1/video/voices');
       if (res.ok) {
         const data = await res.json();
         setVoices(data.voices || []);
@@ -126,7 +126,7 @@ export const VideoStudio = () => {
 
   const fetchEngines = async () => {
     try {
-      const res = await fetch('http://localhost:7860/v1/video/engines');
+      const res = await fetch('/v1/video/engines');
       if (res.ok) {
         const data = await res.json();
         setEngines(data.engines || []);
@@ -136,7 +136,7 @@ export const VideoStudio = () => {
 
   const fetchAnimationCatalog = async () => {
     try {
-      const res = await fetch('http://localhost:7860/v1/video/animations');
+      const res = await fetch('/v1/video/animations');
       if (res.ok) {
         const data = await res.json();
         if (data.effects) setAnimationCatalog(data.effects);
@@ -158,7 +158,7 @@ export const VideoStudio = () => {
     if (!topic.trim()) return;
     setCreating(true);
     try {
-      await fetch('http://localhost:7860/v1/video/create', {
+      await fetch('/v1/video/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -202,7 +202,7 @@ export const VideoStudio = () => {
     e.stopPropagation();
     if (!confirm(`⚠️ ALERTA DE SISTEMA\n\n¿Estás seguro de que deseas eliminar de raíz la producción #${id}?\n\nEsta acción purgará la base de datos y borrará permanentemente todos los archivos físicos (clips, audios, video final) del disco.`)) return;
     try {
-      await fetch('http://localhost:7860/v1/video/delete', {
+      await fetch('/v1/video/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ job_id: id })
@@ -218,7 +218,7 @@ export const VideoStudio = () => {
     e.stopPropagation();
     if (!confirm(`¿Deseas cancelar el procesamiento del job #${id}?`)) return;
     try {
-      await fetch('http://localhost:7860/v1/video/cancel', {
+      await fetch('/v1/video/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
@@ -241,7 +241,7 @@ export const VideoStudio = () => {
             <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
               GRAVITY <span className="text-text-muted font-normal">|</span> STUDIO <span className="px-1.5 py-0.5 rounded bg-accent-primary/20 text-accent-primary text-[10px] uppercase font-bold tracking-widest border border-accent-primary/30">Pro Edition</span>
             </h1>
-            <p className="text-xs text-text-muted font-medium mt-0.5">Pipeline Cinemático Autárquico V13.0 PRO</p>
+            <p className="text-xs text-text-muted font-medium mt-0.5">Pipeline Cinemático Autárquico V15.0 PRO</p>
           </div>
         </div>
         
@@ -398,7 +398,7 @@ export const VideoStudio = () => {
                              onClick={async () => {
                                if (!voiceId) return;
                                try {
-                                 const r = await fetch('http://localhost:7860/v1/video/preview_voice', {
+                                 const r = await fetch('/v1/video/preview_voice', {
                                    method: 'POST',
                                    headers: { 'Content-Type': 'application/json' },
                                    body: JSON.stringify({ voice_id: voiceId, text: 'Hola, esta es una prueba de la voz seleccionada en Gravity Studio. Sistema operativo al máximo nivel.' })
@@ -878,7 +878,7 @@ export const VideoStudio = () => {
                           <>
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10 pointer-events-none"></div>
                             {job.thumbnail_path && (
-                              <img src={`http://localhost:7860/v1/video/thumbnail?job_id=${job.id}`} alt="thumb" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" />
+                              <img src={`/v1/video/thumbnail?job_id=${job.id}`} alt="thumb" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" />
                             )}
                             <PlayCircle size={48} className="text-white/50 group-hover:text-accent-primary group-hover:scale-110 transition-all duration-300 z-20 relative" strokeWidth={1} />
                             <div className="absolute bottom-2 right-2 z-20 px-1.5 py-0.5 bg-black/70 backdrop-blur text-[9px] text-white rounded font-mono font-bold">
@@ -926,7 +926,7 @@ export const VideoStudio = () => {
                           <div className="flex gap-1">
                             {isReady && (
                               <a 
-                                href={`http://localhost:7860/v1/video/download?file=${job.output_path?.split(/[/\\]/).pop() || ''}`} 
+                                href={`/v1/video/download?file=${job.output_path?.split(/[/\\]/).pop() || ''}`} 
                                 download
                                 className="p-1.5 rounded bg-surface hover:bg-accent-primary hover:text-white text-text-muted transition-colors"
                                 title="Descargar MP4"
@@ -986,14 +986,14 @@ export const VideoStudio = () => {
               <video 
                 controls 
                 autoPlay 
-                src={`http://localhost:7860/v1/video/stream?path=${selectedVideo.output_path?.split(/[/\\]/).pop() || ''}`} 
+                src={`/v1/video/stream?path=${selectedVideo.output_path?.split(/[/\\]/).pop() || ''}`} 
                 className="w-full max-h-[75vh] object-contain"
               />
             </div>
             
             <div className="flex justify-between items-center px-2 mt-2">
               <a 
-                href={`http://localhost:7860/v1/video/download?file=${selectedVideo.output_path?.split(/[/\\]/).pop() || ''}`} 
+                href={`/v1/video/download?file=${selectedVideo.output_path?.split(/[/\\]/).pop() || ''}`} 
                 download
                 target="_blank" rel="noreferrer"
                 className="px-6 py-3 bg-white text-black font-black rounded-xl hover:bg-accent-primary hover:text-white transition-all flex items-center gap-2 text-sm"

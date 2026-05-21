@@ -5,7 +5,9 @@ import { MissionControl } from './components/MissionControl';
 import { VisionStudio } from './components/VisionStudio';
 import { ImageQueue } from './components/ImageQueue';
 import { VideoStudio } from './components/VideoStudio';
+import { V2VStudio } from './components/V2VStudio';
 import { ImageLab } from './components/ImageLab';
+import { OBSStudio } from './components/OBSStudio';
 import { DeployManager } from './components/DeployManager';
 import { GameServers } from './components/GameServers';
 import { MultiAgent } from './components/MultiAgent';
@@ -46,6 +48,8 @@ function App() {
       case 'vision': return <VisionStudio />;
       case 'queue': return <ImageQueue />;
       case 'video': return <VideoStudio />;
+      case 'v2v': return <V2VStudio />;
+      case 'obs': return <OBSStudio />;
       case 'imagelab': return <ImageLab />;
       case 'deploy': return <DeployManager />;
       case 'gameserver': return <GameServers />;
