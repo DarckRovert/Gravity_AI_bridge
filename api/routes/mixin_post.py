@@ -63,76 +63,16 @@ class PostRoutesMixin:
 
         # /v1/youtube/auth/exchange — Intercambiar código OAuth por refresh_token
         if self.path == "/v1/youtube/auth/exchange":
-            try:
-                length = int(self.headers.get("Content-Length", 0))
-                data   = json.loads(self.rfile.read(length)) if length else {}
-                code   = data.get("code", "").strip()
-                if not code:
-                    self.send_response(400)
-                    self._send_cors()
-                    self.end_headers()
-                    self.wfile.write(json.dumps({"error": "Campo 'code' requerido"}).encode())
-                    return
-                from core.youtube_uploader import exchange_auth_code
-                result = exchange_auth_code(code)
-                body = json.dumps(result).encode("utf-8")
-                self.send_response(200 if result.get("ok") else 400)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500)
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            from api.routes.handlers.revenue_handler import handle_youtube_auth_exchange
+            handle_youtube_auth_exchange(self)
             return
 
         # /v1/youtube/upload — Upload manual de un job completado a YouTube
         if self.path == "/v1/youtube/upload":
-            try:
-                length = int(self.headers.get("Content-Length", 0))
-                data   = json.loads(self.rfile.read(length)) if length else {}
-                job_id = int(data.get("job_id", 0))
-                if not job_id:
-                    self.send_response(400)
-                    self._send_cors()
-                    self.end_headers()
-                    self.wfile.write(json.dumps({"error": "job_id requerido"}).encode())
-                    return
-                # Buscar el job en la DB para obtener rutas
-                import sqlite3 as _sq3
-                BASE_D = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-                db_p   = os.path.join(BASE_D, "_video_queue.sqlite")
-                conn   = _sq3.connect(db_p)
-                conn.row_factory = _sq3.Row
-                row = conn.execute("SELECT output_path, title, topic, thumbnail_path FROM video_jobs WHERE id=?", (job_id,)).fetchone()
-                conn.close()
-                if not row or not row["output_path"]:
-                    self.send_response(404)
-                    self._send_cors()
-                    self.end_headers()
-                    self.wfile.write(json.dumps({"error": f"Job #{job_id} no encontrado o sin video."}).encode())
-                    return
-                from core.youtube_uploader import upload_job_async
-                upload_job_async(
-                    job_id     = job_id,
-                    video_path = row["output_path"],
-                    title      = row["title"] or row["topic"] or f"Video #{job_id}",
-                    thumb_path = row["thumbnail_path"] or "",
-                )
-                body = json.dumps({"ok": True, "job_id": job_id, "message": "Upload iniciado en background."}).encode()
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500)
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            from api.routes.handlers.revenue_handler import handle_youtube_upload
+            handle_youtube_upload(self)
             return
+
 
         # /v1/keys — Guardar API key cifrada en keystore
         if self.path == "/v1/keys":
@@ -164,24 +104,10 @@ class PostRoutesMixin:
 
         # /v1/cost/limit — Actualizar límite diario de gasto
         if self.path == "/v1/cost/limit":
-            try:
-                length = int(self.headers.get("Content-Length", 0))
-                data   = json.loads(self.rfile.read(length)) if length else {}
-                limit  = float(data.get("limit_usd", 10.0))
-                from core.cost_tracker import CostTracker
-                CostTracker.set_daily_limit(limit)
-                body = json.dumps({"ok": True, "limit_usd": limit}).encode("utf-8")
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500)
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            from api.routes.handlers.revenue_handler import handle_cost_limit
+            handle_cost_limit(self)
             return
+
 
         # /v1/rag/ingest — Ingestión de archivos PDF/TXT al índice RAG
         if self.path == "/v1/rag/ingest":
@@ -564,115 +490,38 @@ class PostRoutesMixin:
 
         # /v1/gameserver/start
         if self.path == "/v1/gameserver/start":
-            try:
-                length    = int(self.headers.get("Content-Length", 0))
-                data      = json.loads(self.rfile.read(length)) if length else {}
-                server_id = data.get("server", "wow_vanilla")
-                result    = game_server_manager.start(server_id)
-                body      = json.dumps(result).encode()
-                code      = 200 if result.get("ok", False) else 400
-                self.send_response(code)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500)
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            from api.routes.handlers.gameserver_handler import handle_gameserver_start
+            handle_gameserver_start(self)
             return
 
         # /v1/gameserver/stop
         if self.path == "/v1/gameserver/stop":
-            try:
-                length    = int(self.headers.get("Content-Length", 0))
-                data      = json.loads(self.rfile.read(length)) if length else {}
-                server_id = data.get("server", "wow_vanilla")
-                result    = game_server_manager.stop(server_id)
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(json.dumps(result).encode())
-            except Exception as e:
-                self.send_response(500)
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            from api.routes.handlers.gameserver_handler import handle_gameserver_stop
+            handle_gameserver_stop(self)
             return
 
         # /v1/gameserver/restart
         if self.path == "/v1/gameserver/restart":
-            try:
-                length    = int(self.headers.get("Content-Length", 0))
-                data      = json.loads(self.rfile.read(length)) if length else {}
-                server_id = data.get("server", "wow_vanilla")
-                threading.Thread(target=game_server_manager.restart, args=(server_id,), daemon=True, name=f"GravityGameRestart-{server_id}").start()
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(json.dumps({"ok": True, "note": "Reinicio en proceso...", "server": server_id}).encode())
-            except Exception as e:
-                self.send_response(500)
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            from api.routes.handlers.gameserver_handler import handle_gameserver_restart
+            handle_gameserver_restart(self)
             return
 
         # /v1/gameserver/command
         if self.path == "/v1/gameserver/command":
-            try:
-                length    = int(self.headers.get("Content-Length", 0))
-                data      = json.loads(self.rfile.read(length)) if length else {}
-                server_id = data.get("server", "wow_vanilla")
-                command   = data.get("command", "")
-                result    = game_server_manager.send_command(server_id, command)
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(json.dumps(result).encode())
-            except Exception as e:
-                self.send_response(500)
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            from api.routes.handlers.gameserver_handler import handle_gameserver_command
+            handle_gameserver_command(self)
             return
 
         if self.path == "/v1/gameserver/register":
-            try:
-                length    = int(self.headers.get("Content-Length", 0))
-                data      = json.loads(self.rfile.read(length)) if length else {}
-                server_id = data.get("server", "wow_vanilla")
-                usr       = data.get("username", "")
-                pwd       = data.get("password", "")
-                result    = game_server_manager.register_account(server_id, usr, pwd)
-                self.send_response(200 if result.get("ok") else 400)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(json.dumps(result).encode("utf-8"))
-            except Exception as e:
-                self.send_response(500)
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+            from api.routes.handlers.gameserver_handler import handle_gameserver_register
+            handle_gameserver_register(self)
             return
 
         if self.path == "/v1/gameserver/expose":
-            try:
-                length    = int(self.headers.get("Content-Length", 0))
-                data      = json.loads(self.rfile.read(length)) if length else {}
-                server_id = data.get("server", "wow_vanilla")
-                public_ip = data.get("public_address", "")
-                result    = game_server_manager.expose_wan(server_id, public_ip)
-                self.send_response(200 if result.get("ok") else 400)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(json.dumps(result).encode("utf-8"))
-            except Exception as e:
-                self.send_response(500)
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+            from api.routes.handlers.gameserver_handler import handle_gameserver_expose
+            handle_gameserver_expose(self)
             return
+
 
         if self.path == "/v1/ai/start":
             try:
@@ -883,212 +732,34 @@ class PostRoutesMixin:
 
         # /v1/video/create — Encola un nuevo trabajo de generación de video
         if self.path == "/v1/video/create":
-            try:
-                length     = int(self.headers.get("Content-Length", 0))
-                data       = json.loads(self.rfile.read(length)) if length else {}
-                topic      = data.get("topic", "").strip()
-                if not topic:
-                    self.send_response(400)
-                    self.send_header("Content-Type", "application/json")
-                    self._send_cors()
-                    self.end_headers()
-                    self.wfile.write(json.dumps({"error": "Campo 'topic' requerido."}).encode())
-                    return
-                n_scenes       = int(data.get("n_scenes", 6))
-                voice_speed    = int(data.get("voice_speed", 150))
-                voice_id       = data.get("voice_id", "").strip()
-                style          = data.get("style", "documental").strip()
-                narration_lang = data.get("narration_lang", "es").strip()
-                transitions    = bool(data.get("transitions", True))
-                subtitles      = bool(data.get("subtitles", True))
-                resolution     = data.get("resolution", "1024x1024").strip()
-                title          = data.get("title", "").strip()
-                bgm_type       = data.get("bgm_type", "ninguna").strip()
-                quality        = data.get("quality", "hd").strip()
-                use_lore       = bool(data.get("use_lore", True))
-                fps            = int(data.get("fps", 24))
-                scene_duration = int(data.get("scene_duration", 8))
-                duration_mode  = data.get("duration_mode", "auto").strip()
-                bgm_volume     = float(data.get("bgm_volume", 0.1))
-                codec          = data.get("codec", "libx264").strip()
-                ken_burns      = bool(data.get("ken_burns", True))
-                intro_card     = bool(data.get("intro_card", False))
-                color_grade    = str(data.get("color_grade", "auto")).strip()
-                animation_effect = str(data.get("animation_effect", "auto")).strip()
-                # Configuración de animación desde config.yaml
-                _def_anim = 1
-                try:
-                    _bdir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-                    with open(os.path.join(_bdir, 'config.yaml'), 'r', encoding='utf-8') as _fc:
-                        _cfg_c = yaml.safe_load(_fc) or {}
-                        _def_anim = int(_cfg_c.get('comfyui', {}).get('animation_level', 1))
-                except Exception:
-                    pass
-                animation_level  = int(data.get("animation_level", _def_anim))
-                job_id         = video_pipeline.add_job(
-                    topic          = topic,
-                    n_scenes       = n_scenes,
-                    voice_speed    = voice_speed,
-                    voice_id       = voice_id,
-                    style          = style,
-                    narration_lang = narration_lang,
-                    transitions    = transitions,
-                    resolution     = resolution,
-                    subtitles      = subtitles,
-                    title          = title,
-                    bgm_type       = bgm_type,
-                    quality        = quality,
-                    use_lore       = use_lore,
-                    fps            = fps,
-                    scene_duration = scene_duration,
-                    duration_mode  = duration_mode,
-                    bgm_volume     = bgm_volume,
-                    codec          = codec,
-                    ken_burns      = ken_burns,
-                    intro_card     = intro_card,
-                    color_grade    = color_grade,
-                    animation_effect = animation_effect,
-                    animation_level  = animation_level,
-                )
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(json.dumps({
-                    "ok":         True,
-                    "job_id":     job_id,
-                    "message":    f"Video encolado (job #{job_id}). Estimado: ~{int(n_scenes * 4.5)} min.",
-                    "n_scenes":   n_scenes,
-                    "style":      style,
-                    "voice_id":   voice_id or "auto",
-                    "fps":        fps,
-                    "codec":      codec,
-                    "ken_burns":  ken_burns,
-                    "intro_card": intro_card,
-                }).encode())
-            except Exception as e:
-                self.send_response(500)
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            from api.routes.handlers.video_handler import handle_video_create
+            handle_video_create(self)
             return
 
         # /v1/course/generate — Generar un temario (Playlist) de N videos e insertarlo en el scheduler
         if self.path == "/v1/course/generate":
-            try:
-                length = int(self.headers.get("Content-Length", 0))
-                data   = json.loads(self.rfile.read(length)) if length else {}
-                title  = data.get("title", "").strip()
-                n_videos = int(data.get("n_videos", 10))
-                lang   = data.get("lang", "es").strip()
-                if not title:
-                    self.send_response(400)
-                    self.send_header("Content-Type", "application/json")
-                    self._send_cors()
-                    self.end_headers()
-                    self.wfile.write(json.dumps({"error": "Campo 'title' requerido."}).encode())
-                    return
-                from core.course_generator import generate_course
-                ok = generate_course(title, n_videos, lang)
-                body = json.dumps({"ok": ok, "message": "Curso generado y encolado en el Scheduler." if ok else "Error generando curso."}).encode()
-                self.send_response(200 if ok else 500)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500)
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            from api.routes.handlers.video_handler import handle_course_generate
+            handle_course_generate(self)
             return
-
-
 
         # /v1/video/preview_voice — TTS preview de voz seleccionada
         if self.path == '/v1/video/preview_voice':
-            try:
-                length   = int(self.headers.get('Content-Length', 0))
-                body_bytes = self.rfile.read(length) if length else b'{}'
-                data     = json.loads(body_bytes.decode('utf-8'))
-                voice_id = data.get('voice_id', '')
-                text     = data.get('text', 'Prueba de voz para Gravity Studio.')[:200]
-                import tempfile
-
-                tmp = os.path.join(tempfile.gettempdir(), f"gravity_preview_{uuid.uuid4().hex}.wav")
-                ok  = video_pipeline._generate_audio(text, tmp, rate=150, voice_id=voice_id)
-                if ok and os.path.isfile(tmp):
-                    with open(tmp, 'rb') as f:
-                        wav_data = f.read()
-                    self.send_response(200)
-                    self.send_header('Content-Type', 'audio/wav')
-                    self.send_header('Content-Length', str(len(wav_data)))
-                    self._send_cors()
-                    self.end_headers()
-                    self.wfile.write(wav_data)
-                else:
-                    self.send_response(500)
-                    self._send_cors()
-                    self.end_headers()
-                    self.wfile.write(b'{"error":"TTS fallido"}')
-                    
-                try: 
-                    if os.path.isfile(tmp):
-                        os.remove(tmp)
-                except: pass
-            except Exception as e:
-                try:
-                    if 'tmp' in locals() and os.path.isfile(tmp):
-                        os.remove(tmp)
-                except: pass
-                self.send_response(500); self._send_cors(); self.end_headers()
-                self.wfile.write(('{"error":"' + str(e) + '"}').encode())
+            from api.routes.handlers.video_handler import handle_video_preview_voice
+            handle_video_preview_voice(self)
             return
 
         # /v1/video/cancel — Cancela un trabajo de video pendiente
         if self.path == "/v1/video/cancel":
-            try:
-                length  = int(self.headers.get("Content-Length", 0))
-                data    = json.loads(self.rfile.read(length)) if length else {}
-                job_id  = int(data.get("job_id", 0) or data.get("id", 0))
-                ok      = video_pipeline.cancel_job(job_id)
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(json.dumps({"ok": ok, "job_id": job_id}).encode())
-            except Exception as e:
-                self.send_response(500)
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            from api.routes.handlers.video_handler import handle_video_cancel
+            handle_video_cancel(self)
             return
 
         # /v1/video/delete — Elimina un job y sus archivos físicos
         if self.path == "/v1/video/delete":
-            try:
-                length = int(self.headers.get("Content-Length", 0))
-                data   = json.loads(self.rfile.read(length)) if length else {}
-                job_id = int(data.get("id", 0) or data.get("job_id", 0))
-                if not job_id:
-                    self.send_response(400)
-                    self.send_header("Content-Type", "application/json")
-                    self._send_cors()
-                    self.end_headers()
-                    self.wfile.write(json.dumps({"error": "id requerido"}).encode())
-                    return
-                result = video_pipeline.delete_job(job_id)
-                self.send_response(200 if result.get("ok") else 404)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(json.dumps(result).encode())
-            except Exception as e:
-                self.send_response(500)
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            from api.routes.handlers.video_handler import handle_video_delete
+            handle_video_delete(self)
             return
+
 
 
 
@@ -1273,34 +944,10 @@ class PostRoutesMixin:
 
         # /v1/gameserver/backup — Backup server DB
         if self.path == "/v1/gameserver/backup":
-            try:
-                import shutil, time as t
-                length    = int(self.headers.get("Content-Length", 0))
-                data      = json.loads(self.rfile.read(length)) if length else {}
-                BASE      = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-                backup_dir = os.path.join(BASE, "_archivo", "server_backups")
-                os.makedirs(backup_dir, exist_ok=True)
-                ts = int(t.time())
-                # Backup del SQLite del servidor si existe
-                gs_db = os.path.join(BASE, "_image_queue.sqlite")
-                if os.path.isfile(gs_db):
-                    dst = os.path.join(backup_dir, f"server_backup_{ts}.zip")
-                    shutil.copy2(gs_db, os.path.join(backup_dir, f"backup_{ts}.sqlite"))
-                    msg = f"Backup creado: backup_{ts}.sqlite en _archivo/server_backups/"
-                else:
-                    msg = f"Backup dir listo: {backup_dir} (no hay DB de servidor local para copiar)"
-                body = json.dumps({"ok": True, "message": msg, "timestamp": ts}).encode()
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500)
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            from api.routes.handlers.gameserver_handler import handle_gameserver_backup
+            handle_gameserver_backup(self)
             return
+
 
         # /v1/sessions/spawn — Crea un nuevo subproceso ask_deepseek.py --session <id>
         if self.path == "/v1/sessions/spawn":
@@ -1890,309 +1537,101 @@ class PostRoutesMixin:
 
         # /v1/revenue/views/update — Actualizar vistas de un job (llamado desde integración externa)
         if self.path == "/v1/revenue/views/update":
-            try:
-                length  = int(self.headers.get("Content-Length", 0))
-                data    = json.loads(self.rfile.read(length)) if length else {}
-                job_id  = data.get("job_id")
-                views   = data.get("views", 0)
-                if job_id is None:
-                    self.send_response(400); self._send_cors(); self.end_headers()
-                    self.wfile.write(json.dumps({"error": "job_id requerido"}).encode()); return
-                from core.revenue_tracker import update_views
-                update_views(int(job_id), int(views))
-                body = json.dumps({"ok": True, "job_id": job_id, "views": views}).encode()
-                self.send_response(200); self.send_header("Content-Type", "application/json"); self._send_cors(); self.end_headers()
-                self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500); self._send_cors(); self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            from api.routes.handlers.revenue_handler import handle_revenue_views_update
+            handle_revenue_views_update(self)
             return
+
 
         # ── OBS Control: /v1/obs/* ──────────────────────────────────────────────
 
         # POST /v1/obs/connect
         if self.path == "/v1/obs/connect":
-            try:
-                length = int(self.headers.get("Content-Length", 0))
-                data   = json.loads(self.rfile.read(length)) if length else {}
-                from core.obs_client import get_client
-                cl = get_client()
-                cfg_host = data.get("host", "127.0.0.1")
-                cfg_port = int(data.get("port", 4455))
-                cfg_pass = data.get("password", "JZe2JTFSolWLni2i")
-                cl.configure(cfg_host, cfg_port, cfg_pass)
-                result = cl.connect()
-                body = json.dumps(result, indent=2).encode("utf-8")
-                self.send_response(200 if result.get("ok") else 503)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors(); self.end_headers(); self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500); self._send_cors(); self.end_headers()
-                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            from api.routes.handlers.obs_handler import handle_obs_connect
+            handle_obs_connect(self)
             return
 
         # POST /v1/obs/scene/switch
         if self.path == "/v1/obs/scene/switch":
-            try:
-                length = int(self.headers.get("Content-Length", 0))
-                data   = json.loads(self.rfile.read(length)) if length else {}
-                scene_name = data.get("scene_name", "").strip()
-                if not scene_name:
-                    self.send_response(400); self._send_cors(); self.end_headers()
-                    self.wfile.write(json.dumps({"error": "scene_name requerido"}).encode()); return
-                from core.obs_client import get_client
-                result = get_client().switch_scene(scene_name)
-                body = json.dumps(result).encode("utf-8")
-                self.send_response(200 if result.get("ok") else 400)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors(); self.end_headers(); self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500); self._send_cors(); self.end_headers()
-                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            from api.routes.handlers.obs_handler import handle_obs_scene_switch
+            handle_obs_scene_switch(self)
             return
 
         # POST /v1/obs/source/toggle
         if self.path == "/v1/obs/source/toggle":
-            try:
-                length = int(self.headers.get("Content-Length", 0))
-                data   = json.loads(self.rfile.read(length)) if length else {}
-                scene_name   = data.get("scene_name", "").strip()
-                scene_item_id = int(data.get("scene_item_id", 0))
-                if not scene_name or not scene_item_id:
-                    self.send_response(400); self._send_cors(); self.end_headers()
-                    self.wfile.write(json.dumps({"error": "scene_name y scene_item_id requeridos"}).encode()); return
-                from core.obs_client import get_client
-                result = get_client().toggle_item_visible(scene_name, scene_item_id)
-                body = json.dumps(result).encode("utf-8")
-                self.send_response(200 if result.get("ok") else 400)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors(); self.end_headers(); self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500); self._send_cors(); self.end_headers()
-                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            from api.routes.handlers.obs_handler import handle_obs_source_toggle
+            handle_obs_source_toggle(self)
             return
 
         # POST /v1/obs/source/visible
         if self.path == "/v1/obs/source/visible":
-            try:
-                length = int(self.headers.get("Content-Length", 0))
-                data   = json.loads(self.rfile.read(length)) if length else {}
-                scene_name    = data.get("scene_name", "").strip()
-                scene_item_id = int(data.get("scene_item_id", 0))
-                visible       = bool(data.get("visible", True))
-                if not scene_name or not scene_item_id:
-                    self.send_response(400); self._send_cors(); self.end_headers()
-                    self.wfile.write(json.dumps({"error": "scene_name y scene_item_id requeridos"}).encode()); return
-                from core.obs_client import get_client
-                result = get_client().set_item_visible(scene_name, scene_item_id, visible)
-                body = json.dumps(result).encode("utf-8")
-                self.send_response(200 if result.get("ok") else 400)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors(); self.end_headers(); self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500); self._send_cors(); self.end_headers()
-                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            from api.routes.handlers.obs_handler import handle_obs_source_visible
+            handle_obs_source_visible(self)
             return
 
         # POST /v1/obs/stream/start
         if self.path == "/v1/obs/stream/start":
-            try:
-                from core.obs_client import get_client
-                result = get_client().start_stream()
-                body = json.dumps(result).encode("utf-8")
-                self.send_response(200 if result.get("ok") else 400)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors(); self.end_headers(); self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500); self._send_cors(); self.end_headers()
-                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            from api.routes.handlers.obs_handler import handle_obs_stream_start
+            handle_obs_stream_start(self)
             return
 
         # POST /v1/obs/stream/stop
         if self.path == "/v1/obs/stream/stop":
-            try:
-                from core.obs_client import get_client
-                result = get_client().stop_stream()
-                body = json.dumps(result).encode("utf-8")
-                self.send_response(200 if result.get("ok") else 400)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors(); self.end_headers(); self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500); self._send_cors(); self.end_headers()
-                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            from api.routes.handlers.obs_handler import handle_obs_stream_stop
+            handle_obs_stream_stop(self)
             return
 
         # POST /v1/obs/stream/toggle
         if self.path == "/v1/obs/stream/toggle":
-            try:
-                from core.obs_client import get_client
-                result = get_client().toggle_stream()
-                body = json.dumps(result).encode("utf-8")
-                self.send_response(200 if result.get("ok") else 400)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors(); self.end_headers(); self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500); self._send_cors(); self.end_headers()
-                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            from api.routes.handlers.obs_handler import handle_obs_stream_toggle
+            handle_obs_stream_toggle(self)
             return
 
         # POST /v1/obs/record/start
         if self.path == "/v1/obs/record/start":
-            try:
-                from core.obs_client import get_client
-                result = get_client().start_record()
-                body = json.dumps(result).encode("utf-8")
-                self.send_response(200 if result.get("ok") else 400)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors(); self.end_headers(); self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500); self._send_cors(); self.end_headers()
-                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            from api.routes.handlers.obs_handler import handle_obs_record_start
+            handle_obs_record_start(self)
             return
 
         # POST /v1/obs/record/stop
         if self.path == "/v1/obs/record/stop":
-            try:
-                from core.obs_client import get_client
-                result = get_client().stop_record()
-                body = json.dumps(result).encode("utf-8")
-                self.send_response(200 if result.get("ok") else 400)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors(); self.end_headers(); self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500); self._send_cors(); self.end_headers()
-                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            from api.routes.handlers.obs_handler import handle_obs_record_stop
+            handle_obs_record_stop(self)
             return
 
         # POST /v1/obs/record/toggle
         if self.path == "/v1/obs/record/toggle":
-            try:
-                from core.obs_client import get_client
-                result = get_client().toggle_record()
-                body = json.dumps(result).encode("utf-8")
-                self.send_response(200 if result.get("ok") else 400)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors(); self.end_headers(); self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500); self._send_cors(); self.end_headers()
-                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            from api.routes.handlers.obs_handler import handle_obs_record_toggle
+            handle_obs_record_toggle(self)
             return
 
         # POST /v1/obs/audio/mute
         if self.path == "/v1/obs/audio/mute":
-            try:
-                length = int(self.headers.get("Content-Length", 0))
-                data   = json.loads(self.rfile.read(length)) if length else {}
-                input_name = data.get("input_name", "").strip()
-                if not input_name:
-                    self.send_response(400); self._send_cors(); self.end_headers()
-                    self.wfile.write(json.dumps({"error": "input_name requerido"}).encode()); return
-                from core.obs_client import get_client
-                result = get_client().toggle_mute(input_name)
-                body = json.dumps(result).encode("utf-8")
-                self.send_response(200 if result.get("ok") else 400)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors(); self.end_headers(); self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500); self._send_cors(); self.end_headers()
-                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            from api.routes.handlers.obs_handler import handle_obs_audio_mute
+            handle_obs_audio_mute(self)
             return
 
         # POST /v1/obs/audio/volume
         if self.path == "/v1/obs/audio/volume":
-            try:
-                length = int(self.headers.get("Content-Length", 0))
-                data   = json.loads(self.rfile.read(length)) if length else {}
-                input_name = data.get("input_name", "").strip()
-                volume_db  = float(data.get("volume_db", 0.0))
-                if not input_name:
-                    self.send_response(400); self._send_cors(); self.end_headers()
-                    self.wfile.write(json.dumps({"error": "input_name requerido"}).encode()); return
-                from core.obs_client import get_client
-                result = get_client().set_volume(input_name, volume_db)
-                body = json.dumps(result).encode("utf-8")
-                self.send_response(200 if result.get("ok") else 400)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors(); self.end_headers(); self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500); self._send_cors(); self.end_headers()
-                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            from api.routes.handlers.obs_handler import handle_obs_audio_volume
+            handle_obs_audio_volume(self)
             return
 
-        # ── Gravity Spark: /v1/obs/spark/* ─────────────────────────────────────
-
-        # POST /v1/obs/spark/generate — Genera overlay con IA local e inyecta en OBS
+        # POST /v1/obs/spark/generate
         if self.path == "/v1/obs/spark/generate":
-            try:
-                length = int(self.headers.get("Content-Length", 0))
-                data   = json.loads(self.rfile.read(length)) if length else {}
-                prompt = data.get("prompt", "").strip()
-                if not prompt:
-                    self.send_response(400); self._send_cors(); self.end_headers()
-                    self.wfile.write(json.dumps({"error": "Campo 'prompt' requerido"}).encode()); return
-                from core.obs_spark_engine import generate_overlay
-                from core.config_manager import config
-                port = config.get("server.port", 7860)
-                use_cache = data.get("use_cache", True)
-                result = generate_overlay(
-                    prompt      = prompt,
-                    scene_name  = data.get("scene_name", ""),
-                    width       = int(data.get("width",  400)),
-                    height      = int(data.get("height", 300)),
-                    x           = int(data.get("x", 0)),
-                    y           = int(data.get("y", 0)),
-                    bridge_port = port,
-                    use_cache   = use_cache,
-                )
-                body = json.dumps(result, indent=2, ensure_ascii=False).encode("utf-8")
-                self.send_response(200 if result.get("ok") else 500)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors(); self.end_headers(); self.wfile.write(body)
-            except Exception as e:
-                log.error(f"[GravitySpark] /v1/obs/spark/generate error: {traceback.format_exc()}")
-                self.send_response(500); self._send_cors(); self.end_headers()
-                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            from api.routes.handlers.obs_handler import handle_obs_spark_generate
+            handle_obs_spark_generate(self)
             return
 
-        # POST /v1/obs/spark/edit — Edita overlay existente con nuevo prompt
+        # POST /v1/obs/spark/edit
         if self.path == "/v1/obs/spark/edit":
-            try:
-                length = int(self.headers.get("Content-Length", 0))
-                data   = json.loads(self.rfile.read(length)) if length else {}
-                overlay_id = data.get("overlay_id", "").strip()
-                new_prompt = data.get("prompt", "").strip()
-                if not overlay_id or not new_prompt:
-                    self.send_response(400); self._send_cors(); self.end_headers()
-                    self.wfile.write(json.dumps({"error": "overlay_id y prompt requeridos"}).encode()); return
-                from core.obs_spark_engine import edit_overlay
-                result = edit_overlay(overlay_id, new_prompt)
-                body = json.dumps(result, indent=2).encode("utf-8")
-                self.send_response(200 if result.get("ok") else 400)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors(); self.end_headers(); self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500); self._send_cors(); self.end_headers()
-                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            from api.routes.handlers.obs_handler import handle_obs_spark_edit
+            handle_obs_spark_edit(self)
             return
 
-        # POST /v1/obs/spark/remove — Elimina overlay de OBS y disco
+        # POST /v1/obs/spark/remove
         if self.path == "/v1/obs/spark/remove":
-            try:
-                length = int(self.headers.get("Content-Length", 0))
-                data   = json.loads(self.rfile.read(length)) if length else {}
-                overlay_id = data.get("overlay_id", "").strip()
-                if not overlay_id:
-                    self.send_response(400); self._send_cors(); self.end_headers()
-                    self.wfile.write(json.dumps({"error": "overlay_id requerido"}).encode()); return
-                from core.obs_spark_engine import remove_overlay
-                result = remove_overlay(overlay_id)
-                body = json.dumps(result, indent=2).encode("utf-8")
-                self.send_response(200 if result.get("ok") else 400)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors(); self.end_headers(); self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500); self._send_cors(); self.end_headers()
-                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+            from api.routes.handlers.obs_handler import handle_obs_spark_remove
+            handle_obs_spark_remove(self)
             return
 
         # Fallback 404 para cualquier otra ruta POST

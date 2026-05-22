@@ -51,14 +51,7 @@ from core.config_manager import config
 from api.state import check_rate_limit, register_ip_hit, geoip_cache, recent_ips, geoip_lock, RATE_LIMIT_WINDOW
 from core.rate_limiter   import check_access
 from core.metrics import record_request, record_tokens, record_latency, record_error, get_metrics_data
-from core import security_monitor
-from core import image_queue
-from core import deploy_manager
-from core import game_server_manager
-from core import ai_process_manager
-from core import engine_watchdog
-from core import video_pipeline
-from core import content_scheduler
+from core import service_loader
 
 # ── V15.0 PRO Multi-Session Bridge ────────────────────────────────────────────────
 from core.session_runner import SessionSpawner, start_orphan_reaper
@@ -234,20 +227,29 @@ def run_server():
     provider_manager.scan_all()
     threading.Thread(target=background_scanner, daemon=True, name="GravityBGScanner").start()
 
-    # Arrancar módulos background V15.0 PRO
-    security_monitor.start()
-    image_queue.start()
-    video_pipeline.start()
-    engine_watchdog.start(verbose=True)
-    ai_process_manager.discover_apps()
-    content_scheduler.start()
+    # Arrancar módulos background V15.1 PRO de manera tolerante a fallos
+    service_loader.start_service("core.security_monitor")
+    service_loader.start_service("core.image_queue")
+    service_loader.start_service("core.video_pipeline")
+    service_loader.start_service("core.engine_watchdog", verbose=True)
+    
+    # ai_process_manager no tiene start() por defecto, pero se le invoca discover_apps()
+    ai_process_manager_module = service_loader.load_module("core.ai_process_manager")
+    if ai_process_manager_module:
+        try:
+            ai_process_manager_module.discover_apps()
+        except Exception as e:
+            log.error(f"Failed to discover apps in ai_process_manager: {e}")
+            
+    service_loader.start_service("core.content_scheduler")
 
     # ── Gravity OBS Control — Auto-conexion con OBS Studio ────────────────────
-    try:
-        from core.obs_client import auto_connect_if_configured
-        auto_connect_if_configured()
-    except Exception as _obs_e:
-        log.warning(f"[OBS] Auto-connect no disponible: {_obs_e}")
+    obs_module = service_loader.load_module("core.obs_client")
+    if obs_module:
+        try:
+            obs_module.auto_connect_if_configured()
+        except Exception as _obs_e:
+            log.warning(f"[OBS] Auto-connect no disponible: {_obs_e}")
 
     # ── WAL Checkpoint: truncar el Write-Ahead Log de SQLite antes de arrancar ──
     # Evita que _cache.sqlite-wal crezca indefinidamente entre sesiones.

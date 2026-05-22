@@ -1,16 +1,23 @@
 """
-Tests unitarios para core/image_queue.py — V13.0 PRO
+Tests unitarios para core/image_queue.py — V15.0 PRO
 Cubre: add_job, get_queue_status, cancel_job, _process_job (con retry),
        start() idempotente, notificación SSE.
 Usa SQLite en memoria vía monkeypatch de DB_PATH.
 """
 import os
+import sys
 import json
 import sqlite3
 import threading
 import time
 import pytest
 from unittest.mock import patch, MagicMock, call
+
+# Asegurar que el directorio de herramientas está disponible
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+tools_dir = os.path.join(BASE_DIR, "tools")
+if tools_dir not in sys.path:
+    sys.path.insert(0, tools_dir)
 
 
 # ── Fixture: entorno aislado con SQLite en memoria ────────────────────────────
@@ -27,6 +34,7 @@ def isolated_queue(tmp_path, monkeypatch):
     monkeypatch.setattr(iq, "DB_PATH",      db_path)
     monkeypatch.setattr(iq, "_started",     False)
     monkeypatch.setattr(iq, "_current_job", None)
+    monkeypatch.setattr(iq.time, "sleep",    lambda x: None)
 
     iq._init_db()
     yield iq
@@ -182,12 +190,14 @@ class TestProcessJob:
         iq = isolated_queue
         job_id = iq.add_job("Cielo azul")
 
-        # Simular que fooocus_client.generate_image retorna éxito y crea un archivo
-        fake_img = str(tmp_path / "output.png")
-        with open(fake_img, "wb") as f:
-            f.write(b"\x89PNG\r\n")
+        outputs_dir = tmp_path / "_integrations" / "Fooocus" / "Fooocus" / "outputs"
+        fake_img = str(outputs_dir / "output.png")
 
-        mock_result = {"success": True, "images": [fake_img]}
+        def fake_generate(req):
+            outputs_dir.mkdir(parents=True, exist_ok=True)
+            with open(fake_img, "wb") as f:
+                f.write(b"\x89PNG\r\n")
+            return {"success": True, "images": [fake_img]}
 
         conn = sqlite3.connect(iq.DB_PATH)
         conn.row_factory = sqlite3.Row
@@ -195,7 +205,7 @@ class TestProcessJob:
         conn.close()
 
         with patch("core.image_queue.BASE_DIR", str(tmp_path)):
-            with patch("fooocus_client.generate_image", return_value=mock_result):
+            with patch("fooocus_client.generate_image", side_effect=fake_generate):
                 with patch("fooocus_client.ImageGenRequest", dict):
                     iq._process_job(job_row)
 

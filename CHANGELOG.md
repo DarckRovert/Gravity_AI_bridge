@@ -4,6 +4,24 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
+## [V15.1 PRO] Modular Architecture & Route Decoupling · 22/05/2026
+
+**[EVOLUCIÓN A ARQUITECTURA DE SERVICIOS ULTRA MODULAR Y DISTRIBUIDA]**
+
+### Desacoplamiento de Rutas (GET/POST Router)
+- **Delegación Dinámica a Controladores (`api/routes/handlers/`)**: Se eliminó por completo el acoplamiento monolítico en `mixin_get.py` y `mixin_post.py`. Ahora todas las rutas se delegan dinámicamente a manejadores controllers independientes (como `video_handler.py`, etc.).
+- **Compatibilidad 100% de CORS y Excepciones**: Los handlers capturan y manejan excepciones integrando los encabezados CORS nativos para evitar bloqueos del frontend de React.
+
+### Modularización del Pipeline de Video (VideoStudio Core)
+- **Conversión del Monolito a `/core/video/`**: El archivo monolítico original de 129 KB `core/video_pipeline.py` fue dividido en submódulos funcionales altamente mantenibles:
+  - `audio_processor.py`: Procesamiento de TTS offline/online, motores Windows SAPI/pyttsx3/Gemini TTS, generadores BGM y normalizaciones.
+  - `script_builder.py`: Escritura multi-agente, prompts estructurados para Pollinations/Fooocus, anclaje visual y lore contexts.
+  - `renderer.py`: Renderizado de clips de video, Ken Burns, overlays de marca de agua, Remotion integrations y concatenación FFMPEG.
+  - `pipeline.py`: Administración e inicialización SQLite con WAL mode, worker daemon thread pools, stuck job recovery y dispatches sociales.
+- **Bridge Layer de Retrocompatibilidad (`core/video_pipeline.py`)**: Implementado un puente dinámico en caliente a nivel de módulo Python (`types.ModuleType`) que proxyifica todas las consultas y parches (monkeypatching de tests) de manera transparente a los submódulos. 100% libre de downtime y cero regresiones.
+
+---
+
 ## [V15.0 PRO] Real-Time VTuber Engine V4.0 · 13/05/2026
 
 **[EVOLUCIÓN A ARQUITECTURA "GENERATE ONCE, DRIVE REAL-TIME"]**

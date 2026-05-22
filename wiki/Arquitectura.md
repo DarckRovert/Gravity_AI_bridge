@@ -1,5 +1,5 @@
-# Arquitectura — Gravity AI Bridge V15.0 PRO
-**Omniscient-Tier Edition** · Última actualización: 2026-05-21
+# Arquitectura — Gravity AI Bridge V15.1 PRO
+**Omniscient-Tier Edition** · Última actualización: 2026-05-22
 
 ---
 
@@ -15,7 +15,7 @@ Gravity AI Bridge opera como un **micro-kernel de IA** que hace de proxy univers
                                │ HTTP POST /v1/chat/completions
                                ▼
 ┌────────────────────────────────────────────────────────────────────┐
-│                    GRAVITY AI BRIDGE V15.0 PRO                         │
+│                    GRAVITY AI BRIDGE V15.1 PRO                         │
 │                    bridge_server.py (~200 líneas — Orquestador)    │
 │                    ThreadingHTTPServer :7860                        │
 │                                                                    │
@@ -73,13 +73,15 @@ F:\Gravity_AI_bridge\
 ├── INSTALAR.py               ← Asistente de configuración inicial
 ├── health_check.py           ← Health check standalone
 │
-├── api/                      ← Capa de enrutamiento modular (V15.0 PRO)
+├── api/                      ← Capa de enrutamiento modular (V15.1 PRO)
 │   ├── state.py              ← Estado global: Rate Limiter + GeoIP Tracker
 │   └── routes/
-│       ├── mixin_get.py      ← 20+ endpoints GET (dashboard, status, métricas)
-│       └── mixin_post.py     ← Endpoints POST + lógica LLM (stream/complete)
-│
-├── core/                     ← Módulos del micro-kernel (54 módulos en V15.0)
+│       ├── mixin_get.py      ← Endpoints GET (Desacoplado, delega a controllers)
+│       ├── mixin_post.py     ← Endpoints POST (Desacoplado, delega a controllers)
+│       └── handlers/         ← Controladores de endpoints desacoplados (V15.1 PRO)
+│           ├── video_handler.py ← Controlador específico para todas las operaciones de Video Studio
+│           └── ...           ← Otros controladores modulares
+├── core/                     ← Módulos del micro-kernel (54 módulos en V15.1)
 │   ├── provider_manager.py   ← Escaneo y selección de proveedores
 │   ├── engine_watchdog.py    ← Auto-switch con lock/unlock
 │   ├── hardware_profiler.py  ← GPU/VRAM/NPU detection
@@ -96,7 +98,13 @@ F:\Gravity_AI_bridge\
 │   ├── deploy_manager.py     ← Pipeline npm build + netlify
 │   ├── ai_process_manager.py ← Start/stop de motores locales
 │   ├── image_queue.py        ← Cola de generación de imágenes
-│   ├── video_pipeline.py     ← Core de renderizado de video y orquestación
+│   ├── video_pipeline.py     ← Capa Bridge de compatibilidad del pipeline (V15.1 PRO)
+│   ├── video/                ← Paquete modular del pipeline de video (V15.1 PRO)
+│   │   ├── __init__.py       ← Exportación y unificación del módulo
+│   │   ├── audio_processor.py← Procesamiento TTS offline, SAPI, normalización y BGM
+│   │   ├── script_builder.py ← Agentes de guion, prompts, consistencia y lore
+│   │   ├── renderer.py       ← Render de escenas, Ken Burns, ffmpeg clips y concatenación
+│   │   └── pipeline.py       ← SQLite queue, thread daemon worker loop y social dispatches
 │   ├── market_researcher.py  ← Agente de investigación de mercado (YouTube/Firecrawl)
 │   ├── course_generator.py   ← Generador autónomo de info-productos / playlists
 │   ├── social_assets_generator.py ← Repurposing para Twitter/LinkedIn/Instagram
@@ -105,7 +113,7 @@ F:\Gravity_AI_bridge\
 │   ├── language_cloner.py    ← Traducción y clonación de audio en múltiples idiomas
 │   ├── tiktok_uploader.py    ← Distribución automatizada a TikTok / Instagram Reels
 │   ├── revenue_tracker.py    ← Telemetría financiera y estimación pasiva de ingresos
-│   ├── obs_client.py         ← Driver WebSocket v5 para el control nativo de OBS Studio
+│   ├── obs_client.py         ← Bridge de compatibilidad hacia el plugin nativo de OBS (V15.1 PRO)
 │   ├── obs_spark_engine.py   ← Motor Gravity Spark para inyección al vuelo de Overlays AI
 │   ├── game_server_manager.py← Control vMaNGOS WoW
 │   ├── turbo_kv.py           ← Optimización KV-Cache (ROCm/CUDA)
@@ -114,6 +122,11 @@ F:\Gravity_AI_bridge\
 │   ├── data_guardian.py      ← Guardián del _knowledge.json
 │   ├── metrics.py            ← Prometheus metrics
 │   └── logger.py             ← Logger centralizado
+│
+├── integrations/             ← Arquitectura de Plugins / Integraciones Modulares (V15.1 PRO)
+│   └── obs/                  ← Integración para OBS Studio
+│       ├── __init__.py       ← Registro y metadatos del plugin (GravityIntegration)
+│       └── client.py         ← Lógica de comunicación WebSocket v5
 │
 ├── providers/                ← Plugins de proveedores
 │   ├── local/                ← ollama, lmstudio, kobold, jan, lemonade
@@ -268,11 +281,12 @@ Detecta automáticamente:
 
 ---
 
-### obs_client.py & obs_spark_engine.py (V15.0 PRO)
-**Responsabilidad:** Control de transmisión y overlays dinámicos vía IA.
+### Integración de OBS Studio & obs_spark_engine.py (V15.1 PRO)
+**Responsabilidad:** Control de transmisión y overlays dinámicos vía IA bajo una arquitectura desacoplada de plugins.
 
-- **`obs_client.py`**: Driver de comunicación WebSocket v5 de OBS. Administra cambios de escena, toggles de fuente, volumen de audios, mute y switches de streaming y grabación en tiempo real.
-- **`obs_spark_engine.py`**: Motor Gravity Spark. Interpreta el contexto sistémico del LLM y autogenera fragmentos HTML/CSS/JS inyectados en caliente como `Browser Source` de OBS Studio, permitiendo overlays adaptativos en vivo por voz/chat sin recargar.
+- **`/integrations/obs/client.py`**: Lógica de comunicación nativa WebSocket v5 de OBS Studio. Administra de forma asíncrona cambios de escena, fuentes de audio, mute, volumen y estados de streaming/grabación.
+- **`core/obs_client.py`**: Capa Bridge ultra-ligera de compatibilidad hacia atrás que redirige las llamadas heredadas directamente al plugin modificado `/integrations/obs/client.py`.
+- **`core/obs_spark_engine.py`**: Motor Gravity Spark. Interpreta el contexto sistémico del LLM y autogenera fragmentos HTML/CSS/JS inyectados en caliente como `Browser Source` de OBS Studio, permitiendo overlays adaptativos en vivo por voz/chat sin recargar.
 
 ---
 

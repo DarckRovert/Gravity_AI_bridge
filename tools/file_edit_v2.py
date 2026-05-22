@@ -1,5 +1,5 @@
 """
-Gravity AI — File Edit Tool V13.0 PRO (Claw Edition)
+Gravity AI — File Edit Tool V15.0 PRO (Claw Edition)
 Implementación de edición quirúrgica basada en bloques exactos.
 Inspirado en el algoritmo de Claude Code (FileEditTool).
 """

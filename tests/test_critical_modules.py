@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — TEST SUITE V13.0 PRO                                        ║
+║  GRAVITY AI — TEST SUITE V15.0 PRO                                        ║
 ║  Cobertura crítica: audit_log, image_queue, security_monitor,        ║
 ║  engine_watchdog, game_server_manager, mixin_post (LLM route)        ║
 ╚══════════════════════════════════════════════════════════════════════╝
@@ -420,10 +420,11 @@ class TestGameServerManager:
     @pytest.fixture(autouse=True)
     def reset_gsm_state(self, monkeypatch):
         import core.game_server_manager as gsm
+        import core.log_buffer as lb
         monkeypatch.setattr(gsm, "_processes", {})
         monkeypatch.setattr(gsm, "_started", False)
         monkeypatch.setattr(gsm, "_watchdog_threads", {})
-        monkeypatch.setattr(gsm, "_stdout_buffers", {})
+        monkeypatch.setattr(lb, "_buffers", {})
 
     def test_is_running_None_retorna_false(self):
         from core.game_server_manager import _is_running
@@ -499,8 +500,10 @@ class TestGameServerManager:
 
     def test_get_log_con_buffer_usa_memoria(self, monkeypatch):
         from core import game_server_manager as gsm
+        from collections import deque
+        import core.log_buffer as lb
         buf = deque(["[WORLD] Server starts", "[WORLD] DB OK"], maxlen=500)
-        monkeypatch.setattr(gsm, "_stdout_buffers", {"wow_vanilla": buf})
+        monkeypatch.setattr(lb, "_buffers", {"wow_vanilla": buf})
         result = gsm.get_log("wow_vanilla", lines=5)
         assert result["source"] == "memory_buffer"
         assert "[WORLD] DB OK" in result["lines"]
@@ -569,16 +572,13 @@ class TestMixinPost:
     def test_do_POST_fabricaweb_deploy_inicia_thread(self):
         """POST /v1/fabricaweb/deploy debe activar el pipeline en background."""
         from api.routes.mixin_post import PostRoutesMixin
-        handler = self._make_handler(path="/v1/fabricaweb/deploy", body={})
+        handler = self._make_handler(path="/v1/fabricaweb/deploy", body={"project_path": "my_project"})
 
-        with patch("api.routes.mixin_post.deploy_manager") as mock_deploy, \
-             patch("api.routes.mixin_post.threading.Thread") as mock_thread:
-            mock_t = MagicMock()
-            mock_thread.return_value = mock_t
+        with patch("api.routes.mixin_post.deploy_manager") as mock_deploy:
+            mock_deploy.start_deploy.return_value = {"started": True}
             PostRoutesMixin.do_POST(handler)
 
-        mock_thread.assert_called_once()
-        mock_t.start.assert_called_once()
+        mock_deploy.start_deploy.assert_called_once_with("my_project")
         handler.send_response.assert_called_with(200)
 
     def test_do_POST_queue_add_sin_prompt_retorna_400(self):

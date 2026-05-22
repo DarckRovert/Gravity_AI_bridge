@@ -1,4 +1,4 @@
-# 📖 Guía de Integración y API — Gravity AI Bridge V15.0 PRO
+# 📖 Guía de Integración y API — Gravity AI Bridge V15.1 PRO
 **Omniscient-Tier Edition** · Base URL: `http://localhost:7860`
 
 El Bridge expone una API HTTP completamente compatible con el estándar OpenAI, además de un potente micro-kernel con más de 54 módulos especializados para orquestación inteligente (Video Studio, Overlays OBS, Monetización Pasiva, Agentes Multi-sesión y RAG). Cualquier cliente compatible con la especificación OpenAI puede conectarse al Bridge de forma inmediata.

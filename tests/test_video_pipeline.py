@@ -1,5 +1,5 @@
 """
-Tests unitarios para core/video_pipeline.py — V13.0 PRO
+Tests unitarios para core/video_pipeline.py — V15.0 PRO
 Cubre: cola SQLite, add_job, cancel_job, get_queue_status,
        _generate_script (fallback), _generate_audio (mock),
        _assemble_clip (ffmpeg ausente), start() idempotente.
@@ -29,6 +29,7 @@ def isolated_video_env(tmp_path, monkeypatch):
     monkeypatch.setattr(vp, "FFMPEG_EXE",  str(tmp_path / "ffmpeg_fake.exe"))
     monkeypatch.setattr(vp, "_started",    False)
     monkeypatch.setattr(vp, "_current_job", None)
+    monkeypatch.setattr(vp, "_db_initialized", False)
 
     vp._init_db()
     yield vp
@@ -112,7 +113,7 @@ class TestScriptGeneration:
         vp = isolated_video_env
         # Sin LLM disponible → fallback a guión de ejemplo
         with patch("urllib.request.urlopen", side_effect=Exception("LLM not running")):
-            scenes = vp._generate_script("Inteligencia Artificial", n_scenes=3)
+            scenes, anchor, title = vp._generate_script("Inteligencia Artificial", n_scenes=3, style="documental", narration_lang="es")
         assert len(scenes) == 3
         for scene in scenes:
             assert "title" in scene
@@ -122,41 +123,52 @@ class TestScriptGeneration:
     def test_fallback_respects_n_scenes(self, isolated_video_env):
         vp = isolated_video_env
         with patch("urllib.request.urlopen", side_effect=Exception("no llm")):
-            scenes = vp._generate_script("Tema X", n_scenes=6)
+            scenes, anchor, title = vp._generate_script("Tema X", n_scenes=6, style="documental", narration_lang="es")
         assert len(scenes) == 6
 
     @patch("core.provider_manager.get_best")
-    @patch("core.provider_manager.complete")
-    def test_llm_response_parsed_correctly(self, mock_complete, mock_get_best, isolated_video_env):
+    @patch("core.multi_agent.run_pipeline")
+    def test_llm_response_parsed_correctly(self, mock_run_pipeline, mock_get_best, isolated_video_env):
         vp = isolated_video_env
         fake_scenes = [
-            {"title": "T1", "image_prompt": "P1", "narration": "N1"},
-            {"title": "T2", "image_prompt": "P2", "narration": "N2"},
+            {"title": "T1", "character_anchor": "Anchor 1", "image_prompt": "P1", "narration": "N1"},
+            {"title": "T2", "character_anchor": "Anchor 2", "image_prompt": "P2", "narration": "N2"},
         ]
+        fake_data = {
+            "video_title": "Fake Title",
+            "scenes": fake_scenes
+        }
         mock_get_best.return_value = (MagicMock(name="FalsoProv"), "FalsoModel")
-        mock_complete.return_value = json.dumps(fake_scenes)
+        mock_run_pipeline.return_value = json.dumps(fake_data)
 
-        scenes = vp._generate_script("Test", n_scenes=2)
+        scenes, anchor, title = vp._generate_script("Test", n_scenes=2, style="documental", narration_lang="es")
         assert len(scenes) == 2
         assert scenes[0]["title"] == "T1"
+        assert title == "Fake Title"
 
 
 # ── Tests TTS ─────────────────────────────────────────────────────────────────
 
 class TestTTS:
 
-    def test_generate_audio_failure_returns_false(self, isolated_video_env, tmp_path):
+    def test_generate_audio_failure_returns_false(self, isolated_video_env, tmp_path, monkeypatch):
         vp = isolated_video_env
+        monkeypatch.setattr(vp.os, "name", "posix")
         # pyttsx3 falla → debe retornar False sin lanzar excepción
         with patch("pyttsx3.init", side_effect=Exception("SAPI not available")):
             result = vp._generate_audio("Texto de prueba", str(tmp_path / "out.wav"))
         assert result is False
 
-    def test_generate_audio_success(self, isolated_video_env, tmp_path):
+    def test_generate_audio_success(self, isolated_video_env, tmp_path, monkeypatch):
         vp = isolated_video_env
+        monkeypatch.setattr(vp.os, "name", "posix")
         wav = str(tmp_path / "test.wav")
         mock_engine = MagicMock()
-        mock_engine.getProperty.return_value = []
+        mock_voice = MagicMock()
+        mock_voice.id = "spanish_voice"
+        mock_voice.name = "Helena"
+        mock_voice.languages = ["es_ES"]
+        mock_engine.getProperty.return_value = [mock_voice]
 
         def fake_save(text, path):
             # Simular creación del archivo

@@ -5,7 +5,7 @@
   [![Autor](https://img.shields.io/badge/Author-DarckRovert-818cf8.svg?style=flat-square)](https://github.com/DarckRovert)
   [![Licencia](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
   [![Arquitectura](https://img.shields.io/badge/Architecture-Omniscient--Tier-c69c6d.svg?style=flat-square)]()
-  [![Release](https://img.shields.io/badge/Release-V15.0-6366f1.svg?style=flat-square)]()
+  [![Release](https://img.shields.io/badge/Release-V15.1-6366f1.svg?style=flat-square)]()
   [![Twitch](https://img.shields.io/badge/Twitch-DarckRovert-9146ff.svg?style=flat-square&logo=twitch)](https://twitch.tv/darckrovert)
 
   <p align="center">
@@ -96,8 +96,17 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 - Auto-reconexión, `list_tools`, `list_resources`, `read_resource`.
 - Registro global de adaptadores accesible desde el Dashboard.
 
-### 🎬 Video Studio Multi-Agent (Cinematic & Monetization) V15.0 PRO
-Pipeline de 5 pasos orquestado en daemon con **Agentes Especializados y Motor de Animación Inteligente (MAI)**:
+### 🎬 Video Studio Multi-Agent (Modular & Cinematic) V15.1 PRO
+Pipeline multimedia de alta fidelidad orquestado asíncronamente en daemon, completamente modularizado bajo el paquete `/core/video/` para máxima mantenibilidad y escalabilidad, con **Agentes Especializados y Motor de Animación Inteligente (MAI)**:
+
+- **Estructura Modular (`/core/video/`)**:
+  - `audio_processor.py`: Motores TTS (SAPI, pyttsx3, Gemini TTS), generador de ruido marrón/rosa para BGM cinemático y compresión sidechain.
+  - `script_builder.py`: Planificación multi-agente de guiones (Researcher + Retention Auditor), anclaje visual y lore context.
+  - `renderer.py`: Render de fotogramas, Ken Burns procedural, Remotion templates y ensamble final FFmpeg.
+  - `pipeline.py`: Base de datos SQLite (WAL), daemon worker threads y distribuciones sociales.
+- **Capa Bridge (`core/video_pipeline.py`)**: Proxy dinámico en caliente que provee 100% de compatibilidad hacia atrás para llamadas externas y parches de test.
+
+#### Flujo de Ejecución en 5 Pasos:
 1. **Pipeline Multi-Agente (Research & Scripting)**:
    - *Market Researcher*: Analiza YouTube vía web scraping para extraer ganchos y ángulos de competidores.
    - *Writer*: Genera el guion estructurado con auto-título y descripción SEO.

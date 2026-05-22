@@ -1,4 +1,4 @@
-# 🛰️ ULTRA MASTER PLAN — GRAVITY AI BRIDGE V15.0 PRO
+# 🛰️ ULTRA MASTER PLAN — GRAVITY AI BRIDGE V15.1 PRO
 ## Operación Aletheia-V2V + Multigenerador IA (AMD EDITION)
 
 > **Generado el:** 2026-05-12  
@@ -11,7 +11,7 @@
 | Componente | Estado Real | Archivo |
 |---|---|---|
 | Motor de imágenes | ✅ Flux via Pollinations.ai (cloud, sin API key) | `tools/pollinations_generator.py` |
-| Pipeline de video | ✅ Funcional (L0/L1 FFmpeg procedural) | `core/video_pipeline.py` |
+| Pipeline de video | ✅ Modularizado en `/core/video/` con capa Bridge retrocompatible | `/core/video/` y `core/video_pipeline.py` |
 | Consistencia visual | ✅ `_extract_visual_anchor()` implementado | `core/video_pipeline.py:624` |
 | ComfyUI portable | ✅ Instalado en `_integrations/ComfyUI_windows_portable/` | — |
 | ComfyUI custom node | ✅ `ComfyUI-LTXVideo` instalado | `custom_nodes/ComfyUI-LTXVideo/` |
