@@ -31,6 +31,18 @@ def isolated_video_env(tmp_path, monkeypatch):
     monkeypatch.setattr(vp, "_current_job", None)
     monkeypatch.setattr(vp, "_db_initialized", False)
 
+    # Evitar llamadas de red reales (auto-investigación web y análisis de competidores)
+    try:
+        import core.web_search
+        monkeypatch.setattr(core.web_search, "search_and_scrape", MagicMock(return_value=""))
+    except Exception:
+        pass
+    try:
+        import core.market_researcher
+        monkeypatch.setattr(core.market_researcher, "analyze_competitors", MagicMock(return_value=""))
+    except Exception:
+        pass
+
     vp._init_db()
     yield vp
 

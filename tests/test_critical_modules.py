@@ -626,7 +626,7 @@ class TestMixinPost:
             body={"server": "wow_vanilla"}
         )
 
-        with patch("api.routes.mixin_post.game_server_manager") as mock_gsm:
+        with patch("api.routes.handlers.gameserver_handler.game_server_manager") as mock_gsm:
             mock_gsm.start.return_value = {"ok": True, "status": "running"}
             PostRoutesMixin.do_POST(handler)
 
@@ -640,7 +640,7 @@ class TestMixinPost:
             body={"server": "wow_vanilla"}
         )
 
-        with patch("api.routes.mixin_post.game_server_manager") as mock_gsm:
+        with patch("api.routes.handlers.gameserver_handler.game_server_manager") as mock_gsm:
             mock_gsm.stop.return_value = {"ok": True, "status": "stopped"}
             PostRoutesMixin.do_POST(handler)
 
