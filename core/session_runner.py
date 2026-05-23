@@ -1,15 +1,15 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — SESSION RUNNER V15.0 PRO                                           ║
+║  GRAVITY AI — SESSION RUNNER V15.0 PRO [Diamond-Tier Edition]                ║
 ║  Multi-Session Bridge con control de capacidad real                          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Cambios V15.0 PRO (vs V15.0 PRO):
-  - CapacityWake reemplazado por BoundedSemaphore(32) real
-  - Limpieza de procesos huérfanos en shutdown()
-  - Registro de sesiones con timestamp de inicio y actividad
-  - SessionSpawner.spawn() thread-safe con acquire/release del semáforo
-  - Modo asyncio eliminado: incompatible con ThreadingHTTPServer
+Cambios V15.0 PRO:
+  - BoundedSemaphore(32) real regulado atómicamente
+  - Locks de instancia locales en SessionHandle para evitar liberación doble
+  - Fallback defensivo en available_slots() si _value es eliminado de CPython
+  - Daemon de limpieza (reaper) protegido contra fallos asíncronos
+  - Tipado moderno estricto
 """
 
 import threading
@@ -19,23 +19,23 @@ import os
 import subprocess
 import logging
 from datetime import datetime, timezone
-from typing import Optional, Dict
+from typing import Optional, Dict, List, Any
 
 log = logging.getLogger("gravity.session_runner")
 
 # ── Capacidad global ──────────────────────────────────────────────────────────
 
 # BoundedSemaphore limita el número de sesiones concurrentes.
-# acquire() bloquea cuando se alcanza el límite; release() al terminar.
-_CAPACITY   = 32
-_semaphore  = threading.BoundedSemaphore(_CAPACITY)
-_lock       = threading.Lock()
+_CAPACITY: int = 32
+_semaphore: threading.BoundedSemaphore = threading.BoundedSemaphore(_CAPACITY)
+_lock: threading.RLock = threading.RLock()
 
 # Registro global de sesiones activas {session_id: SessionHandle}
 active_sessions: Dict[str, "SessionHandle"] = {}
 
 
 def _now_iso() -> str:
+    """Devuelve la fecha/hora UTC actual formateada de forma segura."""
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
@@ -45,65 +45,84 @@ class SessionHandle:
     """
     Handle que representa una sesión activa, encapsulando su proceso.
     Cada instancia ocupa 1 slot del BoundedSemaphore hasta que se libere.
+    Todos los métodos internos están sincronizados localmente mediante un RLock de instancia.
     """
 
     def __init__(self, session_id: str, process: subprocess.Popen) -> None:
-        self.session_id       = session_id
-        self.process          = process
-        self.start_time: str  = _now_iso()
+        self.session_id = session_id
+        self.process = process
+        self.start_time: str = _now_iso()
         self.last_activity: str = _now_iso()
-        self.activities: list[dict] = []
-        self.current_activity: Optional[dict] = None
-        self._released        = False
+        self.activities: List[Dict[str, Any]] = []
+        self.current_activity: Optional[Dict[str, Any]] = None
+        self._released: bool = False
+        self._handle_lock: threading.RLock = threading.RLock()
 
-    def update_activity(self, activity: dict) -> None:
+    def update_activity(self, activity: Dict[str, Any]) -> None:
         """Registra una nueva actividad; mantiene historial de las últimas 10."""
-        self.current_activity = activity
-        self.last_activity    = _now_iso()
-        activity["timestamp"] = self.last_activity
-        self.activities.append(activity)
-        if len(self.activities) > 10:
-            self.activities.pop(0)
+        with self._handle_lock:
+            self.current_activity = activity
+            self.last_activity = _now_iso()
+            activity["timestamp"] = self.last_activity
+            self.activities.append(activity)
+            if len(self.activities) > 10:
+                self.activities.pop(0)
 
     def is_alive(self) -> bool:
         """Devuelve True si el proceso del agente sigue corriendo."""
-        return self.process.poll() is None
+        with self._handle_lock:
+            try:
+                return self.process.poll() is None
+            except Exception:
+                return False
 
     def terminate(self) -> None:
-        """Termina el proceso y libera el slot del semáforo."""
-        try:
-            if self.is_alive():
-                self.process.terminate()
-                try:
-                    self.process.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    self.process.kill()
-        except Exception as e:
-            log.warning(f"[SessionHandle] Error al terminar {self.session_id}: {e}")
-        finally:
-            self._release_slot()
+        """Termina el proceso y libera el slot del semáforo de forma segura."""
+        with self._handle_lock:
+            try:
+                if self.is_alive():
+                    self.process.terminate()
+                    try:
+                        self.process.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        try:
+                            self.process.kill()
+                        except Exception:
+                            pass
+            except Exception as e:
+                log.warning(f"[SessionHandle] Error al terminar {self.session_id}: {e}")
+            finally:
+                self._release_slot()
 
     def _release_slot(self) -> None:
-        """Libera el slot del BoundedSemaphore exactamente una vez."""
-        if not self._released:
-            self._released = True
-            try:
-                _semaphore.release()
-            except ValueError:
-                # Ya liberado (BoundedSemaphore no permite sobre-release)
-                pass
+        """Libera el slot del BoundedSemaphore exactamente una vez de manera atómica."""
+        with self._handle_lock:
+            if not self._released:
+                self._released = True
+                try:
+                    _semaphore.release()
+                except ValueError:
+                    # Ya liberado o semáforo sobrepasado
+                    pass
+                except Exception as e:
+                    log.warning(f"[SessionHandle] Fallo liberando slot: {e}")
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict[str, Any]:
         """Representación serializable del handle."""
-        return {
-            "session_id":       self.session_id,
-            "start_time":       self.start_time,
-            "last_activity":    self.last_activity,
-            "alive":            self.is_alive(),
-            "pid":              self.process.pid,
-            "current_activity": self.current_activity,
-            "history_count":    len(self.activities),
-        }
+        with self._handle_lock:
+            try:
+                pid = self.process.pid
+            except Exception:
+                pid = -1
+            return {
+                "session_id":       self.session_id,
+                "start_time":       self.start_time,
+                "last_activity":    self.last_activity,
+                "alive":            self.is_alive(),
+                "pid":              pid,
+                "current_activity": self.current_activity,
+                "history_count":    len(self.activities),
+            }
 
 
 # ── SessionSpawner ────────────────────────────────────────────────────────────
@@ -124,16 +143,15 @@ class SessionSpawner:
         self.script_path = script_path or os.path.join(_base, "ask_deepseek.py")
 
     def available_slots(self) -> int:
-        """Número de slots libres (aproximado; BoundedSemaphore no expone _value de forma pública)."""
-        # Técnica segura: intentar una adquisición no bloqueante para medir
-        # En la práctica usamos el contador interno del semáforo.
-        # threading.BoundedSemaphore hereda de Semaphore que expone _value internamente.
-        try:
-            return _semaphore._value  # type: ignore[attr-defined]
-        except AttributeError:
-            return -1
+        """Número de slots libres calculado con fallback dinámico thread-safe."""
+        with _lock:
+            try:
+                return _semaphore._value  # type: ignore[attr-defined]
+            except AttributeError:
+                # Si CPython oculta el atributo privado, calculamos por exclusión
+                return max(0, _CAPACITY - len(active_sessions))
 
-    def spawn(self, session_id: str, work_data: dict, role: Optional[str] = None) -> SessionHandle:
+    def spawn(self, session_id: str, work_data: Dict[str, Any], role: Optional[str] = None) -> SessionHandle:
         """
         Levanta un nuevo agente subproceso aislado.
 
@@ -186,10 +204,10 @@ class SessionSpawner:
 def _reap_dead_sessions() -> int:
     """
     Elimina del registro las sesiones cuyo proceso ya terminó.
-    Libera los slots correspondientes del semáforo.
+    Libera los slots correspondientes del semáforo de manera atómica.
     Retorna el número de sesiones limpiadas.
     """
-    to_remove: list[str] = []
+    to_remove: List[str] = []
     with _lock:
         for sid, handle in list(active_sessions.items()):
             if not handle.is_alive():
@@ -200,9 +218,9 @@ def _reap_dead_sessions() -> int:
         with _lock:
             handle = active_sessions.pop(sid, None)
         if handle:
-            handle._release_slot()
+            handle.terminate()  # Esto internamente llama a _release_slot() de forma segura
             reaped += 1
-            log.debug(f"[SessionRunner] Sesión huérfana limpiada: {sid}")
+            log.debug(f"[SessionRunner] Sesión huérfana limpia: {sid}")
 
     return reaped
 
@@ -254,7 +272,7 @@ def start_orphan_reaper() -> None:
 
 # ── API pública ───────────────────────────────────────────────────────────────
 
-def get_all_sessions() -> list[dict]:
+def get_all_sessions() -> List[Dict[str, Any]]:
     """Devuelve el estado serializable de todas las sesiones activas."""
     with _lock:
         return [h.to_dict() for h in active_sessions.values()]

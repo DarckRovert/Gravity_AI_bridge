@@ -21,8 +21,9 @@
 import os
 import json
 import time
+import threading
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, Dict, Any, List
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KNOWLEDGE_FILE = os.path.join(BASE_DIR, "_knowledge.json")
@@ -57,14 +58,24 @@ SYSTEM_COMMANDS = {
     "/terminal <comando>": "[Agentic] Ejecuta un comando en el sistema operativo",
 }
 
+_brain_lock = threading.RLock()
 
-def _safe_load_json(path: str) -> dict:
-    """Carga JSON de forma segura, retorna dict vacío en error."""
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
+
+def _safe_load_json(path: str) -> Dict[str, Any]:
+    """Carga JSON de forma segura bajo lock y con reintentos defensivos en Windows."""
+    with _brain_lock:
+        for i in range(5):
+            try:
+                if not os.path.exists(path):
+                    return {}
+                with open(path, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except (PermissionError, json.JSONDecodeError):
+                if i == 4:
+                    break
+                time.sleep(0.02 * (2 ** i))
         return {}
+
 
 
 def _get_provider_status() -> str:
@@ -199,12 +210,13 @@ def _get_rag_status() -> str:
         return f"RAG: error ({e})"
 
 
-def _get_knowledge_rules() -> list[str]:
+def _get_knowledge_rules() -> List[str]:
     """Reglas persistidas en el knowledge base."""
     try:
         from core import data_guardian
-        kb, _ = data_guardian.load_knowledge(KNOWLEDGE_FILE)
-        return kb.get("persistent_rules", [])
+        with _brain_lock:
+            kb, _ = data_guardian.load_knowledge(KNOWLEDGE_FILE)
+            return kb.get("persistent_rules", [])
     except Exception:
         return []
 
@@ -231,14 +243,21 @@ def _get_recent_audit(n: int = 5) -> str:
 def _get_active_plan() -> str:
     """Lee el plan maestro activo (si existe) para inyectarlo en el contexto."""
     plan_file = os.path.join(BASE_DIR, "_gravity_plan.md")
-    if os.path.isfile(plan_file):
-        try:
-            with open(plan_file, "r", encoding="utf-8") as f:
-                content = f.read().strip()
-            if content:
-                return f"El usuario está trabajando actualmente bajo este PLAN MAESTRO (_gravity_plan.md):\n\n{content}\n\nDEBES adherirte a este plan y recordar al usuario sobre el Modo Interrogatorio si quedan preguntas."
-        except Exception as e:
-            return f"Plan Activo: [Error leyendo archivo: {e}]"
+    with _brain_lock:
+        if os.path.isfile(plan_file):
+            for i in range(5):
+                try:
+                    with open(plan_file, "r", encoding="utf-8") as f:
+                        content = f.read().strip()
+                    if content:
+                        return f"El usuario está trabajando actualmente bajo este PLAN MAESTRO (_gravity_plan.md):\n\n{content}\n\nDEBES adherirte a este plan y recordar al usuario sobre el Modo Interrogatorio si quedan preguntas."
+                    break
+                except (PermissionError, FileNotFoundError):
+                    if i == 4:
+                        break
+                    time.sleep(0.02 * (2 ** i))
+                except Exception as e:
+                    return f"Plan Activo: [Error leyendo archivo: {e}]"
     return ""
 
 
@@ -493,8 +512,16 @@ def execute_system_command(command_info: dict) -> dict:
                 if not plan_content:
                     raise ValueError("Respuesta vacía del proveedor.")
                 
-                with open(plan_file, "w", encoding="utf-8") as f:
-                    f.write(plan_content.strip())
+                with _brain_lock:
+                    for i in range(5):
+                        try:
+                            with open(plan_file, "w", encoding="utf-8") as f:
+                                f.write(plan_content.strip())
+                            break
+                        except PermissionError:
+                            if i == 4:
+                                raise
+                            time.sleep(0.02 * (2 ** i))
                 
                 return {
                     "ok": True, 
@@ -579,16 +606,28 @@ def execute_system_command(command_info: dict) -> dict:
         elif cmd == "learn_rule":
             from core import data_guardian
             rule = args.get("rule", "")
-            kb, _ = data_guardian.load_knowledge(KNOWLEDGE_FILE)
-            rules = kb.get("persistent_rules", [])
-            entry = f"[{datetime.now().strftime('%Y-%m-%d')}] {rule}"
-            stripped = entry.split("] ", 1)[-1].lower().strip()
-            existing = [r.split("] ", 1)[-1].lower().strip() for r in rules]
-            if stripped in existing:
-                return {"ok": False, "result_text": "Regla ya existe en el knowledge base (duplicado ignorado)."}
-            rules.append(entry)
-            kb["persistent_rules"] = rules
-            ok, _ = data_guardian.save_knowledge(KNOWLEDGE_FILE, kb)
+            with _brain_lock:
+                kb, _ = data_guardian.load_knowledge(KNOWLEDGE_FILE)
+                rules = kb.get("persistent_rules", [])
+                entry = f"[{datetime.now().strftime('%Y-%m-%d')}] {rule}"
+                stripped = entry.split("] ", 1)[-1].lower().strip()
+                existing = [r.split("] ", 1)[-1].lower().strip() for r in rules]
+                if stripped in existing:
+                    return {"ok": False, "result_text": "Regla ya existe en el knowledge base (duplicado ignorado)."}
+                rules.append(entry)
+                kb["persistent_rules"] = rules
+                
+                ok = False
+                for i in range(5):
+                    try:
+                        ok, _ = data_guardian.save_knowledge(KNOWLEDGE_FILE, kb)
+                        if ok:
+                            break
+                    except PermissionError:
+                        if i == 4:
+                            break
+                        time.sleep(0.02 * (2 ** i))
+                        
             if ok:
                 return {"ok": True, "result_text": f"✓ Regla persistida en knowledge base ({len(rules)} total)."}
             else:

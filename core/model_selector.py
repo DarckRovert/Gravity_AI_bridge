@@ -23,6 +23,8 @@ import os
 import urllib.request
 import urllib.error
 import time
+import threading
+from typing import Optional, List, Dict, Any, Tuple
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -83,26 +85,31 @@ TASK_PROFILES = {
 }
 
 # ── Module State (singleton) ──────────────────────────────────────────────────
-_current_active_model   = None   # Currently loaded model name
-_available_models_cache = {}     # {engine_name: [model_names]} — updated by watchdog
-_last_scan_time         = 0
+_current_active_model: Optional[str] = None   # Currently loaded model name
+_available_models_cache: Dict[str, List[str]] = {}     # {engine_name: [model_names]} — updated by watchdog
+_last_scan_time: float = 0.0
+
+_state_lock = threading.RLock()
 
 
-def update_available_models(engine_name: str, model_names: list):
+def update_available_models(engine_name: str, model_names: List[str]) -> None:
     """Called by watchdog to inform us of available models. Deduplicates."""
     global _available_models_cache
-    existing = _available_models_cache.get(engine_name, [])
-    combined = list(dict.fromkeys(existing + model_names))  # order-preserving dedup
-    _available_models_cache[engine_name] = combined
+    with _state_lock:
+        existing = _available_models_cache.get(engine_name, [])
+        combined = list(dict.fromkeys(existing + model_names))  # order-preserving dedup
+        _available_models_cache[engine_name] = combined
 
 
-def set_active_model(model_name: str):
+def set_active_model(model_name: Optional[str]) -> None:
     global _current_active_model
-    _current_active_model = model_name
+    with _state_lock:
+        _current_active_model = model_name
 
 
-def get_active_model():
-    return _current_active_model
+def get_active_model() -> Optional[str]:
+    with _state_lock:
+        return _current_active_model
 
 
 # ── Task Classifier ───────────────────────────────────────────────────────────
@@ -200,11 +207,12 @@ def find_best_model(task: str, available_models: list):
 
 def _switch_ollama_model(model_name: str) -> bool:
     global _current_active_model
-    _current_active_model = model_name
+    with _state_lock:
+        _current_active_model = model_name
     return True
 
 
-def _switch_lemonade_model(model_name: str, ports: list = None) -> bool:
+def _switch_lemonade_model(model_name: str, ports: Optional[List[int]] = None) -> bool:
     global _current_active_model
     if ports is None:
         ports = [8000, 8080, 13305]
@@ -219,11 +227,13 @@ def _switch_lemonade_model(model_name: str, ports: list = None) -> bool:
             )
             with urllib.request.urlopen(req, timeout=120) as r:
                 if r.status in [200, 201, 202]:
-                    _current_active_model = model_name
+                    with _state_lock:
+                        _current_active_model = model_name
                     return True
         except urllib.error.HTTPError as e:
             if e.code == 404:
-                _current_active_model = model_name
+                with _state_lock:
+                    _current_active_model = model_name
                 return True
         except Exception:
             continue
@@ -232,7 +242,8 @@ def _switch_lemonade_model(model_name: str, ports: list = None) -> bool:
 
 def _switch_openai_compatible_model(model_name: str) -> bool:
     global _current_active_model
-    _current_active_model = model_name
+    with _state_lock:
+        _current_active_model = model_name
     return True
 
 
@@ -242,10 +253,10 @@ def get_optimal_model(
     text: str,
     protocol: str,
     provider_name: str,
-    available_models: list,
-    history: list = None,
+    available_models: List[str],
+    history: Optional[List[Dict[str, Any]]] = None,
     verbose: bool = True,
-) -> tuple:
+) -> Tuple[Optional[str], bool]:
     """
     Determines the best model for the task and switches to it if needed.
 
@@ -254,51 +265,52 @@ def get_optimal_model(
     """
     global _current_active_model
 
-    if not available_models:
-        return _current_active_model, False
+    with _state_lock:
+        if not available_models:
+            return _current_active_model, False
 
-    task = classify_task(text, history)
+        task = classify_task(text, history)
 
-    # BUG-07 / FEAT-05 FIX: 'any' task → NEVER switch, keeps current model stable
-    if task == "any":
-        return _current_active_model, False
+        # BUG-07 / FEAT-05 FIX: 'any' task → NEVER switch, keeps current model stable
+        if task == "any":
+            return _current_active_model, False
 
-    best_model = find_best_model(task, available_models)
+        best_model = find_best_model(task, available_models)
 
-    if not best_model:
-        return _current_active_model, False
+        if not best_model:
+            return _current_active_model, False
 
-    # No switch if already on the best model
-    if best_model == _current_active_model:
-        return best_model, False
+        # No switch if already on the best model
+        if best_model == _current_active_model:
+            return best_model, False
 
-    # FEAT-05: Only switch if the best candidate has a meaningful score advantage
-    profile   = TASK_PROFILES.get(task, {})
-    min_score = profile.get("min_score_to_switch", 3)
-    if _rank_model(best_model, task) < min_score:
-        return _current_active_model, False
+        # FEAT-05: Only switch if the best candidate has a meaningful score advantage
+        profile   = TASK_PROFILES.get(task, {})
+        min_score = profile.get("min_score_to_switch", 3)
+        if _rank_model(best_model, task) < min_score:
+            return _current_active_model, False
 
-    # Perform the switch
-    if verbose and _current_active_model:
-        msg = profile.get("switch_message", "[SWITCH]")
-        print(f"\n{msg}")
-        print(f"  {_current_active_model} → {best_model}")
+        # Perform the switch
+        if verbose and _current_active_model:
+            msg = profile.get("switch_message", "[SWITCH]")
+            print(f"\n{msg}")
+            print(f"  {_current_active_model} → {best_model}")
 
-    lemonade_keys = {"lemonade"}
-    ollama_keys   = {"ollama"}
+        lemonade_keys = {"lemonade"}
+        ollama_keys   = {"ollama"}
 
-    name_lower = provider_name.lower()
-    if any(k in name_lower for k in lemonade_keys) or protocol == "lemonade":
-        success = _switch_lemonade_model(best_model)
-    elif any(k in name_lower for k in ollama_keys) or protocol == "ollama":
-        success = _switch_ollama_model(best_model)
-    else:
-        success = _switch_openai_compatible_model(best_model)
+        name_lower = provider_name.lower()
+        if any(k in name_lower for k in lemonade_keys) or protocol == "lemonade":
+            success = _switch_lemonade_model(best_model)
+        elif any(k in name_lower for k in ollama_keys) or protocol == "ollama":
+            success = _switch_ollama_model(best_model)
+        else:
+            success = _switch_openai_compatible_model(best_model)
 
-    return (best_model, True) if success else (_current_active_model, False)
+        return (best_model, True) if success else (_current_active_model, False)
 
 
-def describe_selection(text: str, available_models: list) -> str:
+def describe_selection(text: str, available_models: List[str]) -> str:
     task  = classify_task(text)
     best  = find_best_model(task, available_models)
     label = {

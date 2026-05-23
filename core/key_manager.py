@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — KEY MANAGER V15.0 PRO                            ║
+║     GRAVITY AI — KEY MANAGER V15.0 PRO [Diamond-Tier]        ║
 ║     Almacenamiento cifrado de API keys (DPAPI en Windows)   ║
 ╚══════════════════════════════════════════════════════════════╝
 
@@ -11,6 +11,7 @@ Estrategia de cifrado por plataforma:
 
 El keystore se guarda en _keystore.bin como bytes cifrados JSON.
 NUNCA se guarda ninguna API key en texto plano.
+Todas las operaciones de lectura y escritura en disco son completamente thread-safe.
 """
 
 import os
@@ -18,12 +19,17 @@ import json
 import hashlib
 import platform
 import subprocess
+import threading
+from typing import Optional, Dict, List, Any
 
-BASE_DIR      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-KEYSTORE_FILE = os.path.join(BASE_DIR, "_keystore.bin")
+BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+KEYSTORE_FILE: str = os.path.join(BASE_DIR, "_keystore.bin")
+
+# Cerrojo reentrante a nivel de módulo para sincronizar accesos de disco
+_keystore_lock: threading.RLock = threading.RLock()
 
 # Proveedores cloud conocidos con sus metadatos de display
-KNOWN_CLOUD_PROVIDERS = {
+KNOWN_CLOUD_PROVIDERS: Dict[str, Dict[str, str]] = {
     "openai":       {"display": "OpenAI",           "key_prefix": "sk-",   "url": "https://api.openai.com/v1"},
     "anthropic":    {"display": "Anthropic",         "key_prefix": "sk-ant","url": "https://api.anthropic.com"},
     "gemini":       {"display": "Google Gemini",     "key_prefix": "AIza", "url": "https://generativelanguage.googleapis.com"},
@@ -70,7 +76,7 @@ def _encrypt(plaintext: str) -> bytes:
     raw = plaintext.encode("utf-8")
     if platform.system() == "Windows":
         try:
-            import win32crypt
+            import win32crypt  # type: ignore[import-not-found]
             return win32crypt.CryptProtectData(raw, None, None, None, None, 0)
         except Exception:
             pass
@@ -88,7 +94,7 @@ def _decrypt(ciphertext: bytes) -> str:
         return _xor_cipher(ciphertext[4:], key).decode("utf-8")
     if platform.system() == "Windows":
         try:
-            import win32crypt
+            import win32crypt  # type: ignore[import-not-found]
             _, decrypted = win32crypt.CryptUnprotectData(ciphertext, None, None, None, 0)
             return decrypted.decode("utf-8")
         except Exception:
@@ -96,30 +102,35 @@ def _decrypt(ciphertext: bytes) -> str:
     raise ValueError("Cannot decrypt: platform mismatch or corrupted keystore")
 
 
-def _load_store() -> dict:
+def _load_store() -> Dict[str, str]:
     """Loads and decrypts the keystore. Returns {} if it doesn't exist."""
-    if not os.path.exists(KEYSTORE_FILE):
-        return {}
-    try:
-        with open(KEYSTORE_FILE, "rb") as f:
-            encrypted_json = f.read()
-        plaintext = _decrypt(encrypted_json)
-        return json.loads(plaintext)
-    except Exception:
-        return {}
+    with _keystore_lock:
+        if not os.path.exists(KEYSTORE_FILE):
+            return {}
+        try:
+            with open(KEYSTORE_FILE, "rb") as f:
+                encrypted_json = f.read()
+            if not encrypted_json:
+                return {}
+            plaintext = _decrypt(encrypted_json)
+            return json.loads(plaintext)
+        except Exception:
+            return {}
 
 
-def _save_store(store: dict) -> None:
+def _save_store(store: Dict[str, str]) -> None:
     """Encrypts and saves the keystore."""
-    plaintext = json.dumps(store, ensure_ascii=False)
-    encrypted = _encrypt(plaintext)
-    with open(KEYSTORE_FILE, "wb") as f:
-        f.write(encrypted)
+    with _keystore_lock:
+        plaintext = json.dumps(store, ensure_ascii=False)
+        encrypted = _encrypt(plaintext)
+        with open(KEYSTORE_FILE, "wb") as f:
+            f.write(encrypted)
 
 
 class KeyManager:
     """
     Secure API key storage with DPAPI (Windows) or XOR fallback.
+    All operations are thread-safe.
 
     All methods are classmethods for ergonomic usage:
         KeyManager.set_key("openai", "sk-...")
@@ -129,80 +140,89 @@ class KeyManager:
     @classmethod
     def set_key(cls, provider: str, api_key: str) -> None:
         """Stores an API key for a provider (encrypted)."""
-        store = _load_store()
-        store[provider.lower().strip()] = api_key.strip()
-        _save_store(store)
+        with _keystore_lock:
+            store = _load_store()
+            store[provider.lower().strip()] = api_key.strip()
+            _save_store(store)
 
     @classmethod
-    def get_key(cls, provider: str) -> str | None:
+    def get_key(cls, provider: str) -> Optional[str]:
         """Returns the API key for a provider, or None if not configured."""
-        store = _load_store()
-        return store.get(provider.lower().strip())
+        with _keystore_lock:
+            store = _load_store()
+            return store.get(provider.lower().strip())
 
     @classmethod
     def has_key(cls, provider: str) -> bool:
         """Returns True if an API key is configured for this provider."""
-        return cls.get_key(provider) is not None
+        with _keystore_lock:
+            return cls.get_key(provider) is not None
 
     @classmethod
     def delete_key(cls, provider: str) -> bool:
         """Deletes the API key for a provider. Returns True if it existed."""
-        store = _load_store()
-        key   = provider.lower().strip()
-        if key in store:
-            del store[key]
-            _save_store(store)
-            return True
-        return False
+        with _keystore_lock:
+            store = _load_store()
+            key   = provider.lower().strip()
+            if key in store:
+                del store[key]
+                _save_store(store)
+                return True
+            return False
 
     @classmethod
     def rotate_key(cls, provider: str, new_key: str) -> None:
         """Alias for set_key: replaces existing key."""
-        cls.set_key(provider, new_key)
+        with _keystore_lock:
+            cls.set_key(provider, new_key)
 
     @classmethod
-    def list_configured(cls) -> list[str]:
+    def list_configured(cls) -> List[str]:
         """Returns list of provider names that have a configured key."""
-        return list(_load_store().keys())
+        with _keystore_lock:
+            return list(_load_store().keys())
 
     @classmethod
     def mask(cls, provider: str) -> str:
-        """Returns a masked representation of the key (first 4 + ... + last 3 chars)."""
-        key = cls.get_key(provider)
-        if not key:
-            return "[no configurada]"
-        if len(key) <= 10:
-            return "*" * len(key)
-        return f"{key[:5]}...{key[-3:]}"
+        """Returns a masked representation of the key (first 5 + ... + last 3 chars)."""
+        with _keystore_lock:
+            key = cls.get_key(provider)
+            if not key:
+                return "[no configurada]"
+            if len(key) <= 10:
+                return "*" * len(key)
+            return f"{key[:5]}...{key[-3:]}"
 
     @classmethod
-    def get_provider_info(cls, provider: str) -> dict | None:
+    def get_provider_info(cls, provider: str) -> Optional[Dict[str, str]]:
         """Returns metadata dict for a known cloud provider."""
         return KNOWN_CLOUD_PROVIDERS.get(provider.lower())
 
     @classmethod
-    def list_all_known(cls) -> dict:
+    def list_all_known(cls) -> Dict[str, Dict[str, Any]]:
         """Returns all known cloud providers with their key status."""
-        result = {}
-        for pid, meta in KNOWN_CLOUD_PROVIDERS.items():
-            result[pid] = {
-                **meta,
-                "has_key":   cls.has_key(pid),
-                "key_masked": cls.mask(pid) if cls.has_key(pid) else None,
-            }
-        return result
+        with _keystore_lock:
+            result = {}
+            for pid, meta in KNOWN_CLOUD_PROVIDERS.items():
+                result[pid] = {
+                    **meta,
+                    "has_key":   cls.has_key(pid),
+                    "key_masked": cls.mask(pid) if cls.has_key(pid) else None,
+                }
+            return result
 
     @classmethod
     def clear_all(cls) -> int:
         """Deletes ALL stored keys. Returns number of keys deleted."""
-        store = _load_store()
-        count = len(store)
-        _save_store({})
-        return count
+        with _keystore_lock:
+            store = _load_store()
+            count = len(store)
+            _save_store({})
+            return count
 
 
 if __name__ == "__main__":
-    print("KeyManager V15.0 PRO — Test\n")
+    print("KeyManager V15.0 PRO [Diamond-Tier] — Test\n")
     KeyManager.set_key("test_provider", "sk-test-123456789")
     assert KeyManager.has_key("test_provider")
     assert KeyManager.get_key("test_provider") == "sk-test-123456789"

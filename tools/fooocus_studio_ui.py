@@ -16,10 +16,11 @@ import time
 import os
 import glob
 import threading
+from typing import List, Dict, Any, Optional, Tuple
 
 # Path setup correcto para importar fooocus_client
-_BASE_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_TOOLS_DIR = os.path.join(_BASE_DIR, "tools")
+_BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_TOOLS_DIR: str = os.path.join(_BASE_DIR, "tools")
 if _TOOLS_DIR not in sys.path:
     sys.path.insert(0, _TOOLS_DIR)
 
@@ -34,7 +35,7 @@ def wait_for_fooocus(max_retries: int = 20, wait_sec: float = 3.0) -> bool:
     Espera a que Fooocus este disponible (cold-start puede tomar 60-90 seg en CPU).
     """
     for attempt in range(1, max_retries + 1):
-        status = health_check()
+        status: dict = health_check()
         if status["online"]:
             print(f"[VisionStudio] Fooocus disponible tras {attempt} intento(s).")
             return True
@@ -43,11 +44,11 @@ def wait_for_fooocus(max_retries: int = 20, wait_sec: float = 3.0) -> bool:
     return False
 
 
-def get_all_images() -> list:
+def get_all_images() -> List[str]:
     """Retorna lista de paths absolutos de todas las imagenes en el output dir, mas nuevas primero."""
     if not os.path.isdir(OUTPUT_DIR):
         return []
-    imgs = []
+    imgs: List[str] = []
     for ext in ("*.png", "*.jpg", "*.jpeg", "*.webp"):
         imgs.extend(glob.glob(os.path.join(OUTPUT_DIR, "**", ext), recursive=True))
     imgs.sort(key=os.path.getmtime, reverse=True)
@@ -56,9 +57,9 @@ def get_all_images() -> list:
 
 # ─── Galeria de imagenes generadas ────────────────────────────────────────────
 
-def refresh_gallery():
+def refresh_gallery() -> Any:
     """Carga las ultimas 20 imagenes del output dir para mostrar en galeria."""
-    imgs = get_latest_outputs(20)
+    imgs: List[str] = get_latest_outputs(20)
     if not imgs:
         return gr.update(value=[])
     return gr.update(value=imgs)
@@ -66,9 +67,8 @@ def refresh_gallery():
 
 def get_fooocus_status() -> str:
     """Retorna string de estado del motor Fooocus para la UI."""
-    st = health_check()
-    imgs = get_latest_outputs(1)
-    total = len(get_all_images())
+    st: dict = health_check()
+    total: int = len(get_all_images())
     if st["online"]:
         return f"**Motor:** Activo (:7861) | **Imagenes generadas:** {total}"
     return f"**Motor:** OFFLINE — [Abrir motor Fooocus]({FOOOCUS_BASE_URL}) | Inicia INICIAR_TODO.bat"
@@ -76,7 +76,7 @@ def get_fooocus_status() -> str:
 
 # ─── Instruccion de generacion (redirige al motor real) ───────────────────────
 
-def on_open_fooocus_and_wait(prompt: str, performance: str, aspect_ratio: str):
+def on_open_fooocus_and_wait(prompt: str, performance: str, aspect_ratio: str) -> Tuple[Optional[str], str]:
     """
     Fooocus 2.5.5 en este build solo expone UI Gradio (no API REST).
     Esta funcion:
@@ -90,21 +90,21 @@ def on_open_fooocus_and_wait(prompt: str, performance: str, aspect_ratio: str):
         return None, "Sin prompt"
 
     # Verificar motor
-    status = health_check()
+    status: dict = health_check()
     if not status["online"]:
         gr.Info("Fooocus no responde. Esperando hasta 2 minutos...")
-        online = wait_for_fooocus(max_retries=30, wait_sec=4.0)
+        online: bool = wait_for_fooocus(max_retries=30, wait_sec=4.0)
         if not online:
             gr.Warning("Fooocus offline. Inicia launchers\\INICIAR_TODO.bat.")
             return None, "Motor offline"
 
     # Snapshot de archivos actuales ANTES de generar
-    before_set = set(get_all_images())
-    before_count = len(before_set)
+    before_set: set[str] = set(get_all_images())
+    before_count: int = len(before_set)
 
     # DISPARO AUTOMÁTICO (V15.0 PRO Upgrade)
     gr.Info(f"🎨 Enviando comando de generación al motor (CPU)...")
-    trigger_result = trigger_gradio_generation(prompt, performance, aspect_ratio)
+    trigger_result: dict = trigger_gradio_generation(prompt, performance, aspect_ratio)
     
     if trigger_result["success"]:
         gr.Info("🚀 Motor disparado con éxito. Generación iniciada en segundo plano.")
@@ -115,18 +115,18 @@ def on_open_fooocus_and_wait(prompt: str, performance: str, aspect_ratio: str):
     print(f"[VisionStudio] Esperando imagen nueva en {OUTPUT_DIR}...")
     print(f"[VisionStudio] Archivos existentes: {before_count}")
 
-    timeout = 900  # 15 minutos
-    start = time.time()
+    timeout: int = 900  # 15 minutos
+    start: float = time.time()
 
     while time.time() - start < timeout:
         time.sleep(3.0)
-        current = get_all_images()
-        current_set = set(current)
-        new_files = current_set - before_set
+        current: List[str] = get_all_images()
+        current_set: set[str] = set(current)
+        new_files: set[str] = current_set - before_set
 
         if new_files:
-            newest = max(new_files, key=os.path.getmtime)
-            elapsed = round(time.time() - start)
+            newest: str = max(new_files, key=os.path.getmtime)
+            elapsed: int = round(time.time() - start)
             print(f"[VisionStudio] Nueva imagen detectada en {elapsed}s -> {os.path.basename(newest)}")
             return newest, f"Imagen generada en {elapsed}s"
 

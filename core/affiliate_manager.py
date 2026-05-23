@@ -1,30 +1,33 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — AFFILIATE MANAGER V1.0                                         ║
+║  GRAVITY AI — AFFILIATE MANAGER V15.0 PRO                                    ║
 ║  Inyección automática de enlaces CPA en descripciones de YouTube por nicho   ║
 ║                                                                              ║
-║  Flujo:                                                                      ║
-║    1. Clasifica el nicho del video                                           ║
-║    2. Selecciona los top-3 programas de afiliados con mayor EPC              ║
-║    3. Inyecta los enlaces en la descripción de YouTube antes de subir        ║
-║    4. Registra el uso para rotación equitativa de productos                  ║
+║  Garantiza seguridad multihilo absoluta, exclusión mutua y atomicidad en     ║
+║  disco bajo entornos altamente concurrentes en Windows.                      ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
 import os
 import json
+import threading
+import time
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 from core.logger import log
+from core.config_manager import config
 
-BASE_DIR   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH    = os.path.join(BASE_DIR, "_integrations", "affiliate_db.json")
-CONFIG_PATH = os.path.join(BASE_DIR, "config.yaml")
+BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_PATH: str = os.path.join(BASE_DIR, "_integrations", "affiliate_db.json")
+AFFILIATE_LOG: str = os.path.join(BASE_DIR, "_integrations", "affiliate_log.json")
+
+# Cerrojo reentrante a nivel de módulo para sincronizar I/O y mutaciones
+_affiliate_io_lock = threading.RLock()
 
 # ── Base de datos de programas de afiliados por nicho ─────────────────────────
 # EPC = Earnings Per Click estimado (USD). Ordenados de mayor a menor.
-_DEFAULT_AFFILIATES: dict = {
+_DEFAULT_AFFILIATES: Dict[str, List[Dict[str, Any]]] = {
     "tecnologia_ia": [
         {
             "name": "NordVPN",
@@ -162,80 +165,110 @@ _DEFAULT_AFFILIATES: dict = {
 }
 
 
-# ── Config ────────────────────────────────────────────────────────────────────
-
-def _load_config() -> dict:
-    try:
-        import yaml
-        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-            return (yaml.safe_load(f) or {}).get("affiliates", {})
-    except Exception:
-        return {}
+def _load_config() -> Dict[str, Any]:
+    """Carga de forma thread-safe la configuración delegando en ConfigManager."""
+    return config.get("affiliates", {})
 
 
-def _get_aff_ids() -> dict[str, str]:
-    """Retorna el mapa provider_name -> affiliate_id desde config.yaml."""
+def _get_aff_ids() -> Dict[str, str]:
+    """Retorna el mapa provider_name -> affiliate_id desde la configuración."""
     return _load_config().get("ids", {})
 
 
-# ── Banco de afiliados ────────────────────────────────────────────────────────
-
-def _load_affiliate_db() -> dict:
-    """Carga el banco de afiliados desde disco (fallback al default hardcoded)."""
-    if os.path.isfile(DB_PATH):
+def _atomic_write_json(file_path: str, data: Any) -> None:
+    """
+    Escribe datos JSON de manera atómica con reintentos y retroceso exponencial.
+    Protege el disco contra cortes bruscos de energía o PermissionError en Windows.
+    """
+    temp_path = f"{file_path}.tmp"
+    dir_name = os.path.dirname(file_path)
+    if dir_name:
+        os.makedirs(dir_name, exist_ok=True)
+        
+    last_err: Optional[Exception] = None
+    for i in range(5):
         try:
-            with open(DB_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            # Merge con defaults: añadir nichos nuevos sin borrar los del usuario
-            for k, v in _DEFAULT_AFFILIATES.items():
-                data.setdefault(k, v)
-            return data
-        except Exception:
-            pass
-    return dict(_DEFAULT_AFFILIATES)
+            with open(temp_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            # Operación atómica en Windows/Unix
+            os.replace(temp_path, file_path)
+            return
+        except PermissionError as e:
+            last_err = e
+            wait = 0.05 * (2 ** i)
+            time.sleep(wait)
+        except Exception as e:
+            last_err = e
+            # Errores graves (disco lleno, etc.) se lanzan
+            raise e
+            
+    if last_err:
+        log.error(f"[Affiliates] Atomic write failed to {file_path} after 5 attempts: {last_err}")
+        raise last_err
 
 
-def save_affiliate_db(data: dict) -> None:
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    with open(DB_PATH, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+def _load_affiliate_db() -> Dict[str, List[Dict[str, Any]]]:
+    """Carga de forma sincronizada el banco de afiliados de nichos desde disco."""
+    with _affiliate_io_lock:
+        if os.path.isfile(DB_PATH):
+            for i in range(5):
+                try:
+                    with open(DB_PATH, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    # Sincronizar y complementar con valores por defecto
+                    for k, v in _DEFAULT_AFFILIATES.items():
+                        data.setdefault(k, v)
+                    return data
+                except (PermissionError, json.JSONDecodeError) as e:
+                    time.sleep(0.02 * (2 ** i))
+                except Exception as e:
+                    log.warning(f"[Affiliates] Failed to load db: {e}")
+                    break
+        return dict(_DEFAULT_AFFILIATES)
 
 
-# ── Lógica de selección y formateo ───────────────────────────────────────────
+def save_affiliate_db(data: Dict[str, List[Dict[str, Any]]]) -> None:
+    """Guarda de forma atómica y thread-safe el banco de afiliados en disco."""
+    with _affiliate_io_lock:
+        _atomic_write_json(DB_PATH, data)
 
-def get_affiliate_links(niche_id: str, max_links: int = 3) -> list[dict]:
+
+def get_affiliate_links(niche_id: str, max_links: int = 3) -> List[Dict[str, Any]]:
     """
     Retorna los mejores programas de afiliados para el nicho dado.
-    Ordena por EPC descendente.
+    Ordena por EPC descendente bajo exclusión mutua absoluta.
     """
-    cfg = _load_config()
-    if not cfg.get("enabled", False):
-        return []
+    with _affiliate_io_lock:
+        cfg = _load_config()
+        if not cfg.get("enabled", False):
+            return []
 
-    db    = _load_affiliate_db()
-    progs = db.get(niche_id, db.get("_default", []))
-    aff_ids = _get_aff_ids()
+        db = _load_affiliate_db()
+        progs = db.get(niche_id, db.get("_default", []))
+        aff_ids = _get_aff_ids()
 
-    # Substituir placeholder {aff_id} con el ID real si existe
-    result = []
-    for prog in sorted(progs, key=lambda x: x.get("epc_usd", 0), reverse=True)[:max_links]:
-        aff_id = aff_ids.get(prog["name"], aff_ids.get("_default", "gravity_ai"))
-        url    = prog["url_template"].replace("{aff_id}", str(aff_id))
-        result.append({**prog, "url": url, "aff_id_used": aff_id})
+        result: List[Dict[str, Any]] = []
+        # Ordenar por EPC descendente
+        sorted_progs = sorted(progs, key=lambda x: x.get("epc_usd", 0.0), reverse=True)[:max_links]
+        
+        for prog in sorted_progs:
+            aff_id = aff_ids.get(prog["name"], aff_ids.get("_default", "gravity_ai"))
+            url = prog["url_template"].replace("{aff_id}", str(aff_id))
+            result.append({**prog, "url": url, "aff_id_used": aff_id})
 
-    return result
+        return result
 
 
 def build_affiliate_block(niche_id: str) -> str:
     """
     Genera el bloque de texto de afiliados listo para insertar en la descripción de YouTube.
-    Retorna string vacío si no hay afiliados configurados.
+    Retorna string vacío si no hay afiliados habilitados.
     """
     links = get_affiliate_links(niche_id)
     if not links:
         return ""
 
-    lines = [
+    lines: List[str] = [
         "",
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
         "🤝 PATROCINADORES Y HERRAMIENTAS RECOMENDADAS",
@@ -250,32 +283,34 @@ def build_affiliate_block(niche_id: str) -> str:
     return "\n".join(lines)
 
 
-# ── Revenue tracking ──────────────────────────────────────────────────────────
-
-AFFILIATE_LOG = os.path.join(BASE_DIR, "_integrations", "affiliate_log.json")
-
-def log_affiliate_injection(job_id: int, niche_id: str, links_used: list[dict]) -> None:
+def log_affiliate_injection(job_id: int, niche_id: str, links_used: List[Dict[str, Any]]) -> None:
     """
-    Registra qué afiliados se inyectaron en qué job para auditoría.
-    También proyecta el ingreso CPA en revenue_tracker (EPC × CTR 0.5% × 500 views).
+    Registra de forma sincronizada y atómica la inyección en affiliate_log.json.
+    Proyecta de forma thread-safe los ingresos estimados en revenue_tracker.
     """
-    try:
-        records = []
-        if os.path.isfile(AFFILIATE_LOG):
-            with open(AFFILIATE_LOG, "r", encoding="utf-8") as f:
-                records = json.load(f)
-        records.append({
-            "ts":         datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "job_id":     job_id,
-            "niche_id":   niche_id,
-            "links_used": [l["name"] for l in links_used],
-        })
-        records = records[-500:]
-        os.makedirs(os.path.dirname(AFFILIATE_LOG), exist_ok=True)
-        with open(AFFILIATE_LOG, "w", encoding="utf-8") as f:
-            json.dump(records, f, ensure_ascii=False)
-    except Exception as e:
-        log.warning(f"[Affiliates] Error logging: {e}")
+    with _affiliate_io_lock:
+        try:
+            records: List[Dict[str, Any]] = []
+            if os.path.isfile(AFFILIATE_LOG):
+                for i in range(5):
+                    try:
+                        with open(AFFILIATE_LOG, "r", encoding="utf-8") as f:
+                            records = json.load(f)
+                        break
+                    except (PermissionError, json.JSONDecodeError):
+                        time.sleep(0.02 * (2 ** i))
+                        
+            records.append({
+                "ts": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                "job_id": job_id,
+                "niche_id": niche_id,
+                "links_used": [l["name"] for l in links_used],
+            })
+            # Mantener histórico limitado a 500 registros
+            records = records[-500:]
+            _atomic_write_json(AFFILIATE_LOG, records)
+        except Exception as e:
+            log.warning(f"[Affiliates] Error logging affiliate injection: {e}")
 
     # Proyección conservadora de ingresos CPA: EPC × CTR 0.5% × 500 views iniciales
     try:
@@ -286,55 +321,62 @@ def log_affiliate_injection(job_id: int, niche_id: str, links_used: list[dict]) 
         affiliate_rev = round(avg_epc * estimated_clicks, 4)
 
         aff_record_id = f"aff_{job_id}"
-        rev_records = _load_log()
-        # Solo registrar si no existe ya para este job
-        existing = [r for r in rev_records if r.get("video_id") == aff_record_id]
-        if not existing:
-            rev_records.append({
-                "ts":          datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-                "job_id":      -(job_id + 100000),
-                "niche_id":    niche_id,
-                "is_short":    False,
-                "platform":    "affiliate",
-                "lang":        "es",
-                "video_id":    aff_record_id,
-                "views":       0,
-                "revenue_usd": affiliate_rev,
-                "source":      "affiliate_projection",
-            })
-            _save_log(rev_records)
+        
+        # Sincronizar el acceso y guardado en revenue_tracker
+        from core.revenue_tracker import _revenue_io_lock
+        with _revenue_io_lock:
+            rev_records = _load_log()
+            existing = [r for r in rev_records if r.get("video_id") == aff_record_id]
+            if not existing:
+                rev_records.append({
+                    "ts": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                    "job_id": -(job_id + 100000),
+                    "niche_id": niche_id,
+                    "is_short": False,
+                    "platform": "affiliate",
+                    "lang": "es",
+                    "video_id": aff_record_id,
+                    "views": 0,
+                    "revenue_usd": affiliate_rev,
+                    "source": "affiliate_projection",
+                })
+                _save_log(rev_records)
     except Exception as _rev_e:
-        log.debug(f"[Affiliates] Revenue projection skip: {_rev_e}")
+        log.debug(f"[Affiliates] Revenue projection skipped or failed: {_rev_e}")
 
 
-# ── API Pública ───────────────────────────────────────────────────────────────
-
-def get_status() -> dict:
-    cfg   = _load_config()
-    db    = _load_affiliate_db()
-    total = sum(len(v) for v in db.values())
-    return {
-        "enabled":        cfg.get("enabled", False),
-        "niches_covered": len([k for k in db if k != "_default"]),
-        "total_programs": total,
-        "ids_configured": list(_get_aff_ids().keys()),
-    }
-
-
-def get_programs_by_niche() -> dict:
-    """Retorna el banco completo de afiliados agrupado por niche."""
-    return _load_affiliate_db()
+def get_status() -> Dict[str, Any]:
+    """Retorna las estadísticas operativas del gestor de afiliados de forma segura."""
+    with _affiliate_io_lock:
+        cfg = _load_config()
+        db = _load_affiliate_db()
+        total = sum(len(v) for v in db.values())
+        return {
+            "enabled": cfg.get("enabled", False),
+            "niches_covered": len([k for k in db if k != "_default"]),
+            "total_programs": total,
+            "ids_configured": list(_get_aff_ids().keys()),
+        }
 
 
-def add_program(niche_id: str, program: dict) -> dict:
-    """Agrega o actualiza un programa de afiliados vía API."""
+def get_programs_by_niche() -> Dict[str, List[Dict[str, Any]]]:
+    """Retorna el banco completo de afiliados agrupado por niche de forma sincronizada."""
+    with _affiliate_io_lock:
+        return _load_affiliate_db()
+
+
+def add_program(niche_id: str, program: Dict[str, Any]) -> Dict[str, Any]:
+    """Agrega o actualiza un programa de afiliados de forma thread-safe."""
     required = {"name", "url_template", "cta", "epc_usd"}
     if not required.issubset(program.keys()):
-        return {"ok": False, "error": f"Faltan campos: {required - set(program.keys())}"}
-    db = _load_affiliate_db()
-    db.setdefault(niche_id, [])
-    # Remover si ya existe (upsert por nombre)
-    db[niche_id] = [p for p in db[niche_id] if p["name"] != program["name"]]
-    db[niche_id].append(program)
-    save_affiliate_db(db)
-    return {"ok": True, "niche_id": niche_id, "program": program["name"]}
+        return {"ok": False, "error": f"Faltan campos requeridos: {required - set(program.keys())}"}
+        
+    with _affiliate_io_lock:
+        db = _load_affiliate_db()
+        db.setdefault(niche_id, [])
+        # Upsert por nombre del programa
+        db[niche_id] = [p for p in db[niche_id] if p["name"] != program["name"]]
+        db[niche_id].append(program)
+        save_affiliate_db(db)
+        return {"ok": True, "niche_id": niche_id, "program": program["name"]}
+

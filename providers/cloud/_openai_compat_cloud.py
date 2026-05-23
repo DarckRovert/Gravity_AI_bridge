@@ -5,13 +5,15 @@ Internal (starts with _), not auto-discovered by registry.
 import json
 import time
 import requests
-from typing import Generator
+import logging
+from typing import Generator, List, Dict, Any, Optional, Union
 
 from providers.base import ProviderPlugin, ProviderResult
 from core.key_manager import KeyManager
 
+logger = logging.getLogger("gravity")
 
-def _cloud_request_stream(url: str, payload: dict, headers: dict) -> Generator[str, None, None]:
+def _cloud_request_stream(url: str, payload: Dict[str, Any], headers: Dict[str, str]) -> Generator[str, None, None]:
     """Streams SSE from any OpenAI-compatible cloud endpoint using requests library."""
     try:
         with requests.post(url, json=payload, headers=headers, stream=True, timeout=60) as r:
@@ -38,11 +40,10 @@ def _cloud_request_stream(url: str, payload: dict, headers: dict) -> Generator[s
                 except Exception:
                     pass
     except Exception as e:
-        import logging
-        logging.getLogger("gravity").error(f"[CloudStream] Error streaming from {url}: {e}")
+        logger.error(f"[CloudStream] Error streaming from {url}: {e}")
 
 
-def _cloud_request_complete(url: str, payload: dict, headers: dict) -> str:
+def _cloud_request_complete(url: str, payload: Dict[str, Any], headers: Dict[str, str]) -> str:
     """Non-streaming cloud request using requests library."""
     try:
         r = requests.post(url, json=payload, headers=headers, timeout=60)
@@ -51,8 +52,7 @@ def _cloud_request_complete(url: str, payload: dict, headers: dict) -> str:
         if "choices" in d and d["choices"]:
             return d["choices"][0].get("message", {}).get("content", "")
     except Exception as e:
-        import logging
-        logging.getLogger("gravity").error(f"[CloudComplete] Error fetching from {url}: {e}")
+        logger.error(f"[CloudComplete] Error fetching from {url}: {e}")
     return ""
 
 
@@ -62,19 +62,19 @@ class OpenAICompatCloudProvider(ProviderPlugin):
     Subclasses only need to set class attributes and optionally override
     _get_headers() if auth differs from standard Bearer token.
     """
-    category              = "cloud"
-    protocol              = "openai"
-    requires_key          = True
+    category: str              = "cloud"
+    protocol: str              = "openai"
+    requires_key: bool          = True
     # Subclasses set these:
     _base_url:        str = ""
     _key_id:          str = ""   # Key in KeyManager (e.g. "groq", "mistral")
-    _available_models: list[str] = []
+    _available_models: List[str] = []
     _chat_path:       str = "/chat/completions"
 
-    def _get_api_key(self) -> str | None:
+    def _get_api_key(self) -> Optional[str]:
         return KeyManager.get_key(self._key_id)
 
-    def _get_headers(self) -> dict:
+    def _get_headers(self) -> Dict[str, str]:
         key = self._get_api_key() or "no-key"
         return {
             "Content-Type":  "application/json",
@@ -93,8 +93,13 @@ class OpenAICompatCloudProvider(ProviderPlugin):
             r.active_model = r.models[0]["name"]
         return r
 
-    def chat_stream(self, messages, model, options) -> Generator[str, None, None]:
-        payload    = {"model": model, "messages": messages, "stream": True}
+    def chat_stream(
+        self,
+        messages: List[Dict[str, Any]],
+        model:    str,
+        options:  Dict[str, Any],
+    ) -> Generator[str, None, None]:
+        payload: Dict[str, Any] = {"model": model, "messages": messages, "stream": True}
         for k in ("temperature", "top_p", "max_tokens"):
             if k in options:
                 payload[k] = options[k]
@@ -102,8 +107,13 @@ class OpenAICompatCloudProvider(ProviderPlugin):
         headers = self._get_headers()
         yield from _cloud_request_stream(url, payload, headers)
 
-    def chat_complete(self, messages, model, options) -> str:
-        payload = {"model": model, "messages": messages, "stream": False}
+    def chat_complete(
+        self,
+        messages: List[Dict[str, Any]],
+        model:    str,
+        options:  Dict[str, Any],
+    ) -> str:
+        payload: Dict[str, Any] = {"model": model, "messages": messages, "stream": False}
         for k in ("temperature", "top_p", "max_tokens"):
             if k in options:
                 payload[k] = options[k]

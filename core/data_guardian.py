@@ -11,6 +11,7 @@ import re
 import shutil
 import glob
 import logging
+import threading
 from datetime import datetime
 from typing import Any
 
@@ -29,34 +30,37 @@ MAX_BACKUPS          = 3         # Máximo de backups por archivo (los más viej
 
 VALID_ROLES = {"system", "user", "assistant", "function", "tool"}
 
+_backup_lock = threading.Lock()
+
 
 # ── Gestión de backups ─────────────────────────────────────────────────────────
 
 def _backup(path: str) -> str:
     """
-    Crea una copia de seguridad con timestamp.
+    Crea una copia de seguridad con timestamp de forma segura y libre de colisiones.
     Mantiene solo MAX_BACKUPS backups por archivo (elimina los más viejos).
     Retorna la ruta del backup creado, o "" si falló.
     """
-    ts     = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup = f"{path}.bak_{ts}"
-    try:
-        shutil.copy2(path, backup)
-    except Exception as e:
-        log.warning(f"[Guardian] No se pudo hacer backup de {path}: {e}")
-        return ""
-
-    # Rotar: eliminar backups viejos si excede el límite
-    pattern  = f"{path}.bak_*"
-    existing = sorted(glob.glob(pattern))  # Orden cronológico por nombre
-    while len(existing) > MAX_BACKUPS:
-        oldest = existing.pop(0)
+    with _backup_lock:
+        ts     = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup = f"{path}.bak_{ts}"
         try:
-            os.unlink(oldest)
-        except Exception:
-            pass
+            shutil.copy2(path, backup)
+        except Exception as e:
+            log.warning(f"[Guardian] No se pudo hacer backup de {path}: {e}")
+            return ""
 
-    return backup
+        # Rotar: eliminar backups viejos si excede el límite
+        pattern  = f"{path}.bak_*"
+        existing = sorted(glob.glob(pattern))  # Orden cronológico por nombre
+        while len(existing) > MAX_BACKUPS:
+            oldest = existing.pop(0)
+            try:
+                os.unlink(oldest)
+            except Exception:
+                pass
+
+        return backup
 
 
 # ── Carga segura de JSON ───────────────────────────────────────────────────────
@@ -197,80 +201,95 @@ def load_history_file(path: str) -> tuple[list, list[str]]:
 
 def load_knowledge(path: str) -> tuple[dict, list[str]]:
     """
-    Carga y valida _knowledge.json.
-    Sanea reglas malformadas, largas o duplicadas.
+    Carga y valida _knowledge.json de forma segura, previniendo
+    conflictos de concurrencia mediante el cerrojo compartido de Gravity Brain.
+    
     Retorna (knowledge_dict_sano, warnings).
     """
+    try:
+        from core.gravity_brain import _brain_lock
+    except ImportError:
+        _brain_lock = None
+
     warnings = []
     default  = {"persistent_rules": [], "version": "10.0"}
 
-    if not os.path.exists(path):
-        return default, warnings
+    lock_context = _brain_lock if _brain_lock else threading.Lock()
 
-    data, w   = _load_json_safe(path)
-    warnings += w
+    with lock_context:
+        if not os.path.exists(path):
+            return default, warnings
 
-    if data is None:
-        backup = _backup(path)
-        if backup:
-            warnings.append(f"_knowledge.json corrupto — backup: {os.path.basename(backup)}")
-        return default, warnings
+        data, w   = _load_json_safe(path)
+        warnings += w
 
-    if not isinstance(data, dict):
-        warnings.append("_knowledge.json no es un objeto JSON. Reseteando.")
-        _backup(path)
-        return default, warnings
+        if data is None:
+            backup = _backup(path)
+            if backup:
+                warnings.append(f"_knowledge.json corrupto — backup: {os.path.basename(backup)}")
+            return default, warnings
 
-    raw_rules = data.get("persistent_rules", [])
-    if not isinstance(raw_rules, list):
-        warnings.append("'persistent_rules' no es una lista. Reseteando reglas.")
-        raw_rules = []
+        if not isinstance(data, dict):
+            warnings.append("_knowledge.json no es un objeto JSON. Reseteando.")
+            _backup(path)
+            return default, warnings
 
-    clean_rules = []
-    seen        = set()
-    removed_r   = 0
+        raw_rules = data.get("persistent_rules", [])
+        if not isinstance(raw_rules, list):
+            warnings.append("'persistent_rules' no es una lista. Reseteando reglas.")
+            raw_rules = []
 
-    for i, rule in enumerate(raw_rules):
-        if not isinstance(rule, str):
-            warnings.append(f"Regla [{i}] eliminada: no es string ({type(rule).__name__})")
-            removed_r += 1
-            continue
+        clean_rules = []
+        seen        = set()
+        removed_r   = 0
 
-        rule_stripped = rule.strip()
-        if not rule_stripped:
-            removed_r += 1
-            continue
+        for i, rule in enumerate(raw_rules):
+            if not isinstance(rule, str):
+                warnings.append(f"Regla [{i}] eliminada: no es string ({type(rule).__name__})")
+                removed_r += 1
+                continue
 
-        if len(rule_stripped) > MAX_RULE_CHARS:
-            rule_stripped = rule_stripped[:MAX_RULE_CHARS] + " [TRUNCADA]"
-            warnings.append(f"Regla [{i}] truncada a {MAX_RULE_CHARS} chars")
+            rule_stripped = rule.strip()
+            if not rule_stripped:
+                removed_r += 1
+                continue
 
-        # Deduplicar por contenido normalizado
-        key = re.sub(r'\s+', ' ', rule_stripped.lower())
-        if key in seen:
-            removed_r += 1
-            continue
-        seen.add(key)
-        clean_rules.append(rule_stripped)
+            if len(rule_stripped) > MAX_RULE_CHARS:
+                rule_stripped = rule_stripped[:MAX_RULE_CHARS] + " [TRUNCADA]"
+                warnings.append(f"Regla [{i}] truncada a {MAX_RULE_CHARS} chars")
 
-    if len(clean_rules) > MAX_KNOWLEDGE_RULES:
-        excess      = len(clean_rules) - MAX_KNOWLEDGE_RULES
-        clean_rules = clean_rules[excess:]
-        warnings.append(f"Knowledge: {excess} reglas antiguas eliminadas (límite {MAX_KNOWLEDGE_RULES})")
+            # Deduplicar por contenido normalizado
+            key = re.sub(r'\s+', ' ', rule_stripped.lower())
+            if key in seen:
+                removed_r += 1
+                continue
+            seen.add(key)
+            clean_rules.append(rule_stripped)
 
-    if removed_r:
-        warnings.append(f"Knowledge: {removed_r} reglas corruptas o duplicadas eliminadas")
+        if len(clean_rules) > MAX_KNOWLEDGE_RULES:
+            excess      = len(clean_rules) - MAX_KNOWLEDGE_RULES
+            clean_rules = clean_rules[excess:]
+            warnings.append(f"Knowledge: {excess} reglas antiguas eliminadas (límite {MAX_KNOWLEDGE_RULES})")
 
-    data["persistent_rules"] = clean_rules
-    return data, warnings
+        if removed_r:
+            warnings.append(f"Knowledge: {removed_r} reglas corruptas o duplicadas eliminadas")
+
+        data["persistent_rules"] = clean_rules
+        return data, warnings
 
 
 def save_knowledge(path: str, data: dict) -> tuple[bool, list[str]]:
     """
-    Valida y guarda knowledge de forma atómica (.tmp → rename).
-    Previene corrupción por escritura interrumpida.
+    Valida y guarda knowledge de forma atómica y thread-safe (.tmp → rename)
+    sincronizado bajo el cerrojo global de Gravity Brain.
+    
     Retorna (exito, warnings).
     """
+    try:
+        from core.gravity_brain import _brain_lock
+    except ImportError:
+        _brain_lock = None
+
     warnings = []
 
     # Validación mínima antes de escribir
@@ -282,20 +301,23 @@ def save_knowledge(path: str, data: dict) -> tuple[bool, list[str]]:
         warnings.append("persistent_rules no era lista — reseteado a []")
         data = {**data, "persistent_rules": []}
 
-    tmp_path = path + ".tmp"
-    try:
-        with open(tmp_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-        os.replace(tmp_path, path)
-        return True, warnings
-    except Exception as e:
-        warnings.append(f"Error escribiendo knowledge: {e}")
-        if os.path.exists(tmp_path):
-            try:
-                os.unlink(tmp_path)
-            except Exception:
-                pass
-        return False, warnings
+    lock_context = _brain_lock if _brain_lock else threading.Lock()
+
+    with lock_context:
+        tmp_path = path + ".tmp"
+        try:
+            with open(tmp_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            os.replace(tmp_path, path)
+            return True, warnings
+        except Exception as e:
+            warnings.append(f"Error escribiendo knowledge: {e}")
+            if os.path.exists(tmp_path):
+                try:
+                    os.unlink(tmp_path)
+                except Exception:
+                    pass
+            return False, warnings
 
 
 
@@ -304,103 +326,118 @@ def save_knowledge(path: str, data: dict) -> tuple[bool, list[str]]:
 
 def _audit_log_has_corruption(path: str) -> bool:
     """
-    Comprobación RÁPIDA de integridad del audit log.
+    Comprobación RÁPIDA de integridad del audit log de forma sincronizada con el AuditLogger.
     Verifica solo la última línea no vacía.
     O(1) en lugar de O(n). Solo si hay problema real se llama repair_audit_log.
     """
     try:
-        size_mb = os.path.getsize(path) / (1024 * 1024)
-        if size_mb > MAX_AUDIT_FILE_MB:
-            return True  # Necesita rotación
+        from core.audit_log import audit_logger
+        lock_context = audit_logger._lock
+    except ImportError:
+        lock_context = threading.Lock()
 
-        # Leer solo el final del archivo (últimos 4KB)
-        with open(path, "rb") as f:
-            f.seek(max(0, os.path.getsize(path) - 4096))
-            tail = f.read().decode("utf-8", errors="replace")
+    with lock_context:
+        try:
+            size_mb = os.path.getsize(path) / (1024 * 1024)
+            if size_mb > MAX_AUDIT_FILE_MB:
+                return True  # Necesita rotación
 
-        lines = [l.strip() for l in tail.splitlines() if l.strip()]
-        if not lines:
-            return False  # Vacío = OK
+            # Leer solo el final del archivo (últimos 4KB)
+            with open(path, "rb") as f:
+                f.seek(max(0, os.path.getsize(path) - 4096))
+                tail = f.read().decode("utf-8", errors="replace")
 
-        last_line = lines[-1]
-        entry = json.loads(last_line)
-        if not isinstance(entry, dict) or "timestamp" not in entry:
-            return True
-        datetime.fromisoformat(entry["timestamp"].replace("Z", "+00:00"))
-        return False  # Última línea válida → asumimos el resto también
-    except Exception:
-        return True  # Cualquier error → marcar como corrupto
+            lines = [l.strip() for l in tail.splitlines() if l.strip()]
+            if not lines:
+                return False  # Vacío = OK
+
+            last_line = lines[-1]
+            entry = json.loads(last_line)
+            if not isinstance(entry, dict) or "timestamp" not in entry:
+                return True
+            datetime.fromisoformat(entry["timestamp"].replace("Z", "+00:00"))
+            return False  # Última línea válida → asumimos el resto también
+        except Exception:
+            return True  # Cualquier error → marcar como corrupto
 
 
 def repair_audit_log(path: str) -> tuple[int, int, list[str]]:
     """
-    Repara _audit_log.jsonl línea a línea.
+    Repara _audit_log.jsonl línea a línea de forma sincronizada y segura frente a concurrencia.
     SOLO llamar cuando _audit_log_has_corruption() retorna True.
     Retorna (lineas_ok, lineas_eliminadas, warnings).
     """
+    try:
+        from core.audit_log import audit_logger
+        lock_context = audit_logger._lock
+    except ImportError:
+        lock_context = threading.Lock()
+
     warnings = []
-    if not os.path.exists(path):
-        return 0, 0, warnings
+    
+    with lock_context:
+        if not os.path.exists(path):
+            return 0, 0, warnings
 
-    size_mb = os.path.getsize(path) / (1024 * 1024)
-    if size_mb > MAX_AUDIT_FILE_MB:
-        backup = _backup(path)
-        warnings.append(
-            f"Audit log ({size_mb:.1f} MB) supera {MAX_AUDIT_FILE_MB} MB. "
-            f"Rotado → {os.path.basename(backup)}"
-        )
-        open(path, "w").close()
-        return 0, 0, warnings
+        size_mb = os.path.getsize(path) / (1024 * 1024)
+        if size_mb > MAX_AUDIT_FILE_MB:
+            backup = _backup(path)
+            warnings.append(
+                f"Audit log ({size_mb:.1f} MB) supera {MAX_AUDIT_FILE_MB} MB. "
+                f"Rotado → {os.path.basename(backup)}"
+            )
+            open(path, "w").close()
+            return 0, 0, warnings
 
-    try:
-        raw = open(path, "r", encoding="utf-8", errors="replace").readlines()
-    except Exception as e:
-        warnings.append(f"No se pudo leer audit_log: {e}")
-        return 0, 0, warnings
-
-    ok_lines      = []
-    removed_count = 0
-
-    for i, line in enumerate(raw):
-        line = line.strip()
-        if not line:
-            continue
         try:
-            entry = json.loads(line)
-            if not isinstance(entry, dict):
-                raise ValueError("No es dict")
-            if "timestamp" not in entry:
-                raise ValueError("Sin timestamp")
-            datetime.fromisoformat(entry["timestamp"].replace("Z", "+00:00"))
-            ok_lines.append(json.dumps(entry, ensure_ascii=False))
+            raw = open(path, "r", encoding="utf-8", errors="replace").readlines()
         except Exception as e:
-            removed_count += 1
-            if removed_count <= 5:
-                warnings.append(f"Audit línea {i+1} eliminada: {str(e)[:60]}")
+            warnings.append(f"No se pudo leer audit_log: {e}")
+            return 0, 0, warnings
 
-    if len(ok_lines) > MAX_AUDIT_LINES:
-        excess   = len(ok_lines) - MAX_AUDIT_LINES
-        ok_lines = ok_lines[excess:]
-        warnings.append(f"Audit: {excess} entradas antiguas descartadas (límite {MAX_AUDIT_LINES:,})")
+        ok_lines      = []
+        removed_count = 0
 
-    if removed_count > 0:
-        backup = _backup(path)
-        if backup:
-            warnings.append(f"Audit backup creado: {os.path.basename(backup)}")
+        for i, line in enumerate(raw):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+                if not isinstance(entry, dict):
+                    raise ValueError("No es dict")
+                if "timestamp" not in entry:
+                    raise ValueError("Sin timestamp")
+                datetime.fromisoformat(entry["timestamp"].replace("Z", "+00:00"))
+                ok_lines.append(json.dumps(entry, ensure_ascii=False))
+            except Exception as e:
+                removed_count += 1
+                if removed_count <= 5:
+                    warnings.append(f"Audit línea {i+1} eliminada: {str(e)[:60]}")
 
-    tmp = path + ".tmp"
-    try:
-        with open(tmp, "w", encoding="utf-8") as f:
-            f.write("\n".join(ok_lines))
-            if ok_lines:
-                f.write("\n")
-        os.replace(tmp, path)
-    except Exception as e:
-        warnings.append(f"No se pudo escribir audit reparado: {e}")
-        if os.path.exists(tmp):
-            os.unlink(tmp)
+        if len(ok_lines) > MAX_AUDIT_LINES:
+            excess   = len(ok_lines) - MAX_AUDIT_LINES
+            ok_lines = ok_lines[excess:]
+            warnings.append(f"Audit: {excess} entradas antiguas descartadas (límite {MAX_AUDIT_LINES:,})")
 
-    return len(ok_lines), removed_count, warnings
+        if removed_count > 0:
+            backup = _backup(path)
+            if backup:
+                warnings.append(f"Audit backup creado: {os.path.basename(backup)}")
+
+        tmp = path + ".tmp"
+        try:
+            with open(tmp, "w", encoding="utf-8") as f:
+                f.write("\n".join(ok_lines))
+                if ok_lines:
+                    f.write("\n")
+            os.replace(tmp, path)
+        except Exception as e:
+            warnings.append(f"No se pudo escribir audit reparado: {e}")
+            if os.path.exists(tmp):
+                os.unlink(tmp)
+
+        return len(ok_lines), removed_count, warnings
 
 
 # ── Startup Check ─────────────────────────────────────────────────────────────

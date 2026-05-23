@@ -1,3 +1,10 @@
+import subprocess
+import os
+
+# Asegurar compatibilidad multiplataforma en subprocesos Unix (Linux/macOS)
+if not hasattr(subprocess, "CREATE_NO_WINDOW"):
+    setattr(subprocess, "CREATE_NO_WINDOW", 0)
+
 from core.video.pipeline import (
     add_job,
     get_queue_status,

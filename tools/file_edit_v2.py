@@ -9,20 +9,30 @@ from typing import Optional
 from .base_tool import Tool, ToolResult
 
 
+from typing import Optional, Any, Tuple
+
+
 class FileEditV2(Tool):
-    name = "file_edit"
-    description = (
+    """
+    Realiza cambios quirúrgicos de reemplazo de texto exacto sobre archivos en disco.
+    Inspirado en el algoritmo quirúrgico de Claude Code (FileEditTool) con normalización inteligente.
+    """
+    name: str = "file_edit"
+    description: str = (
         "Realiza cambios quirúrgicos en un archivo reemplazando un bloque exacto de texto. "
         "Requiere el bloque original ('old_string') y el nuevo ('new_string')."
     )
-    requires_confirmation = True
+    requires_confirmation: bool = True
 
     def execute(self, 
                 target_file: str, 
                 old_string: str, 
                 new_string: str, 
-                replace_all: bool = False) -> ToolResult:
-        
+                replace_all: bool = False,
+                **kwargs: Any) -> ToolResult:
+        """
+        Ejecuta un reemplazo exacto del bloque provisto en el archivo especificado.
+        """
         # 1. Validación de existencia
         if not os.path.exists(target_file):
             return ToolResult(success=False, stderr=f"Archivo no encontrado: {target_file}")
@@ -50,7 +60,6 @@ class FileEditV2(Tool):
                 occurrences = content_norm.count(old_norm)
                 if occurrences > 0:
                     # Si funcionó con normalización, debemos trabajar sobre el contenido normalizado
-                    # o mapear índices. Para simplificar esta v1, usaremos la normalización literal.
                     content = content_norm
                     old_normalized = old_norm
 
@@ -94,7 +103,7 @@ class FileEditV2(Tool):
         except Exception as e:
             return ToolResult(success=False, stderr=f"Error en la edición: {str(e)}")
 
-    def _normalize_quotes(self, text: str, target: str):
+    def _normalize_quotes(self, text: str, target: str) -> Tuple[str, str]:
         """Traduce comillas tipográficas a neutras para facilitar el match."""
         mapping = {
             '“': '"', '”': '"', '‘': "'", '’': "'",

@@ -10,6 +10,18 @@ from abc import ABC, abstractmethod
 from typing import Generator, Optional
 
 
+"""
+╔══════════════════════════════════════════════════════════════╗
+║     GRAVITY AI — PROVIDER BASE CLASSES V13.0 PRO                  ║
+║     ProviderResult + ProviderPlugin ABC                      ║
+╚══════════════════════════════════════════════════════════════╝
+All providers (local and cloud) implement ProviderPlugin.
+"""
+
+from abc import ABC, abstractmethod
+from typing import Generator, Optional, Any, Dict, List
+
+
 # ── Unified scan result ───────────────────────────────────────────────────────
 
 class ProviderResult:
@@ -24,20 +36,20 @@ class ProviderResult:
         "requires_key", "key_configured",
     )
 
-    def __init__(self, name: str, url: str, protocol: str, category: str = "local"):
-        self.name                     = name
-        self.url                      = url
-        self.protocol                 = protocol
-        self.category                 = category  # "local" | "cloud"
-        self.is_healthy               = False
-        self.models: list[dict]       = []        # [{"name": str, "size": int}]
-        self.active_model: str | None = None
-        self.response_ms: int         = 0
-        self.supports_vision          = False
-        self.supports_function_calling = False
-        self.max_context              = 131072
-        self.requires_key             = False
-        self.key_configured           = False
+    def __init__(self, name: str, url: str, protocol: str, category: str = "local") -> None:
+        self.name: str                     = name
+        self.url: str                      = url
+        self.protocol: str                 = protocol
+        self.category: str                 = category  # "local" | "cloud"
+        self.is_healthy: bool              = False
+        self.models: List[Dict[str, Any]]  = []        # [{"name": str, "size": int}]
+        self.active_model: Optional[str]   = None
+        self.response_ms: int              = 0
+        self.supports_vision: bool         = False
+        self.supports_function_calling: bool = False
+        self.max_context: int              = 131072
+        self.requires_key: bool            = False
+        self.key_configured: bool          = False
 
     # ── Backwards-compat properties (used by health_check.py, watchdog) ──────
     @property
@@ -89,9 +101,9 @@ class ProviderPlugin(ABC):
     @abstractmethod
     def chat_stream(
         self,
-        messages: list[dict],
+        messages: List[Dict[str, Any]],
         model:    str,
-        options:  dict,
+        options:  Dict[str, Any],
     ) -> Generator[str, None, None]:
         """
         Streaming chat.
@@ -102,9 +114,9 @@ class ProviderPlugin(ABC):
     @abstractmethod
     def chat_complete(
         self,
-        messages: list[dict],
+        messages: List[Dict[str, Any]],
         model:    str,
-        options:  dict,
+        options:  Dict[str, Any],
     ) -> str:
         """
         Non-streaming chat. Returns the full response as a string.
@@ -114,10 +126,10 @@ class ProviderPlugin(ABC):
 
     def chat_stream_with_images(
         self,
-        messages:    list[dict],
+        messages:    List[Dict[str, Any]],
         model:       str,
-        options:     dict,
-        image_paths: list[str],
+        options:     Dict[str, Any],
+        image_paths: List[str],
     ) -> Generator[str, None, None]:
         """
         Vision-capable streaming. Default falls back to text-only.
@@ -133,7 +145,7 @@ class ProviderPlugin(ABC):
         """
         return True
 
-    def get_cost_per_million_tokens(self, model: str) -> dict:
+    def get_cost_per_million_tokens(self, model: str) -> Dict[str, float]:
         """
         Token pricing in USD per 1 million tokens.
         Returns {"input": 0.0, "output": 0.0}.
@@ -164,3 +176,4 @@ class ProviderPlugin(ABC):
         r.max_context                  = self.default_context
         r.requires_key                 = self.requires_key
         return r
+

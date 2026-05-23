@@ -164,7 +164,19 @@ def build_animation_vf(
 # ── Implementaciones de cada efecto ──────────────────────────────────────────
 
 def _build_kenburns(total_frames: int, w: int, h: int, fps: int, scene_idx: int) -> str:
-    """Ken Burns extendido con 6 variantes rotativas."""
+    """
+    Genera un filtro zoompan de FFmpeg para el efecto Ken Burns (Zoom + Pan).
+    
+    Args:
+        total_frames: Cantidad total de frames del fragmento de video.
+        w: Ancho de resolución objetivo.
+        h: Alto de resolución objetivo.
+        fps: Tasa de fotogramas por segundo.
+        scene_idx: Índice numérico de la escena para variar el patrón.
+
+    Returns:
+        Cadena formateada con la cláusula zoompan para FFmpeg.
+    """
     variant_fn = _KB_VARIANTS[scene_idx % len(_KB_VARIANTS)]
     z, x, y = variant_fn(total_frames, w, h)
     return (
@@ -176,10 +188,18 @@ def _build_kenburns(total_frames: int, w: int, h: int, fps: int, scene_idx: int)
 
 def _build_pulse(total_frames: int, w: int, h: int, fps: int, clip_dur: float) -> str:
     """
-    Efecto de respiración: zoom oscilante sinusoidal suave.
-    Escala entre 1.0 y 1.06 con período de ~4s.
+    Genera un filtro zoompan de respiración sinusoidal lenta (Zoom pulsante).
+    
+    Args:
+        total_frames: Cantidad total de frames del fragmento de video.
+        w: Ancho de resolución objetivo.
+        h: Alto de resolución objetivo.
+        fps: Tasa de fotogramas por segundo.
+        clip_dur: Duración en segundos del clip.
+
+    Returns:
+        Cadena formateada con el zoompan oscilante.
     """
-    # zoompan con zoom = 1.03 + 0.03*sin(on/fps * 2*pi/period)
     period = min(clip_dur, 4.0)  # período en segundos
     frames_per_period = max(1, int(period * fps))
     zoom_expr = f"1.03+0.03*sin(2*PI*on/{frames_per_period})"
@@ -192,9 +212,17 @@ def _build_pulse(total_frames: int, w: int, h: int, fps: int, clip_dur: float) -
 
 def _build_vignette_drift(total_frames: int, w: int, h: int, fps: int, scene_idx: int) -> str:
     """
-    Deriva lenta de cámara + viñeta. Pan horizontal sutil.
-    Alternado entre izquierda y derecha según escena_idx.
-    Implementado con zoompan (variable 'on' disponible) en lugar de crop.
+    Genera una deriva sutil y lenta de cámara combinada con una viñeta dramática.
+    
+    Args:
+        total_frames: Cantidad total de frames del fragmento de video.
+        w: Ancho de resolución objetivo.
+        h: Alto de resolución objetivo.
+        fps: Tasa de fotogramas por segundo.
+        scene_idx: Índice numérico de la escena para alternar la dirección.
+
+    Returns:
+        Filtro FFmpeg concatenado de zoompan y viñeta.
     """
     direction = 1 if scene_idx % 2 == 0 else -1
     # Pan de 3% del ancho a lo largo del clip
@@ -209,10 +237,18 @@ def _build_vignette_drift(total_frames: int, w: int, h: int, fps: int, scene_idx
 
 def _build_glitch(total_frames: int, w: int, h: int, fps: int, clip_dur: float) -> str:
     """
-    Efecto glitch: desfase de canales RGB + grano digital intermitente.
-    Sutil: rgbashift limitado para no romper la composición.
+    Genera un filtro de glitch analógico intermitente con RGB Shift y ruido digital.
+    
+    Args:
+        total_frames: Cantidad total de frames del fragmento de video.
+        w: Ancho de resolución objetivo.
+        h: Alto de resolución objetivo.
+        fps: Tasa de fotogramas por segundo.
+        clip_dur: Duración total en segundos.
+
+    Returns:
+        Cadena de filtros encadenados (scale, pad, fps, rgbashift, noise).
     """
-    # rgbashift: desplaza R y B levemente, independiente
     return (
         f"scale={w}:{h}:force_original_aspect_ratio=decrease,"
         f"pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:black,"
@@ -224,7 +260,17 @@ def _build_glitch(total_frames: int, w: int, h: int, fps: int, clip_dur: float) 
 
 def _build_film_burn(total_frames: int, w: int, h: int, fps: int, clip_dur: float) -> str:
     """
-    Quemado de película analógico: fade-in con overexposición + grano.
+    Simula una transición de quemado de película clásica con curvas vintage, grano y destellos.
+    
+    Args:
+        total_frames: Cantidad total de frames del fragmento de video.
+        w: Ancho de resolución objetivo.
+        h: Alto de resolución objetivo.
+        fps: Tasa de fotogramas por segundo.
+        clip_dur: Duración en segundos.
+
+    Returns:
+        Cadena de filtros encadenados (vintage curves, noise, fade in blanco).
     """
     burn_frames = min(int(fps * 1.5), total_frames // 3)
     return (
@@ -239,16 +285,23 @@ def _build_film_burn(total_frames: int, w: int, h: int, fps: int, clip_dur: floa
 
 def _build_shake(total_frames: int, w: int, h: int, fps: int, scene_idx: int) -> str:
     """
-    Temblor de cámara handheld: crop con offset sinusoidal en X e Y.
-    Intensidad moderada para no marear.
-    Usa 'n' (frame number en filtro crop) en lugar de 'on' (exclusivo de zoompan).
+    Produce un temblor de cámara simulado (estilo cámara en mano o handheld) con margen de re-encuadre.
+    
+    Args:
+        total_frames: Cantidad total de frames del fragmento de video.
+        w: Ancho de resolución objetivo.
+        h: Alto de resolución objetivo.
+        fps: Tasa de fotogramas por segundo.
+        scene_idx: Índice numérico de la escena.
+
+    Returns:
+        Cadena de filtros de sobreescala, recorte dinámico y FPS.
     """
     shake_px = max(4, min(12, w // 100))  # 1% del ancho, mín 4px, máx 12px
     freq = 3.5  # Hz de vibración
     frames_per_cycle = max(1, int(fps / freq))
     # Pad para dar margen al shake
     pad = shake_px * 2
-    # 'n' es el número de frame en el filtro crop (equivalente a 'on' en zoompan)
     x_expr = f"({shake_px}*sin(2*PI*n/{frames_per_cycle}))+{shake_px}"
     y_expr = f"({shake_px // 2}*cos(2*PI*n/{frames_per_cycle}))+{shake_px // 2}"
     return (
@@ -260,11 +313,15 @@ def _build_shake(total_frames: int, w: int, h: int, fps: int, scene_idx: int) ->
 
 def _build_tilt_shift(w: int, h: int, fps: int) -> str:
     """
-    Tilt-Shift simplificado: desenfoque suave en toda la imagen
-    + vignette para reforzar el efecto de profundidad de campo.
-    La implementación con split/overlay requiere alphamerge que no está
-    disponible en todos los builds de FFmpeg, por lo que usamos
-    boxblur leve + vignette como aproximación segura y universal.
+    Simula el efecto óptico Tilt-Shift (profundidad de campo miniatura) mediante boxblur y viñeta.
+    
+    Args:
+        w: Ancho de resolución objetivo.
+        h: Alto de resolución objetivo.
+        fps: Tasa de fotogramas por segundo.
+
+    Returns:
+        Cadena de filtros seguros y de compatibilidad universal.
     """
     return (
         f"scale={w}:{h}:force_original_aspect_ratio=decrease,"
@@ -277,9 +334,17 @@ def _build_tilt_shift(w: int, h: int, fps: int) -> str:
 
 def _build_parallax(total_frames: int, w: int, h: int, fps: int, scene_idx: int) -> str:
     """
-    Parallax simulado: escala la imagen más de lo necesario y hace
-    pan en dirección opuesta a velocidad mayor (simula profundidad).
-    Usa 'n' (frame number en filtro crop) en lugar de 'on' (exclusivo de zoompan).
+    Simula profundidad espacial parallax aumentando levemente la escala y desplazando en sentido opuesto.
+    
+    Args:
+        total_frames: Cantidad total de frames del fragmento de video.
+        w: Ancho de resolución objetivo.
+        h: Alto de resolución objetivo.
+        fps: Tasa de fotogramas por segundo.
+        scene_idx: Índice numérico de la escena.
+
+    Returns:
+        Cadena de filtros de escala y recorte en movimiento.
     """
     direction = 1 if scene_idx % 2 == 0 else -1
     scale_factor = 1.25
@@ -289,7 +354,6 @@ def _build_parallax(total_frames: int, w: int, h: int, fps: int, scene_idx: int)
     x_offset = (sw - w) // 2
     y_offset = (sh - h) // 2
     pan_px = int(sw * pan_pct)
-    # 'n' es el número de frame en el filtro crop (correcto)
     x_expr = f"{x_offset}+({direction}*{pan_px}*n/{total_frames})"
     return (
         f"scale={sw}:{sh}:force_original_aspect_ratio=increase,"
@@ -309,11 +373,19 @@ def animate_with_comfyui(
     output_dir: str = "",
 ) -> Optional[str]:
     """
-    Intenta generar un clip MP4 animado a partir de una imagen usando
-    ComfyUI con el workflow Image-to-Video (LTX-Video).
+    Genera un clip MP4 animado a partir de una imagen estática usando ComfyUI (Image-to-Video).
+    Utiliza el ConfigManager global para un acceso seguro y concurrente a la configuración.
+    
+    Args:
+        image_path: Ruta a la imagen fuente en disco.
+        job_id: Identificador único del trabajo de renderización.
+        scene_idx: Índice relativo de la escena.
+        fps: Tasa de fotogramas por segundo a renderizar.
+        frames: Cantidad total de fotogramas a animar.
+        output_dir: Directorio de salida opcional.
 
     Returns:
-        Ruta al archivo MP4 generado, o None si falla (pipeline hace fallback a L1).
+        Ruta absoluta al archivo de video generado (.mp4), o None si falla.
     """
     if not image_path or not os.path.isfile(image_path):
         return None
@@ -329,17 +401,16 @@ def animate_with_comfyui(
         
         host, port = "127.0.0.1", 8188
         try:
-            import yaml
-            with open(os.path.join(_base, "config.yaml"), "r", encoding="utf-8") as f:
-                _cfg = yaml.safe_load(f) or {}
-                _c_url = _cfg.get("comfyui", {}).get("url", "http://127.0.0.1:8188")
-                if "://" in _c_url:
-                    _c_url = _c_url.split("://")[1]
-                if ":" in _c_url:
-                    host, port_str = _c_url.split(":")
-                    port = int(port_str)
-                else:
-                    host = _c_url
+            # Consumo thread-safe y centralizado mediante el ConfigManager global
+            from core.config_manager import config as _sys_config
+            _c_url = _sys_config.get("comfyui.url", "http://127.0.0.1:8188")
+            if "://" in _c_url:
+                _c_url = _c_url.split("://")[1]
+            if ":" in _c_url:
+                host, port_str = _c_url.split(":")
+                port = int(port_str)
+            else:
+                host = _c_url
         except Exception:
             pass
 
@@ -401,14 +472,15 @@ def animate_with_comfyui(
         with open(out_path, "wb") as f:
             f.write(file_bytes)
 
-        # Si el output es WEBP animado, convertir a MP4 via FFmpeg
-        # Usar el mismo FFMPEG_EXE que define el pipeline principal
+        # Si el output es WEBP animado, convertir a MP4 via FFmpeg (con fallback a PIL para decodificar frames si falla)
         _ffmpeg = os.path.join(_base, "_integrations", "ffmpeg", "ffmpeg.exe")
         if not os.path.isfile(_ffmpeg):
-            # Fallback: ffmpeg en PATH del sistema
             _ffmpeg = "ffmpeg"
+            
         if out_ext.lower() in (".webp", ".gif"):
             mp4_path = out_path.replace(out_ext, ".mp4")
+            
+            # 1. Intentar conversión directa
             cmd = [
                 _ffmpeg, "-y",
                 "-i", out_path,
@@ -417,16 +489,66 @@ def animate_with_comfyui(
                 mp4_path,
             ]
             try:
-                r = subprocess.run(cmd, capture_output=True, timeout=60,
-                                   creationflags=subprocess.CREATE_NO_WINDOW)
-                if r.returncode == 0 and os.path.isfile(mp4_path):
+                extra_kwargs = {}
+                if os.name == "nt":
+                    creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+                    extra_kwargs["creationflags"] = creationflags
+
+                r = subprocess.run(cmd, capture_output=True, timeout=60, **extra_kwargs)
+                if r.returncode == 0 and os.path.isfile(mp4_path) and os.path.getsize(mp4_path) > 0:
                     os.remove(out_path)
                     return mp4_path
             except Exception:
                 pass
+                
+            # 2. Fallback: Desempaquetar frames de WebP usando PIL y recomponer con FFmpeg
+            # Inmuniza al sistema de limitaciones de decodificación nativa de WebP en FFmpeg
+            try:
+                import tempfile
+                import shutil
+                from PIL import Image
+                
+                temp_dir = tempfile.mkdtemp(prefix="webp_conv_")
+                try:
+                    with Image.open(out_path) as img:
+                        frame_idx = 0
+                        while True:
+                            frame_path = os.path.join(temp_dir, f"frame_{frame_idx:05d}.png")
+                            rgb_img = img.convert("RGB")
+                            rgb_img.save(frame_path, "PNG")
+                            frame_idx += 1
+                            try:
+                                img.seek(frame_idx)
+                            except EOFError:
+                                break
+                    
+                    cmd_seq = [
+                        _ffmpeg, "-y",
+                        "-r", str(fps),
+                        "-i", os.path.join(temp_dir, "frame_%05d.png"),
+                        "-c:v", "libx264", "-preset", "fast",
+                        "-pix_fmt", "yuv420p",
+                        mp4_path
+                    ]
+                    
+                    extra_kwargs = {}
+                    if os.name == "nt":
+                        creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+                        extra_kwargs["creationflags"] = creationflags
+
+                    r_seq = subprocess.run(cmd_seq, capture_output=True, timeout=60, **extra_kwargs)
+                    if r_seq.returncode == 0 and os.path.isfile(mp4_path) and os.path.getsize(mp4_path) > 0:
+                        os.remove(out_path)
+                        return mp4_path
+                finally:
+                    shutil.rmtree(temp_dir, ignore_errors=True)
+            except Exception as e:
+                log.error(f"[Animation Engine] WebP to MP4 PIL fallback failed: {e}")
+
             return out_path
 
         return out_path
 
     except Exception:
         return None
+

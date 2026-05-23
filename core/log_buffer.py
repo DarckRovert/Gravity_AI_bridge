@@ -1,28 +1,29 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — LOG BUFFER V15.0 PRO                                               ║
-║  Módulo extraído de game_server_manager.py (BUG-punto 4 del plan)            ║
+║  GRAVITY AI — LOG BUFFER V15.0 PRO [Diamond-Tier Edition]                    ║
+║  Módulo extraído de game_server_manager.py (Exclusión Mutua Segura)          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 Responsabilidad única: buffer circular de logs de stdout de procesos externos.
-Thread-safe. Soporta múltiples fuentes por server_id.
+Thread-safe de alta concurrencia. Soporta múltiples fuentes por server_id.
 """
 
 import threading
 import subprocess
 from collections import deque
-from typing import Optional
+from typing import Optional, Dict, List, Any
 
-_lock    = threading.Lock()
-_buffers: dict[str, deque] = {}   # {server_id: deque(maxlen=500)}
+# Cerrojo reentrante global para protección multihilo concurrente
+_lock: threading.RLock = threading.RLock()
+_buffers: Dict[str, deque[str]] = {}   # {server_id: deque(maxlen=500)}
 
-BUFFER_SIZE = 500  # líneas por servidor
+BUFFER_SIZE: int = 500  # líneas por servidor
 
 
 # ── Gestión de buffers ────────────────────────────────────────────────────────
 
-def get_buffer(server_id: str) -> deque:
-    """Obtiene (o crea) el buffer circular de un servidor."""
+def get_buffer(server_id: str) -> deque[str]:
+    """Obtiene (o crea) el buffer circular de un servidor de forma thread-safe."""
     with _lock:
         if server_id not in _buffers:
             _buffers[server_id] = deque(maxlen=BUFFER_SIZE)
@@ -30,14 +31,14 @@ def get_buffer(server_id: str) -> deque:
 
 
 def clear_buffer(server_id: str) -> None:
-    """Vacía el buffer de un servidor."""
+    """Vacía el buffer de un servidor de forma thread-safe."""
     with _lock:
         if server_id in _buffers:
             _buffers[server_id].clear()
 
 
-def get_lines(server_id: str, n: int = 100) -> list[str]:
-    """Devuelve las últimas n líneas del buffer de un servidor."""
+def get_lines(server_id: str, n: int = 100) -> List[str]:
+    """Devuelve las últimas n líneas del buffer de un servidor de forma thread-safe."""
     with _lock:
         buf = _buffers.get(server_id)
         if not buf:
@@ -69,7 +70,7 @@ def start_reader(
     Returns:
         El thread iniciado.
     """
-    buf = get_buffer(server_id)
+    buf: deque[str] = get_buffer(server_id)
 
     def _reader() -> None:
         try:
@@ -96,6 +97,7 @@ def start_reader(
 
 
 def init_server_buffer(server_id: str) -> None:
-    """Inicializa (o resetea) el buffer de un servidor antes de arrancar."""
+    """Inicializa (o resetea) el buffer de un servidor antes de arrancar de forma thread-safe."""
     with _lock:
         _buffers[server_id] = deque(maxlen=BUFFER_SIZE)
+

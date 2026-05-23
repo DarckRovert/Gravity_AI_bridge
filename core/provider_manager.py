@@ -7,16 +7,33 @@
 
 import time
 import threading
-from typing import Generator
+import json as _j
+import os as _os
+from typing import Generator, List, Dict, Tuple, Optional, Any
 
 from providers.registry import ProviderRegistry
 from providers.base     import ProviderPlugin, ProviderResult
 
-_lock              = threading.Lock()
-_cached_results:   list[ProviderResult]  = []
-_cached_plugins:   dict[str, ProviderPlugin] = {}  # name → plugin
+_lock              = threading.RLock()
+_cached_results:   List[ProviderResult]  = []
+_cached_plugins:   Dict[str, ProviderPlugin] = {}  # name → plugin
 _last_scan_time:   float = 0.0
 _SCAN_TTL:         float = 30.0   # seconds before re-scanning
+
+
+def _load_settings() -> Dict[str, Any]:
+    """Reads settings from _settings.json thread-safely."""
+    with _lock:
+        try:
+            _base = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
+            settings_path = _os.path.join(_base, "_settings.json")
+            if not _os.path.exists(settings_path):
+                return {}
+            with open(settings_path, "r", encoding="utf-8") as _f:
+                data = _j.load(_f)
+                return data if isinstance(data, dict) else {}
+        except Exception:
+            return {}
 
 
 def _score_provider(result: ProviderResult, task: str) -> float:
@@ -67,7 +84,7 @@ def _score_provider(result: ProviderResult, task: str) -> float:
 
 # ── Public API ─────────────────────────────────────────────────────────────────
 
-def scan_all(force: bool = False) -> list[ProviderResult]:
+def scan_all(force: bool = False) -> List[ProviderResult]:
     """
     Returns a list of ProviderResult for all known plugins.
     Results are cached for _SCAN_TTL seconds.
@@ -103,7 +120,7 @@ def scan_all(force: bool = False) -> list[ProviderResult]:
                     key_configured=False,
                 )
 
-        results: list[ProviderResult] = []
+        results: List[ProviderResult] = []
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=min(len(plugins), 8), thread_name_prefix="GravityScan"
         ) as ex:
@@ -133,7 +150,7 @@ def scan_all(force: bool = False) -> list[ProviderResult]:
     return _cached_results
 
 
-def get_best(task: str = "any") -> tuple[ProviderResult | None, str | None]:
+def get_best(task: str = "any") -> Tuple[Optional[ProviderResult], Optional[str]]:
     """
     Returns (ProviderResult, model_name) of the best provider for the task.
     Local-first. If all local providers are offline, promotes cloud.
@@ -141,11 +158,7 @@ def get_best(task: str = "any") -> tuple[ProviderResult | None, str | None]:
     """
     # Si hay bloqueo global de modelo activo, lo honramos inmediatamente
     try:
-        import json as _j
-        import os as _os
-        _base = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
-        with open(_os.path.join(_base, "_settings.json"), "r", encoding="utf-8") as _f:
-            _settings = _j.load(_f)
+        _settings = _load_settings()
         if _settings.get("model_locked", False):
             locked_p = _settings.get("locked_provider")
             locked_m = _settings.get("locked_model")
@@ -172,13 +185,14 @@ def get_best(task: str = "any") -> tuple[ProviderResult | None, str | None]:
     return best, model
 
 
-def get_plugin(name: str) -> ProviderPlugin | None:
+def get_plugin(name: str) -> Optional[ProviderPlugin]:
     """Returns the ProviderPlugin instance for a given provider name."""
     scan_all()
-    return _cached_plugins.get(name)
+    with _lock:
+        return _cached_plugins.get(name)
 
 
-def get_active_plugin() -> ProviderPlugin | None:
+def get_active_plugin() -> Optional[ProviderPlugin]:
     """Returns the plugin for the currently best provider."""
     result, _ = get_best()
     if result:
@@ -186,20 +200,20 @@ def get_active_plugin() -> ProviderPlugin | None:
     return None
 
 
-def get_all_model_names() -> dict[str, list[str]]:
+def get_all_model_names() -> Dict[str, List[str]]:
     """Returns {provider_name: [model_names]} for all healthy providers."""
     results = scan_all()
-    out     = {}
+    out: Dict[str, List[str]] = {}
     for r in results:
         if r.is_healthy and r.models:
             out[r.name] = [m["name"] for m in r.models]
     return out
 
 
-def get_flat_model_list() -> list[str]:
+def get_flat_model_list() -> List[str]:
     """Returns a flat deduplicated list of all available model names."""
-    all_models = []
-    seen       = set()
+    all_models: List[str] = []
+    seen = set()
     for models in get_all_model_names().values():
         for m in models:
             if m not in seen:
@@ -209,11 +223,11 @@ def get_flat_model_list() -> list[str]:
 
 
 def stream(
-    messages: list[dict],
-    model:    str | None    = None,
-    provider: str | None    = None,
-    options:  dict | None   = None,
-    task:     str           = "any",
+    messages: List[Dict[str, Any]],
+    model:    Optional[str]  = None,
+    provider: Optional[str]  = None,
+    options:  Optional[Dict[str, Any]] = None,
+    task:     str            = "any",
 ) -> Generator[str, None, None]:
     """
     Universal streaming interface.
@@ -224,11 +238,7 @@ def stream(
     # Honor global model lock from _settings.json if not explicitly overridden by calling function
     if not provider and not model:
         try:
-            import json as _j
-            import os as _os
-            _base = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
-            with open(_os.path.join(_base, "_settings.json"), "r", encoding="utf-8") as _f:
-                _settings = _j.load(_f)
+            _settings = _load_settings()
             if _settings.get("model_locked", False):
                 locked_p = _settings.get("locked_provider")
                 locked_m = _settings.get("locked_model")
@@ -258,11 +268,11 @@ def stream(
 
 
 def complete(
-    messages: list[dict],
-    model:    str | None  = None,
-    provider: str | None  = None,
-    options:  dict | None = None,
-    task:     str         = "any",
+    messages: List[Dict[str, Any]],
+    model:    Optional[str]  = None,
+    provider: Optional[str]  = None,
+    options:  Optional[Dict[str, Any]] = None,
+    task:     str            = "any",
 ) -> str:
     """Universal non-streaming chat completion."""
     chunks = list(stream(messages, model, provider, options, task))
@@ -291,3 +301,4 @@ if __name__ == "__main__":
     best_r, best_m = get_best()
     if best_r:
         print(f"\n  Best: {best_r.name} / {best_m}")
+

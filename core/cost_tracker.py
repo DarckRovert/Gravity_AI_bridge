@@ -10,39 +10,48 @@ import os
 import time
 import threading
 from datetime import date
+from typing import Dict, Tuple, Any, Optional
 
 # Subimos un nivel para que la base sea la raíz de F:\Gravity_AI_bridge
 BASE_DIR        = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 COST_LOG_FILE   = os.path.join(BASE_DIR, "_cost_log.json")
 SETTINGS_FILE   = os.path.join(BASE_DIR, "_settings.json")
 
-_lock           = threading.Lock()
-_session_cost   = 0.0
-_session_tokens = {"input": 0, "output": 0}
+_lock           = threading.RLock()
+_session_cost   : float = 0.0
+_session_tokens : Dict[str, int] = {"input": 0, "output": 0}
 
 
-def _load_log() -> dict:
-    try:
-        with open(COST_LOG_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return {}
+def _load_log() -> Dict[str, Any]:
+    with _lock:
+        try:
+            if not os.path.exists(COST_LOG_FILE):
+                return {}
+            with open(COST_LOG_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data if isinstance(data, dict) else {}
+        except Exception:
+            return {}
 
 
-def _save_log(log: dict) -> None:
-    try:
-        with open(COST_LOG_FILE, "w", encoding="utf-8") as f:
-            json.dump(log, f, indent=2, ensure_ascii=False)
-    except Exception:
-        pass
+def _save_log(log: Dict[str, Any]) -> None:
+    with _lock:
+        try:
+            with open(COST_LOG_FILE, "w", encoding="utf-8") as f:
+                json.dump(log, f, indent=2, ensure_ascii=False)
+        except Exception:
+            pass
 
 
 def _get_daily_limit() -> float:
-    try:
-        with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
-            return float(json.load(f).get("cost_limit_usd", 10.0))
-    except Exception:
-        return 10.0
+    with _lock:
+        try:
+            if not os.path.exists(SETTINGS_FILE):
+                return 10.0
+            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                return float(json.load(f).get("cost_limit_usd", 10.0))
+        except Exception:
+            return 10.0
 
 
 class CostTracker:
@@ -81,40 +90,55 @@ class CostTracker:
 
     @staticmethod
     def get_session_cost() -> float:
-        return _session_cost
+        with _lock:
+            return _session_cost
 
     @staticmethod
-    def get_session_tokens() -> dict:
-        return dict(_session_tokens)
+    def get_session_tokens() -> Dict[str, int]:
+        with _lock:
+            return dict(_session_tokens)
 
     @staticmethod
-    def get_daily_cost(day: str | None = None) -> float:
+    def get_daily_cost(day: Optional[str] = None) -> float:
         today = day or str(date.today())
-        log   = _load_log()
-        return sum(v.get("total_cost", 0.0) for v in log.get(today, {}).values())
+        with _lock:
+            log = _load_log()
+            day_data = log.get(today, {})
+            if not isinstance(day_data, dict):
+                return 0.0
+            return sum(float(v.get("total_cost", 0.0)) for v in day_data.values() if isinstance(v, dict))
 
     @staticmethod
-    def get_daily_breakdown(day: str | None = None) -> dict:
+    def get_daily_breakdown(day: Optional[str] = None) -> Dict[str, Any]:
         today = day or str(date.today())
-        return _load_log().get(today, {})
+        with _lock:
+            log = _load_log()
+            bd = log.get(today, {})
+            return dict(bd) if isinstance(bd, dict) else {}
 
     @staticmethod
-    def check_limit() -> tuple[bool, float]:
+    def check_limit() -> Tuple[bool, float]:
         """Returns (over_limit, daily_cost)."""
-        daily  = CostTracker.get_daily_cost()
-        limit  = _get_daily_limit()
-        return daily >= limit, daily
+        with _lock:
+            daily  = CostTracker.get_daily_cost()
+            limit  = _get_daily_limit()
+            return daily >= limit, daily
 
     @staticmethod
     def set_daily_limit(usd: float) -> None:
-        try:
-            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
-                s = json.load(f)
-            s["cost_limit_usd"] = usd
-            with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
-                json.dump(s, f, indent=4, ensure_ascii=False)
-        except Exception:
-            pass
+        with _lock:
+            try:
+                s = {}
+                if os.path.exists(SETTINGS_FILE):
+                    with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                        s = json.load(f)
+                        if not isinstance(s, dict):
+                            s = {}
+                s["cost_limit_usd"] = usd
+                with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
+                    json.dump(s, f, indent=4, ensure_ascii=False)
+            except Exception:
+                pass
 
     @staticmethod
     def estimate(
@@ -149,18 +173,21 @@ class CostTracker:
     @staticmethod
     def summary_text() -> str:
         """Returns a formatted summary string for display."""
-        session = _session_cost
-        daily   = CostTracker.get_daily_cost()
-        limit   = _get_daily_limit()
-        bd      = CostTracker.get_daily_breakdown()
+        with _lock:
+            session = _session_cost
+            daily   = CostTracker.get_daily_cost()
+            limit   = _get_daily_limit()
+            bd      = CostTracker.get_daily_breakdown()
 
-        lines   = [f"💰 Sesión: ${session:.4f} | Día: ${daily:.4f} / ${limit:.2f}"]
-        if bd:
-            lines.append("")
-            for prov, data in bd.items():
-                lines.append(
-                    f"  {prov:<18} ${data['total_cost']:.4f} "
-                    f"({data['calls']} llamadas | "
-                    f"{data['input_tokens']:,}↓ {data['output_tokens']:,}↑ tokens)"
-                )
-        return "\n".join(lines)
+            lines   = [f"💰 Sesión: ${session:.4f} | Día: ${daily:.4f} / ${limit:.2f}"]
+            if bd:
+                lines.append("")
+                for prov, data in bd.items():
+                    if isinstance(data, dict):
+                        lines.append(
+                            f"  {prov:<18} ${data.get('total_cost', 0.0):.4f} "
+                            f"({data.get('calls', 0)} llamadas | "
+                            f"{data.get('input_tokens', 0):,}↓ {data.get('output_tokens', 0):,}↑ tokens)"
+                        )
+            return "\n".join(lines)
+

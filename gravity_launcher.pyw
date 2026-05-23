@@ -135,8 +135,16 @@ def _already_running() -> bool:
 
 def _write_pid():
     try:
-        with open(PID_FILE, "w") as f:
+        tmp_pid = PID_FILE + ".tmp"
+        with open(tmp_pid, "w") as f:
             f.write(str(os.getpid()))
+        for i in range(5):
+            try:
+                os.replace(tmp_pid, PID_FILE)
+                return
+            except PermissionError:
+                time.sleep(0.05)
+        os.replace(tmp_pid, PID_FILE)
     except Exception:
         pass
 

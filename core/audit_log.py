@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import threading
 from datetime import datetime, timezone
 from collections import deque
 
@@ -15,18 +16,21 @@ class AuditLogger:
     Records: timestamp, session_id, provider, model, tokens, latency, cost.
     V2: Rotación automática cuando el archivo supera MAX_BYTES (5 MB) o MAX_LINES (10k).
     V3: get_recent() optimizado con deque — no carga el archivo completo en memoria.
+    V4: Concurrencia segura mediante un Lock para evitar colisiones al escribir/rotar en disco.
     """
 
     def __init__(self, log_path: str = "_audit_log.jsonl"):
-        # Soportar rutas relativas y absolutas
-        if not os.path.isabs(log_path):
-            self.log_path = os.path.join(BASE_DIR, log_path)
-        else:
-            self.log_path = log_path
-        self._line_count: int = self._count_lines()
+        self._lock = threading.Lock()
+        with self._lock:
+            # Soportar rutas relativas y absolutas
+            if not os.path.isabs(log_path):
+                self.log_path = os.path.join(BASE_DIR, log_path)
+            else:
+                self.log_path = log_path
+            self._line_count: int = self._count_lines_unlocked()
 
-    def _count_lines(self) -> int:
-        """Cuenta líneas del log actual sin cargarlo en memoria."""
+    def _count_lines_unlocked(self) -> int:
+        """Cuenta líneas del log actual sin cargarlo en memoria (no thread-safe, debe llamarse con lock)."""
         if not os.path.isfile(self.log_path):
             return 0
         try:
@@ -38,8 +42,13 @@ class AuditLogger:
         except Exception:
             return 0
 
+    def _count_lines(self) -> int:
+        """Cuenta líneas del log actual sin cargarlo en memoria."""
+        with self._lock:
+            return self._count_lines_unlocked()
+
     def _rotate_if_needed(self) -> None:
-        """Rota el log si supera MAX_BYTES o MAX_LINES."""
+        """Rota el log si supera MAX_BYTES o MAX_LINES (debe llamarse bajo self._lock)."""
         try:
             needs_rotation = False
             if os.path.isfile(self.log_path):
@@ -78,14 +87,15 @@ class AuditLogger:
             "cost_usd":      cost_usd,
         }
 
-        self._rotate_if_needed()
+        with self._lock:
+            self._rotate_if_needed()
 
-        try:
-            with open(self.log_path, "a", encoding="utf-8") as f:
-                f.write(json.dumps(entry) + "\n")
-            self._line_count += 1
-        except Exception:
-            pass  # Silencioso en frozen build — stdout puede no estar disponible
+            try:
+                with open(self.log_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(entry) + "\n")
+                self._line_count += 1
+            except Exception:
+                pass  # Silencioso en frozen build — stdout puede no estar disponible
 
     def get_recent(self, limit: int = 50) -> list:
         """
@@ -93,16 +103,16 @@ class AuditLogger:
         Usa collections.deque para leer únicamente las últimas N líneas
         sin cargar el archivo completo en memoria.
         """
-        if not os.path.exists(self.log_path):
-            return []
+        with self._lock:
+            if not os.path.exists(self.log_path):
+                return []
 
-        try:
-            with open(self.log_path, "r", encoding="utf-8") as f:
-                tail = deque(f, maxlen=limit if limit > 0 else None)
-            return [json.loads(line) for line in tail if line.strip()]
-        except Exception:
-            return []
-
+            try:
+                with open(self.log_path, "r", encoding="utf-8") as f:
+                    tail = deque(f, maxlen=limit if limit > 0 else None)
+                return [json.loads(line) for line in tail if line.strip()]
+            except Exception:
+                return []
 
 # Singleton instance
 audit_logger = AuditLogger()

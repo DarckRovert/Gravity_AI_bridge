@@ -17,137 +17,212 @@ import os
 import json
 import sqlite3
 import threading
+import time
 import urllib.request
 import urllib.parse
 import urllib.error
 from datetime import datetime, date, timezone
-from typing import Optional
+from typing import Optional, Dict, List, Any
 
 from core.logger import log
+from core.config_manager import config as config_manager
 
-BASE_DIR     = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OAUTH_PATH   = os.path.join(BASE_DIR, "_integrations", "youtube_oauth.json")
-QUOTA_PATH   = os.path.join(BASE_DIR, "_integrations", "yt_quota.json")
-DB_PATH      = os.path.join(BASE_DIR, "_video_queue.sqlite")
-CONFIG_PATH  = os.path.join(BASE_DIR, "config.yaml")
-FFMPEG_EXE   = os.path.join(BASE_DIR, "_integrations", "ffmpeg", "ffmpeg.exe")
+BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OAUTH_PATH: str = os.path.join(BASE_DIR, "_integrations", "youtube_oauth.json")
+QUOTA_PATH: str = os.path.join(BASE_DIR, "_integrations", "yt_quota.json")
+DB_PATH: str = os.path.join(BASE_DIR, "_video_queue.sqlite")
+CONFIG_PATH: str = os.path.join(BASE_DIR, "config.yaml")
+FFMPEG_EXE: str = os.path.join(BASE_DIR, "_integrations", "ffmpeg", "ffmpeg.exe")
 
-_UPLOAD_URL  = "https://www.googleapis.com/upload/youtube/v3/videos"
-_THUMB_URL   = "https://www.googleapis.com/upload/youtube/v3/thumbnails/set"
-_TOKEN_URL   = "https://oauth2.googleapis.com/token"
-_AUTH_URL    = "https://accounts.google.com/o/oauth2/v2/auth"
-_SCOPE       = "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube"
+_UPLOAD_URL: str = "https://www.googleapis.com/upload/youtube/v3/videos"
+_THUMB_URL: str = "https://www.googleapis.com/upload/youtube/v3/thumbnails/set"
+_TOKEN_URL: str = "https://oauth2.googleapis.com/token"
+_AUTH_URL: str = "https://accounts.google.com/o/oauth2/v2/auth"
+_SCOPE: str = "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube"
 
-# Lock solo para el refresh del token (operación corta), no para el upload entero.
-_token_lock  = threading.Lock()
+# Cerrojo granular para el token de refresco y operaciones E/S de credenciales/quota
+_yt_io_lock: threading.RLock = threading.RLock()
+_token_lock: threading.Lock = threading.Lock()
 
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-def _load_config() -> dict:
+def _load_config() -> Dict[str, Any]:
+    """
+    Retorna la sección de configuración de YouTube de manera segura a través de ConfigManager.
+    """
     try:
-        import yaml
-        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-            return (yaml.safe_load(f) or {}).get("youtube", {})
-    except Exception:
+        cfg = config_manager.get("youtube", {})
+        return cfg if isinstance(cfg, dict) else {}
+    except Exception as e:
+        log.error(f"[YouTube] Error cargando configuración centralizada: {e}")
         return {}
 
 
 # ── Quota diaria (YouTube permite 10 000 unidades/día; upload = ~1600 unidades) ──
 
 def _quota_check() -> bool:
-    """Retorna True si aún hay quota disponible hoy."""
-    cfg         = _load_config()
-    daily_limit = int(cfg.get("quota_daily_limit", 5))
-    today       = str(date.today())
-    try:
-        if os.path.isfile(QUOTA_PATH):
-            with open(QUOTA_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            if data.get("date") == today:
-                return int(data.get("uploads", 0)) < daily_limit
-        return True
-    except Exception:
+    """
+    Retorna True si aún hay quota disponible hoy, sincronizado y con reintentos defensivos.
+    """
+    cfg: Dict[str, Any] = _load_config()
+    daily_limit: int = int(cfg.get("quota_daily_limit", 5))
+    today: str = str(date.today())
+    
+    with _yt_io_lock:
+        for attempt in range(5):
+            try:
+                if os.path.isfile(QUOTA_PATH):
+                    with open(QUOTA_PATH, "r", encoding="utf-8") as f:
+                        data: Dict[str, Any] = json.load(f)
+                    if data.get("date") == today:
+                        return int(data.get("uploads", 0)) < daily_limit
+                return True
+            except (PermissionError, json.JSONDecodeError) as e:
+                if attempt == 4:
+                    log.error(f"[YouTube] Colisión persistente en lectura de quota: {e}")
+                    return True  # Fallback tolerante para no bloquear el flujo
+                time.sleep(0.05 * (2 ** attempt))
+            except Exception as e:
+                log.error(f"[YouTube] Error leyendo quota: {e}")
+                return True
         return True
 
 
 def _quota_increment() -> None:
-    """Registra un upload exitoso en el contador diario."""
-    today = str(date.today())
-    try:
-        data = {"date": today, "uploads": 0}
-        if os.path.isfile(QUOTA_PATH):
-            with open(QUOTA_PATH, "r", encoding="utf-8") as f:
-                stored = json.load(f)
-            if stored.get("date") == today:
-                data = stored
-        data["uploads"] = int(data.get("uploads", 0)) + 1
-        os.makedirs(os.path.dirname(QUOTA_PATH), exist_ok=True)
-        with open(QUOTA_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f)
-    except Exception as e:
-        log.warning(f"[YouTube] Error actualizando quota: {e}")
+    """
+    Registra un upload exitoso en el contador diario de forma sincronizada y atómica.
+    """
+    today: str = str(date.today())
+    with _yt_io_lock:
+        for attempt in range(5):
+            try:
+                data: Dict[str, Any] = {"date": today, "uploads": 0}
+                if os.path.isfile(QUOTA_PATH):
+                    with open(QUOTA_PATH, "r", encoding="utf-8") as f:
+                        stored: Dict[str, Any] = json.load(f)
+                    if stored.get("date") == today:
+                        data = stored
+                data["uploads"] = int(data.get("uploads", 0)) + 1
+                
+                os.makedirs(os.path.dirname(QUOTA_PATH), exist_ok=True)
+                tmp_path: str = QUOTA_PATH + ".tmp"
+                with open(tmp_path, "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False)
+                os.replace(tmp_path, QUOTA_PATH)
+                return
+            except (PermissionError, IOError) as e:
+                if attempt == 4:
+                    log.error(f"[YouTube] No se pudo incrementar la quota por bloqueo de archivo persistente: {e}")
+                time.sleep(0.05 * (2 ** attempt))
+            except Exception as e:
+                log.error(f"[YouTube] Error actualizando quota: {e}")
+                return
 
 
-def get_quota_status() -> dict:
-    """Retorna estado de la quota diaria."""
-    cfg         = _load_config()
-    daily_limit = int(cfg.get("quota_daily_limit", 5))
-    today       = str(date.today())
-    uploads     = 0
-    try:
-        if os.path.isfile(QUOTA_PATH):
-            with open(QUOTA_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            if data.get("date") == today:
-                uploads = int(data.get("uploads", 0))
-    except Exception:
-        pass
-    return {"date": today, "uploads_today": uploads, "limit": daily_limit, "remaining": max(0, daily_limit - uploads)}
+def get_quota_status() -> Dict[str, Any]:
+    """
+    Retorna estado actual de la quota diaria de forma segura y thread-safe.
+    """
+    cfg: Dict[str, Any] = _load_config()
+    daily_limit: int = int(cfg.get("quota_daily_limit", 5))
+    today: str = str(date.today())
+    uploads: int = 0
+    
+    with _yt_io_lock:
+        for attempt in range(5):
+            try:
+                if os.path.isfile(QUOTA_PATH):
+                    with open(QUOTA_PATH, "r", encoding="utf-8") as f:
+                        data: Dict[str, Any] = json.load(f)
+                    if data.get("date") == today:
+                        uploads = int(data.get("uploads", 0))
+                break
+            except (PermissionError, json.JSONDecodeError):
+                if attempt == 4:
+                    break
+                time.sleep(0.05 * (2 ** attempt))
+            except Exception:
+                break
+                
+    return {
+        "date": today,
+        "uploads_today": uploads,
+        "limit": daily_limit,
+        "remaining": max(0, daily_limit - uploads)
+    }
 
 
 # ── OAuth Token Management ────────────────────────────────────────────────────
 
-def _load_oauth() -> dict:
-    if not os.path.isfile(OAUTH_PATH):
+def _load_oauth() -> Dict[str, Any]:
+    """
+    Carga credenciales OAuth de forma thread-safe con soporte de reintentos.
+    """
+    with _yt_io_lock:
+        if not os.path.isfile(OAUTH_PATH):
+            return {}
+        for attempt in range(5):
+            try:
+                with open(OAUTH_PATH, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except (PermissionError, json.JSONDecodeError):
+                if attempt == 4:
+                    return {}
+                time.sleep(0.05 * (2 ** attempt))
+            except Exception:
+                return {}
         return {}
-    try:
-        with open(OAUTH_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return {}
 
 
-def _save_oauth(data: dict) -> None:
-    os.makedirs(os.path.dirname(OAUTH_PATH), exist_ok=True)
-    with open(OAUTH_PATH, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+def _save_oauth(data: Dict[str, Any]) -> None:
+    """
+    Guarda credenciales OAuth de forma atómica y thread-safe.
+    """
+    with _yt_io_lock:
+        for attempt in range(5):
+            try:
+                os.makedirs(os.path.dirname(OAUTH_PATH), exist_ok=True)
+                tmp_path: str = OAUTH_PATH + ".tmp"
+                with open(tmp_path, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2, ensure_ascii=False)
+                os.replace(tmp_path, OAUTH_PATH)
+                return
+            except (PermissionError, IOError) as e:
+                if attempt == 4:
+                    log.error(f"[YouTube] Error crítico guardando OAuth tras múltiples reintentos: {e}")
+                time.sleep(0.05 * (2 ** attempt))
+            except Exception as e:
+                log.error(f"[YouTube] Falló guardando credenciales OAuth: {e}")
+                return
 
 
-def _refresh_access_token(oauth: dict) -> Optional[str]:
-    """Refresca el access_token. Lock granular solo durante esta operación."""
+def _refresh_access_token(oauth: Dict[str, Any]) -> Optional[str]:
+    """
+    Refresca el access_token. Lock granular durante la operación de refresco.
+    """
     with _token_lock:
-        refresh_token = oauth.get("refresh_token", "")
-        client_id     = oauth.get("client_id", "")
-        client_secret = oauth.get("client_secret", "")
+        refresh_token: str = oauth.get("refresh_token", "")
+        client_id: str = oauth.get("client_id", "")
+        client_secret: str = oauth.get("client_secret", "")
         if not all([refresh_token, client_id, client_secret]):
             log.error("[YouTube] Faltan credenciales OAuth (client_id / client_secret / refresh_token).")
             return None
-        payload = urllib.parse.urlencode({
+        payload: bytes = urllib.parse.urlencode({
             "client_id":     client_id,
             "client_secret": client_secret,
             "refresh_token": refresh_token,
             "grant_type":    "refresh_token",
         }).encode()
         try:
-            req = urllib.request.Request(
+            req: urllib.request.Request = urllib.request.Request(
                 _TOKEN_URL, data=payload,
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
                 method="POST",
             )
             with urllib.request.urlopen(req, timeout=30) as resp:
-                token_data = json.loads(resp.read().decode())
-            access_token = token_data.get("access_token")
+                token_data: Dict[str, Any] = json.loads(resp.read().decode())
+            access_token: Optional[str] = token_data.get("access_token")
             if not access_token:
                 log.error(f"[YouTube] Token refresh sin access_token: {token_data}")
                 return None
@@ -161,11 +236,15 @@ def _refresh_access_token(oauth: dict) -> Optional[str]:
 
 
 def get_access_token() -> Optional[str]:
-    oauth = _load_oauth()
+    """
+    Retorna un access token de YouTube válido refrescándolo si es necesario.
+    """
+    oauth: Dict[str, Any] = _load_oauth()
     if not oauth:
         log.warning("[YouTube] Sin credenciales OAuth. Completa el flujo /v1/youtube/auth/url primero.")
         return None
     return _refresh_access_token(oauth)
+
 
 
 # ── SEO Description builder ────────────────────────────────────────────────────
@@ -264,21 +343,18 @@ def _update_job_youtube(job_id: int, video_id: str, url: str, status: str,
 
 def _generate_ctr_thumbnail(video_path: str, title: str, output_jpg: str) -> bool:
     """
-    Genera un thumbnail de alta CTR:
-    - Extrae frame del segundo 3
-    - Aplica vignette oscuro en la mitad inferior
-    - Superpone el título con texto blanco grande + sombra
+    Genera un thumbnail de alta CTR superponiendo texto y efectos de forma thread-safe y portable.
     """
     if not os.path.isfile(FFMPEG_EXE) or not os.path.isfile(video_path):
         return False
-    safe_title = title.replace("'", "").replace(":", "").replace("%", "")[:45].upper()
-    vf = (
+    safe_title: str = title.replace("'", "").replace(":", "").replace("%", "")[:45].upper()
+    vf: str = (
         f"drawtext=text='{safe_title}':fontcolor=white:fontsize=54:"
         f"x=(w-text_w)/2:y=h*0.62:fontfile='C\\:/Windows/Fonts/arialbd.ttf':"
         f"shadowcolor=black:shadowx=3:shadowy=3,"
         f"vignette=angle=PI/4:mode=backward"
     )
-    cmd = [
+    cmd: List[str] = [
         FFMPEG_EXE, "-y",
         "-ss", "3", "-i", video_path,
         "-vframes", "1",
@@ -288,8 +364,10 @@ def _generate_ctr_thumbnail(video_path: str, title: str, output_jpg: str) -> boo
     ]
     try:
         import subprocess
-        r = subprocess.run(cmd, capture_output=True, timeout=30,
-                           creationflags=subprocess.CREATE_NO_WINDOW)
+        kwargs: Dict[str, Any] = {"capture_output": True, "timeout": 30}
+        if os.name == "nt":
+            kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
+        r = subprocess.run(cmd, **kwargs)
         return r.returncode == 0 and os.path.isfile(output_jpg)
     except Exception as e:
         log.warning(f"[YouTube] CTR thumbnail error: {e}")
@@ -301,13 +379,13 @@ def _generate_ctr_thumbnail(video_path: str, title: str, output_jpg: str) -> boo
 def generate_shorts_clip(video_path: str, output_path: str, duration: int = 58) -> bool:
     """
     Corta los primeros `duration` segundos del video y los convierte
-    a formato vertical 1080x1920 (9:16) para YouTube Shorts.
+    a formato vertical 1080x1920 (9:16) para YouTube Shorts de forma portable.
     """
     if not os.path.isfile(FFMPEG_EXE) or not os.path.isfile(video_path):
         return False
     try:
         import subprocess
-        cmd = [
+        cmd: List[str] = [
             FFMPEG_EXE, "-y",
             "-i", video_path,
             "-t", str(duration),
@@ -319,15 +397,18 @@ def generate_shorts_clip(video_path: str, output_path: str, duration: int = 58) 
             "-movflags", "+faststart",
             output_path,
         ]
-        r = subprocess.run(cmd, capture_output=True, timeout=120,
-                           creationflags=subprocess.CREATE_NO_WINDOW)
-        ok = r.returncode == 0 and os.path.isfile(output_path)
+        kwargs: Dict[str, Any] = {"capture_output": True, "timeout": 120}
+        if os.name == "nt":
+            kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
+        r = subprocess.run(cmd, **kwargs)
+        ok: bool = r.returncode == 0 and os.path.isfile(output_path)
         if ok:
             log.info(f"[YouTube] Short generado: {os.path.basename(output_path)}")
         return ok
     except Exception as e:
         log.warning(f"[YouTube] Error generando Short: {e}")
         return False
+
 
 
 # ── Upload core ───────────────────────────────────────────────────────────────

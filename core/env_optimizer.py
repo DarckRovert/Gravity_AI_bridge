@@ -14,9 +14,11 @@ Usado por engine_watchdog.py para calcular num_ctx, threads y GPU layers
 
 import os
 import logging
+import threading
 from typing import Dict, Tuple
 
 log = logging.getLogger("gravity.env_optimizer")
+_settings_lock = threading.RLock()
 
 # ── Parámetros por motor ───────────────────────────────────────────────────────
 
@@ -152,12 +154,14 @@ def apply_all(persist: bool = True, verbose: bool = False) -> Tuple[dict, dict]:
         }
 
     user_opts: dict = {}
+    settings = {}
     try:
         import json as _json
         _BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         settings_path = os.path.join(_BASE, "_settings.json")
-        with open(settings_path, "r", encoding="utf-8") as f:
-            settings = _json.load(f)
+        with _settings_lock:
+            with open(settings_path, "r", encoding="utf-8") as f:
+                settings = _json.load(f)
         user_opts = settings.get("advanced_params", {})
     except Exception:
         pass
@@ -176,16 +180,20 @@ def apply_all(persist: bool = True, verbose: bool = False) -> Tuple[dict, dict]:
             import json as _json
             _BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             settings_path = os.path.join(_BASE, "_settings.json")
-            with open(settings_path, "r", encoding="utf-8") as f:
-                data = _json.load(f)
-            adv = data.get("advanced_params", {})
-            # Solo actualiza num_ctx si el nuevo valor es mayor
-            new_ctx = api_opts.get("num_ctx", 0)
-            if new_ctx > adv.get("num_ctx", 0):
-                adv["num_ctx"] = new_ctx
-                data["advanced_params"] = adv
-                with open(settings_path, "w", encoding="utf-8") as f:
-                    _json.dump(data, f, indent=4, ensure_ascii=False)
+            with _settings_lock:
+                try:
+                    with open(settings_path, "r", encoding="utf-8") as f:
+                        data = _json.load(f)
+                except Exception:
+                    data = {}
+                adv = data.get("advanced_params", {})
+                # Solo actualiza num_ctx si el nuevo valor es mayor
+                new_ctx = api_opts.get("num_ctx", 0)
+                if new_ctx > adv.get("num_ctx", 0):
+                    adv["num_ctx"] = new_ctx
+                    data["advanced_params"] = adv
+                    with open(settings_path, "w", encoding="utf-8") as f:
+                        _json.dump(data, f, indent=4, ensure_ascii=False)
         except Exception as e:
             log.debug(f"[EnvOptimizer] No se pudo persistir settings: {e}")
 

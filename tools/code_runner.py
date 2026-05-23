@@ -10,6 +10,7 @@ import sys
 import tempfile
 import subprocess
 import threading
+from typing import Any
 from tools.base_tool import Tool, ToolResult
 
 TIMEOUT_SECS = 30
@@ -33,16 +34,24 @@ def _find_executable(name: str) -> str | None:
 
 
 class CodeRunner(Tool):
-    name                  = "code_runner"
-    description           = "Executes code blocks from AI responses in a safe subprocess"
-    requires_confirmation = True
+    """
+    Herramienta que ejecuta bloques de código extraídos de respuestas de IA en subprocesos aislados.
+    Soporta Python, JavaScript (Node.js), PowerShell y Bash.
+    """
+    name: str = "code_runner"
+    description: str = "Ejecuta bloques de código de respuestas de IA en un subproceso seguro"
+    requires_confirmation: bool = True
 
     def execute(
         self,
-        code:     str,
+        code: str,
         language: str = "python",
-        timeout:  int = TIMEOUT_SECS,
+        timeout: int = TIMEOUT_SECS,
+        **kwargs: Any,
     ) -> ToolResult:
+        """
+        Ejecuta un bloque de código en el lenguaje especificado dentro de un subproceso seguro.
+        """
         lang = language.lower().strip()
 
         # Map language aliases
@@ -70,14 +79,22 @@ class CodeRunner(Tool):
 
         return runner(code, timeout)
 
-    def _run_subprocess(self, cmd: list[str], input_data: str = "") -> ToolResult:
+    def _run_subprocess(self, cmd: list[str], input_data: str = "", timeout: int = TIMEOUT_SECS) -> ToolResult:
+        """
+        Ejecuta un comando en un subproceso del sistema, gestionando timeouts y flags de ventana.
+        """
+        creationflags = 0
+        if sys.platform == "win32":
+            creationflags = subprocess.CREATE_NO_WINDOW
+
         try:
             result = subprocess.run(
                 cmd,
                 input=input_data,
                 capture_output=True,
                 text=True,
-                timeout=TIMEOUT_SECS,
+                timeout=timeout,
+                creationflags=creationflags,
             )
             stdout = result.stdout[:MAX_OUTPUT]
             stderr = result.stderr[:MAX_OUTPUT]
@@ -88,18 +105,19 @@ class CodeRunner(Tool):
                 exit_code=result.returncode,
             )
         except subprocess.TimeoutExpired:
-            return ToolResult(success=False, stderr=f"Timeout: el código tardó más de {TIMEOUT_SECS}s")
+            return ToolResult(success=False, stderr=f"Timeout: el código tardó más de {timeout}s")
         except FileNotFoundError as e:
             return ToolResult(success=False, stderr=f"Ejecutable no encontrado: {e}")
         except Exception as e:
             return ToolResult(success=False, stderr=str(e))
 
     def _run_python(self, code: str, timeout: int) -> ToolResult:
+        """Ejecuta código Python guardándolo temporalmente en disco."""
         with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False, encoding="utf-8") as f:
             f.write(code)
             fpath = f.name
         try:
-            return self._run_subprocess([sys.executable, fpath])
+            return self._run_subprocess([sys.executable, fpath], timeout=timeout)
         finally:
             try:
                 os.unlink(fpath)
@@ -107,6 +125,7 @@ class CodeRunner(Tool):
                 pass
 
     def _run_javascript(self, code: str, timeout: int) -> ToolResult:
+        """Ejecuta código JavaScript (Node.js) guardándolo temporalmente en disco."""
         node = _find_executable("node") or _find_executable("nodejs")
         if not node:
             return ToolResult(success=False, stderr="Node.js no encontrado. Instálalo para ejecutar JS.")
@@ -114,7 +133,7 @@ class CodeRunner(Tool):
             f.write(code)
             fpath = f.name
         try:
-            return self._run_subprocess([node, fpath])
+            return self._run_subprocess([node, fpath], timeout=timeout)
         finally:
             try:
                 os.unlink(fpath)
@@ -122,24 +141,26 @@ class CodeRunner(Tool):
                 pass
 
     def _run_powershell(self, code: str, timeout: int) -> ToolResult:
+        """Ejecuta código PowerShell directamente mediante CLI."""
         pwsh = _find_executable("pwsh") or _find_executable("powershell")
         if not pwsh:
             return ToolResult(success=False, stderr="PowerShell no encontrado.")
-        return self._run_subprocess([pwsh, "-NoProfile", "-Command", code])
+        return self._run_subprocess([pwsh, "-NoProfile", "-Command", code], timeout=timeout)
 
     def _run_bash(self, code: str, timeout: int) -> ToolResult:
+        """Ejecuta comandos Bash (usando WSL o Git Bash en Windows, o nativo en Unix)."""
         if sys.platform == "win32":
             # Try WSL or Git Bash
             wsl = _find_executable("wsl")
             if wsl:
-                return self._run_subprocess([wsl, "bash", "-c", code])
+                return self._run_subprocess([wsl, "bash", "-c", code], timeout=timeout)
             bash = _find_executable("bash")
             if bash:
-                return self._run_subprocess([bash, "-c", code])
+                return self._run_subprocess([bash, "-c", code], timeout=timeout)
             return ToolResult(success=False, stderr="bash no disponible en Windows sin WSL.")
-        return self._run_subprocess(["bash", "-c", code])
+        return self._run_subprocess(["bash", "-c", code], timeout=timeout)
 
-    def execute_from_text(self, ai_response: str, lang_filter: str = "") -> ToolResult:
+    def execute_from_text(self, ai_response: str, lang_filter: str = "", timeout: int = TIMEOUT_SECS) -> ToolResult:
         """
         Extracts the first matching code block from an AI response and executes it.
         lang_filter: if set, only blocks of that language are considered.
@@ -152,4 +173,4 @@ class CodeRunner(Tool):
             if not blocks:
                 return ToolResult(success=False, stderr=f"No hay bloque '{lang_filter}' en la respuesta.")
         lang, code = blocks[0]
-        return self.execute(code=code, language=lang)
+        return self.execute(code=code, language=lang, timeout=timeout)

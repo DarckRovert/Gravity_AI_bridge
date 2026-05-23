@@ -1,5 +1,7 @@
 import os
 import logging
+import threading
+from typing import List, Dict, Any
 from faster_whisper import WhisperModel
 
 # Configurar logger
@@ -11,17 +13,35 @@ if not logger.handlers:
     logger.addHandler(handler)
     logger.setLevel(logging.INFO)
 
+# Locks de nivel de módulo y cachés estáticas
+_whisper_init_lock = threading.Lock()
+_whisper_transcribe_lock = threading.Lock()
+_model_cache: Dict[tuple, WhisperModel] = {}
+
 class WhisperEngine:
-    def __init__(self, model_size="base", device="cpu", compute_type="int8"):
+    def __init__(self, model_size: str = "base", device: str = "cpu", compute_type: str = "int8"):
         """
-        Inicializa el motor de Faster-Whisper.
+        Inicializa el motor de Faster-Whisper de forma segura y thread-safe reutilizando instancias.
         Por defecto usa 'base' en 'cpu' con 'int8' para no saturar memoria.
         """
-        logger.info(f"Cargando modelo faster-whisper '{model_size}' en {device} ({compute_type})...")
-        self.model = WhisperModel(model_size, device=device, compute_type=compute_type)
-        logger.info("Modelo cargado exitosamente.")
+        cache_key = (model_size, device, compute_type)
+        
+        with _whisper_init_lock:
+            if cache_key in _model_cache:
+                logger.info(f"Reutilizando instancia de modelo cacheada para '{model_size}' en {device} ({compute_type}).")
+                self.model = _model_cache[cache_key]
+                return
+            
+            logger.info(f"Cargando modelo faster-whisper '{model_size}' en {device} ({compute_type})...")
+            try:
+                self.model = WhisperModel(model_size, device=device, compute_type=compute_type)
+                _model_cache[cache_key] = self.model
+                logger.info("Modelo cargado exitosamente en caché.")
+            except Exception as e:
+                logger.critical(f"Falla catastrófica cargando faster-whisper: {e}. Asegúrese de tener las librerías nativas C++ y CUDA configuradas correctamente.")
+                raise RuntimeError(f"Error cargando motor Whisper: {e}") from e
 
-    def extract_words(self, audio_path: str, language="es"):
+    def extract_words(self, audio_path: str, language: str = "es") -> List[Dict[str, Any]]:
         """
         Transcribe el audio y devuelve una lista de diccionarios con tiempos por palabra.
         [{'word': 'Hola', 'start': 0.0, 'end': 0.5}, ...]
@@ -31,11 +51,22 @@ class WhisperEngine:
 
         logger.info(f"Extrayendo timestamps para {os.path.basename(audio_path)}")
         
-        # word_timestamps=True es vital para los subtítulos dinámicos
-        segments, info = self.model.transcribe(audio_path, beam_size=5, language=language, word_timestamps=True)
+        # Sincronizamos la llamada a .transcribe()
+        with _whisper_transcribe_lock:
+            try:
+                # word_timestamps=True es vital para los subtítulos dinámicos
+                segments, info = self.model.transcribe(audio_path, beam_size=5, language=language, word_timestamps=True)
+                
+                # Consumir generador de forma inmediata bajo el lock para evitar race conditions
+                segments = list(segments)
+            except Exception as e:
+                logger.error(f"Error transcribiendo audio con Faster-Whisper: {e}")
+                raise RuntimeError(f"Fallo en transcripción Whisper: {e}") from e
         
         words_data = []
         for segment in segments:
+            if not segment.words:
+                continue
             for word in segment.words:
                 words_data.append({
                     "word": word.word.strip(),

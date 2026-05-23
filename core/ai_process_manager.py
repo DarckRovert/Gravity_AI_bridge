@@ -3,6 +3,8 @@ import subprocess
 import yaml
 import time
 import logging
+import threading
+from typing import Dict, Any, Optional
 
 # psutil es opcional — si no está instalado el motor de stop funciona en modo reducido
 try:
@@ -12,36 +14,41 @@ except ImportError:
     psutil = None
     _PSUTIL_OK = False
 
-BASE_DIR    = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CONFIG_FILE = os.path.join(BASE_DIR, "config.yaml")
+BASE_DIR     = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CONFIG_FILE  = os.path.join(BASE_DIR, "config.yaml")
+_config_lock = threading.RLock()
 
 log = logging.getLogger("gravity.ai_process_manager")
 
 
-def get_config():
-    try:
-        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-            return yaml.safe_load(f) or {}
-    except Exception:
-        return {}
+def get_config() -> Dict[str, Any]:
+    """Reads configuration safely under reentrant lock."""
+    with _config_lock:
+        try:
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                return yaml.safe_load(f) or {}
+        except Exception:
+            return {}
 
 
-def save_config(data):
-    try:
-        with open(CONFIG_FILE, "w", encoding="utf-8") as f:
-            yaml.dump(data, f, default_flow_style=False, sort_keys=False)
-    except Exception:
-        pass
+def save_config(data: Dict[str, Any]) -> None:
+    """Writes configuration safely under reentrant lock."""
+    with _config_lock:
+        try:
+            with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+                yaml.dump(data, f, default_flow_style=False, sort_keys=False)
+        except Exception:
+            pass
 
 
-def discover_apps():
+def discover_apps() -> Dict[str, str]:
     """Busca rutas de IAs conocidas en el sistema y las guarda en config.yaml"""
     log.info("[AI Process Manager] Buscando motores IA locales...")
 
     localappdata = os.environ.get("LOCALAPPDATA", "")
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    found_paths = {}
+    found_paths: Dict[str, str] = {}
 
     # 1. LM Studio
     lm_studio = os.path.join(localappdata, "Programs", "LM Studio", "LM Studio.exe")
@@ -89,12 +96,13 @@ def discover_apps():
     return found_paths
 
 
-def get_engine_path(provider_name):
+def get_engine_path(provider_name: str) -> Optional[str]:
+    """Retrieves the executable path for the requested AI provider."""
     c = get_config()
     return c.get("ai_engines", {}).get(provider_name)
 
 
-def start_engine(provider_name):
+def start_engine(provider_name: str) -> Dict[str, Any]:
     """Inicia silenciosamente el motor si se conoce su ruta."""
     path = get_engine_path(provider_name)
     if not path or not os.path.exists(path):
@@ -138,7 +146,7 @@ def start_engine(provider_name):
         return {"success": False, "error": str(e)}
 
 
-def stop_engine(provider_name):
+def stop_engine(provider_name: str) -> Dict[str, Any]:
     """Mata el proceso nativo buscando ejecutables coincidentes."""
     if not _PSUTIL_OK:
         return {"success": False, "error": "psutil no instalado. Ejecuta: pip install psutil"}

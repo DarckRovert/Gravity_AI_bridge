@@ -17,22 +17,29 @@ if sys.stdout.encoding.lower() != "utf-8":
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
-async def run_gradio(prompt, performance, aspect_ratio, fooocus_url="http://127.0.0.1:7861"):
-    ws_url = fooocus_url.replace("http://", "ws://").replace("https://", "wss://") + "/queue/join"
+from typing import List, Dict, Any, Optional
+
+async def run_gradio(
+    prompt: str,
+    performance: str,
+    aspect_ratio: str,
+    fooocus_url: str = "http://127.0.0.1:7861",
+) -> None:
+    ws_url: str = fooocus_url.replace("http://", "ws://").replace("https://", "wss://") + "/queue/join"
     
     try:
-        with urllib.request.urlopen(f"{fooocus_url}/config", timeout=5) as r:
-            config = json.loads(r.read().decode())
+        with urllib.request.urlopen(f"{fooocus_url}/config", timeout=10) as r:
+            config: dict = json.loads(r.read().decode())
     except Exception as e:
         print(json.dumps({"success": False, "error": f"Error conectando a Fooocus: {e}"}))
         return
 
-    components = config.get("components", [])
-    dependencies = config.get("dependencies", [])
+    components: list = config.get("components", [])
+    dependencies: list = config.get("dependencies", [])
     
-    comp_data = {}
-    comp_choices = {}
-    cid_map = {}
+    comp_data: Dict[int, Any] = {}
+    comp_choices: Dict[int, Any] = {}
+    cid_map: Dict[str, int] = {}
     target_labels = {
         "prompt": "Prompt", 
         "neg_prompt": "Negative Prompt", 

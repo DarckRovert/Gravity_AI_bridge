@@ -117,47 +117,59 @@ def _get_scene_visual_context(image_path: str) -> str:
     """
     Extrae tags visuales de la escena N-1 para mantener consistencia visual en la escena N
     utilizando WD14 Tagger via ComfyUI.
+
+    Usa build_img2prompt_workflow programáticamente si el archivo JSON externo no existe.
+    Copia la imagen al directorio /input de ComfyUI antes de ejecutar el workflow.
+
+    Args:
+        image_path: Ruta absoluta a la imagen fuente.
+
+    Returns:
+        String con tags visuales separados por coma, o "" si ComfyUI no está disponible.
     """
+    import time
+    import shutil
     try:
         from _integrations.comfy_client import ComfyUIClient
         client = ComfyUIClient()
         if not client.is_online():
             return ""
 
-        workflow_path = os.path.join(BASE_DIR, "_integrations", "workflow_img2prompt.json")
-        if not os.path.exists(workflow_path):
-            return ""
-
-        with open(workflow_path, "r", encoding="utf-8") as f:
-            workflow = json.load(f)
-
-        import shutil
         input_dir = os.path.join(BASE_DIR, "_integrations", "ComfyUI_windows_portable", "ComfyUI", "input")
-        if not os.path.exists(input_dir):
-            os.makedirs(input_dir, exist_ok=True)
+        os.makedirs(input_dir, exist_ok=True)
         img_name = f"img2prompt_{os.path.basename(image_path)}"
         shutil.copy2(image_path, os.path.join(input_dir, img_name))
-        
-        workflow["1"]["inputs"]["image"] = img_name
+
+        # Intentar cargar el workflow desde archivo JSON; si no existe, construirlo
+        workflow_path = os.path.join(BASE_DIR, "_integrations", "workflow_img2prompt.json")
+        if os.path.exists(workflow_path):
+            with open(workflow_path, "r", encoding="utf-8") as f:
+                import json as _json
+                workflow = _json.load(f)
+            workflow["1"]["inputs"]["image"] = img_name
+        else:
+            workflow = client.build_img2prompt_workflow(image_name=img_name)
 
         prompt_id = client.queue_prompt(workflow)
-        
+
         elapsed = 0
         while elapsed < 30:
             tags = client.extract_tags(prompt_id)
             if tags:
-                try: os.remove(os.path.join(input_dir, img_name))
-                except: pass
+                try:
+                    os.remove(os.path.join(input_dir, img_name))
+                except Exception:
+                    pass
                 if len(tags) == 1 and isinstance(tags[0], str):
                     return tags[0]
                 return ", ".join(tags)
-            import time
             time.sleep(2)
             elapsed += 2
-            
+
     except Exception as e:
         log.debug(f"[VideoStudio] Error en img2prompt (ComfyUI offline/Tagger fail): {e}")
     return ""
+
 
 
 def _normalize_topic_for_lore(topic: str) -> str:

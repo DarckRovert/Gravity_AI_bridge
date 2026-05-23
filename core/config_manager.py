@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import threading
 import yaml
 import shutil
 from pathlib import Path
@@ -11,7 +12,7 @@ log = logging.getLogger("gravity.config")
 class ConfigManager:
     """
     Manages application configuration with YAML support and auto-migration from JSON.
-    Supports profiles (dev, prod, test). V15.0 PRO.
+    Supports profiles (dev, prod, test). V15.1 PRO.
     """
     DEFAULT_CONFIG = {
         "version": "13.0.0",
@@ -37,85 +38,92 @@ class ConfigManager:
     }
 
     def __init__(self, config_path: str = "config.yaml", old_settings: str = "_settings.json"):
-        self.config_path = Path(config_path)
-        self.old_settings_path = Path(old_settings)
-        self.config = self.DEFAULT_CONFIG.copy()
-        
-        # Copiar de plantilla .example si no existe el config principal
-        example_path = self.config_path.with_name(self.config_path.name + ".example")
-        if not self.config_path.exists() and example_path.exists():
-            try:
-                shutil.copy(example_path, self.config_path)
-                log.info(f"[CONFIG] Creado config.yaml inicial a partir de {example_path.name}")
-            except Exception as e:
-                log.error(f"[CONFIG] No se pudo copiar {example_path.name} a {self.config_path.name}: {e}")
+        self._lock = threading.RLock()
+        with self._lock:
+            self.config_path = Path(config_path)
+            self.old_settings_path = Path(old_settings)
+            self.config = self.DEFAULT_CONFIG.copy()
+            
+            # Copiar de plantilla .example si no existe el config principal
+            example_path = self.config_path.with_name(self.config_path.name + ".example")
+            if not self.config_path.exists() and example_path.exists():
+                try:
+                    shutil.copy(example_path, self.config_path)
+                    log.info(f"[CONFIG] Creado config.yaml inicial a partir de {example_path.name}")
+                except Exception as e:
+                    log.error(f"[CONFIG] No se pudo copiar {example_path.name} a {self.config_path.name}: {e}")
 
-        self.load()
+            self.load()
 
     def load(self):
         """Loads config from YAML, migrates from JSON if necessary."""
-        # 1. Intentar migrar si no existe el YAML pero sí el JSON
-        if not self.config_path.exists() and self.old_settings_path.exists():
-            self._migrate_from_json()
-            return
+        with self._lock:
+            # 1. Intentar migrar si no existe el YAML pero sí el JSON
+            if not self.config_path.exists() and self.old_settings_path.exists():
+                self._migrate_from_json()
+                return
 
-        # 2. Cargar YAML si existe
-        if self.config_path.exists():
-            try:
-                with open(self.config_path, "r", encoding="utf-8") as f:
-                    user_config = yaml.safe_load(f)
-                    if user_config:
-                        self._deep_update(self.config, user_config)
-            except Exception as e:
-                log.error(f"[CONFIG] Falló la carga de {self.config_path}: {e}")
+            # 2. Cargar YAML si existe
+            if self.config_path.exists():
+                try:
+                    with open(self.config_path, "r", encoding="utf-8") as f:
+                        user_config = yaml.safe_load(f)
+                        if user_config:
+                            self._deep_update(self.config, user_config)
+                except Exception as e:
+                    log.error(f"[CONFIG] Falló la carga de {self.config_path}: {e}")
 
     def _migrate_from_json(self):
         """Migrates legacy _settings.json to new config.yaml structure."""
-        log.info(f"[CONFIG] Migrando {self.old_settings_path} a {self.config_path}...")
-        try:
-            with open(self.old_settings_path, "r", encoding="utf-8") as f:
-                old = json.load(f)
-            
-            # Map old to new
-            self.config["server"]["port"] = old.get("bridge_port", 7860)
-            self.config["model"]["default_provider"] = old.get("provider", "LM Studio")
-            self.config["model"]["default_model"] = old.get("last_model", "gravity-bridge-auto")
-            
-            adv = old.get("advanced_params", {})
-            self.config["model"]["ctx_size"] = adv.get("num_ctx", 32768)
-            self.config["model"]["temperature"] = adv.get("temperature", 0.6)
-            self.config["model"]["stream"] = adv.get("streaming", True)
-            
-            self.save()
-            log.info("[CONFIG] Migración completada con éxito.")
-        except Exception as e:
-            log.error(f"[CONFIG] Falló la migración: {e}")
+        with self._lock:
+            log.info(f"[CONFIG] Migrando {self.old_settings_path} a {self.config_path}...")
+            try:
+                with open(self.old_settings_path, "r", encoding="utf-8") as f:
+                    old = json.load(f)
+                
+                # Map old to new
+                self.config["server"]["port"] = old.get("bridge_port", 7860)
+                self.config["model"]["default_provider"] = old.get("provider", "LM Studio")
+                self.config["model"]["default_model"] = old.get("last_model", "gravity-bridge-auto")
+                
+                adv = old.get("advanced_params", {})
+                self.config["model"]["ctx_size"] = adv.get("num_ctx", 32768)
+                self.config["model"]["temperature"] = adv.get("temperature", 0.6)
+                self.config["model"]["stream"] = adv.get("streaming", True)
+                
+                self.save()
+                log.info("[CONFIG] Migración completada con éxito.")
+            except Exception as e:
+                log.error(f"[CONFIG] Falló la migración: {e}")
 
     def _deep_update(self, base_dict: dict, update_with: dict):
-        for k, v in update_with.items():
-            if isinstance(v, dict) and k in base_dict and isinstance(base_dict[k], dict):
-                self._deep_update(base_dict[k], v)
-            else:
-                base_dict[k] = v
+        with self._lock:
+            for k, v in update_with.items():
+                if isinstance(v, dict) and k in base_dict and isinstance(base_dict[k], dict):
+                    self._deep_update(base_dict[k], v)
+                else:
+                    base_dict[k] = v
 
     def save(self):
         """Saves current config to YAML."""
-        try:
-            with open(self.config_path, "w", encoding="utf-8") as f:
-                yaml.dump(self.config, f, default_flow_style=False, sort_keys=False)
-        except Exception as e:
-            log.error(f"[CONFIG] No se pudo guardar {self.config_path}: {e}")
+        with self._lock:
+            try:
+                with open(self.config_path, "w", encoding="utf-8") as f:
+                    yaml.dump(self.config, f, default_flow_style=False, sort_keys=False)
+            except Exception as e:
+                log.error(f"[CONFIG] No se pudo guardar {self.config_path}: {e}")
 
     def get(self, key_path: str, default: Any = None) -> Any:
         """Get nested value using dot notation (e.g. 'server.port')."""
-        keys = key_path.split(".")
-        val = self.config
-        for key in keys:
-            if isinstance(val, dict) and key in val:
-                val = val[key]
-            else:
-                return default
-        return val
+        with self._lock:
+            keys = key_path.split(".")
+            val = self.config
+            for key in keys:
+                if isinstance(val, dict) and key in val:
+                    val = val[key]
+                else:
+                    return default
+            return val
 
 # Global instance
 config = ConfigManager()

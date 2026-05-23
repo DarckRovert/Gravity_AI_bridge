@@ -60,6 +60,7 @@ class MCPAdapter:
         self._id_counter  = 1
         self._counter_lock = threading.Lock()
         self._conn_lock    = threading.Lock()
+        self._io_lock      = threading.Lock()
         self._backoff      = _BACKOFF_INITIAL
         self._health_thread: Optional[threading.Thread] = None
 
@@ -164,7 +165,7 @@ class MCPAdapter:
 
     def _send_request(self, method: str, params: dict) -> Dict[str, Any]:
         """
-        Envía una request JSON-RPC y espera la respuesta.
+        Envía una request JSON-RPC y espera la respuesta de forma thread-safe atómica.
         Reconecta con backoff si el proceso no está disponible.
         """
         if not self.connect():
@@ -178,24 +179,28 @@ class MCPAdapter:
             "params":  params,
         }
 
-        try:
-            payload = json.dumps(request) + "\n"
-            self.process.stdin.write(payload)   # type: ignore[union-attr]
-            self.process.stdin.flush()           # type: ignore[union-attr]
-        except Exception as e:
-            log.error(f"[MCP:{self.name}] Error al escribir en stdin: {e}")
-            # Proceso muerto — reconectar
-            self._reconnect_with_backoff()
-            return {"error": f"Fallo al enviar request: {e}"}
+        # La secuencia completa de envío y lectura DEBE ser atómica
+        with self._io_lock:
+            try:
+                payload = json.dumps(request) + "\n"
+                if not self.process or not self.process.stdin:
+                    raise RuntimeError("Proceso o stdin no disponible")
+                self.process.stdin.write(payload)
+                self.process.stdin.flush()
+            except Exception as e:
+                log.error(f"[MCP:{self.name}] Error al escribir en stdin: {e}")
+                # Proceso muerto — reconectar
+                self._reconnect_with_backoff()
+                return {"error": f"Fallo al enviar request: {e}"}
 
-        line = self._read_line_timeout(_READ_TIMEOUT)
-        if line is None:
-            return {"error": f"[MCP:{self.name}] Sin respuesta (timeout {_READ_TIMEOUT}s)"}
+            line = self._read_line_timeout(_READ_TIMEOUT)
+            if line is None:
+                return {"error": f"[MCP:{self.name}] Sin respuesta (timeout {_READ_TIMEOUT}s)"}
 
-        try:
-            return json.loads(line)
-        except json.JSONDecodeError as e:
-            return {"error": f"[MCP:{self.name}] JSON inválido: {e} | raw: {line[:200]}"}
+            try:
+                return json.loads(line)
+            except json.JSONDecodeError as e:
+                return {"error": f"[MCP:{self.name}] JSON inválido: {e} | raw: {line[:200]}"}
 
     # ── API Pública ───────────────────────────────────────────────────────────
 
@@ -218,9 +223,17 @@ class MCPAdapter:
         return self._send_request("resources/read", {"uri": uri})
 
     def disconnect(self) -> None:
-        """Detiene el servidor MCP y libera recursos."""
+        """Detiene el servidor MCP y libera recursos de forma defensiva."""
         with self._conn_lock:
             if self.process:
+                # Cierre defensivo de streams para evitar leaks en Windows
+                for stream_name in ("stdin", "stdout", "stderr"):
+                    try:
+                        stream = getattr(self.process, stream_name)
+                        if stream:
+                            stream.close()
+                    except Exception:
+                        pass
                 try:
                     self.process.terminate()
                     self.process.wait(timeout=5)

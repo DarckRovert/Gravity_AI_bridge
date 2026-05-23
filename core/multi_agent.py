@@ -141,10 +141,25 @@ def vote(
 # ── Sequential pipeline ───────────────────────────────────────────────────────
 
 class PipelineStep:
-    def __init__(self, provider: str, model: Optional[str] = None, role: str = ""):
+    """
+    Representa un paso individual dentro de un pipeline de ejecución secuencial multi-modelo.
+    """
+    provider: str
+    model: Optional[str]
+    role: str
+
+    def __init__(self, provider: str, model: Optional[str] = None, role: str = "") -> None:
+        """
+        Inicializa un paso del pipeline secuencial.
+
+        Args:
+            provider: Nombre del proveedor de IA para este paso.
+            model: Nombre del modelo específico (opcional, usa el modelo activo si es None).
+            role: Instrucción de rol o tarea asignada a este paso (ej. 'Refactoriza este código').
+        """
         self.provider = provider
         self.model    = model
-        self.role     = role   # e.g. "Refactor this code", "Review and find bugs"
+        self.role     = role
 
 
 def run_pipeline(
@@ -153,8 +168,8 @@ def run_pipeline(
     options:          Optional[Dict[str, Any]] = None,
 ) -> str:
     """
-    Runs a sequential pipeline where each step's output becomes the next step's input.
-    The output of each step is appended as a new user message for the next step.
+    Ejecuta un pipeline secuencial de agentes multi-modelo en el que la salida
+    de cada paso se convierte en la entrada del paso subsiguiente.
     """
     options  = options or {}
     history  = _inject_master_plan(list(initial_messages))

@@ -6,6 +6,7 @@
 """
 
 from abc import ABC, abstractmethod
+from typing import Dict, Any
 
 class GravityIntegration(ABC):
     """
@@ -42,9 +43,10 @@ class GravityIntegration(ABC):
         pass
 
     @abstractmethod
-    def get_status(self) -> dict:
+    def get_status(self) -> Dict[str, Any]:
         """
         Returns structured health and status metrics.
         Example: {"status": "healthy", "details": {...}}
         """
         pass
+

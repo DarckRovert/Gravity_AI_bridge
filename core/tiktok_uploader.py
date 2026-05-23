@@ -15,75 +15,122 @@
 import os
 import json
 import threading
+import time
 import urllib.request
 import urllib.parse
 import urllib.error
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, Dict, List, Any
 
 from core.logger import log
+from core.config_manager import config as config_manager
 
-BASE_DIR     = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CONFIG_PATH  = os.path.join(BASE_DIR, "config.yaml")
-SOCIAL_LOG   = os.path.join(BASE_DIR, "_integrations", "social_log.json")
-OAUTH_DIR    = os.path.join(BASE_DIR, "_integrations")
+BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CONFIG_PATH: str = os.path.join(BASE_DIR, "config.yaml")
+SOCIAL_LOG: str = os.path.join(BASE_DIR, "_integrations", "social_log.json")
+OAUTH_DIR: str = os.path.join(BASE_DIR, "_integrations")
+
+# Cerrojo reentrante a nivel de módulo para la E/S de credenciales y registros sociales
+_social_io_lock: threading.RLock = threading.RLock()
 
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-def _load_config() -> dict:
+def _load_config() -> Dict[str, Any]:
+    """
+    Retorna la sección de configuración social de manera segura usando ConfigManager.
+    """
     try:
-        import yaml
-        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-            return (yaml.safe_load(f) or {}).get("social", {})
-    except Exception:
+        cfg = config_manager.get("social", {})
+        return cfg if isinstance(cfg, dict) else {}
+    except Exception as e:
+        log.error(f"[Social] Error cargando configuración centralizada: {e}")
         return {}
 
 
-def _load_tiktok_creds() -> dict:
-    path = os.path.join(OAUTH_DIR, "tiktok_creds.json")
-    if os.path.isfile(path):
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return {}
+def _load_tiktok_creds() -> Dict[str, Any]:
+    """
+    Carga de manera segura y sincronizada las credenciales de TikTok.
+    """
+    path: str = os.path.join(OAUTH_DIR, "tiktok_creds.json")
+    with _social_io_lock:
+        if os.path.isfile(path):
+            for attempt in range(5):
+                try:
+                    with open(path, "r", encoding="utf-8") as f:
+                        return json.load(f)
+                except (PermissionError, json.JSONDecodeError):
+                    if attempt == 4:
+                        return {}
+                    time.sleep(0.05 * (2 ** attempt))
+                except Exception:
+                    return {}
+        return {}
 
 
-def _load_instagram_creds() -> dict:
-    path = os.path.join(OAUTH_DIR, "instagram_creds.json")
-    if os.path.isfile(path):
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return {}
+def _load_instagram_creds() -> Dict[str, Any]:
+    """
+    Carga de manera segura y sincronizada las credenciales de Instagram.
+    """
+    path: str = os.path.join(OAUTH_DIR, "instagram_creds.json")
+    with _social_io_lock:
+        if os.path.isfile(path):
+            for attempt in range(5):
+                try:
+                    with open(path, "r", encoding="utf-8") as f:
+                        return json.load(f)
+                except (PermissionError, json.JSONDecodeError):
+                    if attempt == 4:
+                        return {}
+                    time.sleep(0.05 * (2 ** attempt))
+                except Exception:
+                    return {}
+        return {}
 
 
 # ── Social log ────────────────────────────────────────────────────────────────
 
 def _log_attempt(platform: str, job_id: int, status: str,
                  video_id: str = "", error: str = "") -> None:
-    try:
-        records = []
-        if os.path.isfile(SOCIAL_LOG):
-            with open(SOCIAL_LOG, "r", encoding="utf-8") as f:
-                records = json.load(f)
-        records.append({
-            "ts":        datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "platform":  platform,
-            "job_id":    job_id,
-            "status":    status,
-            "video_id":  video_id,
-            "error":     error,
-        })
-        os.makedirs(OAUTH_DIR, exist_ok=True)
-        with open(SOCIAL_LOG, "w", encoding="utf-8") as f:
-            json.dump(records[-1000:], f, ensure_ascii=False)
-    except Exception as e:
-        log.warning(f"[Social] Error guardando log: {e}")
+    """
+    Registra de manera atómica, thread-safe y persistente el intento de publicación.
+    """
+    with _social_io_lock:
+        for attempt in range(5):
+            try:
+                records: List[Dict[str, Any]] = []
+                if os.path.isfile(SOCIAL_LOG):
+                    try:
+                        with open(SOCIAL_LOG, "r", encoding="utf-8") as f:
+                            records = json.load(f)
+                            if not isinstance(records, list):
+                                records = []
+                    except Exception:
+                        records = []
+                
+                records.append({
+                    "ts":        datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                    "platform":  platform,
+                    "job_id":    job_id,
+                    "status":    status,
+                    "video_id":  video_id,
+                    "error":     error,
+                })
+                
+                os.makedirs(OAUTH_DIR, exist_ok=True)
+                tmp_path: str = SOCIAL_LOG + ".tmp"
+                with open(tmp_path, "w", encoding="utf-8") as f:
+                    json.dump(records[-1000:], f, ensure_ascii=False)
+                os.replace(tmp_path, SOCIAL_LOG)
+                return
+            except (PermissionError, IOError) as e:
+                if attempt == 4:
+                    log.error(f"[Social] Colisión persistente guardando log en disco: {e}")
+                time.sleep(0.05 * (2 ** attempt))
+            except Exception as e:
+                log.error(f"[Social] Error guardando log: {e}")
+                return
+
 
 
 # ── TikTok Content Posting API v2 ─────────────────────────────────────────────

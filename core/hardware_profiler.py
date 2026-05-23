@@ -18,11 +18,14 @@ import json
 import re
 import csv
 import io
+import threading
+from typing import List, Dict, Any, Optional, Tuple
 
 BASE_DIR      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_settings_lock = threading.RLock()
 
 # Mapa de modelos AMD iGPU conocidos → versión GFX para ROCm
-AMD_GFX_MAP = {
+AMD_GFX_MAP: Dict[str, str] = {
     "890m":    "12.0.0",   # Strix Halo
     "880m":    "11.5.0",   # Hawk Point 2
     "780m":    "11.0.0",   # Phoenix (Ryzen 7 8700G)
@@ -41,7 +44,7 @@ AMD_GFX_MAP = {
 }
 
 
-def _run_cmd(cmd, timeout=4):
+def _run_cmd(cmd: str, timeout: int = 4) -> str:
     """Runs a shell command and returns stdout, suppressing all errors."""
     try:
         result = subprocess.run(
@@ -53,7 +56,7 @@ def _run_cmd(cmd, timeout=4):
         return ""
 
 
-def _detect_amd_gfx(gpu_name_lower):
+def _detect_amd_gfx(gpu_name_lower: str) -> str:
     """Returns the ROCm GFX version string for the detected AMD GPU."""
     for model, gfx in AMD_GFX_MAP.items():
         if model in gpu_name_lower:
@@ -61,13 +64,13 @@ def _detect_amd_gfx(gpu_name_lower):
     return "11.0.0"  # Safe modern AMD default
 
 
-def _parse_gpu_windows():
+def _parse_gpu_windows() -> List[Dict[str, Any]]:
     """
     Parses GPU info on Windows using Get-CimInstance and csv.reader.
     BUG-11 FIX: uses csv.reader instead of manual split to handle
     GPU names containing commas (e.g. 'NVIDIA GeForce RTX 4090, Creator Edition').
     """
-    gpus = []
+    gpus: List[Dict[str, Any]] = []
     ps_cmd = (
         "Get-CimInstance -ClassName Win32_VideoController "
         "| Select-Object Name,AdapterRAM "
@@ -95,7 +98,7 @@ def _parse_gpu_windows():
     return gpus
 
 
-def _parse_ram_windows():
+def _parse_ram_windows() -> int:
     """Returns total system RAM in MB using Get-CimInstance (Windows 11 compatible)."""
     ps_cmd = "(Get-CimInstance -ClassName Win32_ComputerSystem).TotalPhysicalMemory"
     out = _run_cmd(f'powershell -NoProfile -Command "{ps_cmd}"', timeout=5)
@@ -105,7 +108,7 @@ def _parse_ram_windows():
         return 32768  # fallback 32GB
 
 
-def _parse_npu_windows():
+def _parse_npu_windows() -> Optional[str]:
     """Detects NPU (AMD Ryzen AI) on Windows using Get-PnpDevice."""
     cmd = "powershell -NoProfile -Command \"Get-PnpDevice -FriendlyName '*NPU*' | Select-Object -ExpandProperty FriendlyName -First 1\""
     out = _run_cmd(cmd, timeout=5)
@@ -114,9 +117,9 @@ def _parse_npu_windows():
     return None
 
 
-def _parse_gpu_linux():
+def _parse_gpu_linux() -> List[Dict[str, Any]]:
     """Parses GPU info on Linux using lspci."""
-    gpus = []
+    gpus: List[Dict[str, Any]] = []
     lspci = _run_cmd("lspci 2>/dev/null | grep -iE 'vga|3d|display'")
     if lspci:
         for line in lspci.splitlines():
@@ -126,22 +129,25 @@ def _parse_gpu_linux():
     return gpus
 
 
-def _parse_ram_linux():
+def _parse_ram_linux() -> int:
     """Returns total system RAM in MB on Linux."""
     out = _run_cmd("grep MemTotal /proc/meminfo 2>/dev/null")
     try:
-        return int(re.search(r'\d+', out).group()) // 1024
+        match = re.search(r'\d+', out)
+        if match:
+            return int(match.group()) // 1024
+        return 16384
     except Exception:
         return 16384
 
 
-def _classify_gpu(name, vram_bytes, total_ram_mb):
+def _classify_gpu(name: str, vram_bytes: int, total_ram_mb: int) -> Dict[str, Any]:
     """
     Builds a GPU info dict from raw WMI/lspci data.
     Returns a fully classified dict with vendor, is_igpu, gpu_type, vram_mb, gfx_version.
     """
     name_lower = name.lower()
-    info = {
+    info: Dict[str, Any] = {
         "name":        name,
         "vram_bytes":  vram_bytes,
         "vram_mb":     vram_bytes // (1024 ** 2) if vram_bytes > 0 else 0,
@@ -178,7 +184,7 @@ def _classify_gpu(name, vram_bytes, total_ram_mb):
     return info
 
 
-def detect_gpu():
+def detect_gpu() -> Dict[str, Any]:
     """
     FEAT-14: Detects ALL GPUs and returns a complete hardware profile.
 
@@ -187,7 +193,7 @@ def detect_gpu():
       - all_gpus: list of ALL detected GPUs (iGPU + dGPU) for split-offload support
       - total_ram_mb: total system RAM
     """
-    profile = {
+    profile: Dict[str, Any] = {
         "gpu_name":    "Unknown",
         "vendor":      "unknown",
         "vram_mb":     8192,
@@ -231,7 +237,7 @@ def detect_gpu():
     return profile
 
 
-def calculate_optimal_ctx(vram_mb, model_size_b=32, kv_quant="q4_0"):
+def calculate_optimal_ctx(vram_mb: int, model_size_b: int = 32, kv_quant: str = "q4_0") -> int:
     """
     Calculates the maximum context window that fits in available VRAM.
 
@@ -259,7 +265,7 @@ def calculate_optimal_ctx(vram_mb, model_size_b=32, kv_quant="q4_0"):
     return 8192  # Guaranteed minimum floor
 
 
-def get_full_profile():
+def get_full_profile() -> Dict[str, Any]:
     """
     Main entry point. Returns the complete hardware profile dict,
     including optimal context window for the currently active model.
@@ -268,19 +274,23 @@ def get_full_profile():
 
     # Detect current model size from settings
     model_size_b = 32  # Default: 32B
-    try:
-        with open(os.path.join(BASE_DIR, "_settings.json"), "r", encoding="utf-8") as f:
-            settings = json.load(f)
-        model_name = settings.get("last_model", "").lower()
-        for size_str, size_b in [
-            ("70b", 70), ("72b", 72), ("32b", 32), ("30b", 30),
-            ("14b", 14), ("13b", 13), ("8b", 8), ("7b", 7), ("3b", 3), ("1b", 1)
-        ]:
-            if size_str in model_name:
-                model_size_b = size_b
-                break
-    except Exception:
-        pass
+    with _settings_lock:
+        try:
+            settings_path = os.path.join(BASE_DIR, "_settings.json")
+            if os.path.exists(settings_path):
+                with open(settings_path, "r", encoding="utf-8") as f:
+                    settings = json.load(f)
+                if isinstance(settings, dict):
+                    model_name = settings.get("last_model", "").lower()
+                    for size_str, size_b in [
+                        ("70b", 70), ("72b", 72), ("32b", 32), ("30b", 30),
+                        ("14b", 14), ("13b", 13), ("8b", 8), ("7b", 7), ("3b", 3), ("1b", 1)
+                    ]:
+                        if size_str in model_name:
+                            model_size_b = size_b
+                            break
+        except Exception:
+            pass
 
     kv_quant    = "q4_0" if gpu["vram_mb"] < 10000 else "q8_0"
     optimal_ctx = calculate_optimal_ctx(gpu["vram_mb"], model_size_b, kv_quant)
@@ -324,3 +334,4 @@ if __name__ == "__main__":
     print(f"\n  Modelo ({p['model_size_b']}B)   : {p['kv_quant'].upper()} KV-Cache")
     print(f"  Contexto Óptimo : {p['optimal_ctx']:,} tokens")
     print()
+

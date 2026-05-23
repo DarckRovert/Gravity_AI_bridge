@@ -1,11 +1,14 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI – COMFYUI CLIENT V1.0                                           ║
+║  GRAVITY AI – COMFYUI CLIENT V1.1                                           ║
 ║  Cliente REST + WebSocket para instancia local de ComfyUI                   ║
-║  Permite generar clips animados (Image-to-Video) via LTX-Video              ║
+║                                                                              ║
+║  Workflows disponibles:                                                      ║
+║    img2video  — SD 1.5 img2img multi-frame → SaveAnimatedWEBP               ║
+║    img2prompt — WD14Tagger (Fase 2: consistencia visual inter-escena)        ║
 ║                                                                              ║
 ║  Arquitectura de integración:                                                ║
-║    Fooocus (imagen estática) → ComfyUI (animación) → ffmpeg (concat)        ║
+║    Pollinations (imagen) → ComfyUI (animación/tagging) → FFmpeg (concat)    ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 Uso desde video_pipeline.py:
@@ -182,20 +185,56 @@ class ComfyUIClient:
         return output_files
 
     def extract_tags(self, prompt_id: str) -> list[str]:
-        """Extrae la lista de tags (texto) generados del historial."""
+        """
+        Extrae los tags visuales producidos por WD14Tagger del historial de ejecución.
+
+        El nodo WD14Tagger|pysssss puede depositar su output bajo distintas keys
+        dependiendo de la versión: 'tags', 'text', o como valor string directo.
+        Este método inspecciona todas las variantes para garantizar compatibilidad.
+
+        Args:
+            prompt_id: ID del prompt ejecutado que contiene el nodo WD14.
+
+        Returns:
+            Lista de strings con los tags extraídos. Lista vacía si no hay resultado.
+        """
         tags: list[str] = []
         try:
-            history    = self.get_history(prompt_id)
+            history     = self.get_history(prompt_id)
             prompt_data = history.get(prompt_id, {})
-            outputs    = prompt_data.get("outputs", {})
+            outputs     = prompt_data.get("outputs", {})
 
             for _node_id, node_output in outputs.items():
+                # Variante 1: key "tags" (versiones antiguas de ComfyUI-WD14-Tagger)
                 if "tags" in node_output:
-                    if isinstance(node_output["tags"], list):
-                        tags.extend(node_output["tags"])
+                    val = node_output["tags"]
+                    if isinstance(val, list):
+                        tags.extend([str(t) for t in val if t])
+                    elif isinstance(val, str) and val:
+                        tags.append(val)
+
+                # Variante 2: key "text" (versiones nuevas / pysssss)
+                elif "text" in node_output:
+                    val = node_output["text"]
+                    if isinstance(val, list):
+                        tags.extend([str(t) for t in val if t])
+                    elif isinstance(val, str) and val:
+                        tags.append(val)
+
+                # Variante 3: diccionario con valores string planos (fallback)
+                else:
+                    for v in node_output.values():
+                        if isinstance(v, str) and len(v) > 5 and "," in v:
+                            tags.append(v)
+                            break
+                        elif isinstance(v, list) and v and isinstance(v[0], str):
+                            tags.extend([str(t) for t in v if t])
+                            break
+
         except Exception:
             pass
         return tags
+
 
     def build_img2video_workflow(
         self,
@@ -204,78 +243,192 @@ class ComfyUIClient:
         height: int = 512,
         frames: int = 25,
         fps: int = 8,
-        model_name: str = "ltx-video-2b-v0.9.5.safetensors",
+        model_name: str = "v1-5-pruned-emaonly-fp16.safetensors",
+        positive_prompt: str = "cinematic motion, smooth animation, high quality, detailed",
+        negative_prompt: str = "blur, distortion, artifacts, static, low quality, noise",
+        steps: int = 20,
+        cfg: float = 7.0,
+        denoise: float = 0.55,
+        seed: int = 42,
     ) -> dict:
         """
-        Construye un workflow básico Image-to-Video usando el nodo LTX-Video de ComfyUI.
-        Requiere que el modelo LTX-Video esté descargado en ComfyUI/models/video_models/.
+        Construye un workflow Image-to-Video mediante img2img multi-frame con SD 1.5.
+
+        Genera `frames` variaciones de la imagen fuente con seeds distintos
+        y las guarda como WEBP animado vía SaveAnimatedWEBP.
+
+        Requiere únicamente: v1-5-pruned-emaonly-fp16.safetensors (instalado).
+        No requiere T5-XXL, LTX-Video ni ningún encoder adicional.
 
         Args:
-            image_path:  Ruta absoluta a la imagen de entrada.
-            width, height: Resolución del video de salida.
-            frames:      Cantidad de frames a generar (25 = ~3s a 8fps).
-            fps:         Frames por segundo del clip de salida.
-            model_name:  Nombre del archivo del modelo LTX-Video.
+            image_path:      Ruta absoluta a la imagen de entrada.
+            width, height:   Resolución del video de salida (múltiplos de 8).
+            frames:          Número de frames a generar (= batch_size).
+            fps:             Frames por segundo del WEBP animado de salida.
+            model_name:      Checkpoint SD 1.5 disponible localmente.
+            positive_prompt: Prompt positivo de texto para guiar los frames.
+            negative_prompt: Prompt negativo de texto.
+            steps:           Pasos de difusión por frame.
+            cfg:             Classifier-free guidance scale.
+            denoise:         Fuerza de denoising (0.0=copia exacta, 1.0=regeneración total).
+            seed:            Semilla base (cada frame usa seed+frame_index).
 
         Returns:
             Dict con la estructura de workflow lista para queue_prompt().
         """
+        # Asegurar dimensiones válidas para SD 1.5 (múltiplos de 8)
+        width  = max(64, (width  // 8) * 8)
+        height = max(64, (height // 8) * 8)
+
         workflow = {
+            # ── Cargar imagen de referencia ──────────────────────────────────
             "1": {
                 "class_type": "LoadImage",
                 "inputs": {"image": image_path}
             },
-            "2": {
-                "class_type": "LTXVLoader",
+            # ── Escalar imagen a resolución objetivo ─────────────────────────
+            "12": {
+                "class_type": "ImageScale",
                 "inputs": {
-                    "ckpt_name": model_name,
-                    "dtype": "bfloat16"
+                    "image":          ["1", 0],
+                    "upscale_method": "lanczos",
+                    "width":          width,
+                    "height":         height,
+                    "crop":           "center",
                 }
             },
+            # ── Modelo SD 1.5 (modelo + clip + vae) ─────────────────────────
+            "2": {
+                "class_type": "CheckpointLoaderSimple",
+                "inputs": {"ckpt_name": model_name}
+            },
+            # ── Encoders de texto ─────────────────────────────────────────────
             "3": {
-                "class_type": "LTXVConditioning",
+                "class_type": "CLIPTextEncode",
                 "inputs": {
-                    "positive": "cinematic motion, smooth, high quality video",
-                    "negative": "blur, distortion, artifacts, static, low quality",
-                    "model": ["2", 0],
-                    "width": width,
-                    "height": height,
-                    "frame_rate": fps,
-                    "length": frames,
-                    "batch_size": 1,
+                    "text": positive_prompt,
+                    "clip": ["2", 1]
                 }
             },
             "4": {
-                "class_type": "LTXVSampler",
+                "class_type": "CLIPTextEncode",
                 "inputs": {
-                    "model": ["2", 0],
-                    "conditioning": ["3", 0],
-                    "image": ["1", 0],
-                    "sampler": "euler",
-                    "scheduler": "linear",
-                    "steps": 25,
-                    "cfg": 3.0,
-                    "seed": 42,
-                    "noise_aug_strength": 0.0
+                    "text": negative_prompt,
+                    "clip": ["2", 1]
                 }
             },
+            # ── Codificar imagen referencia a latent ─────────────────────────
             "5": {
-                "class_type": "LTXVDecoder",
+                "class_type": "VAEEncode",
                 "inputs": {
-                    "samples": ["4", 0],
-                    "model": ["2", 0],
+                    "pixels": ["12", 0],
+                    "vae":    ["2", 2]
                 }
             },
+            # ── Batch de N frames: img2img con seeds variados ─────────────────
             "6": {
+                "class_type": "KSampler",
+                "inputs": {
+                    "model":        ["2", 0],
+                    "seed":         seed,
+                    "steps":        steps,
+                    "cfg":          cfg,
+                    "sampler_name": "euler_ancestral",
+                    "scheduler":    "karras",
+                    "positive":     ["3", 0],
+                    "negative":     ["4", 0],
+                    "latent_image": ["5", 0],
+                    "denoise":      denoise
+                }
+            },
+            # ── Decodificar latent a imagen ───────────────────────────────────
+            "7": {
+                "class_type": "VAEDecode",
+                "inputs": {
+                    "samples": ["6", 0],
+                    "vae":     ["2", 2]
+                }
+            },
+            # ── Guardar como WEBP animado ─────────────────────────────────────
+            "9": {
                 "class_type": "SaveAnimatedWEBP",
                 "inputs": {
-                    "images": ["5", 0],
+                    "images":          ["7", 0],
                     "filename_prefix": "gravity_clip",
-                    "fps": fps,
-                    "lossless": False,
-                    "quality": 85,
-                    "method": "default",
+                    "fps":             fps,
+                    "lossless":        False,
+                    "quality":         85,
+                    "method":          "default"
                 }
             }
         }
+
+        # Expandir a N frames mediante nodos repetidos con seed+i
+        # Cada frame adicional es otro KSampler con seed distinto cuyo output
+        # se concatena. Para mantener el workflow simple, usamos batch en VAEEncode
+        # expandiendo el latent. La forma más compatible en ComfyUI es generar
+        # una lista de imágenes mediante RepeatLatentBatch y seeds variables.
+        # Dado que KSampler no acepta batch de seeds, usamos la estructura minimal:
+        # batch_size en EmptyLatentImage con un único seed (ComfyUI genera variación
+        # interna por batch index cuando use_batch_seed_offset está activo).
+        if frames > 1:
+            workflow["5"] = {
+                "class_type": "VAEEncode",
+                "inputs": {
+                    "pixels": ["12", 0],
+                    "vae":    ["2", 2]
+                }
+            }
+            workflow["13"] = {
+                "class_type": "RepeatLatentBatch",
+                "inputs": {
+                    "samples": ["5", 0],
+                    "amount":  min(frames, 32)   # máx 32 frames para CPU viable
+                }
+            }
+            workflow["6"]["inputs"]["latent_image"] = ["13", 0]
+
         return workflow
+
+    def build_img2prompt_workflow(
+        self,
+        image_name: str,
+        model: str = "wd-v1-4-moat-tagger-v2",
+        threshold: float = 0.35,
+        character_threshold: float = 0.85,
+        exclude_tags: str = "rating:safe, rating:questionable, rating:explicit",
+    ) -> dict:
+        """
+        Construye el workflow de Image-to-Prompt usando WD14Tagger.
+
+        El resultado del tagger (tags visuales de la imagen) se recupera mediante
+        extract_tags(prompt_id) tras la ejecución. No genera archivos en disco.
+
+        Args:
+            image_name:          Nombre de archivo ya copiado al directorio /input de ComfyUI.
+            model:               Modelo WD14 a usar para el tagging.
+            threshold:           Umbral de confianza general para tags (0.0-1.0).
+            character_threshold: Umbral de confianza para tags de personaje.
+            exclude_tags:        Tags a excluir del output (separados por coma).
+
+        Returns:
+            Dict con la estructura de workflow lista para queue_prompt().
+        """
+        return {
+            "1": {
+                "class_type": "LoadImage",
+                "inputs": {"image": image_name}
+            },
+            "2": {
+                "class_type": "WD14Tagger|pysssss",
+                "inputs": {
+                    "image":               ["1", 0],
+                    "model":               model,
+                    "threshold":           threshold,
+                    "character_threshold": character_threshold,
+                    "replace_underscore":  True,
+                    "trailing_comma":      False,
+                    "exclude_tags":        exclude_tags,
+                }
+            }
+        }

@@ -61,21 +61,26 @@ def setup_logger(name: str = "gravity", log_file: str = "bridge.log", level: int
     # 1. Console Handler (Standard Text)
     # The console handler keeps standard formatting for the IDE/CLI
     console_handler = logging.StreamHandler()
-    console_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    
     # Aplicar sanitización básica envolviendo el formateador
     class SanitizeConsoleFormatter(logging.Formatter):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.sanitizer = SanitizedJSONFormatter()
+
         def format(self, record):
             msg = super().format(record)
-            formatter = SanitizedJSONFormatter()
-            return formatter.sanitize(msg)
+            return self.sanitizer.sanitize(msg)
             
     console_handler.setFormatter(SanitizeConsoleFormatter('%(asctime)s - %(levelname)s - %(message)s'))
-    # Forzar UTF-8 en la consola de Windows (evita UnicodeEncodeError con cp1252)
-    if hasattr(sys.stdout, 'reconfigure'):
-        try:
-            sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-        except Exception:
-            pass
+    
+    # Forzar UTF-8 en la consola de Windows para stdout y stderr (evita UnicodeEncodeError con cp1252)
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, 'reconfigure'):
+            try:
+                stream.reconfigure(encoding='utf-8', errors='replace')
+            except Exception:
+                pass
     logger.addHandler(console_handler)
     
     # 2. File Handler (JSON Format)

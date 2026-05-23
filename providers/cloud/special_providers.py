@@ -10,28 +10,30 @@ AWS Bedrock: boto3 required; streams via InvokeModelWithResponseStream.
 
 import json
 import urllib.request
+import urllib.error
 import os
-from typing import Generator
-
+import logging
+from typing import Generator, List, Dict, Any, Optional, Tuple
 from providers.base import ProviderPlugin, ProviderResult
 from core.key_manager import KeyManager
 from providers.cloud._openai_compat_cloud import OpenAICompatCloudProvider
 
+logger = logging.getLogger("gravity")
+
 
 # ── Azure OpenAI ──────────────────────────────────────────────────────────────
 class AzureOpenAIProvider(ProviderPlugin):
-    name              = "Azure OpenAI"
-    protocol          = "openai"
-    category          = "cloud"
-    requires_key      = True
-    supports_vision   = True
-    supports_function_calling = True
-    default_context   = 128000
-    _key_id           = "azure"
+    name: str              = "Azure OpenAI"
+    protocol: str          = "openai"
+    category: str          = "cloud"
+    requires_key: bool      = True
+    supports_vision: bool   = True
+    supports_function_calling: bool = True
+    default_context: int   = 128000
+    _key_id: str           = "azure"
 
-    def _get_endpoint_and_key(self):
+    def _get_endpoint_and_key(self) -> Tuple[str, str]:
         key  = KeyManager.get_key("azure") or ""
-        # Azure endpoint stored as "key|resource_name|deployment_name"
         if "|" in key:
             parts = key.split("|", 2)
             api_key, resource, deployment = (parts + ["", ""])[:3]
@@ -48,55 +50,72 @@ class AzureOpenAIProvider(ProviderPlugin):
             r.active_model = "azure-deployment"
         return r
 
-    def chat_stream(self, messages, model, options) -> Generator[str, None, None]:
+    def chat_stream(
+        self,
+        messages: List[Dict[str, Any]],
+        model:    str,
+        options:  Dict[str, Any],
+    ) -> Generator[str, None, None]:
         api_key, endpoint = self._get_endpoint_and_key()
         url     = f"{endpoint.rstrip('/')}/chat/completions?api-version=2024-02-01"
-        payload = {"messages": messages, "stream": True}
+        payload: Dict[str, Any] = {"messages": messages, "stream": True}
         for k in ("temperature", "top_p", "max_tokens"):
             if k in options:
                 payload[k] = options[k]
         headers = {"Content-Type": "application/json", "api-key": api_key}
         data    = json.dumps(payload).encode()
         req     = urllib.request.Request(url, data=data, headers=headers)
-        with urllib.request.urlopen(req, timeout=300) as r:
-            for raw in r:
-                line = raw.decode("utf-8", errors="ignore").strip()
-                if line.startswith("data:") and line[5:].strip() not in ("", "[DONE]"):
-                    try:
-                        d     = json.loads(line[5:].strip())
-                        chunk = d["choices"][0]["delta"].get("content", "")
-                        if chunk:
-                            yield chunk
-                    except Exception:
-                        pass
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                for raw in r:
+                    line = raw.decode("utf-8", errors="ignore").strip()
+                    if line.startswith("data:") and line[5:].strip() not in ("", "[DONE]"):
+                        try:
+                            d     = json.loads(line[5:].strip())
+                            chunk = d["choices"][0]["delta"].get("content", "")
+                            if chunk:
+                                yield chunk
+                        except Exception:
+                            pass
+        except Exception as e:
+            logger.error(f"[AzureOpenAIStream] Error: {e}")
 
-    def chat_complete(self, messages, model, options) -> str:
+    def chat_complete(
+        self,
+        messages: List[Dict[str, Any]],
+        model:    str,
+        options:  Dict[str, Any],
+    ) -> str:
         api_key, endpoint = self._get_endpoint_and_key()
         url     = f"{endpoint.rstrip('/')}/chat/completions?api-version=2024-02-01"
-        payload = {"messages": messages, "stream": False}
+        payload: Dict[str, Any] = {"messages": messages, "stream": False}
         headers = {"Content-Type": "application/json", "api-key": api_key}
         data    = json.dumps(payload).encode()
         req     = urllib.request.Request(url, data=data, headers=headers)
-        with urllib.request.urlopen(req, timeout=300) as r:
-            d = json.loads(r.read().decode())
-        return d["choices"][0]["message"]["content"] if "choices" in d else ""
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                d = json.loads(r.read().decode())
+            return str(d["choices"][0]["message"]["content"]) if "choices" in d else ""
+        except Exception as e:
+            logger.error(f"[AzureOpenAIComplete] Error: {e}")
+        return ""
 
-    def get_cost_per_million_tokens(self, model: str) -> dict:
-        return {"input": 5.00, "output": 15.00}  # varies by deployment
+    def get_cost_per_million_tokens(self, model: str) -> Dict[str, float]:
+        return {"input": 5.00, "output": 15.00}
 
 
 # ── Cohere ────────────────────────────────────────────────────────────────────
 class CohereProvider(ProviderPlugin):
-    name              = "Cohere"
-    protocol          = "cohere"
-    category          = "cloud"
-    requires_key      = True
-    supports_function_calling = True
-    default_context   = 128000
-    _key_id           = "cohere"
-    _available_models = ["command-r-plus-08-2024", "command-r-03-2024", "command-a-03-2025"]
+    name: str              = "Cohere"
+    protocol: str          = "cohere"
+    category: str          = "cloud"
+    requires_key: bool      = True
+    supports_function_calling: bool = True
+    default_context: int   = 128000
+    _key_id: str           = "cohere"
+    _available_models: List[str] = ["command-r-plus-08-2024", "command-r-03-2024", "command-a-03-2025"]
 
-    def _headers(self):
+    def _headers(self) -> Dict[str, str]:
         return {
             "Authorization": f"Bearer {KeyManager.get_key(self._key_id) or ''}",
             "Content-Type":  "application/json",
@@ -111,25 +130,32 @@ class CohereProvider(ProviderPlugin):
             r.active_model = self._available_models[0]
         return r
 
-    def _convert_messages(self, messages):
+    def _convert_messages(self, messages: List[Dict[str, Any]]) -> Tuple[str, List[Dict[str, Any]], str]:
         """Converts OpenAI messages → Cohere chat_history + message."""
         system_prompt = ""
-        history       = []
+        history: List[Dict[str, Any]] = []
         last_user_msg = ""
         for m in messages:
-            if m["role"] == "system":
-                system_prompt = m["content"]
-            elif m["role"] == "user":
-                last_user_msg = m["content"]
+            role = m.get("role")
+            content = str(m.get("content", ""))
+            if role == "system":
+                system_prompt = content
+            elif role == "user":
+                last_user_msg = content
                 if history:
-                    history.append({"role": "USER", "message": m["content"]})
-            elif m["role"] == "assistant":
-                history.append({"role": "CHATBOT", "message": m["content"]})
+                    history.append({"role": "USER", "message": content})
+            elif role == "assistant":
+                history.append({"role": "CHATBOT", "message": content})
         return system_prompt, history[:-1] if history else [], last_user_msg
 
-    def chat_stream(self, messages, model, options) -> Generator[str, None, None]:
+    def chat_stream(
+        self,
+        messages: List[Dict[str, Any]],
+        model:    str,
+        options:  Dict[str, Any],
+    ) -> Generator[str, None, None]:
         preamble, history, user_msg = self._convert_messages(messages)
-        payload = {"model": model, "message": user_msg, "stream": True}
+        payload: Dict[str, Any] = {"model": model, "message": user_msg, "stream": True}
         if preamble:
             payload["preamble"] = preamble
         if history:
@@ -138,21 +164,29 @@ class CohereProvider(ProviderPlugin):
         req  = urllib.request.Request(
             "https://api.cohere.com/v1/chat", data=data, headers=self._headers()
         )
-        with urllib.request.urlopen(req, timeout=300) as r:
-            for raw in r:
-                line = raw.decode("utf-8", errors="ignore").strip()
-                if not line:
-                    continue
-                try:
-                    d = json.loads(line)
-                    if d.get("event_type") == "text-generation":
-                        yield d.get("text", "")
-                except Exception:
-                    pass
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                for raw in r:
+                    line = raw.decode("utf-8", errors="ignore").strip()
+                    if not line:
+                        continue
+                    try:
+                        d = json.loads(line)
+                        if d.get("event_type") == "text-generation":
+                            yield d.get("text", "")
+                    except Exception:
+                        pass
+        except Exception as e:
+            logger.error(f"[CohereStream] Error: {e}")
 
-    def chat_complete(self, messages, model, options) -> str:
+    def chat_complete(
+        self,
+        messages: List[Dict[str, Any]],
+        model:    str,
+        options:  Dict[str, Any],
+    ) -> str:
         preamble, history, user_msg = self._convert_messages(messages)
-        payload = {"model": model, "message": user_msg}
+        payload: Dict[str, Any] = {"model": model, "message": user_msg}
         if preamble:
             payload["preamble"] = preamble
         if history:
@@ -161,11 +195,15 @@ class CohereProvider(ProviderPlugin):
         req  = urllib.request.Request(
             "https://api.cohere.com/v1/chat", data=data, headers=self._headers()
         )
-        with urllib.request.urlopen(req, timeout=300) as r:
-            d = json.loads(r.read().decode())
-        return d.get("text", "")
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                d = json.loads(r.read().decode())
+            return str(d.get("text", ""))
+        except Exception as e:
+            logger.error(f"[CohereComplete] Error: {e}")
+        return ""
 
-    def get_cost_per_million_tokens(self, model: str) -> dict:
+    def get_cost_per_million_tokens(self, model: str) -> Dict[str, float]:
         costs = {
             "command-r-plus-08-2024": {"input": 2.50, "output": 10.00},
             "command-r-03-2024":      {"input": 0.15, "output": 0.60},
@@ -179,11 +217,11 @@ class HuggingFaceProvider(OpenAICompatCloudProvider):
     HuggingFace Inference Router (new OpenAI-compat endpoint).
     Supports any model on HuggingFace Hub with Inference API enabled.
     """
-    name              = "HuggingFace"
-    _base_url         = "https://router.huggingface.co/v1"
-    _key_id           = "huggingface"
-    default_context   = 32768
-    _available_models = [
+    name: str              = "HuggingFace"
+    _base_url: str         = "https://router.huggingface.co/v1"
+    _key_id: str           = "huggingface"
+    default_context: int   = 32768
+    _available_models: List[str] = [
         "meta-llama/Meta-Llama-3.1-8B-Instruct",
         "mistralai/Mistral-7B-Instruct-v0.3",
         "Qwen/Qwen2.5-72B-Instruct",
@@ -191,8 +229,8 @@ class HuggingFaceProvider(OpenAICompatCloudProvider):
         "google/gemma-2-27b-it",
     ]
 
-    def get_cost_per_million_tokens(self, model: str) -> dict:
-        return {"input": 0.50, "output": 0.50}  # varies; many models free with limits
+    def get_cost_per_million_tokens(self, model: str) -> Dict[str, float]:
+        return {"input": 0.50, "output": 0.50}
 
 
 # ── AWS Bedrock ───────────────────────────────────────────────────────────────
@@ -202,22 +240,22 @@ class BedrockProvider(ProviderPlugin):
       KeyManager.set_key("bedrock", "ACCESS_KEY|SECRET_KEY|REGION")
     Uses boto3 if available, falls back to SigV4-signed urllib requests.
     """
-    name              = "AWS Bedrock"
-    protocol          = "bedrock"
-    category          = "cloud"
-    requires_key      = True
-    supports_vision   = True
-    supports_function_calling = True
-    default_context   = 200000
-    _key_id           = "bedrock"
-    _available_models = [
+    name: str              = "AWS Bedrock"
+    protocol: str          = "bedrock"
+    category: str          = "cloud"
+    requires_key: bool      = True
+    supports_vision: bool   = True
+    supports_function_calling: bool = True
+    default_context: int   = 200000
+    _key_id: str           = "bedrock"
+    _available_models: List[str] = [
         "anthropic.claude-3-5-sonnet-20241022-v2:0",
         "anthropic.claude-3-haiku-20240307-v1:0",
         "meta.llama3-70b-instruct-v1:0",
         "amazon.titan-text-premier-v1:0",
     ]
 
-    def _get_credentials(self):
+    def _get_credentials(self) -> Tuple[str, str, str]:
         raw = KeyManager.get_key(self._key_id) or ""
         if "|" in raw:
             parts  = raw.split("|", 2)
@@ -235,7 +273,12 @@ class BedrockProvider(ProviderPlugin):
             r.active_model = self._available_models[0]
         return r
 
-    def chat_stream(self, messages, model, options) -> Generator[str, None, None]:
+    def chat_stream(
+        self,
+        messages: List[Dict[str, Any]],
+        model:    str,
+        options:  Dict[str, Any],
+    ) -> Generator[str, None, None]:
         try:
             import boto3
             ak, sk, region = self._get_credentials()
@@ -243,15 +286,16 @@ class BedrockProvider(ProviderPlugin):
                 "bedrock-runtime",
                 aws_access_key_id=ak, aws_secret_access_key=sk, region_name=region
             )
-            # Convert to Anthropic Messages format (most models on Bedrock use it)
             system_prompt = ""
-            body_messages = []
+            body_messages: List[Dict[str, Any]] = []
             for m in messages:
-                if m["role"] == "system":
-                    system_prompt = m["content"]
+                role = m.get("role")
+                content = m.get("content")
+                if role == "system":
+                    system_prompt = str(content)
                 else:
-                    body_messages.append({"role": m["role"], "content": m["content"]})
-            body = {
+                    body_messages.append({"role": role, "content": content})
+            body: Dict[str, Any] = {
                 "anthropic_version": "bedrock-2023-05-31",
                 "max_tokens": options.get("max_tokens", 4096),
                 "messages":   body_messages,
@@ -265,19 +309,28 @@ class BedrockProvider(ProviderPlugin):
             for event in resp["body"]:
                 chunk_data = json.loads(event["chunk"]["bytes"].decode())
                 if chunk_data.get("type") == "content_block_delta":
-                    yield chunk_data.get("delta", {}).get("text", "")
+                    yield str(chunk_data.get("delta", {}).get("text", ""))
         except ImportError:
             yield "[Bedrock] boto3 no instalado. Ejecuta: pip install boto3"
         except Exception as e:
             yield f"[Bedrock Error] {e}"
 
-    def chat_complete(self, messages, model, options) -> str:
-        chunks = []
-        for chunk in self.chat_stream(messages, model, options):
-            chunks.append(chunk)
-        return "".join(chunks)
+    def chat_complete(
+        self,
+        messages: List[Dict[str, Any]],
+        model:    str,
+        options:  Dict[str, Any],
+    ) -> str:
+        chunks: List[str] = []
+        try:
+            for chunk in self.chat_stream(messages, model, options):
+                chunks.append(chunk)
+            return "".join(chunks)
+        except Exception as e:
+            logger.error(f"[BedrockComplete] Error: {e}")
+        return ""
 
-    def get_cost_per_million_tokens(self, model: str) -> dict:
+    def get_cost_per_million_tokens(self, model: str) -> Dict[str, float]:
         costs = {
             "anthropic.claude-3-5-sonnet-20241022-v2:0": {"input": 3.00,  "output": 15.00},
             "anthropic.claude-3-haiku-20240307-v1:0":    {"input": 0.25,  "output": 1.25},

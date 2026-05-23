@@ -23,12 +23,18 @@ from typing import Optional, List, Callable
 
 # Callbacks para notificar cambios de estado en la cola a SSE / WebSockets
 _on_update_callbacks: List[Callable[[], None]] = []
+_on_update_callbacks_lock = threading.RLock()
 
 def register_update_callback(cb: Callable[[], None]) -> None:
-    _on_update_callbacks.append(cb)
+    """Registra una función callback thread-safe para notificar actualizaciones."""
+    with _on_update_callbacks_lock:
+        _on_update_callbacks.append(cb)
 
 def _notify_update() -> None:
-    for cb in _on_update_callbacks:
+    """Despacha notificaciones de manera segura a todos los callbacks registrados."""
+    with _on_update_callbacks_lock:
+        callbacks_copy = list(_on_update_callbacks)
+    for cb in callbacks_copy:
         try:
             cb()
         except Exception:
@@ -55,7 +61,8 @@ CREATE TABLE IF NOT EXISTS image_jobs (
 );
 """
 
-_lock = threading.Lock()
+_lock = threading.RLock()
+_db_lock = threading.RLock()
 _started = False
 _current_job: Optional[dict] = None
 
@@ -63,14 +70,17 @@ _current_job: Optional[dict] = None
 # ── DB Helpers ─────────────────────────────────────────────────────────────────
 
 def _get_conn() -> sqlite3.Connection:
+    """Retorna una conexión a la base de datos SQLite."""
     conn = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=15)
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def _init_db() -> None:
-    with _get_conn() as conn:
-        conn.executescript(_SCHEMA)
+    """Inicializa el esquema de base de datos de manera thread-safe."""
+    with _db_lock:
+        with _get_conn() as conn:
+            conn.executescript(_SCHEMA)
 
 
 # ── API Pública ────────────────────────────────────────────────────────────────
@@ -78,40 +88,42 @@ def _init_db() -> None:
 def add_job(prompt: str, performance: str = "Speed",
             width: int = 1024, height: int = 1024) -> int:
     """
-    Encola un trabajo de generación de imagen.
+    Encola un trabajo de generación de imagen de manera thread-safe.
     Retorna el ID del trabajo asignado.
     """
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-    with _get_conn() as conn:
-        cur = conn.execute(
-            "INSERT INTO image_jobs (created_at, status, prompt, performance, width, height) "
-            "VALUES (?, 'pending', ?, ?, ?, ?)",
-            (now, prompt, performance, width, height)
-        )
-        job_id = cur.lastrowid
-        _notify_update()
-        return job_id
+    with _db_lock:
+        with _get_conn() as conn:
+            cur = conn.execute(
+                "INSERT INTO image_jobs (created_at, status, prompt, performance, width, height) "
+                "VALUES (?, 'pending', ?, ?, ?, ?)",
+                (now, prompt, performance, width, height)
+            )
+            job_id = cur.lastrowid
+            _notify_update()
+            return job_id
 
 
 def get_queue_status() -> dict:
-    """Retorna el estado completo de la cola y el historial reciente."""
-    with _get_conn() as conn:
-        pending = conn.execute(
-            "SELECT * FROM image_jobs WHERE status='pending' ORDER BY id ASC"
-        ).fetchall()
+    """Retorna el estado completo de la cola y el historial reciente de forma thread-safe."""
+    with _db_lock:
+        with _get_conn() as conn:
+            pending = conn.execute(
+                "SELECT * FROM image_jobs WHERE status='pending' ORDER BY id ASC"
+            ).fetchall()
 
-        running = conn.execute(
-            "SELECT COUNT(*) FROM image_jobs WHERE status='running'"
-        ).fetchone()[0]
+            running = conn.execute(
+                "SELECT COUNT(*) FROM image_jobs WHERE status='running'"
+            ).fetchone()[0]
 
-        done = conn.execute(
-            "SELECT COUNT(*) FROM image_jobs WHERE status='done'"
-        ).fetchone()[0]
+            done = conn.execute(
+                "SELECT COUNT(*) FROM image_jobs WHERE status='done'"
+            ).fetchone()[0]
 
-        history = conn.execute(
-            "SELECT * FROM image_jobs WHERE status != 'pending' "
-            "ORDER BY id DESC LIMIT 20"
-        ).fetchall()
+            history = conn.execute(
+                "SELECT * FROM image_jobs WHERE status != 'pending' "
+                "ORDER BY id DESC LIMIT 20"
+            ).fetchall()
 
     with _lock:
         current = dict(_current_job) if _current_job else None
@@ -127,17 +139,18 @@ def get_queue_status() -> dict:
 
 
 def cancel_job(job_id: int) -> bool:
-    """Cancela un trabajo pendiente (no puede cancelar el que está en proceso)."""
-    with _get_conn() as conn:
-        cur = conn.execute(
-            "UPDATE image_jobs SET status='cancelled', "
-            "finished_at=? WHERE id=? AND status='pending'",
-            (datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), job_id)
-        )
-        changed = cur.rowcount > 0
-        if changed:
-            _notify_update()
-        return changed
+    """Cancela un trabajo pendiente de forma thread-safe (no puede cancelar el que está en proceso)."""
+    with _db_lock:
+        with _get_conn() as conn:
+            cur = conn.execute(
+                "UPDATE image_jobs SET status='cancelled', "
+                "finished_at=? WHERE id=? AND status='pending'",
+                (datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), job_id)
+            )
+            changed = cur.rowcount > 0
+            if changed:
+                _notify_update()
+            return changed
 
 
 # ── Worker ─────────────────────────────────────────────────────────────────────
@@ -155,11 +168,12 @@ def _process_job(job: sqlite3.Row) -> None:
     _OUTPUT_DIR = os.path.join(BASE_DIR, "_integrations", "Fooocus", "Fooocus", "outputs")
 
     # Marcar como en progreso
-    with _get_conn() as conn:
-        conn.execute(
-            "UPDATE image_jobs SET status='running', started_at=? WHERE id=?",
-            (datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), job_id)
-        )
+    with _db_lock:
+        with _get_conn() as conn:
+            conn.execute(
+                "UPDATE image_jobs SET status='running', started_at=? WHERE id=?",
+                (datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), job_id)
+            )
 
     with _lock:
         _current_job = {
@@ -231,19 +245,21 @@ def _process_job(job: sqlite3.Row) -> None:
         status     = "done" if result.get("success") else "failed"
         error_msg  = result.get("error") if not result.get("success") else None
 
-        with _get_conn() as conn:
-            conn.execute(
-                "UPDATE image_jobs SET status=?, finished_at=?, result_json=?, error=? WHERE id=?",
-                (status, datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), result_str, error_msg, job_id)
-            )
+        with _db_lock:
+            with _get_conn() as conn:
+                conn.execute(
+                    "UPDATE image_jobs SET status=?, finished_at=?, result_json=?, error=? WHERE id=?",
+                    (status, datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), result_str, error_msg, job_id)
+                )
         _notify_update()
 
     except Exception as e:
-        with _get_conn() as conn:
-            conn.execute(
-                "UPDATE image_jobs SET status='failed', finished_at=?, error=? WHERE id=?",
-                (datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), str(e), job_id)
-            )
+        with _db_lock:
+            with _get_conn() as conn:
+                conn.execute(
+                    "UPDATE image_jobs SET status='failed', finished_at=?, error=? WHERE id=?",
+                    (datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), str(e), job_id)
+                )
         _notify_update()
     finally:
         with _lock:
@@ -254,10 +270,11 @@ def _worker_loop() -> None:
     """Loop del worker: obtiene y procesa trabajos pendientes 1 a 1."""
     while True:
         try:
-            with _get_conn() as conn:
-                job = conn.execute(
-                    "SELECT * FROM image_jobs WHERE status='pending' ORDER BY id ASC LIMIT 1"
-                ).fetchone()
+            with _db_lock:
+                with _get_conn() as conn:
+                    job = conn.execute(
+                        "SELECT * FROM image_jobs WHERE status='pending' ORDER BY id ASC LIMIT 1"
+                    ).fetchone()
 
             if job:
                 _process_job(job)
@@ -271,17 +288,18 @@ def _worker_loop() -> None:
 # ── Arranque ───────────────────────────────────────────────────────────────────
 
 def start() -> None:
-    """Inicializa la base de datos y arranca el worker daemon."""
+    """Inicializa la base de datos y arranca el worker daemon de forma thread-safe."""
     global _started
-    if _started:
-        return
-    _started = True
+    with _lock:
+        if _started:
+            return
+        _started = True
 
-    _init_db()
+        _init_db()
 
-    t = threading.Thread(
-        target=_worker_loop,
-        name="GravityImageQueueWorker",
-        daemon=True,
-    )
-    t.start()
+        t = threading.Thread(
+            target=_worker_loop,
+            name="GravityImageQueueWorker",
+            daemon=True,
+        )
+        t.start()

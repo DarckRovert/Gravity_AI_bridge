@@ -28,6 +28,7 @@ CONFIG_PATH  = os.path.join(BASE_DIR, "config.yaml")
 
 _started = False
 _lock    = threading.Lock()
+_niches_lock = threading.RLock()
 
 # Estado observable desde el dashboard
 _state: dict = {
@@ -43,33 +44,77 @@ _state: dict = {
 # ── Config ─────────────────────────────────────────────────────────────────────
 
 def _load_config() -> dict:
+    """Carga de forma segura la sección del scheduler del gestor de configuración."""
     try:
-        import yaml
-        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-            cfg = yaml.safe_load(f) or {}
-        return cfg.get("scheduler", {})
-    except Exception:
+        from core.config_manager import config as config_manager
+        return config_manager.get("scheduler", {})
+    except Exception as e:
+        log.error(f"[Scheduler] Error obteniendo config del gestor: {e}")
         return {}
 
 
 def _load_niches() -> dict:
-    """Carga el banco de nichos desde inputs/niches.json."""
-    if not os.path.isfile(NICHES_PATH):
-        log.warning(f"[Scheduler] niches.json no encontrado en {NICHES_PATH}. Creando banco inicial.")
-        _create_default_niches()
-    try:
-        with open(NICHES_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception as e:
-        log.error(f"[Scheduler] Error leyendo niches.json: {e}")
+    """
+    Carga el banco de nichos desde inputs/niches.json de forma 100% thread-safe
+    utilizando cerrojos reentrantes y retroceso exponencial dinámico.
+    """
+    with _niches_lock:
+        if not os.path.isfile(NICHES_PATH):
+            log.warning(f"[Scheduler] niches.json no encontrado en {NICHES_PATH}. Creando banco inicial.")
+            _create_default_niches()
+        
+        backoff = 0.05
+        for attempt in range(5):
+            try:
+                with open(NICHES_PATH, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except (PermissionError, json.JSONDecodeError) as e:
+                if attempt == 4:
+                    log.error(f"[Scheduler] Error crítico leyendo niches.json tras 5 intentos: {e}")
+                    raise
+                log.warning(f"[Scheduler] Colisión en lectura de niches.json, reintentando en {backoff}s... (Intento {attempt+1}/5)")
+                time.sleep(backoff)
+                backoff *= 2
+            except Exception as e:
+                log.error(f"[Scheduler] Error inesperado leyendo niches.json: {e}")
+                return {"niches": []}
         return {"niches": []}
 
 
 def _save_niches(data: dict) -> None:
-    """Persiste el banco de nichos actualizado."""
-    os.makedirs(os.path.dirname(NICHES_PATH), exist_ok=True)
-    with open(NICHES_PATH, "w", encoding="utf-8", newline="\n") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    """
+    Persiste el banco de nichos actualizado de manera atómica, previniendo
+    corrupciones mediante archivos temporales y bloqueos exclusivos.
+    """
+    with _niches_lock:
+        os.makedirs(os.path.dirname(NICHES_PATH), exist_ok=True)
+        backoff = 0.05
+        for attempt in range(5):
+            try:
+                temp_path = NICHES_PATH + ".tmp"
+                with open(temp_path, "w", encoding="utf-8", newline="\n") as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                
+                # Reemplazo atómico seguro para Windows y Linux
+                if os.path.exists(NICHES_PATH):
+                    try:
+                        os.remove(NICHES_PATH)
+                    except PermissionError:
+                        # Si no se puede borrar inmediatamente, esperamos brevemente
+                        time.sleep(0.02)
+                        os.remove(NICHES_PATH)
+                os.rename(temp_path, NICHES_PATH)
+                return
+            except PermissionError as e:
+                if attempt == 4:
+                    log.error(f"[Scheduler] No se pudo guardar niches.json tras 5 intentos (PermissionError): {e}")
+                    raise
+                log.warning(f"[Scheduler] Bloqueo de escritura en niches.json, reintentando en {backoff}s... (Intento {attempt+1}/5)")
+                time.sleep(backoff)
+                backoff *= 2
+            except Exception as e:
+                log.error(f"[Scheduler] Error guardando niches.json: {e}")
+                break
 
 
 def _create_default_niches() -> None:
@@ -450,3 +495,20 @@ def queue_now(niche_id: Optional[str] = None, topic: Optional[str] = None) -> di
 
     log.info(f"[Scheduler] Job #{job_id} encolado manualmente: '{topic}'")
     return {"ok": True, "job_id": job_id, "topic": topic, "niche_id": niche_id}
+
+
+def load_niches() -> dict:
+    """
+    Wrapper público y thread-safe para cargar el banco de nichos.
+    Garantiza consistencia frente a lecturas concurrentes del sistema.
+    """
+    return _load_niches()
+
+
+def save_niches(data: dict) -> None:
+    """
+    Wrapper público y thread-safe para guardar el banco de nichos.
+    Garantiza atomicidad y resiliencia en escrituras concurrentes.
+    """
+    _save_niches(data)
+

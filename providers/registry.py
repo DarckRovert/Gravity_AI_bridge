@@ -10,11 +10,12 @@ import importlib.util
 import importlib
 import threading
 import time
+from typing import Dict, List, Optional, Type
 
 from providers.base import ProviderPlugin, ProviderResult
 
 _BASE   = os.path.dirname(os.path.dirname(__file__))   # F:\Gravity_AI_bridge
-_LOCK   = threading.Lock()
+_LOCK   = threading.RLock()
 
 
 class ProviderRegistry:
@@ -29,11 +30,11 @@ class ProviderRegistry:
         cloud_all = ProviderRegistry.get_cloud_plugins()
     """
 
-    _plugin_classes:   dict[str, type]          = {}   # name → class
-    _instances:        dict[str, ProviderPlugin] = {}   # name → instance
-    _discovered:       bool                      = False
-    _last_discover_ts: float                     = 0.0
-    _REDISCOVER_SECS:  float                     = 60.0  # hot-reload interval
+    _plugin_classes:   Dict[str, Type[ProviderPlugin]] = {}   # name → class
+    _instances:        Dict[str, ProviderPlugin]        = {}   # name → instance
+    _discovered:       bool                             = False
+    _last_discover_ts: float                            = 0.0
+    _REDISCOVER_SECS:  float                            = 60.0  # hot-reload interval
 
     # ── Discovery ─────────────────────────────────────────────────────────────
 
@@ -53,7 +54,7 @@ class ProviderRegistry:
             if not force and cls._discovered and (now - cls._last_discover_ts) < cls._REDISCOVER_SECS:
                 return
 
-            new_classes: dict[str, type] = {}
+            new_classes: Dict[str, Type[ProviderPlugin]] = {}
 
             for category in ("local", "cloud"):
                 cat_dir = os.path.join(_BASE, "providers", category)
@@ -68,6 +69,8 @@ class ProviderRegistry:
                     fpath       = os.path.join(cat_dir, fname)
                     try:
                         spec   = importlib.util.spec_from_file_location(module_name, fpath)
+                        if spec is None or spec.loader is None:
+                            continue
                         mod    = importlib.util.module_from_spec(spec)
                         spec.loader.exec_module(mod)
                         for attr_name in dir(mod):
@@ -95,66 +98,74 @@ class ProviderRegistry:
     # ── Instance access ───────────────────────────────────────────────────────
 
     @classmethod
-    def _get_instance(cls, name: str) -> ProviderPlugin | None:
-        if name not in cls._instances:
-            plug_cls = cls._plugin_classes.get(name)
-            if plug_cls is None:
-                return None
-            try:
-                cls._instances[name] = plug_cls()
-            except Exception:
-                return None
-        return cls._instances[name]
+    def _get_instance(cls, name: str) -> Optional[ProviderPlugin]:
+        with _LOCK:
+            if name not in cls._instances:
+                plug_cls = cls._plugin_classes.get(name)
+                if plug_cls is None:
+                    return None
+                try:
+                    cls._instances[name] = plug_cls()
+                except Exception:
+                    return None
+            return cls._instances[name]
 
     @classmethod
-    def get_all_plugins(cls) -> list[ProviderPlugin]:
-        cls.discover()
-        result = []
-        for name in cls._plugin_classes:
-            inst = cls._get_instance(name)
-            if inst is not None:
-                result.append(inst)
-        return result
+    def get_all_plugins(cls) -> List[ProviderPlugin]:
+        with _LOCK:
+            cls.discover()
+            result = []
+            for name in cls._plugin_classes:
+                inst = cls._get_instance(name)
+                if inst is not None:
+                    result.append(inst)
+            return result
 
     @classmethod
-    def get_local_plugins(cls) -> list[ProviderPlugin]:
-        return [p for p in cls.get_all_plugins() if p.category == "local"]
+    def get_local_plugins(cls) -> List[ProviderPlugin]:
+        with _LOCK:
+            return [p for p in cls.get_all_plugins() if p.category == "local"]
 
     @classmethod
-    def get_cloud_plugins(cls) -> list[ProviderPlugin]:
-        return [p for p in cls.get_all_plugins() if p.category == "cloud"]
+    def get_cloud_plugins(cls) -> List[ProviderPlugin]:
+        with _LOCK:
+            return [p for p in cls.get_all_plugins() if p.category == "cloud"]
 
     @classmethod
-    def get_by_name(cls, name: str) -> ProviderPlugin | None:
-        cls.discover()
-        # Case-insensitive lookup
-        for n, _ in cls._plugin_classes.items():
-            if n.lower() == name.lower():
-                return cls._get_instance(n)
-        return None
+    def get_by_name(cls, name: str) -> Optional[ProviderPlugin]:
+        with _LOCK:
+            cls.discover()
+            # Case-insensitive lookup
+            for n in cls._plugin_classes:
+                if n.lower() == name.lower():
+                    return cls._get_instance(n)
+            return None
 
     @classmethod
-    def get_names(cls) -> list[str]:
-        cls.discover()
-        return list(cls._plugin_classes.keys())
+    def get_names(cls) -> List[str]:
+        with _LOCK:
+            cls.discover()
+            return list(cls._plugin_classes.keys())
 
     @classmethod
     def reload(cls) -> None:
         """Force re-discovery (hot-reload)."""
-        cls.discover(force=True)
+        with _LOCK:
+            cls.discover(force=True)
 
     # ── Parallel health scan ──────────────────────────────────────────────────
 
     @classmethod
-    def scan_all_health(cls) -> list[ProviderResult]:
+    def scan_all_health(cls) -> List[ProviderResult]:
         """
         Scans ALL plugins in parallel and returns a list of ProviderResults.
         Cloud providers that have no key configured are marked unhealthy
         without making network requests.
         """
         from concurrent.futures import ThreadPoolExecutor
-        cls.discover()
-        plugins = cls.get_all_plugins()
+        with _LOCK:
+            cls.discover()
+            plugins = cls.get_all_plugins()
 
         def _safe_check(plugin: ProviderPlugin) -> ProviderResult:
             try:
@@ -164,10 +175,11 @@ class ProviderRegistry:
                 r.is_healthy = False
                 return r
 
-        with ThreadPoolExecutor(max_workers=min(len(plugins), 20)) as ex:
+        with ThreadPoolExecutor(max_workers=min(len(plugins) or 1, 20)) as ex:
             results = list(ex.map(_safe_check, plugins))
 
         return results
+
 
 
 if __name__ == "__main__":

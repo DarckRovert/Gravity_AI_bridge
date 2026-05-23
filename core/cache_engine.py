@@ -14,11 +14,13 @@ import threading
 import re
 
 # Subimos un nivel para que la base sea la raíz de F:\Gravity_AI_bridge
-BASE_DIR    = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CACHE_DB    = os.path.join(BASE_DIR, "_cache.sqlite")
-_db_lock    = threading.Lock()
-_enabled    = True
-DEFAULT_TTL = 24 * 3600  # 24 hours
+BASE_DIR        = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CACHE_DB        = os.path.join(BASE_DIR, "_cache.sqlite")
+_db_lock        = threading.RLock()
+_init_lock      = threading.RLock()
+_db_initialized = False
+_enabled        = True
+DEFAULT_TTL     = 24 * 3600  # 24 hours
 
 # ── Hash Sanitizer (V15.0 PRO) ──────────────────────────────────────────────────
 def _sanitize_content(text: str) -> str:
@@ -29,23 +31,28 @@ def _sanitize_content(text: str) -> str:
     return text.strip()
 
 def _get_connection() -> sqlite3.Connection:
-    """Returns a connection with WAL mode enabled for concurrent R/W."""
+    """Returns a connection with WAL mode enabled for concurrent R/W. Schema is initialized once."""
+    global _db_initialized
     conn = sqlite3.connect(CACHE_DB, check_same_thread=False, timeout=20)
-    conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA synchronous=NORMAL")
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS cache (
-            key        TEXT PRIMARY KEY,
-            response   TEXT NOT NULL,
-            model      TEXT NOT NULL,
-            provider   TEXT NOT NULL,
-            created_at REAL NOT NULL,
-            expires_at REAL NOT NULL,
-            hit_count  INTEGER DEFAULT 0
-        )
-    """)
-    conn.execute("CREATE TABLE IF NOT EXISTS stats (key TEXT PRIMARY KEY, value REAL NOT NULL)")
-    conn.commit()
+    if not _db_initialized:
+        with _init_lock:
+            if not _db_initialized:
+                conn.execute("PRAGMA journal_mode=WAL")
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS cache (
+                        key        TEXT PRIMARY KEY,
+                        response   TEXT NOT NULL,
+                        model      TEXT NOT NULL,
+                        provider   TEXT NOT NULL,
+                        created_at REAL NOT NULL,
+                        expires_at REAL NOT NULL,
+                        hit_count  INTEGER DEFAULT 0
+                    )
+                """)
+                conn.execute("CREATE TABLE IF NOT EXISTS stats (key TEXT PRIMARY KEY, value REAL NOT NULL)")
+                conn.commit()
+                _db_initialized = True
     return conn
 
 def _make_key(messages: list[dict], model: str) -> str:
@@ -96,14 +103,15 @@ class CacheEngine:
                             "VALUES ('hits', COALESCE((SELECT value FROM stats WHERE key='hits'),0)+1)"
                         )
                         return row[0]
-                    elif row:
+                    
+                    if row:
                         conn.execute("DELETE FROM cache WHERE key = ?", (key,))
 
-                # Miss tracking
-                conn.execute(
-                    "INSERT OR REPLACE INTO stats (key, value) "
-                    "VALUES ('misses', COALESCE((SELECT value FROM stats WHERE key='misses'),0)+1)"
-                )
+                    # Miss tracking - Ahora se ejecuta de forma segura dentro del bloque `with` de la conexión
+                    conn.execute(
+                        "INSERT OR REPLACE INTO stats (key, value) "
+                        "VALUES ('misses', COALESCE((SELECT value FROM stats WHERE key='misses'),0)+1)"
+                    )
             except Exception: pass
         return None
 

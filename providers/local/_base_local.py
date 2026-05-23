@@ -8,10 +8,10 @@ import time
 import socket
 import urllib.request
 import urllib.error
-from typing import Generator
+from typing import Generator, List, Dict, Any, Optional
 
 
-def _http_get(url: str, timeout: float = 1.0) -> dict | None:
+def _http_get(url: str, timeout: float = 1.0) -> Optional[Dict[str, Any]]:
     """GET request returning parsed JSON, or None on any error."""
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "GravityAI/7.0"})
@@ -45,7 +45,7 @@ def is_chat_model(model_id: str) -> bool:
     return True
 
 
-def filter_chat_models(models: list[dict]) -> list[dict]:
+def filter_chat_models(models: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     Filtra una lista de {name, size} devolviendo solo los modelos aptos para chat.
     Si NINGUNO es apto (situación improbable), devuelve la lista original completa
@@ -55,7 +55,7 @@ def filter_chat_models(models: list[dict]) -> list[dict]:
     return chat_only if chat_only else models
 
 
-def pick_active_model(models: list[dict]) -> str | None:
+def pick_active_model(models: List[Dict[str, Any]]) -> Optional[str]:
     """
     Elige el mejor modelo activo de una lista priorizando modelos de chat.
     Retorna el name del primero apto o None si la lista está vacía.
@@ -66,14 +66,12 @@ def pick_active_model(models: list[dict]) -> str | None:
     return chat[0]["name"] if chat else models[0]["name"]
 
 
-
-
 def _http_post_stream(
     url: str,
     payload: dict,
-    timeout: float = 1800,
+    timeout: float = 60.0,
 ) -> Generator[bytes, None, None]:
-    """POST JSON, yield raw response lines."""
+    """POST JSON, yield raw response lines with safe execution timeouts."""
     data = json.dumps(payload).encode("utf-8")
     req  = urllib.request.Request(
         url, data=data,
@@ -90,8 +88,8 @@ def _http_post_stream(
         yield f"[Gravity Error] {str(e)}".encode("utf-8")
 
 
-def _http_post(url: str, payload: dict, timeout: float = 1800) -> bytes:
-    """POST JSON, return full response bytes."""
+def _http_post(url: str, payload: dict, timeout: float = 60.0) -> bytes:
+    """POST JSON, return full response bytes with safety timeouts."""
     data = json.dumps(payload).encode("utf-8")
     req  = urllib.request.Request(
         url, data=data,
@@ -101,7 +99,12 @@ def _http_post(url: str, payload: dict, timeout: float = 1800) -> bytes:
         return r.read()
 
 
-def _safe_json(raw: bytes | str) -> dict | None:
+def _safe_json(raw: bytes | str) -> Optional[Dict[str, Any]]:
+    if isinstance(raw, bytes):
+        try:
+            return json.loads(raw.decode("utf-8", errors="ignore"))
+        except Exception:
+            return None
     try:
         return json.loads(raw)
     except Exception:
@@ -131,9 +134,6 @@ def _openai_compat_stream(
             chunk = delta.get("content", "")
             r_chunk = delta.get("reasoning_content", "")
             if r_chunk:
-                # Usar <think> en lugar de ANSI: los codigos ANSI se muestran
-                # como texto crudo en HTML. ReasoningStripper los elimina en
-                # bridge_server (web) y en ask_deepseek (CLI).
                 yield "<think>" + r_chunk + "</think>"
             if chunk:
                 yield chunk
@@ -145,21 +145,25 @@ def _openai_compat_complete(
     payload: dict,
 ) -> str:
     """Non-streaming for OpenAI-compatible endpoints."""
-    url  = f"{base_url.rstrip('/')}{path}"
-    raw  = _http_post(url, payload)
-    data = _safe_json(raw)
-    if data and "choices" in data and data["choices"]:
-        return data["choices"][0].get("message", {}).get("content", "")
+    try:
+        url  = f"{base_url.rstrip('/')}{path}"
+        raw  = _http_post(url, payload)
+        data = _safe_json(raw)
+        if data and "choices" in data and data["choices"]:
+            return data["choices"][0].get("message", {}).get("content", "")
+    except Exception as e:
+        import logging
+        logging.getLogger("gravity").error(f"[BaseLocal] Error in completion: {e}")
     return ""
 
 
 def _build_openai_payload(
-    messages: list[dict],
+    messages: List[Dict[str, Any]],
     model:    str,
-    options:  dict,
+    options:  Dict[str, Any],
     stream:   bool,
-) -> dict:
-    payload: dict = {"model": model, "messages": messages, "stream": stream}
+) -> Dict[str, Any]:
+    payload: Dict[str, Any] = {"model": model, "messages": messages, "stream": stream}
     
     # Surgical parameter injection for LM Studio / OpenAI compatibility
     if "temperature" in options:
@@ -174,3 +178,4 @@ def _build_openai_payload(
         payload["stop"] = options["stop"]
         
     return payload
+

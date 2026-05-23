@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         GRAVITY AI — SECURITY MONITOR V15.0 PRO                                   ║
+║         GRAVITY AI — SECURITY MONITOR V15.0 PRO [Diamond-Tier Edition]       ║
 ║         Monitor de procesos, puertos, integridad de archivos y red           ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -21,9 +21,8 @@ import hashlib
 import threading
 import subprocess
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, Dict, Any, List, Set, Tuple
 
-import sys
 # psutil es opcional — si no está instalado, el monitor opera en modo reducido
 try:
     import psutil
@@ -31,12 +30,12 @@ try:
 except ImportError:
     _PSUTIL_OK = False
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # ── Configuración ──────────────────────────────────────────────────────────────
 
 # Puertos conocidos del ecosistema Gravity. Cualquier otro se evalúa por proceso.
-WHITELIST_PORTS: set = {
+WHITELIST_PORTS: Set[int] = {
     7860,   # Gravity Bridge
     7861,   # Fooocus
     7862,   # Fooocus Studio UI
@@ -64,7 +63,7 @@ WHITELIST_PORTS: set = {
 
 # Procesos legítimos que pueden abrir puertos aleatorios sin ser sospechosos.
 # Los comparamos en lowercase para ser case-insensitive.
-LEGITIMATE_PROCESS_NAMES: set = {
+LEGITIMATE_PROCESS_NAMES: Set[str] = {
     # Sistema operativo Windows
     "svchost.exe", "lsass.exe", "wininit.exe", "services.exe",
     "explorer.exe", "winlogon.exe", "spoolsv.exe", "taskmgr.exe",
@@ -91,7 +90,7 @@ LEGITIMATE_PROCESS_NAMES: set = {
 }
 
 # Archivos críticos cuyo hash se monitorea
-CRITICAL_FILES: list[str] = [
+CRITICAL_FILES: List[str] = [
     os.path.join(BASE_DIR, "bridge_server.py"),
     os.path.join(BASE_DIR, "ask_deepseek.py"),
     os.path.join(BASE_DIR, "_knowledge.json"),
@@ -104,7 +103,7 @@ SCAN_INTERVAL_SECONDS: int = 60
 
 # ── Estado Global ──────────────────────────────────────────────────────────────
 
-_state: dict = {
+_state: Dict[str, Any] = {
     "last_scan": None,
     "status": "initializing",
     "score": 100,
@@ -117,10 +116,10 @@ _state: dict = {
     "scans_today": 0,
 }
 
-_baseline_hashes: dict[str, str] = {}
-_known_pids: set[int] = set()
-_lock = threading.Lock()
-_started = False
+_baseline_hashes: Dict[str, str] = {}
+_known_pids: Set[int] = set()
+_lock: threading.RLock = threading.RLock()
+_started: bool = False
 
 
 # ── Utilidades ─────────────────────────────────────────────────────────────────
@@ -138,7 +137,7 @@ def _sha256(path: str) -> Optional[str]:
 
 
 def _record_alert(level: str, message: str) -> None:
-    """Registra una alerta en el estado y en el audit log."""
+    """Registra una alerta en el estado y en el audit log bajo RLock."""
     entry = {
         "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "level": level,
@@ -151,55 +150,62 @@ def _record_alert(level: str, message: str) -> None:
         if len(_state["alerts"]) > 100:
             _state["alerts"] = _state["alerts"][-100:]
 
-    # Log al archivo de auditoría
-    try:
-        audit_path = os.path.join(BASE_DIR, "_audit_log.jsonl")
-        with open(audit_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
-    except Exception:
-        pass
+        # Log al archivo de auditoría de forma completamente thread-safe
+        try:
+            audit_path = os.path.join(BASE_DIR, "_audit_log.jsonl")
+            with open(audit_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        except Exception:
+            pass
 
 
 # ── Escaneos ───────────────────────────────────────────────────────────────────
 
-def _scan_processes() -> list[dict]:
+def _scan_processes() -> List[Dict[str, Any]]:
     """Detecta procesos nuevos vs los conocidos al arranque."""
     if not _PSUTIL_OK:
         return [{"note": "psutil no disponible — instalar con: pip install psutil"}]
 
-    current_pids = set()
-    procs = []
+    current_pids: Set[int] = set()
+    procs: List[Dict[str, Any]] = []
     try:
         for proc in psutil.process_iter(["pid", "name", "cpu_percent", "memory_info", "status"]):
             try:
                 info = proc.info
                 pid = info["pid"]
                 current_pids.add(pid)
-                if pid not in _known_pids:
+                
+                with _lock:
+                    is_new = pid not in _known_pids
+                
+                if is_new:
                     _record_alert(
                         "INFO",
                         f"Nuevo proceso detectado: {info['name']} (PID {pid})"
                     )
+                
                 procs.append({
                     "pid":    pid,
                     "name":   info.get("name", "?"),
                     "cpu":    round(info.get("cpu_percent", 0.0), 1),
                     "mem_mb": round((info.get("memory_info") or type("o", (), {"rss": 0})()).rss / 1024 / 1024, 1),
                     "status": info.get("status", "?"),
-                    "new":    pid not in _known_pids,
+                    "new":    is_new,
                 })
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue
     except Exception:
         pass
 
-    _known_pids.update(current_pids)
+    with _lock:
+        _known_pids.update(current_pids)
+    
     # Ordenar por CPU descendente, mostrar los 30 más activos
     procs.sort(key=lambda x: x["cpu"], reverse=True)
     return procs[:30]
 
 
-def _scan_ports() -> tuple:
+def _scan_ports() -> Tuple[List[Dict[str, Any]], List[int]]:
     """Escanea puertos TCP escuchando. Solo marca sospechoso si el proceso
     dueño del puerto NO está en la lista de procesos legítimos conocidos.
     Esto elimina los falsos positivos de puertos efímeros de Steam, Discord, etc.
@@ -207,8 +213,8 @@ def _scan_ports() -> tuple:
     if not _PSUTIL_OK:
         return [], []
 
-    open_ports = []
-    suspicious = []
+    open_ports: List[Dict[str, Any]] = []
+    suspicious: List[int] = []
 
     try:
         for conn in psutil.net_connections(kind="tcp"):
@@ -258,13 +264,15 @@ def _scan_ports() -> tuple:
     return open_ports, suspicious
 
 
-def _scan_file_integrity() -> dict[str, dict]:
+def _scan_file_integrity() -> Dict[str, Dict[str, Any]]:
     """Verifica integridad SHA-256 de archivos críticos contra el baseline."""
-    results = {}
+    results: Dict[str, Dict[str, Any]] = {}
     for path in CRITICAL_FILES:
         fname = os.path.basename(path)
         current_hash = _sha256(path)
-        baseline_hash = _baseline_hashes.get(path)
+        
+        with _lock:
+            baseline_hash = _baseline_hashes.get(path)
 
         if current_hash is None:
             results[fname] = {"status": "not_found", "hash": None}
@@ -272,7 +280,8 @@ def _scan_file_integrity() -> dict[str, dict]:
 
         if baseline_hash is None:
             # Primera vez: establecer baseline
-            _baseline_hashes[path] = current_hash
+            with _lock:
+                _baseline_hashes[path] = current_hash
             results[fname] = {"status": "baseline_set", "hash": current_hash[:12] + "..."}
         elif current_hash != baseline_hash:
             _record_alert(
@@ -307,16 +316,17 @@ def _monitor_loop() -> None:
             warning_count  = sum(1 for a in recent_alerts if a.get("level") == "WARNING")
             computed_score = max(0, 100 - critical_count * 20 - warning_count * 5 - len(suspicious) * 10)
 
-            # Rotación automática del audit log si supera 10 MB (BUG-08)
+            # Rotación automática del audit log si supera 10 MB (BUG-08) bajo RLock
             try:
                 audit_path = os.path.join(BASE_DIR, "_audit_log.jsonl")
-                if os.path.isfile(audit_path) and os.path.getsize(audit_path) > 10 * 1024 * 1024:
-                    import shutil as _sh
-                    archive_dir = os.path.join(BASE_DIR, "_archivo")
-                    os.makedirs(archive_dir, exist_ok=True)
-                    ts_rot = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-                    _sh.move(audit_path, os.path.join(archive_dir, f"audit_{ts_rot}.jsonl"))
-            except Exception as _rot_err:
+                with _lock:
+                    if os.path.isfile(audit_path) and os.path.getsize(audit_path) > 10 * 1024 * 1024:
+                        import shutil as _sh
+                        archive_dir = os.path.join(BASE_DIR, "_archivo")
+                        os.makedirs(archive_dir, exist_ok=True)
+                        ts_rot = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+                        _sh.move(audit_path, os.path.join(archive_dir, f"audit_{ts_rot}.jsonl"))
+            except Exception:
                 pass  # No bloquear el monitor si la rotación falla
 
             with _lock:
@@ -329,7 +339,7 @@ def _monitor_loop() -> None:
                 _state["file_integrity"] = integrity
                 _state["scans_today"] = _state.get("scans_today", 0) + 1
 
-        except Exception as e:
+        except Exception:
             with _lock:
                 _state["status"] = "error"
                 _state["last_scan"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -339,18 +349,18 @@ def _monitor_loop() -> None:
 
 # ── API Pública ────────────────────────────────────────────────────────────────
 
-def get_state() -> dict:
+def get_state() -> Dict[str, Any]:
     """Retorna el estado actual del monitor (thread-safe)."""
     with _lock:
         return dict(_state)
 
 
-def scan_processes() -> list[dict]:
+def scan_processes() -> List[Dict[str, Any]]:
     """Alias público de _scan_processes(). Usado por mixin_post /v1/security/scan."""
     return _scan_processes()
 
 
-def force_scan() -> dict:
+def force_scan() -> Dict[str, Any]:
     """Fuerza un escaneo inmediato y retorna el resultado."""
     procs = _scan_processes()
     ports, suspicious = _scan_ports()
@@ -370,26 +380,27 @@ def force_scan() -> dict:
 def start() -> None:
     """Inicia el monitor de seguridad como daemon thread."""
     global _started
-    if _started:
-        return
-    _started = True
+    with _lock:
+        if _started:
+            return
+        _started = True
 
-    # Baseline inicial de hashes
-    for path in CRITICAL_FILES:
-        h = _sha256(path)
-        if h:
-            _baseline_hashes[path] = h
+        # Baseline inicial de hashes
+        for path in CRITICAL_FILES:
+            h = _sha256(path)
+            if h:
+                _baseline_hashes[path] = h
 
-    # Capturar PIDs actuales como "conocidos" al arranque
-    if _PSUTIL_OK:
-        try:
-            for proc in psutil.process_iter(["pid"]):
-                try:
-                    _known_pids.add(proc.info["pid"])
-                except Exception:
-                    pass
-        except Exception:
-            pass
+        # Capturar PIDs actuales como "conocidos" al arranque
+        if _PSUTIL_OK:
+            try:
+                for proc in psutil.process_iter(["pid"]):
+                    try:
+                        _known_pids.add(proc.info["pid"])
+                    except Exception:
+                        pass
+            except Exception:
+                pass
 
     t = threading.Thread(
         target=_monitor_loop,
@@ -397,3 +408,4 @@ def start() -> None:
         daemon=True,
     )
     t.start()
+

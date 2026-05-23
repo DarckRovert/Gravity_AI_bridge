@@ -58,97 +58,101 @@ STYLE_COLOR_GRADES = {
     "cinematic":  "eq=contrast=1.2:brightness=-0.03:saturation=0.95:gamma=0.95,colorbalance=rs=0.03:gs=0.0:bs=-0.05",
 }
 
-_lock = threading.Lock()
+_lock = threading.RLock()
+_db_lock = threading.RLock()
 _current_job = None
 _started = False
 _db_initialized = False
 
 def _init_db() -> None:
+    """Inicializa de forma atómica y thread-safe la base de datos SQLite y ejecuta migraciones."""
     global _db_initialized
-    if _db_initialized:
-        return
-    _db_initialized = True
-    conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS video_jobs (
-            id              INTEGER PRIMARY KEY AUTOINCREMENT,
-            topic           TEXT    NOT NULL,
-            n_scenes        INTEGER NOT NULL DEFAULT 6,
-            voice_speed     INTEGER NOT NULL DEFAULT 150,
-            voice_id        TEXT    NOT NULL DEFAULT '',
-            style           TEXT    NOT NULL DEFAULT 'documental',
-            narration_lang  TEXT    NOT NULL DEFAULT 'es',
-            transitions     INTEGER NOT NULL DEFAULT 1,
-            status          TEXT    NOT NULL DEFAULT 'pending',
-            progress        INTEGER NOT NULL DEFAULT 0,
-            current_step    TEXT,
-            output_path     TEXT,
-            error           TEXT,
-            created_at      TEXT    NOT NULL,
-            started_at      TEXT,
-            finished_at     TEXT
-        )
-    """)
-    conn.commit()
-    existing = {row[1] for row in conn.execute("PRAGMA table_info(video_jobs)").fetchall()}
-    migrations = [
-        ("voice_id",       "TEXT NOT NULL DEFAULT ''"),
-        ("style",          "TEXT NOT NULL DEFAULT 'documental'"),
-        ("narration_lang", "TEXT NOT NULL DEFAULT 'es'"),
-        ("transitions",    "INTEGER NOT NULL DEFAULT 1"),
-        ("resolution",     "TEXT NOT NULL DEFAULT '1024x1024'"),
-        ("subtitles",      "INTEGER NOT NULL DEFAULT 1"),
-        ("title",          "TEXT NOT NULL DEFAULT ''"),
-        ("bgm_type",       "TEXT NOT NULL DEFAULT 'ninguna'"),
-        ("quality",        "TEXT NOT NULL DEFAULT 'hd'"),
-        ("use_lore",       "INTEGER NOT NULL DEFAULT 1"),
-        ("fps",            "INTEGER NOT NULL DEFAULT 24"),
-        ("scene_duration", "INTEGER NOT NULL DEFAULT 8"),
-        ("duration_mode",  "TEXT NOT NULL DEFAULT 'auto'"),
-        ("bgm_volume",     "REAL NOT NULL DEFAULT 0.1"),
-        ("codec",          "TEXT NOT NULL DEFAULT 'libx264'"),
-        ("ken_burns",         "INTEGER NOT NULL DEFAULT 1"),
-        ("intro_card",        "INTEGER NOT NULL DEFAULT 0"),
-        ("color_grade",       "TEXT NOT NULL DEFAULT 'auto'"),
-        ("thumbnail_path",    "TEXT NOT NULL DEFAULT ''"),
-        ("animation_effect",  "TEXT NOT NULL DEFAULT 'auto'"),
-        ("animation_level",   "INTEGER NOT NULL DEFAULT 1"),
-        ("youtube_video_id",  "TEXT NOT NULL DEFAULT ''"),
-        ("youtube_url",       "TEXT NOT NULL DEFAULT ''"),
-        ("uploaded_at",       "TEXT NOT NULL DEFAULT ''"),
-        ("upload_status",     "TEXT NOT NULL DEFAULT 'pending'"),
-        ("shorts_path",       "TEXT NOT NULL DEFAULT ''"),
-        ("shorts_video_id",   "TEXT NOT NULL DEFAULT ''"),
-        ("seo_tags",          "TEXT NOT NULL DEFAULT ''"),
-        ("seo_description",   "TEXT NOT NULL DEFAULT ''"),
-        ("niche_id",          "TEXT NOT NULL DEFAULT ''"),
-        ("cloned_from",       "INTEGER NOT NULL DEFAULT 0"),
-        ("clone_lang",        "TEXT NOT NULL DEFAULT ''"),
-    ]
-    for col_name, col_def in migrations:
-        if col_name not in existing:
-            conn.execute(f"ALTER TABLE video_jobs ADD COLUMN {col_name} {col_def}")
-    conn.commit()
-
-    try:
-        stuck = conn.execute(
-            "SELECT COUNT(*) FROM video_jobs WHERE status='running'"
-        ).fetchone()[0]
-        if stuck > 0:
-            now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            conn.execute(
-                "UPDATE video_jobs SET status='failed', "
-                "error='Proceso interrumpido por reinicio del servidor', "
-                "finished_at=? WHERE status='running'",
-                (now_iso,)
-            )
+    with _db_lock:
+        if _db_initialized:
+            return
+        _db_initialized = True
+        conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS video_jobs (
+                    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                    topic           TEXT    NOT NULL,
+                    n_scenes        INTEGER NOT NULL DEFAULT 6,
+                    voice_speed     INTEGER NOT NULL DEFAULT 150,
+                    voice_id        TEXT    NOT NULL DEFAULT '',
+                    style           TEXT    NOT NULL DEFAULT 'documental',
+                    narration_lang  TEXT    NOT NULL DEFAULT 'es',
+                    transitions     INTEGER NOT NULL DEFAULT 1,
+                    status          TEXT    NOT NULL DEFAULT 'pending',
+                    progress        INTEGER NOT NULL DEFAULT 0,
+                    current_step    TEXT,
+                    output_path     TEXT,
+                    error           TEXT,
+                    created_at      TEXT    NOT NULL,
+                    started_at      TEXT,
+                    finished_at     TEXT
+                )
+            """)
             conn.commit()
-            log.warning(f"[VideoStudio] Crash recovery: {stuck} job(s) en 'running' reseteados a 'failed'.")
-    except Exception as _cr_e:
-        log.debug(f"[VideoStudio] Crash recovery skip: {_cr_e}")
+            existing = {row[1] for row in conn.execute("PRAGMA table_info(video_jobs)").fetchall()}
+            migrations = [
+                ("voice_id",       "TEXT NOT NULL DEFAULT ''"),
+                ("style",          "TEXT NOT NULL DEFAULT 'documental'"),
+                ("narration_lang", "TEXT NOT NULL DEFAULT 'es'"),
+                ("transitions",    "INTEGER NOT NULL DEFAULT 1"),
+                ("resolution",     "TEXT NOT NULL DEFAULT '1024x1024'"),
+                ("subtitles",      "INTEGER NOT NULL DEFAULT 1"),
+                ("title",          "TEXT NOT NULL DEFAULT ''"),
+                ("bgm_type",       "TEXT NOT NULL DEFAULT 'ninguna'"),
+                ("quality",        "TEXT NOT NULL DEFAULT 'hd'"),
+                ("use_lore",       "INTEGER NOT NULL DEFAULT 1"),
+                ("fps",            "INTEGER NOT NULL DEFAULT 24"),
+                ("scene_duration", "INTEGER NOT NULL DEFAULT 8"),
+                ("duration_mode",  "TEXT NOT NULL DEFAULT 'auto'"),
+                ("bgm_volume",     "REAL NOT NULL DEFAULT 0.1"),
+                ("codec",          "TEXT NOT NULL DEFAULT 'libx264'"),
+                ("ken_burns",         "INTEGER NOT NULL DEFAULT 1"),
+                ("intro_card",        "INTEGER NOT NULL DEFAULT 0"),
+                ("color_grade",       "TEXT NOT NULL DEFAULT 'auto'"),
+                ("thumbnail_path",    "TEXT NOT NULL DEFAULT ''"),
+                ("animation_effect",  "TEXT NOT NULL DEFAULT 'auto'"),
+                ("animation_level",   "INTEGER NOT NULL DEFAULT 1"),
+                ("youtube_video_id",  "TEXT NOT NULL DEFAULT ''"),
+                ("youtube_url",       "TEXT NOT NULL DEFAULT ''"),
+                ("uploaded_at",       "TEXT NOT NULL DEFAULT ''"),
+                ("upload_status",     "TEXT NOT NULL DEFAULT 'pending'"),
+                ("shorts_path",       "TEXT NOT NULL DEFAULT ''"),
+                ("shorts_video_id",   "TEXT NOT NULL DEFAULT ''"),
+                ("seo_tags",          "TEXT NOT NULL DEFAULT ''"),
+                ("seo_description",   "TEXT NOT NULL DEFAULT ''"),
+                ("niche_id",          "TEXT NOT NULL DEFAULT ''"),
+                ("cloned_from",       "INTEGER NOT NULL DEFAULT 0"),
+                ("clone_lang",        "TEXT NOT NULL DEFAULT ''"),
+            ]
+            for col_name, col_def in migrations:
+                if col_name not in existing:
+                    conn.execute(f"ALTER TABLE video_jobs ADD COLUMN {col_name} {col_def}")
+            conn.commit()
 
-    conn.close()
+            try:
+                stuck = conn.execute(
+                    "SELECT COUNT(*) FROM video_jobs WHERE status='running'"
+                ).fetchone()[0]
+                if stuck > 0:
+                    now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                    conn.execute(
+                        "UPDATE video_jobs SET status='failed', "
+                        "error='Proceso interrumpido por reinicio del servidor', "
+                        "finished_at=? WHERE status='running'",
+                        (now_iso,)
+                    )
+                    conn.commit()
+                    log.warning(f"[VideoStudio] Crash recovery: {stuck} job(s) en 'running' reseteados a 'failed'.")
+            except Exception as _cr_e:
+                log.debug(f"[VideoStudio] Crash recovery skip: {_cr_e}")
+        finally:
+            conn.close()
 
 
 def add_job(
@@ -192,44 +196,50 @@ def add_job(
     if style not in CINEMA_STYLES:
         style = DEFAULT_STYLE
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-    conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
-    cur  = conn.execute(
-        "INSERT INTO video_jobs "
-        "(topic, n_scenes, voice_speed, voice_id, style, narration_lang, transitions, "
-        " resolution, subtitles, title, bgm_type, quality, use_lore, fps, scene_duration, "
-        " duration_mode, bgm_volume, codec, ken_burns, intro_card, color_grade, "
-        " animation_effect, animation_level, niche_id, created_at) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (
-            topic, n_scenes, voice_speed, voice_id, style, narration_lang,
-            1 if transitions else 0, resolution, 1 if subtitles else 0,
-            title, bgm_type, quality, 1 if use_lore else 0,
-            fps, scene_duration, duration_mode, float(bgm_volume), codec,
-            1 if ken_burns else 0, 1 if intro_card else 0, color_grade,
-            animation_effect, int(animation_level), niche_id, now
-        )
-    )
-    job_id = cur.lastrowid
-    conn.commit()
-    conn.close()
+    with _db_lock:
+        conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
+        try:
+            cur  = conn.execute(
+                "INSERT INTO video_jobs "
+                "(topic, n_scenes, voice_speed, voice_id, style, narration_lang, transitions, "
+                " resolution, subtitles, title, bgm_type, quality, use_lore, fps, scene_duration, "
+                " duration_mode, bgm_volume, codec, ken_burns, intro_card, color_grade, "
+                " animation_effect, animation_level, niche_id, created_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    topic, n_scenes, voice_speed, voice_id, style, narration_lang,
+                    1 if transitions else 0, resolution, 1 if subtitles else 0,
+                    title, bgm_type, quality, 1 if use_lore else 0,
+                    fps, scene_duration, duration_mode, float(bgm_volume), codec,
+                    1 if ken_burns else 0, 1 if intro_card else 0, color_grade,
+                    animation_effect, int(animation_level), niche_id, now
+                )
+            )
+            job_id = cur.lastrowid
+            conn.commit()
+        finally:
+            conn.close()
     log.info(f"[VideoStudio] Job #{job_id} encolado: {title or topic[:60]} | estilo={style} | voz='{voice_id or 'auto'}' | calidad={quality}")
     return job_id
 
 
 def get_queue_status() -> dict:
-    """Estado completo de la cola de video para el dashboard."""
+    """Estado completo de la cola de video para el dashboard de forma thread-safe."""
     _init_db()
-    conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
-    conn.row_factory = sqlite3.Row
-    pending  = [dict(r) for r in conn.execute(
-        "SELECT * FROM video_jobs WHERE status='pending' ORDER BY id"
-    ).fetchall()]
-    
-    raw_history = conn.execute(
-        "SELECT * FROM video_jobs WHERE status NOT IN ('pending', 'deleted') ORDER BY id DESC LIMIT ?",
-        (MAX_HISTORY,)
-    ).fetchall()
-    conn.close()
+    with _db_lock:
+        conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
+        try:
+            conn.row_factory = sqlite3.Row
+            pending  = [dict(r) for r in conn.execute(
+                "SELECT * FROM video_jobs WHERE status='pending' ORDER BY id"
+            ).fetchall()]
+            
+            raw_history = conn.execute(
+                "SELECT * FROM video_jobs WHERE status NOT IN ('pending', 'deleted') ORDER BY id DESC LIMIT ?",
+                (MAX_HISTORY,)
+            ).fetchall()
+        finally:
+            conn.close()
 
     history = []
     purge_ids: list[int] = []
@@ -243,11 +253,14 @@ def get_queue_status() -> dict:
 
     if purge_ids:
         try:
-            _pc = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
-            for _pid in purge_ids:
-                _pc.execute("UPDATE video_jobs SET status='deleted', output_path=NULL WHERE id=?", (_pid,))
-            _pc.commit()
-            _pc.close()
+            with _db_lock:
+                _pc = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
+                try:
+                    for _pid in purge_ids:
+                        _pc.execute("UPDATE video_jobs SET status='deleted', output_path=NULL WHERE id=?", (_pid,))
+                    _pc.commit()
+                finally:
+                    _pc.close()
         except Exception as _pe:
             log.debug(f"[VideoStudio] Purge batch error: {_pe}")
 
@@ -255,19 +268,22 @@ def get_queue_status() -> dict:
         current = _current_job
 
     try:
-        _sc = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
-        _row = _sc.execute(
-            "SELECT COUNT(*) total, "
-            "SUM(CASE WHEN status='done' THEN 1 ELSE 0 END) completed, "
-            "SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) failed, "
-            "SUM(CASE WHEN status='cancelled' THEN 1 ELSE 0 END) cancelled, "
-            "SUM(CASE WHEN status='deleted' THEN 1 ELSE 0 END) deleted "
-            "FROM video_jobs"
-        ).fetchone()
-        _styles_raw = _sc.execute(
-            "SELECT style, COUNT(*) cnt FROM video_jobs WHERE status='done' GROUP BY style ORDER BY cnt DESC"
-        ).fetchall()
-        _sc.close()
+        with _db_lock:
+            _sc = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
+            try:
+                _row = _sc.execute(
+                    "SELECT COUNT(*) total, "
+                    "SUM(CASE WHEN status='done' THEN 1 ELSE 0 END) completed, "
+                    "SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) failed, "
+                    "SUM(CASE WHEN status='cancelled' THEN 1 ELSE 0 END) cancelled, "
+                    "SUM(CASE WHEN status='deleted' THEN 1 ELSE 0 END) deleted "
+                    "FROM video_jobs"
+                ).fetchone()
+                _styles_raw = _sc.execute(
+                    "SELECT style, COUNT(*) cnt FROM video_jobs WHERE status='done' GROUP BY style ORDER BY cnt DESC"
+                ).fetchall()
+            finally:
+                _sc.close()
         _agg = {
             "total": _row[0] or 0, "completed": _row[1] or 0,
             "failed": _row[2] or 0, "cancelled": _row[3] or 0, "deleted": _row[4] or 0,
@@ -290,26 +306,34 @@ def get_queue_status() -> dict:
 
 
 def cancel_job(job_id: int) -> bool:
-    """Cancela un trabajo pendiente."""
+    """Cancela un trabajo pendiente de forma thread-safe."""
     _init_db()
-    conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
     now  = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-    rows = conn.execute(
-        "UPDATE video_jobs SET status='cancelled', finished_at=? "
-        "WHERE id=? AND status IN ('pending', 'running')",
-        (now, job_id)
-    ).rowcount
-    conn.commit()
-    conn.close()
+    with _db_lock:
+        conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
+        try:
+            rows = conn.execute(
+                "UPDATE video_jobs SET status='cancelled', finished_at=? "
+                "WHERE id=? AND status IN ('pending', 'running')",
+                (now, job_id)
+            ).rowcount
+            conn.commit()
+        finally:
+            conn.close()
     return rows > 0
 
 
 def delete_job(job_id: int) -> dict:
-    """Elimina un job de la DB y borra sus archivos físicos."""
+    """Elimina un job de la DB y borra sus archivos físicos de forma thread-safe."""
     _init_db()
-    conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
-    conn.row_factory = sqlite3.Row
-    row = conn.execute("SELECT output_path FROM video_jobs WHERE id=?", (job_id,)).fetchone()
+    with _db_lock:
+        conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
+        try:
+            conn.row_factory = sqlite3.Row
+            row = conn.execute("SELECT output_path FROM video_jobs WHERE id=?", (job_id,)).fetchone()
+        finally:
+            conn.close()
+
     deleted_files: list[str] = []
     errors: list[str] = []
 
@@ -330,12 +354,16 @@ def delete_job(job_id: int) -> dict:
             except Exception as e:
                 errors.append(str(e))
         now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-        conn.execute(
-            "UPDATE video_jobs SET status='deleted', output_path=NULL, finished_at=? WHERE id=?",
-            (now, job_id)
-        )
-        conn.commit()
-    conn.close()
+        with _db_lock:
+            conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
+            try:
+                conn.execute(
+                    "UPDATE video_jobs SET status='deleted', output_path=NULL, finished_at=? WHERE id=?",
+                    (now, job_id)
+                )
+                conn.commit()
+            finally:
+                conn.close()
     return {
         "ok": row is not None,
         "deleted_files": deleted_files,
@@ -345,6 +373,7 @@ def delete_job(job_id: int) -> dict:
 
 
 def _update_job(job_id: int, **kwargs) -> None:
+    """Actualiza el estado de un trabajo de video de forma thread-safe."""
     valid  = {"status", "progress", "current_step", "output_path",
               "error", "started_at", "finished_at", "thumbnail_path", "title"}
     fields = {k: v for k, v in kwargs.items() if k in valid}
@@ -353,17 +382,24 @@ def _update_job(job_id: int, **kwargs) -> None:
     sql    = "UPDATE video_jobs SET " + ", ".join(f"{k}=?" for k in fields)
     sql   += " WHERE id=?"
     values = list(fields.values()) + [job_id]
-    conn   = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute(sql, values)
-    conn.commit()
-    conn.close()
+    with _db_lock:
+        conn   = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
+        try:
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute(sql, values)
+            conn.commit()
+        finally:
+            conn.close()
 
 
-def _check_cancelled(job_id: int):
-    conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
-    status = conn.execute("SELECT status FROM video_jobs WHERE id=?", (job_id,)).fetchone()
-    conn.close()
+def _check_cancelled(job_id: int) -> None:
+    """Verifica si un trabajo ha sido cancelado por el usuario de forma thread-safe."""
+    with _db_lock:
+        conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
+        try:
+            status = conn.execute("SELECT status FROM video_jobs WHERE id=?", (job_id,)).fetchone()
+        finally:
+            conn.close()
     if status and status[0] == 'cancelled':
         raise RuntimeError("Proceso cancelado por el usuario.")
 
@@ -791,15 +827,19 @@ def _process_job(
 
 
 def _worker_loop() -> None:
+    """Loop continuo del worker que consulta y procesa trabajos de video de forma secuencial."""
     _init_db()
     while True:
         try:
-            conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
-            conn.row_factory = sqlite3.Row
-            row  = conn.execute(
-                "SELECT * FROM video_jobs WHERE status='pending' ORDER BY id LIMIT 1"
-            ).fetchone()
-            conn.close()
+            with _db_lock:
+                conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
+                try:
+                    conn.row_factory = sqlite3.Row
+                    row  = conn.execute(
+                        "SELECT * FROM video_jobs WHERE status='pending' ORDER BY id LIMIT 1"
+                    ).fetchone()
+                finally:
+                    conn.close()
 
             if row:
                 keys = row.keys()
@@ -838,15 +878,16 @@ def _worker_loop() -> None:
 
 
 def start() -> None:
-    """Inicia el worker daemon de video si no estaba ya corriendo."""
+    """Inicia el worker daemon de video si no estaba ya corriendo de forma thread-safe."""
     global _started
-    if _started:
-        return
-    _started = True
-    _init_db()
-    t = threading.Thread(target=_worker_loop, name="GravityVideoWorker", daemon=True)
-    t.start()
-    log.info("[VideoStudio] Worker daemon iniciado (Gravity Studio ULTRA V15.0 PRO - Modular Pipeline).")
+    with _lock:
+        if _started:
+            return
+        _started = True
+        _init_db()
+        t = threading.Thread(target=_worker_loop, name="GravityVideoWorker", daemon=True)
+        t.start()
+        log.info("[VideoStudio] Worker daemon iniciado (Gravity Studio ULTRA V15.0 PRO - Modular Pipeline).")
 
 
 def get_video_url(output_path: str) -> str:

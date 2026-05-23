@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         GRAVITY AI — REASONING STRIPPER V15.0 PRO                                ║
+║         GRAVITY AI — REASONING STRIPPER V15.0 PRO [Diamond Edition]          ║
 ║         Módulo compartido para eliminar bloques de pensamiento interno       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -9,13 +9,10 @@ bridge_server.py y ask_deepseek.py.
 
 Elimina los bloques de razonamiento interno de los modelos que los emiten
 (DeepSeek-R1, QwQ, etc.) para entregarle al usuario únicamente la respuesta
-limpia.
-
-Etiquetas reconocidas:
-  - <think>...</think>         (DeepSeek R1, estándar)
-  - <|canal|>pensamiento...    (variantes internas locales)
-  - <channel|>                 (cierre de variante interna)
+limpia de forma eficiente.
 """
+
+from typing import List, Optional
 
 
 class ReasoningStripper:
@@ -23,7 +20,7 @@ class ReasoningStripper:
     Procesador de chunks de streaming que filtra bloques de razonamiento
     interno de los modelos de IA.
 
-    Diseñado para uso stateeful en streaming: instanciar una vez por request
+    Diseñado para uso stateful en streaming: instanciar una vez por request
     y llamar process_chunk() por cada fragmento recibido.
 
     Uso:
@@ -34,11 +31,11 @@ class ReasoningStripper:
                 yield clean
     """
 
-    def __init__(self):
-        self.in_reasoning = False
-        self.buffer       = ""
-        self.start_tags   = ["<think>", "<|canal|>pensamiento"]
-        self.end_tags     = ["</think>", "<channel|>"]
+    def __init__(self) -> None:
+        self.in_reasoning: bool = False
+        self.buffer: str = ""
+        self.start_tags: List[str] = ["<think>", "<|canal|>pensamiento"]
+        self.end_tags: List[str] = ["</think>", "<channel|>"]
 
     def process_chunk(self, text: str) -> str:
         """
@@ -47,12 +44,12 @@ class ReasoningStripper:
         manejar tags que se parten entre chunks.
         """
         self.buffer += text
-        output = ""
+        output: str = ""
 
         while self.buffer:
             if not self.in_reasoning:
                 # Buscar el inicio de un bloque de razonamiento más cercano
-                closest_start = -1
+                closest_start: int = -1
                 for tag in self.start_tags:
                     pos = self.buffer.find(tag)
                     if pos != -1 and (closest_start == -1 or pos < closest_start):
@@ -61,7 +58,7 @@ class ReasoningStripper:
                 if closest_start != -1:
                     output += self.buffer[:closest_start]
                     self.buffer = self.buffer[closest_start:]
-                    matched_tag = next(
+                    matched_tag: Optional[str] = next(
                         (t for t in self.start_tags if self.buffer.startswith(t)),
                         None
                     )
@@ -78,7 +75,7 @@ class ReasoningStripper:
                     self.buffer = ""
             else:
                 # Dentro de un bloque de razonamiento — buscar cierre
-                closest_end = -1
+                closest_end: int = -1
                 for tag in self.end_tags:
                     pos = self.buffer.find(tag)
                     if pos != -1 and (closest_end == -1 or pos < closest_end):
@@ -103,4 +100,22 @@ class ReasoningStripper:
     def reset(self) -> None:
         """Reinicia el estado del stripper para reutilización."""
         self.in_reasoning = False
-        self.buffer       = ""
+        self.buffer = ""
+
+    @staticmethod
+    def strip_reasoning(text: str) -> str:
+        """
+        Limpia estáticamente un bloque de texto completo, eliminando
+        todos los bloques de razonamiento interno encontrados.
+
+        Args:
+            text: El texto completo a limpiar.
+
+        Returns:
+            El texto limpio de tags de razonamiento y su contenido.
+        """
+        if not text:
+            return ""
+        stripper = ReasoningStripper()
+        return stripper.process_chunk(text)
+

@@ -25,7 +25,8 @@ _current_url           = None
 _current_protocol      = None
 _current_api_opts      = {}
 _hardware_profile      = None
-_lock                  = threading.Lock()
+_lock                  = threading.RLock()
+_settings_lock         = threading.RLock()
 _on_switch_callbacks   = []
 _started               = False
 
@@ -52,32 +53,34 @@ def get_optimized_options(base_opts=None):
 
 
 def on_provider_switch(callback):
-    _on_switch_callbacks.append(callback)
+    with _lock:
+        _on_switch_callbacks.append(callback)
 
 
 def _persist_settings(provider_result, model_name, api_opts):
     try:
-        try:
-            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-        except Exception:
-            data = {}
+        with _settings_lock:
+            try:
+                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+            except Exception:
+                data = {}
 
-        # Mantiene compatibilidad V6
-        data["provider"]          = provider_result.name
-        data["provider_protocol"] = provider_result.protocol
-        data["api_url"]           = provider_result.url
-        data["last_model"]        = model_name
+            # Mantiene compatibilidad V6
+            data["provider"]          = provider_result.name
+            data["provider_protocol"] = provider_result.protocol
+            data["api_url"]           = provider_result.url
+            data["last_model"]        = model_name
 
-        adv         = data.get("advanced_params", {})
-        current_ctx = adv.get("num_ctx", 0)
-        new_ctx     = api_opts.get("num_ctx", 0)
-        if new_ctx > current_ctx:
-            adv["num_ctx"]          = new_ctx
-            data["advanced_params"] = adv
+            adv         = data.get("advanced_params", {})
+            current_ctx = adv.get("num_ctx", 0)
+            new_ctx     = api_opts.get("num_ctx", 0)
+            if new_ctx > current_ctx:
+                adv["num_ctx"]          = new_ctx
+                data["advanced_params"] = adv
 
-        with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
+            with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
     except Exception:
         pass
 
@@ -98,8 +101,9 @@ def _apply_engine_optimization(provider_name, protocol):
         elif "jan"     in pn_lower: engine_key = "jan"
 
         try:
-            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
-                user_opts = json.load(f).get("advanced_params", {})
+            with _settings_lock:
+                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                    user_opts = json.load(f).get("advanced_params", {})
         except Exception:
             user_opts = {}
 
@@ -134,8 +138,9 @@ def _watchdog_loop(interval_seconds=30, verbose=False):
 
             # Evita sobreescribir si estamos bloqueados manualmente vía bridge_server o ask_deepseek
             try:
-                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
-                    settings = json.load(f)
+                with _settings_lock:
+                    with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                        settings = json.load(f)
                 if settings.get("model_locked", False):
                     # Si está bloqueado, respetarlo y no hacer auto-switch
                     time.sleep(interval_seconds)
@@ -144,6 +149,11 @@ def _watchdog_loop(interval_seconds=30, verbose=False):
                 pass
 
             if best_prov and best_mod:
+                did_switch = False
+                old_name = None
+                old_model = None
+                callbacks_to_run = []
+
                 with _lock:
                     did_switch = (
                         _current_provider_name != best_prov.name or
@@ -167,18 +177,23 @@ def _watchdog_loop(interval_seconds=30, verbose=False):
 
                         _persist_settings(best_prov, best_mod, api_opts)
 
-                        if verbose and old_name is not None:
-                            print(
-                                f"\n[WATCHDOG] Switch: {old_name}/{old_model}"
-                                f" → {best_prov.name}/{best_mod}"
-                                f" | ctx={api_opts.get('num_ctx', '?')}"
-                            )
+                        # Capturamos una copia segura de los callbacks bajo lock
+                        callbacks_to_run = list(_on_switch_callbacks)
 
-                        for cb in _on_switch_callbacks:
-                            try:
-                                cb(best_prov, best_mod)
-                            except Exception:
-                                pass
+                if did_switch:
+                    if verbose and old_name is not None:
+                        print(
+                            f"\n[WATCHDOG] Switch: {old_name}/{old_model}"
+                            f" → {best_prov.name}/{best_mod}"
+                            f" | ctx={api_opts.get('num_ctx', '?')}"
+                        )
+
+                    # Los callbacks se ejecutan fuera del lock para evitar deadlocks
+                    for cb in callbacks_to_run:
+                        try:
+                            cb(best_prov, best_mod)
+                        except Exception:
+                            pass
 
         except Exception:
             pass  # Network-tolerant
@@ -198,7 +213,8 @@ def start(interval_seconds=30, verbose=False):
         try:
             from core.env_optimizer import apply_all
             profile, _ = apply_all(persist=False, verbose=verbose)
-            _hardware_profile = profile
+            with _lock:
+                _hardware_profile = profile
         except ImportError:
             profile = {}
     except Exception:
@@ -207,14 +223,16 @@ def start(interval_seconds=30, verbose=False):
     try:
         best_prov, best_mod = provider_manager.get_best()
         if best_prov and best_mod:
-            _current_provider_name = best_prov.name
-            _current_model         = best_mod
-            _current_url           = best_prov.url
-            _current_protocol      = best_prov.protocol
+            with _lock:
+                _current_provider_name = best_prov.name
+                _current_model         = best_mod
+                _current_url           = best_prov.url
+                _current_protocol      = best_prov.protocol
 
             try:
-                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
-                    user_opts = json.load(f).get("advanced_params", {})
+                with _settings_lock:
+                    with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                        user_opts = json.load(f).get("advanced_params", {})
             except Exception:
                 user_opts = {}
 
@@ -224,11 +242,14 @@ def start(interval_seconds=30, verbose=False):
 
             try:
                 from core.env_optimizer import build_api_options
-                _current_api_opts = build_api_options(engine_key, profile or {}, user_opts)
+                opts = build_api_options(engine_key, profile or {}, user_opts)
             except Exception:
-                _current_api_opts = user_opts
+                opts = user_opts
 
-            _persist_settings(best_prov, best_mod, _current_api_opts)
+            with _lock:
+                _current_api_opts = opts
+
+            _persist_settings(best_prov, best_mod, opts)
             if verbose:
                 print(f"[⚡ WATCHDOG] Iniciado → {best_prov.name} / {best_mod}")
     except Exception:

@@ -66,8 +66,9 @@ def _load_icon():
 def _bridge_online() -> bool:
     try:
         import urllib.request
-        urllib.request.urlopen(f"{DASHBOARD_URL}/health", timeout=1)
-        return True
+        req = urllib.request.Request(f"{DASHBOARD_URL}/health")
+        with urllib.request.urlopen(req, timeout=10) as conn:
+            return conn.getcode() in (200, 204)
     except Exception:
         return False
 

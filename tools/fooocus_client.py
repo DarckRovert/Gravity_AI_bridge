@@ -15,7 +15,7 @@ import json
 import time
 import urllib.request
 import urllib.error
-from typing import TypedDict, Literal
+from typing import TypedDict, Literal, List, Dict, Optional, Any, Union
 
 # ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -27,12 +27,12 @@ except ImportError:
     GradioClient = None
 
 # Output dir de Fooocus: donde graba las imagenes generadas
-_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+_THIS_DIR: str = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR: str = os.path.normpath(
     os.path.join(_THIS_DIR, "..", "_integrations", "Fooocus", "Fooocus", "outputs")
 )
 
-PERFORMANCE_MAP: dict = {
+PERFORMANCE_MAP: Dict[str, str] = {
     "Speed":   "Speed",
     "Quality": "Quality",
     "Extreme Speed": "Extreme Speed",
@@ -48,20 +48,20 @@ class ImageGenRequest(TypedDict, total=False):
     height: int
     num_images: int
     performance: Literal["Speed", "Quality", "Extreme Speed", "Lightning"]
-    style_selections: list
-    reference_image_path: object
+    style_selections: List[str]
+    reference_image_path: Optional[str]
 
 
 class ImageGenResponse(TypedDict):
     success: bool
-    images: list
-    error: object
-    job_id: object
+    images: List[str]
+    error: Optional[str]
+    job_id: Optional[str]
 
 
 class HealthStatus(TypedDict):
     online: bool
-    version: object
+    version: Optional[str]
     message: str
 
 
@@ -112,7 +112,7 @@ def generate_image(request: ImageGenRequest) -> ImageGenResponse:
     batch: int        = request.get("num_images", 1)
     # Speed usa euler (CPU-safe). Evitar Extreme Speed / Lightning que activan LoRAs GPU-only
     performance: str  = PERFORMANCE_MAP.get(request.get("performance", "Speed"), "Speed")  # type: ignore
-    styles: list      = request.get("style_selections", ["Fooocus V2", "Fooocus Enhance"])
+    styles: List[str] = request.get("style_selections", ["Fooocus V2", "Fooocus Enhance"])
 
     payload: dict = {
         "prompt":                  prompt_text,
@@ -165,19 +165,20 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
     """
     Disparador via subproceso nativo al Python embebido de Fooocus.
     Verifica la aparición real de archivos en OUTPUT_DIR para evitar
-    falsos positivos. Cierra correctamente el file descriptor de log.
+    falsos positivos. Cierra correctamente el file descriptor de log y oculta la ventana CMD en Windows.
     """
     import glob as _glob
     import subprocess
+    import sys as _sys
 
-    fooocus_python = os.path.abspath(
+    fooocus_python: str = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "..", "_integrations",
                      "Fooocus", "python_embeded", "python.exe")
     )
-    trigger_script = os.path.abspath(
+    trigger_script: str = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "native_trigger.py")
     )
-    log_file = os.path.abspath(
+    log_file: str = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "..", "fooocus_trigger_debug.log")
     )
 
@@ -188,27 +189,32 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
         }
 
     # Gradio usa "*" como separador en el dropdown de aspect ratio, no el carácter ×
-    aspect_ratio_safe = aspect_ratio.replace("\u00d7", "*").replace("x", "*")
+    aspect_ratio_safe: str = aspect_ratio.replace("\u00d7", "*").replace("x", "*")
 
     # Snapshot ANTES: qué archivos existen ya en outputs/
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    before: set = set(
+    before: set[str] = set(
         _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.png"), recursive=True) +
         _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.webp"), recursive=True)
     )
+
+    creationflags = 0
+    if _sys.platform == "win32":
+        creationflags = subprocess.CREATE_NO_WINDOW
 
     try:
         proc = subprocess.Popen(
             [fooocus_python, trigger_script, prompt, performance, aspect_ratio_safe],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            creationflags=creationflags,
         )
 
         # Esperar hasta 900 segundos (15 min) — Fooocus en CPU es lento
         try:
             stdout_bytes, stderr_bytes = proc.communicate(timeout=900)
-            stdout_str = stdout_bytes.decode("utf-8", errors="replace")
-            stderr_str = stderr_bytes.decode("utf-8", errors="replace")
+            stdout_str: str = stdout_bytes.decode("utf-8", errors="replace")
+            stderr_str: str = stderr_bytes.decode("utf-8", errors="replace")
             
             # Guardar el log para depuración
             with open(log_file, "a", encoding="utf-8", errors="replace") as out_file:
@@ -218,17 +224,17 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
                 
             # Interceptar fallos tempranos en el trigger nativo
             import json as _json
-            lines = [L for L in stdout_str.split("\n") if L.strip() and L.strip().startswith("{")]
+            lines: list[str] = [L for L in stdout_str.split("\n") if L.strip() and L.strip().startswith("{")]
             if lines:
                 try:
-                    res_json = _json.loads(lines[-1].strip())
+                    res_json: dict = _json.loads(lines[-1].strip())
                     if not res_json.get("success"):
                         return {"success": False, "images": [], "job_id": None, "error": f"Trigger nativo falló: {res_json.get('error')}"}
                     
                     # Detectar si Fooocus abortó instantáneamente la generación
-                    data_obj = res_json.get("data", {})
+                    data_obj: Any = res_json.get("data", {})
                     if isinstance(data_obj, dict):
-                        inner_data = data_obj.get("data", [])
+                        inner_data: list = data_obj.get("data", [])
                         if inner_data and inner_data[0] is None:
                             return {"success": False, "images": [], "job_id": None, "error": "Fooocus abortó la generación internamente. (Gradio retornó null)."}
                             
@@ -249,11 +255,11 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
     # Snapshot DESPUÉS: detectar archivos nuevos (diff real)
     # Como Gradio 4+ usa /queue/join, native_trigger finaliza instantáneamente.
     # Debemos esperar (polling) hasta que aparezca el nuevo archivo en outputs/.
-    timeout_end = time.time() + 900  # 15 minutos de timeout
-    new_files = []
+    timeout_end: float = time.time() + 900  # 15 minutos de timeout
+    new_files: list[str] = []
     
     while time.time() < timeout_end:
-        after: set = set(
+        after: set[str] = set(
             _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.png"), recursive=True) +
             _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.webp"), recursive=True)
         )
@@ -280,16 +286,16 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
 
 # ─── Job Status Polling ───────────────────────────────────────────────────────
 
-def poll_job(job_id: str, timeout: int = 600, poll_interval: int = 5) -> dict:
+def poll_job(job_id: str, timeout: int = 600, poll_interval: int = 5) -> Dict[str, Any]:
     """
     Espera activamente hasta que el job finalice o falle.
     Retorna el resultado final con rutas de imagenes si disponibles.
     timeout: segundos maximos de espera (default 10 min para CPU)
     """
-    elapsed = 0
+    elapsed: int = 0
     while elapsed < timeout:
-        result = _query_job(job_id)
-        stage = result.get("job_stage", "unknown")
+        result: Dict[str, Any] = _query_job(job_id)
+        stage: str = result.get("job_stage", "unknown")
         if stage in ("SUCCESS", "FAILED", "finished", "failed"):
             return result
         time.sleep(poll_interval)
@@ -297,11 +303,11 @@ def poll_job(job_id: str, timeout: int = 600, poll_interval: int = 5) -> dict:
     return {"job_stage": "timeout", "job_progress": 0, "error": "Timeout esperando generacion"}
 
 
-def _query_job(job_id: str) -> dict:
+def _query_job(job_id: str) -> Dict[str, Any]:
     """Consulta puntual del estado de un job en Fooocus."""
-    payload = json.dumps({"job_id": job_id, "require_step_preview": False}).encode()
+    payload: bytes = json.dumps({"job_id": job_id, "require_step_preview": False}).encode()
     try:
-        req = urllib.request.Request(
+        req: urllib.request.Request = urllib.request.Request(
             f"{FOOOCUS_BASE_URL}/v1/generation/query-job",
             data=payload,
             headers={"Content-Type": "application/json"}
@@ -312,13 +318,13 @@ def _query_job(job_id: str) -> dict:
         return {"job_stage": "unknown", "job_progress": 0, "error": str(e)}
 
 
-def get_latest_outputs(n: int = 10) -> list:
+def get_latest_outputs(n: int = 10) -> List[str]:
     """
     Devuelve las ultimas N imagenes generadas por Fooocus (por fecha de modificacion).
     Busca en el directorio outputs/ de Fooocus.
     """
     import glob as _glob
-    images = []
+    images: List[str] = []
     if not os.path.isdir(OUTPUT_DIR):
         return images
     for ext in ("*.png", "*.jpg", "*.jpeg", "*.webp"):
@@ -329,7 +335,7 @@ def get_latest_outputs(n: int = 10) -> list:
 
 # ─── Prompt Variation Generator ───────────────────────────────────────────────
 
-SHOT_TYPES: list = [
+SHOT_TYPES: List[str] = [
     "A close-up shot", "A medium shot", "A wide shot", "A full body shot",
     "An extreme close-up shot", "A low angle shot", "A high angle shot",
     "An over-the-shoulder shot", "A Dutch angle shot", "A bird's eye view shot"
@@ -341,9 +347,11 @@ def generate_prompt_variations(
     shot_part: str = "A medium shot",
     activity_part: str = "captured in a modern studio",
     variations: int = 10,
-) -> list:
-
-    activities: list = [
+) -> List[str]:
+    """
+    Genera variaciones de prompts de forma combinatoria en base a tipos de planos y actividades predefinidas.
+    """
+    activities: List[str] = [
         "captured in a Barcelona balcony drinking coffee",
         "studying for an exam at a university library",
         "finishing a tennis match on a clay court",
@@ -357,7 +365,7 @@ def generate_prompt_variations(
     ]
 
     count: int = min(variations, len(SHOT_TYPES), len(activities))
-    prompts: list = []
+    prompts: List[str] = []
 
     for i in range(count):
         shot: str     = SHOT_TYPES[i]
@@ -376,11 +384,13 @@ def generate_prompt_variations(
 def batch_generate(
     base_prompt: str,
     count: int = 5,
-    reference_image_path: object = None,
-) -> list:
-
-    variations: list = generate_prompt_variations(base_prompt, variations=count)
-    results: list = []
+    reference_image_path: Optional[str] = None,
+) -> List[ImageGenResponse]:
+    """
+    Genera un lote de imágenes con variaciones del prompt utilizando el cliente de Fooocus.
+    """
+    variations: List[str] = generate_prompt_variations(base_prompt, variations=count)
+    results: List[ImageGenResponse] = []
 
     for variant_prompt in variations:
         req_data: ImageGenRequest = {
