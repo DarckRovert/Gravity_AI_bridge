@@ -399,10 +399,15 @@ def handle_obs_spark_generate(handler):
         handler.send_response(200 if result.get("ok") else 500)
         handler.send_header("Content-Type", "application/json")
         handler._send_cors(); handler.end_headers(); handler.wfile.write(body)
+    except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError) as e:
+        log.warning(f"[GravitySpark] Client aborted connection during overlay generation: {e}")
     except Exception as e:
         log.error(f"[GravitySpark] /v1/obs/spark/generate error: {traceback.format_exc()}")
-        handler.send_response(500); handler._send_cors(); handler.end_headers()
-        handler.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+        try:
+            handler.send_response(500); handler._send_cors(); handler.end_headers()
+            handler.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
+        except Exception:
+            pass
 
 def handle_obs_spark_edit(handler):
     """POST /v1/obs/spark/edit"""
