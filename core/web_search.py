@@ -39,7 +39,7 @@ def search_and_scrape(query: str, max_results: int = 2) -> str:
         url,
         data=payload,
         headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) GravityAI/15.0 (KHTML, like Gecko)",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) GravityAI/15.1 (KHTML, like Gecko)",
             "Content-Type": "application/x-www-form-urlencoded"
         }
     )

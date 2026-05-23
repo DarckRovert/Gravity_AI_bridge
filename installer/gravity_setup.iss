@@ -4,7 +4,7 @@
 ; ══════════════════════════════════════════════════════════════════════════════
 
 #define AppName      "Gravity AI Bridge"
-#define AppVersion   "15.0"
+#define AppVersion   "15.1"
 #define AppPublisher "DarckRovert"
 #define AppURL       "https://github.com/DarckRovert/Gravity_AI_bridge"
 #define AppExe       "GravityBridge.exe"

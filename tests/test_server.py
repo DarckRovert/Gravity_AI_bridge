@@ -21,7 +21,7 @@ def test_status_endpoint():
     r = requests.get(f"{BASE_URL}/v1/status")
     assert r.status_code == 200
     data = r.json()
-    assert data["version"] == "15.0"
+    assert data["version"] == "15.1"
     assert "active_provider" in data
 
 def test_models_endpoint():

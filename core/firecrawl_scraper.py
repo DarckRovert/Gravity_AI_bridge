@@ -138,7 +138,7 @@ def _scrape_via_fallback(url: str) -> Dict[str, Any]:
     """Fallback thread-safe: descarga HTML y extrae texto plano con decodificación resiliente."""
     req = urllib.request.Request(
         url,
-        headers={"User-Agent": "GravityAI-Scraper/15.0 (compatible; Mozilla/5.0; Windows NT 10.0; Win64; x64)"},
+        headers={"User-Agent": "GravityAI-Scraper/15.1 (compatible; Mozilla/5.0; Windows NT 10.0; Win64; x64)"},
     )
     try:
         with _request_with_retry(req, timeout=20) as resp:

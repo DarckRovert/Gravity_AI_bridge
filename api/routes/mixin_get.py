@@ -225,7 +225,7 @@ class GetRoutesMixin:
         except Exception:
             _settings = {}
         status = {
-            "version":         "15.0",
+            "version":         "15.1",
             "bridge_online":   True,
             "active_provider": best_p.name if best_p else None,
             "active_model":    best_m,
