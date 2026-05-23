@@ -1261,4 +1261,193 @@ watchdog:
         });
     });
 
+
+    // ==========================================
+    // 11. INTERACTIVE PROMPTS & COMMANDS SHOWCASE
+    // ==========================================
+    const showcaseBtns = document.querySelectorAll('.showcase-nav-btn');
+    const showcaseContent = document.getElementById('showcase-content');
+
+    const showcaseData = {
+        'video-prompt': `
+            <div class="showcase-block">
+                <div class="terminal-line"><span class="terminal-prompt">gravity:~$</span> gravity video crear "Cyborg cyberpunk caminando bajo la lluvia de neón de Tokio" --duration 5s</div>
+                <div class="terminal-line system-msg">[PIPELINE] Inicializando generador de video con consistencia visual inter-escena...</div>
+                <div class="terminal-line system-msg">[COMPARE] ComfyUI LTX-Video Pipeline: Cargando modelos en GPU (Ryzen 780M DirectML)...</div>
+                <div class="terminal-line success-msg">[COMPARE] Modelo cargado: ltx-video-2b-v0.9.5.safetensors (2.6 GB VRAM) - Latencia: 15ms</div>
+                <div class="terminal-line system-msg">[COMPARE] Muestreo: 0% [                    ] 0/20 pasos...</div>
+                <div class="terminal-line highlight">[COMPARE] Muestreo completado con éxito. Imagen inicial animada mediante Pillow...</div>
+                <div class="terminal-line system-msg">[FFMPEG] Decompilando WebP animado en frames de imagen png temporales...</div>
+                <div class="terminal-line system-msg">[FFMPEG] Renderizando video final MP4 con codec libx264...</div>
+                <div class="terminal-line success-msg">[SUCCESS] Video generado con éxito en f:\\Gravity_AI_bridge\\_videos\\scene_00_anim.mp4</div>
+            </div>
+        `,
+        'obs-prompt': `
+            <div class="showcase-block">
+                <div class="terminal-line"><span class="terminal-prompt">gravity:~$</span> gravity spark inject "Alertas de Twitch holográficas --color neon"</div>
+                <div class="terminal-line system-msg">[SPARK] Conectando a OBS Studio vía WebSockets v5 (puerto 4455)...</div>
+                <div class="terminal-line success-msg">[SPARK] Conexión establecida. Escena activa: "Live Coding Screen".</div>
+                <div class="terminal-line system-msg">[SPARK] Generando código CSS/HTML interactivo mediante LLM local...</div>
+                <div class="terminal-line highlight">[SPARK] Estructura generada: &lt;div class="hologram-alert"&gt; [0.2 KB CSS inline]</div>
+                <div class="terminal-line system-msg">[SPARK] Inyectando overlay en Browser Source de OBS en caliente...</div>
+                <div class="terminal-line success-msg">[SUCCESS] Alerta holográfica inyectada y renderizada con éxito en OBS Studio sin recarga.</div>
+            </div>
+        `,
+        'wow-prompt': `
+            <div class="showcase-block">
+                <div class="terminal-line"><span class="terminal-prompt">gravity:~$</span> gravity db backup --compress --optimize</div>
+                <div class="terminal-line system-msg">[DATABASE] Inicializando auditoría de bases de datos locales (MySQL MangosD WoW)...</div>
+                <div class="terminal-line system-msg">[WATCHDOG] Deteniendo hilos de escritura temporal y pre-flushing tablas InnoDB...</div>
+                <div class="terminal-line success-msg">[DATABASE] Verificación de integridad completada: 0 tablas corruptas encontradas.</div>
+                <div class="terminal-line system-msg">[BACKUP] Ejecutando mysqldump atómico para base de datos: characters...</div>
+                <div class="terminal-line highlight">[COMPRESS] Comprimiendo archivo SQL con gzip a alta densidad...</div>
+                <div class="terminal-line success-msg">[SUCCESS] Respaldo creado: character_db_backup_20260522.sql.gz (1.42 MB) - Estado: SECURE</div>
+            </div>
+        `,
+        'devops-prompt': `
+            <div class="showcase-block">
+                <div class="terminal-line"><span class="terminal-prompt">gravity:~$</span> gravity refactor core/session_manager.py</div>
+                <div class="terminal-line system-msg">[DEVOPS] Inicializando refactorización de código asíncrona local...</div>
+                <div class="terminal-line system-msg">[RAG] Escaneando árbol de dependencias internas mediante Vector Index (RAGIndexer)...</div>
+                <div class="terminal-line success-msg">[RAG] Contexto RAG inyectado: 4 fragmentos del session_manager encontrados.</div>
+                <div class="terminal-line system-msg">[LLM] Solicitando sugerencia lógica a DeepSeek-R1 (14B)...</div>
+                <div class="terminal-line warning-msg">[HITL] COMANDO DE ALTA SEGURIDAD DETECTADO: Sobrescribir archivo del sistema.</div>
+                <div class="terminal-line warning-msg">[HITL] Interceptado en cola thread-safe. Esperando visto bueno en el Dashboard React...</div>
+                <div class="terminal-line highlight">[HITL] Programador aprobó y firmó la solicitud. Continuando...</div>
+                <div class="terminal-line success-msg">[SUCCESS] Refactorización aplicada con éxito. 12 líneas corregidas en session_manager.py</div>
+            </div>
+        `
+    };
+
+    if (showcaseBtns && showcaseContent) {
+        showcaseBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                showcaseBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const target = btn.getAttribute('data-prompt');
+                showcaseContent.innerHTML = showcaseData[target] || '';
+            });
+        });
+    }
+
+
+    // ==========================================
+    // 12. LIVE SERVER LOGS TELEMETRY MONITOR
+    // ==========================================
+    const logsScreen = document.getElementById('live-logs-screen');
+    const logsPauseBtn = document.getElementById('logs-pause-btn');
+    const logsClearBtn = document.getElementById('logs-clear-btn');
+    
+    let isLogsPaused = false;
+    let logsTimer = null;
+
+    const logPool = [
+        { text: '[INFO] Watchdog checking CPU thermal hotspot: 58C - Lock state: UNLOCKED', type: 'log-system' },
+        { text: '[SUCCESS] DirectML offloaded FasterLivePortrait inference: 32 FPS (Radeon 780M)', type: 'log-success' },
+        { text: '[DEBUG] Ollama KV Cache type compression invoked (q4_0 active)', type: 'log-info' },
+        { text: '[WARNING] Key manager DPAPI: Session validation warning - rotated', type: 'log-warning' },
+        { text: '[INFO] RAG Vector Index: Background index scan completed. 147 docs verified.', type: 'log-system' },
+        { text: '[SUCCESS] Video engine task queue: Job 184 completed in 12.5s (scene_00_anim.mp4)', type: 'log-success' },
+        { text: '[INFO] OBS Spark Engine WebSockets v5 status: CONNECTED (port 4455)', type: 'log-info' },
+        { text: '[DEBUG] Hardware telemetry: UMA Framebuffer allocating 4.1 GB active VRAM', type: 'log-system' },
+        { text: '[WARNING] MySQL server: CPU thread pool near 85% threshold - thread balanced', type: 'log-warning' },
+        { text: '[CRITICAL] HITL: Intercepted "git push origin main --force" command - enqueued', type: 'log-error' },
+        { text: '[INFO] Active Session Manager: Cache index synced with _cache.sqlite', type: 'log-system' },
+        { text: '[SUCCESS] Revenue module: CPA links injected dynamically in scene metadata', type: 'log-success' }
+    ];
+
+    const generateLiveLog = () => {
+        if (isLogsPaused || !logsScreen) return;
+
+        const randomLog = logPool[Math.floor(Math.random() * logPool.length)];
+        const logRow = document.createElement('div');
+        logRow.className = `log-entry ${randomLog.type}`;
+        
+        const timestamp = document.createElement('span');
+        timestamp.className = 'log-timestamp';
+        timestamp.textContent = `[${new Date().toLocaleTimeString()}]`;
+        
+        logRow.appendChild(timestamp);
+        logRow.appendChild(document.createTextNode(` ${randomLog.text}`));
+        
+        logsScreen.appendChild(logRow);
+        logsScreen.scrollTop = logsScreen.scrollHeight;
+
+        // Prevent memory leak by removing old DOM nodes when over 40 logs
+        const entries = logsScreen.querySelectorAll('.log-entry');
+        if (entries.length > 40) {
+            entries[0].remove();
+        }
+    };
+
+    if (logsScreen) {
+        // Run log loop every 1.5 - 3 seconds
+        const runLogLoop = () => {
+            const delay = Math.random() * 1500 + 1200; // between 1.2s and 2.7s
+            logsTimer = setTimeout(() => {
+                generateLiveLog();
+                runLogLoop();
+            }, delay);
+        };
+        runLogLoop();
+    }
+
+    if (logsPauseBtn) {
+        logsPauseBtn.addEventListener('click', () => {
+            isLogsPaused = !isLogsPaused;
+            if (isLogsPaused) {
+                logsPauseBtn.textContent = 'Reanudar Stream';
+                logsPauseBtn.style.borderColor = 'var(--accent-orange)';
+                logsPauseBtn.style.color = 'var(--accent-orange)';
+            } else {
+                logsPauseBtn.textContent = 'Pausar Stream';
+                logsPauseBtn.style.borderColor = 'rgba(255,255,255,0.1)';
+                logsPauseBtn.style.color = 'var(--text-secondary)';
+            }
+        });
+    }
+
+    if (logsClearBtn && logsScreen) {
+        logsClearBtn.addEventListener('click', () => {
+            logsScreen.innerHTML = `
+                <div class="log-entry log-system">[SYSTEM] Log screen cleared by programmer.</div>
+                <div class="log-entry log-info">[SYSTEM] Live telemetry stream listening...</div>
+            `;
+        });
+    }
+
+
+    // ==========================================
+    // 13. ACCORDION FAQ LOGIC
+    // ==========================================
+    const faqItems = document.querySelectorAll('.faq-item');
+    faqItems.forEach(item => {
+        const question = item.querySelector('.faq-question');
+        const answer = item.querySelector('.faq-answer');
+        
+        if (question && answer) {
+            question.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
+                
+                // Close all other items first
+                faqItems.forEach(otherItem => {
+                    if (otherItem !== item) {
+                        otherItem.classList.remove('active');
+                        otherItem.querySelector('.faq-answer').style.maxHeight = '0px';
+                    }
+                });
+                
+                if (isActive) {
+                    item.classList.remove('active');
+                    answer.style.maxHeight = '0px';
+                } else {
+                    item.classList.add('active');
+                    // Dynamic calculation of scroll height for fluid height transition
+                    answer.style.maxHeight = `${answer.scrollHeight}px`;
+                }
+            });
+        }
+    });
+
 });

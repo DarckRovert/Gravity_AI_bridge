@@ -766,6 +766,143 @@
             </div>
         </section>
 
+        <!-- Prompts & Commands Showcase Gallery -->
+        <section class="commands-showcase-section" id="commands-showcase">
+            <div class="section-container">
+                <div class="section-header text-center">
+                    <span class="section-tag">Prompt Gallery</span>
+                    <h2 class="section-title">Galería de Prompts y Comandos</h2>
+                    <p class="section-desc">Observa ejemplos de comandos exactos listos para usar en Gravity y la simulación del flujo de respuestas asíncronas estructuradas que emite el orquestador local.</p>
+                </div>
+
+                <div class="showcase-wrapper">
+                    <!-- Showcase Navigation Sidebar -->
+                    <div class="showcase-sidebar">
+                        <button class="showcase-nav-btn active" data-prompt="video-prompt" id="btn-showcase-video">
+                            <span class="uc-badge purple-badge">🎬 Video</span>
+                            <strong>gravity video crear</strong>
+                        </button>
+                        <button class="showcase-nav-btn" data-prompt="obs-prompt" id="btn-showcase-obs">
+                            <span class="uc-badge cyan-badge">📡 OBS Spark</span>
+                            <strong>gravity spark inject</strong>
+                        </button>
+                        <button class="showcase-nav-btn" data-prompt="wow-prompt" id="btn-showcase-wow">
+                            <span class="uc-badge green-badge">⚔️ WoW Server</span>
+                            <strong>gravity db backup</strong>
+                        </button>
+                        <button class="showcase-nav-btn" data-prompt="devops-prompt" id="btn-showcase-devops">
+                            <span class="uc-badge orange-badge">🛡️ DevOps HITL</span>
+                            <strong>gravity refactor ...</strong>
+                        </button>
+                    </div>
+
+                    <!-- Showcase Output Screen -->
+                    <div class="showcase-display">
+                        <div class="display-header">
+                            <div class="display-dots"><span class="d-dot red"></span><span class="d-dot yellow"></span><span class="d-dot green"></span></div>
+                            <span class="display-title-bar">Consola de Inferencia - Gravity AI</span>
+                        </div>
+                        <div class="display-body" id="showcase-content">
+                            <div class="showcase-block">
+                                <div class="terminal-line"><span class="terminal-prompt">gravity:~$</span> gravity video crear "Cyborg cyberpunk caminando bajo la lluvia de neón de Tokio" --duration 5s</div>
+                                <div class="terminal-line system-msg">[PIPELINE] Inicializando generador de video con consistencia visual inter-escena...</div>
+                                <div class="terminal-line system-msg">[COMPARE] ComfyUI LTX-Video Pipeline: Cargando modelos en GPU (Ryzen 780M DirectML)...</div>
+                                <div class="terminal-line success-msg">[COMPARE] Modelo cargado: ltx-video-2b-v0.9.5.safetensors (2.6 GB VRAM) - Latencia: 15ms</div>
+                                <div class="terminal-line system-msg">[COMPARE] Muestreo: 0% [                    ] 0/20 pasos...</div>
+                                <div class="terminal-line highlight">[COMPARE] Muestreo completado con éxito. Imagen inicial animada mediante Pillow...</div>
+                                <div class="terminal-line system-msg">[FFMPEG] Decompilando WebP animado en frames de imagen png temporales...</div>
+                                <div class="terminal-line system-msg">[FFMPEG] Renderizando video final MP4 con codec libx264...</div>
+                                <div class="terminal-line success-msg">[SUCCESS] Video generado con éxito en f:\Gravity_AI_bridge\_videos\scene_00_anim.mp4</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Server Logs Streamer -->
+        <section class="logs-streamer-section" id="logs-streamer">
+            <div class="section-container">
+                <div class="section-header text-center">
+                    <span class="section-tag">Telemetry Monitor</span>
+                    <h2 class="section-title">Visor de Logs del Servidor en Vivo</h2>
+                    <p class="section-desc">Monitorea en tiempo real los logs generados en background por <code>bridge_server.py</code> mientras interactúa con los modelos de IA y el sistema operativo de tu host.</p>
+                </div>
+
+                <div class="live-logs-container">
+                    <div class="live-logs-header">
+                        <div class="live-logs-title"><span class="status-indicator online pulse"></span> bridge_server.log (Simulado en Vivo)</div>
+                        <div class="live-logs-actions">
+                            <button class="logs-control-btn" id="logs-pause-btn">Pausar Stream</button>
+                            <button class="logs-control-btn" id="logs-clear-btn">Limpiar Visor</button>
+                        </div>
+                    </div>
+                    <div class="live-logs-body" id="live-logs-screen" role="log" aria-live="polite">
+                        <div class="log-entry log-system">Initializing Gravity AI Bridge Server Daemon V15.1 PRO...</div>
+                        <div class="log-entry log-system">Host CPU Architecture: AMD64 x86_64, Windows iGPU DirectML - ACTIVE</div>
+                        <div class="log-entry log-success">[MUTEX] Threadpool initialized. Direct SSE pipeline enabled.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Technical & Zero-Cloud Manifesto Section -->
+        <section class="manifesto-faq-section" id="manifesto-faq">
+            <div class="section-container">
+                <div class="section-header text-center">
+                    <span class="section-tag">Zero-Cloud FAQ</span>
+                    <h2 class="section-title">Preguntas Frecuentes y Arquitectura</h2>
+                    <p class="section-desc">Resolución de dudas técnicas avanzadas sobre el funcionamiento del puente de inteligencia artificial local, rendimiento de hardware y seguridad.</p>
+                </div>
+
+                <div class="faq-accordion-container">
+                    <!-- FAQ Item 1 -->
+                    <div class="faq-item" tabindex="0">
+                        <div class="faq-question">
+                            <h3>¿Por qué Gravity AI Bridge es local-first y "Zero-Cloud"?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>La computación local-first te devuelve la soberanía sobre tus datos y tu hardware. Gravity AI Bridge funciona de forma totalmente desconectada de nubes comerciales, lo que significa: 1) Cero costos de suscripciones o llamadas a APIs pagadas, 2) Privacidad del 100% de tus archivos y bases de código, y 3) Cero latencia por conexión a servidores remotos, ejecutando tareas complejas de automatización directamente en tu Ryzen 7 u otra GPU local.</p>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 2 -->
+                    <div class="faq-item" tabindex="0">
+                        <div class="faq-question">
+                            <h3>¿Qué modelos de IA se recomiendan usar en local?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>El orquestador enrutea dinámicamente las consultas según la complejidad técnica de la tarea. Para tareas de razonamiento avanzado y depuración de código, se recomienda <strong>DeepSeek-R1 (versiones de 8B o 14B)</strong> debido a su alta precisión algorítmica. Para desarrollo general y planificación, **Llama-3.1-8B** o **Mistral-7B** ofrecen respuestas directas y de alto rendimiento en Ollama o LM Studio.</p>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 3 -->
+                    <div class="faq-item" tabindex="0">
+                        <div class="faq-question">
+                            <h3>¿Cómo funciona la seguridad HITL y el control del host?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Cuando un agente autónomo de código solicita la ejecución de comandos sensibles (por ejemplo, <code>git push --force</code> o manipulación masiva de archivos), el gestor **HITL (Human-In-The-Loop)** intercepta la petición. Esta solicitud se encola en caliente y requiere aprobación explícita de tu parte en el panel local de React o la consola antes de poder llamarse en el shell del sistema operativo, evitando cualquier fuga o borrado accidental de datos.</p>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 4 -->
+                    <div class="faq-item" tabindex="0">
+                        <div class="faq-question">
+                            <h3>¿Qué hardware necesito para ejecutar el pipeline de video y VTuber en vivo?</h3>
+                            <span class="faq-arrow">▼</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Gravity está diseñado para ser extremadamente eficiente. Para el pipeline de animación ComfyUI LTX-Video y el modelo en tiempo real de VTuber (Aletheia V2V), el sistema soporta GPU dedicadas (Nvidia RTX con CUDA) e integradas (iGPU AMD Radeon 780M/UMA con aceleración DirectML). El Watchdog monitorea en tiempo real la VRAM/RAM y aplica compresión de caché KV a Ollama para prevenir saturación térmica.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <!-- Footer -->
