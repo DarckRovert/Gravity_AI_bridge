@@ -107,12 +107,51 @@ document.addEventListener('DOMContentLoaded', () => {
             // Draw a subtle nebula in the center or at mouse position
             let glowX = mouse.active ? mouse.x : canvas.width / 2;
             let glowY = mouse.active ? mouse.y : canvas.height / 2;
-            let grad = ctx.createRadialGradient(glowX, glowY, 50, glowX, glowY, 300);
-            grad.addColorStop(0, 'rgba(139, 92, 246, 0.04)');
-            grad.addColorStop(0.5, 'rgba(6, 182, 212, 0.02)');
+            let grad = ctx.createRadialGradient(glowX, glowY, 50, glowX, glowY, 320);
+            grad.addColorStop(0, 'rgba(168, 85, 247, 0.07)'); // purple glow
+            grad.addColorStop(0.5, 'rgba(6, 182, 212, 0.03)'); // cyan glow
             grad.addColorStop(1, 'transparent');
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw interactive quantum constellation lines between close particles
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    let dx = particles[i].x - particles[j].x;
+                    let dy = particles[i].y - particles[j].y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < 115) {
+                        // Fade alpha based on distance
+                        let alpha = ((115 - dist) / 115) * 0.12;
+                        
+                        // Amplify glow if connection is near cursor (gravitational excitation)
+                        if (mouse.active) {
+                            let midX = (particles[i].x + particles[j].x) / 2;
+                            let midY = (particles[i].y + particles[j].y) / 2;
+                            let mdx = mouse.x - midX;
+                            let mdy = mouse.y - midY;
+                            let mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+                            if (mdist < 180) {
+                                alpha += ((180 - mdist) / 180) * 0.22;
+                            }
+                        }
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        
+                        // Cyberpunk linear gradient for connection lines
+                        let lineGrad = ctx.createLinearGradient(particles[i].x, particles[i].y, particles[j].x, particles[j].y);
+                        lineGrad.addColorStop(0, `rgba(168, 85, 247, ${alpha * 0.8})`);
+                        lineGrad.addColorStop(1, `rgba(6, 182, 212, ${alpha})`);
+                        
+                        ctx.strokeStyle = lineGrad;
+                        ctx.lineWidth = 0.75;
+                        ctx.stroke();
+                    }
+                }
+            }
 
             // Update & Draw particles
             particles.forEach(p => {
@@ -1195,5 +1234,31 @@ watchdog:
         // Run initial check in case page starts scrolled
         updateScrollProgress();
     }
+
+    // ==========================================
+    // 10. PREMIUM 3D TILT EFFECT FOR FEATURE CARDS
+    // ==========================================
+    const cards = document.querySelectorAll('.feature-card');
+    cards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left; // x position within the element
+            const y = e.clientY - rect.top;  // y position within the element
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            // Calculate tilt angle (max 7.5 degrees to avoid extreme warping)
+            const rotateX = ((centerY - y) / centerY) * 7.5;
+            const rotateY = ((x - centerX) / centerX) * 7.5;
+            
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px)`;
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            // Smoothly reset transformations on cursor exit
+            card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)`;
+        });
+    });
 
 });
