@@ -1238,7 +1238,7 @@ watchdog:
     // ==========================================
     // 10. PREMIUM 3D TILT EFFECT FOR FEATURE CARDS
     // ==========================================
-    const cards = document.querySelectorAll('.feature-card, .use-case-card');
+    const cards = document.querySelectorAll('.feature-card, .use-case-card, .support-card');
     cards.forEach(card => {
         card.addEventListener('mousemove', (e) => {
             const rect = card.getBoundingClientRect();
