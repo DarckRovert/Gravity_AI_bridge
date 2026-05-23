@@ -27,7 +27,7 @@
 
 En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Studio), motores de difusión (Fooocus), servidores C++ (MangosD/WoW) y pipelines CI/CD desde una sola máquina resulta en colisiones de hardware, puertos huérfanos, OOM en VRAM y latencias de segundos.
 
-**Gravity AI Bridge V15.0 PRO** elimina todos estos problemas con Python nativo puro y un frontend React/Vite de alta respuesta. Su filosofía:
+**Gravity AI Bridge V15.1 PRO** elimina todos estos problemas con Python nativo puro y un frontend React/Vite de alta respuesta. Su filosofía:
 
 - **Zero Dependencias Masivas**: Latencia interna en microsegundos, payload de memoria insignificante.
 - **Conciencia Dinámica del Host**: Auto-diagnóstico de RAM y VRAM, ajuste dinámico de `num_ctx` de Ollama en tiempo real según estrés térmico.
@@ -36,7 +36,7 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 
 ---
 
-## 🏛 Módulos del Ecosistema V15.0 PRO
+## 🏛 Módulos del Ecosistema V15.1 PRO
 
 ### 🧠 Multi-Agent Orchestrator (`core/multi_agent.py`)
 - Dispara peticiones REST concurrentes a múltiples modelos/APIs en paralelo.
@@ -44,7 +44,7 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 - **Reasoning Stripper**: Filtra tokens `<think>` de modelos como DeepSeek-R1 via Regex antes de mostrarlos.
 - **Agent Routing**: Selección dinámica de modelo/proveedor según `--role` (auditor, planner, coder, researcher, executor).
 
-### 🖥️ Dashboard V15.0 PRO React SPA (`frontend/dist`)
+### 🖥️ Dashboard V15.1 PRO React SPA (`frontend/dist`)
 Panel de control unificado con 25 componentes orquestados en tiempo real:
 
 | Panel | Función |
@@ -74,7 +74,7 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 | 📋 Audit Log | Historial de peticiones con rotación automática |
 | ⚙️ Configuración | API keys, modelo activo, links rápidos |
 
-### 🔄 Multi-Session Bridge V15.0 PRO (`core/session_runner.py`)
+### 🔄 Multi-Session Bridge V15.1 PRO (`core/session_runner.py`)
 - `CapacityWake` + `SessionSpawner`: hasta 32 subprocesos de agente aislados simultáneos.
 - Spawn vía UI con selector de **rol** (auditor/planner/coder/researcher/executor).
 - Kill de workers activos con estado PID en tiempo real.
@@ -145,7 +145,7 @@ Sistema pasivo integrado en el pipeline de renderizado que multiplica los ingres
 - Pre-flight MySQL antes de arrancar (evita corrupción de Character-Files).
 - Auto-backup `mysqldump` en cierre, historial de jugadores, exposición WAN.
 
-### 🎥 OBS Studio Control & Gravity Spark V15.0 PRO (`core/obs_client.py` & `core/obs_spark_engine.py`)
+### 🎥 OBS Studio Control & Gravity Spark V15.1 PRO (`core/obs_client.py` & `core/obs_spark_engine.py`)
 - **Control Total de OBS**: Auto-conexión vía WebSocket v5. Gestiona escenas, fuentes, mute/volumen, streaming y grabación desde la API.
 - **Gravity Spark (Motor de Overlays AI)**: Reemplaza costosos servicios de overlays web. Genera código HTML/JS autocontenido en tiempo real usando tu LLM local, inyectándolo directamente como `Browser Source` en OBS.
 - Capacidad de **modificar overlays al vuelo** ("hazlo azul", "añade un borde neón") sin recargar OBS.
@@ -193,7 +193,7 @@ python bridge_server.py
 Dashboard disponible en: `http://localhost:7860`
 
 ### Instalación con Installer (Windows)
-Descargar `Gravity_AI_Bridge_V15.0_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
+Descargar `Gravity_AI_Bridge_V15.1_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
 
 ---
 
@@ -236,7 +236,7 @@ Ver [`SECURITY.md`](SECURITY.md) para política de vulnerabilidades y reporte re
 ---
 
 > [!NOTE]
-> Ecosistema local privado V15.0 PRO Omniscient-Tier.
+> Ecosistema local privado V15.1 PRO Omniscient-Tier.
 > [**📖 WIKI CORPORATIVA**](./wiki/Home.md) | [📜 CONTRIBUCIÓN](./CONTRIBUTING.md) | [🔒 SEGURIDAD](./SECURITY.md)
 
 <br>
