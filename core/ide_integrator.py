@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         GRAVITY AI — IDE INTEGRATOR V15.0 PRO [Diamond-Tier Edition]         ║
+║         GRAVITY AI — IDE INTEGRATOR V15.1 PRO [Diamond-Tier Edition]         ║
 ║         Módulo aislado para configurar integraciones con IDEs                ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -71,7 +71,7 @@ class IDEIntegrator:
         """Configura Continue.dev creando .continue/config.yaml."""
         target_dir: str = os.path.join(BASE_DIR, ".continue")
         cfg: str = (
-            "name: Gravity Local V15.0 PRO [Diamond-Tier Edition]\n"
+            "name: Gravity Local V15.1 PRO [Diamond-Tier Edition]\n"
             "version: 10.0.0\n"
             "schema: v1\n"
             "models:\n"

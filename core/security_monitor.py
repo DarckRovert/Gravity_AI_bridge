@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         GRAVITY AI — SECURITY MONITOR V15.0 PRO [Diamond-Tier Edition]       ║
+║         GRAVITY AI — SECURITY MONITOR V15.1 PRO [Diamond-Tier Edition]       ║
 ║         Monitor de procesos, puertos, integridad de archivos y red           ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

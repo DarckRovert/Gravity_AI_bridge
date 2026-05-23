@@ -30,7 +30,7 @@
       "resolution": "Se reemplazó la API REST inexistente de Fooocus 2.5.5 por monitoreo local del directorio OUTPUT_DIR. Se desplegó dashboard unificado con salud real de motor y endpoint centralizado de imágenes."
     },
     {
-      "id": "V15.0 PRO-VTUBER",
+      "id": "V15.1 PRO-VTUBER",
       "description": "Bypass de compilación de LivePortrait en Windows Server sin dependencias de MSVC Build Tools",
       "resolution": "Se portó el modelo FasterLivePortrait de PyTorch a puros pesos ONNX aislados con DirectML acelerado por hardware, eliminando dependencias locales de MSVC."
     }
@@ -83,6 +83,6 @@
   "persistent_rules": [
     "[2026-04-24] Optimización de Dashboard V12: Implementado endpoint /v1/processes y gestión de procesos en HardwareMonitor/ToolsPro. Corregida navegación por eventos.",
     "[2026-04-29] V13.0 PRO ARCHITECTURE UPDATE: Sincronización multi-agente, automatización del Scheduler y auditoría de retención de video.",
-    "[2026-05-21] V15.0 PRO ARCHITECTURE UPDATE: Refactorización y reescritura de la base de conocimiento de la wiki corporativa a la arquitectura real V15.0 PRO Omniscient-Tier (26 paneles, DirectML, Watchdog, SRP-6a y Monetización)."
+    "[2026-05-21] V15.1 PRO ARCHITECTURE UPDATE: Refactorización y reescritura de la base de conocimiento de la wiki corporativa a la arquitectura real V15.1 PRO Omniscient-Tier (26 paneles, DirectML, Watchdog, SRP-6a y Monetización)."
   ]
 }

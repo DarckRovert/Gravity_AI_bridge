@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — VERIFICATION AGENT V15.0 PRO [Diamond Edition]                 ║
+║  GRAVITY AI — VERIFICATION AGENT V15.1 PRO [Diamond Edition]                 ║
 ║  Servicio de auditoría doble para cambios críticos e integridad de código.  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

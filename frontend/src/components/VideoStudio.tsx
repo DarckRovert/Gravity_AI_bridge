@@ -241,7 +241,7 @@ export const VideoStudio = () => {
             <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
               GRAVITY <span className="text-text-muted font-normal">|</span> STUDIO <span className="px-1.5 py-0.5 rounded bg-accent-primary/20 text-accent-primary text-[10px] uppercase font-bold tracking-widest border border-accent-primary/30">Pro Edition</span>
             </h1>
-            <p className="text-xs text-text-muted font-medium mt-0.5">Pipeline Cinemático Autárquico V15.0 PRO</p>
+            <p className="text-xs text-text-muted font-medium mt-0.5">Pipeline Cinemático Autárquico V15.1 PRO</p>
           </div>
         </div>
         

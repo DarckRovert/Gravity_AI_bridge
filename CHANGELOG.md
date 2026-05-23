@@ -22,7 +22,7 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
-## [V15.0 PRO] Real-Time VTuber Engine V4.0 · 13/05/2026
+## [V15.1 PRO] Real-Time VTuber Engine V4.0 · 13/05/2026
 
 **[EVOLUCIÓN A ARQUITECTURA "GENERATE ONCE, DRIVE REAL-TIME"]**
 

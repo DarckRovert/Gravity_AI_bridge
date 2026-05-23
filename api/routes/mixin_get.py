@@ -43,7 +43,7 @@ class GetRoutesMixin:
                 from dashboard import get_dashboard_html
                 body = get_dashboard_html()
             except Exception:
-                body = b"<h1>Gravity AI Bridge V15.0 PRO</h1><p>No se encontro frontend/dist/index.html. Ejecuta 'npm run build' en /frontend.</p>"
+                body = b"<h1>Gravity AI Bridge V15.1 PRO</h1><p>No se encontro frontend/dist/index.html. Ejecuta 'npm run build' en /frontend.</p>"
             
             try:
                 self.send_response(200)

@@ -1,5 +1,5 @@
 """
-make_icon.py — Gravity AI Bridge V15.0 PRO
+make_icon.py — Gravity AI Bridge V15.1 PRO
 Genera assets/gravity_icon.ico desde cero usando Pillow.
 Se invoca automáticamente por build_installer.bat si el .ico no existe.
 """

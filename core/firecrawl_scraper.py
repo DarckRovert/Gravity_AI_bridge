@@ -1,5 +1,5 @@
 """
-Gravity AI — Firecrawl Scraper V15.0 PRO
+Gravity AI — Firecrawl Scraper V15.1 PRO
 Scraping de URLs con soporte para API Firecrawl y fallback HTTP nativo.
 Garantiza robustez multihilo, reintentos exponenciales y consumo seguro de configuración.
 """

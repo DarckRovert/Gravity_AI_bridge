@@ -1320,7 +1320,7 @@ class PostRoutesMixin:
                         _base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
                         kb_data, _ = data_guardian.load_knowledge(os.path.join(_base_dir, "_knowledge.json"))
                         _sys_prompt = (
-                            "Eres Gravity AI V15.0 PRO, Auditor Senior. "
+                            "Eres Gravity AI V15.1 PRO, Auditor Senior. "
                             "PROTOCOLO: Lógica interna en inglés. Salida final en español estrictamente. "
                             "Sin rellenos conversacionales. Solo hechos técnicos fríos. Resolución directa."
                         )

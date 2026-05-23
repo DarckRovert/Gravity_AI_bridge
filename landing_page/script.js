@@ -1,5 +1,5 @@
 /* ==========================================================================
-   GRAVITY AI BRIDGE V15.0 PRO - Interactive Scripts
+   GRAVITY AI BRIDGE V15.1 PRO - Interactive Scripts
    Particle Canvas, Command Line Simulator, Multi-Agent Arena, Watchdog, HITL
    ========================================================================== */
 
@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 writeToTerminal([
                     { text: '[DEPLOY PIPELINE] Initializing packaging daemon...', type: 'system-msg' },
                     { text: '  Scanning: f:\\Gravity_AI_bridge\\frontend\\dist... Found 26 modules.', type: 'system-msg' },
-                    { text: '  Verifying bundle integrity... hash matched [V15.0-78a4c1]', type: 'success-msg' },
+                    { text: '  Verifying bundle integrity... hash matched [V15.1-78a4c1]', type: 'success-msg' },
                     { text: '  Invoking Netlify API deployment bridge...', type: 'system-msg' },
                     { text: '  [Netlify] Uploading static assets stream... 100%', type: 'success-msg' },
                     { text: '  [Netlify] Assigning dynamic subdomain... gravity-bridge.netlify.app', type: 'highlight' },

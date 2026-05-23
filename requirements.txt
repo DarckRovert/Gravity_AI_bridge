@@ -1,4 +1,4 @@
-# ── Gravity AI Bridge V15.0 PRO — Dependencias ───────────────────────────────
+# ── Gravity AI Bridge V15.1 PRO — Dependencias ───────────────────────────────
 
 # HTTP / Proveedores cloud
 httpx

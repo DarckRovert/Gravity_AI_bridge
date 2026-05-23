@@ -65,7 +65,7 @@ test_llm.py
 test_post*.py
 fix_urls.py
 
-# Integraciones pesadas y modelos locales (V15.0 PRO)
+# Integraciones pesadas y modelos locales (V15.1 PRO)
 _integrations/v2v_engine/models/
 _integrations/ComfyUI_windows_portable/
 dxdiag.txt

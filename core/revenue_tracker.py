@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — REVENUE TRACKER V15.0 PRO                                      ║
+║  GRAVITY AI — REVENUE TRACKER V15.1 PRO                                      ║
 ║  Seguimiento de ingresos estimados por canal, niche y período                ║
 ║                                                                              ║
 ║  Garantiza seguridad multihilo absoluta, exclusión mutua y atomicidad en     ║

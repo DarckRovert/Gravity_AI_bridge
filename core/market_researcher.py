@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — MARKET RESEARCHER V15.0 PRO [Diamond-Tier Edition]             ║
+║  GRAVITY AI — MARKET RESEARCHER V15.1 PRO [Diamond-Tier Edition]             ║
 ║  Agente de Investigación de Mercado (Competitor Analysis)                     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

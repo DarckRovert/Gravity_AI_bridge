@@ -887,7 +887,7 @@ def start() -> None:
         _init_db()
         t = threading.Thread(target=_worker_loop, name="GravityVideoWorker", daemon=True)
         t.start()
-        log.info("[VideoStudio] Worker daemon iniciado (Gravity Studio ULTRA V15.0 PRO - Modular Pipeline).")
+        log.info("[VideoStudio] Worker daemon iniciado (Gravity Studio ULTRA V15.1 PRO - Modular Pipeline).")
 
 
 def get_video_url(output_path: str) -> str:
