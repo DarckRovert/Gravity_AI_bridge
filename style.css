@@ -750,7 +750,7 @@ h1, h2, h3, h4 {
         rgba(255, 255, 255, 0.08) 30%,
         rgba(255, 255, 255, 0.18) 50%,
         rgba(255, 255, 255, 0.08) 70%,
-        transparent 100-percent
+        transparent 100%
     );
     transform: skewX(-28deg);
     transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1);
