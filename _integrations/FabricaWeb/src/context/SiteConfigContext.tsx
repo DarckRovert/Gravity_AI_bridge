@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, ReactNode } from 'react';
+import { useEffect, ReactNode, useRef, useState, useMemo } from 'react';
+import { create } from 'zustand';
 import { Product, products as initialProducts } from '@/data/products';
 import db from '@/lib/gun';
 
@@ -115,17 +116,16 @@ const defaultTheme: ThemeConfig = {
 };
 
 const defaultContent: ContentConfig = {
-    businessName: '<BUSINESS_NAME>',
-    heroTitle: 'Cambiando el Mundo,\n Una Web a la vez',
-    heroSubtitle: 'Plantilla universal para crear plataformas e-commerce, restaurantes o clínicas al instante.',
-    heroImage: '/img/placeholder-hero.jpg',
-    heroCtaText: 'Ver Servicios',
-    whatsappNumber: '123456789',
-    scheduleText: 'Lunes a Viernes - 9am a 6pm',
-    footerTagline: 'Motor Boilerplate potenciado por IA.',
-    metaDescription: 'Sitio generado con Motor Maestro.',
-    // SHA-256 of 'admin123'
-    adminPassword: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918',
+    businessName: 'Antojitos Express',
+    heroTitle: 'El Sabor que Mereces,\n Rápido y Fresco',
+    heroSubtitle: 'La fuente de soda hasta tu casa. Jugos, empanadas, postres y sándwiches frescos y listos para disfrutar.',
+    heroImage: '/img/products/pionono-choco-frutos.jpg',
+    heroCtaText: 'Ver Menú Completo',
+    whatsappNumber: '51965968723',
+    scheduleText: '9:00 AM - 10:00 PM',
+    footerTagline: 'Fuente de soda dedicada a entregar felicidad rápida y sabrosa.',
+    metaDescription: 'Jugos, empanadas, sandwiches, pasteles y postres. Pedido online rápido.',
+    adminPassword: 'cd4ba2d8fccb75a30c84f9f4fc697040f7e93c8f8a0198fdb73414bc3e73f0e2',
 };
 
 const defaultCoupons: Coupon[] = [
@@ -184,106 +184,148 @@ const defaultConfig: SiteConfig = {
 };
 
 // ========================
-// 🔧 CONTEXT TYPE
+// 🔧 ZUSTAND STORE
 // ========================
 
 export interface SiteConfigContextType {
     config: SiteConfig;
-
-    // Products
+    setConfig: (updater: SiteConfig | ((prev: SiteConfig) => SiteConfig)) => void;
+    
     updateProduct: (id: string, changes: Partial<Product>) => void;
     addProduct: (product: Product) => void;
     removeProduct: (id: string) => void;
 
-    // Coupons
     addCoupon: (coupon: Coupon) => void;
     removeCoupon: (code: string) => void;
     getCoupons: () => Coupon[];
 
-    // Theme
     setTheme: (changes: Partial<ThemeConfig>) => void;
     resetTheme: () => void;
 
-    // Content
     setContent: (changes: Partial<ContentConfig>) => void;
     resetContent: () => void;
 
-    // Layout
     setSectionVisibility: (sectionId: string, visible: boolean) => void;
     reorderSections: (sectionId: string, newOrder: number) => void;
     setShowNewsletter: (show: boolean) => void;
     toggleBlockedDate: (date: string) => void;
 
-    // Promotions
     addPromotion: (promo: Promotion) => void;
     removePromotion: (index: number) => void;
 
-    // Delivery
     updateZone: (name: string, changes: Partial<DeliveryZone>) => void;
     addZone: (zone: DeliveryZone) => void;
     removeZone: (name: string) => void;
 
-    // Testimonials
     addTestimonial: (testimonial: Testimonial) => void;
     removeTestimonial: (index: number) => void;
 
-    // Customer Memory
     addCustomer: (record: CustomerRecord) => void;
     updateCustomer: (phone: string, changes: Partial<CustomerRecord>) => void;
     getCustomer: (phone: string) => CustomerRecord | undefined;
     getTopCustomers: (limit?: number) => CustomerRecord[];
 
-    // Action Log
     logAction: (action: string, details: string, category: ActionLogEntry['category']) => void;
     getRecentActions: (limit?: number) => ActionLogEntry[];
 
-    // Reset
     resetAll: () => void;
 }
 
-const SiteConfigContext = createContext<SiteConfigContextType | null>(null);
+export const useSiteStore = create<SiteConfigContextType>((set, get) => ({
+    config: defaultConfig,
+    setConfig: (updater) => set(state => ({ config: typeof updater === 'function' ? updater(state.config) : updater })),
+
+    updateProduct: (id, changes) => set(state => ({ config: { ...state.config, products: state.config.products.map(p => p.id === id ? { ...p, ...changes } : p) } })),
+    addProduct: (product) => set(state => ({ config: { ...state.config, products: [...state.config.products, product] } })),
+    removeProduct: (id) => set(state => ({ config: { ...state.config, products: state.config.products.filter(p => p.id !== id) } })),
+
+    addCoupon: (coupon) => set(state => ({ config: { ...state.config, coupons: [...state.config.coupons.filter(c => c.code !== coupon.code), coupon] } })),
+    removeCoupon: (code) => set(state => ({ config: { ...state.config, coupons: state.config.coupons.filter(c => c.code !== code) } })),
+    getCoupons: () => get().config.coupons.filter(c => c.active),
+
+    setTheme: (changes) => set(state => ({ config: { ...state.config, theme: { ...state.config.theme, ...changes } } })),
+    resetTheme: () => set(state => ({ config: { ...state.config, theme: defaultTheme } })),
+
+    setContent: (changes) => set(state => ({ config: { ...state.config, content: { ...state.config.content, ...changes } } })),
+    resetContent: () => set(state => ({ config: { ...state.config, content: defaultContent } })),
+
+    setSectionVisibility: (sectionId, visible) => set(state => ({ config: { ...state.config, layout: { ...state.config.layout, sections: state.config.layout.sections.map(s => s.id === sectionId ? { ...s, visible } : s) } } })),
+    reorderSections: (sectionId, newOrder) => set(state => {
+        const sections = [...state.config.layout.sections];
+        const idx = sections.findIndex(s => s.id === sectionId);
+        if (idx === -1) return state;
+        const [item] = sections.splice(idx, 1);
+        item.order = newOrder;
+        sections.splice(newOrder, 0, item);
+        sections.forEach((s, i) => (s.order = i));
+        return { config: { ...state.config, layout: { ...state.config.layout, sections } } };
+    }),
+    setShowNewsletter: (show) => set(state => ({ config: { ...state.config, layout: { ...state.config.layout, showNewsletter: show } } })),
+    toggleBlockedDate: (date) => set(state => {
+        const blocked = state.config.layout.blockedDates || [];
+        const isBlocked = blocked.includes(date);
+        return { config: { ...state.config, layout: { ...state.config.layout, blockedDates: isBlocked ? blocked.filter(d => d !== date) : [...blocked, date] } } };
+    }),
+
+    addPromotion: (promo) => set(state => ({ config: { ...state.config, promotions: [...state.config.promotions, promo] } })),
+    removePromotion: (index) => set(state => ({ config: { ...state.config, promotions: state.config.promotions.filter((_, i) => i !== index) } })),
+
+    updateZone: (name, changes) => set(state => ({ config: { ...state.config, deliveryZones: state.config.deliveryZones.map(z => z.name === name ? { ...z, ...changes } : z) } })),
+    addZone: (zone) => set(state => ({ config: { ...state.config, deliveryZones: [...state.config.deliveryZones, zone] } })),
+    removeZone: (name) => set(state => ({ config: { ...state.config, deliveryZones: state.config.deliveryZones.filter(z => z.name !== name) } })),
+
+    addTestimonial: (testimonial) => set(state => ({ config: { ...state.config, testimonials: [...state.config.testimonials, testimonial] } })),
+    removeTestimonial: (index) => set(state => ({ config: { ...state.config, testimonials: state.config.testimonials.filter((_, i) => i !== index) } })),
+
+    addCustomer: (record) => set(state => ({ config: { ...state.config, customerMemory: [...state.config.customerMemory.filter(c => c.phone !== record.phone), record] } })),
+    updateCustomer: (phone, changes) => set(state => ({ config: { ...state.config, customerMemory: state.config.customerMemory.map(c => c.phone === phone ? { ...c, ...changes } : c) } })),
+    getCustomer: (phone) => get().config.customerMemory.find(c => c.phone === phone),
+    getTopCustomers: (limit = 5) => [...get().config.customerMemory].sort((a, b) => b.totalSpent - a.totalSpent).slice(0, limit),
+
+    logAction: (action, details, category) => set(state => ({ config: { ...state.config, actionLog: [{ timestamp: new Date().toISOString(), action, details, category }, ...state.config.actionLog.slice(0, 99)] } })),
+    getRecentActions: (limit = 10) => get().config.actionLog.slice(0, limit),
+
+    resetAll: () => {
+        set({ config: defaultConfig });
+        localStorage.removeItem('antojitos_express_v2');
+    },
+}));
 
 // ========================
-// 🏗️ PROVIDER
+// 🏗️ PROVIDER (Gun.js Sync & CSS Variables)
 // ========================
 
-const STORAGE_KEY = '<BUSINESS_ID>_config_v1';
-const P2P_DB_NODE = '<BUSINESS_ID>';
+const P2P_DB_NODE = 'antojitos_express';
 
 export function SiteConfigProvider({ children }: { children: ReactNode }) {
-    const [config, setConfig] = useState<SiteConfig>(defaultConfig);
+    const { config, setConfig } = useSiteStore();
     const [isHydrated, setIsHydrated] = useState(false);
-    const fromGunRef = useRef(false); // Guard to prevent write-back loop
+    const fromGunRef = useRef(false);
 
-    // Load from Gun.js (P2P Mesh)
+    // Load from Gun.js
     useEffect(() => {
-        // Safety timeout: if Gun.js doesn't respond in 2s, unblock the app anyway
         const timeout = setTimeout(() => setIsHydrated(true), 2000);
-
         if (!db) { clearTimeout(timeout); setIsHydrated(true); return; }
 
-        // Subscribe to real-time updates from the mesh
         const ref = db.get(P2P_DB_NODE).get('state');
-
         ref.on((data: unknown) => {
             clearTimeout(timeout);
             if (data && typeof data === 'string') {
                 try {
                     const parsed = JSON.parse(data);
-                    // Mark this update as coming from Gun to prevent write-back
                     fromGunRef.current = true;
-                    // Merge with defaults/prev to ensure schema integrity
                     setConfig(prev => ({
                         ...prev,
                         ...parsed,
                         products: parsed.products?.length ? parsed.products : prev.products,
+                        coupons: parsed.coupons || prev.coupons,
+                        promotions: parsed.promotions || prev.promotions,
+                        deliveryZones: parsed.deliveryZones || prev.deliveryZones,
+                        testimonials: parsed.testimonials || prev.testimonials,
+                        customerMemory: parsed.customerMemory || prev.customerMemory,
+                        actionLog: parsed.actionLog || prev.actionLog,
                         theme: { ...prev.theme, ...parsed.theme },
-                        content: {
-                            ...prev.content,
-                            ...parsed.content,
-                            // Always keep default password as fallback if stored one is missing
-                            adminPassword: parsed.content?.adminPassword || prev.content.adminPassword,
-                        },
+                        content: { ...prev.content, ...parsed.content, adminPassword: parsed.content?.adminPassword || prev.content.adminPassword },
                         layout: { ...prev.layout, ...parsed.layout, blockedDates: parsed.layout?.blockedDates || prev.layout.blockedDates },
                     }));
                     setIsHydrated(true);
@@ -292,16 +334,14 @@ export function SiteConfigProvider({ children }: { children: ReactNode }) {
                     setIsHydrated(true);
                 }
             } else {
-                // No data or Gun internal object — use defaults
                 setIsHydrated(true);
             }
         });
     }, []);
 
-    // Persist to Gun.js on change (only for LOCAL changes, not Gun-originated)
+    // Persist to Gun.js
     useEffect(() => {
         if (!isHydrated) return;
-        // Skip if this change came from Gun itself (prevents infinite loop)
         if (fromGunRef.current) {
             fromGunRef.current = false;
             return;
@@ -309,15 +349,13 @@ export function SiteConfigProvider({ children }: { children: ReactNode }) {
         db?.get(P2P_DB_NODE).get('state').put(JSON.stringify(config));
     }, [config, isHydrated]);
 
-    // Apply CSS variables when theme changes
+    // Apply CSS variables
     useEffect(() => {
         if (!isHydrated) return;
         const root = document.documentElement;
 
         if (config.theme.darkMode) {
             root.classList.add('dark');
-            // In dark mode, we let the globals.css variables handle the colors
-            // to ensure proper contrast unless we want to allow custom dark colors later.
             root.style.removeProperty('--color-primary');
             root.style.removeProperty('--color-secondary');
             root.style.removeProperty('--color-accent');
@@ -335,288 +373,76 @@ export function SiteConfigProvider({ children }: { children: ReactNode }) {
         }
     }, [config.theme.darkMode, config.theme.primary, config.theme.secondary, config.theme.accent, config.theme.paper, isHydrated]);
 
-    // ── Products ──
-    const updateProduct = useCallback((id: string, changes: Partial<Product>) => {
-        setConfig(prev => ({
-            ...prev,
-            products: prev.products.map(p => p.id === id ? { ...p, ...changes } : p),
-        }));
-    }, []);
-
-    const addProduct = useCallback((product: Product) => {
-        setConfig(prev => ({
-            ...prev,
-            products: [...prev.products, product],
-        }));
-    }, []);
-
-    const removeProduct = useCallback((id: string) => {
-        setConfig(prev => ({
-            ...prev,
-            products: prev.products.filter(p => p.id !== id),
-        }));
-    }, []);
-
-    // ── Coupons ──
-    const addCoupon = useCallback((coupon: Coupon) => {
-        setConfig(prev => ({
-            ...prev,
-            coupons: [...prev.coupons.filter(c => c.code !== coupon.code), coupon],
-        }));
-    }, []);
-
-    const removeCoupon = useCallback((code: string) => {
-        setConfig(prev => ({
-            ...prev,
-            coupons: prev.coupons.filter(c => c.code !== code),
-        }));
-    }, []);
-
-    const getCoupons = useCallback(() => config.coupons.filter(c => c.active), [config.coupons]);
-
-    // ── Theme ──
-    const setThemeConfig = useCallback((changes: Partial<ThemeConfig>) => {
-        setConfig(prev => ({
-            ...prev,
-            theme: { ...prev.theme, ...changes },
-        }));
-    }, []);
-
-    const resetTheme = useCallback(() => {
-        setConfig(prev => ({ ...prev, theme: defaultTheme }));
-    }, []);
-
-    // ── Content ──
-    const setContentConfig = useCallback((changes: Partial<ContentConfig>) => {
-        setConfig(prev => ({
-            ...prev,
-            content: { ...prev.content, ...changes },
-        }));
-    }, []);
-
-    const resetContent = useCallback(() => {
-        setConfig(prev => ({ ...prev, content: defaultContent }));
-    }, []);
-
-    // ── Layout ──
-    const setSectionVisibility = useCallback((sectionId: string, visible: boolean) => {
-        setConfig(prev => ({
-            ...prev,
-            layout: {
-                ...prev.layout,
-                sections: prev.layout.sections.map(s =>
-                    s.id === sectionId ? { ...s, visible } : s
-                ),
-            },
-        }));
-    }, []);
-
-    const reorderSections = useCallback((sectionId: string, newOrder: number) => {
-        setConfig(prev => {
-            const sections = [...prev.layout.sections];
-            const idx = sections.findIndex(s => s.id === sectionId);
-            if (idx === -1) return prev;
-            const [item] = sections.splice(idx, 1);
-            item.order = newOrder;
-            sections.splice(newOrder, 0, item);
-            // Re-index orders
-            sections.forEach((s, i) => (s.order = i));
-            return { ...prev, layout: { ...prev.layout, sections } };
-        });
-    }, []);
-
-    const setShowNewsletter = useCallback((show: boolean) => {
-        setConfig(prev => ({
-            ...prev,
-            layout: { ...prev.layout, showNewsletter: show },
-        }));
-    }, []);
-
-    const toggleBlockedDate = useCallback((date: string) => {
-        setConfig(prev => {
-            const blocked = prev.layout.blockedDates || [];
-            const isBlocked = blocked.includes(date);
-            return {
-                ...prev,
-                layout: {
-                    ...prev.layout,
-                    blockedDates: isBlocked ? blocked.filter(d => d !== date) : [...blocked, date]
-                }
-            };
-        });
-    }, []);
-
-    // ── Promotions ──
-    const addPromotion = useCallback((promo: Promotion) => {
-        setConfig(prev => ({
-            ...prev,
-            promotions: [...prev.promotions, promo],
-        }));
-    }, []);
-
-    const removePromotion = useCallback((index: number) => {
-        setConfig(prev => ({
-            ...prev,
-            promotions: prev.promotions.filter((_, i) => i !== index),
-        }));
-    }, []);
-
-    // ── Delivery Zones ──
-    const updateZone = useCallback((name: string, changes: Partial<DeliveryZone>) => {
-        setConfig(prev => ({
-            ...prev,
-            deliveryZones: prev.deliveryZones.map(z =>
-                z.name === name ? { ...z, ...changes } : z
-            ),
-        }));
-    }, []);
-
-    const addZone = useCallback((zone: DeliveryZone) => {
-        setConfig(prev => ({
-            ...prev,
-            deliveryZones: [...prev.deliveryZones, zone],
-        }));
-    }, []);
-
-    const removeZone = useCallback((name: string) => {
-        setConfig(prev => ({
-            ...prev,
-            deliveryZones: prev.deliveryZones.filter(z => z.name !== name),
-        }));
-    }, []);
-
-    // ── Testimonials ──
-    const addTestimonial = useCallback((testimonial: Testimonial) => {
-        setConfig(prev => ({
-            ...prev,
-            testimonials: [...prev.testimonials, testimonial],
-        }));
-    }, []);
-
-    const removeTestimonial = useCallback((index: number) => {
-        setConfig(prev => ({
-            ...prev,
-            testimonials: prev.testimonials.filter((_, i) => i !== index),
-        }));
-    }, []);
-
-    // ── Customer Memory ──
-    const addCustomer = useCallback((record: CustomerRecord) => {
-        setConfig(prev => ({
-            ...prev,
-            customerMemory: [...prev.customerMemory.filter(c => c.phone !== record.phone), record],
-        }));
-    }, []);
-
-    const updateCustomer = useCallback((phone: string, changes: Partial<CustomerRecord>) => {
-        setConfig(prev => ({
-            ...prev,
-            customerMemory: prev.customerMemory.map(c =>
-                c.phone === phone ? { ...c, ...changes } : c
-            ),
-        }));
-    }, []);
-
-    const getCustomer = useCallback((phone: string) => {
-        return config.customerMemory.find(c => c.phone === phone);
-    }, [config.customerMemory]);
-
-    const getTopCustomers = useCallback((limit = 5) => {
-        return [...config.customerMemory]
-            .sort((a, b) => b.totalSpent - a.totalSpent)
-            .slice(0, limit);
-    }, [config.customerMemory]);
-
-    // ── Action Log ──
-    const logAction = useCallback((action: string, details: string, category: ActionLogEntry['category']) => {
-        setConfig(prev => ({
-            ...prev,
-            actionLog: [
-                { timestamp: new Date().toISOString(), action, details, category },
-                ...prev.actionLog.slice(0, 99), // Keep last 100
-            ],
-        }));
-    }, []);
-
-    const getRecentActions = useCallback((limit = 10) => {
-        return config.actionLog.slice(0, limit);
-    }, [config.actionLog]);
-
-    // ── Reset All ──
-    const resetAll = useCallback(() => {
-        setConfig(defaultConfig);
-        localStorage.removeItem(STORAGE_KEY);
-    }, []);
-
-    const value: SiteConfigContextType = useMemo(() => ({
-        config,
-        updateProduct, addProduct, removeProduct,
-        addCoupon, removeCoupon, getCoupons,
-        setTheme: setThemeConfig, resetTheme,
-        setContent: setContentConfig, resetContent,
-        setSectionVisibility, reorderSections, setShowNewsletter, toggleBlockedDate,
-        addPromotion, removePromotion,
-        updateZone, addZone, removeZone,
-        addTestimonial, removeTestimonial,
-        addCustomer, updateCustomer, getCustomer, getTopCustomers,
-        logAction, getRecentActions,
-        resetAll,
-    }), [config, updateProduct, addProduct, removeProduct, addCoupon, removeCoupon, getCoupons, setThemeConfig, resetTheme, setContentConfig, resetContent, setSectionVisibility, reorderSections, setShowNewsletter, toggleBlockedDate, addPromotion, removePromotion, updateZone, addZone, removeZone, addTestimonial, removeTestimonial, addCustomer, updateCustomer, getCustomer, getTopCustomers, logAction, getRecentActions, resetAll]);
-
-    return (
-        <SiteConfigContext.Provider value={value}>
-            {children}
-        </SiteConfigContext.Provider>
-    );
+    return <>{children}</>;
 }
 
 // ========================
-// 🪝 HOOKS
+// 🪝 HOOKS (Backwards Compatibility using Zustand Selectors)
 // ========================
 
+// Deprecated generic hook, provided for complete backwards compatibility
 export function useSiteConfig() {
-    const context = useContext(SiteConfigContext);
-    if (!context) throw new Error('useSiteConfig must be used within SiteConfigProvider');
-    return context;
+    return useSiteStore();
 }
 
-// Convenience hooks
 export function useProducts() {
-    const { config, updateProduct, addProduct, removeProduct } = useSiteConfig();
-    return { products: config.products, updateProduct, addProduct, removeProduct };
+    const products = useSiteStore(state => state.config.products);
+    const updateProduct = useSiteStore(state => state.updateProduct);
+    const addProduct = useSiteStore(state => state.addProduct);
+    const removeProduct = useSiteStore(state => state.removeProduct);
+    return { products, updateProduct, addProduct, removeProduct };
 }
 
 export function useCoupons() {
-    const { config, addCoupon, removeCoupon, getCoupons } = useSiteConfig();
-    return { coupons: config.coupons, addCoupon, removeCoupon, getActiveCoupons: getCoupons };
+    const coupons = useSiteStore(state => state.config.coupons);
+    const addCoupon = useSiteStore(state => state.addCoupon);
+    const removeCoupon = useSiteStore(state => state.removeCoupon);
+    const getActiveCoupons = useSiteStore(state => state.getCoupons);
+    return { coupons, addCoupon, removeCoupon, getActiveCoupons };
 }
 
 export function useTheme() {
-    const { config, setTheme, resetTheme } = useSiteConfig();
-    return { theme: config.theme, setTheme, resetTheme };
+    const theme = useSiteStore(state => state.config.theme);
+    const setTheme = useSiteStore(state => state.setTheme);
+    const resetTheme = useSiteStore(state => state.resetTheme);
+    return { theme, setTheme, resetTheme };
 }
 
 export function useContent() {
-    const { config, setContent, resetContent } = useSiteConfig();
-    return { content: config.content, setContent, resetContent };
+    const content = useSiteStore(state => state.config.content);
+    const setContent = useSiteStore(state => state.setContent);
+    const resetContent = useSiteStore(state => state.resetContent);
+    return { content, setContent, resetContent };
 }
 
 export function useLayout() {
-    const { config, setSectionVisibility, reorderSections, setShowNewsletter, toggleBlockedDate } = useSiteConfig();
-    return { layout: config.layout, setSectionVisibility, reorderSections, setShowNewsletter, toggleBlockedDate };
+    const layout = useSiteStore(state => state.config.layout);
+    const setSectionVisibility = useSiteStore(state => state.setSectionVisibility);
+    const reorderSections = useSiteStore(state => state.reorderSections);
+    const setShowNewsletter = useSiteStore(state => state.setShowNewsletter);
+    const toggleBlockedDate = useSiteStore(state => state.toggleBlockedDate);
+    return { layout, setSectionVisibility, reorderSections, setShowNewsletter, toggleBlockedDate };
 }
 
 export function useDeliveryZones() {
-    const { config, updateZone, addZone, removeZone } = useSiteConfig();
-    return { zones: config.deliveryZones, updateZone, addZone, removeZone };
+    const zones = useSiteStore(state => state.config.deliveryZones);
+    const updateZone = useSiteStore(state => state.updateZone);
+    const addZone = useSiteStore(state => state.addZone);
+    const removeZone = useSiteStore(state => state.removeZone);
+    return { zones, updateZone, addZone, removeZone };
 }
 
 export function useTestimonials() {
-    const { config, addTestimonial, removeTestimonial } = useSiteConfig();
-    return { testimonials: config.testimonials, addTestimonial, removeTestimonial };
+    const testimonials = useSiteStore(state => state.config.testimonials);
+    const addTestimonial = useSiteStore(state => state.addTestimonial);
+    const removeTestimonial = useSiteStore(state => state.removeTestimonial);
+    return { testimonials, addTestimonial, removeTestimonial };
 }
 
 export function usePromotions() {
-    const { config, addPromotion, removePromotion } = useSiteConfig();
-    return { promotions: config.promotions.filter(p => p.active), addPromotion, removePromotion };
+    const allPromotions = useSiteStore(state => state.config.promotions);
+    const promotions = useMemo(() => allPromotions.filter(p => p.active), [allPromotions]);
+    const addPromotion = useSiteStore(state => state.addPromotion);
+    const removePromotion = useSiteStore(state => state.removePromotion);
+    return { promotions, addPromotion, removePromotion };
 }

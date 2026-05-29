@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lluvia Digital</title>
+  <style>
+    body {
+      background-color: rgba(0,0,0,0);
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    #canvas {
+      width: 100%;
+      height: 100vh;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const palabras = ['SECURE', 'FIREWALL', 'GRAVITY'];
+    const gotas = [];
+
+    function Gotra(x, y, velocidad) {
+      this.x = x;
+      this.y = y;
+      this.velocidad = velocidad;
+      this.caracter = caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+    }
+
+    Gotra.prototype.actualizar = function() {
+      this.y += this.velocidad;
+      if (this.y > canvas.height) {
+        this.y = -10;
+        this.x = Math.random() * canvas.width;
+      }
+    };
+
+    Gotra.prototype.dibujar = function() {
+      ctx.fillStyle = 'green';
+      ctx.font = '16px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(this.caracter, this.x, this.y);
+    };
+
+    function crearGota() {
+      const x = Math.random() * canvas.width;
+      const y = -10;
+      const velocidad = Math.random() * 2 + 1;
+      gotas.push(new Gotra(x, y, velocidad));
+    }
+
+    function detectarMonitoreo() {
+      // Simulación de detección de monitoreo activo
+      return Math.random() < 0.1;
+    }
+
+    function formarPalabra() {
+      const palabra = palabras[Math.floor(Math.random() * palabras.length)];
+      const x = canvas.width / 2;
+      const y = canvas.height / 2;
+      ctx.fillStyle = 'green';
+      ctx.font = '32px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(palabra, x, y);
+      setTimeout(() => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }, 2000);
+    }
+
+    function animar() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < gotas.length; i++) {
+        gotas[i].actualizar();
+        gotas[i].dibujar();
+      }
+      if (detectarMonitoreo()) {
+        formarPalabra();
+      }
+      requestAnimationFrame(animar);
+    }
+
+    for (let i = 0; i < 100; i++) {
+      crearGota();
+    }
+
+    animar();
+
+    setInterval(() => {
+      crearGota();
+    }, 100);
+  </script>
+</body>
+</html>

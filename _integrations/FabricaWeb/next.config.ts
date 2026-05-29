@@ -23,6 +23,11 @@ const nextConfig: NextConfig = {
     '@tensorflow/tfjs-backend-webgl',
     '@tensorflow-models/mobilenet',
   ],
+  webpack: (config) => {
+    // Silence Gun.js critical dependency warnings
+    config.module.exprContextCritical = false;
+    return config;
+  },
 };
 
 export default nextConfig;

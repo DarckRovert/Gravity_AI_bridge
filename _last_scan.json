@@ -1,0 +1,35 @@
+{
+  "scan_time": 1779484037.6591957,
+  "providers": [
+    {
+      "name": "Ollama",
+      "url": "http://localhost:11434",
+      "protocol": "http",
+      "category": "local",
+      "is_healthy": true,
+      "model_count": 2,
+      "active_model": "test-model",
+      "response_ms": 45,
+      "models": [
+        {
+          "name": "test-model"
+        }
+      ]
+    },
+    {
+      "name": "LM Studio",
+      "url": "http://localhost:1234",
+      "protocol": "http",
+      "category": "local",
+      "is_healthy": true,
+      "model_count": 3,
+      "active_model": "test-model",
+      "response_ms": 12,
+      "models": [
+        {
+          "name": "test-model"
+        }
+      ]
+    }
+  ]
+}
