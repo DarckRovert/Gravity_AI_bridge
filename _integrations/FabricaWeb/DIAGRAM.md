@@ -1,4 +1,4 @@
-# 🗺️ Diagrama de Arquitectura — Pastelito AI v5.0
+# 🗺️ Diagrama de Arquitectura — Gravity Web Core v5.0
 
 ## Flujo Principal
 
@@ -7,7 +7,7 @@ flowchart TD
     User(["👤 Usuario / Admin"]) -->|texto o voz| Chatbot["🤖 Chatbot.tsx"]
 
     Chatbot -->|modo cliente| FallbackChain
-    Chatbot -->|modo admin / CEO| PastelitoEngine
+    Chatbot -->|modo admin / CEO| CoreNLPEngine
 
     subgraph AI_LOCAL["🧠 Stack IA Local (100% Navegador)"]
         FallbackChain["FallbackChain (orquestador)"]
@@ -18,8 +18,8 @@ flowchart TD
     end
 
     subgraph CEO["👔 CEO Mode (adminBrain.ts)"]
-        PastelitoEngine["PastelitoEngine\n(NLP Simbólico, 60+ intents)"]
-        PastelitoEngine --> AdminBrain["AdminBrain v3.0"]
+        CoreNLPEngine["CoreNLPEngine\n(NLP Simbólico, 60+ intents)"]
+        CoreNLPEngine --> AdminBrain["AdminBrain v3.0"]
         AdminBrain --> Report["📊 Smart Report"]
         AdminBrain --> Ranking["🏆 Product Ranking"]
         AdminBrain --> Anomalies["⚠️ Anomaly Detection"]
@@ -27,7 +27,7 @@ flowchart TD
         AdminBrain --> Demand["🔮 Demand Prediction"]
     end
 
-    PastelitoEngine --> AdminActions["adminActions.ts"]
+    CoreNLPEngine --> AdminActions["adminActions.ts"]
     AdminActions --> Context["SiteConfigContext\n(localStorage + Gun.js P2P)"]
     Context --> UI["🖥️ Componentes React"]
 ```
@@ -74,7 +74,7 @@ src/
     │   ├── fallbackChain.ts   → Orquestador de respuestas
     │   └── visionBrain.ts     → MobileNet (Proof of Cake)
     ├── adminBrain.ts          → CEO analytics v3.0
-    ├── pastelitoEngine.ts     → NLP simbólico
+    ├── coreNLP.ts     → NLP simbólico
     ├── firebase.ts            → Firebase init
     └── firebaseOrders.ts      → CRUD pedidos Firestore
 ```

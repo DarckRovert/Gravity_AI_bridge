@@ -1,4 +1,4 @@
-# 🚀 Guía de Despliegue — Dulces Momentos v6.0
+# 🚀 Guía de Despliegue — Plantilla Maestra v6.0
 
 Pasos técnicos para desplegar el proyecto en producción.
 
@@ -66,9 +66,9 @@ npm run build
 
 1. Conecta tu repo en [netlify.com](https://netlify.com) → Add new site → Import from Git
 2. Configuración de build:
-   - **Base directory:** `pastelito-next`
+   - **Base directory:** `gravity-web-core`
    - **Build command:** `npm run build`
-   - **Publish directory:** `pastelito-next/.next`
+   - **Publish directory:** `gravity-web-core/.next`
 3. Agrega todas las variables de entorno en **Site settings → Environment Variables**
 
 ### Opción B — Build local

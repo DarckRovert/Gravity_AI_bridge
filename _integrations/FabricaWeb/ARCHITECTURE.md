@@ -1,6 +1,6 @@
-# 🏗️ Arquitectura del Sistema: Pastelito AI (God Mode v5.0)
+# 🏗️ Arquitectura del Sistema: Gravity Web Core (God Mode v5.0)
 
-Este documento detalla la arquitectura técnica de **Dulces Momentos**, una e-commerce SPA (Single Page Application) controlada por una IA autónoma local.
+Este documento detalla la arquitectura técnica de **Plantilla Maestra**, una e-commerce SPA (Single Page Application) controlada por una IA autónoma local.
 
 **Autor y Arquitecto:** Rodrigo Alejandro Vega Rojas (DarckRovert).
 
@@ -27,7 +27,7 @@ graph TD
     end
 
     subgraph "God Mode Core"
-        NLP[PastelitoEngine - The Mind] -->|Intención + Entidades| AdminActions[AdminActions - The Hands]
+        NLP[CoreNLPEngine - The Mind] -->|Intención + Entidades| AdminActions[AdminActions - The Hands]
         AdminActions -->|CRUD Operations| Context[SiteConfigContext - The Brain]
         ThemeEngine[ThemeEngine - The Artist] -->|Paletas| Context
     end
@@ -88,7 +88,7 @@ Es la fuente de la verdad (Single Source of Truth).
 - **Persistencia:** Guarda automáticamente en `localStorage` bajo la clave `dm_config` + sincronización P2P via Gun.js.
 - **Hooks Expuestos:** `useProducts()`, `useContent()`, `useTheme()`, etc.
 
-### 🗣️ 2. La Mente: `pastelitoEngine.ts`
+### 🗣️ 2. La Mente: `coreNLP.ts`
 El motor de entendimiento simbólico. Token-free, sistema experto de coincidencia de patrones y extracción de entidades.
 - **Intenciones Soportadas:** 60+ (ej: `cambiar_precio`, `modo_estacional`, `optimizar_todo`).
 - **Entidades:** Detecta precios (`S/50`), colores (`rojo`), porcentajes (`20%`), y productos por nombre difuso ("fuzzy matching").
@@ -124,7 +124,7 @@ El motor de diseño.
 | **LocalBrain** | `lib/ai/localBrain.ts` | Clasificador Naive Bayes entrenado con Golden Dataset + búsqueda fuzzy de productos y FAQs. |
 | **FallbackChain** | `lib/ai/fallbackChain.ts` | Orquesta la cadena: Semantic → LocalBrain → WhatsApp. Simula streaming para UX premium. |
 | **VisionBrain** | `lib/ai/visionBrain.ts` | MobileNet (TensorFlow.js) para clasificación de imágenes de tortas (Proof of Cake). |
-| **PastelitoEngine** | `lib/pastelitoEngine.ts` | NLP simbólico: 60+ intents, extracción de entidades, memoria de contexto. |
+| **CoreNLPEngine** | `lib/coreNLP.ts` | NLP simbólico: 60+ intents, extracción de entidades, memoria de contexto. |
 | **RecommendationEngine** | `lib/recommendationEngine.ts` | Recomienda productos según popularidad, hora del día y stock. |
 | **ProactiveAlerts** | `lib/proactiveAlerts.ts` | Alertas automáticas: stock, ventas, fechas peruanas. |
 | **MultiTurnEngine** | `lib/multiTurnEngine.ts` | State machine para Wizards de creación guiada. |
@@ -214,7 +214,7 @@ Declaraciones de tipos para módulos sin TypeScript nativo:
 - **Estilos:** TailwindCSS v4
 - **Backend:** Firebase/Firestore (fallback localStorage)
 - **P2P:** Gun.js (null-safe, typed)
-- **AI (Local):** SemanticEngine (`transformers.js`) + PastelitoEngine (NLP) + LocalBrain (Naive Bayes) + MobileNet (Vision)
+- **AI (Local):** SemanticEngine (`transformers.js`) + CoreNLPEngine (NLP) + LocalBrain (Naive Bayes) + MobileNet (Vision)
 - **Web3:** Ethers.js + Web3Modal (Polygon Amoy)
 - **Build Tool:** Turbopack
 

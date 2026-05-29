@@ -40,7 +40,7 @@ Es un sistema de **Prueba de Personhood (PoP)**. Permite que el cliente demuestr
 2. Crea una "Action" llamada `verify-human-customer`.
 3. ✅ `app_id` configurado: `app_f46e5db6f7c46cfaa400aefc65f52c99`.
 
-### Beneficio para Dulces Momentos:
+### Beneficio para Plantilla Maestra:
 - **Adiós al fraude**: Evita que una persona use 100 correos para obtener 100 cupones de descuento.
 - **Exclusividad**: Solo humanos verificados pueden reclamar los NFTs de "Fundador Dulce".
 - **Privacidad**: No guardamos datos personales, solo una confirmación matemática de que el cliente es único.

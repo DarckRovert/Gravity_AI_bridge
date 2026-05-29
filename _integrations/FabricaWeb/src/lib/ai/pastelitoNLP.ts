@@ -390,50 +390,49 @@ function predictIntent(text: string): { label: string; score: number } {
 
 const RESPONSE_BANK: Record<string, string[]> = {
     greeting: [
-        "¡Hola! 👋 Soy Antojín, tu asistente rápido. ¿En qué puedo calmar tu antojo hoy?",
-        "¡Buenas! 🍍 Aquí Antojín a tu servicio. ¿Se te antoja algo rico hoy?",
-        "¡Hey! 👋 Bienvenido a Antojitos Express. ¿Qué te provoca hoy? 🥤",
-        "¡Hola, hola! 😋 ¿Listo para probar algo delicioso? Cuéntame, ¿qué necesitas?",
+        "¡Hola! 👋 Soy tu asistente virtual. ¿En qué te puedo ayudar hoy?",
+        "¡Buenas! A tu servicio. ¿Qué necesitas?",
+        "¡Hey! 👋 Bienvenido. ¿Qué te provoca hoy?",
+        "¡Hola, hola! ¿Listo para ver nuestros productos? Cuéntame, ¿qué necesitas?",
     ],
     farewell: [
         "¡Chau! 👋 Fue un gusto atenderte. ¡Que tengas un día excelente! ✨",
-        "¡Nos vemos! 🍍 Aquí estaré cuando se te antoje algo rico.",
-        "¡Hasta pronto! 💕 No olvides que siempre puedes volver por más.",
+        "¡Nos vemos! Aquí estaré cuando necesites algo.",
+        "¡Hasta pronto! 💕 No olvides que siempre puedes volver.",
     ],
     thanks: [
         "¡De nada! 😊 Para eso estoy. ¿Algo más en que pueda ayudarte?",
-        "¡Un placer! 🍍 Si necesitas algo más, aquí me tienes.",
+        "¡Un placer! Si necesitas algo más, aquí me tienes.",
         "¡Gracias a ti! 💕 Espero haberte sido de ayuda. ¡Vuelve pronto!",
     ],
     how_are_you: [
         "¡Muy bien, gracias! 😊 Siempre listo para ayudarte. ¿Qué se te ofrece hoy?",
-        "¡De maravilla! 🍍 Aquí listo para armar tu pedido. ¿En qué te ayudo?",
-        "¡Feliz y con energía! 🥤 Cuéntame, ¿qué necesitas?",
+        "¡De maravilla! Aquí listo para tomar tu pedido. ¿En qué te ayudo?",
+        "¡Feliz y con energía! Cuéntame, ¿qué necesitas?",
     ],
     who_are_you: [
-        "¡Soy Antojín! 🍍 El asistente virtual de **Antojitos Express**. Te ayudo a explorar nuestros productos, hacer pedidos y resolver tus dudas. ¡Pregúntame lo que quieras!",
-        "Me llamo **Antojín** 🤖🍍 — soy el cerebro de esta fuente de soda. Puedo mostrarte el menú, decirte precios, rastrear tu pedido y mucho más.",
+        "¡Soy tu asistente virtual! Te ayudo a explorar nuestros productos, hacer pedidos y resolver tus dudas. ¡Pregúntame lo que quieras!",
+        "Soy la Inteligencia Artificial encargada de este negocio 🤖 — Puedo mostrarte el menú, decirte precios, rastrear tu pedido y mucho más.",
     ],
     recommendation: [
-        "🏆 ¡Nuestros best sellers son:\n1. 🥖 **Pan con Chicharrón** — El clásico peruano\n2. 🥤 **Jugo Surtido** — Fresco y natural\n3. 🥟 **Empanada de Carne** — Horneada al momento\n\n¿Cuál te tienta? 😋",
-        "😋 Te recomiendo probar nuestro **Papapan con Chicharrón** — es el más pedido por algo. ¡Puro sabor! Si prefieres algo más ligero, el **Jugo Especial** es una delicia.",
+        "🏆 ¡Te recomiendo revisar nuestros productos destacados o best sellers! Siempre son una excelente opción.",
+        "😋 Nuestros clientes siempre tienen sus favoritos. ¿Por qué no le das un vistazo al catálogo principal?",
     ],
     complaint: [
-        "😔 Lamento mucho escuchar eso. Tu satisfacción es lo más importante para nosotros. Por favor escríbenos directamente al **WhatsApp** para resolver tu caso de inmediato. ¡Queremos hacerlo bien!",
-        "¡Uy, lo siento! 😰 Eso no debería pasar. Cuéntame más o escríbenos al **WhatsApp** y lo solucionamos enseguida. Tu experiencia nos importa mucho.",
+        "😔 Lamento mucho escuchar eso. Tu satisfacción es lo más importante. Por favor escríbenos directamente al **WhatsApp** para resolver tu caso de inmediato. ¡Queremos hacerlo bien!",
+        "¡Uy, lo siento! 😰 Eso no debería pasar. Cuéntame más o escríbenos al **WhatsApp** y lo solucionamos enseguida.",
     ],
     joke: [
-        "🤭 ¿Sabes qué le dijo un jugo a otro?\n— ¡Qué concentrado estás! 🥤",
-        "😄 ¿Por qué el pan fue al doctor?\n— ¡Porque tenía migas! 🥖",
-        "🤣 ¿Cuál es el colmo de un sánguche?\n— ¡Estar emparedado! 🥪",
+        "🤭 Mi humor está en modo automático, pero te aseguro que nuestros productos te sacarán una sonrisa.",
+        "😄 ¿Por qué la computadora fue al doctor? ¡Porque tenía un virus! (Prometo mejorar mis chistes)",
     ],
     unknown: [
         "🤔 Hmm, no estoy seguro de entender. ¿Podrías reformular tu pregunta? También puedes escribir **\"menú\"** para ver nuestros productos o **\"ayuda\"** para ver qué puedo hacer.",
         "🧐 Esa es una buena pregunta pero no la tengo clara. Prueba preguntando por nuestros **productos**, **precios**, **delivery** o **horarios**.",
     ],
     frustration: [
-        "😰 ¡Uy! Siento que te sientas así. No quiero que tengas una mala experiencia. ¿Quieres que te pase directamente con una **persona en WhatsApp**? Estaremos felices de ayudarte personalmente.",
-        "😔 Perdona si no he sido de ayuda. Mi objetivo es calmar tus antojos, no complicarlos. Puedes escribir **\"menú\"** para empezar de cero o ir directo al **WhatsApp** para hablar con soporte.",
+        "😰 ¡Uy! Siento que te sientas así. No quiero que tengas una mala experiencia. ¿Quieres que te pase directamente con una **persona en WhatsApp**?",
+        "😔 Perdona si no he sido de ayuda. Puedes escribir **\"menú\"** para empezar de cero o ir directo al **WhatsApp** para hablar con soporte.",
     ],
 };
 
@@ -690,7 +689,7 @@ export function processQuery(
     // Final fallback with WhatsApp
     const pureNumber = whatsappNumber.replace(/\D/g, '');
     const fallbackResponse = pickResponse('unknown') ||
-        `🤔 No encontré una respuesta exacta para eso. Para ayudarte mejor, escríbenos directamente al WhatsApp.\n\n👉 [Click para chatear](https://wa.me/${pureNumber}?text=Hola%20Antojín,%20tengo%20una%20consulta)`;
+        `🤔 No encontré una respuesta exacta para eso. Para ayudarte mejor, escríbenos directamente al WhatsApp.\n\n👉 [Click para chatear](https://wa.me/${pureNumber}?text=Hola,%20tengo%20una%20consulta)`;
 
     return { response: fallbackResponse, source: 'fallback' };
 }

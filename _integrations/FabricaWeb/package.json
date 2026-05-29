@@ -1,12 +1,12 @@
 {
-  "name": "pastelito-next",
-  "version": "0.1.0",
+  "name": "gravity-web-core",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build --webpack",
+    "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint"
   },
   "dependencies": {
     "@web3modal/ethers": "^5.1.11",

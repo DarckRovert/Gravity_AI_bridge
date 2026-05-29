@@ -1,5 +1,5 @@
 # 👑 Guía de Administración (Sin Código) — v6.0
-### Dulces Momentos - Panel de Control
+### Plantilla Maestra - Panel de Control
 
 Esta guía te enseña a administrar tu página web sin tocar código.
 
@@ -35,9 +35,9 @@ El sidebar tiene:
 - Colapsa a íconos-only con un clic
 
 ### Chatbot Admin (God Mode v3.0) 🤖
-Cuando estás en el Dashboard, el chatbot Pastelito cambia a **modo CEO**. Además, el modo admin **no se pierde** al navegar a `/menu` o `/builder`.
+Cuando estás en el Dashboard, el chatbot Asistente cambia a **modo CEO**. Además, el modo admin **no se pierde** al navegar a `/menu` o `/builder`.
 
-> 🧠 **IA Autónoma (v5.0):** Pastelito ahora entiende el **significado** de tus preguntas gracias a un modelo de IA que corre directamente en tu navegador. No usa APIs externas — todo es local y privado.
+> 🧠 **IA Autónoma (v5.0):** Asistente ahora entiende el **significado** de tus preguntas gracias a un modelo de IA que corre directamente en tu navegador. No usa APIs externas — todo es local y privado.
 
 **Finanzas:**
 - 💰 Calcular tus **ventas totales**
@@ -67,17 +67,17 @@ Cuando estás en el Dashboard, el chatbot Pastelito cambia a **modo CEO**. Adem�
 - 📢 *"Crear banner"* → Texto → Link → ✅
 
 **Alertas Proactivas:**
-Al abrir el chat, Pastelito te avisa automáticamente si hay:
+Al abrir el chat, Asistente te avisa automáticamente si hay:
 - 🔴 Productos agotados
 - 📉 Caída de ventas
 - 📅 Fechas especiales cercanas (San Valentín, Día de la Madre, Navidad, etc.)
 
 **Memoria Inteligente (v3.0):**
-Pastelito ahora recuerda el último producto que mencionaste. Si dices:
+Asistente ahora recuerda el último producto que mencionaste. Si dices:
 - *"Cuánto cuesta la chocoteja"* y luego *"sube el precio a 20"* → aplica a la chocoteja.
 
 **Smart Fallback (v3.0):**
-Si Pastelito no entiende un comando, sugiere hasta 3 acciones similares:
+Si Asistente no entiende un comando, sugiere hasta 3 acciones similares:
 ```
 🤔 No entendí bien, jefe. ¿Quisiste decir alguno de estos?
 • 💰 Cambiar precio
@@ -86,10 +86,10 @@ Si Pastelito no entiende un comando, sugiere hasta 3 acciones similares:
 ```
 
 ### 🎙️ Comandos por Voz (Nuevo v4.0)
-¡Ahora puedes hablarle a Pastelito!
+¡Ahora puedes hablarle a Asistente!
 1. Presiona el ícono **🎤** en el chat.
 2. Di tu comando (ej: *"Cambia precio del pionono a 80"*).
-3. Pastelito transcribirá tu voz y ejecutará la acción.
+3. Asistente transcribirá tu voz y ejecutará la acción.
 *Perfecto para cuando estás cocinando y tienes las manos ocupadas.* 👨‍🍳
 
 ---
@@ -124,7 +124,7 @@ Para cambiar productos directamente, edita:
 ## 4. Cupones y Promociones 🏷️
 
 ### Opción 1: Desde el chatbot (Recomendado) 🤖
-Di *"Crear cupón"* y Pastelito te guía: código → descuento → tipo → confirmar.
+Di *"Crear cupón"* y Asistente te guía: código → descuento → tipo → confirmar.
 
 O directamente: *"Crea cupón VERANO20 del 20%"* → lo crea al instante.
 

@@ -1,8 +1,8 @@
-# 🍰 Dulces Momentos — Pastelito AI (God Mode v6.0)
+# 🍰 Plantilla Maestra — Gravity Web Core (God Mode v6.0)
 
 > **"La primera pastelería gestionada por una Inteligencia Artificial 100% Autónoma."**
 
-**Dulces Momentos** es una e-commerce de pastelería artesanal con un chatbot administrador autónomo capaz de gestionar la tienda, diseñar la interfaz, analizar finanzas y proteger el sistema mediante lenguaje natural.
+**Plantilla Maestra** es una e-commerce de pastelería artesanal con un chatbot administrador autónomo capaz de gestionar la tienda, diseñar la interfaz, analizar finanzas y proteger el sistema mediante lenguaje natural.
 
 🌐 **Ver en vivo:** [dulcesmoment0s.netlify.app](https://dulcesmoment0s.netlify.app)
 
@@ -12,7 +12,7 @@
 
 | Campo | Detalle |
 |-------|---------|
-| **Negocio** | Dulces Momentos |
+| **Negocio** | Plantilla Maestra |
 | **Rubro** | Pastelería Artesanal |
 | **Ubicación** | Santiago de Surco, Lima, Perú |
 | **WhatsApp** | [+51 965 968 723](https://wa.me/51965968723) |
@@ -33,7 +33,7 @@
 - **Puntos de Fidelidad 🍬** — 1 S/ = 1 punto, banner de canje en el Checkout
 - **Pago con Tarjeta vía Culqi** (Visa, Mastercard, Amex) — activo con API keys
 
-### 🤖 Chatbot "Pastelito" — God Mode v6.0
+### 🤖 Chatbot "Asistente" — God Mode v6.0
 - **Motor NLP local** — 100% simbólico, sin dependencias externas de IA
 - **Modo Cliente:** Recomendaciones, FAQ, venta cruzada, loose search ("¿Quisiste decir...?")
 - **Modo Admin (AI CEO):**
@@ -71,7 +71,7 @@
 | Framework | Next.js 16 (App Router) |
 | UI | React 19 + TailwindCSS v4 |
 | Lenguaje | TypeScript v5 — 0 errores, 0 `any` |
-| AI/NLP | PastelitoEngine (NLP simbólico) + LocalBrain (Naive Bayes) |
+| AI/NLP | CoreNLPEngine (NLP simbólico) + LocalBrain (Naive Bayes) |
 | Backend | Firebase/Firestore (fallback localStorage automático) |
 | Auth | Firebase Authentication |
 | Push | Firebase Cloud Messaging (FCM) |
@@ -86,7 +86,7 @@
 
 ```bash
 # 1. Instalar dependencias
-cd pastelito-next
+cd gravity-web-core
 npm install
 
 # 2. Configurar variables de entorno
@@ -139,4 +139,4 @@ Rodrigo Alejandro Vega Rojas (**DarckRovert**)
 > *"La tecnología debe ser mágica, pero sobre todo, útil."*
 
 ---
-© 2026 Dulces Momentos. Todos los derechos reservados.
+© 2026 Plantilla Maestra. Todos los derechos reservados.

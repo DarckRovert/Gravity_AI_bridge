@@ -1,6 +1,6 @@
 # 🌐 Guía de Publicación y Hosting
 
-Tu proyecto "Dulces Momentos" está listo para salir al mundo. Aquí tienes las opciones:
+Tu proyecto "Plantilla Maestra" está listo para salir al mundo. Aquí tienes las opciones:
 
 ## 1. Publicar en Netlify (Recomendado) ☁️
 
@@ -13,7 +13,7 @@ Tu sitio ya está configurado para Netlify con el archivo `netlify.toml`.
 4. Netlify detecta el `netlify.toml` y configura todo automáticamente:
    - Build command: `npm run build`
    - Publish directory: `.next`
-   - Base directory: `pastelito-next` (Si usas el repo completo)
+   - Base directory: `gravity-web-core` (Si usas el repo completo)
 5. Cada vez que hagas `git push`, tu sitio se actualiza solo
 
 ### Opción B: Deploy manual (arrastrando)
@@ -22,7 +22,7 @@ Tu sitio ya está configurado para Netlify con el archivo `netlify.toml`.
    npm run build
    ```
 2. Ve a [app.netlify.com](https://app.netlify.com)
-3. Arrastra la carpeta `pastelito-next` al panel de Netlify
+3. Arrastra la carpeta `gravity-web-core` al panel de Netlify
 4. Espera a que se despliegue (~1-2 minutos)
 
 **Ventajas de Netlify:**
@@ -58,7 +58,7 @@ El archivo `netlify.toml` en la raíz del proyecto controla la configuración:
 
 ```toml
 [build]
-  base = "pastelito-next"      # (Si despliegas desde la raíz del repo)
+  base = "gravity-web-core"      # (Si despliegas desde la raíz del repo)
   command = "npm run build"     # Comando de construcción
   publish = ".next"             # Carpeta de salida
 

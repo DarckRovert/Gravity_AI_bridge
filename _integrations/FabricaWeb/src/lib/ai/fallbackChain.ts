@@ -1,9 +1,8 @@
-// 🧠 Fallback Chain — Orquesta las capas de inteligencia de Pastelito
-// 100% autónomo — zero dependencias externas (sin CDN, sin TensorFlow, sin HuggingFace)
-// Usa PastelitoNLP como motor unificado.
+// 🧠 Fallback Chain — Orquesta las capas de inteligencia
+// Usa Web Workers para procesar la NLP sin bloquear el UI.
 
 import { Product } from '@/data/products';
-import { processQuery, trackMessage, NLPResult } from './pastelitoNLP';
+import { NLPResult } from './pastelitoNLP';
 
 export interface FallbackContext {
     products: Product[];
@@ -23,7 +22,6 @@ export interface FallbackResult {
     streaming: boolean;
 }
 
-// Map NLP sources to FallbackResult sources
 function mapSource(nlpSource: NLPResult['source']): FallbackResult['source'] {
     switch (nlpSource) {
         case 'kb': return 'kb-match';
@@ -38,34 +36,67 @@ function mapSource(nlpSource: NLPResult['source']): FallbackResult['source'] {
     }
 }
 
-// ========================
-// 🧠 MAIN CHAIN
-// ========================
+// --- Web Worker Singleton ---
+let nlpWorker: Worker | null = null;
+let currentMessageId = 0;
+const pendingRequests = new Map<string, (result: NLPResult) => void>();
 
-/**
- * Process a customer query through PastelitoNLP.
- * Everything is handled by the unified NLP engine — no external dependencies.
- */
+function getWorker(): Worker {
+    if (!nlpWorker && typeof window !== 'undefined') {
+        // En Next.js, instanciar un Worker require esta sintaxis exacta para Turbopack/Webpack
+        nlpWorker = new Worker(new URL('./nlp.worker.ts', import.meta.url));
+        nlpWorker.onmessage = (event) => {
+            const { id, type, payload } = event.data;
+            if (type === 'QUERY_RESULT' && pendingRequests.has(id)) {
+                pendingRequests.get(id)!(payload);
+                pendingRequests.delete(id);
+            }
+        };
+    }
+    return nlpWorker as Worker;
+}
+
 export async function processCustomerQuery(
     query: string,
     ctx: FallbackContext
 ): Promise<FallbackResult> {
-
     console.log(`🔗 FallbackChain: Processing query "${query}"`);
 
-    const result = processQuery(query, ctx.products, ctx.whatsappNumber, ctx.isAdmin);
+    if (typeof window === 'undefined') {
+        return { response: '', source: 'fallback', streaming: false };
+    }
 
-    console.log(`🔗 FallbackChain: Result from PastelitoNLP [source: ${result.source}]${result.action ? ` [action: ${result.action}]` : ''} "${result.response.substring(0, 60)}..."`);
+    const worker = getWorker();
+    const id = `msg_${currentMessageId++}`;
 
-    // Track bot response for context
-    if (result.response) {
-        trackMessage(result.response, 'bot');
+    const nlpResult = await new Promise<NLPResult>((resolve) => {
+        pendingRequests.set(id, resolve);
+        worker.postMessage({
+            id,
+            type: 'PROCESS_QUERY',
+            payload: {
+                query,
+                products: ctx.products,
+                whatsappNumber: ctx.whatsappNumber,
+                isAdmin: ctx.isAdmin
+            }
+        });
+    });
+
+    console.log(`🔗 FallbackChain: Result from Worker [source: ${nlpResult.source}]`);
+
+    if (nlpResult.response) {
+        worker.postMessage({
+            id: `trk_${currentMessageId++}`,
+            type: 'TRACK_MESSAGE',
+            payload: { text: nlpResult.response, role: 'bot' }
+        });
     }
 
     return {
-        response: result.response,
-        action: result.action,
-        source: mapSource(result.source),
+        response: nlpResult.response,
+        action: nlpResult.action,
+        source: mapSource(nlpResult.source),
         streaming: false,
     };
 }
