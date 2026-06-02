@@ -14,6 +14,9 @@ from core.video.renderer import (
     _generate_scene_image, _create_placeholder_image, _create_title_card,
     _extract_thumbnail, _assemble_clip, _concatenate_clips
 )
+from core.video.audio_analyzer import extract_multiband_energy
+from core.video.timeline_director import generate_timeline, generate_color_sequence
+from core.video.glsl_renderer_v13 import render_v13_video
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUTPUT_DIR = os.path.join(BASE_DIR, "_videos")
@@ -129,6 +132,10 @@ def _init_db() -> None:
                 ("niche_id",          "TEXT NOT NULL DEFAULT ''"),
                 ("cloned_from",       "INTEGER NOT NULL DEFAULT 0"),
                 ("clone_lang",        "TEXT NOT NULL DEFAULT ''"),
+                ("job_type",          "TEXT NOT NULL DEFAULT 'tts'"),
+                ("audio_track_path",  "TEXT NOT NULL DEFAULT ''"),
+                ("lyrics_text",       "TEXT NOT NULL DEFAULT ''"),
+                ("input_video_path",  "TEXT NOT NULL DEFAULT ''"),
             ]
             for col_name, col_def in migrations:
                 if col_name not in existing:
@@ -180,6 +187,10 @@ def add_job(
     animation_effect: str  = "auto",
     animation_level: int   = 1,
     niche_id: str          = "",
+    job_type: str          = "tts",
+    audio_track_path: str  = "",
+    lyrics_text: str       = "",
+    input_video_path: str  = "",
 ) -> int:
     """Encola un nuevo trabajo de video. Retorna el ID generado."""
     _init_db()
@@ -204,15 +215,16 @@ def add_job(
                 "(topic, n_scenes, voice_speed, voice_id, style, narration_lang, transitions, "
                 " resolution, subtitles, title, bgm_type, quality, use_lore, fps, scene_duration, "
                 " duration_mode, bgm_volume, codec, ken_burns, intro_card, color_grade, "
-                " animation_effect, animation_level, niche_id, created_at) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                " animation_effect, animation_level, niche_id, job_type, audio_track_path, lyrics_text, input_video_path, created_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     topic, n_scenes, voice_speed, voice_id, style, narration_lang,
                     1 if transitions else 0, resolution, 1 if subtitles else 0,
                     title, bgm_type, quality, 1 if use_lore else 0,
                     fps, scene_duration, duration_mode, float(bgm_volume), codec,
                     1 if ken_burns else 0, 1 if intro_card else 0, color_grade,
-                    animation_effect, int(animation_level), niche_id, now
+                    animation_effect, int(animation_level), niche_id, 
+                    job_type, audio_track_path, lyrics_text, input_video_path, now
                 )
             )
             job_id = cur.lastrowid
@@ -429,6 +441,10 @@ def _process_job(
     color_grade: str       = "auto",
     animation_effect: str  = "auto",
     animation_level: int   = 1,
+    job_type: str          = "tts",
+    audio_track_path: str  = "",
+    lyrics_text: str       = "",
+    input_video_path: str  = "",
 ) -> None:
     """
     Pipeline completo con Character Consistency Engine + Motor de Animación (MAI).
@@ -460,9 +476,134 @@ def _process_job(
 
     try:
         _check_cancelled(job_id)
-        scenes, visual_anchor, generated_title = _generate_script(topic, n_scenes, style, narration_lang, use_lore)
-        if not scenes:
-            raise RuntimeError("El LLM no devolvió escenas válidas.")
+        
+        # === INTERCEPTOR V13 BIOMECÁNICO ===
+        if job_type == "music" and style == "biomechanic_v13":
+            log.info(f"[VideoStudio] Interceptando Pipeline: Redirigiendo a Motor GLSL V13 Biomecánico...")
+            if not audio_track_path or not os.path.isfile(audio_track_path):
+                raise RuntimeError("El Motor V13 requiere un archivo de audio (.mp3/.wav) válido en audio_track_path.")
+            
+            _update_job(job_id, progress=10, current_step="Analizando frecuencias de audio (Multiband)...")
+            multiband = extract_multiband_energy(audio_track_path, fps)
+            total_frames = len(multiband.get('bass', []))
+            
+            if total_frames == 0:
+                raise RuntimeError("Fallo al extraer energía del audio para V13.")
+                
+            _update_job(job_id, progress=30, current_step="Generando línea de tiempo y paletas fractales...")
+            timeline = generate_timeline(multiband, fps)
+            colorsA, colorsB = generate_color_sequence(total_frames, multiband, fps)
+            
+            # === AI DIRECTOR INJECTION (Per-Section Dynamic) ===
+            speed_mult_arr = None   # None = escalar 1.0 (fallback)
+            turb_mult_arr = None
+            speed_mult = 1.0
+            turb_mult = 1.0
+            if lyrics_text and len(lyrics_text.strip()) > 10:
+                _update_job(job_id, progress=40, current_step="AI Director: Analizando secciones de la letra...")
+                try:
+                    from core.video.v13_ai_director import analyze_lyrics_sections
+                    ai_result = analyze_lyrics_sections(lyrics_text, total_frames, fps)
+                    if ai_result and "colorsA" in ai_result:
+                        log.info(f"[VideoStudio] AI Director: Paletas y Timeline Narrativo dinámico aplicado ({len(ai_result['colorsA'])} frames)")
+                        colorsA = ai_result["colorsA"]
+                        colorsB = ai_result["colorsB"]
+                        speed_mult_arr = ai_result["speed"]
+                        turb_mult_arr = ai_result["turbulence"]
+                        if "timeline" in ai_result and len(ai_result["timeline"]) > 0:
+                            timeline = ai_result["timeline"]
+                            log.info(f"[VideoStudio] AI Director: {len(timeline)} escenas narrativas mapeadas con éxito.")
+                    else:
+                        log.warning("[VideoStudio] AI Director no devolvió secciones válidas, usando análisis acústico global de fallback.")
+                except Exception as e_ai:
+                    log.warning(f"[VideoStudio] AI Director (secciones) falló: {e_ai}")
+            
+            ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            safe_topic = "".join(c for c in topic[:30] if c.isalnum() or c in " _-").strip().replace(" ", "_")
+            final_path = os.path.join(OUTPUT_DIR, f"video_{job_id}_{safe_topic}_V13_{ts}.mp4")
+            
+            # Derivar resolución si está presente
+            _res_parts = resolution.split("x") if "x" in resolution else []
+            _tgt_w = int(_res_parts[0]) if len(_res_parts) == 2 and _res_parts[0].isdigit() else DEFAULT_IMG_W
+            _tgt_h = int(_res_parts[1]) if len(_res_parts) == 2 and _res_parts[1].isdigit() else DEFAULT_IMG_H
+            
+            # === AI-FIRST: Generar imágenes de fondo cinematográficas ===
+            _update_job(job_id, progress=45, current_step="Generando fondos cinematográficos AI-First...")
+            background_images = None
+            try:
+                from core.video.ai_scene_generator import generate_scene_images
+                background_images = generate_scene_images(timeline, w=_tgt_w, h=_tgt_h, colorsA=colorsA)
+                if not background_images:
+                    background_images = [None] * len(timeline)
+            except Exception as e_bg:
+                log.warning(f"[VideoStudio] Fallo al generar imágenes AI-First: {e_bg}")
+                background_images = [None] * len(timeline)
+
+            _update_job(job_id, progress=50, current_step="Renderizando inercia biomecánica V13 (GPU)...")
+            render_v13_video(
+                timeline=timeline,
+                multiband=multiband,
+                colorsA=colorsA,
+                colorsB=colorsB,
+                w=_tgt_w,
+                h=_tgt_h,
+                fps=fps,
+                out_mp4=final_path,
+                audio_path=audio_track_path,
+                speed_multiplier=speed_mult_arr if speed_mult_arr is not None else speed_mult,
+                turbulence=turb_mult_arr if turb_mult_arr is not None else turb_mult,
+                background_images=background_images
+            )
+            
+            if not os.path.isfile(final_path):
+                raise RuntimeError("El renderizador V13 falló y no devolvió ningún MP4.")
+                
+            # Saltar el resto del código y saltar directo a "render_ok"
+            render_ok = True
+            
+            # Limpiamos el salto para que el resto de variables que usa el final no colapsen
+            scenes = [{"title": "V13 Music Video", "image_prompt": "Audio Reactive V13", "narration": ""}]
+            thumb_path = ""
+            generated_title = title or topic or "Music Video"
+            visual_anchor = "esthetic cinematic lighting, visually stunning"
+            v13_bypass = True
+            
+        elif job_type == "music":
+            visual_anchor = "esthetic cinematic lighting, visually stunning"
+            generated_title = title or topic or "Music Video"
+            scenes = []
+            import subprocess
+            _track_duration = 0
+            if audio_track_path and os.path.isfile(audio_track_path):
+                try:
+                    probe = subprocess.run([FFMPEG_EXE, '-i', audio_track_path], capture_output=True, text=True, errors='replace')
+                    for l in probe.stderr.splitlines():
+                        if 'Duration:' in l:
+                            t = l.split('Duration:')[1].split(',')[0].strip()
+                            h, m, s = t.split(':')
+                            _track_duration = int(h) * 3600 + int(m) * 60 + float(s)
+                            break
+                except: pass
+                if _track_duration > 0:
+                    scene_duration = _track_duration / max(1, n_scenes)
+            
+            lines = [l.strip() for l in lyrics_text.split('\n') if l.strip()]
+            chunk_size = max(1, len(lines) // max(1, n_scenes)) if lines else 1
+            for i in range(n_scenes):
+                start_idx = i * chunk_size
+                end_idx = len(lines) if i == n_scenes - 1 else (i + 1) * chunk_size
+                lyric_chunk = " ".join(lines[start_idx:end_idx])
+                prompt = f"{topic}. {lyric_chunk}" if lyric_chunk else topic
+                scenes.append({
+                    "title": f"Escena {i+1}",
+                    "image_prompt": prompt[:300],
+                    "narration": ""
+                })
+        else:
+            scenes, visual_anchor, generated_title = _generate_script(topic, n_scenes, style, narration_lang, use_lore)
+            if not scenes:
+                raise RuntimeError("El LLM no devolvió escenas válidas.")
+            v13_bypass = False
 
         if not title and generated_title:
             title = generated_title
@@ -471,22 +612,26 @@ def _process_job(
                 if _current_job:
                     _current_job["title"] = title
 
-        style_info   = CINEMA_STYLES.get(style, CINEMA_STYLES[DEFAULT_STYLE])
-        log.info(f"[VideoStudio] Visual Anchor del job #{job_id}: '{visual_anchor[:80]}'")
-
-        effective_animation = animation_effect
-        try:
-            from core.animation_engine import resolve_effect as _resolve_effect
-            effective_animation = _resolve_effect(style, animation_effect)
-        except Exception:
+        if v13_bypass:
+            # V13 Bypass salta directamente al final
             pass
-
-        total_steps = n_scenes * 3 + 1
-        step        = 0
+        else:
+            style_info   = CINEMA_STYLES.get(style, CINEMA_STYLES[DEFAULT_STYLE])
+            log.info(f"[VideoStudio] Visual Anchor del job #{job_id}: '{visual_anchor[:80]}'")
+    
+            effective_animation = animation_effect
+            try:
+                from core.animation_engine import resolve_effect as _resolve_effect
+                effective_animation = _resolve_effect(style, animation_effect)
+            except Exception:
+                pass
+    
+            total_steps = n_scenes * 3 + 1
+            step        = 0
         clip_paths: list[str] = []
         scenes_payload = []
 
-        if intro_card:
+        if intro_card and not v13_bypass:
             intro_path = os.path.join(job_dir, 'intro_card.mp4')
             w_ic, h_ic = DEFAULT_IMG_W, DEFAULT_IMG_H
             if 'x' in resolution:
@@ -497,8 +642,27 @@ def _process_job(
                 clip_paths.insert(0, intro_path)
 
         previous_scene_image = None
+        user_video_clips = []
+        if input_video_path and os.path.isfile(input_video_path) and not v13_bypass:
+            from core.video.video_slicer import extract_clips_from_video
+            w_res, h_res = 1216, 832
+            if 'x' in resolution:
+                _p = resolution.split('x')
+                if len(_p) == 2 and _p[0].isdigit() and _p[1].isdigit():
+                    w_res, h_res = int(_p[0]), int(_p[1])
+            user_video_clips = extract_clips_from_video(
+                input_video_path,
+                os.path.join(job_dir, 'user_clips'),
+                n_scenes,
+                float(scene_duration),
+                w_res,
+                h_res,
+                fps
+            )
 
         for i, scene in enumerate(scenes):
+            if v13_bypass:
+                break
             scene_num   = i + 1
             scene_title = scene.get("title", f"Escena {scene_num}")
             narration   = scene.get("narration", "")
@@ -516,7 +680,7 @@ def _process_job(
                 if visual_anchor.lower() not in raw_prompt.lower()
                 else f"{raw_prompt}, {style_info['prefix']}"
             )
-            anchored_prompt = anchored_prompt[:450]
+            anchored_prompt = anchored_prompt[:150]
 
             # ── PASO 2: Imagen ──
             _check_cancelled(job_id)
@@ -534,7 +698,13 @@ def _process_job(
 
             if not img_path:
                 placeholder = os.path.join(job_dir, f"scene_{scene_num:02d}_placeholder.png")
-                _create_placeholder_image(scene_title, placeholder)
+                w_ph, h_ph = 1216, 832
+                if "x" in resolution:
+                    try:
+                        w_ph, h_ph = map(int, resolution.split("x"))
+                    except:
+                        pass
+                _create_placeholder_image(scene_title, placeholder, w_ph, h_ph)
                 img_path = placeholder
 
             previous_scene_image = img_path
@@ -552,7 +722,10 @@ def _process_job(
                     _current_job["current_scene"] = scene_num
 
             audio_path = os.path.join(job_dir, f"scene_{scene_num:02d}_audio.wav")
-            audio_ok   = _generate_audio(narration, audio_path, voice_speed, voice_id) if narration else False
+            if job_type == "music":
+                audio_ok = False
+            else:
+                audio_ok   = _generate_audio(narration, audio_path, voice_speed, voice_id) if narration else False
 
             # ── PASO 4: Clip ──
             _check_cancelled(job_id)
@@ -567,7 +740,39 @@ def _process_job(
                     _current_job["current_scene"] = scene_num
 
             _animated_src = img_path
-            if animation_level >= 2:
+            if animation_level >= 1:
+                # ── L1.5: Multi-variación Pollinations + FFmpeg xfade ──────────────
+                try:
+                    from core.animation_engine import animate_with_variations
+                    _res_parts = resolution.split("x") if "x" in resolution else []
+                    _tgt_w = int(_res_parts[0]) if len(_res_parts) == 2 and _res_parts[0].isdigit() else 0
+                    _tgt_h = int(_res_parts[1]) if len(_res_parts) == 2 and _res_parts[1].isdigit() else 0
+                    
+                    _ai_dur = float(scene_duration)
+                    if len(user_video_clips) >= scene_num and user_video_clips[scene_num - 1]:
+                        _ai_dur = _ai_dur / 2.0
+
+                    _anim_l15 = animate_with_variations(
+                        image_path=img_path,
+                        prompt=anchored_prompt,
+                        job_id=job_id,
+                        scene_idx=scene_num,
+                        fps=min(fps, 8),
+                        duration=_ai_dur,
+                        n_variations=4,
+                        output_dir=job_dir,
+                        ffmpeg_exe=FFMPEG_EXE,
+                        target_w=_tgt_w,
+                        target_h=_tgt_h,
+                    )
+                    if _anim_l15:
+                        _animated_src = _anim_l15
+                        log.info(f"[VideoStudio] [MAI-L1.5] Escena {scene_num}: variaciones Pollinations → {os.path.basename(_anim_l15)}")
+                except Exception as _l15_err:
+                    log.warning(f"[VideoStudio] Animation Engine L1.5 fail: {_l15_err}")
+
+            if animation_level >= 2 and _animated_src == img_path:
+                # ── L2: ComfyUI (fallback si L1.5 falló) ─────────────────────────
                 try:
                     from core.animation_engine import animate_with_comfyui
                     _anim_mp4 = animate_with_comfyui(
@@ -575,7 +780,7 @@ def _process_job(
                         job_id=job_id,
                         scene_idx=scene_num,
                         fps=min(fps, 8),
-                        frames=16,
+                        frames=int(_ai_dur * min(fps, 8)),
                         output_dir=job_dir,
                     )
                     if _anim_mp4:
@@ -585,6 +790,44 @@ def _process_job(
                         log.info(f"[VideoStudio] [MAI-L2] ComfyUI no disponible. Fallback a L1 ({effective_animation}).")
                 except Exception as _ae_err:
                     log.warning(f"[VideoStudio] Animation Engine L2 fail: {_ae_err}")
+
+            # ── Híbrido: Concatenar User Clip y AI Clip ──
+            if len(user_video_clips) >= scene_num and user_video_clips[scene_num - 1]:
+                user_clip = user_video_clips[scene_num - 1]
+                hybrid_out = os.path.join(job_dir, f"scene_{scene_num:02d}_hybrid.mp4")
+                # Derivar dimensiones del parámetro resolution (e.g. "720x1280")
+                _res_wh = resolution.split("x") if "x" in resolution else []
+                w = int(_res_wh[0]) if len(_res_wh) == 2 and _res_wh[0].isdigit() else DEFAULT_IMG_W
+                h = int(_res_wh[1]) if len(_res_wh) == 2 and _res_wh[1].isdigit() else DEFAULT_IMG_H
+                try:
+                    if not _animated_src.endswith(".mp4"):
+                        # Si la animación falló, convertimos la imagen estática a un clip MP4 del tiempo restante
+                        ai_dur = float(scene_duration) / 2.0
+                        img_vid = os.path.join(job_dir, f"scene_{scene_num:02d}_img.mp4")
+                        subprocess.run([
+                            FFMPEG_EXE, "-y",
+                            "-loop", "1", "-framerate", "24", "-t", str(ai_dur),
+                            "-i", _animated_src,
+                            "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+                            "-pix_fmt", "yuv420p", "-color_range", "tv", "-colorspace", "bt709",
+                            img_vid
+                        ], capture_output=True, check=True)
+                        _animated_src = img_vid
+
+                    subprocess.run([
+                        FFMPEG_EXE, "-y",
+                        "-i", user_clip,
+                        "-i", _animated_src,
+                        "-filter_complex", f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},setsar=1/1,fps=24[v0];[1:v]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},setsar=1/1,fps=24[v1];[v0][v1]concat=n=2:v=1:a=0[v]",
+                        "-map", "[v]",
+                        "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+                        "-pix_fmt", "yuv420p", "-color_range", "tv", "-colorspace", "bt709",
+                        hybrid_out
+                    ], capture_output=True, check=True)
+                    _animated_src = hybrid_out
+                    log.info(f"[VideoStudio] Híbrido creado para escena {scene_num}.")
+                except Exception as e:
+                    log.warning(f"[VideoStudio] Fallo al crear híbrido para escena {scene_num}: {e}")
 
             # Remotion Scene Gathering
             _dur_frames = int(scene_duration * REMOTION_FPS)
@@ -597,8 +840,8 @@ def _process_job(
                     for l in probe.stderr.splitlines():
                         if 'Duration:' in l:
                             t = l.split('Duration:')[1].split(',')[0].strip()
-                            h, m, s = t.split(':')
-                            _dur = int(h) * 3600 + int(m) * 60 + float(s)
+                            hh, mm, ss = t.split(':')
+                            _dur = int(hh) * 3600 + int(mm) * 60 + float(ss)
                             break
                     _dur_frames = int(_dur * REMOTION_FPS)
 
@@ -629,42 +872,68 @@ def _process_job(
                 _current_job["progress"] = 95
                 _current_job["current_step"] = "Renderizando video principal..."
 
-        ts         = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        safe_topic = "".join(c for c in topic[:30] if c.isalnum() or c in " _-").strip().replace(" ", "_")
-        final_path = os.path.join(OUTPUT_DIR, f"video_{job_id}_{safe_topic}_{ts}.mp4")
+        if not v13_bypass:
+            ts         = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            safe_topic = "".join(c for c in topic[:30] if c.isalnum() or c in " _-").strip().replace(" ", "_")
+            final_path = os.path.join(OUTPUT_DIR, f"video_{job_id}_{safe_topic}_{ts}.mp4")
 
-        total_duration_frames = sum(s.get("durationInFrames", 150) for s in scenes_payload)
-        main_video_rendered = False
-        try:
-            from core.remotion_engine import RemotionEngine
-            r_engine = RemotionEngine()
-            long_props = {
-                "scenes": scenes_payload,
-                "durationInFrames": total_duration_frames
-            }
-            output_name = f"main_long_{job_id}_{ts}"
-            main_rendered_path = r_engine.render_composition("LongTemplate", output_name, long_props)
-            if main_rendered_path and os.path.isfile(main_rendered_path):
-                clip_paths.append(main_rendered_path)
-                main_video_rendered = True
-        except Exception as rem_e:
-            _update_job(job_id, error=str(rem_e)[:1000])
-            log.error(f"[VideoStudio] Error en Remotion LongTemplate: {rem_e}")
+        if v13_bypass:
+            main_video_rendered = True
+            main_rendered_path = final_path
+        else:
+            total_duration_frames = sum(s.get("durationInFrames", 150) for s in scenes_payload)
+            main_video_rendered = False
+            try:
+                from core.remotion_engine import RemotionEngine
+                r_engine = RemotionEngine()
+                long_props = {
+                    "scenes": scenes_payload,
+                    "durationInFrames": total_duration_frames
+                }
+                output_name = f"main_long_{job_id}_{ts}"
+                main_rendered_path = r_engine.render_composition("LongTemplate", output_name, long_props)
+                if main_rendered_path and os.path.isfile(main_rendered_path):
+                    clip_paths.append(main_rendered_path)
+                    main_video_rendered = True
+            except Exception as rem_e:
+                _update_job(job_id, error=str(rem_e)[:1000])
+                log.error(f"[VideoStudio] Error en Remotion LongTemplate: {rem_e}")
 
         if main_video_rendered:
-            intro_clips = [p for p in clip_paths if p != main_rendered_path]
-            needs_concat = bool(intro_clips) or bgm_type != "ninguna"
-            if needs_concat:
-                if _concatenate_clips(clip_paths, final_path, bgm_type, bgm_volume, codec, resolution):
-                    pass
+            if v13_bypass:
+                pass # The V13 render is already at final_path, no concatenation or copying needed
+            else:
+                intro_clips = [p for p in clip_paths if p != main_rendered_path]
+                needs_concat = bool(intro_clips) or bgm_type != "ninguna"
+                if needs_concat:
+                    if _concatenate_clips(clip_paths, final_path, bgm_type, bgm_volume, codec, resolution):
+                        pass
+                    else:
+                        import shutil
+                        shutil.copy2(main_rendered_path, final_path)
+                        log.warning(f"[VideoStudio] Fallback: video sin BGM/intro (concat falló).")
                 else:
                     import shutil
                     shutil.copy2(main_rendered_path, final_path)
-                    log.warning(f"[VideoStudio] Fallback: video sin BGM/intro (concat falló).")
-            else:
-                import shutil
-                shutil.copy2(main_rendered_path, final_path)
+                
+            if v13_bypass:
+                pass # The audio is already inside the final_path
+            elif job_type == "music" and audio_track_path and os.path.isfile(audio_track_path):
+                import subprocess
+                final_music_path = final_path.replace(".mp4", "_music.mp4")
+                subprocess.run([
+                    FFMPEG_EXE, "-y", "-i", final_path, "-i", audio_track_path,
+                    "-c:v", "copy", "-c:a", "aac", "-map", "0:v:0", "-map", "1:a:0",
+                    "-shortest", final_music_path
+                ], capture_output=True, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+                if os.path.isfile(final_music_path):
+                    import shutil
+                    shutil.move(final_music_path, final_path)
+
             render_ok = os.path.isfile(final_path) and os.path.getsize(final_path) > 0
+        elif job_type == "music" and style == "biomechanic_v13":
+            # El renderizado ya se completó arriba, render_ok está seteado
+            pass
         else:
             render_ok = False
 
@@ -678,6 +947,15 @@ def _process_job(
                     _current_job["progress"] = 100
                     _current_job["current_step"] = "Completado"
             log.info(f"[VideoStudio] Job #{job_id} completado -> {final_path}")
+            
+            if job_type == "music":
+                import shutil
+                music_out_dir = r"F:\PROYECTO VIDEOCLIP MUSICAL\output"
+                os.makedirs(music_out_dir, exist_ok=True)
+                try:
+                    shutil.copy2(final_path, os.path.join(music_out_dir, os.path.basename(final_path)))
+                except Exception as c_e:
+                    log.warning(f"[VideoStudio] No se pudo copiar a carpeta musical: {c_e}")
             
             thumb_path = os.path.join(OUTPUT_DIR, f'thumb_{job_id}.jpg')
             if _extract_thumbnail(final_path, thumb_path):
@@ -717,50 +995,85 @@ def _process_job(
                 log.warning(f"[VideoStudio] Error generando activos sociales: {_sa_e}")
 
             try:
-                _shorts_path = final_path.replace('.mp4', '_short.mp4')
-                
                 try:
-                    log.info("[VideoStudio] Iniciando generación de Short interactivo con Remotion y Whisper...")
+                    log.info("[VideoStudio] Iniciando generación de Shorts interactivos Multi-Parte con Remotion y Whisper...")
                     from core.whisper_engine import WhisperEngine
                     from core.remotion_engine import RemotionEngine
                     import subprocess
                     
-                    temp_short_src = final_path.replace('.mp4', '_temp_short.mp4')
-                    subprocess.run([
-                        FFMPEG_EXE, '-y', '-i', final_path, 
-                        '-t', '59', '-c:v', 'copy', '-c:a', 'copy', temp_short_src
-                    ], capture_output=True, creationflags=subprocess.CREATE_NO_WINDOW)
-                    
-                    probe = subprocess.run([FFMPEG_EXE, '-i', temp_short_src], capture_output=True, text=True, errors='replace')
-                    dur = 59
-                    for l in probe.stderr.splitlines():
+                    # 1. Obtener duración total del video maestro
+                    probe_master = subprocess.run([FFMPEG_EXE, '-i', final_path], capture_output=True, text=True, errors='replace')
+                    total_dur = 59.0
+                    for l in probe_master.stderr.splitlines():
                         if 'Duration:' in l:
                             t = l.split('Duration:')[1].split(',')[0].strip()
                             h, m, s = t.split(':')
-                            dur = int(h) * 3600 + int(m) * 60 + float(s)
+                            total_dur = int(h) * 3600 + int(m) * 60 + float(s)
                             break
-                    duration_frames = int(dur * REMOTION_FPS)
+                    
+                    chunk_length = 59.0
+                    num_parts = max(1, int(total_dur // chunk_length) + (1 if total_dur % chunk_length > 5 else 0))
                     
                     w_engine = WhisperEngine(model_size="base")
-                    words_data = w_engine.extract_words(temp_short_src, language=narration_lang[:2])
-                    
                     r_engine = RemotionEngine()
-                    props = {"videoPath": temp_short_src, "words": words_data, "durationInFrames": duration_frames}
                     
-                    output_name = os.path.basename(_shorts_path).replace('.mp4', '')
-                    rendered_mp4 = r_engine.render_composition("ShortTemplate", output_name, props)
-                    
-                    if os.path.isfile(rendered_mp4):
-                        import shutil
-                        shutil.move(rendered_mp4, _shorts_path)
-                        log.info(f"[VideoStudio] Short generado exitosamente: {_shorts_path}")
+                    for part_idx in range(num_parts):
+                        start_time = part_idx * chunk_length
+                        actual_length = min(chunk_length, total_dur - start_time)
                         
-                    try:
-                        os.remove(temp_short_src)
-                    except:
-                        pass
-                except Exception as rem_e:
-                    log.error(f"[VideoStudio] Error generando Short con Remotion: {rem_e}")
+                        if actual_length < 5.0: # Ignorar fragmentos finales muy cortos
+                            continue
+                            
+                        part_suffix = f"_short_part{part_idx + 1}.mp4" if num_parts > 1 else "_short.mp4"
+                        _shorts_path = final_path.replace('.mp4', part_suffix)
+                        temp_short_src = final_path.replace('.mp4', f'_temp_short_{part_idx}.mp4')
+                        
+                        # 2. Cortar el fragmento
+                        cut_result = subprocess.run([
+                            FFMPEG_EXE, '-y', '-ss', str(start_time), '-i', final_path, 
+                            '-t', str(actual_length), '-c:v', 'copy', '-c:a', 'copy', temp_short_src
+                        ], capture_output=True, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+                        
+                        # Verificar que el corte fue exitoso
+                        if not os.path.isfile(temp_short_src):
+                            log.warning(f"[VideoStudio] No se pudo cortar fragmento {part_idx+1}: {temp_short_src}")
+                            continue
+                        
+                        duration_frames = int(actual_length * REMOTION_FPS)
+                        
+                        # 3. Extraer palabras del fragmento
+                        try:
+                            words_data = w_engine.extract_words(temp_short_src, language=narration_lang[:2])
+                        except Exception as w_e:
+                            log.warning(f"[VideoStudio] Whisper falló en parte {part_idx+1}: {w_e}. Usando palabras vacías.")
+                            words_data = []
+                        
+                        # 4. Renderizar Remotion
+                        try:
+                            props = {"videoPath": temp_short_src, "words": words_data, "durationInFrames": duration_frames}
+                            output_name = os.path.basename(_shorts_path).replace('.mp4', '')
+                            rendered_mp4 = r_engine.render_composition("ShortTemplate", output_name, props)
+                            
+                            if os.path.isfile(rendered_mp4):
+                                import shutil
+                                shutil.move(rendered_mp4, _shorts_path)
+                                log.info(f"[VideoStudio] Short (Parte {part_idx + 1}/{num_parts}) generado: {_shorts_path}")
+                                if job_type == "music":
+                                    try:
+                                        shutil.copy2(_shorts_path, os.path.join(r"F:\PROYECTO VIDEOCLIP MUSICAL\output", os.path.basename(_shorts_path)))
+                                    except Exception as c_e:
+                                        log.warning(f"[VideoStudio] No se pudo copiar short a carpeta musical: {c_e}")
+                        except Exception as rem_e:
+                            log.error(f"[VideoStudio] Error Remotion en parte {part_idx+1}: {rem_e}")
+                        finally:
+                            try:
+                                os.remove(temp_short_src)
+                            except:
+                                pass
+                            
+                except Exception as _r_e:
+                    log.warning(f"[VideoStudio] Error en la generación de shorts multi-parte: {_r_e}")
+
 
                 try:
                     from core.youtube_uploader import upload_job_async
@@ -791,7 +1104,7 @@ def _process_job(
 
             try:
                 from core.language_cloner import clone_job_async, get_enabled_languages
-                if get_enabled_languages():
+                if get_enabled_languages() and job_type != "music":
                     clone_job_async(source_job_id=job_id)
             except Exception as _lc_e:
                 log.warning(f"[VideoStudio] Language cloner dispatch error: {_lc_e}")
@@ -868,6 +1181,10 @@ def _worker_loop() -> None:
                     color_grade      = row["color_grade"]            if "color_grade"       in keys else "auto",
                     animation_effect = row["animation_effect"]       if "animation_effect"  in keys else "auto",
                     animation_level  = int(row["animation_level"])   if "animation_level"   in keys else 1,
+                    job_type         = row["job_type"]               if "job_type"          in keys else "tts",
+                    audio_track_path = row["audio_track_path"]       if "audio_track_path"  in keys else "",
+                    lyrics_text      = row["lyrics_text"]            if "lyrics_text"       in keys else "",
+                    input_video_path = row["input_video_path"]       if "input_video_path"  in keys else "",
                 )
             else:
                 time.sleep(5)

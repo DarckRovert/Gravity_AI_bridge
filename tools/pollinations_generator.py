@@ -8,6 +8,7 @@ import urllib.error
 import os
 import sys
 import time
+import socket
 import hashlib
 import io
 from typing import Dict, Any, Optional, List
@@ -23,9 +24,36 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 # ─── Constantes del Módulo ───────────────────────────────────────────────────
 POLLINATIONS_BASE: str = "https://image.pollinations.ai/prompt/{prompt}"
 DEFAULT_MODEL: str = "flux"        # Motores válidos: flux | turbo | dreamshaper
-DEFAULT_TIMEOUT: int = 120         # Segundos máximos de tolerancia por imagen
-MAX_RETRIES: int = 3
-RETRY_DELAY: float = 5.0          # Segundos entre reintentos
+DEFAULT_TIMEOUT: int = 15         # Segundos máximos de tolerancia por imagen
+MAX_RETRIES: int = 2
+RETRY_DELAY: float = 2.0          # Segundos entre reintentos
+RATE_LIMIT_COOLDOWN: float = 300.0 # Segundos de cooldown tras recibir un 402 (5 minutos)
+
+# ─── Estado global de bloqueo por rate-limit ─────────────────────────────────
+# Compartido entre renderer.py, animation_engine.py y cualquier otro importador
+_blocked_until: float = 0.0  # timestamp epoch hasta el que NO se hacen peticiones
+
+
+def is_blocked() -> bool:
+    """Retorna True si la API está en cooldown por rate-limit."""
+    return time.time() < _blocked_until
+
+
+def set_blocked() -> None:
+    """Activa el cooldown global de 5 minutos al recibir un 402."""
+    global _blocked_until
+    _blocked_until = time.time() + RATE_LIMIT_COOLDOWN
+    print(
+        f"[Pollinations] ⛔ Rate-limit 402 detectado. Bloqueando peticiones por {int(RATE_LIMIT_COOLDOWN)}s "
+        f"(hasta {time.strftime('%H:%M:%S', time.localtime(_blocked_until))}).",
+        file=sys.stderr
+    )
+
+
+def reset_block() -> None:
+    """Resetea el cooldown manualmente (útil para tests o re-autenticación)."""
+    global _blocked_until
+    _blocked_until = 0.0
 
 
 def generate(
@@ -56,6 +84,16 @@ def generate(
     Retorna:
         Dict[str, Any]: Diccionario con los campos 'success' (bool), 'path' (Optional[str]) y 'error' (Optional[str]).
     """
+    # Verificar bloqueo global antes de hacer cualquier petición de red
+    if is_blocked():
+        remaining = int(_blocked_until - time.time())
+        if remaining > 0:
+            print(f"[Pollinations] ⏳ API en cooldown. Esperando {remaining}s para evitar ban de IP y asegurar la imagen...", file=sys.stderr)
+            time.sleep(remaining)
+        reset_block()
+
+    time.sleep(3.0)  # Rate limiting mínimo entre peticiones
+
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
 
     # Determinar semilla numérica determinista basada en el contenido si es aleatorio
@@ -80,7 +118,10 @@ def generate(
     url: str = f"https://image.pollinations.ai/prompt/{encoded_prompt}?{query}"
     err: str = "Desconocido"
 
-    for attempt in range(1, MAX_RETRIES + 1):
+    socket.setdefaulttimeout(DEFAULT_TIMEOUT)
+
+    attempt = 1
+    while attempt <= MAX_RETRIES:
         try:
             print(
                 f"[Pollinations] Intento {attempt}/{MAX_RETRIES} — {prompt[:60]}...",
@@ -115,6 +156,25 @@ def generate(
 
         except urllib.error.HTTPError as e:
             err = f"HTTP {e.code}: {e.reason}"
+            if e.code == 402:
+                if model != "" or params.get("enhance") == "true":
+                    # Primer 402: quitar parámetros de pago y reintentar inmediatamente sin gastar intento
+                    print("[Pollinations] Error 402: eliminando 'model' y 'enhance' para siguiente intento.", file=sys.stderr)
+                    model = ""
+                    params.pop("model", None)
+                    params["enhance"] = "false"
+                    query = "&".join(f"{k}={urllib.parse.quote(v)}" for k, v in params.items())
+                    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?{query}"
+                    continue 
+                else:
+                    # Bloqueo real de IP
+                    set_blocked()
+                    remaining = int(_blocked_until - time.time())
+                    print(f"[Pollinations] ⏳ Ban detectado en pleno vuelo. Esperando {remaining}s...", file=sys.stderr)
+                    time.sleep(remaining + 2)
+                    reset_block()
+                    continue # Reintentar sin gastar intento
+
         except urllib.error.URLError as e:
             err = f"URLError: {e.reason}"
         except TimeoutError:
@@ -125,6 +185,8 @@ def generate(
         print(f"[Pollinations] Error en intento {attempt}: {err}", file=sys.stderr)
         if attempt < MAX_RETRIES:
             time.sleep(RETRY_DELAY)
+        
+        attempt += 1
 
     return {"success": False, "path": None, "error": err}
 

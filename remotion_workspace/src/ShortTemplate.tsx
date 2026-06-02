@@ -57,6 +57,16 @@ export const ShortTemplate: React.FC<{
         />
       </AbsoluteFill>
 
+      {/* VHS Scanlines Overlay (Digital Cyberpunk Look) */}
+      <AbsoluteFill style={{
+        background: "repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 4px)",
+        pointerEvents: "none",
+        opacity: 0.6,
+        zIndex: 2, // Por encima del fondo desenfocado pero por debajo del video central
+        transform: `translateY(${(currentTime * 50) % 4}px)`, // Ligero movimiento hacia abajo
+      }} />
+
+
       {/* Video Original (Horizontal) centrado */}
       <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
         <Video 
@@ -69,22 +79,27 @@ export const ShortTemplate: React.FC<{
         />
       </AbsoluteFill>
 
-      {/* Subtítulos Dinámicos (Overlay) */}
+      {/* Efecto de viñeta superior/inferior para dar look de cine */}
+      <AbsoluteFill style={{ 
+        boxShadow: "inset 0 150px 150px -50px rgba(0,0,0,0.8), inset 0 -300px 200px -50px rgba(0,0,0,0.9)",
+        pointerEvents: "none"
+      }} />
+
+      {/* Subtítulos Dinámicos (Overlay Cinematográfico) */}
       <AbsoluteFill style={{ pointerEvents: "none" }}>
         <div
           style={{
             position: "absolute",
-            bottom: "15%",
+            bottom: "12%",
             left: 0,
             right: 0,
-            height: "300px",
             display: "flex",
             flexDirection: "row",
             justifyContent: "center",
             alignItems: "center",
             flexWrap: "wrap",
-            padding: "0 40px",
-            gap: "15px",
+            padding: "0 60px",
+            gap: "18px",
           }}
         >
           {visibleWords.map((w, i) => {
@@ -93,16 +108,20 @@ export const ShortTemplate: React.FC<{
               <span
                 key={i}
                 style={{
-                  fontSize: isActive ? "65px" : "45px",
+                  fontSize: isActive ? "85px" : "60px",
                   fontWeight: "900",
-                  fontFamily: "sans-serif",
+                  fontFamily: "'Montserrat', 'Inter', sans-serif",
                   textTransform: "uppercase",
-                  color: isActive ? "#fbbf24" : "white",
-                  textShadow: "3px 3px 0px #000, -2px -2px 0px #000, 2px -2px 0px #000, -2px 2px 0px #000, 0px 6px 12px rgba(0,0,0,0.6)",
-                  transform: isActive ? "scale(1.05) translateY(-5px)" : "scale(1)",
-                  transition: "all 0.1s ease-out",
-                  WebkitTextStroke: "1.5px black",
+                  color: isActive ? "#00f0ff" : "rgba(255, 255, 255, 0.7)", // Cyberpunk Blue / Sci-Fi White
+                  textShadow: isActive 
+                    ? "0px 0px 20px rgba(0, 240, 255, 0.8), 0px 10px 15px rgba(0,0,0,0.9), 4px 4px 0px #000" 
+                    : "3px 3px 10px rgba(0,0,0,0.8)",
+                  transform: isActive ? "scale(1.1) translateY(-10px) rotate(-2deg)" : "scale(1) translateY(0px) rotate(0deg)",
+                  transition: "all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                  WebkitTextStroke: isActive ? "2px rgba(255,255,255,0.2)" : "2px black",
                   margin: "0 5px",
+                  letterSpacing: isActive ? "2px" : "0px",
+                  zIndex: isActive ? 10 : 1,
                 }}
               >
                 {w.word}

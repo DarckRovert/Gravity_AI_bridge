@@ -21,18 +21,18 @@
     },
     {
       "id": "V13.0 PRO-CLAW",
-      "description": "Sincronización con patrones de Claude Code (Claw)",
-      "resolution": "Implementación de VerificationAgent y edición quirúrgica de bloques en file_edit_v2.py"
+      "description": "Sincronizaci\u00f3n con patrones de Claude Code (Claw)",
+      "resolution": "Implementaci\u00f3n de VerificationAgent y edici\u00f3n quir\u00fargica de bloques en file_edit_v2.py"
     },
     {
       "id": "PATCH-9.3.1",
-      "description": "Reestructuración Arquitectural Omniscient-Tier V13.0 PRO: API Unificada y Motor Monitorizado",
-      "resolution": "Se reemplazó la API REST inexistente de Fooocus 2.5.5 por monitoreo local del directorio OUTPUT_DIR. Se desplegó dashboard unificado con salud real de motor y endpoint centralizado de imágenes."
+      "description": "Reestructuraci\u00f3n Arquitectural Omniscient-Tier V13.0 PRO: API Unificada y Motor Monitorizado",
+      "resolution": "Se reemplaz\u00f3 la API REST inexistente de Fooocus 2.5.5 por monitoreo local del directorio OUTPUT_DIR. Se despleg\u00f3 dashboard unificado con salud real de motor y endpoint centralizado de im\u00e1genes."
     },
     {
       "id": "V15.1 PRO-VTUBER",
-      "description": "Bypass de compilación de LivePortrait en Windows Server sin dependencias de MSVC Build Tools",
-      "resolution": "Se portó el modelo FasterLivePortrait de PyTorch a puros pesos ONNX aislados con DirectML acelerado por hardware, eliminando dependencias locales de MSVC."
+      "description": "Bypass de compilaci\u00f3n de LivePortrait en Windows Server sin dependencias de MSVC Build Tools",
+      "resolution": "Se port\u00f3 el modelo FasterLivePortrait de PyTorch a puros pesos ONNX aislados con DirectML acelerado por hardware, eliminando dependencias locales de MSVC."
     }
   ],
   "hardware_logic": {
@@ -40,7 +40,7 @@
     "npu_target": "AMD Ryzen AI (XDNA Architecture)",
     "rag_embedder": "ONNX Runtime (onnx_cpu / onnx_directml)",
     "optimal_ctx_calc": "45% of total VRAM allocated to KV-cache",
-    "mcp_support": "Habilitado de forma nativa vía core/mcp_adapter.py y expuesto en /v1/mcp"
+    "mcp_support": "Habilitado de forma nativa v\u00eda core/mcp_adapter.py y expuesto en /v1/mcp"
   },
   "core_protection": {
     "active": true,
@@ -73,16 +73,17 @@
     "api_url": "http://127.0.0.1:7861",
     "backend": "CPU-Safe Computation (fp32 euler)",
     "launch_script": "F:\\Gravity_AI_bridge\\_integrations\\Fooocus\\run_amd.bat",
-    "gravity_tool": "tools/fooocus_client.py (Monitorea el status vía health check)",
+    "gravity_tool": "tools/fooocus_client.py (Monitorea el status v\u00eda health check)",
     "dashboard_ui": "tools/fooocus_studio_ui.py (Arquitectura de polling de disco local)",
     "output_dir": "_integrations/Fooocus/Fooocus/outputs",
-    "notes": "Fooocus se corre estrictamente bajo flags --always-cpu. El API HTTP Rest no está activo, la comunicación entre Bridge y Fooocus es a través del sistema de archivos local para imágenes generadas."
+    "notes": "Fooocus se corre estrictamente bajo flags --always-cpu. El API HTTP Rest no est\u00e1 activo, la comunicaci\u00f3n entre Bridge y Fooocus es a trav\u00e9s del sistema de archivos local para im\u00e1genes generadas."
   },
   "last_audit": "2026-05-21",
   "author": "DarckRovert",
   "persistent_rules": [
-    "[2026-04-24] Optimización de Dashboard V12: Implementado endpoint /v1/processes y gestión de procesos en HardwareMonitor/ToolsPro. Corregida navegación por eventos.",
-    "[2026-04-29] V13.0 PRO ARCHITECTURE UPDATE: Sincronización multi-agente, automatización del Scheduler y auditoría de retención de video.",
-    "[2026-05-21] V15.1 PRO ARCHITECTURE UPDATE: Refactorización y reescritura de la base de conocimiento de la wiki corporativa a la arquitectura real V15.1 PRO Omniscient-Tier (26 paneles, DirectML, Watchdog, SRP-6a y Monetización)."
+    "[2026-04-24] Optimizaci\u00f3n de Dashboard V12: Implementado endpoint /v1/processes y gesti\u00f3n de procesos en HardwareMonitor/ToolsPro. Corregida navegaci\u00f3n por eventos.",
+    "[2026-04-29] V13.0 PRO ARCHITECTURE UPDATE: Sincronizaci\u00f3n multi-agente, automatizaci\u00f3n del Scheduler y auditor\u00eda de retenci\u00f3n de video.",
+    "[2026-05-21] V15.1 PRO ARCHITECTURE UPDATE: Refactorizaci\u00f3n y reescritura de la base de conocimiento de la wiki corporativa a la arquitectura real V15.1 PRO Omniscient-Tier (26 paneles, DirectML, Watchdog, SRP-6a y Monetizaci\u00f3n).",
+    "[2026-05-30] PROTOCOL STRICT: Zero-trust analysis. Never make assumptions. Always verify existing code and architecture before proposing changes. If requirements are ambiguous, halt execution and request explicit user clarification. Prioritize precision over speed."
   ]
 }

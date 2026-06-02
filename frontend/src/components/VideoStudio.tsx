@@ -31,6 +31,9 @@ export const VideoStudio = () => {
   const [geminiVoices, setGeminiVoices] = useState<Record<string,string>>({});
   const [useGeminiTts, setUseGeminiTts] = useState(false);
   const [geminiVoiceId, setGeminiVoiceId] = useState('Aoede');
+  const [jobType, setJobType] = useState('tts');
+  const [audioTrackPath, setAudioTrackPath] = useState('');
+  const [lyricsText, setLyricsText] = useState('');
   
   const applyPreset = (preset: string) => {
     if (preset === 'documentary') {
@@ -94,6 +97,21 @@ export const VideoStudio = () => {
       setVoiceSpeed(180);
       setAnimationEffect('shake');
       setAnimationLevel(1);
+      setJobType('tts');
+    } else if (preset === 'music_video') {
+      setStyle('cinematic');
+      setScenes(12);
+      setFps(24);
+      setQuality('hd');
+      setResolution('1216x832');
+      setTransitions(true);
+      setKenBurns(true);
+      setIntroCard(false);
+      setColorGrade('auto');
+      setAnimationEffect('kenburns');
+      setAnimationLevel(1);
+      setJobType('music');
+      setDurationMode('auto');
     }
   };
   
@@ -185,6 +203,9 @@ export const VideoStudio = () => {
           color_grade: colorGrade,
           animation_effect: animationEffect,
           animation_level: animationLevel,
+          job_type: jobType,
+          audio_track_path: audioTrackPath,
+          lyrics_text: lyricsText,
         })
       });
       setTopic('');
@@ -306,6 +327,9 @@ export const VideoStudio = () => {
                         <button onClick={() => applyPreset('publicidad')} className="px-3 py-1.5 bg-background border border-border-subtle rounded-lg text-[10px] font-bold text-text-muted hover:text-white hover:border-emerald-500 hover:bg-emerald-500/10 transition-colors shadow-[0_0_10px_rgba(16,185,129,0.1)]">
                           PUBLICIDAD / AD
                         </button>
+                        <button onClick={() => applyPreset('music_video')} className="px-3 py-1.5 bg-background border border-border-subtle rounded-lg text-[10px] font-bold text-text-muted hover:text-white hover:border-purple-500 hover:bg-purple-500/10 transition-colors shadow-[0_0_10px_rgba(168,85,247,0.1)]">
+                          MUSIC VIDEO
+                        </button>
                       </div>
                     </div>
                   
@@ -320,14 +344,54 @@ export const VideoStudio = () => {
                           className="w-full bg-surface border border-border-subtle rounded-xl p-4 text-base font-medium text-text-primary outline-none focus:border-accent-primary transition-all shadow-inner"
                         />
                       </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2 flex items-center gap-2"><AudioLines size={12}/> Tratamiento de Guion (Topic)</label>
-                        <textarea 
-                          value={topic} onChange={(e) => setTopic(e.target.value)}
-                          placeholder="Escribe la premisa o el guion detallado. El LLM extraerá el Visual Anchor y expandirá las escenas automáticamente..."
-                          className="w-full bg-surface border border-border-subtle rounded-xl p-4 text-sm text-text-primary outline-none focus:border-accent-primary transition-all h-32 resize-none shadow-inner leading-relaxed"
-                        />
+
+                      {/* Selector de Tipo de Trabajo */}
+                      <div className="flex gap-4 p-1 bg-surface border border-border-subtle rounded-xl max-w-fit">
+                        <button onClick={() => setJobType('tts')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${jobType === 'tts' ? 'bg-accent-primary text-white shadow-md' : 'text-text-muted hover:text-text-primary hover:bg-surface-hover'}`}>
+                          🎙️ Narración (TTS)
+                        </button>
+                        <button onClick={() => setJobType('music')} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${jobType === 'music' ? 'bg-accent-primary text-white shadow-md' : 'text-text-muted hover:text-text-primary hover:bg-surface-hover'}`}>
+                          🎵 Video Musical
+                        </button>
                       </div>
+
+                      {jobType === 'tts' ? (
+                        <div>
+                          <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2 flex items-center gap-2"><AudioLines size={12}/> Tratamiento de Guion (Topic)</label>
+                          <textarea 
+                            value={topic} onChange={(e) => setTopic(e.target.value)}
+                            placeholder="Escribe la premisa o el guion detallado. El LLM extraerá el Visual Anchor y expandirá las escenas automáticamente..."
+                            className="w-full bg-surface border border-border-subtle rounded-xl p-4 text-sm text-text-primary outline-none focus:border-accent-primary transition-all h-32 resize-none shadow-inner leading-relaxed"
+                          />
+                        </div>
+                      ) : (
+                        <div className="space-y-4 animate-in fade-in zoom-in-95 duration-300">
+                          <div>
+                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2 flex items-center gap-2"><Sparkles size={12}/> Topic / Ambientación Visual</label>
+                            <input 
+                              type="text" value={topic} onChange={(e) => setTopic(e.target.value)}
+                              placeholder="Ej: Cyberpunk, Neón, Lluvia, Tristeza"
+                              className="w-full bg-surface border border-border-subtle rounded-xl p-4 text-sm text-text-primary outline-none focus:border-accent-primary transition-all shadow-inner"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2 flex items-center gap-2"><AudioLines size={12}/> Ruta del Audio (MP3/WAV)</label>
+                            <input 
+                              type="text" value={audioTrackPath} onChange={(e) => setAudioTrackPath(e.target.value)}
+                              placeholder="C:\Users\darck\Music\song.mp3"
+                              className="w-full bg-surface border border-border-subtle rounded-xl p-4 text-sm text-text-primary outline-none focus:border-accent-primary transition-all shadow-inner"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2 flex items-center gap-2"><Layers size={12}/> Letra (Lyrics)</label>
+                            <textarea 
+                              value={lyricsText} onChange={(e) => setLyricsText(e.target.value)}
+                              placeholder="Pega la letra de la canción aquí. Se dividirá automáticamente de manera uniforme según el número de escenas seleccionado."
+                              className="w-full bg-surface border border-border-subtle rounded-xl p-4 text-sm text-text-primary outline-none focus:border-accent-primary transition-all h-32 resize-none shadow-inner leading-relaxed"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="w-full h-px bg-gradient-to-r from-transparent via-border-subtle to-transparent"></div>

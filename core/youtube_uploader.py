@@ -230,8 +230,14 @@ def _refresh_access_token(oauth: Dict[str, Any]) -> Optional[str]:
             _save_oauth(oauth)
             log.info("[YouTube] Access token refrescado.")
             return access_token
+        except urllib.error.HTTPError as e:
+            err_body = e.read().decode(errors='replace')
+            log.error(f"[YouTube] Error refrescando token HTTP {e.code}: {err_body}")
+            if e.code == 400:
+                log.error("[YouTube] ⚠️ El refresh_token expiró o fue revocado. Debes re-autenticar YouTube desde el Dashboard.")
+            return None
         except Exception as e:
-            log.error(f"[YouTube] Error refrescando token: {e}")
+            log.error(f"[YouTube] Error inesperado refrescando token: {e}")
             return None
 
 

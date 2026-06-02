@@ -4,6 +4,35 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
+## [V15.2 PRO] Motor Cinematic V2.0 PBR — God-Tier Visual Engine · 02/06/2026
+
+**[EVOLUCIÓN A MOTOR GRÁFICO HÍBRIDO GLSL/REMOTION CON POST-PROCESADO HOLLYWOOD]**
+
+### Motor Gráfico GLSL PBR V13 (`core/video/glsl_renderer_v13.py`)
+- **Image-Based Lighting (IBL)**: Inyección universal de `uniform sampler2D iChannel0` en los 3 Fragment Shaders principales (`SPACE_ODYSSEY_FS`, `JULIA_FS`, `QUANTUM_TUNNEL_FS`). La imagen AI de Pollinations es mapeada como ecosfera luminosa, generando reflejos fisicamente correctos sobre toda la geometría SDF 3D.
+- **Textura Fallback 1×1**: Creada una textura negra de 1×1 pixel que se bindea incondicionalmente a `iChannel0` antes de cada frame para prevenir errores de sampler no-inicializado en GPUs integradas (Intel UHD, AMD Radeon Vega).
+- **Cyber Glitch Digital Reactivo** (`COMPOSITE_FS` + `POST_PROCESS_FS`): Efecto de desgarro digital de scanlines horizontales acoplado a la intensidad del bajo (`bass > 0.85`). Desplazamiento asimétrico de coordenadas UV con `glitchShift` + inversión subliminal de colores (`col.rgb = 1.0 - col.rgb`) en franjas aleatorias.
+- **Aberración Cromática Extrema**: Separación de canales RGB proporcional a `bass * 2.5 * shake`, simulando lentes anamórficos a máxima apertura en los momentos de mayor energía musical.
+- **Film Grain Orgánico Reactivo**: Ruido procedural calculado con `hash2()` cuya amplitud escala con las frecuencias altas (`high`), emulando la textura de película kodak 35mm.
+- **Vignette Cinematográfica Profunda**: Oscurecimiento perimetral acentuado (`smoothstep(0.95, 0.2, vdist)`) con vigencia mínima `0.2` en los bordes (vs. `0.35` anterior), encuadrando la atención hacia el centro compositivo.
+- **Sincronización `COMPOSITE_FS` ↔ `POST_PROCESS_FS`**: Ambos pipelines de post-procesado ahora comparten exactamente el mismo conjunto de efectos God-Tier, garantizando coherencia visual tanto en el flujo AI-First como en el flujo GLSL puro.
+
+### Generador AI Ultra-Resiliente (`core/video/ai_scene_generator.py`)
+- **Cascading de Modelos Pollinations**: Sistema de rotación progresiva de 3 modelos con timeouts expansivos: `flux-realism` (90s) → `flux` (150s) → `turbo` (210s). Mitiga completamente los errores de "respuesta pequeña" (placeholder) que ocurrían en sesiones largas.
+- **Fallback Procedural — Nebulosa Fractal (FBM)**: En caso de fallo total de la API en la nube, el sistema genera automáticamente un fondo cósmico de alta calidad usando Numpy. Algoritmo: 6 octavas de Ruido Fractal (Fractional Brownian Motion) → suavizado con filtro gaussiano → mezcla de dos capas de gas cósmico → puntos estelares procedurales aleatorios → viñeta negra perimetral. Produce imágenes de nivel artístico sin red neuronal.
+
+### Pipeline Multi-Parte Shorts (`core/video/pipeline.py`)
+- **Fix `except` duplicado**: Corregida la excepción duplicada que bloqueaba silenciosamente la generación de Shorts.
+- **Validación `os.path.isfile`**: Añadida verificación de existencia de `temp_short_src` antes de invocar FFmpeg, eliminando el error `Audio no encontrado`.
+
+### Interfaz Interactiva de Shorts (`remotion_workspace/src/ShortTemplate.tsx`)
+- **Tipografía Cinematográfica**: Sustitución de `sans-serif` genérico por `Montserrat` e `Inter` (Google Fonts) con pesos 700/900. Importación garantizada via `@import url(...)` en `index.css` para asegurar fidelidad en renderizado headless Chromium.
+- **Subtítulos Karaoke God-Tier**: Palabras activas animadas con color `#00f0ff` (Cyan Sci-Fi), `textShadow` de neón multicapa 3D, `scale(1.1)`, `translateY(-10px)` y `rotate(-2deg)`. Transición `cubic-bezier(0.175, 0.885, 0.32, 1.275)` para rebote orgánico.
+- **Overlay VHS Scanlines**: Capa CSS `repeating-linear-gradient` con desplazamiento temporal sincronizado a `currentTime * 50 % 4` que simula la interferencia analógica de VHS moviéndose hacia abajo, completando el look Cyberpunk.
+- **Viñeta Superior/Inferior (Letterbox)**: Capa `AbsoluteFill` con `inset boxShadow` de 150px arriba y 300px abajo para enmarcar el video central con aspecto cinematográfico de cine.
+
+---
+
 ## [V15.1 PRO] Modular Architecture & Route Decoupling · 22/05/2026
 
 **[EVOLUCIÓN A ARQUITECTURA DE SERVICIOS ULTRA MODULAR Y DISTRIBUIDA]**

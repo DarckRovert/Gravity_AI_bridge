@@ -73,6 +73,18 @@ class PostRoutesMixin:
             handle_youtube_upload(self)
             return
 
+        # /v1/v2v/start — Arrancar motor VTuber V2V
+        if self.path == "/v1/v2v/start":
+            from api.routes.handlers.v2v_handler import handle_v2v_start
+            handle_v2v_start(self)
+            return
+
+        # /v1/v2v/stop — Detener motor VTuber V2V
+        if self.path == "/v1/v2v/stop":
+            from api.routes.handlers.v2v_handler import handle_v2v_stop
+            handle_v2v_stop(self)
+            return
+
 
         # /v1/keys — Guardar API key cifrada en keystore
         if self.path == "/v1/keys":

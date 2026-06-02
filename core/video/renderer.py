@@ -47,37 +47,33 @@ def _generate_scene_image(
     style_info   = CINEMA_STYLES.get(style, CINEMA_STYLES[DEFAULT_STYLE])
     negative     = style_info.get("negative", "")
     scene_seed   = (job_seed + scene_idx * 7) % 2147483647
-
-    # ── Motor 1: Pollinations.ai ────────────────────────────────────────────
+    
     w, h = DEFAULT_IMG_W, DEFAULT_IMG_H
     if "x" in resolution:
         parts = resolution.split("x")
         if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
             w, h = int(parts[0]), int(parts[1])
 
-    try:
-        from tools.pollinations_generator import generate as poll_gen
-        result = poll_gen(
-            prompt          = prompt,
-            output_path     = out_path,
-            width           = w,
-            height          = h,
-            seed            = scene_seed,
-            enhance         = False,
-            negative_prompt = negative,
-        )
-        if result.get("success") and os.path.isfile(out_path):
-            log.info(f"[VideoStudio] [Pollinations] Escena {scene_idx}: {os.path.basename(out_path)} (seed={scene_seed})")
-            return out_path
-        else:
-            log.warning(f"[VideoStudio] [Pollinations] Falló escena {scene_idx}: {result.get('error')}")
-    except Exception as e:
-        log.warning(f"[VideoStudio] [Pollinations] Exception escena {scene_idx}: {e}")
-
-    # ── Motor 2: Fooocus (fallback local) ──────────────────────────────────────
+    # ── Motor 1: Fooocus (Motor Local Principal) ───────────────────────────────
     try:
         from tools.fooocus_client import trigger_gradio_generation, health_check
-        if health_check().get("online"):
+        import time
+
+        is_online = health_check().get("online")
+        if not is_online:
+            from core.ai_process_manager import start_engine
+            log.info("[VideoStudio] Fooocus offline. Auto-iniciando Fooocus...")
+            res = start_engine("Fooocus")
+            if res.get("success"):
+                # Esperar hasta 90 segundos a que la API de Gradio responda (Modelos pesados toman tiempo en cargar)
+                for _ in range(45):
+                    time.sleep(2)
+                    if health_check().get("online"):
+                        is_online = True
+                        log.info("[VideoStudio] Fooocus iniciado correctamente.")
+                        break
+
+        if is_online:
             result = trigger_gradio_generation(
                 prompt       = prompt,
                 performance  = "Speed",
@@ -91,20 +87,66 @@ def _generate_scene_image(
                     log.info(f"[VideoStudio] [Fooocus] Escena {scene_idx}: {os.path.basename(out_path)}")
                     return out_path
         else:
-            log.info("[VideoStudio] Fooocus offline — saltando fallback.")
+            log.warning("[VideoStudio] Fooocus offline o falló al iniciar. Haciendo fallback a Pollinations.")
     except Exception as e:
-        log.warning(f"[VideoStudio] [Fooocus] Exception escena {scene_idx}: {e}")
+        log.warning(f"[VideoStudio] [Fooocus] Exception escena {scene_idx}: {e}. Fallback a Pollinations.")
+
+    # ── Motor 2: Pollinations (Fallback Cloud) ─────────────────────────────────
+    try:
+        from tools.pollinations_generator import generate as poll_gen
+        
+        # Enviar prompt limpio y estructurado
+        clean_prompt = prompt.strip().replace("\n", " ")[:200]
+        result = poll_gen(
+            prompt          = clean_prompt,
+            output_path     = out_path,
+            width           = w,
+            height          = h,
+            model           = "flux",  # Forzamos flux para cinemático
+            seed            = scene_seed,
+            enhance         = False,
+            negative_prompt = negative,
+        )
+        if result.get("success") and os.path.isfile(out_path):
+            log.info(f"[VideoStudio] [Pollinations] Escena {scene_idx}: {os.path.basename(out_path)} (seed={scene_seed})")
+            return out_path
+        else:
+            log.warning(f"[VideoStudio] [Pollinations] Falló escena {scene_idx}: {result.get('error')}")
+    except Exception as e:
+        log.warning(f"[VideoStudio] [Pollinations] Exception escena {scene_idx}: {e}")
+
+    # ── Motor 3: Generador de Arte Generativo (Offline — Siempre disponible) ───
+    try:
+        from core.video.procedural_generator import generate_procedural_video
+        out_mp4 = out_path.replace("_image.png", "_video.mp4")
+        if not out_mp4.endswith(".mp4"):
+            out_mp4 = out_path + ".mp4"
+            
+        result_path = generate_procedural_video(
+            prompt=prompt, 
+            seed=scene_seed, 
+            w=w, 
+            h=h, 
+            duration_sec=SECONDS_PER_SCENE, 
+            fps=DEFAULT_FPS, 
+            out_mp4=out_mp4
+        )
+        if result_path and os.path.isfile(result_path):
+            log.info(f"[VideoStudio] [Arte Generativo] Escena {scene_idx}: motor procedural V4 completado.")
+            return result_path
+    except Exception as e:
+        log.warning(f"[VideoStudio] [Arte Generativo] Falló generador matemático: {e}")
 
     return None
 
 
-def _create_placeholder_image(text: str, output_path: str) -> None:
+def _create_placeholder_image(text: str, output_path: str, w: int = DEFAULT_IMG_W, h: int = DEFAULT_IMG_H) -> None:
     """Genera imagen negra con texto usando Pillow como placeholder."""
     try:
         from PIL import Image, ImageDraw
-        img  = Image.new("RGB", (DEFAULT_IMG_W, DEFAULT_IMG_H), color=(10, 12, 20))
+        img  = Image.new("RGB", (w, h), color=(10, 12, 20))
         draw = ImageDraw.Draw(img)
-        draw.text((DEFAULT_IMG_W // 2, DEFAULT_IMG_H // 2),
+        draw.text((w // 2, h // 2),
                   text[:80], fill=(100, 100, 140), anchor="mm")
         img.save(output_path, "PNG")
     except Exception:
@@ -223,6 +265,9 @@ def _assemble_clip(
 
     try:
         _input_is_video = image_path.lower().endswith((".mp4", ".webm", ".mov", ".avi"))
+        if _input_is_video:
+            ken_burns = False  # Desactivar zoom/paneo para conservar el movimiento nativo del video
+            
         has_audio = audio_path and os.path.isfile(audio_path) and os.path.getsize(audio_path) > 0
 
         audio_dur = SECONDS_PER_SCENE

@@ -44,7 +44,7 @@ try:
 
     # Inyección de texto publicitario
     draw_text_centered(draw, "¿QUÉ TE GARANTIZA QUE EL SOL SALDRÁ MAÑANA?", font_title, int(H * 0.70), (255, 204, 0))
-    draw_text_centered(draw, "Mejor disfruta de un pai de manzana mientras puedas.", font_sub, int(H * 0.77), (255, 255, 255))
+    draw_text_centered(draw, "Mejor disfruta de un Pye de manzana mientras puedas.", font_sub, int(H * 0.77), (255, 255, 255))
     
     draw_text_centered(draw, "ANTOJITOS EXPRESS", font_brand, int(H * 0.84), (255, 100, 100))
     
@@ -55,7 +55,7 @@ try:
         
     draw_text_centered(draw, "WhatsApp: +51 965 968 723  |  antojitos-express.netlify.app", font_contact, int(H * 0.93), (200, 255, 200))
 
-    out_file = os.path.join(out_dir, "poster_final_v8.png")
+    out_file = os.path.join(out_dir, "poster_final_v9.png")
     img.save(out_file)
     print("SUCCESS: " + out_file)
 

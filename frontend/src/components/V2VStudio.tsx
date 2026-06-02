@@ -148,7 +148,7 @@ export function V2VStudio() {
 
     const startEngine = async () => {
         try {
-            await fetch('/v1/ai/start', {
+            await fetch('/v1/v2v/start', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ provider: 'V2V Engine' })
@@ -158,7 +158,7 @@ export function V2VStudio() {
 
     const stopEngine = async () => {
         try {
-            await fetch('/v1/ai/stop', {
+            await fetch('/v1/v2v/stop', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ provider: 'V2V Engine' })

@@ -71,7 +71,7 @@ def discover_apps() -> Dict[str, str]:
         found_paths["Jan AI"] = jan
 
     # 5. ComfyUI
-    comfyui = os.path.join(base_dir, "_integrations", "ComfyUI_windows_portable", "run_amd_cpu.bat")
+    comfyui = os.path.join(base_dir, "_integrations", "ComfyUI_windows_portable", "run_amd_gpu.bat")
     if os.path.exists(comfyui):
         found_paths["ComfyUI"] = comfyui
 

@@ -61,6 +61,11 @@ CINEMA_STYLES: dict[str, dict] = {
         "prefix": "High-end commercial photography, ultra sharp, vivid studio lighting, 4k resolution, bright and energetic, modern product advertising, 16:9",
         "negative": "dark, gloomy, low quality, amateur, blurry, messy",
     },
+    "biomechanic_v13": {
+        "label":  "Biomecánica V13 (Audio-Reativo)",
+        "prefix": "GLSL Biomechanic Shader, audio-reactive kinematics, procedural generation",
+        "negative": "static, rigid, low quality",
+    },
 }
 DEFAULT_STYLE = "documental"
 

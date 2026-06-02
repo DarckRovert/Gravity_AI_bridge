@@ -236,6 +236,50 @@ class ComfyUIClient:
         return tags
 
 
+    def upload_image(self, local_path: str) -> str:
+        """
+        Sube una imagen al servidor ComfyUI via /upload/image.
+
+        Args:
+            local_path: Ruta absoluta a la imagen en el sistema local.
+
+        Returns:
+            Nombre del archivo tal como lo registró ComfyUI (para usar en LoadImage).
+
+        Raises:
+            RuntimeError: Si la subida falla.
+        """
+        import os
+        import uuid as _uuid
+        filename = os.path.basename(local_path)
+        with open(local_path, "rb") as f:
+            img_data = f.read()
+
+        boundary = _uuid.uuid4().hex
+        body = (
+            f"--{boundary}\r\n"
+            f'Content-Disposition: form-data; name="image"; filename="{filename}"\r\n'
+            "Content-Type: image/png\r\n\r\n"
+        ).encode("utf-8") + img_data + f"\r\n--{boundary}--\r\n".encode("utf-8")
+
+        req = urllib.request.Request(
+            f"http://{self.server_address}/upload/image",
+            data=body,
+            headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                result = json.loads(resp.read().decode("utf-8"))
+                name = result.get("name")
+                if not name:
+                    raise RuntimeError(f"ComfyUI no retornó nombre tras upload: {result}")
+                return name
+        except urllib.error.HTTPError as e:
+            raise RuntimeError(f"ComfyUI upload HTTP {e.code}: {e.read().decode('utf-8', errors='replace')[:200]}")
+        except Exception as e:
+            raise RuntimeError(f"ComfyUI upload_image error: {e}")
+
     def build_img2video_workflow(
         self,
         image_path: str,

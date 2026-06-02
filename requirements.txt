@@ -23,8 +23,9 @@ Pillow
 psutil
 prometheus_client
 
-# Video Studio — TTS offline (Windows SAPI)
+# Video Studio — TTS offline (Windows SAPI) y Transcripción
 pyttsx3>=2.90
+faster-whisper>=1.0.0
 
 # Webscraping / MAI (Motor de Animacion Inteligente)
 websocket-client>=1.7.0

@@ -5,7 +5,7 @@
   [![Autor](https://img.shields.io/badge/Author-DarckRovert-818cf8.svg?style=flat-square)](https://github.com/DarckRovert)
   [![Licencia](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
   [![Arquitectura](https://img.shields.io/badge/Architecture-Omniscient--Tier-c69c6d.svg?style=flat-square)]()
-  [![Release](https://img.shields.io/badge/Release-V15.1-6366f1.svg?style=flat-square)]()
+  [![Release](https://img.shields.io/badge/Release-V15.2_PBR-6366f1.svg?style=flat-square)]()
   [![Twitch](https://img.shields.io/badge/Twitch-DarckRovert-9146ff.svg?style=flat-square&logo=twitch)](https://twitch.tv/darckrovert)
 
   <p align="center">
@@ -96,29 +96,23 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 - Auto-reconexión, `list_tools`, `list_resources`, `read_resource`.
 - Registro global de adaptadores accesible desde el Dashboard.
 
-### 🎬 Video Studio Multi-Agent (Modular & Cinematic) V15.1 PRO
-Pipeline multimedia de alta fidelidad orquestado asíncronamente en daemon, completamente modularizado bajo el paquete `/core/video/` para máxima mantenibilidad y escalabilidad, con **Agentes Especializados y Motor de Animación Inteligente (MAI)**:
+### 🎬 Video Studio Multi-Agent & Motor Cinematic V2.0 PBR
+Pipeline multimedia de alta fidelidad orquestado asíncronamente en daemon. Completamente reestructurado bajo el paquete `/core/video/` para máxima resiliencia, con **Motor de Animación PBR Híbrido** y despliegue para redes sociales integrado:
 
 - **Estructura Modular (`/core/video/`)**:
-  - `audio_processor.py`: Motores TTS (SAPI, pyttsx3, Gemini TTS), generador de ruido marrón/rosa para BGM cinemático y compresión sidechain.
-  - `script_builder.py`: Planificación multi-agente de guiones (Researcher + Retention Auditor), anclaje visual y lore context.
-  - `renderer.py`: Render de fotogramas, Ken Burns procedural, Remotion templates y ensamble final FFmpeg.
-  - `pipeline.py`: Base de datos SQLite (WAL), daemon worker threads y distribuciones sociales.
-- **Capa Bridge (`core/video_pipeline.py`)**: Proxy dinámico en caliente que provee 100% de compatibilidad hacia atrás para llamadas externas y parches de test.
+  - `audio_processor.py`: Análisis FFT extrae frecuencias separadas (Bass, Mid, High) para reactividad visual, además de compresión sidechain y TTS cinemático.
+  - `glsl_renderer_v13.py`: Motor gráfico en OpenGL (`moderngl`) con Shaders PBR. Iluminación basada en imagen (IBL) y post-procesado Hollywood (Cyber Glitch destructivo al bajo, ACES Tone-mapping, Lens Flares, Chromatic Aberration dinámica y Film Grain orgánico).
+  - `pipeline.py`: Base de datos SQLite (WAL) robusta, daemon worker threads, y gestor FFmpeg.
+  - `ai_scene_generator.py`: Motor generativo AI con fallback inteligente (Cascading de Pollinations.ai rotando modelos `flux-realism` → `flux` → `turbo`). En caso de timeout total, inyecta un generador procedural puro basado en *Ruido Fractal (FBM)* para generar fondos cósmicos fluidos en numpy.
+  
+#### Flujo Híbrido de Renderizado Extremo:
+1. **Pipeline Multi-Agente (Research & Scripting)**: El *Writer* estructura la lírica y el *Retention Auditor* evalúa el anclaje emocional de los primeros 5 segundos.
+2. **Generador de Ambientes**: Descarga asíncrona de assets hiperrealistas a través del clúster AI. Fallback automático a Procedural FBM.
+3. **Composición 3D (GLSL PBR)**: Cruce reactivo de las frecuencias del audio con la geometría 3D SDF (Odisea Espacial, Tunnel Cuántico, Mandelbulb) mapeando la imagen AI como ecosfera luminosa IBL y cruzando escenas mediante warped fades.
+4. **Interactive Shorts (Remotion)**: Node.js/React (`ShortTemplate.tsx`) ensambla los recortes verticales (9:16) con tipografía *Montserrat/Inter*, sombras de neón dinámicas reactivas y barrido VFX de VHS Scanlines usando Chromium bajo el capó.
+5. **Ensamble Final**: FFmpeg unifica capas visuales de alta precisión de cuadros.
 
-#### Flujo de Ejecución en 5 Pasos:
-1. **Pipeline Multi-Agente (Research & Scripting)**:
-   - *Market Researcher*: Analiza YouTube vía web scraping para extraer ganchos y ángulos de competidores.
-   - *Writer*: Genera el guion estructurado con auto-título y descripción SEO.
-   - *Retention Auditor*: Evalúa el guion asegurando ganchos emocionales en los primeros 5s.
-2. **Fooocus (CPU/GPU)** → imagen base cinematográfica 16:9/9:16.
-3. **MAI Engine (L0/L1/L2)** → Anima la imagen generada:
-   - *L1 (Procedural)*: `kenburns`, `parallax`, `shake` ultra-rápidos vía FFmpeg.
-   - *L2 (AI Video)*: Transformación a video vía `ComfyUI` (LTX-Video/SVD) por WebSocket.
-4. **Windows SAPI/pyttsx3** → narración TTS offline sincronizada vía `atempo`.
-5. **ffmpeg concat** → video final ensamblado y servido vía streaming.
-
-**Reproductor Web Integrado**: Stream de video nativo y panel de exportación a redes.
+**Reproductor Web Integrado**: Stream de video nativo en el Dashboard y Auto-Distribución a redes.
 
 ### 📚 Course Generator & Scheduler (Info-Productos)
 - **Generación de Cursos (`course_generator.py`)**: Crea el syllabus completo de un curso o lista de reproducción, definiendo lecciones progresivas optimizadas para YouTube.
@@ -242,5 +236,5 @@ Ver [`SECURITY.md`](SECURITY.md) para política de vulnerabilidades y reporte re
 <br>
 
 <div align="center">
-  <sub><i>© 2026 DarckRovert · Gravity AI Bridge — All architectural assets belong to their proprietary author.</i></sub>
+  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V15.2 PRO — Motor Cinematic V2.0 PBR. All architectural assets belong to their proprietary author.</i></sub>
 </div>

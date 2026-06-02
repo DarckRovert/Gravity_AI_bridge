@@ -482,6 +482,11 @@ def handle_video_create(handler):
         except Exception:
             pass
         animation_level  = int(data.get("animation_level", _def_anim))
+        
+        job_type         = data.get("job_type", "tts").strip()
+        audio_track_path = data.get("audio_track_path", "").strip()
+        lyrics_text      = data.get("lyrics_text", "").strip()
+
         job_id         = video_pipeline.add_job(
             topic          = topic,
             n_scenes       = n_scenes,
@@ -506,6 +511,9 @@ def handle_video_create(handler):
             color_grade    = color_grade,
             animation_effect = animation_effect,
             animation_level  = animation_level,
+            job_type         = job_type,
+            audio_track_path = audio_track_path,
+            lyrics_text      = lyrics_text,
         )
         handler.send_response(200)
         handler.send_header("Content-Type", "application/json")

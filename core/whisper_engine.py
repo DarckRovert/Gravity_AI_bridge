@@ -22,11 +22,10 @@ class WhisperEngine:
     def __init__(self, model_size: str = "base", device: str = "cpu", compute_type: str = "int8"):
         """
         Inicializa el motor de Faster-Whisper de forma segura y thread-safe reutilizando instancias.
-        Por defecto usa 'base' en 'cpu' con 'int8' para no saturar memoria.
+        Optimizado nativamente para CPU (Gráficas integradas) usando int8 para no saturar memoria.
         """
-        cache_key = (model_size, device, compute_type)
-        
         with _whisper_init_lock:
+            cache_key = (model_size, device, compute_type)
             if cache_key in _model_cache:
                 logger.info(f"Reutilizando instancia de modelo cacheada para '{model_size}' en {device} ({compute_type}).")
                 self.model = _model_cache[cache_key]
@@ -36,9 +35,9 @@ class WhisperEngine:
             try:
                 self.model = WhisperModel(model_size, device=device, compute_type=compute_type)
                 _model_cache[cache_key] = self.model
-                logger.info("Modelo cargado exitosamente en caché.")
+                logger.info("Modelo cargado exitosamente en caché (Optimizacion Integrada).")
             except Exception as e:
-                logger.critical(f"Falla catastrófica cargando faster-whisper: {e}. Asegúrese de tener las librerías nativas C++ y CUDA configuradas correctamente.")
+                logger.critical(f"Falla catastrófica cargando faster-whisper en {device}: {e}.")
                 raise RuntimeError(f"Error cargando motor Whisper: {e}") from e
 
     def extract_words(self, audio_path: str, language: str = "es") -> List[Dict[str, Any]]:

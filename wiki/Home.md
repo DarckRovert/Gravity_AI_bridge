@@ -22,6 +22,35 @@ Bienvenido al Centro de Conocimiento del Bridge — hub principal para orquestar
 
 ---
 
+## 🚀 Novedades V15.2 PRO — Motor Cinematic V2.0 PBR
+
+### Video Studio: Motor GLSL PBR Híbrido God-Tier
+El subsistema de Video Studio ha sido elevado a un nivel de producción Hollywood mediante un motor gráfico híbrido de doble capa:
+
+| Capa | Tecnología | Rol |
+|---|---|---|
+| Render 3D SDF | `moderngl` (OpenGL 3.3 Core) | Shaders PBR con reflejos IBL |
+| Composición | `COMPOSITE_FS` / `POST_PROCESS_FS` | Post-procesado Hollywood |
+| Shorts 9:16 | `Remotion` + React (Node.js) | Subtítulos karaoke interactivos |
+| Fallback AI | FBM Procedural (Numpy) | Nebulosa cósmica sin GPU |
+
+**Post-procesado activo en cada frame:**
+- `bass > 0.85` → Cyber Glitch (desgarro de scanlines + inversion subliminal)
+- `bass` → Aberración Cromática Radial (separación RGB anamórfica)
+- `high` → Film Grain analógico procedural escalante
+- Siempre → ACES Tone-Mapping + Viñeta Cinemática Profunda
+
+**Generador AI Ultra-Resiliente:**
+- Cascading Pollinations: `flux-realism` (90s) → `flux` (150s) → `turbo` (210s)
+- Fallback: Nebulosa Fractal FBM en Numpy (6 octavas, filtro gaussiano, estrellas procedurales)
+
+**Interfaz de Shorts Cyberpunk:**
+- Fuentes `Montserrat`/`Inter` garantizadas en Chromium headless via `@import` directo en CSS
+- Karaoke interactivo con glow `#00f0ff`, `cubic-bezier` de rebote orgánico
+- VHS Scanlines animados CSS (barrido temporal) + Letterbox cinemático
+
+---
+
 ## 🚀 Novedades V15.1 PRO Omniscient-Tier
 
 ### Real-Time VTuber Engine V4.0 (Aletheia V2V)

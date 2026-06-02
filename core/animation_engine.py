@@ -362,6 +362,235 @@ def _build_parallax(total_frames: int, w: int, h: int, fps: int, scene_idx: int)
     )
 
 
+# ── Motor L1.5: Multi-Variación via Pollinations + FFmpeg ────────────────────
+
+def animate_with_variations(
+    image_path: str,
+    prompt: str,
+    job_id: int,
+    scene_idx: int,
+    fps: int = 8,
+    duration: float = 4.0,
+    n_variations: int = 4,
+    output_dir: str = "",
+    ffmpeg_exe: str = "ffmpeg",
+    target_w: int = 0,
+    target_h: int = 0,
+) -> Optional[str]:
+    """
+    Motor L1.5 — Genera N variaciones de la imagen via Pollinations y las interpola
+    con crossfade cinematográfico + movimiento de cámara para crear la ilusión de video.
+
+    Cada variación usa la misma descripción visual pero con seed diferente, produciendo
+    cambios sutiles de iluminación, detalle y composición. FFmpeg los une con xfade
+    disolviendo suavemente entre imágenes mientras aplica el efecto de movimiento activo.
+    Args:
+        image_path:   Ruta a la imagen base de la escena.
+        prompt:       Prompt positivo para Pollinations (descripción visual de la escena).
+        job_id:       ID del trabajo actual.
+        scene_idx:    Índice de la escena (0-based).
+        fps:          Frames por segundo del clip de salida.
+        duration:     Duración total del clip en segundos.
+        n_variations: Número de variaciones a generar (4-6 recomendado).
+        output_dir:   Carpeta de salida; por defecto _videos/job_{job_id}/.
+        ffmpeg_exe:   Ruta al ejecutable de FFmpeg.
+
+    Returns:
+        Ruta absoluta al clip MP4 generado, o None si falla.
+    """
+    import tempfile
+    import shutil
+    import urllib.request
+    import urllib.parse
+    import sys
+    import os
+    import subprocess
+    from typing import Optional
+
+    _base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    if not output_dir:
+        output_dir = os.path.join(_base, "_videos", f"job_{job_id}")
+    os.makedirs(output_dir, exist_ok=True)
+
+    if not os.path.isfile(ffmpeg_exe):
+        ffmpeg_exe = os.path.join(_base, "_integrations", "ffmpeg", "ffmpeg.exe")
+        if not os.path.isfile(ffmpeg_exe):
+            ffmpeg_exe = "ffmpeg"
+
+    # Validar imagen base y calcular dimensiones de trabajo
+    try:
+        from PIL import Image as _PIL_check
+        with _PIL_check.open(image_path) as _img:
+            img_w, img_h = _img.size
+    except Exception:
+        img_w, img_h = 1280, 720
+
+    # Usar resolución objetivo si se especificó, si no usar tamaño real de la imagen
+    if target_w > 0 and target_h > 0:
+        w = target_w if target_w % 2 == 0 else target_w - 1
+        h = target_h if target_h % 2 == 0 else target_h - 1
+    else:
+        w = img_w if img_w % 2 == 0 else img_w - 1
+        h = img_h if img_h % 2 == 0 else img_h - 1
+
+     # ── Generador local de variaciones (sin peticiones de red) ─────────────────
+    # Las variaciones se generan mediante transformaciones geométricas y de color
+    # aplicadas localmente sobre la imagen base. Sin API, sin bans, sin latencia.
+    # Tipos de transformación cinematográfica por variación:
+    _LOCAL_TRANSFORMS = [
+        {"zoom": 1.00, "pan_x": 0,     "pan_y": 0,     "brightness": 1.00},  # var0: original
+        {"zoom": 1.04, "pan_x": 0,     "pan_y": 0,     "brightness": 1.00},  # var1: zoom-in suave
+        {"zoom": 1.04, "pan_x": +0.03, "pan_y": 0,     "brightness": 1.02},  # var2: zoom + pan derecha + brillo
+        {"zoom": 1.07, "pan_x": +0.03, "pan_y": -0.02, "brightness": 1.02},  # var3: zoom mayor + pan diagonal
+    ]
+
+    variation_paths: list[str] = []
+
+    try:
+        from PIL import Image, ImageEnhance
+    except Exception as _pil_err:
+        from core.logger import log
+        log.warning(f"[VideoStudio] PIL no disponible para variaciones locales: {_pil_err}")
+        return None
+
+    with Image.open(image_path) as _base_img:
+        base_pil = _base_img.convert("RGB")
+        bw, bh = base_pil.size
+
+    for i in range(n_variations):
+        var_path = os.path.join(output_dir, f"scene_{scene_idx:02d}_var{i:02d}.png")
+        t = _LOCAL_TRANSFORMS[i % len(_LOCAL_TRANSFORMS)]
+        try:
+            img = base_pil.copy()
+
+            # Aplicar zoom + pan como recorte centrado con offset
+            zoom = t["zoom"]
+            crop_w = int(bw / zoom)
+            crop_h = int(bh / zoom)
+            # Pan: desplazamiento porcentual del centro
+            offset_x = int(bw * t["pan_x"])
+            offset_y = int(bh * t["pan_y"])
+            cx = bw // 2 + offset_x
+            cy = bh // 2 + offset_y
+            left  = max(0, cx - crop_w // 2)
+            top   = max(0, cy - crop_h // 2)
+            right = min(bw, left + crop_w)
+            bot   = min(bh, top + crop_h)
+            img = img.crop((left, top, right, bot)).resize((bw, bh), Image.Resampling.LANCZOS)
+
+            # Ajuste de brillo sutil
+            if t["brightness"] != 1.0:
+                img = ImageEnhance.Brightness(img).enhance(t["brightness"])
+
+            # Redimensionar a la resolución objetivo si es necesario
+            if (bw, bh) != (w, h):
+                img = img.resize((w, h), Image.Resampling.LANCZOS)
+
+            img.save(var_path, "PNG")
+            variation_paths.append(var_path)
+        except Exception as _ve:
+            from core.logger import log
+            log.warning(f"[VideoStudio] Error en variación local {i}: {_ve}. Usando copia directa.")
+            shutil.copy2(image_path, var_path)
+            variation_paths.append(var_path)
+
+    # ── Bonus: 1 variación Pollinations si la API no está bloqueada ─────────────
+    # Solo se intenta si tenemos cuota disponible — no bloquea el pipeline si falla.
+    try:
+        from tools.pollinations_generator import generate as poll_gen, is_blocked
+        if not is_blocked():
+            bonus_path = os.path.join(output_dir, f"scene_{scene_idx:02d}_var_bonus.png")
+            bonus_prompt = f"{prompt.strip().replace(chr(10), ' ')[:180]}. Cinematic still, slight different angle."
+            bonus_seed = (job_id * 1000 + scene_idx * 7 + 99) % (2**31)
+            result = poll_gen(
+                prompt=bonus_prompt, output_path=bonus_path,
+                width=w, height=h, model="flux",
+                seed=bonus_seed, enhance=False, nologo=True,
+            )
+            if result.get("success") and os.path.isfile(bonus_path):
+                variation_paths.append(bonus_path)
+                from core.logger import log
+                log.info(f"[VideoStudio] [L1.5] Escena {scene_idx}: variación bonus Pollinations añadida.")
+    except Exception:
+        pass  # Bonus es opcional, fallo silencioso
+
+    if len(variation_paths) < 2:
+        # No hay suficientes variaciones — devolver None para que el pipeline use L1
+        return None
+
+    # Construir clip con FFmpeg usando xfade entre variaciones
+    # Duración de cada segmento y overlap para crossfade
+    n = len(variation_paths)
+    seg_dur = duration / n
+    xfade_dur = min(0.5, seg_dur * 0.3)  # 30% de overlap, máx 0.5s
+    effect_idx = scene_idx % len(_KB_VARIANTS)
+
+    # Construir filtergraph xfade en cadena
+    # Cada imagen se convierte a un loop de seg_dur segundos con su efecto de movimiento
+    total_frames_per_seg = max(1, int(seg_dur * fps))
+
+    input_args: list[str] = []
+    filter_parts: list[str] = []
+    last_label = "[v0]"
+
+    for idx, vpath in enumerate(variation_paths):
+        input_args += ["-loop", "1", "-t", f"{seg_dur:.3f}", "-i", vpath]
+        z, x, y = _KB_VARIANTS[(effect_idx + idx) % len(_KB_VARIANTS)](total_frames_per_seg, w, h)
+        kbf = (
+            f"scale={w}:{h}:force_original_aspect_ratio=increase,"
+            f"crop={w}:{h},"
+            f"zoompan=z='{z}':d={total_frames_per_seg}:x='{x}':y='{y}':s={w}x{h}:fps={fps},"
+            f"setpts=PTS-STARTPTS"
+        )
+        filter_parts.append(f"[{idx}:v]{kbf}[seg{idx}]")
+
+    # Encadenar xfades
+    offset = seg_dur - xfade_dur
+    xfade_filters: list[str] = []
+    prev_label = "[seg0]"
+    for idx in range(1, n):
+        out_label = f"[xf{idx}]" if idx < n - 1 else "[vout]"
+        xfade_filters.append(
+            f"{prev_label}[seg{idx}]xfade=transition=fade:duration={xfade_dur:.3f}:offset={offset:.3f}{out_label}"
+        )
+        offset += seg_dur - xfade_dur
+        prev_label = f"[xf{idx}]"
+
+    full_filter = ";".join(filter_parts + xfade_filters)
+
+    out_path = os.path.join(output_dir, f"scene_{scene_idx:02d}_anim_l15.mp4")
+
+    cmd = (
+        [ffmpeg_exe, "-y"]
+        + input_args
+        + [
+            "-filter_complex", full_filter,
+            "-map", "[vout]",
+            "-c:v", "libx264",
+            "-preset", "fast",
+            "-crf", "23",
+            "-pix_fmt", "yuv420p",
+            "-color_range", "tv",
+            "-colorspace", "bt709",
+            "-color_trc", "bt709",
+            "-color_primaries", "bt709",
+            "-movflags", "+faststart",
+            "-t", f"{duration:.3f}",
+            out_path,
+        ]
+    )
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        if result.returncode == 0 and os.path.isfile(out_path) and os.path.getsize(out_path) > 1000:
+            return out_path
+    except Exception:
+        pass
+
+    return None
+
+
 # ── Motor L2: ComfyUI / AnimateDiff ──────────────────────────────────────────
 
 def animate_with_comfyui(
@@ -369,7 +598,7 @@ def animate_with_comfyui(
     job_id: int,
     scene_idx: int,
     fps: int = 8,
-    frames: int = 16,
+    frames: int = 8,
     output_dir: str = "",
 ) -> Optional[str]:
     """
@@ -417,6 +646,25 @@ def animate_with_comfyui(
         client = ComfyUIClient(host=host, port=port)
 
         if not client.is_online():
+            comfy_dir = os.path.join(_int_dir, "ComfyUI_windows_portable")
+            bat_file = os.path.join(comfy_dir, "run_amd_gpu.bat")
+            if os.path.exists(bat_file):
+                import subprocess
+                import time
+                try:
+                    from core.logger import log
+                    log.info("[Animation Engine] ComfyUI offline. Auto-Starting run_amd_gpu.bat...")
+                    CREATE_NEW_CONSOLE = getattr(subprocess, "CREATE_NEW_CONSOLE", 0x00000010)
+                    subprocess.Popen([bat_file], cwd=comfy_dir, creationflags=CREATE_NEW_CONSOLE, shell=True)
+                    for _ in range(30):
+                        time.sleep(2.0)
+                        if client.is_online():
+                            log.info("[Animation Engine] ComfyUI started successfully.")
+                            break
+                except Exception as e:
+                    pass
+
+        if not client.is_online():
             return None
 
         # Determinar resolución desde la imagen
@@ -426,17 +674,28 @@ def animate_with_comfyui(
             with Image.open(image_path) as img:
                 w, h = img.size
                 # Reducir para ComfyUI (cost computacional)
-                if w > 768:
-                    scale = 768 / w
-                    w = 768
+                if w > 512:
+                    scale = 512 / w
+                    w = 512
                     h = int(h * scale)
                     h = h - (h % 8)  # múltiplo de 8
                     w = w - (w % 8)
         except Exception:
             pass
 
+        # Subir la imagen al servidor ComfyUI (LoadImage requiere nombre relativo, no ruta absoluta)
+        try:
+            uploaded_name = client.upload_image(image_path)
+        except Exception as _ue:
+            try:
+                from core.logger import log
+                log.warning(f"[Animation Engine] upload_image falló: {_ue}. Usando nombre base.")
+            except Exception:
+                pass
+            uploaded_name = os.path.basename(image_path)
+
         workflow = client.build_img2video_workflow(
-            image_path=image_path,
+            image_path=uploaded_name,
             width=w,
             height=h,
             frames=frames,
@@ -444,7 +703,7 @@ def animate_with_comfyui(
         )
 
         prompt_id = client.queue_prompt(workflow)
-        outputs = client.wait_for_completion(prompt_id, timeout_seconds=300.0)
+        outputs = client.wait_for_completion(prompt_id, timeout_seconds=1800.0)
 
         if not outputs:
             return None
