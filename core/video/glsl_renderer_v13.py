@@ -118,10 +118,35 @@ vec2 envMapEquirect(vec3 dir) {
     return vec2(phi / (2.0 * PI) + 0.5, theta / PI + 0.5);
 }
 
-// Polvo estelar volumétrico rápido
-float starDust(vec3 p) {
-    vec3 q = fract(p * 2.0) - 0.5;
-    return length(q) - 0.02;
+// --- Partículas Volumétricas (Beat-Sync V2) ---
+vec3 calcVolumetricParticles(vec3 pos, float time, float bass, float mid, float high) {
+    vec3 pPos = pos;
+    // Movimiento caótico fluido basado en tiempo y medios
+    pPos.y += time * (0.5 + mid); 
+    pPos.x += sin(time * 2.0 + pPos.z) * 0.5 * mid;
+    
+    vec3 cell = floor(pPos * 3.0);
+    vec3 local = fract(pPos * 3.0) - 0.5;
+    
+    float h = hash3D(cell);
+    
+    // Umbral de densidad: aparecen mas con el bajo
+    float threshold = 0.95 - (bass * 0.05);
+    if (h > threshold) {
+        // Posicion aleatoria dentro de la celda
+        vec3 offset = vec3(hash3D(cell+1.0), hash3D(cell+2.0), hash3D(cell+3.0)) - 0.5;
+        float d = length(local - offset * 0.5);
+        float radius = 0.02 + (high * 0.04 * h); // Tamaño reacciona a los altos
+        
+        if (d < radius * 6.0) { // SSS extendido
+            float intensity = 0.005 / (0.001 + d * d);
+            // Color: tonos cyan/magenta/dorado según la semilla
+            vec3 pColor = mix(vec3(0.1, 0.8, 1.0), vec3(1.0, 0.3, 0.8), h);
+            pColor = mix(pColor, vec3(1.0, 0.8, 0.2), fract(h * 10.0));
+            return pColor * intensity * (0.2 + high * 2.5);
+        }
+    }
+    return vec3(0.0);
 }
 '''
 
@@ -176,20 +201,66 @@ float softshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax, in float
 
 void main() {
     vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / resolution.y;
+    vec3 target = vec3(0.0, 0.0, -5.0);
     
-    // Cinematografía Bézier 6DOF (Trayectoria orbital)
-    float camT = time * 0.2 + pan;
-    vec3 ro = vec3(sin(camT)*8.0, sin(camT*0.5)*2.0 + 1.0, cos(camT)*8.0 - 5.0); 
-    vec3 target = vec3(0.0, 0.0, -5.0); // Mirar al centro del Cosmos
+    // === CINEMATIC SHOT MACHINE V1 ===
+    // Cada shot dura ~6 segundos. El ciclo completo es 24s.
+    float shotDur = 6.0;
+    float cycleT  = mod(time, shotDur * 4.0);
+    int   shotIdx = int(cycleT / shotDur); // 0,1,2,3
+    float shotT   = smoothstep(0.0, 1.0, fract(cycleT / shotDur)); // [0..1] dentro del shot
     
-    // Temblor de cámara con bass extremo
-    ro += vec3(sin(time*50.0), cos(time*45.0), sin(time*55.0)) * bass * 0.05;
+    vec3 ro;
+    float focalDist;
+    float fov = 1.5;
+    float camRoll = 0.0;
+    
+    if (shotIdx == 0) {
+        // ESTABLISHING: Gran angular orbital lento, revelar la escena completa
+        float angle = time * 0.08 + pan * 0.5;
+        ro = vec3(sin(angle) * 14.0, 3.5 + sin(time * 0.12) * 1.5, cos(angle) * 14.0 - 5.0);
+        fov = 1.2; // gran angular
+        focalDist = length(target - ro) * 0.7;
+        camRoll = sin(time * 0.05) * 0.03; // roll casi imperceptible
+    } else if (shotIdx == 1) {
+        // ORBIT MEDIUM: Orbital a media altura, nivel del sujeto
+        float angle = time * 0.15 + pan * 0.5;
+        ro = vec3(sin(angle) * 8.0, sin(time * 0.2) * 1.2 + 0.5, cos(angle) * 8.0 - 5.0);
+        fov = 1.5;
+        focalDist = length(target - ro) * 0.85;
+        camRoll = sin(time * 0.07) * 0.06;
+    } else if (shotIdx == 2) {
+        // CLOSEUP: Aproximación lenta e intensa al sujeto. Pull-in Beziér.
+        float angle = time * 0.06 + pan * 0.3;
+        float zoomT = smoothstep(0.0, 1.0, shotT);
+        float dist  = mix(9.0, 4.5, zoomT); // se acerca
+        ro = vec3(sin(angle) * dist, 0.8 + sin(time*0.1)*0.4, cos(angle) * dist - 5.0);
+        fov = mix(1.5, 2.2, zoomT); // focal largo en closeup
+        focalDist = mix(length(target - ro) * 0.95, length(target - ro) * 0.6, zoomT);
+        camRoll = sin(time * 0.03) * 0.04;
+    } else {
+        // FLYBY: Paso veloz lateral, añade drama y tensión
+        float flyT  = shotT;
+        float x     = mix(-12.0, 12.0, flyT);
+        ro = vec3(x, 2.0 + sin(flyT * 3.14159) * 1.0, -3.5 + sin(flyT * 3.14159) * -2.0);
+        target = vec3(0.0, 0.0, -5.0) + vec3(sin(flyT * 2.0) * 2.0, 0.0, 0.0);
+        fov = 1.6;
+        focalDist = length(target - ro) * 0.8;
+        camRoll = sin(flyT * 6.28318) * 0.1;
+    }
+    
+    // Bass shake CONTROLADO: solo en beats intensos, amortiguado
+    float shakeAmt = max(0.0, bass - 0.75) * 0.03;
+    ro += vec3(sin(time * 47.0), cos(time * 43.0), sin(time * 51.0)) * shakeAmt;
+    
+    // Camera basis con roll narrativo
     vec3 ww = normalize(target - ro);
-    vec3 uu = normalize(cross(ww, vec3(0.0, 1.0, 0.0)));
+    vec3 up  = vec3(sin(camRoll), cos(camRoll), 0.0);
+    vec3 uu = normalize(cross(ww, up));
     vec3 vv = normalize(cross(uu, ww));
-    vec3 rd = normalize(p.x * uu + p.y * vv + 1.5 * ww);
+    vec3 rd = normalize(p.x * uu + p.y * vv + fov * ww);
     
-    float t = 0.0; float max_d = 20.0; vec3 col = vec3(0.0); float glow = 0.0;
+    float t = 0.0; float max_d = 20.0; vec3 col = vec3(0.0); vec3 particleCol = vec3(0.0);
     float mat_id = 0.0;
     
     for(int i=0; i<64; i++) {
@@ -197,11 +268,8 @@ void main() {
         if(res.x<0.001 || t>max_d) { mat_id = res.y; break; }
         t += res.x;
         
-        // Polvo Estelar acumulativo (gravedad hacia el centro interactiva)
-        vec3 dustPos = pos;
-        dustPos -= normalize(target - dustPos) * time * (1.0 + bass*5.0); // Atracción al centro
-        float dDust = starDust(dustPos);
-        if(dDust < 0.1) glow += 0.005 / (0.01 + dDust*dDust) * (1.0 + bass*2.0);
+        // Partículas Volumétricas
+        particleCol += calcVolumetricParticles(pos, time, bass, mid, high);
     }
     
     vec3 lig = normalize(vec3(0.0, 1.0, 2.0)); 
@@ -256,10 +324,13 @@ void main() {
     vec3 bgCol = mix(colorA, vec3(0.0), 0.5); // Color de la niebla en el fondo
     
     float stars = pow(fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453), 100.0) * (high * 3.0);
-    vec3 final_bg = bgCol + vec3(stars) + mix(colorA, colorB, 0.5)*glow*0.05;
+    vec3 final_bg = bgCol + vec3(stars);
     
     // Mezcla de la geometría con el fondo según la distancia
     col = mix(col, final_bg, fogFactor);
+    
+    // Sumar partículas volumétricas
+    col += particleCol * mix(1.0, 0.2, fogFactor);
     
     // Lens Flares Anamórficos (JJ Abrams Style)
     // Se dibujan horizontales si la luz o el núcleo son "eclipsados"
@@ -347,22 +418,51 @@ float softshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax, in float
 
 void main() {
     vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / resolution.y;
+    
+    // === CINEMATIC SHOT MACHINE V1 (JULIA) ===
+    float shotDur = 7.0;
+    float cycleT  = mod(time, shotDur * 4.0);
+    int   shotIdx = int(cycleT / shotDur);
+    float shotT   = smoothstep(0.0, 1.0, fract(cycleT / shotDur));
+    
     float camZ = forwardTravel() - 3.5;
-    vec3 ro = vec3(0.0, 0.5, camZ); 
-    pR(ro.xz, pan * 0.5); pR(ro.yz, sin(time*0.5)*0.05); 
+    vec3 ro; float fov = 1.2;
+    
+    if (shotIdx == 0) {
+        // Plano Maestro: sigue el fractal de lejos con altura variable
+        ro = vec3(sin(time*0.08)*2.5, 1.5 + sin(time*0.12)*0.8, camZ);
+    } else if (shotIdx == 1) {
+        // Zoom de seguimiento suave (dolly-in)
+        float zoomT = smoothstep(0.0, 1.0, shotT);
+        ro = vec3(sin(time*0.1)*mix(2.0, 0.8, zoomT), mix(1.5, 0.6, zoomT), camZ);
+        fov = mix(1.2, 1.8, zoomT);
+    } else if (shotIdx == 2) {
+        // Lateral (travelling): la cámara se desplaza en X
+        ro = vec3(mix(-2.5, 2.5, shotT), 0.8 + sin(time*0.15)*0.5, camZ + 1.0);
+    } else {
+        // Dutch angle + pull-back
+        ro = vec3(cos(time*0.08)*2.0, 2.2, camZ - shotT * 2.0);
+        fov = 1.1;
+    }
+    
+    pR(ro.xz, pan * 0.3);
+    float shakeAmt = max(0.0, bass - 0.75) * 0.025;
+    ro += vec3(sin(time * 47.0) * shakeAmt, cos(time * 43.0) * shakeAmt, 0.0);
     
     vec3 ww = normalize(vec3(0.0, 0.0, 1.0));
     vec3 uu = normalize(cross(ww, vec3(0.0, 1.0, 0.0)));
     vec3 vv = normalize(cross(uu, ww));
-    vec3 rd = normalize(p.x * uu + p.y * vv + 1.2 * ww);
+    vec3 rd = normalize(p.x * uu + p.y * vv + fov * ww);
     
     float t = 0.0, max_d = 12.0, iter = 0.0;
-    float mat_id = 0.0;
+    float mat_id = 0.0; vec3 particleCol = vec3(0.0);
     
     for(int i=0; i<64; i++) {
         vec3 pos = ro + rd*t; vec2 res = map(pos);
         if(res.x<0.002 || t>max_d) { mat_id = res.y; break; }
         t += res.x; iter++;
+        
+        particleCol += calcVolumetricParticles(pos, time, bass, mid, high);
     }
     
     vec3 lig = normalize(vec3(1.0, 1.5, -1.0)); 
@@ -419,6 +519,9 @@ void main() {
     
     col = mix(col, bgCol + glowCol, fogFactor);
     
+    // Sumar partículas volumétricas
+    col += particleCol * mix(1.0, 0.3, fogFactor);
+    
     fragColor = vec4(col, 1.0);
 }
 '''
@@ -456,15 +559,44 @@ vec2 map(vec3 p) {
 
 void main() {
     vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / resolution.y;
-    vec3 ro = vec3(0.0, 0.0, forwardTravel()); ro.x += sin(time)*0.3 + pan; 
-    vec3 rd = normalize(vec3(p.x, p.y, 1.0)); pR(rd.xy, sin(time)*0.1); 
+    
+    // === CINEMATIC SHOT MACHINE V1 (QUANTUM TUNNEL) ===
+    float shotDur = 5.0;
+    float cycleT  = mod(time, shotDur * 3.0);
+    int   shotIdx = int(cycleT / shotDur);
+    float shotT   = smoothstep(0.0, 1.0, fract(cycleT / shotDur));
+    
+    float fwd = forwardTravel();
+    vec3 ro; float fov = 1.4;
+    
+    if (shotIdx == 0) {
+        // Centrado en el eje del túnel
+        ro = vec3(sin(time*0.05)*0.3 + pan, cos(time*0.07)*0.2, fwd);
+    } else if (shotIdx == 1) {
+        // Descentrado lateral (tensión visual, como un Steadicam)
+        ro = vec3(mix(0.0, 1.2, shotT) + pan, mix(0.0, -0.4, shotT), fwd);
+        fov = mix(1.4, 1.7, shotT);
+    } else {
+        // Pull-back dramático: la cámara se aleja del destino
+        ro = vec3(pan * 0.3, 0.0, fwd - shotT * 3.0);
+        fov = 1.2;
+    }
+    
+    float shakeAmt = max(0.0, bass - 0.75) * 0.02;
+    ro.xy += vec2(sin(time * 47.0), cos(time * 43.0)) * shakeAmt;
+    
+    vec3 rd = normalize(vec3(p.x, p.y, fov));
+    pR(rd.xy, sin(time * 0.04) * 0.04); // roll suave y respirado 
     
     float t = 0.0, max_d = 30.0, glow = 0.0; float mat_id = 0.0;
+    vec3 particleCol = vec3(0.0);
     for(int i=0; i<50; i++) {
         vec3 pos = ro + rd*t; vec2 res = map(pos);
         if(res.y == 0.0) glow += 0.01 / (0.01 + res.x*res.x);
         if(res.x<0.01 || t>max_d) { mat_id = res.y; break; }
         t += res.x;
+        
+        particleCol += calcVolumetricParticles(pos, time, bass, mid, high);
     }
     
     vec3 col = colorA * 0.1;
@@ -503,6 +635,9 @@ void main() {
     
     // Glow de los anillos reactivo al high
     col += mix(colorA, colorB, 0.5) * glow * (0.4 + high * 1.5);
+    
+    // Sumar partículas volumétricas
+    col += particleCol * mix(1.0, 0.1, fogFactor);
     fragColor = vec4(col, 1.0);
 }
 '''
@@ -528,67 +663,83 @@ float hash(vec2 p) {
 void main() {
     vec2 st = uv;
     
-    // ── Camera shake & Cyber Glitch en beat drops ────────────────────────────
-    if (bass > 0.85) {
-        float shake = (bass - 0.85) * 0.025;
-        vec2 shakeUV = st + vec2(sin(time * 50.0) * shake, cos(time * 47.0) * shake);
-        
-        // Digital Glitch (Desplazamiento horizontal de scanlines)
-        float glitchLine = step(0.9, fract(st.y * 20.0 + time * 15.0));
-        float glitchShift = (bass - 0.85) * 0.15 * glitchLine * sin(time * 120.0);
-        shakeUV.x += glitchShift;
-        
-        // Radial Chromatic Aberration impulsada por bass en el shake/glitch
-        vec2 dir = shakeUV - 0.5;
-        float ab = bass * 0.04 * length(dir);
-        
-        st = shakeUV; // Apply to base st for later use
+    // ── Camera shake CONTROLADO: solo en beat drops intensos ─────────────────
+    float shakeStrength = max(0.0, bass - 0.82) * 0.018;
+    if (shakeStrength > 0.0) {
+        st += vec2(sin(time * 53.0) * shakeStrength, cos(time * 47.0) * shakeStrength);
+        // Digital Glitch sutil: desplazamiento de scanlines cada 3-4 beats
+        float glitchLine = step(0.92, fract(st.y * 18.0 + time * 12.0));
+        st.x += (bass - 0.82) * 0.08 * glitchLine * sin(time * 100.0);
     }
     
-    // Radial Chromatic Aberration normal + base glitch
+    // Inversion de color en momentos pico extremos (solo los mas fuertes)
+    float glitchLine2 = step(0.93, fract(st.y * 18.0 + time * 12.0));
+    bool doInvert = bass > 0.92 && fract(time * 30.0) > 0.88 && glitchLine2 > 0.0;
+    
+    // Radial Chromatic Aberration
     vec2 dir = st - 0.5;
     float dist = length(dir);
-    float ab = bass * 0.04 * dist; // La separación RGB aumenta en los bordes
+    float ab = bass * 0.03 * dist;
     
-    vec3 col1 = vec3(texture(tex1, clamp(st + dir * ab, 0.0, 1.0)).r, texture(tex1, clamp(st, 0.0, 1.0)).g, texture(tex1, clamp(st - dir * ab, 0.0, 1.0)).b);
-    vec3 col2 = vec3(texture(tex2, clamp(st + dir * ab, 0.0, 1.0)).r, texture(tex2, clamp(st, 0.0, 1.0)).g, texture(tex2, clamp(st - dir * ab, 0.0, 1.0)).b);
+    vec3 col1 = vec3(
+        texture(tex1, clamp(st + dir * ab, 0.0, 1.0)).r,
+        texture(tex1, clamp(st,            0.0, 1.0)).g,
+        texture(tex1, clamp(st - dir * ab, 0.0, 1.0)).b
+    );
+    vec3 col2 = vec3(
+        texture(tex2, clamp(st + dir * ab, 0.0, 1.0)).r,
+        texture(tex2, clamp(st,            0.0, 1.0)).g,
+        texture(tex2, clamp(st - dir * ab, 0.0, 1.0)).b
+    );
     
-    // Invertir colores esporádicamente si hay glitch intenso
-    float glitchLine2 = step(0.9, fract(st.y * 20.0 + time * 15.0));
-    if (bass > 0.85 && fract(time * 42.0) > 0.85 && glitchLine2 > 0.0) {
-        col1.rgb = 1.0 - col1.rgb;
-        col2.rgb = 1.0 - col2.rgb;
-    }
-
+    if (doInvert) { col1.rgb = 1.0 - col1.rgb; col2.rgb = 1.0 - col2.rgb; }
     
-    // Warp transition orgánica (Biomecánica)
-    float luma1 = dot(col1, vec3(0.299, 0.587, 0.114)); 
-    vec2 warp_st = st + (luma1 * 0.1 * transition_t); 
-    vec3 warped_col2 = texture(tex2, warp_st).rgb;
-    
+    // Warp transition orgánica
+    float luma1 = dot(col1, vec3(0.299, 0.587, 0.114));
+    vec2 warp_st = st + (luma1 * 0.1 * transition_t);
+    vec3 warped_col2 = texture(tex2, clamp(warp_st, 0.0, 1.0)).rgb;
     vec3 final_col = mix(col1, mix(col2, warped_col2, transition_t), transition_t);
     
-    // High Quality Bloom Multi-tap approximation
+    // === DEPTH OF FIELD (Lens Bokeh) ===
+    // Efecto sutil, activo siempre. Intensidad surge en Closeup (bass bajo)
+    float dofStrength = 0.0035 * (1.0 - bass * 0.5);
+    vec3 dofBlur = vec3(0.0);
+    float dofWeight = 0.0;
+    vec2 texelSize = 1.0 / vec2(1280.0, 720.0);
+    // Muestreo tipo Bokeh hexagonal (12 taps)
+    for (int i = 0; i < 12; i++) {
+        float angle2 = float(i) * 0.5235988; // 30 grados
+        float r = dofStrength * 40.0 * dist; // Mayor bokeh en bordes (enfoque central)
+        vec2 offset2 = vec2(cos(angle2), sin(angle2)) * r;
+        float w = 1.0 - float(i) / 12.0;
+        dofBlur += texture(tex1, clamp(st + offset2, 0.0, 1.0)).rgb * w;
+        dofWeight += w;
+    }
+    dofBlur /= dofWeight;
+    // Mezcla DoF: centro nítido, bordes desenfocados (similar a lente 85mm f/1.8)
+    float focusMask = smoothstep(0.0, 0.55, dist);
+    final_col = mix(final_col, mix(final_col, dofBlur, focusMask), dofStrength * 150.0);
+    
+    // High Quality Bloom Multi-tap
     vec3 bloom = vec3(0.0);
-    vec2 texel = 1.0 / vec2(1280.0, 720.0);
     for(int i=-2; i<=2; i++) {
         for(int j=-2; j<=2; j++) {
-            vec3 s = texture(tex1, st + vec2(i, j) * texel * 4.0).rgb;
-            bloom += max(vec3(0.0), s - 0.7);
+            vec3 s = texture(tex1, clamp(st + vec2(float(i), float(j)) * texelSize * 4.0, 0.0, 1.0)).rgb;
+            bloom += max(vec3(0.0), s - 0.72);
         }
     }
-    bloom *= (high * 0.05);
+    bloom *= (high * 0.04);
     final_col += bloom;
     
-    // Vignette cinematográfica profunda
+    // Vignette cinematográfica
     float vig = smoothstep(0.95, 0.2, dist * 1.2);
-    final_col *= mix(0.2, 1.0, vig);
+    final_col *= mix(0.25, 1.0, vig);
     
-    // ACES Tone mapping (+20% exposición antes de mapear)
+    // ACES Tone mapping
     final_col = ACESFilm(final_col * 1.2);
     
-    // Film Grain animado orgánico reactivo a agudos
-    float grain = (hash(st + fract(time * 0.017)) - 0.5) * 0.18 * (0.4 + high * 0.8);
+    // Film Grain reactivo a agudos
+    float grain = (hash(st + fract(time * 0.017)) - 0.5) * 0.15 * (0.4 + high * 0.7);
     final_col += grain;
     
     fragColor = vec4(final_col, 1.0);
