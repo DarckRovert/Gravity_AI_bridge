@@ -761,6 +761,7 @@ uniform float bass;
 uniform float mid;
 uniform float high;
 uniform float ken_burns_t;       // 0.0-1.0 progreso del zoom Ken Burns en esta escena
+uniform float breath;            // Lens Breathing: 0.0-1.0 energia acumulada
 
 // ACES Tone Mapping
 vec3 ACESFilm(vec3 x) {
@@ -772,8 +773,10 @@ float hash2(vec2 p) { p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return 
 void main() {
     vec2 st = uv;
 
-    // ── Ken Burns: zoom suave + drift lateral sobre la imagen base ──────────
-    float zoom = 1.0 + ken_burns_t * 0.08;   // Zoom del 0% al 8% durante la escena
+    // ── Lens Breathing (micro-zoom organico reactivo al audio) ──────────────────
+    // Simula el micro-zoom que produce un lente real al cambiar el plano de enfoque
+    float breathZoom = 1.0 + breath * 0.012;
+    float zoom = (1.0 + ken_burns_t * 0.08) * breathZoom;
     float driftX = (ken_burns_t - 0.5) * 0.04;
     float driftY = sin(ken_burns_t * 3.14159) * 0.02;
     vec2 kb_uv = (st - 0.5) / zoom + 0.5 + vec2(driftX, driftY);
@@ -829,9 +832,6 @@ void main() {
     bloom *= (0.3 + high * 0.5) * (1.0 / 49.0);
 
     // ── Composición final ────────────────────────────────────────────────────
-    // La imagen AI es el fondo. El GLSL overlay se mezcla SOBRE ella en modo additive/alpha.
-    // En zonas donde el overlay es oscuro, el fondo AI domina.
-    // En zonas brillantes (personaje, plasma), el overlay domina.
     vec3 col = mix(base, base * 0.4 + overlay, alpha_ov);  // Imagen AI visible bajo el overlay
     col += bloom;                                            // Aura luminosa del overlay
 
@@ -867,120 +867,140 @@ void main() {
     float vig = smoothstep(0.95, 0.2, vdist);
     col *= mix(0.2, 1.0, vig); // Viñeta más agresiva en los bordes
 
-    // ── ACES Tone Mapping + Film Grain procedural ────────────────────────────
+    // ── ACES Tone Mapping + Halation (resplandor fotoquímico en halos altos) ──────
+    // Halation: zonas de alta luminosidad emiten un halo rojizo-ananaranjado
+    float luma_col = dot(col, vec3(0.299, 0.587, 0.114));
+    float halation = smoothstep(0.6, 1.0, luma_col) * (0.15 + breath * 0.1);
+    col += vec3(halation * 0.9, halation * 0.3, halation * 0.05); // Halo rojo-calido
+    
     col = ACESFilm(col * 1.15);
     float grain = (hash2(st + fract(time * 0.017)) - 0.5) * 0.18 * (0.4 + high * 0.8);
     col += grain;
-
 
     fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
 '''
 
-
 MANDELBULB_FS = '''#version 330
-out vec4 fragColor; in vec2 uv; uniform vec2 resolution; uniform float time, bass, mid, high, pan; uniform vec3 colorA, colorB; uniform int pose; 
-void pR(inout vec2 p, float a) { p = cos(a)*p + sin(a)*vec2(p.y, -p.x); } 
-float mandelbulbSDF(vec3 pos) { 
-    vec3 z = pos;
-    float dr = 1.0;
-    float r = 0.0;
-    for (int i = 0; i < 12; i++) { // Iteraciones aumentadas a 12
-        r = length(z);
-        if (r > 2.0) break;
-        float theta = acos(z.z / r);
-        float phi = atan(z.y, z.x);
-        dr = pow(r, 7.0) * 8.0 * dr + 1.0;
-        float zr = pow(r, 8.0);
-        theta = theta * 8.0;
-        phi = phi * 8.0;
-        z = zr * vec3(sin(theta)*cos(phi), sin(phi)*sin(theta), cos(theta));
-        z += pos;
+out vec4 fragColor; in vec2 uv; uniform vec2 resolution; uniform float time, bass, mid, high, pan; uniform vec3 colorA, colorB; uniform int pose;
+void pR(inout vec2 p, float a) { p = cos(a)*p + sin(a)*vec2(p.y, -p.x); }
+float mandelbulbSDF(vec3 pos) {
+    vec3 z = pos; float dr = 1.0; float r = 0.0;
+    for (int i = 0; i < 12; i++) {
+        r = length(z); if (r > 2.0) break;
+        float theta = acos(z.z / r); float phi = atan(z.y, z.x);
+        dr = pow(r, 7.0) * 8.0 * dr + 1.0; float zr = pow(r, 8.0);
+        theta = theta * 8.0; phi = phi * 8.0;
+        z = zr * vec3(sin(theta)*cos(phi), sin(phi)*sin(theta), cos(theta)); z += pos;
     }
     return 0.5 * log(r) * r / dr;
-} 
-vec3 calcNormal(vec3 pos) { 
-    vec2 e = vec2(1.0,-1.0)*0.5773*0.001; 
-    return normalize( e.xyy*mandelbulbSDF(pos + e.xyy) + e.yyx*mandelbulbSDF(pos + e.yyx) + e.yxy*mandelbulbSDF(pos + e.yxy) + e.xxx*mandelbulbSDF(pos + e.xxx) ); 
-} 
-void main() { 
-    vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / resolution.y; 
-    vec3 ro = vec3(0.0, 0.0, -2.5); pR(ro.xz, time * 0.1 + pan); pR(ro.xy, time * 0.05); 
-    vec3 ww = normalize(-ro); vec3 uu = normalize(cross(ww, vec3(0.0, 1.0, 0.0))); vec3 vv = normalize(cross(uu, ww)); 
-    vec3 rd = normalize(p.x * uu + p.y * vv + 1.0 * ww); 
-    float t = 0.0; float max_d = 10.0; float trap = 1.0; 
-    for(int i=0; i<80; i++) { 
-        vec3 pos = ro + rd*t; float d = mandelbulbSDF(pos); trap = min(trap, d); 
-        if(d<0.001 || t>max_d) break; t += d; 
-    } 
-    vec3 col = colorA * 0.05; 
-    if(t<max_d) { 
-        vec3 pos = ro + rd*t; vec3 nor = calcNormal(pos); vec3 lig = normalize(vec3(1.0, 1.0, -1.0)); 
-        float dif = clamp(dot(nor, lig), 0.0, 1.0); 
-        float spe = pow(clamp(dot(reflect(rd, nor), lig), 0.0, 1.0), 32.0); 
+}
+vec3 calcNormal(vec3 pos) {
+    vec2 e = vec2(1.0,-1.0)*0.5773*0.001;
+    return normalize( e.xyy*mandelbulbSDF(pos+e.xyy)+e.yyx*mandelbulbSDF(pos+e.yyx)+e.yxy*mandelbulbSDF(pos+e.yxy)+e.xxx*mandelbulbSDF(pos+e.xxx) );
+}
+void main() {
+    vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / resolution.y;
+    // === SHOT MACHINE (MANDELBULB) ===
+    float shotDur = 8.0;
+    float cycleT  = mod(time, shotDur * 3.0);
+    int   shotIdx = int(cycleT / shotDur);
+    float shotT   = smoothstep(0.0, 1.0, fract(cycleT / shotDur));
+    vec3 ro; float fov = 1.0;
+    if (shotIdx == 0) {
+        ro = vec3(0.0, 0.0, -2.5 - sin(time*0.08)*0.4);
+        pR(ro.xz, time * 0.08 + pan); pR(ro.xy, time * 0.04);
+    } else if (shotIdx == 1) {
+        ro = vec3(sin(time*0.1)*0.5, cos(time*0.07)*0.3, mix(-2.5, -1.8, shotT));
+        pR(ro.xz, pan * 0.5);
+        fov = mix(1.0, 1.3, shotT);
+    } else {
+        ro = vec3(mix(-0.5, 0.5, shotT), 0.0, -2.2);
+        pR(ro.xz, time * 0.05 + pan);
+    }
+    float shakeAmt = max(0.0, bass - 0.75) * 0.02;
+    ro += vec3(sin(time*47.0), cos(time*43.0), 0.0) * shakeAmt;
+    vec3 ww = normalize(-ro); vec3 uu = normalize(cross(ww, vec3(0.0,1.0,0.0))); vec3 vv = normalize(cross(uu, ww));
+    vec3 rd = normalize(p.x * uu + p.y * vv + fov * ww);
+    float t = 0.0; float max_d = 10.0; float trap = 1.0;
+    for(int i=0; i<80; i++) {
+        vec3 pos = ro + rd*t; float d = mandelbulbSDF(pos); trap = min(trap, d);
+        if(d<0.001 || t>max_d) break; t += d;
+    }
+    vec3 col = colorA * 0.05;
+    if(t<max_d) {
+        vec3 pos = ro + rd*t; vec3 nor = calcNormal(pos); vec3 lig = normalize(vec3(1.0,1.0,-1.0));
+        float dif = clamp(dot(nor, lig), 0.0, 1.0);
+        float spe = pow(clamp(dot(reflect(rd,nor), lig), 0.0, 1.0), 32.0);
         float sss = smoothstep(0.0, 1.0, mandelbulbSDF(pos + lig * 0.2)) * 0.5;
-        col = mix(colorA, colorB, length(pos)/1.5); 
-        col *= dif * 0.8 + 0.2; 
-        col += spe * (0.5 + high * 2.0) * vec3(1.0); 
-        col += colorA * sss;
-    } else { 
-        col += mix(colorA, colorB, 0.5) * exp(-trap*5.0) * bass; 
-    } 
+        col = mix(colorA, colorB, length(pos)/1.5);
+        col *= dif * 0.8 + 0.2; col += spe * (0.5 + high * 2.0); col += colorA * sss;
+    } else {
+        col += mix(colorA, colorB, 0.5) * exp(-trap*5.0) * bass;
+    }
     float fog = 1.0 - exp(-pow(t * 0.15, 2.0));
     col = mix(col, mix(colorA*0.2, vec3(0.0), 0.8), fog);
-    fragColor = vec4(col, 1.0); 
+    fragColor = vec4(col, 1.0);
 }'''
 
 NEBULA_FS = '''#version 330
-out vec4 fragColor; in vec2 uv; uniform vec2 resolution; uniform float time, bass, mid, high, pan; uniform vec3 colorA, colorB; uniform int pose; 
-void pR(inout vec2 p, float a) { p = cos(a)*p + sin(a)*vec2(p.y, -p.x); } 
-float noise(vec3 p) { 
-    vec3 i = floor(p); vec3 f = fract(p); f = f*f*(3.0-2.0*f); 
-    vec2 uv = (i.xy+vec2(37.0,17.0)*i.z) + f.xy; 
-    vec2 rg = fract(sin((uv+0.5)*0.014)*292.0); return mix(rg.x, rg.y, f.z); 
-} 
-float mapNebula(vec3 p) { 
-    float f = 0.0; vec3 q = p - vec3(0.0, 0.0, time*2.0); 
-    f += 0.5000*noise(q); q = q*2.01; f += 0.2500*noise(q); q = q*2.02; f += 0.1250*noise(q); q = q*2.03; f += 0.0625*noise(q); 
-    return f - 0.5; 
-} 
-void main() { 
-    vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / resolution.y; 
-    vec3 ro = vec3(0.0, 0.0, 0.0); pR(ro.xy, pan); 
-    vec3 rd = normalize(vec3(p.x, p.y, 1.0)); pR(rd.xy, sin(time*0.2)*0.5); 
-    float t = 0.0; vec4 sum = vec4(0.0); 
-    for(int i=0; i<60; i++) { 
-        vec3 pos = ro + rd*t; float den = mapNebula(pos); 
-        if(den > 0.01) { 
-            vec3 col = mix(colorA, colorB, clamp(den*2.0, 0.0, 1.0)); 
-            col *= mix(1.0, 2.5, bass); 
-            col += high * colorB * 0.8; 
-            // Sombras volumétricas falsas (Auto-sombreado)
-            float sh = clamp(mapNebula(pos + normalize(vec3(1.0, 1.0, -1.0))*0.3), 0.0, 1.0);
+out vec4 fragColor; in vec2 uv; uniform vec2 resolution; uniform float time, bass, mid, high, pan; uniform vec3 colorA, colorB; uniform int pose;
+void pR(inout vec2 p, float a) { p = cos(a)*p + sin(a)*vec2(p.y, -p.x); }
+float noise(vec3 p) {
+    vec3 i = floor(p); vec3 f = fract(p); f = f*f*(3.0-2.0*f);
+    vec2 uv2 = (i.xy+vec2(37.0,17.0)*i.z) + f.xy;
+    vec2 rg = fract(sin((uv2+0.5)*0.014)*292.0); return mix(rg.x, rg.y, f.z);
+}
+float mapNebula(vec3 p) {
+    float f = 0.0; vec3 q = p - vec3(0.0, 0.0, time*2.0);
+    f += 0.5000*noise(q); q=q*2.01; f += 0.2500*noise(q); q=q*2.02; f += 0.1250*noise(q); q=q*2.03; f += 0.0625*noise(q);
+    return f - 0.5;
+}
+void main() {
+    vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / resolution.y;
+    // === SHOT MACHINE (NEBULA) ===
+    float shotDur = 9.0;
+    float cycleT  = mod(time, shotDur * 2.0);
+    int   shotIdx = int(cycleT / shotDur);
+    float shotT   = smoothstep(0.0, 1.0, fract(cycleT / shotDur));
+    vec3 ro = vec3(0.0, 0.0, 0.0);
+    if (shotIdx == 0) {
+        pR(ro.xy, pan * 0.5 + time * 0.02);
+    } else {
+        ro = vec3(sin(time*0.05)*0.3, cos(time*0.04)*0.2, 0.0);
+        pR(ro.xy, pan * 0.3);
+    }
+    vec3 rd = normalize(vec3(p.x, p.y, 1.0));
+    pR(rd.xy, sin(time*0.15)*0.3 + shotT * 0.1);
+    float t = 0.0; vec4 sum = vec4(0.0);
+    for(int i=0; i<60; i++) {
+        vec3 pos = ro + rd*t; float den = mapNebula(pos);
+        if(den > 0.01) {
+            vec3 col = mix(colorA, colorB, clamp(den*2.0, 0.0, 1.0));
+            col *= mix(1.0, 2.5, bass); col += high * colorB * 0.8;
+            float sh = clamp(mapNebula(pos + normalize(vec3(1.0,1.0,-1.0))*0.3), 0.0, 1.0);
             col *= 1.0 - sh * 0.5;
-            vec4 src = vec4(col * den, den); src.rgb *= src.a; sum = sum + src*(1.0 - sum.a); 
-        } 
-        if(sum.a > 0.99) break; 
-        t += 0.08 + bass*0.05; // Salto de raymarching modulado
-    } 
-    fragColor = vec4(sum.rgb, 1.0); 
+            vec4 src = vec4(col * den, den); src.rgb *= src.a; sum = sum + src*(1.0 - sum.a);
+        }
+        if(sum.a > 0.99) break;
+        t += 0.08 + bass*0.05;
+    }
+    fragColor = vec4(sum.rgb, 1.0);
 }'''
+
 
 def _load_image_as_texture(ctx, img_path: str, w: int, h: int):
     """Carga una imagen desde disco como textura moderngl RGB."""
     from PIL import Image
-    import io
     try:
         img = Image.open(img_path).convert("RGB")
         resample_method = getattr(Image, 'Resampling', Image).LANCZOS
         if img.size != (w, h):
             img = img.resize((w, h), resample_method)
-        data = img.tobytes()
-        tex = ctx.texture((w, h), components=3, data=data)
+        tex = ctx.texture((w, h), components=3, data=img.tobytes())
         tex.filter = (moderngl.LINEAR, moderngl.LINEAR)
         return tex
     except Exception as e:
-        import sys
         print(f"[AIFirst] Warning: no se pudo cargar {img_path}: {e}", file=sys.stderr)
         tex = ctx.texture((w, h), components=3)
         tex.write(bytes(w * h * 3))
@@ -989,22 +1009,17 @@ def _load_image_as_texture(ctx, img_path: str, w: int, h: int):
 
 def _make_gradient_texture(ctx, color1: tuple, color2: tuple, w: int, h: int):
     """Crea una textura de gradiente radial cinematográfico usando numpy."""
-    import numpy as np
-    y, x = np.ogrid[:h, :w]
+    y_g, x_g = np.ogrid[:h, :w]
     cx, cy = w / 2.0, h / 2.0
-    dist = np.sqrt(((x - cx)**2) / (w*0.7)**2 + ((y - cy)**2) / (h*0.7)**2)
+    dist = np.sqrt(((x_g - cx)**2) / (w*0.7)**2 + ((y_g - cy)**2) / (h*0.7)**2)
     dist = np.clip(dist, 0.0, 1.0)
     vignette = np.maximum(0.15, 1.0 - dist * 1.4)
-    
     c1 = np.array(color1, dtype=np.float32)
     c2 = np.array(color2, dtype=np.float32)
-    
     dist_3d = dist[..., np.newaxis]
     vignette_3d = vignette[..., np.newaxis]
-    
     pixels = (c1 * (1.0 - dist_3d) + c2 * dist_3d) * vignette_3d * 255.0
     pixels = np.clip(pixels, 0, 255).astype(np.uint8)
-    
     tex = ctx.texture((w, h), components=3, data=pixels.tobytes())
     return tex
 
@@ -1015,14 +1030,8 @@ def render_v13_video(timeline: list, multiband: dict, colorsA: np.ndarray,
                      speed_multiplier=1.0, turbulence=1.0,
                      background_images: list = None):
     """
-    Renderiza el video V13 — AI-First Cinematic Pipeline.
-
-    Si background_images contiene rutas válidas de imágenes (generadas por
-    Pollinations/Fooocus), el COMPOSITE_FS las usa como fondo fotorrealista y
-    renderiza el GLSL como overlay transparente sobre ellas.
-
-    speed_multiplier y turbulence pueden ser float escalares O np.ndarray.
-    background_images: lista de rutas (str|None), una por entrada en timeline.
+    Renderiza el video V13 — AI-First Cinematic Pipeline V16.
+    Incluye: Shot Machine, Motion Blur temporal, Lens Breathing, Halation.
     """
     ctx = moderngl.create_context(standalone=True)
 
@@ -1034,14 +1043,13 @@ def render_v13_video(timeline: list, multiband: dict, colorsA: np.ndarray,
         "quantum_tunnel": ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=QUANTUM_TUNNEL_FS),
     }
 
-    # Elegir pipeline: AI-First si se provee la lista de fondos (incluso si fallaron)
     ai_first = background_images is not None
     if ai_first:
         prog_composite = ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=COMPOSITE_FS)
-        print("\n[🎬 Motor V13] PIPELINE AI-FIRST CINEMATOGRÁFICO ACTIVADO", file=sys.stderr)
+        print("\n[🎬 Motor V13] PIPELINE AI-FIRST CINEMATOGRÁFICO V16 ACTIVADO", file=sys.stderr)
     else:
         prog_post = ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=POST_PROCESS_FS)
-        print("\n[🚀 Motor V13] INICIANDO RENDER BIOMECÁNICO (VIDA + INERCIA)...", file=sys.stderr)
+        print("\n[🚀 Motor V13] RENDER CINEMATIC V16 (Shot Machine + Motion Blur)...", file=sys.stderr)
 
     vertices = np.array([-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0], dtype='f4')
     vbo = ctx.buffer(vertices)
@@ -1058,11 +1066,9 @@ def render_v13_video(timeline: list, multiband: dict, colorsA: np.ndarray,
     fbo_geom2 = ctx.framebuffer(color_attachments=[tex_geom2])
     fbo_final = ctx.framebuffer(color_attachments=[ctx.texture((w, h), components=3)])
 
-    # Textura negra de 1x1 como fallback para iChannel0 (evita sampler no inicializado)
     _black_px = np.zeros((1, 1, 3), dtype=np.uint8)
     tex_black_fallback = ctx.texture((1, 1), components=3, data=_black_px.tobytes())
 
-    # Pre-cargar todas las texturas de fondo AI por escena
     scene_bg_textures = {}
     if ai_first:
         for i, scene in enumerate(timeline):
@@ -1071,9 +1077,7 @@ def render_v13_video(timeline: list, multiband: dict, colorsA: np.ndarray,
                 scene_bg_textures[i] = _load_image_as_texture(ctx, img_path, w, h)
                 print(f"  [AIFirst] Escena {i+1}: {os.path.basename(img_path)}", file=sys.stderr)
             else:
-                # Fallback: gradiente con los colores de esa escena
-                mid_f = (scene["start"] + scene["end"]) // 2
-                mid_f = min(mid_f, len(colorsA) - 1)
+                mid_f = min((scene["start"] + scene["end"]) // 2, len(colorsA) - 1)
                 c1 = tuple(float(x) for x in colorsA[mid_f])
                 c2 = tuple(float(x) for x in colorsB[mid_f])
                 scene_bg_textures[i] = _make_gradient_texture(ctx, c1, c2, w, h)
@@ -1102,19 +1106,15 @@ def render_v13_video(timeline: list, multiband: dict, colorsA: np.ndarray,
         for frame_idx in range(total_frames):
             engine_1 = "space_odyssey"
             engine_2 = None
-            pose_1 = 0
-            pose_2 = 0
-            scene_idx_1 = 0
-            scene_idx_2 = 0
-            transition_t = 0.0
-            ken_burns_t = 0.0
+            pose_1 = 0; pose_2 = 0
+            scene_idx_1 = 0; scene_idx_2 = 0
+            transition_t = 0.0; ken_burns_t = 0.0
 
             for si, scene in enumerate(timeline):
                 if scene["start"] <= frame_idx <= scene["end"]:
                     engine_1 = scene["engine"]
                     pose_1 = scene.get("pose", 0)
                     scene_idx_1 = si
-                    # Ken Burns: progreso dentro de la escena (0→1)
                     scene_len = max(1, scene["end"] - scene["start"])
                     ken_burns_t = (frame_idx - scene["start"]) / float(scene_len)
                     if "transition_start" in scene and frame_idx >= scene["transition_start"]:
@@ -1137,18 +1137,29 @@ def render_v13_video(timeline: list, multiband: dict, colorsA: np.ndarray,
             cA  = tuple(float(x) for x in colorsA[frame_idx])
             cB  = tuple(float(x) for x in colorsB[frame_idx])
 
-            # Preparar texturas de fondo (IBL)
+            # Lens Breathing: energia acumulada smeared (inercia orgánica)
+            _breath_window = 6
+            _b_start = max(0, frame_idx - _breath_window)
+            _breath = float(np.mean(multiband['bass'][_b_start:frame_idx+1]) * 0.6 +
+                           np.mean(multiband['mid'][_b_start:frame_idx+1]) * 0.4)
+
+            # Texturas de fondo (IBL)
             bg_tex1 = None; bg_tex2 = None
-            if ai_first and len(scene_bg_textures) > 0:
-                bg_tex1 = scene_bg_textures.get(scene_idx_1)
-                if bg_tex1 is None: bg_tex1 = list(scene_bg_textures.values())[0]
+            if ai_first and scene_bg_textures:
+                bg_tex1 = scene_bg_textures.get(scene_idx_1) or list(scene_bg_textures.values())[0]
                 bg_tex2 = scene_bg_textures.get(scene_idx_2) if engine_2 else bg_tex1
                 if bg_tex2 is None: bg_tex2 = bg_tex1
 
-            def render_pass(engine_name, fbo, pose_val, bg_tex):
+            # === TEMPORAL MOTION BLUR ===
+            # N sub-frames promediados → suavidad de movimiento cinematográfico real
+            N_BLUR = 3 if b > 0.3 else 2
+            dt_blur = (1.0 / fps) / float(N_BLUR) * _spd
+            accumulated = None
+
+            def render_pass(engine_name, fbo, pose_val, bg_tex, t_val):
                 prog = engines[engine_name]
                 if 'resolution' in prog: prog['resolution'].value = (w, h)
-                if 'time'       in prog: prog['time'].value = t
+                if 'time'       in prog: prog['time'].value = t_val
                 if 'bass'       in prog: prog['bass'].value = b
                 if 'mid'        in prog: prog['mid'].value = m
                 if 'high'       in prog: prog['high'].value = hg
@@ -1156,59 +1167,60 @@ def render_v13_video(timeline: list, multiband: dict, colorsA: np.ndarray,
                 if 'colorA'     in prog: prog['colorA'].value = cA
                 if 'colorB'     in prog: prog['colorB'].value = cB
                 if 'pose'       in prog: prog['pose'].value = pose_val
-                
-                # Bindear la imagen fotorealista (IBL) — siempre bindeamos algo a loc 0
                 tex_to_bind = bg_tex if bg_tex else tex_black_fallback
                 tex_to_bind.use(location=0)
                 if 'iChannel0' in prog: prog['iChannel0'].value = 0
-
                 fbo.use(); ctx.clear(0.0, 0.0, 0.0)
                 vaos[engine_name].render(moderngl.TRIANGLE_STRIP)
 
-            render_pass(engine_1, fbo_geom1, pose_1, bg_tex1)
-            if engine_2 is not None:
-                render_pass(engine_2, fbo_geom2, pose_2, bg_tex2)
-            else:
-                render_pass(engine_1, fbo_geom2, pose_1, bg_tex1)  # Duplicar para evitar artifacts
+            for blur_i in range(N_BLUR):
+                t_sub = t + blur_i * dt_blur
 
-            fbo_final.use()
-            ctx.clear(0.0, 0.0, 0.0)
+                render_pass(engine_1, fbo_geom1, pose_1, bg_tex1, t_sub)
+                if engine_2 is not None:
+                    render_pass(engine_2, fbo_geom2, pose_2, bg_tex2, t_sub)
+                else:
+                    render_pass(engine_1, fbo_geom2, pose_1, bg_tex1, t_sub)
 
-            if ai_first and bg_tex1 is not None and bg_tex2 is not None:
-                # ── AI-First: COMPOSITE_FS con imagen fotorrealista de fondo ──
+                fbo_final.use()
+                ctx.clear(0.0, 0.0, 0.0)
 
-                bg_tex1.use(location=0)
-                tex_geom1.use(location=1)
-                tex_geom2.use(location=2)
-                bg_tex2.use(location=3)
-                
-                pc = prog_composite
-                if 'tex_base'     in pc: pc['tex_base'].value = 0
-                if 'tex_overlay'  in pc: pc['tex_overlay'].value = 1
-                if 'tex_overlay2' in pc: pc['tex_overlay2'].value = 2
-                if 'tex_base2'    in pc: pc['tex_base2'].value = 3
-                if 'transition_t' in pc: pc['transition_t'].value = float(transition_t)
-                if 'time'         in pc: pc['time'].value = t
-                if 'bass'         in pc: pc['bass'].value = b
-                if 'mid'          in pc: pc['mid'].value = m
-                if 'high'         in pc: pc['high'].value = hg
-                if 'ken_burns_t'  in pc: pc['ken_burns_t'].value = float(ken_burns_t)
-                vao_composite.render(moderngl.TRIANGLE_STRIP)
-            else:
-                # ── Legacy: POST_PROCESS_FS (solo GLSL) ──────────────────────
-                tex_geom1.use(location=0)
-                tex_geom2.use(location=1)
-                pp = prog_post
-                if 'tex1'         in pp: pp['tex1'].value = 0
-                if 'tex2'         in pp: pp['tex2'].value = 1
-                if 'transition_t' in pp: pp['transition_t'].value = float(transition_t)
-                if 'bass'         in pp: pp['bass'].value = b
-                if 'high'         in pp: pp['high'].value = hg
-                if 'time'         in pp: pp['time'].value = t
-                vao_post.render(moderngl.TRIANGLE_STRIP)
+                if ai_first and bg_tex1 is not None:
+                    bg_tex1.use(location=0)
+                    tex_geom1.use(location=1)
+                    tex_geom2.use(location=2)
+                    (bg_tex2 or bg_tex1).use(location=3)
+                    pc = prog_composite
+                    if 'tex_base'     in pc: pc['tex_base'].value = 0
+                    if 'tex_overlay'  in pc: pc['tex_overlay'].value = 1
+                    if 'tex_overlay2' in pc: pc['tex_overlay2'].value = 2
+                    if 'tex_base2'    in pc: pc['tex_base2'].value = 3
+                    if 'transition_t' in pc: pc['transition_t'].value = float(transition_t)
+                    if 'time'         in pc: pc['time'].value = t_sub
+                    if 'bass'         in pc: pc['bass'].value = b
+                    if 'mid'          in pc: pc['mid'].value = m
+                    if 'high'         in pc: pc['high'].value = hg
+                    if 'ken_burns_t'  in pc: pc['ken_burns_t'].value = float(ken_burns_t)
+                    if 'breath'       in pc: pc['breath'].value = float(_breath)
+                    vao_composite.render(moderngl.TRIANGLE_STRIP)
+                else:
+                    tex_geom1.use(location=0)
+                    tex_geom2.use(location=1)
+                    pp = prog_post
+                    if 'tex1'         in pp: pp['tex1'].value = 0
+                    if 'tex2'         in pp: pp['tex2'].value = 1
+                    if 'transition_t' in pp: pp['transition_t'].value = float(transition_t)
+                    if 'bass'         in pp: pp['bass'].value = b
+                    if 'high'         in pp: pp['high'].value = hg
+                    if 'time'         in pp: pp['time'].value = t_sub
+                    vao_post.render(moderngl.TRIANGLE_STRIP)
 
-            img_bytes = fbo_final.read(components=3)
-            proc.stdin.write(img_bytes)
+                sub = np.frombuffer(fbo_final.read(components=3), dtype=np.uint8).astype(np.float32)
+                accumulated = sub if accumulated is None else accumulated + sub
+
+            # Promedio → Motion Blur final
+            img_array = np.clip(accumulated / N_BLUR, 0, 255).astype(np.uint8)
+            proc.stdin.write(img_array.tobytes())
 
             if frame_idx % (fps * 2) == 0:
                 mode = "AI-FIRST" if ai_first else "GLSL"
@@ -1227,7 +1239,6 @@ def render_v13_video(timeline: list, multiband: dict, colorsA: np.ndarray,
             except: pass
             proc.terminate(); proc.wait()
 
-    # Liberar recursos GPU
     for v in vaos.values(): v.release()
     if ai_first:
         vao_composite.release()
@@ -1244,4 +1255,5 @@ def render_v13_video(timeline: list, multiband: dict, colorsA: np.ndarray,
 
     print(f"[✅ Motor V13] RENDERIZADO EN: {out_mp4}", file=sys.stderr)
     return out_mp4
+
 
