@@ -97,9 +97,12 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 - Registro global de adaptadores accesible desde el Dashboard.
 
 ### 🎬 Video Studio Multi-Agent & Motores Demoscene V17 PBR
-Pipeline multimedia de alta fidelidad orquestado asíncronamente en daemon. Completamente reestructurado bajo el paquete `/core/video/` para máxima resiliencia, con **Motores Matemáticos V17 GLSL** y despliegue para redes sociales integrado:
+Pipeline multimedia de alta fidelidad orquestado asíncronamente en daemon. Completamente reestructurado bajo el paquete `/core/video/` para máxima resiliencia, con **Motores Matemáticos V17 GLSL**, Renderizado Dual Nativo y despliegue para redes sociales:
 
-- **Estructura Modular (`/core/video/`)**:
+- **Dual Render Nativo en GPU**: El motor V17 (Interstellar, Turing Patterns, etc.) renderiza matemáticamente dos veces. Un Master Horizontal (`1920x1080`) y un Master Vertical (`1080x1920`) puro sin recortes FFMPEG.
+- **Smart Subtitle Safe-Zone**: Motor `.ASS` Aspect-Ratio Aware. Adapta dinámicamente los márgenes laterales (`MarginL 40px/440px`) y anclajes verticales según el aspect ratio para jamás salirse del encuadre seguro de TikTok.
+- **Generador Multi-Escena V16**: Flujo unificado que coordina generación de historia, split de diálogos, TTS (Edge-TTS) asíncrono y Whisper para metadatos temporales de precisión.
+- **Auto-Bypass de Fallas**: Sistema modular. Si falla Fooocus, el generador reintenta; si el LLM colapsa, usa un script genérico con `[visual anchor]` estricto.
   - `audio_processor.py`: Análisis FFT extrae frecuencias separadas (Bass, Mid, High) para reactividad visual, además de compresión sidechain y TTS cinemático.
   - `glsl_renderer_v13.py`: Cuna de las **5 Joyas Matemáticas V17** (Interstellar Kerr Black Hole, Turing Patterns, Inception KIFS, Neon Fluid, Organic Core). Iluminación basada en imagen (IBL) y post-procesado Hollywood (Cyber Glitch, Aberración Cromática, Film Grain orgánico).
   - `pipeline.py`: Base de datos SQLite (WAL), daemon worker threads, y gestor de **Auto-Routing Dual** (Generación simultánea del Máster Horizontal 16:9 y el Center-Crop Vertical 9:16).
