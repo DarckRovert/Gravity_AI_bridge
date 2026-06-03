@@ -991,6 +991,17 @@ def _process_job(
                 if os.path.isfile(final_music_path):
                     import shutil
                     shutil.move(final_music_path, final_path)
+                    
+                # FASE 4: Sincronización Audiovisual Automática (Beat-Syncer)
+                try:
+                    from core.video.beat_syncer import apply_beat_synced_fx
+                    beat_fx_path = final_path.replace(".mp4", "_rhythmic.mp4")
+                    if apply_beat_synced_fx(final_path, audio_track_path, beat_fx_path, fps):
+                        import shutil
+                        shutil.move(beat_fx_path, final_path)
+                        log.info("[VideoStudio] Beat-Synced FX (Glitch rítmico) aplicados con éxito al video.")
+                except Exception as b_e:
+                    log.warning(f"[VideoStudio] Error aplicando Beat-Syncer: {b_e}")
 
             render_ok = os.path.isfile(final_path) and os.path.getsize(final_path) > 0
         elif job_type == "music" and style == "biomechanic_v13":
