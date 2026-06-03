@@ -787,6 +787,13 @@ float fbm(vec3 p) {
     return f;
 }
 
+#define PI 3.14159265359
+vec2 envMapEquirect(vec3 dir) {
+    float phi = atan(dir.z, dir.x);
+    float theta = asin(clamp(dir.y, -1.0, 1.0));
+    return vec2(phi / (2.0 * PI) + 0.5, theta / PI + 0.5);
+}
+
 void main() {
     vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / resolution.y;
     
@@ -863,16 +870,19 @@ void main() {
         if (transmittance < 0.01) break;
     }
     
-    // Estrellas de fondo deformadas por la gravedad si el rayo escapó
+    // Fondo Híbrido: Textura Neural (IA) deformada por la Relatividad General
     if (transmittance > 0.01) {
-        vec3 bg = vec3(0.0);
+        vec2 uv_env = envMapEquirect(rd);
+        vec3 ai_env = texture(iChannel0, uv_env).rgb;
+        
+        // Mezclamos la IA con la paleta matemática para integración perfecta
+        ai_env *= mix(vec3(1.0), colorA, 0.2); 
+        
+        // Destellos estelares sobre la textura
         float st = fbm(rd * 150.0);
-        if (st > 0.65) bg += vec3(pow(st, 5.0)) * 2.0;
+        if (st > 0.65) ai_env += vec3(pow(st, 5.0)) * 2.0;
         
-        // Nebulosa lejana
-        bg += mix(colorB, colorA, fbm(rd * 3.0)) * 0.1;
-        
-        col += bg * transmittance;
+        col += ai_env * transmittance * 1.8;
     }
     
     fragColor = vec4(col, 1.0);
