@@ -13,7 +13,7 @@ WrapStyle: 1
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Cinematic,Arial,52,&H0000D7FF,&H88FFFFFF,&H00000000,&H88000000,1,0,0,0,100,100,1,0,1,3,3,2,20,20,50,1
+Style: Cinematic,Arial,52,&H0000D7FF,&H88FFFFFF,&H00000000,&H88000000,1,0,0,0,100,100,1,0,1,3,3,2,440,440,80,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text

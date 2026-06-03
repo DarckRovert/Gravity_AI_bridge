@@ -590,6 +590,25 @@ def _process_job(
             if not os.path.isfile(final_path):
                 raise RuntimeError("El renderizador V13 falló y no devolvió ningún MP4.")
                 
+            if style in ["galactic", "oceanic", "protean", "interstellar", "inception_kifs", "neon_fluid", "organic_core", "turing_patterns"]:
+                _shorts_path = final_path.replace(".mp4", "_short.mp4")
+                _update_job(job_id, progress=75, current_step=f"Renderizando NATIVO VERTICAL {style.upper()} V17 (GPU)...")
+                render_v13_video(
+                    timeline=timeline,
+                    multiband=multiband,
+                    colorsA=colorsA,
+                    colorsB=colorsB,
+                    w=_tgt_h,
+                    h=_tgt_w,
+                    fps=fps,
+                    out_mp4=_shorts_path,
+                    audio_path=audio_track_path,
+                    speed_multiplier=speed_mult_arr if speed_mult_arr is not None else speed_mult,
+                    turbulence=turb_mult_arr if turb_mult_arr is not None else turb_mult,
+                    background_images=background_images,
+                    subtitle_file=ass_path
+                )
+
             # Saltar el resto del código y saltar directo a "render_ok"
             render_ok = True
             
@@ -1028,17 +1047,9 @@ def _process_job(
 
             try:
                 if style in ["galactic", "biomechanic_v13", "oceanic", "protean", "interstellar", "inception_kifs", "neon_fluid", "organic_core", "turing_patterns"]:
-                    log.info(f"[VideoStudio] Omitiendo Remotion. Generando Short GLSL puro (9:16) vía FFMPEG center-crop...")
-                    import subprocess
+                    log.info(f"[VideoStudio] Shorts nativos verticales 9:16 ya fueron generados por la GPU en el paso anterior.")
                     _shorts_path = final_path.replace(".mp4", "_short.mp4")
                     try:
-                        subprocess.run([
-                            FFMPEG_EXE, "-y", "-i", final_path,
-                            "-vf", "crop=ih*9/16:ih",
-                            "-c:a", "copy",
-                            _shorts_path
-                        ], capture_output=True, check=True)
-                        log.info(f"[VideoStudio] Short GLSL generado exitosamente en: {_shorts_path}")
                         if job_type == "music":
                             import shutil
                             try:
