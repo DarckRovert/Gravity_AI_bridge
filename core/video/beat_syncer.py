@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from core.logger import log
-from core.video.audio_processor import extract_multiband_energy
+from core.video.audio_analyzer import extract_multiband_energy
 
 def apply_beat_synced_fx(video_path: str, audio_path: str, output_path: str, fps: int = 24) -> bool:
     """
