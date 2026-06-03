@@ -74,7 +74,9 @@ def generate_ass_subtitles(audio_path: str, out_ass_path: str, language: str = "
             # Preservar los espacios originales si los hubiera, reemplazando la palabra limpia
             w['word'] = w['word'].replace(clean_word, correcciones[lower_word])
             
-    # Agrupar palabras en frases cortas (max 4 palabras o pausas > 0.6s)
+    # Agrupar palabras en frases cortas
+    is_vertical = tgt_h > tgt_w
+    max_words = 3 if is_vertical else 5
     phrases = []
     current_phrase = []
     
@@ -89,10 +91,10 @@ def generate_ass_subtitles(audio_path: str, out_ass_path: str, language: str = "
             prev_w = current_phrase[-1]
             gap = w['start'] - prev_w['end']
             
-            # Cortar frase si hay una pausa larga, o si la frase ya es muy larga (3 palabras para vertical) o si termina en coma/punto
+            # Cortar frase si hay una pausa larga, si alcanza el max_words o si termina en coma/punto
             ends_with_punct = prev_w['word'].strip().endswith(('.', ',', '!', '?', ';'))
             
-            if gap > 0.6 or len(current_phrase) >= 3 or ends_with_punct:
+            if gap > 0.6 or len(current_phrase) >= max_words or ends_with_punct:
                 phrases.append(current_phrase)
                 current_phrase = [w]
             else:
