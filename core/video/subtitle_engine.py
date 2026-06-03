@@ -9,10 +9,10 @@ def get_ass_template(tgt_w: int, tgt_h: int) -> str:
     is_vertical = tgt_h > tgt_w
     play_res_x = 720 if is_vertical else 1280
     play_res_y = 1280 if is_vertical else 720
-    margin_l = 40 if is_vertical else 80
-    margin_r = 40 if is_vertical else 80
+    margin_l = 60 if is_vertical else 80
+    margin_r = 60 if is_vertical else 80
     margin_v = 150 if is_vertical else 50
-    font_size = 56 if is_vertical else 52
+    font_size = 40 if is_vertical else 52
     
     return f"""[Script Info]
 ScriptType: v4.00+
@@ -89,10 +89,10 @@ def generate_ass_subtitles(audio_path: str, out_ass_path: str, language: str = "
             prev_w = current_phrase[-1]
             gap = w['start'] - prev_w['end']
             
-            # Cortar frase si hay una pausa larga, o si la frase ya es muy larga (4 palabras) o si termina en coma/punto
+            # Cortar frase si hay una pausa larga, o si la frase ya es muy larga (3 palabras para vertical) o si termina en coma/punto
             ends_with_punct = prev_w['word'].strip().endswith(('.', ',', '!', '?', ';'))
             
-            if gap > 0.6 or len(current_phrase) >= 4 or ends_with_punct:
+            if gap > 0.6 or len(current_phrase) >= 3 or ends_with_punct:
                 phrases.append(current_phrase)
                 current_phrase = [w]
             else:
