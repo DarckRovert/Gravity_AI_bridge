@@ -53,3 +53,63 @@ Narración:
 === HISTORIA: Cosmic Masterpiece V2 PBR FINAL ===
 Escena: V13 Music Video
 Narración: 
+
+
+=== HISTORIA: CineTest V17 Galaxy System + Gold ASS Subtitles ===
+Escena: V13 Music Video
+Narración: 
+
+
+=== HISTORIA: CineTest V17 Galaxy System FINAL ===
+Escena: V13 Music Video
+Narración: 
+
+
+=== HISTORIA: CineTest V17 Galaxy System FINAL V2 ===
+Escena: V13 Music Video
+Narración: 
+
+
+=== HISTORIA: CineTest V17 Galaxy System FINAL V3 ===
+Escena: V13 Music Video
+Narración: 
+
+
+=== HISTORIA: CineTest V17 Galaxy System FINAL V4 ===
+Escena: V13 Music Video
+Narración: 
+
+
+=== HISTORIA: CineTest V17 OCEANIC (TDM Style) MASTER ===
+Escena: V13 Music Video
+Narración: 
+
+
+=== HISTORIA: CineTest V17 OCEANIC (TDM Style) ULTIMATE ===
+Escena: V13 Music Video
+Narración: 
+
+
+=== HISTORIA: CineTest V17 OCEANIC (TDM Style) FIXED LYRICS ===
+Escena: V13 Music Video
+Narración: 
+
+
+=== HISTORIA: CineTest V17 PROTEAN CLOUDS (Nimitz Style) FIXED LYRICS ===
+Escena: V13 Music Video
+Narración: 
+
+
+=== HISTORIA: CineTest V17 PROTEAN CLOUDS (Nimitz Style) GLSL PERFECT ===
+Escena: V13 Music Video
+Narración: 
+
+
+=== HISTORIA: CineTest V17 PROTEAN CLOUDS TRUE VOLUMETRIC ===
+Escena: V13 Music Video
+Narración: 
+
+
+=== HISTORIA: CineTest V17 TURING PATTERNS REACTION-DIFFUSION MASTER ===
+Escena: V13 Music Video
+Narración: 

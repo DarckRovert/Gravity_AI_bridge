@@ -746,6 +746,423 @@ void main() {
 }
 '''
 
+# --- GARGANTUA (RELATIVIDAD GENERAL E INTERESTELAR) ---
+INTERSTELLAR_FS = '''
+#version 330
+out vec4 fragColor;
+in vec2 uv;
+uniform vec2 resolution;
+uniform float time, bass, mid, high, pan, beat_hit;
+uniform vec3 colorA, colorB; uniform int pose;
+uniform sampler2D iChannel0;
+
+mat2 rot(float a) { float s=sin(a), c=cos(a); return mat2(c,-s,s,c); }
+
+float hash(vec3 p) {
+    p = fract(p * vec3(127.1, 311.7, 74.7));
+    p += dot(p, p + 19.19);
+    return fract(p.x * p.y * p.z);
+}
+
+float noise(vec3 p) {
+    vec3 i = floor(p);
+    vec3 f = fract(p);
+    f = f*f*(3.0-2.0*f);
+    return mix(
+        mix(mix(hash(i), hash(i+vec3(1,0,0)), f.x),
+            mix(hash(i+vec3(0,1,0)), hash(i+vec3(1,1,0)), f.x), f.y),
+        mix(mix(hash(i+vec3(0,0,1)), hash(i+vec3(1,0,1)), f.x),
+            mix(hash(i+vec3(0,1,1)), hash(i+vec3(1,1,1)), f.x), f.y), f.z
+    );
+}
+
+float fbm(vec3 p) {
+    float f = 0.0;
+    float w = 0.5;
+    for(int i=0; i<4; i++) {
+        f += w * noise(p);
+        p *= 2.0;
+        w *= 0.5;
+    }
+    return f;
+}
+
+void main() {
+    vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / resolution.y;
+    
+    // Cámara
+    vec3 ro = vec3(0.0, 1.2 + sin(time*0.2)*0.5, -6.0 + sin(time*0.1)*1.5);
+    ro.xz *= rot(time * 0.1 + pan);
+    vec3 ta = vec3(0.0, 0.0, 0.0);
+    
+    vec3 ww = normalize(ta - ro);
+    vec3 uu = normalize(cross(ww, vec3(0.0, 1.0, 0.0)));
+    vec3 vv = normalize(cross(uu, ww));
+    vec3 rd = normalize(p.x*uu + p.y*vv + 1.5*ww);
+    
+    // Trazador de Rayos Relativista (Kerr / Schwarzschild aproximado)
+    vec3 pos = ro;
+    vec3 col = vec3(0.0);
+    float dt = 0.08;
+    float mass = 1.0; // Singularidad
+    float event_horizon = 0.8;
+    
+    float transmittance = 1.0;
+    
+    for(int i = 0; i < 150; i++) {
+        float r2 = dot(pos, pos);
+        float r = sqrt(r2);
+        
+        // Efecto Lente Gravitacional: Curvatura de la Geodésica
+        // La gravedad atrae el fotón hacia el centro (0,0,0)
+        vec3 force = -pos * (mass / (r2 * r));
+        rd = normalize(rd + force * dt * 1.5);
+        
+        pos += rd * dt;
+        
+        // Si cruzamos el horizonte de sucesos, se acabó el rayo (oscuridad)
+        if (r < event_horizon) {
+            transmittance = 0.0;
+            break;
+        }
+        
+        // Disco de Acreción (Volumen plano en y=0)
+        if (abs(pos.y) < 0.4 && r > 1.2 && r < 4.5) {
+            // Dinámica de fluidos del plasma giratorio
+            vec3 dp = pos;
+            float angle = atan(dp.z, dp.x);
+            float speed = 3.0 / sqrt(r); // Velocidad kepleriana
+            dp.xz *= rot(-time * speed);
+            
+            float plasma = fbm(dp * 4.0 - vec3(0,time*2.0,0));
+            plasma *= smoothstep(0.4, 0.0, abs(pos.y));
+            plasma *= smoothstep(1.2, 1.5, r) * smoothstep(4.5, 3.5, r); // Bordes difusos
+            
+            if (plasma > 0.0) {
+                // Relativistic Doppler Beaming
+                // El plasma acercándose es azul/brillante, alejándose es rojo/oscuro
+                vec3 tangent = normalize(vec3(-pos.z, 0.0, pos.x));
+                float doppler = dot(rd, tangent) * speed; 
+                
+                vec3 base_color = mix(colorB, colorA, r/4.5);
+                
+                // Shift de color basado en la relatividad
+                vec3 shiftColor = mix(vec3(1.0, 0.2, 0.0), vec3(0.5, 0.8, 1.0), (doppler + 1.0) * 0.5);
+                
+                // Pulso de onda gravitacional en el Beat exacto
+                float grav_pulse = beat_hit * smoothstep(1.5, 3.0, r);
+                vec3 final_glow = base_color * shiftColor * (1.0 + doppler * 0.8) * (1.0 + bass*0.5 + grav_pulse*2.0);
+                
+                // Absorción y emisión (Volumetric raymarching)
+                float alpha = plasma * 0.15;
+                col += transmittance * final_glow * alpha * 5.0;
+                transmittance *= (1.0 - alpha);
+            }
+        }
+        
+        if (transmittance < 0.01) break;
+    }
+    
+    // Estrellas de fondo deformadas por la gravedad si el rayo escapó
+    if (transmittance > 0.01) {
+        vec3 bg = vec3(0.0);
+        float st = fbm(rd * 150.0);
+        if (st > 0.65) bg += vec3(pow(st, 5.0)) * 2.0;
+        
+        // Nebulosa lejana
+        bg += mix(colorB, colorA, fbm(rd * 3.0)) * 0.1;
+        
+        col += bg * transmittance;
+    }
+    
+    fragColor = vec4(col, 1.0);
+}
+'''
+
+# --- JOYA 1: FRACTALES KIFS (INCEPTION) ---
+KIFS_FS = '''
+#version 330
+out vec4 fragColor;
+in vec2 uv;
+uniform vec2 resolution;
+uniform float time, bass, mid, high, pan, beat_hit;
+uniform vec3 colorA, colorB; uniform int pose;
+
+mat2 rot(float a) { float s=sin(a), c=cos(a); return mat2(c,-s,s,c); }
+
+float map(vec3 p) {
+    // KIFS (Kaleidoscopic Iterated Function Systems)
+    float scale = 1.0;
+    for(int i = 0; i < 5; i++) {
+        p.xyz = abs(p.xyz) - vec3(1.2 + bass * 0.8, 0.8 + mid * 0.5, 0.5 + beat_hit * 0.5);
+        p.xy *= rot(time * 0.15 + bass * 0.2 + beat_hit * 0.1);
+        p.xz *= rot(time * 0.1 + high * 0.2);
+        p *= 1.5;
+        scale *= 1.5;
+    }
+    return (length(p) - 1.5) / scale; // Esfera plegada fractalmente
+}
+
+void main() {
+    vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / resolution.y;
+    vec3 ro = vec3(0.0, 0.0, -8.0 + sin(time*0.5)*2.0);
+    vec3 rd = normalize(vec3(p, 1.5));
+    
+    // Rotar cámara para efecto vértigo
+    ro.xy *= rot(sin(time*0.1) * 0.5);
+    rd.xy *= rot(sin(time*0.1) * 0.5);
+    rd.xz *= rot(time*0.2 + pan);
+    
+    float t = 0.0;
+    vec3 col = vec3(0.0);
+    
+    // Raymarching
+    for(int i = 0; i < 100; i++) {
+        vec3 pos = ro + rd * t;
+        float d = map(pos);
+        if(d < 0.001) {
+            // Normales
+            vec2 e = vec2(0.001, 0.0);
+            vec3 n = normalize(vec3(
+                map(pos + e.xyy) - map(pos - e.xyy),
+                map(pos + e.yxy) - map(pos - e.yxy),
+                map(pos + e.yyx) - map(pos - e.yyx)
+            ));
+            
+            // Iluminación
+            vec3 lig = normalize(vec3(sin(time), 1.0, cos(time)));
+            float dif = max(dot(n, lig), 0.0);
+            float amb = 0.5 + 0.5 * n.y;
+            
+            // Material basado en posición fractal
+            vec3 mat = mix(colorA, colorB, sin(pos.z * 5.0 + time) * 0.5 + 0.5);
+            col = mat * (dif * 0.8 + amb * 0.2);
+            
+            // Glow reactivo
+            col += colorA * bass * 2.0 * smoothstep(0.5, 1.0, fract(pos.y * 10.0 + time * 5.0));
+            break;
+        }
+        t += d;
+        // Fog volumétrico en cada paso
+        col += mix(colorB, vec3(1.0), 0.5) * 0.015 * smoothstep(1.0, 0.0, d) * bass;
+        if(t > 20.0) break;
+    }
+    
+    // Fog de profundidad
+    col = mix(col, vec3(0.05), 1.0 - exp(-0.05 * t));
+    fragColor = vec4(col, 1.0);
+}
+'''
+
+# --- JOYA 2: FLUIDOS NEON (PSEUDO NAVIER-STOKES) ---
+NEON_FLUID_FS = '''
+#version 330
+out vec4 fragColor;
+in vec2 uv;
+uniform vec2 resolution;
+uniform float time, bass, mid, high, beat_hit;
+uniform vec3 colorA, colorB;
+
+mat2 rot(float a) { float s=sin(a), c=cos(a); return mat2(c,-s,s,c); }
+
+vec2 hash( vec2 p ) {
+    p = vec2( dot(p,vec2(127.1,311.7)), dot(p,vec2(269.5,183.3)) );
+    return -1.0 + 2.0*fract(sin(p)*43758.5453123);
+}
+
+float noise( in vec2 p ) {
+    vec2 i = floor( p );
+    vec2 f = fract( p );
+    vec2 u = f*f*(3.0-2.0*f);
+    return mix( mix( dot( hash( i + vec2(0.0,0.0) ), f - vec2(0.0,0.0) ), 
+                     dot( hash( i + vec2(1.0,0.0) ), f - vec2(1.0,0.0) ), u.x),
+                mix( dot( hash( i + vec2(0.0,1.0) ), f - vec2(0.0,1.0) ), 
+                     dot( hash( i + vec2(1.0,1.0) ), f - vec2(1.0,1.0) ), u.x), u.y);
+}
+
+void main() {
+    vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / resolution.y;
+    vec2 fluid_uv = p;
+    
+    // Advección de Curl Noise (Fluido Turbulento)
+    float t = time * 0.5;
+    for(int i = 0; i < 6; i++) {
+        // Empuje del sonido como "viento" físico
+        vec2 force = vec2(sin(t + fluid_uv.y * 3.0), cos(t + fluid_uv.x * 3.0)) * bass * 0.2;
+        
+        float n1 = noise(fluid_uv * 2.0 + t);
+        float n2 = noise(fluid_uv * 2.0 - t + vec2(10.0));
+        
+        // El vector perpendicular al ruido de gradiente da el "Curl" (Navier-Stokes divergence-free)
+        vec2 curl = vec2(-n2, n1); 
+        
+        fluid_uv += (curl * 0.3 + force) * (1.0 + mid);
+        fluid_uv *= rot(0.1 * high * sin(time));
+    }
+    
+    // Renderear el humo
+    float smoke = noise(fluid_uv * 4.0);
+    smoke = smoothstep(0.0, 0.7, smoke);
+    
+    // Impacto expansivo explosivo de fluido
+    float shockwave = beat_hit * smoothstep(0.5, 0.0, abs(length(p) - fract(time*2.0)));
+    
+    // Colorización basada en la densidad del humo
+    vec3 col = mix(vec3(0.0), colorA, smoke + shockwave);
+    col = mix(col, colorB, smoothstep(0.4, 1.0, smoke) * bass + beat_hit * 0.5);
+    
+    // Resaltes especulares de "Líquido de neón"
+    float spec = pow(noise(fluid_uv * 10.0 - time*2.0), 4.0);
+    col += vec3(1.0) * spec * high * 3.0;
+    
+    fragColor = vec4(col, 1.0);
+}
+'''
+
+# --- JOYA 3: NUCLEO ORGANICO (RAYTRACED SUBSURFACE SCATTERING) ---
+ORGANIC_CORE_FS = '''
+#version 330
+out vec4 fragColor;
+in vec2 uv;
+uniform vec2 resolution;
+uniform float time, bass, mid, high, pan, beat_hit;
+uniform vec3 colorA, colorB;
+
+mat2 rot(float a) { float s=sin(a), c=cos(a); return mat2(c,-s,s,c); }
+
+float smin( float a, float b, float k ) {
+    float h = clamp( 0.5+0.5*(b-a)/k, 0.0, 1.0 );
+    return mix( b, a, h ) - k*h*(1.0-h);
+}
+
+float map(vec3 p) {
+    p.xy *= rot(time * 0.2);
+    p.xz *= rot(time * 0.3 + pan);
+    
+    // Estructura orgánica (Corazón o Medusa de luz)
+    float d1 = length(p) - 1.5; // Esfera central
+    
+    // Tentáculos o venas que pulsan con el bajo y el latido
+    vec3 q = p;
+    q.x += sin(q.y * 5.0 + time * 3.0) * 0.2 * (bass + beat_hit);
+    q.z += cos(q.y * 4.0 - time * 2.0) * 0.2 * (bass + beat_hit);
+    
+    float d2 = length(vec2(length(q.xz) - 0.5, q.y)) - 0.2 - mid*0.2; 
+    float d3 = length(vec2(length(q.xy) - 1.0, q.z)) - 0.1 - high*0.1;
+    
+    float obj = smin(d1, d2, 0.8);
+    obj = smin(obj, d3, 0.5);
+    
+    // Deformación de superficie para parecer tejido/cera
+    obj += sin(p.x * 10.0) * sin(p.y * 10.0) * sin(p.z * 10.0) * 0.05;
+    return obj;
+}
+
+// Monte Carlo Approximation para Subsurface Scattering
+float calcSSS(vec3 p, vec3 n, vec3 l) {
+    float sss = 0.0;
+    float weight = 1.0;
+    // Trazamos rayos hacia ADENTRO del objeto
+    for(int i = 1; i <= 5; i++) {
+        float d = float(i) * 0.15; // Qué tan profundo entra la luz
+        float dist = map(p - n * d);
+        sss += (d - dist) * weight;
+        weight *= 0.5; // Decaimiento exponencial de la luz interna
+    }
+    return clamp(1.0 - sss * 2.0, 0.0, 1.0); // Transmitancia interna
+}
+
+void main() {
+    vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / resolution.y;
+    vec3 ro = vec3(0.0, 0.0, -4.0 - bass);
+    vec3 rd = normalize(vec3(p, 1.0));
+    
+    float t = 0.0;
+    vec3 col = vec3(0.02); // Fondo oscuro
+    
+    for(int i = 0; i < 80; i++) {
+        vec3 pos = ro + rd * t;
+        float d = map(pos);
+        if(d < 0.001) {
+            vec2 e = vec2(0.001, 0.0);
+            vec3 n = normalize(vec3(
+                map(pos + e.xyy) - map(pos - e.xyy),
+                map(pos + e.yxy) - map(pos - e.yxy),
+                map(pos + e.yyx) - map(pos - e.yyx)
+            ));
+            
+            vec3 lig = normalize(vec3(1.0, 1.0, -1.0));
+            
+            // Difusa clásica
+            float dif = max(dot(n, lig), 0.0);
+            
+            // Subsurface Scattering (Luz que penetra la "piel")
+            float sss = calcSSS(pos, n, lig);
+            
+            // Color de la superficie
+            vec3 base = mix(vec3(0.1, 0.05, 0.0), colorA, 0.2); 
+            
+            // Color de la luz interna (brilla fuerte con el audio)
+            vec3 glow = colorB * sss * (1.5 + bass * 2.0 + beat_hit * 3.0);
+            
+            // Fresnel (Bordes brillantes de tejido)
+            float fre = pow(1.0 - max(dot(n, -rd), 0.0), 3.0);
+            
+            col = base * dif + glow + colorA * fre * (high + beat_hit);
+            break;
+        }
+        t += d;
+        if(t > 15.0) break;
+    }
+    
+    fragColor = vec4(col, 1.0);
+}
+'''
+
+# --- JOYA 4: TURING PATTERNS (REACTION-DIFFUSION BIOLUMINISCENTE) ---
+TURING_PATTERNS_FS = '''
+#version 330
+out vec4 fragColor;
+in vec2 uv;
+uniform vec2 resolution;
+uniform float time, bass, mid, high, beat_hit;
+uniform vec3 colorA, colorB;
+
+void main() {
+    vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / resolution.y;
+    
+    // Deformación de espacio celular
+    float r = length(p);
+    float a = atan(p.y, p.x);
+    
+    // Simulación pseudo-Reaction-Diffusion usando capas senoidales anidadas
+    float v = 0.0;
+    vec2 pos = p * (3.0 + mid * 2.0);
+    
+    for(int i=0; i<6; i++) {
+        float t = time * 0.2 + float(i) * 1.5;
+        pos.x += sin(pos.y * 2.0 + t) * 0.5 * (1.0 + bass);
+        pos.y += cos(pos.x * 2.0 - t) * 0.5 * (1.0 + bass);
+        v += sin(pos.x * 4.0) * cos(pos.y * 4.0);
+        pos *= 1.3;
+    }
+    
+    // Umbral de Turing (Puntos vs Rayas)
+    float pattern = smoothstep(0.0, 0.2, v);
+    
+    // Contorno Bioluminiscente
+    float edge = smoothstep(0.1, 0.0, abs(v));
+    
+    // Explosión de células en el beat
+    float shock = beat_hit * smoothstep(0.8, 0.0, r);
+    
+    vec3 col = mix(vec3(0.05, 0.0, 0.1), colorA, pattern);
+    col += colorB * edge * (2.0 + high * 4.0 + shock * 5.0);
+    
+    fragColor = vec4(col, 1.0);
+}
+'''
+
 # COMPOSITE SHADER: Mezcla imagen AI de fondo + overlay GLSL + Ken Burns + postproceso
 COMPOSITE_FS = '''
 #version 330
@@ -762,6 +1179,7 @@ uniform float mid;
 uniform float high;
 uniform float ken_burns_t;       // 0.0-1.0 progreso del zoom Ken Burns en esta escena
 uniform float breath;            // Lens Breathing: 0.0-1.0 energia acumulada
+uniform float beat_hit;          // Sincronización rítmica (1.0 en el golpe exacto, decae suavemente)
 
 // ACES Tone Mapping
 vec3 ACESFilm(vec3 x) {
@@ -838,14 +1256,32 @@ void main() {
     // Tinte global del overlay sobre el fondo (colores del GLSL tiñen sutilmente la imagen)
     col = mix(col, col * (0.6 + overlay * 0.5), 0.3 * alpha_ov);
     
+    // ── Hollywood Grade Post-Processing (Bloom + Chromatic Aberration Rítmica) ──
+    // Flash de aberración cromática en el golpe del beat
+    float beat_aberration = beat_hit * 0.05 * length(dir);
+    if (beat_hit > 0.0) {
+        vec3 col_ab;
+        col_ab.r = mix(base1, base2, transition_t).r; // Fallback simple para el rojo desplazado
+        col_ab.g = col.g;
+        col_ab.b = texture(tex_base, kb_uv - dir * beat_aberration).b; 
+        col = mix(col, col_ab, beat_hit * 0.8);
+        
+        // Destello de exposición cinematográfica (Flash cut)
+        col += vec3(beat_hit * 0.15); 
+    }
+    
+    // Viñeta óptica profunda
+    float vignette = 1.0 - dot(dir, dir) * 1.5;
+    col *= smoothstep(0.0, 0.5, vignette);
+
     // ── Camera shake & Cyber Glitch en beat drops ────────────────────────────
-    if (bass > 0.85) {
-        float shake = (bass - 0.85) * 0.025;
+    if (bass > 0.85 || beat_hit > 0.8) {
+        float shake = max((bass - 0.85) * 0.025, beat_hit * 0.015);
         vec2 shakeUV = kb_uv + vec2(sin(time * 50.0) * shake, cos(time * 47.0) * shake);
         
         // Digital Glitch (Desplazamiento horizontal de scanlines)
         float glitchLine = step(0.9, fract(st.y * 20.0 + time * 15.0));
-        float glitchShift = (bass - 0.85) * 0.15 * glitchLine * sin(time * 120.0);
+        float glitchShift = max((bass - 0.85) * 0.15, beat_hit * 0.1) * glitchLine * sin(time * 120.0);
         shakeUV.x += glitchShift;
         
         // Chromatic Aberration extrema en el Glitch
@@ -988,6 +1424,263 @@ void main() {
     fragColor = vec4(sum.rgb, 1.0);
 }'''
 
+GALAXY_SYSTEM_FS = '''#version 330
+out vec4 fragColor; in vec2 uv; uniform vec2 resolution; uniform float time, bass, mid, high, pan; uniform vec3 colorA, colorB; uniform int pose;
+
+mat2 rot(float a) { float s = sin(a), c = cos(a); return mat2(c, s, -s, c); }
+void pR(inout vec2 p, float a) { p = cos(a)*p + sin(a)*vec2(p.y, -p.x); }
+
+void main() {
+    vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / resolution.y;
+    
+    // Configuración Star Nest inspirada en el legendario shader de Pablo Andrioli (Kali)
+    int iterations = 17; // Detalle del fractal
+    float formuparam = 0.53; // Constante mágica de pliegue espacial
+    int volsteps = 20; // Capas volumétricas de raymarching
+    float stepsize = 0.1; // Distancia entre capas
+    float zoom = 0.8;
+    float tile = 0.85;
+    float brightness = 0.0015;
+    float darkmatter = 0.3;
+    float distfading = 0.73;
+    float saturation = 0.85;
+    
+    // Cinematografía: Vuelo Épico, Suave y Limpio
+    float t_time = time * 0.1 + bass * 0.05;
+    vec3 ro = vec3(0.0, 0.0, -t_time); // Vuelo incesante por la galaxia
+    
+    // Shake interactivo de nave muy suave (sin marear)
+    float shake = max(0.0, bass - 0.7) * 0.02;
+    ro.x += sin(time * 5.0) * shake;
+    ro.y += cos(time * 4.0) * shake;
+    
+    vec3 ww = normalize(vec3(0.0, 0.0, 1.0)); 
+    vec3 uu = normalize(cross(ww, vec3(0.0, 1.0, 0.0)));
+    vec3 vv = normalize(cross(uu, ww));
+    vec3 rd = normalize(p.x * uu + p.y * vv + zoom * ww);
+    
+    // Rotación suave e inercial del viaje
+    pR(rd.xy, sin(time * 0.05) * 0.3 + pan);
+    pR(rd.xz, cos(time * 0.03) * 0.2);
+    
+    vec3 v = vec3(0.0);
+    float s = 0.1;
+    float fade = 1.0;
+    
+    // Raymarching Volumétrico Fractal (La Magia)
+    for (int r = 0; r < volsteps; r++) {
+        vec3 pos = ro + s * rd * 0.5;
+        pos = abs(vec3(tile) - mod(pos, vec3(tile * 2.0))); // Tiling cósmico para infinidad
+        
+        float a = 0.0, pa = 0.0;
+        for (int i = 0; i < iterations; i++) {
+            pos = abs(pos) / dot(pos, pos) - formuparam;
+            // Damping rítmico para animar el gas con las frecuencias altas
+            pos *= 1.0 - (high * 0.015); 
+            a += abs(length(pos) - pa);
+            pa = length(pos);
+        }
+        
+        float dm = max(0.0, darkmatter - a * a * 0.001); // Materia oscura
+        a *= a * a; // Contraste estelar
+        
+        if (r > 6) fade *= 1.0 - dm;
+        
+        // Coloreado usando la paleta dinámica de la canción
+        vec3 stepCol = mix(colorB, colorA, fract(float(r)*0.1 + time*0.05));
+        stepCol = mix(stepCol, vec3(1.0, 0.9, 0.8), 0.2); // Añadir brillo estelar cálido
+        
+        v += fade;
+        v += stepCol * a * brightness * fade * (1.0 + bass * 1.5);
+        
+        fade *= distfading;
+        s += stepsize;
+    }
+    
+    // Ajuste de saturación
+    v = mix(vec3(length(v)), v, saturation);
+    
+    // Añadir un sutil destello volumétrico en el centro de la visión
+    float glow = max(0.0, 1.0 - length(p)) * 0.2 * bass;
+    v += colorA * glow;
+    
+    // Tone mapping de cine para retención de reflejos (ACES-like)
+    v = (v * (2.51 * v + 0.03)) / (v * (2.43 * v + 0.59) + 0.14);
+    
+    fragColor = vec4(v, 1.0);
+}
+'''
+
+OCEANIC_FS = '''#version 330
+out vec4 fragColor; in vec2 uv; uniform vec2 resolution; uniform float time, bass, mid, high, pan; uniform vec3 colorA, colorB; uniform int pose;
+
+mat2 rot(float a) { float s = sin(a), c = cos(a); return mat2(c, s, -s, c); }
+float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123); }
+float noise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    vec2 u = f*f*(3.0-2.0*f);
+    return mix(mix(hash(i+vec2(0.,0.)), hash(i+vec2(1.,0.)), u.x),
+               mix(hash(i+vec2(0.,1.)), hash(i+vec2(1.,1.)), u.x), u.y);
+}
+float sea_octave(vec2 uv, float choppy) {
+    uv += noise(uv);        
+    vec2 wv = 1.0 - abs(sin(uv));
+    vec2 swv = abs(cos(uv));    
+    wv = mix(wv, swv, wv);
+    return pow(1.0 - pow(wv.x * wv.y, 0.65), choppy);
+}
+float map(vec3 p) {
+    float freq = 0.16;
+    float amp = 0.6 + bass * 0.4;
+    float choppy = 4.0;
+    vec2 uv = p.xz; uv.x *= 0.75;
+    float d = 0.0, h = 0.0;    
+    for(int i = 0; i < 4; i++) {        
+        d = sea_octave((uv + time * 0.5)*freq, choppy);
+        d += sea_octave((uv - time * 0.5)*freq, choppy);
+        h += d * amp;        
+        uv *= rot(1.6); freq *= 1.9; amp *= 0.22;
+        choppy = mix(choppy, 1.0, 0.2);
+    }
+    return p.y - h;
+}
+vec3 getNormal(vec3 p, float eps) {
+    vec3 n; n.y = map(p);    
+    n.x = map(p + vec3(eps, 0, 0)) - n.y;
+    n.z = map(p + vec3(0, 0, eps)) - n.y;
+    n.y = eps; return normalize(n);
+}
+void main() {
+    vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / resolution.y;
+    vec3 ro = vec3(0.0, 2.5 + bass*1.5, time * 3.0);
+    ro.y += sin(time*0.5)*0.5;
+    vec3 rd = normalize(vec3(p.x, p.y - 0.2, 1.0));
+    rd.xz *= rot(sin(time*0.1)*0.1 + pan);
+    float t = 0.0, tMax = 50.0;
+    for(int i = 0; i < 50; i++) {
+        vec3 pos = ro + rd * t;
+        float h = map(pos);
+        if(h < 0.01 || t > tMax) break;
+        t += h * 0.9;
+    }
+    vec3 skyColor = mix(colorB, colorA, clamp(rd.y*1.5, 0.0, 1.0));
+    skyColor += vec3(1.0, 0.8, 0.4) * pow(max(0.0, dot(rd, normalize(vec3(0.0, 0.1, 1.0)))), 8.0) * (0.5 + bass*0.5);
+    vec3 col = skyColor;
+    if(t < tMax) {
+        vec3 pos = ro + rd * t;
+        vec3 n = getNormal(pos, 0.01);
+        vec3 ref = reflect(rd, n);
+        vec3 waterCol = mix(colorA * 0.1, colorB * 0.3, clamp(n.y, 0.0, 1.0));
+        waterCol *= 1.0 + high * 0.5;
+        float fresnel = clamp(1.0 - dot(n, -rd), 0.0, 1.0);
+        fresnel = pow(fresnel, 3.0);
+        vec3 reflectedSky = mix(colorB, colorA, clamp(ref.y*1.5, 0.0, 1.0));
+        col = mix(waterCol, reflectedSky, fresnel);
+        col = mix(col, skyColor, smoothstep(15.0, tMax, t));
+    }
+    col = (col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14);
+    fragColor = vec4(col, 1.0);
+}
+'''
+
+
+PROTEAN_FS = '''#version 330
+out vec4 fragColor; in vec2 uv; uniform vec2 resolution; uniform float time, bass, mid, high, pan; uniform vec3 colorA, colorB; uniform int pose;
+
+mat2 rot(float a) { float s = sin(a), c = cos(a); return mat2(c, s, -s, c); }
+float hash(vec3 p) {
+    p = fract(p * vec3(127.1, 311.7, 74.7));
+    p += dot(p, p + 19.19);
+    return fract(p.x * p.y * p.z);
+}
+float noise(vec3 x) {
+    vec3 p = floor(x), f = fract(x);
+    f = f*f*(3.0-2.0*f);
+    return mix(mix(mix(hash(p+vec3(0,0,0)), hash(p+vec3(1,0,0)),f.x),
+                   mix(hash(p+vec3(0,1,0)), hash(p+vec3(1,1,0)),f.x),f.y),
+               mix(mix(hash(p+vec3(0,0,1)), hash(p+vec3(1,0,1)),f.x),
+                   mix(hash(p+vec3(0,1,1)), hash(p+vec3(1,1,1)),f.x),f.y),f.z);
+}
+
+mat3 m3 = mat3(0.33338, 0.56034, -0.71817, -0.87887, 0.32625, -0.15323, 0.15162, 0.69596, 0.69532)*2.0;
+
+float map(vec3 p) {
+    vec3 q = p;
+    q.z += time * 0.5; // Viento moviendo las nubes hacia adelante
+    float f = 0.5000*noise(q); q = m3*q;
+    f += 0.2500*noise(q); q = m3*q;
+    f += 0.1250*noise(q); q = m3*q;
+    f += 0.0625*noise(q); q = m3*q;
+    f += 0.03125*noise(q);
+    
+    // Crear un cañón/cielo de nubes infinito en Y (piso y techo)
+    float d = 2.0 - abs(p.y); 
+    // Distorsionar el espacio con el ruido FBM rotado
+    float den = d - (1.0 - f)*3.0;
+    
+    // Turbulencia volumétrica reactiva al bajo
+    den += (bass * 0.4) * noise(p * 3.0);
+    
+    return clamp(den, 0.0, 1.0);
+}
+
+void main() {
+    vec2 p = (gl_FragCoord.xy * 2.0 - resolution.xy) / resolution.y;
+    
+    // Vuelo de cámara cinematográfico dentro del cañón de nubes
+    vec3 ro = vec3(0.0, 0.0, time * 3.0);
+    ro.x += sin(time*0.5)*0.5; // Movimiento de cámara sutil
+    ro.y += cos(time*0.3)*0.5;
+    
+    vec3 rd = normalize(vec3(p.x, p.y, 1.5)); // Lente de 35mm
+    rd.xy *= rot(sin(time*0.2)*0.1 + pan);
+    rd.xz *= rot(sin(time*0.1)*0.1);
+    
+    vec3 col = vec3(0.0);
+    float t = 0.0, density = 0.0;
+    vec3 lightDir = normalize(vec3(1.0, 0.8, 0.5));
+    
+    for(int i=0; i<80; i++) {
+        vec3 pos = ro + rd * t;
+        float den = map(pos);
+        if(den > 0.01) {
+            // Derivada direccional para iluminación "Silver Lining" e iluminacion volumétrica real
+            float sh = map(pos + lightDir * 0.15); 
+            float dif = clamp((den - sh) / 0.15, 0.0, 1.0);
+            
+            vec3 cloudColor = mix(colorB, colorA, den);
+            
+            // Iluminación (Ambiente + Sol interactivo)
+            vec3 lin = vec3(0.4, 0.4, 0.5) * 1.0; 
+            lin += vec3(1.0, 0.9, 0.7) * dif * (2.0 + high*2.5); // Relámpagos estelares en altos
+            
+            cloudColor *= lin;
+            
+            float alpha = den * 0.06 * (1.0 - density);
+            col += cloudColor * alpha;
+            density += alpha;
+        }
+        if(density > 0.99) break;
+        t += max(0.05, 0.15 - den*0.1); // Dynamic step size
+    }
+    
+    // Cielo de fondo
+    vec3 sky = mix(colorB * 0.1, colorA * 0.4, clamp(rd.y*0.5 + 0.5, 0.0, 1.0));
+    float sun = clamp(dot(rd, lightDir), 0.0, 1.0);
+    sky += colorA * pow(sun, 16.0) * (1.0 + bass);
+    
+    col += sky * (1.0 - density);
+    
+    // ACES Tone mapping cinematográfico
+    col = (col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14);
+    
+    // Viñeteado de lente
+    col *= 1.0 - 0.4 * dot(p,p);
+    
+    fragColor = vec4(col, 1.0);
+}
+'''
+
 
 def _load_image_as_texture(ctx, img_path: str, w: int, h: int):
     """Carga una imagen desde disco como textura moderngl RGB."""
@@ -1028,19 +1721,28 @@ def render_v13_video(timeline: list, multiband: dict, colorsA: np.ndarray,
                      colorsB: np.ndarray, w: int, h: int, fps: int,
                      out_mp4: str, audio_path: str,
                      speed_multiplier=1.0, turbulence=1.0,
-                     background_images: list = None):
+                     background_images: list = None,
+                     subtitle_file: str = None):
     """
-    Renderiza el video V13 — AI-First Cinematic Pipeline V16.
-    Incluye: Shot Machine, Motion Blur temporal, Lens Breathing, Halation.
+    Renderiza el video V13 — AI-First Cinematic Pipeline V17.
+    Incluye: GALAXY_SYSTEM_FS, Shot Machine, Motion Blur temporal, Lens Breathing, Halation, Subtítulos ASS integrados.
     """
     ctx = moderngl.create_context(standalone=True)
 
     engines = {
         "space_odyssey": ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=SPACE_ODYSSEY_FS),
+        "interstellar":  ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=INTERSTELLAR_FS),
+        "inception_kifs": ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=KIFS_FS),
+        "neon_fluid":     ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=NEON_FLUID_FS),
+        "organic_core":   ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=ORGANIC_CORE_FS),
+        "turing_patterns": ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=TURING_PATTERNS_FS),
         "julia_fractal":  ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=JULIA_FS),
         "mandelbulb":     ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=MANDELBULB_FS),
         "nebula":         ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=NEBULA_FS),
         "quantum_tunnel": ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=QUANTUM_TUNNEL_FS),
+        "galaxy_system":  ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=GALAXY_SYSTEM_FS),
+        "oceanic":        ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=OCEANIC_FS),
+        "protean":        ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=PROTEAN_FS),
     }
 
     ai_first = background_images is not None
@@ -1088,12 +1790,20 @@ def render_v13_video(timeline: list, multiband: dict, colorsA: np.ndarray,
 
     cmd = [ffmpeg_exe, "-y", "-f", "rawvideo", "-vcodec", "rawvideo",
            "-s", f"{w}x{h}", "-pix_fmt", "rgb24", "-r", str(fps), "-i", "-"]
+           
+    # Construir filtro de video base
+    vf_chain = "vflip"
+    if subtitle_file and os.path.isfile(subtitle_file):
+        # Escapar la ruta para el filtro de ffmpeg en Windows (ej. C\:/ruta/archivo.ass)
+        esc_sub = subtitle_file.replace('\\', '/').replace(':', '\\:')
+        vf_chain += f",subtitles='{esc_sub}'"
+
     if audio_path and os.path.isfile(audio_path):
-        cmd.extend(["-i", audio_path, "-vf", "vflip", "-c:v", "libx264",
+        cmd.extend(["-i", audio_path, "-vf", vf_chain, "-c:v", "libx264",
                     "-pix_fmt", "yuv420p", "-preset", "fast", "-crf", "18",
                     "-c:a", "aac", "-b:a", "192k", "-shortest"])
     else:
-        cmd.extend(["-vf", "vflip", "-c:v", "libx264", "-pix_fmt", "yuv420p",
+        cmd.extend(["-vf", vf_chain, "-c:v", "libx264", "-pix_fmt", "yuv420p",
                     "-preset", "fast", "-crf", "18"])
     cmd.append(out_mp4)
 
@@ -1134,6 +1844,7 @@ def render_v13_video(timeline: list, multiband: dict, colorsA: np.ndarray,
             m   = float(multiband['mid'][frame_idx]) * _trb
             hg  = float(multiband['high'][frame_idx]) * _trb
             pan = float(multiband.get('pan', np.zeros(total_frames))[frame_idx])
+            beat_val = float(multiband.get('beat', np.zeros(total_frames))[frame_idx])
             cA  = tuple(float(x) for x in colorsA[frame_idx])
             cB  = tuple(float(x) for x in colorsB[frame_idx])
 
@@ -1202,6 +1913,7 @@ def render_v13_video(timeline: list, multiband: dict, colorsA: np.ndarray,
                     if 'high'         in pc: pc['high'].value = hg
                     if 'ken_burns_t'  in pc: pc['ken_burns_t'].value = float(ken_burns_t)
                     if 'breath'       in pc: pc['breath'].value = float(_breath)
+                    if 'beat_hit'     in pc: pc['beat_hit'].value = float(beat_val)
                     vao_composite.render(moderngl.TRIANGLE_STRIP)
                 else:
                     tex_geom1.use(location=0)

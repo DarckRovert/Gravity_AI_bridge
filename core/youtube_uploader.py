@@ -214,31 +214,66 @@ def _refresh_access_token(oauth: Dict[str, Any]) -> Optional[str]:
             "refresh_token": refresh_token,
             "grant_type":    "refresh_token",
         }).encode()
-        try:
-            req: urllib.request.Request = urllib.request.Request(
-                _TOKEN_URL, data=payload,
-                headers={"Content-Type": "application/x-www-form-urlencoded"},
-                method="POST",
-            )
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                token_data: Dict[str, Any] = json.loads(resp.read().decode())
-            access_token: Optional[str] = token_data.get("access_token")
-            if not access_token:
-                log.error(f"[YouTube] Token refresh sin access_token: {token_data}")
-                return None
-            oauth["access_token"] = access_token
-            _save_oauth(oauth)
-            log.info("[YouTube] Access token refrescado.")
-            return access_token
-        except urllib.error.HTTPError as e:
-            err_body = e.read().decode(errors='replace')
-            log.error(f"[YouTube] Error refrescando token HTTP {e.code}: {err_body}")
-            if e.code == 400:
-                log.error("[YouTube] ⚠️ El refresh_token expiró o fue revocado. Debes re-autenticar YouTube desde el Dashboard.")
-            return None
-        except Exception as e:
-            log.error(f"[YouTube] Error inesperado refrescando token: {e}")
-            return None
+        
+        # Exponential Backoff para fallas transitorias de red / Throttling
+        for attempt in range(4):
+            try:
+                req: urllib.request.Request = urllib.request.Request(
+                    _TOKEN_URL, data=payload,
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                    method="POST",
+                )
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    token_data: Dict[str, Any] = json.loads(resp.read().decode())
+                access_token: Optional[str] = token_data.get("access_token")
+                if not access_token:
+                    log.error(f"[YouTube] Token refresh sin access_token: {token_data}")
+                    return None
+                oauth["access_token"] = access_token
+                _save_oauth(oauth)
+                log.info("[YouTube] Access token refrescado exitosamente.")
+                return access_token
+                
+            except urllib.error.HTTPError as e:
+                err_body = e.read().decode(errors='replace')
+                if e.code in (400, 401, 403):
+                    if "invalid_grant" in err_body:
+                        log.error("[YouTube-Shield] ⚠️ INVALID_GRANT DETECTADO. El refresh_token ha muerto (Revocado o Expirado).")
+                    else:
+                        log.error(f"[YouTube] Error Auth {e.code}: {err_body}")
+                    return None # Fallo crítico, no reintentar
+                    
+                log.warning(f"[YouTube-Shield] Error {e.code} refrescando token. Reintentando ({attempt+1}/4)...")
+                time.sleep(2 ** attempt) # Backoff: 1s, 2s, 4s, 8s
+                
+            except Exception as e:
+                log.warning(f"[YouTube-Shield] Error inesperado de red: {e}. Reintentando ({attempt+1}/4)...")
+                time.sleep(2 ** attempt)
+                
+        log.error("[YouTube-Shield] 🚨 Agotados los reintentos para refrescar el token.")
+        return None
+
+
+def verify_token_health() -> bool:
+    """
+    [YouTube Shield] Verifica proactivamente la salud de la sesión OAuth2.
+    Retorna False SOLO si el token existe pero está revocado/expirado (invalid_grant).
+    Si no hay cuenta vinculada, retorna True para permitir el renderizado local.
+    """
+    oauth: Dict[str, Any] = _load_oauth()
+    if not oauth or not oauth.get("refresh_token"):
+        log.info("[YouTube-Shield] No hay cuenta de YouTube vinculada. Render local permitido.")
+        return True # Permitir render local
+        
+    log.info("[YouTube-Shield] Verificando salud del Token OAuth2 (Pre-Render)...")
+    token = _refresh_access_token(oauth)
+    
+    if token:
+        log.info("[YouTube-Shield] ✅ Salud del token perfecta. Vía libre para renderizar.")
+        return True
+    else:
+        log.error("[YouTube-Shield] ❌ SALUD DEL TOKEN COMPROMETIDA. Abortando pipeline para proteger GPU.")
+        return False
 
 
 def get_access_token() -> Optional[str]:

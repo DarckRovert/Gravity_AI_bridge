@@ -66,6 +66,46 @@ CINEMA_STYLES: dict[str, dict] = {
         "prefix": "GLSL Biomechanic Shader, audio-reactive kinematics, procedural generation",
         "negative": "static, rigid, low quality",
     },
+    "galactic": {
+        "label":  "Sistema Galáctico V17",
+        "prefix": "Galaxy system, accretion disk, cinematic volumetric black hole",
+        "negative": "static, rigid, low quality",
+    },
+    "oceanic": {
+        "label":  "Océano 3D (TDM)",
+        "prefix": "3D procedural ocean, realistic lighting, raymarching",
+        "negative": "static, rigid, low quality",
+    },
+    "protean": {
+        "label":  "Nubes Volumétricas (Nimitz)",
+        "prefix": "3D volumetric clouds, lightning flashes, raymarching",
+        "negative": "static, rigid, low quality",
+    },
+    "interstellar": {
+        "label":  "Interestelar / Relatividad",
+        "prefix": "Relativistic raytracing, black hole accretion disk, gravitational lensing",
+        "negative": "static, rigid, low quality",
+    },
+    "inception_kifs": {
+        "label":  "Inception KIFS (Fractales)",
+        "prefix": "Non-euclidean fractal folded space, kaleidoscope, raymarching",
+        "negative": "static, rigid, low quality",
+    },
+    "neon_fluid": {
+        "label":  "Fluido de Neón (Navier-Stokes)",
+        "prefix": "Neon fluid dynamics, curl noise advection, turbulent smoke",
+        "negative": "static, rigid, low quality",
+    },
+    "organic_core": {
+        "label":  "Núcleo Orgánico (SSS)",
+        "prefix": "Organic pulsating core, subsurface scattering, translucent tissue",
+        "negative": "static, rigid, low quality",
+    },
+    "turing_patterns": {
+        "label":  "Patrones de Turing (Reacción-Difusión)",
+        "prefix": "Bioluminescent cellular growth, reaction-diffusion, turing patterns",
+        "negative": "static, rigid, low quality",
+    },
 }
 DEFAULT_STYLE = "documental"
 

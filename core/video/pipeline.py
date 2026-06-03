@@ -477,9 +477,21 @@ def _process_job(
     try:
         _check_cancelled(job_id)
         
-        # === INTERCEPTOR V13 BIOMECÁNICO ===
-        if job_type == "music" and style == "biomechanic_v13":
-            log.info(f"[VideoStudio] Interceptando Pipeline: Redirigiendo a Motor GLSL V13 Biomecánico...")
+        # === YOUTUBE OAUTH2 SHIELD ===
+        skip_social_upload = False
+        try:
+            from core.youtube_uploader import verify_token_health
+            if not verify_token_health():
+                log.warning("[VideoStudio] OAUTH_ERROR detectado. Se omitirá la subida a redes, pero el render local continuará.")
+                skip_social_upload = True
+        except ImportError:
+            pass # Si el módulo no existe, ignorar
+        
+        v13_bypass = False
+
+        # === INTERCEPTOR V13 BIOMECÁNICO / GALÁCTICO ===
+        if job_type == "music" and style in ["biomechanic_v13", "galactic", "oceanic", "protean", "interstellar", "inception_kifs", "neon_fluid", "organic_core", "turing_patterns"]:
+            log.info(f"[VideoStudio] Interceptando Pipeline: Redirigiendo a Motor GLSL V13...")
             if not audio_track_path or not os.path.isfile(audio_track_path):
                 raise RuntimeError("El Motor V13 requiere un archivo de audio (.mp3/.wav) válido en audio_track_path.")
             
@@ -528,18 +540,37 @@ def _process_job(
             _tgt_h = int(_res_parts[1]) if len(_res_parts) == 2 and _res_parts[1].isdigit() else DEFAULT_IMG_H
             
             # === AI-FIRST: Generar imágenes de fondo cinematográficas ===
-            _update_job(job_id, progress=45, current_step="Generando fondos cinematográficos AI-First...")
-            background_images = None
-            try:
-                from core.video.ai_scene_generator import generate_scene_images
-                background_images = generate_scene_images(timeline, w=_tgt_w, h=_tgt_h, colorsA=colorsA)
-                if not background_images:
-                    background_images = [None] * len(timeline)
-            except Exception as e_bg:
-                log.warning(f"[VideoStudio] Fallo al generar imágenes AI-First: {e_bg}")
+            if style in ["galactic", "oceanic", "protean", "interstellar", "inception_kifs", "neon_fluid", "organic_core", "turing_patterns"]:
+                log.info(f"[VideoStudio] Estilo '{style}': Omitiendo generación de imágenes AI 2D (Render 100% Shader).")
                 background_images = [None] * len(timeline)
+            else:
+                _update_job(job_id, progress=45, current_step="Generando fondos cinematográficos AI-First...")
+                background_images = None
+                try:
+                    from core.video.ai_scene_generator import generate_scene_images
+                    background_images = generate_scene_images(timeline, w=_tgt_w, h=_tgt_h, colorsA=colorsA)
+                    if not background_images:
+                        background_images = [None] * len(timeline)
+                except Exception as e_bg:
+                    log.warning(f"[VideoStudio] Fallo al generar imágenes AI-First: {e_bg}")
+                    background_images = [None] * len(timeline)
+                
+            # === GENERAR SUBTÍTULOS CINEMÁTICOS ASS ===
+            _update_job(job_id, progress=48, current_step="Extrayendo letras y generando subtítulos ASS...")
+            ass_path = None
+            try:
+                from core.video.subtitle_engine import generate_ass_subtitles
+                tmp_ass = os.path.join(OUTPUT_DIR, f"temp_{job_id}_lyrics.ass")
+                ass_path = generate_ass_subtitles(audio_track_path, tmp_ass)
+            except Exception as e_sub:
+                log.warning(f"[VideoStudio] Fallo al generar subtítulos ASS: {e_sub}")
 
-            _update_job(job_id, progress=50, current_step="Renderizando inercia biomecánica V13 (GPU)...")
+            # === FORZAR SHADER STANDALONE (Si aplica) ===
+            if style in ["galactic", "oceanic", "protean", "interstellar", "inception_kifs", "neon_fluid", "organic_core", "turing_patterns"]:
+                for sc in timeline:
+                    sc["engine"] = style
+
+            _update_job(job_id, progress=50, current_step=f"Renderizando {style.upper()} V17 (GPU)...")
             render_v13_video(
                 timeline=timeline,
                 multiband=multiband,
@@ -552,7 +583,8 @@ def _process_job(
                 audio_path=audio_track_path,
                 speed_multiplier=speed_mult_arr if speed_mult_arr is not None else speed_mult,
                 turbulence=turb_mult_arr if turb_mult_arr is not None else turb_mult,
-                background_images=background_images
+                background_images=background_images,
+                subtitle_file=ass_path
             )
             
             if not os.path.isfile(final_path):
@@ -995,7 +1027,30 @@ def _process_job(
                 log.warning(f"[VideoStudio] Error generando activos sociales: {_sa_e}")
 
             try:
-                try:
+                if style in ["galactic", "biomechanic_v13", "oceanic", "protean", "interstellar", "inception_kifs", "neon_fluid", "organic_core", "turing_patterns"]:
+                    log.info(f"[VideoStudio] Omitiendo Remotion. Generando Short GLSL puro (9:16) vía FFMPEG center-crop...")
+                    import subprocess
+                    _shorts_path = final_path.replace(".mp4", "_short.mp4")
+                    try:
+                        subprocess.run([
+                            FFMPEG_EXE, "-y", "-i", final_path,
+                            "-vf", "crop=ih*9/16:ih",
+                            "-c:a", "copy",
+                            _shorts_path
+                        ], capture_output=True, check=True)
+                        log.info(f"[VideoStudio] Short GLSL generado exitosamente en: {_shorts_path}")
+                        if job_type == "music":
+                            import shutil
+                            try:
+                                # Entregar versión Vertical
+                                shutil.copy2(_shorts_path, os.path.join(r"F:\PROYECTO VIDEOCLIP MUSICAL\output", os.path.basename(_shorts_path)))
+                                # Entregar versión Horizontal (Master original)
+                                shutil.copy2(final_path, os.path.join(r"F:\PROYECTO VIDEOCLIP MUSICAL\output", os.path.basename(final_path)))
+                                log.info("[VideoStudio] Copia Dual (Horizontal + Vertical) enviada al directorio de música.")
+                            except: pass
+                    except Exception as e_crop:
+                        log.warning(f"[VideoStudio] Error generando GLSL Short con FFMPEG: {e_crop}")
+                else:
                     log.info("[VideoStudio] Iniciando generación de Shorts interactivos Multi-Parte con Remotion y Whisper...")
                     from core.whisper_engine import WhisperEngine
                     from core.remotion_engine import RemotionEngine
@@ -1071,26 +1126,26 @@ def _process_job(
                             except:
                                 pass
                             
-                except Exception as _r_e:
-                    log.warning(f"[VideoStudio] Error en la generación de shorts multi-parte: {_r_e}")
+
 
 
                 try:
                     from core.youtube_uploader import upload_job_async
-                    upload_job_async(
-                        job_id     = job_id,
-                        video_path = final_path,
-                        title      = title or topic[:100],
-                        thumb_path = thumb_path if os.path.isfile(thumb_path) else "",
-                        niche_id   = _niche_id,
-                        lang       = _niche_lang,
-                    )
+                    if not skip_social_upload:
+                        upload_job_async(
+                            job_id     = job_id,
+                            video_path = final_path,
+                            title      = title or topic[:100],
+                            thumb_path = thumb_path if os.path.isfile(thumb_path) else "",
+                            niche_id   = _niche_id,
+                            lang       = _niche_lang,
+                        )
                 except Exception as _yt_e:
                     log.warning(f"[VideoStudio] YouTube upload dispatch error: {_yt_e}")
 
                 try:
                     from core.tiktok_uploader import distribute_short_async
-                    if os.path.isfile(_shorts_path):
+                    if not skip_social_upload and '_shorts_path' in locals() and _shorts_path and os.path.isfile(_shorts_path):
                         distribute_short_async(
                             job_id      = job_id,
                             shorts_path = _shorts_path,

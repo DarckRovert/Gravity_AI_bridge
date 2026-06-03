@@ -96,23 +96,22 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 - Auto-reconexión, `list_tools`, `list_resources`, `read_resource`.
 - Registro global de adaptadores accesible desde el Dashboard.
 
-### 🎬 Video Studio Multi-Agent & Motor Cinematic V2.0 PBR
-Pipeline multimedia de alta fidelidad orquestado asíncronamente en daemon. Completamente reestructurado bajo el paquete `/core/video/` para máxima resiliencia, con **Motor de Animación PBR Híbrido** y despliegue para redes sociales integrado:
+### 🎬 Video Studio Multi-Agent & Motores Demoscene V17 PBR
+Pipeline multimedia de alta fidelidad orquestado asíncronamente en daemon. Completamente reestructurado bajo el paquete `/core/video/` para máxima resiliencia, con **Motores Matemáticos V17 GLSL** y despliegue para redes sociales integrado:
 
 - **Estructura Modular (`/core/video/`)**:
   - `audio_processor.py`: Análisis FFT extrae frecuencias separadas (Bass, Mid, High) para reactividad visual, además de compresión sidechain y TTS cinemático.
-  - `glsl_renderer_v13.py`: Motor gráfico en OpenGL (`moderngl`) con Shaders PBR. Iluminación basada en imagen (IBL) y post-procesado Hollywood (Cyber Glitch destructivo al bajo, ACES Tone-mapping, Lens Flares, Chromatic Aberration dinámica y Film Grain orgánico).
-  - `pipeline.py`: Base de datos SQLite (WAL) robusta, daemon worker threads, y gestor FFmpeg.
-  - `ai_scene_generator.py`: Motor generativo AI con fallback inteligente (Cascading de Pollinations.ai rotando modelos `flux-realism` → `flux` → `turbo`). En caso de timeout total, inyecta un generador procedural puro basado en *Ruido Fractal (FBM)* para generar fondos cósmicos fluidos en numpy.
-  
-#### Flujo Híbrido de Renderizado Extremo:
-1. **Pipeline Multi-Agente (Research & Scripting)**: El *Writer* estructura la lírica y el *Retention Auditor* evalúa el anclaje emocional de los primeros 5 segundos.
-2. **Generador de Ambientes**: Descarga asíncrona de assets hiperrealistas a través del clúster AI. Fallback automático a Procedural FBM.
-3. **Composición 3D (GLSL PBR)**: Cruce reactivo de las frecuencias del audio con la geometría 3D SDF (Odisea Espacial, Tunnel Cuántico, Mandelbulb) mapeando la imagen AI como ecosfera luminosa IBL y cruzando escenas mediante warped fades.
-4. **Interactive Shorts (Remotion)**: Node.js/React (`ShortTemplate.tsx`) ensambla los recortes verticales (9:16) con tipografía *Montserrat/Inter*, sombras de neón dinámicas reactivas y barrido VFX de VHS Scanlines usando Chromium bajo el capó.
-5. **Ensamble Final**: FFmpeg unifica capas visuales de alta precisión de cuadros.
+  - `glsl_renderer_v13.py`: Cuna de las **5 Joyas Matemáticas V17** (Interstellar Kerr Black Hole, Turing Patterns, Inception KIFS, Neon Fluid, Organic Core). Iluminación basada en imagen (IBL) y post-procesado Hollywood (Cyber Glitch, Aberración Cromática, Film Grain orgánico).
+  - `pipeline.py`: Base de datos SQLite (WAL), daemon worker threads, y gestor de **Auto-Routing Dual** (Generación simultánea del Máster Horizontal 16:9 y el Center-Crop Vertical 9:16).
+  - `youtube_uploader.py`: Implementación del **OAuth2 Soft Shield**, que detecta tempranamente tokens inválidos y frena peticiones a red sin abortar el costoso render local.
 
-**Reproductor Web Integrado**: Stream de video nativo en el Dashboard y Auto-Distribución a redes.
+#### Flujo Híbrido de Renderizado Extremo:
+1. **Pipeline Multi-Agente (Research & Scripting)**: El *Writer* estructura la lírica y el *Retention Auditor* evalúa el anclaje emocional.
+2. **Generador de Ambientes**: Descarga asíncrona de assets o **Evasión Total AI** al utilizar los motores de shaders puristas V17.
+3. **Composición 3D (GLSL PBR)**: Cruce reactivo de las frecuencias del audio con la geometría 3D SDF (Odisea Espacial, Tunnel Cuántico, Mandelbulb) mapeando la imagen AI como ecosfera luminosa IBL.
+4. **Ensamble Final**: FFmpeg unifica capas visuales de alta precisión de cuadros y escupe la Copia Dual.
+
+**Reproductor Web Integrado**: Stream de video nativo en el Dashboard y Auto-Distribución a redes protegida por el Shield.
 
 ### 📚 Course Generator & Scheduler (Info-Productos)
 - **Generación de Cursos (`course_generator.py`)**: Crea el syllabus completo de un curso o lista de reproducción, definiendo lecciones progresivas optimizadas para YouTube.

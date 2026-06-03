@@ -22,27 +22,22 @@ Bienvenido al Centro de Conocimiento del Bridge — hub principal para orquestar
 
 ---
 
-## 🚀 Novedades V15.2 PRO — Motor Cinematic V2.0 PBR
+## 🚀 Novedades V17 PRO — Motores Demoscene PBR
 
-### Video Studio: Motor GLSL PBR Híbrido God-Tier
-El subsistema de Video Studio ha sido elevado a un nivel de producción Hollywood mediante un motor gráfico híbrido de doble capa:
+### Video Studio: Motores Matemáticos V17 God-Tier
+El subsistema de Video Studio ha evolucionado a una colección de motores puristas matemáticos que evaden la IA 2D:
 
-| Capa | Tecnología | Rol |
+| Capa / Motor | Tecnología | Rol |
 |---|---|---|
-| Render 3D SDF | `moderngl` (OpenGL 3.3 Core) | Shaders PBR con reflejos IBL |
-| Composición | `COMPOSITE_FS` / `POST_PROCESS_FS` | Post-procesado Hollywood |
-| Shorts 9:16 | `Remotion` + React (Node.js) | Subtítulos karaoke interactivos |
-| Fallback AI | FBM Procedural (Numpy) | Nebulosa cósmica sin GPU |
+| `interstellar` | Raytracing Relativista | Agujeros Negros de Kerr y discos de acreción |
+| `turing_patterns` | Reacción-Difusión | Crecimiento celular bioluminiscente al ritmo del bajo |
+| `inception_kifs` | Raymarching No Euclidiano | Fractales caleidoscópicos |
+| `neon_fluid` | Navier-Stokes | Dinámica de fluidos neon turbulenta |
+| `organic_core` | Subsurface Scattering | Tejido orgánico translúcido latente |
 
-**Post-procesado activo en cada frame:**
-- `bass > 0.85` → Cyber Glitch (desgarro de scanlines + inversion subliminal)
-- `bass` → Aberración Cromática Radial (separación RGB anamórfica)
-- `high` → Film Grain analógico procedural escalante
-- Siempre → ACES Tone-Mapping + Viñeta Cinemática Profunda
-
-**Generador AI Ultra-Resiliente:**
-- Cascading Pollinations: `flux-realism` (90s) → `flux` (150s) → `turbo` (210s)
-- Fallback: Nebulosa Fractal FBM en Numpy (6 octavas, filtro gaussiano, estrellas procedurales)
+**Integración Pipeline V17:**
+- **Auto-Routing Dual**: Todo render musical V17 compila un Máster 16:9 y FFMPEG realiza automáticamente el *Center-Crop* 9:16 para TikTok.
+- **OAuth2 Soft Shield**: Inyectado en el `youtube_uploader`. Si el refresh_token experimenta `invalid_grant`, el pipeline aborta la subida de red en los primeros 200ms pero *permite* el renderizado local para proteger la GPU y garantizar la entrega de los MP4 físicos.
 
 **Interfaz de Shorts Cyberpunk:**
 - Fuentes `Montserrat`/`Inter` garantizadas en Chromium headless via `@import` directo en CSS

@@ -4,11 +4,12 @@ import numpy as np
 def extract_multiband_energy(audio_path: str, fps: int = 24) -> dict:
     """
     V7: Analiza el audio y extrae curvas espectrales (Bajos, Medios, Altos) + Paneo Estéreo.
-    Devuelve {'bass': arr, 'mid': arr, 'high': arr, 'pan': arr}.
+    Devuelve {'bass': arr, 'mid': arr, 'high': arr, 'pan': arr, 'beat': arr}.
     'pan' va de -1.0 (Izquierda total) a +1.0 (Derecha total).
+    'beat' devuelve picos exactos con un decaimiento visual exponencial (1.0 -> 0.0).
     """
     if not audio_path or not os.path.isfile(audio_path):
-        return {'bass': np.array([]), 'mid': np.array([]), 'high': np.array([]), 'pan': np.array([])}
+        return {'bass': np.array([]), 'mid': np.array([]), 'high': np.array([]), 'pan': np.array([]), 'beat': np.array([])}
         
     try:
         import librosa
@@ -63,16 +64,28 @@ def extract_multiband_energy(audio_path: str, fps: int = 24) -> dict:
                 arr = np.convolve(arr, window, mode='same')
             return arr
             
+        # Beat tracking con IA
+        tempo, beat_frames = librosa.beat.beat_track(y=y_mono, sr=sr, hop_length=hop_length)
+        beats = np.zeros(S.shape[1])
+        valid_beats = beat_frames[beat_frames < S.shape[1]]
+        beats[valid_beats] = 1.0
+        
+        # Efecto de decaimiento visual para el beat (flash persistente)
+        beats_decay = np.copy(beats)
+        for i in range(1, len(beats_decay)):
+            beats_decay[i] = max(beats_decay[i], beats_decay[i-1] * 0.75)
+            
         return {
             'bass': normalize_and_smooth(bass, 6),
             'mid': normalize_and_smooth(mid, 3),
             'high': normalize_and_smooth(high, 8),
-            'pan': normalize_and_smooth(pan_raw, 2, is_pan=True) # Paneo muy suave
+            'pan': normalize_and_smooth(pan_raw, 2, is_pan=True), # Paneo muy suave
+            'beat': beats_decay
         }
         
     except Exception as e:
         print(f"[AudioAnalyzer V7] Error procesando audio: {e}")
-        return {'bass': np.array([]), 'mid': np.array([]), 'high': np.array([]), 'pan': np.array([])}
+        return {'bass': np.array([]), 'mid': np.array([]), 'high': np.array([]), 'pan': np.array([]), 'beat': np.array([])}
 
 def extract_audio_energy(audio_path: str, fps: int = 24) -> np.ndarray:
     """Fallback legacy compatible con V5"""
