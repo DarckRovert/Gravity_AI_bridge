@@ -5,15 +5,24 @@ from core.whisper_engine import WhisperEngine
 
 logger = logging.getLogger("SubtitleEngine")
 
-ASS_TEMPLATE = """[Script Info]
+def get_ass_template(tgt_w: int, tgt_h: int) -> str:
+    is_vertical = tgt_h > tgt_w
+    play_res_x = 720 if is_vertical else 1280
+    play_res_y = 1280 if is_vertical else 720
+    margin_l = 40 if is_vertical else 80
+    margin_r = 40 if is_vertical else 80
+    margin_v = 150 if is_vertical else 50
+    font_size = 56 if is_vertical else 52
+    
+    return f"""[Script Info]
 ScriptType: v4.00+
-PlayResX: 1280
-PlayResY: 720
+PlayResX: {play_res_x}
+PlayResY: {play_res_y}
 WrapStyle: 1
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Cinematic,Arial,52,&H0000D7FF,&H88FFFFFF,&H00000000,&H88000000,1,0,0,0,100,100,1,0,1,3,3,2,440,440,80,1
+Style: Cinematic,Arial,{font_size},&H0000D7FF,&H88FFFFFF,&H00000000,&H88000000,1,0,0,0,100,100,1,0,1,3,3,2,{margin_l},{margin_r},{margin_v},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -29,7 +38,7 @@ def format_ass_time(seconds: float) -> str:
         cs = 99
     return f"{h:01d}:{m:02d}:{s:02d}.{cs:02d}"
 
-def generate_ass_subtitles(audio_path: str, out_ass_path: str, language: str = "es") -> str:
+def generate_ass_subtitles(audio_path: str, out_ass_path: str, language: str = "es", tgt_w: int = 1280, tgt_h: int = 720) -> str:
     """
     Genera un archivo de subtítulos .ass cinemáticos a partir del audio usando Whisper.
     """
@@ -94,7 +103,7 @@ def generate_ass_subtitles(audio_path: str, out_ass_path: str, language: str = "
 
     # Escribir archivo ASS
     with open(out_ass_path, "w", encoding="utf-8") as f:
-        f.write(ASS_TEMPLATE)
+        f.write(get_ass_template(tgt_w, tgt_h))
         
         for phrase in phrases:
             start_t = phrase[0]['start']

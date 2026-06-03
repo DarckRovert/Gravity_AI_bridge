@@ -593,6 +593,17 @@ def _process_job(
             if style in ["galactic", "oceanic", "protean", "interstellar", "inception_kifs", "neon_fluid", "organic_core", "turing_patterns"]:
                 _shorts_path = final_path.replace(".mp4", "_short.mp4")
                 _update_job(job_id, progress=75, current_step=f"Renderizando NATIVO VERTICAL {style.upper()} V17 (GPU)...")
+                
+                # Generar ASS específico para vertical (PlayResX: 720, PlayResY: 1280)
+                ass_path_vertical = None
+                if ass_path:
+                    try:
+                        from core.video.subtitle_engine import generate_ass_subtitles
+                        tmp_ass_vert = os.path.join(OUTPUT_DIR, f"temp_{job_id}_lyrics_vertical.ass")
+                        ass_path_vertical = generate_ass_subtitles(audio_track_path, tmp_ass_vert, tgt_w=_tgt_h, tgt_h=_tgt_w)
+                    except Exception as e_sub_vert:
+                        log.warning(f"[VideoStudio] Fallo al generar subtítulos ASS Verticales: {e_sub_vert}")
+
                 render_v13_video(
                     timeline=timeline,
                     multiband=multiband,
@@ -606,7 +617,7 @@ def _process_job(
                     speed_multiplier=speed_mult_arr if speed_mult_arr is not None else speed_mult,
                     turbulence=turb_mult_arr if turb_mult_arr is not None else turb_mult,
                     background_images=background_images,
-                    subtitle_file=ass_path
+                    subtitle_file=ass_path_vertical
                 )
 
             # Saltar el resto del código y saltar directo a "render_ok"
