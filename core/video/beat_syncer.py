@@ -10,9 +10,9 @@ def apply_beat_synced_fx(video_path: str, audio_path: str, output_path: str, fps
     en los fotogramas donde el ritmo explota (beat_hit).
     """
     try:
-        import moviepy.editor as mp
-    except ImportError:
-        log.error("[BeatSyncer] MoviePy no está instalado. Instalalo con pip install moviepy")
+        from moviepy import VideoFileClip
+    except ImportError as e:
+        log.error(f"[BeatSyncer] Error importando MoviePy (v2): {e}")
         return False
 
     if not os.path.isfile(video_path) or not os.path.isfile(audio_path):
@@ -49,7 +49,7 @@ def apply_beat_synced_fx(video_path: str, audio_path: str, output_path: str, fps
 
     # Cargar el clip de video
     try:
-        clip = mp.VideoFileClip(video_path)
+        clip = VideoFileClip(video_path)
     except Exception as e:
         log.error(f"[BeatSyncer] Error cargando video en MoviePy: {e}")
         return False
@@ -62,26 +62,16 @@ def apply_beat_synced_fx(video_path: str, audio_path: str, output_path: str, fps
             
         beat_val = beats[frame_idx]
         if beat_val == 1.0:
-            # Aplicar Chromatic Aberration / RGB Glitch
-            # Desplazamos el canal rojo a la derecha y el azul a la izquierda
-            h, w, _ = frame.shape
-            shift = int(w * 0.02) # 2% shift
-            
-            glitched = np.copy(frame)
-            # Desplazar Rojo
-            glitched[:, shift:, 0] = frame[:, :-shift, 0]
-            # Desplazar Azul
-            glitched[:, :-shift, 2] = frame[:, shift:, 2]
-            
-            # Darle un tono más brillante momentáneo
-            glitched = np.clip(glitched * 1.2, 0, 255).astype(np.uint8)
+            # Reemplazamos el Glitch RGB por un Flash de Exposición intenso pero nítido
+            # Esto evita el desenfoque y no arruina los subtítulos
+            glitched = np.clip(frame * 1.35, 0, 255).astype(np.uint8)
             return glitched
             
         return frame
 
     log.info("[BeatSyncer] Inyectando efectos de Chromatic Aberration en los Beat Drops...")
-    processed_clip = clip.fl(process_frame)
-    processed_clip = processed_clip.set_audio(clip.audio)
+    processed_clip = clip.transform(process_frame)
+    processed_clip = processed_clip.with_audio(clip.audio)
 
     try:
         processed_clip.write_videofile(
