@@ -113,3 +113,8 @@ Narración:
 === HISTORIA: CineTest V17 TURING PATTERNS REACTION-DIFFUSION MASTER ===
 Escena: V13 Music Video
 Narración: 
+
+
+=== HISTORIA: CineTest V17 INTERSTELLAR BLACK HOLE KERR MASTER ===
+Escena: V13 Music Video
+Narración: 
