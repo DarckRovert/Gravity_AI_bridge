@@ -120,12 +120,22 @@ def generate_ass_subtitles(audio_path: str, out_ass_path: str, language: str = "
             
             # Construir texto con tags de karaoke \kf (fill suave) o \K (fill duro)
             text_line = ""
+            current_time = start_t
             for i, w in enumerate(phrase):
+                gap = w['start'] - current_time
+                gap_tag = ""
+                if gap > 0.01:
+                    gap_cs = int(round(gap * 100))
+                    # \k minúscula es un retraso invisible para la métrica del karaoke
+                    gap_tag = f"{{\\k{gap_cs}}}"
+                
                 duration_cs = int(round((w['end'] - w['start']) * 100))
                 # Espacio inicial
                 space = " " if i > 0 else ""
-                # Usamos \K para relleno duro por palabra
-                text_line += f"{space}{{\\K{duration_cs}}}{w['word']}"
+                
+                # Inyectar el espacio, luego el gap (silencio), luego el relleno de palabra
+                text_line += f"{space}{gap_tag}{{\\K{duration_cs}}}{w['word']}"
+                current_time = w['end']
             
             # Aplicar fade in/out suave a toda la frase
             dialogue = f"Dialogue: 0,{ass_start},{ass_end},Cinematic,,0,0,0,,{{\\fad(150,200)}}{text_line}\n"
