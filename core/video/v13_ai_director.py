@@ -21,7 +21,7 @@ def _parse_color_any(c_val):
     return None
 
 
-def _query_llm(section_label: str, section_text: str) -> dict:
+def _query_llm(section_label: str, section_text: str, provider: str = None, model: str = None) -> dict:
     """
     Consulta al modelo local para una sección específica de la letra.
     Devuelve dict con u_baseColor1, u_baseColor2, speed_multiplier, turbulence, engine y pose.
@@ -29,19 +29,24 @@ def _query_llm(section_label: str, section_text: str) -> dict:
     from core import provider_manager
 
     system_prompt = (
-        "Eres el Director de Efectos Visuales V13 (GLSL Procedural).\n"
-        "Analiza el fragmento de letra y devuelve ÚNICAMENTE un objeto JSON válido.\n"
+        "Eres el Director de Efectos Visuales V13.\n"
+        "Analiza el fragmento de letra (y el contexto global de la canción si es necesario) y devuelve ÚNICAMENTE un objeto JSON válido.\n"
         "Sin markdown, sin texto adicional, solo el JSON.\n\n"
         "Formato exacto:\n"
         "{\n"
         "  \"engine\": \"space_odyssey\",\n"
+        "  \"custom_scene_prompt\": \"Descripción cinematográfica fotorrealista del entorno de fondo (ej: majestic ruins of Machu Picchu hidden in the clouds at golden hour, epic inca architecture, hyperrealistic)\",\n"
         "  \"pose\": 1,\n"
         "  \"u_baseColor1\": [R, G, B],\n"
         "  \"u_baseColor2\": [R, G, B],\n"
         "  \"speed_multiplier\": 1.0,\n"
         "  \"turbulence\": 1.0\n"
         "}\n\n"
-        "Opciones de engine:\n"
+        "Notas sobre custom_scene_prompt:\n"
+        "- Debe ser en inglés, descriptivo y enfocado a generar una imagen fotorealista espectacular (evita descripciones de personas, enfócate en el paisaje/entorno).\n"
+        "- Adáptalo fielmente a la vibra de la letra (ej: si es andino, usa selvas, montañas, ruinas incas; si es cyber, usa ciudades de neón).\n\n"
+        "Opciones de engine (Para los efectos de partículas superpuestos):\n"
+        "- inca_math: Ruinas, montañas, arquitectura antigua, épico, majestuoso.\n"
         "- space_odyssey: Intro, soledad, desierto.\n"
         "- nebula: Coros etéreos, calma, espiritual.\n"
         "- julia_fractal: Tensión, dudas, laberinto mental.\n"
@@ -60,6 +65,8 @@ def _query_llm(section_label: str, section_text: str) -> dict:
 
     response_text = provider_manager.complete(
         messages,
+        model=model,
+        provider=provider,
         task="reason",
         options={"temperature": 0.3, "max_tokens": 200}
     )
@@ -164,29 +171,99 @@ def analyze_lyrics_sections(lyrics: str, total_frames: int, fps: int) -> dict:
     frames_per_section = total_frames / n
     crossfade_frames = fps * 2
 
-    for i, (label, text) in enumerate(sections):
+    import concurrent.futures
+    from core import provider_manager
+    
+    # Get all healthy providers for Swarm Round-Robin
+    all_results = provider_manager.scan_all()
+    healthy_providers = []
+    for r in all_results:
+        if r.is_healthy and r.models:
+            healthy_providers.append((r.name, r.active_model or r.models[0]["name"]))
+            
+    if not healthy_providers:
+        log.warning("[V13 Director Swarm] No hay proveedores IA saludables. Se usaran defaults.")
+        healthy_providers = [(None, None)]
+
+    def process_section(idx, label, text):
+        prov, mod = healthy_providers[idx % len(healthy_providers)]
+        try:
+            params = _query_llm(label, text, provider=prov, model=mod)
+            return idx, label, params, prov, mod
+        except Exception as e:
+            log.warning(f"[V13 Director Swarm] Error en '{label}': {e}")
+            return idx, label, {}, prov, mod
+
+    results_unsorted = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(sections)) as executor:
+        futures = [executor.submit(process_section, i, label, text) for i, (label, text) in enumerate(sections)]
+        for fut in concurrent.futures.as_completed(futures):
+            results_unsorted.append(fut.result())
+            
+    results_sorted = sorted(results_unsorted, key=lambda x: x[0])
+
+    # --- EXECUTIVE PRODUCER NODE ---
+    if len(results_sorted) > 1:
+        try:
+            import json
+            raw_scenes = []
+            for idx, label, params, prov, mod in results_sorted:
+                raw_scenes.append({"label": label, "params": params, "brain": mod})
+                
+            exec_prompt = (
+                "Eres el Productor Ejecutivo V14.\n"
+                "Abajo hay una lista de escenas JSON generadas por un enjambre de IAs creativas. "
+                "Tu trabajo es ARMONIZAR la paleta de colores (u_baseColor1, u_baseColor2) y la velocidad (speed_multiplier) "
+                "para que el videoclip tenga coherencia visual y no parezca un error grafico, pero conservando la intencion de cada escena.\n"
+                "Devuelve UNICAMENTE un array JSON con los objetos 'params' modificados, en el mismo orden exacto.\n\n"
+                f"Escenas:\n{json.dumps(raw_scenes, indent=2)}"
+            )
+            messages = [
+                {"role": "system", "content": "You are the Executive Producer. Output ONLY a valid JSON array of objects."},
+                {"role": "user", "content": exec_prompt}
+            ]
+            log.info("[V13 Director Swarm] Evaluando consenso con el Productor Ejecutivo...")
+            
+            # Usar el mejor modelo disponible para razonamiento
+            exec_response = provider_manager.complete(messages, task="reason", options={"temperature": 0.1, "max_tokens": 1500})
+            
+            # Limpieza
+            clean_text = re.sub(r'<think>.*?</think>', '', exec_response, flags=re.DOTALL)
+            start_idx = clean_text.find('[')
+            end_idx = clean_text.rfind(']')
+            
+            if start_idx != -1 and end_idx != -1:
+                harmonized_params = json.loads(clean_text[start_idx:end_idx + 1])
+                if len(harmonized_params) == len(results_sorted):
+                    for idx in range(len(results_sorted)):
+                        orig = results_sorted[idx]
+                        results_sorted[idx] = (orig[0], orig[1], harmonized_params[idx], "ExecutiveProducer", "Consensus")
+                    log.info("[V13 Director Swarm] Productor Ejecutivo aplico armonizacion con exito.")
+        except Exception as e:
+            log.warning(f"[V13 Director Swarm] Productor Ejecutivo fallo (usando cortes puros): {e}")
+    # -------------------------------
+
+    for i, label, params, prov, mod in results_sorted:
         start_frame = int(i * frames_per_section)
         end_frame = int((i + 1) * frames_per_section) if i < n - 1 else total_frames - 1
         
-        try:
-            params = _query_llm(label, text)
-            c1 = _parse_color_any(params.get("u_baseColor1")) or DEFAULT_C1
-            c2 = _parse_color_any(params.get("u_baseColor2")) or DEFAULT_C2
-            spd = float(params.get("speed_multiplier", DEFAULT_SPD))
-            trb = float(params.get("turbulence", DEFAULT_TRB))
-            engine = params.get("engine", DEFAULT_ENG)
-            pose = int(params.get("pose", DEFAULT_POSE))
-            log.info(f"[V13 Director] '{label}': {engine}(pose={pose}) C1={c1} spd={spd:.2f}")
-        except Exception as e:
-            log.warning(f"[V13 Director] Error en '{label}': {e}")
-            c1, c2, spd, trb, engine, pose = DEFAULT_C1, DEFAULT_C2, DEFAULT_SPD, DEFAULT_TRB, DEFAULT_ENG, DEFAULT_POSE
+        c1 = _parse_color_any(params.get("u_baseColor1")) or DEFAULT_C1
+        c2 = _parse_color_any(params.get("u_baseColor2")) or DEFAULT_C2
+        spd = float(params.get("speed_multiplier", DEFAULT_SPD))
+        trb = float(params.get("turbulence", DEFAULT_TRB))
+        engine = params.get("engine", DEFAULT_ENG)
+        pose = int(params.get("pose", DEFAULT_POSE))
+        custom_scene_prompt = params.get("custom_scene_prompt", "")
+        prov_name = prov if prov else "Default"
+        log.info(f"[V13 Director Swarm] '{label}' [Brain: {prov_name} / {mod}]: {engine}(pose={pose}) C1={c1} spd={spd:.2f}")
 
         # Añadir al timeline narrativo
         scene = {
             "start": start_frame,
             "end": end_frame,
             "engine": engine,
-            "pose": pose
+            "pose": pose,
+            "custom_scene_prompt": custom_scene_prompt
         }
         
         # Calcular crossfades con la escena anterior
@@ -202,6 +279,27 @@ def analyze_lyrics_sections(lyrics: str, total_frames: int, fps: int) -> dict:
         keyframes_c2.append(c2)
         keyframes_spd.append(spd)
         keyframes_trb.append(trb)
+
+    # IMPONER CUOTA INCA MATH (Garantizar que al menos el 50% sea Inca)
+    if len(timeline) == 1:
+        # Si la canción es tan corta que solo tiene 1 sección, dividirla por la mitad
+        half = timeline[0]["end"] // 2
+        
+        scene2 = timeline[0].copy()
+        scene2["start"] = half
+        scene2["engine"] = "space_odyssey" if timeline[0]["engine"] == "inca_math" else timeline[0]["engine"]
+        
+        timeline[0]["end"] = half
+        timeline[0]["engine"] = "inca_math"
+        
+        # Calcular transición
+        timeline[0]["transition_start"] = half - crossfade_frames
+        scene2["incoming_end"] = half + crossfade_frames
+        timeline.append(scene2)
+    else:
+        for idx in range(len(timeline)):
+            if idx % 2 == 0:
+                timeline[idx]["engine"] = "inca_math"
 
     # Añadir keyframe al inicio y al final para que la interpolación cubra todo
     keyframe_frames = [0] + keyframe_frames + [total_frames - 1]

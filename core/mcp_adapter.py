@@ -1,16 +1,16 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — MCP ADAPTER V15.1 PRO                                              ║
+║  GRAVITY AI — MCP ADAPTER V15.2 PRO                                              ║
 ║  Model Context Protocol — Stdio Bridge con robustez de producción            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Cambios V15.1 PRO (vs V15.1 PRO):
+Cambios V15.2 PRO (vs V15.2 PRO):
   - Timeout de 10s en readline() via queue.Queue + thread reader (threading puro,
     compatible con ThreadingHTTPServer — NO usa asyncio.wait_for)
   - Reconexión con backoff exponencial: 1s → 2s → 4s → 8s … max 30s
   - Health check periódico cada 60s en daemon thread
   - _id_counter protegido con lock para thread-safety
-  - import de time añadido (faltaba en V15.1 PRO)
+  - import de time añadido (faltaba en V15.2 PRO)
 """
 
 import json

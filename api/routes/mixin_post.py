@@ -10,6 +10,234 @@ class PostRoutesMixin:
     def do_POST(self):
         print('DEBUG do_POST path:', repr(self.path))
 
+        # /v1/bounties/action — Marcar trabajo como aplicado o descartado
+        if self.path == "/v1/bounties/action":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                url = data.get("url", "").strip()
+                action = data.get("action", "").strip()
+                
+                if not url or not action:
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "url y action son requeridos"}).encode())
+                    return
+                    
+                BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                actions_path = os.path.join(BASE_DIR, "inputs", ".bounty_actions.json")
+                os.makedirs(os.path.dirname(actions_path), exist_ok=True)
+                
+                actions = {}
+                if os.path.exists(actions_path):
+                    with open(actions_path, "r", encoding="utf-8") as f:
+                        try: actions = json.load(f)
+                        except: pass
+                        
+                actions[url] = action
+                
+                with open(actions_path, "w", encoding="utf-8") as f:
+                    json.dump(actions, f)
+                    
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": True, "action": action}).encode())
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/bounties/profile — Guardar el perfil del freelancer
+        if self.path == "/v1/bounties/profile":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data   = json.loads(self.rfile.read(length)) if length else {}
+                profile = data.get("profile", "").strip()
+                
+                BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                settings_path = os.path.join(BASE_DIR, "_settings.json")
+                
+                settings = {}
+                if os.path.exists(settings_path):
+                    with open(settings_path, "r", encoding="utf-8") as f:
+                        settings = json.load(f)
+                        
+                settings["bounty_profile"] = profile
+                
+                with open(settings_path, "w", encoding="utf-8") as f:
+                    json.dump(settings, f, indent=4, ensure_ascii=False)
+                    
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": True}).encode())
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/infiltrator/start — Iniciar motor de infiltración (Playwright Stealth)
+        if self.path == "/v1/infiltrator/start":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data = json.loads(self.rfile.read(length)) if length else {}
+                target_url = data.get("url", "").strip()
+                if not target_url: target_url = "https://www.google.com"
+                
+                from core import infiltrator
+                ok, msg = infiltrator.start_job(target_url)
+                
+                self.send_response(200 if ok else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": ok, "msg": msg}).encode())
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+            
+        # /v1/infiltrator/stop — Detener motor de infiltración
+        if self.path == "/v1/infiltrator/stop":
+            try:
+                from core import infiltrator
+                ok, msg = infiltrator.stop_job()
+                self.send_response(200 if ok else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": ok, "msg": msg}).encode())
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # /v1/infiltrator/queue_bid — Encolar una oferta automática de Freelancer
+        if self.path == "/v1/infiltrator/queue_bid":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data = json.loads(self.rfile.read(length)) if length else {}
+                url = data.get("url", "")
+                proposal = data.get("proposal", "")
+                
+                from core import infiltrator
+                ok, msg = infiltrator.manager.queue_task({"type": "freelancer_bid", "url": url, "proposal": proposal})
+                
+                self.send_response(200 if ok else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": ok, "msg": msg}).encode())
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+        # /v1/factory/generate — Fábrica de Software
+        if self.path == "/v1/factory/generate":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data = json.loads(self.rfile.read(length)) if length else {}
+                prompt = data.get("prompt", "").strip()
+                
+                if not prompt:
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "Prompt vacío"}).encode())
+                    return
+                    
+                import re, os, zipfile, datetime
+                from core import provider_manager, config_manager
+                
+                system_prompt = (
+                    "Eres un Ingeniero de Software Senior Autónomo.\n"
+                    "El usuario te dará un requerimiento para un script, bot o aplicación.\n"
+                    "Debes escribir el código necesario para que funcione.\n"
+                    "REGLAS:\n"
+                    "1. Por cada archivo que crees, debes incluir primero el nombre del archivo en negrita de esta forma exacta: **Archivo:** nombre_del_archivo.ext\n"
+                    "2. Inmediatamente después, incluye el bloque de código Markdown correspondiente.\n"
+                    "3. DEBES incluir siempre un **Archivo:** README.md con las instrucciones de uso para el cliente.\n"
+                    "4. Si es necesario, incluye un **Archivo:** requirements.txt o package.json.\n"
+                    "No des explicaciones fuera de los bloques de código o el README."
+                )
+                
+                messages = [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ]
+                
+                config = config_manager.load_config()
+                provider_name = config.get("model.default_provider", "LM Studio")
+                plugin = provider_manager.get_plugin(provider_name)
+                if not plugin:
+                    raise Exception(f"No hay proveedor de IA disponible ({provider_name}).")
+                    
+                chunks = list(plugin.chat_stream(messages, "auto", {}))
+                response_text = "".join(chunks)
+                
+                response_text = re.sub(r'<think>.*?</think>', '', response_text, flags=re.DOTALL).strip()
+                
+                BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                entregables_dir = os.path.join(BASE_DIR, "_entregables")
+                os.makedirs(entregables_dir, exist_ok=True)
+                
+                # Encontrar bloques: **Archivo:** nombre \n ```lang \n codigo \n ```
+                pattern = r'\*\*Archivo:\*\*\s*([^\n`]+).*?```\w*\n(.*?)```'
+                matches = list(re.finditer(pattern, response_text, re.DOTALL))
+                
+                folder_name = "entregable_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                project_path = os.path.join(entregables_dir, folder_name)
+                os.makedirs(project_path, exist_ok=True)
+                
+                files_created = 0
+                for match in matches:
+                    filename = match.group(1).strip()
+                    code = match.group(2)
+                    filename = os.path.basename(filename) # Evitar path traversal
+                    file_path = os.path.join(project_path, filename)
+                    with open(file_path, "w", encoding="utf-8") as f:
+                        f.write(code)
+                    files_created += 1
+                    
+                with open(os.path.join(project_path, "RAW_RESPONSE.md"), "w", encoding="utf-8") as f:
+                    f.write(response_text)
+                    
+                zip_filename = folder_name + ".zip"
+                zip_path = os.path.join(entregables_dir, zip_filename)
+                with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                    for root, dirs, files in os.walk(project_path):
+                        for file in files:
+                            abs_path = os.path.join(root, file)
+                            rel_path = os.path.relpath(abs_path, project_path)
+                            zipf.write(abs_path, rel_path)
+                            
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "ok": True, 
+                    "filename": zip_filename,
+                    "files_created": files_created
+                }).encode())
+                
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
         # /v1/scheduler/trigger — Encolar un video ahora (override manual del scheduler)
         if self.path == "/v1/scheduler/trigger":
             try:
@@ -1332,7 +1560,7 @@ class PostRoutesMixin:
                         _base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
                         kb_data, _ = data_guardian.load_knowledge(os.path.join(_base_dir, "_knowledge.json"))
                         _sys_prompt = (
-                            "Eres Gravity AI V15.1 PRO, Auditor Senior. "
+                            "Eres Gravity AI V15.2 PRO, Auditor Senior. "
                             "PROTOCOLO: Lógica interna en inglés. Salida final en español estrictamente. "
                             "Sin rellenos conversacionales. Solo hechos técnicos fríos. Resolución directa."
                         )

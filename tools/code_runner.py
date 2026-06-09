@@ -1,5 +1,5 @@
 """
-Gravity AI — Code Runner Tool V15.1 PRO
+Gravity AI — Code Runner Tool V15.2 PRO
 Executes code blocks extracted from AI responses in an isolated subprocess.
 Supports: Python, JavaScript (Node.js), PowerShell, Bash.
 """

@@ -61,8 +61,8 @@ CINEMA_STYLES: dict[str, dict] = {
         "prefix": "High-end commercial photography, ultra sharp, vivid studio lighting, 4k resolution, bright and energetic, modern product advertising, 16:9",
         "negative": "dark, gloomy, low quality, amateur, blurry, messy",
     },
-    "biomechanic_v13": {
-        "label":  "Biomecánica V13 (Audio-Reativo)",
+    "biomechanic_v14": {
+        "label":  "Biomecánica V14 (Audio-Reativo)",
         "prefix": "GLSL Biomechanic Shader, audio-reactive kinematics, procedural generation",
         "negative": "static, rigid, low quality",
     },
@@ -104,6 +104,11 @@ CINEMA_STYLES: dict[str, dict] = {
     "turing_patterns": {
         "label":  "Patrones de Turing (Reacción-Difusión)",
         "prefix": "Bioluminescent cellular growth, reaction-diffusion, turing patterns",
+        "negative": "static, rigid, low quality",
+    },
+    "inca_math": {
+        "label":  "Matemática Inca (Chacana)",
+        "prefix": "Sacred geometry, Chakana, ancient incan aesthetics, volumetric god rays",
         "negative": "static, rigid, low quality",
     },
 }

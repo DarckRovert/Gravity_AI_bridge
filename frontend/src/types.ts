@@ -64,4 +64,7 @@ export type PanelId =
   | 'config'
   | 'monetization'
   | 'v2v'
-  | 'obs';
+  | 'obs'
+  | 'bountyhunter'
+  | 'softwarefactory'
+  | 'infiltrator';

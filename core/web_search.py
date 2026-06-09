@@ -1,5 +1,5 @@
 """
-Gravity AI — Web Search Module V15.1 PRO
+Gravity AI — Web Search Module V15.2 PRO
 Realiza búsquedas autónomas en DuckDuckGo y scrapea contenido para inyectar conocimiento enriquecido.
 Garantiza tolerancia a fallos, reintentos de red y total seguridad multihilo.
 """

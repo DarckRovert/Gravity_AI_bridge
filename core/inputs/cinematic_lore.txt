@@ -118,3 +118,23 @@ Narración:
 === HISTORIA: CineTest V17 INTERSTELLAR BLACK HOLE KERR MASTER ===
 Escena: V13 Music Video
 Narración: 
+
+
+=== HISTORIA: CineTest V17 FULL DUAL OCEANIC ===
+Escena: V13 Music Video
+Narración: 
+
+
+=== HISTORIA: CineTest V17 FULL DUAL INTERSTELLAR ===
+Escena: V13 Music Video
+Narración: 
+
+
+=== HISTORIA: CineTest V17 FULL DUAL TURING_PATTERNS ===
+Escena: V13 Music Video
+Narración: 
+
+
+=== HISTORIA: CineTest V17 FULL DUAL INCEPTION_KIFS ===
+Escena: V13 Music Video
+Narración: 

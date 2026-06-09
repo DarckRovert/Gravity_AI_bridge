@@ -43,7 +43,7 @@ class GetRoutesMixin:
                 from dashboard import get_dashboard_html
                 body = get_dashboard_html()
             except Exception:
-                body = b"<h1>Gravity AI Bridge V15.1 PRO</h1><p>No se encontro frontend/dist/index.html. Ejecuta 'npm run build' en /frontend.</p>"
+                body = b"<h1>Gravity AI Bridge V15.2 PRO</h1><p>No se encontro frontend/dist/index.html. Ejecuta 'npm run build' en /frontend.</p>"
             
             try:
                 self.send_response(200)
@@ -1418,3 +1418,185 @@ class GetRoutesMixin:
         from api.routes.handlers.obs_handler import handle_obs_overlay_html
         handle_obs_overlay_html(self)
 
+    # ── Bounty Hunter ─────────────────────────────────────────────────────────
+
+    def _serve_bounties(self):
+        """GET /v1/bounties — Extrae y parsea los micro-trabajos de BOUNTIES_ENCONTRADOS.md"""
+        import os, json, re
+        try:
+            BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            file_path = os.path.join(BASE_DIR, "BOUNTIES_ENCONTRADOS.md")
+            actions_path = os.path.join(BASE_DIR, "inputs", ".bounty_actions.json")
+            settings_path = os.path.join(BASE_DIR, "_settings.json")
+            
+            seen_urls = set()
+            if os.path.exists(actions_path):
+                try:
+                    with open(actions_path, "r", encoding="utf-8") as f:
+                        actions = json.load(f)
+                        seen_urls = set(actions.keys())
+                except: pass
+                
+            bounty_profile = "Eres un desarrollador experto buscando trabajo freelance."
+            if os.path.exists(settings_path):
+                try:
+                    with open(settings_path, "r", encoding="utf-8") as f:
+                        bounty_profile = json.load(f).get("bounty_profile", bounty_profile)
+                except: pass
+            
+            bounties = []
+            if os.path.exists(file_path):
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                
+                # Dividir por el inicio de cada bloque para evitar cortes si el texto incluye "---"
+                blocks = re.split(r'(?=\n## 🎯 Oportunidad:|\n\*\*Título:\*\*)', "\n" + content)
+                for block in reversed(blocks):
+                    block = block.strip()
+                    if not block:
+                        continue
+                    
+                    # Regex para extraer campos (soporta formato nuevo de Freelancer y fallback antiguo)
+                    title_match = re.search(r'## 🎯 Oportunidad:\s+(.*)', block)
+                    if title_match:
+                        title = title_match.group(1).strip()
+                        url_match = re.search(r'\*\*Enlace original:\*\*\s+(.*)', block)
+                        url = url_match.group(1).strip() if url_match else ""
+                    else:
+                        title_match = re.search(r'\*\*Título:\*\*\s+\[(.*?)\]\((.*?)\)', block)
+                        if title_match:
+                            title = title_match.group(1).strip()
+                            url = title_match.group(2).strip()
+                        else:
+                            continue
+                            
+                    if url and url in seen_urls:
+                        continue
+                            
+                    platform_match = re.search(r'\*\*Plataforma:\*\*\s+(.*?)\s+\|', block)
+                    if not platform_match:
+                        platform_match = re.search(r'\*\*Plataforma:\*\*\s+(.*)', block)
+                        
+                    date_match = re.search(r'\*\*Detectado:\*\*\s+(.*)', block)
+                    if not date_match:
+                        date_match = re.search(r'\*\*Fecha:\*\*\s+(.*)', block)
+                    
+                    desc_match = re.search(r'### Descripción Original del Cliente\n```text\n(.*?)\n```', block, re.DOTALL)
+                    if not desc_match:
+                        desc_match = re.search(r'\*\*Descripción Original:\*\*\n(.*?)(?=\*\*Propuesta de IA:\*\*|\Z)', block, re.DOTALL)
+                        
+                    prop_match = re.search(r'### Propuesta de Venta Generada por IA \(Copiar y Enviar\)\n(.*?)(?:\n---|\Z)', block, re.DOTALL)
+                    if not prop_match:
+                        prop_match = re.search(r'\*\*Propuesta de IA:\*\*\n(.*)', block, re.DOTALL)
+                    
+                    proposal_text = prop_match.group(1).strip() if prop_match else ""
+                    if proposal_text.startswith(">"):
+                        proposal_text = "\n".join([line.lstrip("> ") for line in proposal_text.split("\n")])
+                    
+                    # Limpiar chain-of-thought (modelos como DeepSeek-R1 que usan <think>)
+                    proposal_text = re.sub(r'<think>.*?</think>', '', proposal_text, flags=re.DOTALL).strip()
+
+                    bounties.append({
+                        "title": title,
+                        "url": url,
+                        "platform": platform_match.group(1).strip() if platform_match else "Unknown",
+                        "date": date_match.group(1).strip() if date_match else "",
+                        "description": desc_match.group(1).strip() if desc_match else "",
+                        "proposal": proposal_text
+                    })
+            
+            # Limitar a los 50 más recientes
+            bounties = bounties[:50]
+            body = json.dumps({"bounties": bounties, "count": len(bounties), "bounty_profile": bounty_profile}, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    # ── Software Factory ──────────────────────────────────────────────────────
+
+    def _serve_factory_list(self):
+        import os, json, glob, datetime
+        try:
+            BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            entregables_dir = os.path.join(BASE_DIR, "_entregables")
+            os.makedirs(entregables_dir, exist_ok=True)
+            
+            zips = glob.glob(os.path.join(entregables_dir, "*.zip"))
+            deliverables = []
+            for z in zips:
+                st = os.stat(z)
+                size_kb = st.st_size / 1024
+                size_str = f"{size_kb:.1f} KB" if size_kb < 1024 else f"{size_kb/1024:.2f} MB"
+                deliverables.append({
+                    "filename": os.path.basename(z),
+                    "size": size_str,
+                    "created_at": datetime.datetime.fromtimestamp(st.st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
+                    "mtime": st.st_mtime
+                })
+                
+            deliverables.sort(key=lambda x: x["mtime"], reverse=True)
+            
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"deliverables": deliverables}, ensure_ascii=False).encode("utf-8"))
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_factory_download(self):
+        import os, urllib.parse
+        try:
+            filename = self.path[len("/v1/factory/download/"):]
+            filename = urllib.parse.unquote(filename)
+            filename = os.path.basename(filename) # Anti path-traversal
+            
+            BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            filepath = os.path.join(BASE_DIR, "_entregables", filename)
+            
+            if not os.path.isfile(filepath):
+                self.send_response(404)
+                self.end_headers()
+                return
+                
+            with open(filepath, "rb") as f:
+                body = f.read()
+                
+            self.send_response(200)
+            self.send_header("Content-Type", "application/zip")
+            self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+            self.send_header("Content-Length", str(len(body)))
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+
+    # ── Infiltrator (AGI Financiero) ──────────────────────────────────────────
+
+    def _serve_infiltrator_status(self):
+        import json
+        try:
+            from core import infiltrator
+            status = infiltrator.get_status()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps(status, ensure_ascii=False).encode("utf-8"))
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())

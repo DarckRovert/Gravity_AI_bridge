@@ -262,7 +262,7 @@ export const VideoStudio = () => {
             <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
               GRAVITY <span className="text-text-muted font-normal">|</span> STUDIO <span className="px-1.5 py-0.5 rounded bg-accent-primary/20 text-accent-primary text-[10px] uppercase font-bold tracking-widest border border-accent-primary/30">Pro Edition</span>
             </h1>
-            <p className="text-xs text-text-muted font-medium mt-0.5">Pipeline Cinemático Autárquico V15.1 PRO</p>
+            <p className="text-xs text-text-muted font-medium mt-0.5">Pipeline Cinemático Autárquico V15.2 PRO</p>
           </div>
         </div>
         
@@ -448,88 +448,98 @@ export const VideoStudio = () => {
                     <div className="space-y-5">
                       <h3 className="text-xs font-bold text-text-muted uppercase border-b border-border-subtle pb-2">Audio Engineering</h3>
                       
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] text-text-muted uppercase font-bold">Voz Principal</label>
-                          <select value={voiceId} onChange={(e) => setVoiceId(e.target.value)} disabled={useGeminiTts} className="w-full bg-surface border border-border-subtle rounded-md p-2 text-xs outline-none disabled:opacity-40">
-                            <option value="">Auto (Sistema)</option>
-                            {voices.map((v) => (
-                              <option key={v.id} value={v.id}>{v.name} ({v.lang})</option>
-                            ))}
-                          </select>
-                           <button
-                             id="btn-preview-voice"
-                             onClick={async () => {
-                               if (!voiceId) return;
-                               try {
-                                 const r = await fetch('/v1/video/preview_voice', {
-                                   method: 'POST',
-                                   headers: { 'Content-Type': 'application/json' },
-                                   body: JSON.stringify({ voice_id: voiceId, text: 'Hola, esta es una prueba de la voz seleccionada en Gravity Studio. Sistema operativo al máximo nivel.' })
-                                 });
-                                 if (r.ok) {
-                                   const blob = await r.blob();
-                                   const url = URL.createObjectURL(blob);
-                                   const audio = new Audio(url);
-                                   audio.play();
-                                 }
-                               } catch (e) { console.error('preview_voice:', e); }
-                             }}
-                             disabled={!voiceId || useGeminiTts}
-                             className="mt-1.5 w-full px-3 py-1.5 bg-surface/50 border border-border-subtle rounded-md text-[10px] font-bold uppercase tracking-wider text-text-muted hover:text-accent-primary hover:border-accent-primary/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-                           >
-                             ▶ Preview de Voz
-                           </button>
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] text-text-muted uppercase font-bold">Idioma TTS</label>
-                          <select value={lang} onChange={(e) => setLang(e.target.value)} className="w-full bg-surface border border-border-subtle rounded-md p-2 text-xs outline-none">
-                            <option value="es">Español</option>
-                            <option value="en">Inglés</option>
-                            <option value="pt">Portugués</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Gemini TTS Premium */}
-                      {ttsEngines?.gemini?.available && (
-                        <div className="rounded-xl border border-violet-500/30 bg-violet-500/5 p-3 space-y-2.5">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-violet-400 animate-pulse"></span>
-                              <span className="text-[10px] font-black text-violet-300 uppercase tracking-widest">Gemini TTS Premium</span>
-                              <span className="px-1.5 py-0.5 rounded bg-violet-500/20 border border-violet-400/30 text-[9px] font-bold text-violet-300">ONLINE</span>
-                            </div>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                              <span className="text-[10px] text-text-muted">Activar</span>
-                              <div
-                                onClick={() => setUseGeminiTts(!useGeminiTts)}
-                                className={`w-9 h-5 rounded-full relative cursor-pointer transition-all duration-300 border ${
-                                  useGeminiTts
-                                    ? 'bg-violet-500 border-violet-400'
-                                    : 'bg-surface border-border-subtle'
-                                }`}
-                              >
-                                <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-300 ${
-                                  useGeminiTts ? 'left-4' : 'left-0.5'
-                                }`} />
-                              </div>
-                            </label>
-                          </div>
-                          {useGeminiTts && (
+                      {jobType === 'tts' ? (
+                        <>
+                          <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
-                              <label className="text-[10px] text-text-muted uppercase font-bold">Voz Gemini</label>
-                              <select
-                                value={geminiVoiceId}
-                                onChange={(e) => setGeminiVoiceId(e.target.value)}
-                                className="w-full bg-surface border border-violet-500/40 rounded-md p-2 text-xs outline-none focus:border-violet-400"
-                              >
-                                {Object.entries(geminiVoices).map(([name, desc]) => (
-                                  <option key={name} value={name}>{name} — {desc}</option>
+                              <label className="text-[10px] text-text-muted uppercase font-bold">Voz Principal</label>
+                              <select value={voiceId} onChange={(e) => setVoiceId(e.target.value)} disabled={useGeminiTts} className="w-full bg-surface border border-border-subtle rounded-md p-2 text-xs outline-none disabled:opacity-40">
+                                <option value="">Auto (Sistema)</option>
+                                {voices.map((v) => (
+                                  <option key={v.id} value={v.id}>{v.name} ({v.lang})</option>
                                 ))}
                               </select>
+                              <button
+                                id="btn-preview-voice"
+                                onClick={async () => {
+                                  if (!voiceId) return;
+                                  try {
+                                    const r = await fetch('/v1/video/preview_voice', {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ voice_id: voiceId, text: 'Hola, esta es una prueba de la voz seleccionada en Gravity Studio. Sistema operativo al máximo nivel.' })
+                                    });
+                                    if (r.ok) {
+                                      const blob = await r.blob();
+                                      const url = URL.createObjectURL(blob);
+                                      const audio = new Audio(url);
+                                      audio.play();
+                                    }
+                                  } catch (e) { console.error('preview_voice:', e); }
+                                }}
+                                disabled={!voiceId || useGeminiTts}
+                                className="mt-1.5 w-full px-3 py-1.5 bg-surface/50 border border-border-subtle rounded-md text-[10px] font-bold uppercase tracking-wider text-text-muted hover:text-accent-primary hover:border-accent-primary/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                              >
+                                ▶ Preview de Voz
+                              </button>
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] text-text-muted uppercase font-bold">Idioma TTS</label>
+                              <select value={lang} onChange={(e) => setLang(e.target.value)} className="w-full bg-surface border border-border-subtle rounded-md p-2 text-xs outline-none">
+                                <option value="es">Español</option>
+                                <option value="en">Inglés</option>
+                                <option value="pt">Portugués</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          {/* Gemini TTS Premium */}
+                          {ttsEngines?.gemini?.available && (
+                            <div className="rounded-xl border border-violet-500/30 bg-violet-500/5 p-3 space-y-2.5">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-violet-400 animate-pulse"></span>
+                                  <span className="text-[10px] font-black text-violet-300 uppercase tracking-widest">Gemini TTS Premium</span>
+                                  <span className="px-1.5 py-0.5 rounded bg-violet-500/20 border border-violet-400/30 text-[9px] font-bold text-violet-300">ONLINE</span>
+                                </div>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                  <span className="text-[10px] text-text-muted">Activar</span>
+                                  <div
+                                    onClick={() => setUseGeminiTts(!useGeminiTts)}
+                                    className={`w-9 h-5 rounded-full relative cursor-pointer transition-all duration-300 border ${
+                                      useGeminiTts
+                                        ? 'bg-violet-500 border-violet-400'
+                                        : 'bg-surface border-border-subtle'
+                                    }`}
+                                  >
+                                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-300 ${
+                                      useGeminiTts ? 'left-4' : 'left-0.5'
+                                    }`} />
+                                  </div>
+                                </label>
+                              </div>
+                              {useGeminiTts && (
+                                <div className="space-y-1.5">
+                                  <label className="text-[10px] text-text-muted uppercase font-bold">Voz Gemini</label>
+                                  <select
+                                    value={geminiVoiceId}
+                                    onChange={(e) => setGeminiVoiceId(e.target.value)}
+                                    className="w-full bg-surface border border-violet-500/40 rounded-md p-2 text-xs outline-none focus:border-violet-400"
+                                  >
+                                    {Object.entries(geminiVoices).map(([name, desc]) => (
+                                      <option key={name} value={name}>{name} — {desc as string}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                              )}
                             </div>
                           )}
+                        </>
+                      ) : (
+                        <div className="rounded-xl border border-border-subtle bg-surface/50 p-4 text-center">
+                          <AudioLines className="mx-auto text-accent-primary mb-2 opacity-80" size={20} />
+                          <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Master Audio Track</p>
+                          <p className="text-xs text-text-primary mt-1">El motor sincronizará el videoclip a la pista principal de audio configurada en la Pizarra.</p>
                         </div>
                       )}
 

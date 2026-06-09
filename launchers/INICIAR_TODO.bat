@@ -1,12 +1,12 @@
 @echo off
-title Gravity AI Bridge V15.1 PRO -- Arranque Completo
+title Gravity AI Bridge V15.2 PRO -- Arranque Completo
 setlocal enabledelayedexpansion
 color 0B
 cls
 
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|          GRAVITY AI BRIDGE V15.1 PRO [Ecosistema Total]                 ^|
+echo  ^|          GRAVITY AI BRIDGE V15.2 PRO [Ecosistema Total]                 ^|
 echo  ^|          Motor de Animacion (MAI) L0/L1/L2 habilitado                   ^|
 echo  +--------------------------------------------------------------------------+
 echo.
@@ -117,7 +117,7 @@ echo  [OK] Studio UI iniciado.
 :launch_done
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|          GRAVITY AI BRIDGE V15.1 PRO — Ecosistema Completo               ^|
+echo  ^|          GRAVITY AI BRIDGE V15.2 PRO — Ecosistema Completo               ^|
 echo  +--------------------------------------------------------------------------+
 echo  ^|   Dashboard Web:    http://localhost:7860  (Chat, V2V, Video Studio)    ^|
 echo  ^|   Fooocus Motor:    http://127.0.0.1:7861  (API generacion imagenes)    ^|
@@ -135,5 +135,5 @@ echo  Abriendo el Dashboard principal en tu navegador...
 timeout /t 2 /nobreak >nul
 start http://127.0.0.1:7860/
 echo.
-echo  [LISTO] Ecosistema Gravity AI V15.1 PRO iniciado. Esta ventana puede cerrarse.
+echo  [LISTO] Ecosistema Gravity AI V15.2 PRO iniciado. Esta ventana puede cerrarse.
 pause

@@ -26,6 +26,9 @@ import { Security } from './components/Security';
 import { AuditLog } from './components/AuditLog';
 import { Settings } from './components/Settings';
 import { MonetizationHub } from './components/MonetizationHub';
+import { BountyHunter } from './components/BountyHunter';
+import { SoftwareFactory } from './components/SoftwareFactory';
+import { Infiltrator } from './components/Infiltrator';
 import { ToastContainer } from './components/Toast';
 
 import type { PanelId } from './types';
@@ -69,6 +72,9 @@ function App() {
       case 'audit': return <AuditLog />;
       case 'config': return <Settings />;
       case 'monetization': return <MonetizationHub />;
+      case 'bountyhunter': return <BountyHunter />;
+      case 'softwarefactory': return <SoftwareFactory />;
+      case 'infiltrator': return <Infiltrator />;
       default:
         return (
           <div className="flex items-center justify-center h-full text-text-muted text-lg font-medium">

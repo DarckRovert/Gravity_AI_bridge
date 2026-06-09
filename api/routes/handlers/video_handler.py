@@ -27,6 +27,7 @@ def handle_video_status(handler):
         body = json.dumps(data, ensure_ascii=False, default=str).encode("utf-8")
         handler.send_response(200)
         handler.send_header("Content-Type", "application/json")
+        handler.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
         handler._send_cors()
         handler.end_headers()
         handler.wfile.write(body)

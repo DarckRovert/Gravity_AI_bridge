@@ -55,13 +55,19 @@ ENGINE_VISUAL_CONTEXT = {
 # ── Constructores de prompt ──────────────────────────────────────────────────
 
 def _build_prompt(engine: str, section_label: str, section_text: str,
-                  color_hint: list = None) -> str:
+                  color_hint: list = None, custom_scene_prompt: str = "") -> str:
     """
     Construye un prompt cinematográfico denso a partir del engine elegido
-    por el AI Director y el contenido emocional de la sección de letra.
+    o el custom_scene_prompt generado por el AI Director.
     """
     ctx = ENGINE_VISUAL_CONTEXT.get(engine, ENGINE_VISUAL_CONTEXT["space_odyssey"])
-    scene = ctx["scene"]
+    
+    # Si el director proveyó un prompt específico, lo usamos. Si no, usamos el por defecto del engine.
+    if custom_scene_prompt and len(custom_scene_prompt.strip()) > 5:
+        scene = custom_scene_prompt.strip()
+    else:
+        scene = ctx["scene"]
+        
     style = ctx["style"]
 
     # Color hint: si el AI Director devolvió colores, los traducimos a mood
@@ -127,6 +133,7 @@ def _generate_via_pollinations(prompt: str, w: int, h: int, out_path: str,
                                 seed: int = None, retries: int = 3) -> bool:
     """
     Genera una imagen usando la API pública de Pollinations (modelo Flux).
+    """
     # Flux: generar en 1024x576 y escalar — mejor calidad base para IBL
     gen_w, gen_h = 1024, 576
     # Modelos en orden de preferencia: flux-realism > flux > turbo
@@ -287,6 +294,7 @@ def generate_scene_images(timeline: list, w: int = 1280, h: int = 720,
             section_label=label,
             section_text=scene.get("label", ""),
             color_hint=color_hint,
+            custom_scene_prompt=scene.get("custom_scene_prompt", ""),
         )
 
         success = False

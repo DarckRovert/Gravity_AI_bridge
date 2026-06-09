@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║          GRAVITY AI - CACHE ENGINE V15.1 PRO [Diamond-Tier Edition]           ║
+║          GRAVITY AI - CACHE ENGINE V15.2 PRO [Diamond-Tier Edition]           ║
 ║             Optimized with WAL mode and Reasoning-Aware Hashing              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
@@ -22,7 +22,7 @@ _db_initialized = False
 _enabled        = True
 DEFAULT_TTL     = 24 * 3600  # 24 hours
 
-# ── Hash Sanitizer (V15.1 PRO) ──────────────────────────────────────────────────
+# ── Hash Sanitizer (V15.2 PRO) ──────────────────────────────────────────────────
 def _sanitize_content(text: str) -> str:
     """Removes reasoning blocks to ensure deterministic hashing of intent."""
     patterns = [r"<think>.*?</think>", r"<\|canal\|>pensamiento.*?<channel\|>"]
@@ -68,7 +68,7 @@ def _make_key(messages: list[dict], model: str) -> str:
 
 class CacheEngine:
     """
-    V15.1 PRO Optimized SQLite Cache.
+    V15.2 PRO Optimized SQLite Cache.
     Features: WAL Mode, Thread-Safe, Reasoning-Aware Hashing.
     """
 

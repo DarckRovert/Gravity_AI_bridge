@@ -13,7 +13,7 @@ Estado: **V15.2 PRO Activo** | Próximo hito: **V16.0 Autonomous Studio**
 - [x] Interfaz Remotion/React Cyberpunk (Karaoke neón, VHS Scanlines)
 - [x] Pipeline multi-parte FFmpeg+Whisper completamente estabilizado
 
-### V15.1 PRO — Omniscient-Tier (Mayo 2026)
+### V15.2 PRO — Omniscient-Tier (Mayo 2026)
 - [x] Arquitectura modular `/core/video/` (5 submódulos desacoplados)
 - [x] VTuber Engine V4.0 FasterLivePortrait ONNX (30-60 FPS)
 - [x] Multi-Agent Orchestrator con voting, debate y routing por rol

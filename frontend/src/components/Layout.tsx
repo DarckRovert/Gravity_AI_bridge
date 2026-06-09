@@ -4,7 +4,7 @@ import {
   MessageSquare, Home, Palette, Image as ImageIcon, Video, Rocket, 
   Gamepad2, Bot, Cpu, DollarSign, Activity, Save, BookOpen, 
   Plug, Wrench, Zap, Bug, ShieldAlert, Wifi, Shield, FileText, Settings, Menu, Bell,
-  TrendingUp, Video as VideoIcon, Radio
+  TrendingUp, Video as VideoIcon, Radio, Target, Code2, Ghost
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -55,7 +55,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
           <Menu size={20} />
         </button>
         <div className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-accent-primary to-accent-secondary bg-clip-text text-transparent">
-          GRAVITY V15.1 PRO
+          GRAVITY V15.2 PRO
         </div>
         
         <div className="flex items-center ml-auto gap-6 text-sm font-medium">
@@ -130,6 +130,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
 
             <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted mt-6 mb-2 px-2">💰 Monetización</div>
             <NavItem id="monetization" icon={TrendingUp} label="Monetization Hub" />
+            <NavItem id="bountyhunter" icon={Target} label="Bounty Hunter" />
+            <NavItem id="softwarefactory" icon={Code2} label="Dev Studio / Fábrica" />
+            <NavItem id="infiltrator" icon={Ghost} label="Infiltrador (AGI)" />
           </div>
 
           <div className="p-4 shrink-0 border-t border-border-subtle bg-surface">

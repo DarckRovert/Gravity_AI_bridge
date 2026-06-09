@@ -4,7 +4,7 @@
 
 | Versión | Estado | Soporte de Seguridad |
 |---|---|---|
-| V15.1 PRO Omniscient | ✅ Actual | Activo — recibe parches |
+| V15.2 PRO Omniscient | ✅ Actual | Activo — recibe parches |
 | V13.0 PRO | ⚠️ Legacy | Solo vulnerabilidades críticas |
 | V12.x PRO | ❌ EOL | Sin soporte |
 | V10.x | ❌ EOL | Sin soporte |
@@ -81,7 +81,7 @@ El agente queda bloqueado 120 segundos esperando aprobación. Timeout → auto-r
 | GAB-2026-002 | Spam de alertas de security_monitor por apps legítimas | ✅ Corregido V12.2 PRO |
 | GAB-2026-003 | Path traversal en `/static/output/` | ✅ Mitigado V10.0 |
 | GAB-2026-004 | Colisión de override `switchTab` en JS del Dashboard | ✅ Corregido V12.2 PRO |
-| GAB-2026-005 | Vulnerabilidad de compilación remota y bypass MSVC LivePortrait | ✅ Mitigado V15.1 PRO |
+| GAB-2026-005 | Vulnerabilidad de compilación remota y bypass MSVC LivePortrait | ✅ Mitigado V15.2 PRO |
 
 ---
 

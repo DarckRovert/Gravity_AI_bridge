@@ -38,42 +38,23 @@ def format_ass_time(seconds: float) -> str:
         cs = 99
     return f"{h:01d}:{m:02d}:{s:02d}.{cs:02d}"
 
-def generate_ass_subtitles(audio_path: str, out_ass_path: str, language: str = "es", tgt_w: int = 1280, tgt_h: int = 720) -> str:
+def generate_ass_subtitles(audio_path: str, out_ass_path: str, language: str = "es", tgt_w: int = 1280, tgt_h: int = 720, lyrics_text: str = None) -> tuple:
     """
-    Genera un archivo de subtítulos .ass cinemáticos a partir del audio usando Whisper.
+    Genera un archivo de subtítulos .ass cinemáticos a partir del audio usando Whisper y devuelve (ruta_ass, texto_extraido).
     """
     if not os.path.isfile(audio_path):
         logger.error(f"Audio no encontrado para subtítulos: {audio_path}")
         return None
 
     logger.info(f"Generando subtítulos cinematográficos para {os.path.basename(audio_path)}")
-    engine = WhisperEngine(model_size="base")
-    words = engine.extract_words(audio_path, language=language)
+    engine = WhisperEngine(model_size="medium")
+    words = engine.extract_words(audio_path, language=language, initial_prompt=lyrics_text)
 
     if not words:
         logger.warning("No se detectaron palabras en el audio.")
-        return None
-
-    # --- CORRECCIONES FONÉTICAS ---
-    # El modelo Whisper a veces confunde palabras. Aplicamos correcciones directas
-    # manteniendo la sincronización de tiempo exacta del karaoke.
-    correcciones = {
-        "juego": "fuego",
-        "juegos": "fuegos",
-        "juego,": "fuego,",
-        "juegos,": "fuegos,",
-        "juego.": "fuego.",
-        "juego!": "fuego!",
-        "juego?": "fuego?",
-        "juego:": "fuego:",
-    }
-    for w in words:
-        clean_word = w['word'].strip()
-        lower_word = clean_word.lower()
-        if lower_word in correcciones:
-            # Preservar los espacios originales si los hubiera, reemplazando la palabra limpia
-            w['word'] = w['word'].replace(clean_word, correcciones[lower_word])
-            
+        return out_ass_path, ""
+        
+    full_text = " ".join([w['word'].strip() for w in words])
     # Agrupar palabras en frases cortas
     is_vertical = tgt_h > tgt_w
     max_words = 3 if is_vertical else 5
@@ -144,7 +125,7 @@ def generate_ass_subtitles(audio_path: str, out_ass_path: str, language: str = "
             f.write(dialogue)
 
     logger.info(f"Subtítulos guardados en {out_ass_path}")
-    return out_ass_path
+    return out_ass_path, full_text
 
 if __name__ == "__main__":
     # Test local

@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — SOCIAL ASSETS GENERATOR V15.1 PRO [Diamond-Tier Edition]       ║
+║  GRAVITY AI — SOCIAL ASSETS GENERATOR V15.2 PRO [Diamond-Tier Edition]       ║
 ║  Generador automático de activos sociales (Twitter/X, Instagram, LinkedIn)   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

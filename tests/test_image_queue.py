@@ -1,5 +1,5 @@
 """
-Tests unitarios para core/image_queue.py — V15.1 PRO
+Tests unitarios para core/image_queue.py — V15.2 PRO
 Cubre: add_job, get_queue_status, cancel_job, _process_job (con retry),
        start() idempotente, notificación SSE.
 Usa SQLite en memoria vía monkeypatch de DB_PATH.

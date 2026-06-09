@@ -16,7 +16,7 @@ from core.video.renderer import (
 )
 from core.video.audio_analyzer import extract_multiband_energy
 from core.video.timeline_director import generate_timeline, generate_color_sequence
-from core.video.glsl_renderer_v13 import render_v13_video
+from core.video.glsl_compute_renderer_v14 import render_v14_compute_video
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUTPUT_DIR = os.path.join(BASE_DIR, "_videos")
@@ -332,6 +332,12 @@ def cancel_job(job_id: int) -> bool:
             conn.commit()
         finally:
             conn.close()
+    
+    global _current_job
+    with _lock:
+        if _current_job and _current_job.get("id") == job_id:
+            _current_job = None
+
     return rows > 0
 
 
@@ -376,6 +382,12 @@ def delete_job(job_id: int) -> dict:
                 conn.commit()
             finally:
                 conn.close()
+
+    global _current_job
+    with _lock:
+        if _current_job and _current_job.get("id") == job_id:
+            _current_job = None
+
     return {
         "ok": row is not None,
         "deleted_files": deleted_files,
@@ -487,20 +499,20 @@ def _process_job(
         except ImportError:
             pass # Si el módulo no existe, ignorar
         
-        v13_bypass = False
+        v14_bypass = False
 
-        # === INTERCEPTOR V13 BIOMECÁNICO / GALÁCTICO ===
-        if job_type == "music" and style in ["biomechanic_v13", "galactic", "oceanic", "protean", "interstellar", "inception_kifs", "neon_fluid", "organic_core", "turing_patterns"]:
-            log.info(f"[VideoStudio] Interceptando Pipeline: Redirigiendo a Motor GLSL V13...")
+        # === INTERCEPTOR V14 BIOMECÁNICO / GALÁCTICO ===
+        if job_type == "music" and style in ["biomechanic_v14", "galactic", "oceanic", "protean", "interstellar", "inception_kifs", "neon_fluid", "organic_core", "turing_patterns", "inca_math"]:
+            log.info(f"[VideoStudio] Interceptando Pipeline: Redirigiendo a Motor GLSL V14...")
             if not audio_track_path or not os.path.isfile(audio_track_path):
-                raise RuntimeError("El Motor V13 requiere un archivo de audio (.mp3/.wav) válido en audio_track_path.")
+                raise RuntimeError("El Motor V14 requiere un archivo de audio (.mp3/.wav) válido en audio_track_path.")
             
             _update_job(job_id, progress=10, current_step="Analizando frecuencias de audio (Multiband)...")
             multiband = extract_multiband_energy(audio_track_path, fps)
             total_frames = len(multiband.get('bass', []))
             
             if total_frames == 0:
-                raise RuntimeError("Fallo al extraer energía del audio para V13.")
+                raise RuntimeError("Fallo al extraer energía del audio para V14.")
                 
             _update_job(job_id, progress=30, current_step="Generando línea de tiempo y paletas fractales...")
             timeline = generate_timeline(multiband, fps)
@@ -532,7 +544,7 @@ def _process_job(
             
             ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             safe_topic = "".join(c for c in topic[:30] if c.isalnum() or c in " _-").strip().replace(" ", "_")
-            final_path = os.path.join(OUTPUT_DIR, f"video_{job_id}_{safe_topic}_V13_{ts}.mp4")
+            final_path = os.path.join(OUTPUT_DIR, f"video_{job_id}_{safe_topic}_V14_{ts}.mp4")
             
             # Derivar resolución si está presente
             _res_parts = resolution.split("x") if "x" in resolution else []
@@ -540,7 +552,7 @@ def _process_job(
             _tgt_h = int(_res_parts[1]) if len(_res_parts) == 2 and _res_parts[1].isdigit() else DEFAULT_IMG_H
             
             # === AI-FIRST: Generar imágenes de fondo cinematográficas ===
-            if style in ["galactic", "oceanic", "protean", "interstellar", "inception_kifs", "neon_fluid", "organic_core", "turing_patterns"]:
+            if style in ["galactic", "oceanic", "protean", "interstellar", "inception_kifs", "neon_fluid", "organic_core", "turing_patterns", "inca_math"]:
                 log.info(f"[VideoStudio] Estilo '{style}': Omitiendo generación de imágenes AI 2D (Render 100% Shader).")
                 background_images = [None] * len(timeline)
             else:
@@ -561,17 +573,17 @@ def _process_job(
             try:
                 from core.video.subtitle_engine import generate_ass_subtitles
                 tmp_ass = os.path.join(OUTPUT_DIR, f"temp_{job_id}_lyrics.ass")
-                ass_path = generate_ass_subtitles(audio_track_path, tmp_ass)
+                ass_path, real_lyrics = generate_ass_subtitles(audio_track_path, tmp_ass, lyrics_text=lyrics_text)
             except Exception as e_sub:
                 log.warning(f"[VideoStudio] Fallo al generar subtítulos ASS: {e_sub}")
 
             # === FORZAR SHADER STANDALONE (Si aplica) ===
-            if style in ["galactic", "oceanic", "protean", "interstellar", "inception_kifs", "neon_fluid", "organic_core", "turing_patterns"]:
+            if style in ["galactic", "oceanic", "protean", "interstellar", "inception_kifs", "neon_fluid", "organic_core", "turing_patterns", "inca_math"]:
                 for sc in timeline:
                     sc["engine"] = style
 
-            _update_job(job_id, progress=50, current_step=f"Renderizando {style.upper()} V17 (GPU)...")
-            render_v13_video(
+            _update_job(job_id, progress=50, current_step=f"Renderizando {style.upper()} V14 (Compute Shaders)...")
+            render_v14_compute_video(
                 timeline=timeline,
                 multiband=multiband,
                 colorsA=colorsA,
@@ -588,9 +600,9 @@ def _process_job(
             )
             
             if not os.path.isfile(final_path):
-                raise RuntimeError("El renderizador V13 falló y no devolvió ningún MP4.")
+                raise RuntimeError("El renderizador V14 falló y no devolvió ningún MP4.")
                 
-            if style in ["galactic", "oceanic", "protean", "interstellar", "inception_kifs", "neon_fluid", "organic_core", "turing_patterns"]:
+            if style in ["galactic", "oceanic", "protean", "interstellar", "inception_kifs", "neon_fluid", "organic_core", "turing_patterns", "inca_math"]:
                 _shorts_path = final_path.replace(".mp4", "_short.mp4")
                 _update_job(job_id, progress=75, current_step=f"Renderizando NATIVO VERTICAL {style.upper()} V17 (GPU)...")
                 
@@ -600,11 +612,11 @@ def _process_job(
                     try:
                         from core.video.subtitle_engine import generate_ass_subtitles
                         tmp_ass_vert = os.path.join(OUTPUT_DIR, f"temp_{job_id}_lyrics_vertical.ass")
-                        ass_path_vertical = generate_ass_subtitles(audio_track_path, tmp_ass_vert, tgt_w=_tgt_h, tgt_h=_tgt_w)
+                        ass_path_vertical, _ = generate_ass_subtitles(audio_track_path, tmp_ass_vert, tgt_w=_tgt_h, tgt_h=_tgt_w, lyrics_text=lyrics_text)
                     except Exception as e_sub_vert:
                         log.warning(f"[VideoStudio] Fallo al generar subtítulos ASS Verticales: {e_sub_vert}")
 
-                render_v13_video(
+                render_v14_compute_video(
                     timeline=timeline,
                     multiband=multiband,
                     colorsA=colorsA,
@@ -624,11 +636,11 @@ def _process_job(
             render_ok = True
             
             # Limpiamos el salto para que el resto de variables que usa el final no colapsen
-            scenes = [{"title": "V13 Music Video", "image_prompt": "Audio Reactive V13", "narration": ""}]
+            scenes = [{"title": "V14 Music Video", "image_prompt": "Audio Reactive V14", "narration": ""}]
             thumb_path = ""
             generated_title = title or topic or "Music Video"
             visual_anchor = "esthetic cinematic lighting, visually stunning"
-            v13_bypass = True
+            v14_bypass = True
             
         elif job_type == "music":
             visual_anchor = "esthetic cinematic lighting, visually stunning"
@@ -665,7 +677,7 @@ def _process_job(
             scenes, visual_anchor, generated_title = _generate_script(topic, n_scenes, style, narration_lang, use_lore)
             if not scenes:
                 raise RuntimeError("El LLM no devolvió escenas válidas.")
-            v13_bypass = False
+            v14_bypass = False
 
         if not title and generated_title:
             title = generated_title
@@ -674,8 +686,8 @@ def _process_job(
                 if _current_job:
                     _current_job["title"] = title
 
-        if v13_bypass:
-            # V13 Bypass salta directamente al final
+        if v14_bypass:
+            # V14 Bypass salta directamente al final
             pass
         else:
             style_info   = CINEMA_STYLES.get(style, CINEMA_STYLES[DEFAULT_STYLE])
@@ -693,7 +705,7 @@ def _process_job(
         clip_paths: list[str] = []
         scenes_payload = []
 
-        if intro_card and not v13_bypass:
+        if intro_card and not v14_bypass:
             intro_path = os.path.join(job_dir, 'intro_card.mp4')
             w_ic, h_ic = DEFAULT_IMG_W, DEFAULT_IMG_H
             if 'x' in resolution:
@@ -705,7 +717,7 @@ def _process_job(
 
         previous_scene_image = None
         user_video_clips = []
-        if input_video_path and os.path.isfile(input_video_path) and not v13_bypass:
+        if input_video_path and os.path.isfile(input_video_path) and not v14_bypass:
             from core.video.video_slicer import extract_clips_from_video
             w_res, h_res = 1216, 832
             if 'x' in resolution:
@@ -723,7 +735,7 @@ def _process_job(
             )
 
         for i, scene in enumerate(scenes):
-            if v13_bypass:
+            if v14_bypass:
                 break
             scene_num   = i + 1
             scene_title = scene.get("title", f"Escena {scene_num}")
@@ -934,12 +946,12 @@ def _process_job(
                 _current_job["progress"] = 95
                 _current_job["current_step"] = "Renderizando video principal..."
 
-        if not v13_bypass:
+        if not v14_bypass:
             ts         = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             safe_topic = "".join(c for c in topic[:30] if c.isalnum() or c in " _-").strip().replace(" ", "_")
             final_path = os.path.join(OUTPUT_DIR, f"video_{job_id}_{safe_topic}_{ts}.mp4")
 
-        if v13_bypass:
+        if v14_bypass:
             main_video_rendered = True
             main_rendered_path = final_path
         else:
@@ -962,8 +974,8 @@ def _process_job(
                 log.error(f"[VideoStudio] Error en Remotion LongTemplate: {rem_e}")
 
         if main_video_rendered:
-            if v13_bypass:
-                pass # The V13 render is already at final_path, no concatenation or copying needed
+            if v14_bypass:
+                pass # The V14 render is already at final_path, no concatenation or copying needed
             else:
                 intro_clips = [p for p in clip_paths if p != main_rendered_path]
                 needs_concat = bool(intro_clips) or bgm_type != "ninguna"
@@ -978,7 +990,7 @@ def _process_job(
                     import shutil
                     shutil.copy2(main_rendered_path, final_path)
                 
-            if v13_bypass:
+            if v14_bypass:
                 pass # The audio is already inside the final_path
             elif job_type == "music" and audio_track_path and os.path.isfile(audio_track_path):
                 import subprocess
@@ -1004,7 +1016,7 @@ def _process_job(
                     log.warning(f"[VideoStudio] Error aplicando Beat-Syncer: {b_e}")
 
             render_ok = os.path.isfile(final_path) and os.path.getsize(final_path) > 0
-        elif job_type == "music" and style == "biomechanic_v13":
+        elif job_type == "music" and style == "biomechanic_v14":
             # El renderizado ya se completó arriba, render_ok está seteado
             pass
         else:
@@ -1068,7 +1080,7 @@ def _process_job(
                 log.warning(f"[VideoStudio] Error generando activos sociales: {_sa_e}")
 
             try:
-                if style in ["galactic", "biomechanic_v13", "oceanic", "protean", "interstellar", "inception_kifs", "neon_fluid", "organic_core", "turing_patterns"]:
+                if style in ["galactic", "biomechanic_v14", "oceanic", "protean", "interstellar", "inception_kifs", "neon_fluid", "organic_core", "turing_patterns", "inca_math"]:
                     log.info(f"[VideoStudio] Shorts nativos verticales 9:16 ya fueron generados por la GPU en el paso anterior.")
                     _shorts_path = final_path.replace(".mp4", "_short.mp4")
                     try:
@@ -1292,7 +1304,7 @@ def start() -> None:
         _init_db()
         t = threading.Thread(target=_worker_loop, name="GravityVideoWorker", daemon=True)
         t.start()
-        log.info("[VideoStudio] Worker daemon iniciado (Gravity Studio ULTRA V15.1 PRO - Modular Pipeline).")
+        log.info("[VideoStudio] Worker daemon iniciado (Gravity Studio ULTRA V15.2 PRO - Modular Pipeline).")
 
 
 def get_video_url(output_path: str) -> str:

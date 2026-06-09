@@ -1,4 +1,4 @@
-# 🪐 Gravity AI Bridge | Wiki Corporativa V15.1 PRO Omniscient-Tier
+# 🪐 Gravity AI Bridge | Wiki Corporativa V15.2 PRO Omniscient-Tier
 
 Bienvenido al Centro de Conocimiento del Bridge — hub principal para orquestar infraestructuras pesadas con LLMs, multimedia, Game Servers, OBS Studio y agentes IA con control total.
 
@@ -15,7 +15,7 @@ Bienvenido al Centro de Conocimiento del Bridge — hub principal para orquestar
 | 5 | [❓ FAQ](./FAQ.md) | Preguntas frecuentes y troubleshooting |
 | 6 | [⚔️ Game Server Guide](./Game-Server-Guide.md) | Gestión de servidores WoW MangosD |
 | 7 | [🚀 Deploy Externo VPS](./Deploy_Externo_VPS.md) | Configuración de despliegue en VPS |
-| 8 | [🧠 Plan Evolución Agéntica](./Plan-Evolucion-Agentic.md) | Roadmap y diseño del Agentic Core V15.1/V16.0 |
+| 8 | [🧠 Plan Evolución Agéntica](./Plan-Evolucion-Agentic.md) | Roadmap y diseño del Agentic Core V15.2/V16.0 |
 | 9 | [💰 Manual de Monetización](./Monetizacion-Manual.md) | Operación de la Content Factory y monetización pasiva |
 | 10 | [🔒 Seguridad](../SECURITY.md) | Política de seguridad y vulnerabilidades |
 
@@ -46,7 +46,7 @@ El subsistema de Video Studio ha evolucionado a una colección de motores purist
 
 ---
 
-## 🚀 Novedades V15.1 PRO Omniscient-Tier
+## 🚀 Novedades V15.2 PRO Omniscient-Tier
 
 ### Real-Time VTuber Engine V4.0 (Aletheia V2V)
 - **LivePortrait ONNX Integrado**: Se descartó la transformación ineficiente "frame-by-frame" con SD-Turbo. El sistema ahora utiliza `FasterLivePortrait` puro a 30-60 FPS procesando exclusivamente por DirectML en GPU AMD/NVIDIA.
@@ -58,7 +58,7 @@ El subsistema de Video Studio ha evolucionado a una colección de motores purist
 - **OBS WebSocket v5 Integrado**: Auto-conexión activa y control total de escenas, fuentes, mute/volumen, streaming y grabación desde la API REST.
 - **Gravity Spark (Motor de Overlays AI)**: Genera código HTML/JS autocontenido en tiempo real usando tu LLM local, inyectándolo directamente como `Browser Source` en OBS. Permite modificar overlays al vuelo mediante chat ("hazlo azul", "borde neón").
 
-### Fábrica de Monetización Pasiva & Social Assets (V15.1)
+### Fábrica de Monetización Pasiva & Social Assets (V15.2)
 - **Language Cloner**: Reutiliza renders visuales (0 gasto de GPU) traduciendo guiones (LLM) y clonando el audio a Inglés, Portugués y Francés. Multiplica el CPM orgánico de AdSense.
 - **Affiliate Manager**: Banco de base de datos con programas CPA categorizados por nicho. Inyecta enlaces y CTAs optimizados en las descripciones de YouTube.
 - **Social Distribution (TikTok & Instagram)**: Integración directa con TikTok Content API v2 e Instagram Graph API v19 para auto-publicar Shorts de 58s.
@@ -133,5 +133,5 @@ Compatibilidad: OpenAI API v1 (drop-in replacement)
 ---
 
 <div align="center">
-  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V15.1 PRO Omniscient-Tier</i></sub>
+  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V15.2 PRO Omniscient-Tier</i></sub>
 </div>
