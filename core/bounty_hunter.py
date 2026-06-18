@@ -55,7 +55,7 @@ def fetch_reddit_json():
     url = "https://www.reddit.com/r/forhire/new.json?limit=15"
     req = urllib.request.Request(
         url,
-        headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+        headers={"User-Agent": "GravityAIBot/16.0 (by DarckRovert) Desktop/Windows"}
     )
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:

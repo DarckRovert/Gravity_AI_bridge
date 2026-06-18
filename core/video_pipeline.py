@@ -1,5 +1,5 @@
 """
-GRAVITY AI — VIDEO STUDIO PIPELINE BRIDGE V15.2 PRO
+GRAVITY AI — VIDEO STUDIO PIPELINE BRIDGE V16.0 PRO
 Capa de compatibilidad total hacia atrás (Bridge) que redirige todas las llamadas
 y accesos a constantes al nuevo paquete modularizado `/core/video/`.
 """

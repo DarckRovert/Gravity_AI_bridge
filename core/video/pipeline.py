@@ -490,12 +490,12 @@ def _process_job(
         _check_cancelled(job_id)
         
         # === YOUTUBE OAUTH2 SHIELD ===
-        skip_social_upload = False
+        skip_youtube_upload = False
         try:
             from core.youtube_uploader import verify_token_health
             if not verify_token_health():
-                log.warning("[VideoStudio] OAUTH_ERROR detectado. Se omitirá la subida a redes, pero el render local continuará.")
-                skip_social_upload = True
+                log.warning("[VideoStudio] OAUTH_ERROR detectado. Se omitirá la subida a YouTube, pero el render local y TikTok continuarán.")
+                skip_youtube_upload = True
         except ImportError:
             pass # Si el módulo no existe, ignorar
         
@@ -750,11 +750,12 @@ def _process_job(
                 raw_prompt = f"{scene_visual_context}, {raw_prompt}"
                 
             anchored_prompt = (
-                f"{visual_anchor}, {raw_prompt}, {style_info['prefix']}"
+                f"{raw_prompt}, {visual_anchor}, {style_info['prefix']}"
                 if visual_anchor.lower() not in raw_prompt.lower()
                 else f"{raw_prompt}, {style_info['prefix']}"
             )
-            anchored_prompt = anchored_prompt[:150]
+            # Remove truncation that breaks prompts
+            anchored_prompt = anchored_prompt[:1500]
 
             # ── PASO 2: Imagen ──
             _check_cancelled(job_id)
@@ -845,7 +846,7 @@ def _process_job(
                 except Exception as _l15_err:
                     log.warning(f"[VideoStudio] Animation Engine L1.5 fail: {_l15_err}")
 
-            if animation_level >= 2 and _animated_src == img_path:
+            if animation_level >= 2 and _animated_src == img_path and not img_path.endswith(".mp4"):
                 # ── L2: ComfyUI (fallback si L1.5 falló) ─────────────────────────
                 try:
                     from core.animation_engine import animate_with_comfyui
@@ -1176,7 +1177,7 @@ def _process_job(
 
                 try:
                     from core.youtube_uploader import upload_job_async
-                    if not skip_social_upload:
+                    if not skip_youtube_upload:
                         upload_job_async(
                             job_id     = job_id,
                             video_path = final_path,
@@ -1190,7 +1191,7 @@ def _process_job(
 
                 try:
                     from core.tiktok_uploader import distribute_short_async
-                    if not skip_social_upload and '_shorts_path' in locals() and _shorts_path and os.path.isfile(_shorts_path):
+                    if '_shorts_path' in locals() and _shorts_path and os.path.isfile(_shorts_path):
                         distribute_short_async(
                             job_id      = job_id,
                             shorts_path = _shorts_path,
@@ -1304,7 +1305,7 @@ def start() -> None:
         _init_db()
         t = threading.Thread(target=_worker_loop, name="GravityVideoWorker", daemon=True)
         t.start()
-        log.info("[VideoStudio] Worker daemon iniciado (Gravity Studio ULTRA V15.2 PRO - Modular Pipeline).")
+        log.info("[VideoStudio] Worker daemon iniciado (Gravity Studio ULTRA V16.0 PRO - Modular Pipeline).")
 
 
 def get_video_url(output_path: str) -> str:

@@ -67,4 +67,7 @@ export type PanelId =
   | 'obs'
   | 'bountyhunter'
   | 'softwarefactory'
-  | 'infiltrator';
+  | 'infiltrator'
+  | 'tinka'
+  | 'youtubeanalyzer'
+  | 'autonomy';

@@ -1,6 +1,6 @@
-# ⚙️ Arquitectura del Sistema — Gravity AI Bridge V15.2 PRO
+# ⚙️ Arquitectura del Sistema — Gravity AI Bridge V16.0 PRO
 
-Este documento describe la arquitectura completa del ecosistema, con foco especial en el **Motor Cinematic V2.0 PBR** incorporado en V15.2.
+Este documento describe la arquitectura completa del ecosistema, con foco especial en el **Motor Cinematic V2.0 PBR** incorporado en V16.0.
 
 ---
 
@@ -8,7 +8,7 @@ Este documento describe la arquitectura completa del ecosistema, con foco especi
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│               Gravity AI Bridge V15.2 PRO               │
+│               Gravity AI Bridge V16.0 PRO               │
 │              bridge_server.py  (puerto 7860)             │
 │            ThreadingHTTPServer · OpenAI-compat           │
 └──────────────┬──────────────────────────────────────────┘

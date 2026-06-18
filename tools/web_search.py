@@ -11,7 +11,29 @@ from tools.base_tool import Tool, ToolResult
 
 DDG_URL: str = "https://html.duckduckgo.com/html/"
 BRAVE_URL: str = "https://api.search.brave.com/res/v1/web/search"
-MAX_RES: int = 5
+MAX_RES: int = 10
+
+
+def fetch_page_text(url: str, max_chars: int = 3000) -> str:
+    """
+    Descarga y limpia el HTML de una URL, retornando texto plano.
+    Usado para recuperación profunda de contenido más allá del snippet.
+    """
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) GravityAI/10.3"}
+        )
+        with urllib.request.urlopen(req, timeout=8) as r:
+            raw = r.read(max_chars * 6).decode("utf-8", errors="ignore")
+        # Eliminar scripts, styles, tags HTML
+        raw = re.sub(r'<script[^>]*>.*?</script>', '', raw, flags=re.DOTALL | re.IGNORECASE)
+        raw = re.sub(r'<style[^>]*>.*?</style>', '', raw, flags=re.DOTALL | re.IGNORECASE)
+        text = re.sub(r'<[^>]+>', ' ', raw)
+        text = re.sub(r'\s{2,}', ' ', text).strip()
+        return text[:max_chars]
+    except Exception as e:
+        return f"[fetch_page_text error: {e}]"
 
 
 def _ddg_search(query: str) -> List[Dict[str, str]]:

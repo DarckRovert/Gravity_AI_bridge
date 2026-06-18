@@ -4,7 +4,8 @@ import {
   MessageSquare, Home, Palette, Image as ImageIcon, Video, Rocket, 
   Gamepad2, Bot, Cpu, DollarSign, Activity, Save, BookOpen, 
   Plug, Wrench, Zap, Bug, ShieldAlert, Wifi, Shield, FileText, Settings, Menu, Bell,
-  TrendingUp, Video as VideoIcon, Radio, Target, Code2, Ghost
+  TrendingUp, Video as VideoIcon, Radio, Target, Code2, Ghost,
+  Dices, PlayCircle, Brain
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -55,10 +56,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
           <Menu size={20} />
         </button>
         <div className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-accent-primary to-accent-secondary bg-clip-text text-transparent">
-          GRAVITY V15.2 PRO
+          GRAVITY V16.0 PRO
         </div>
         
-        <div className="flex items-center ml-auto gap-6 text-sm font-medium">
+        <div className="hidden md:flex items-center ml-auto gap-6 text-sm font-medium">
           <div className="flex items-center gap-2"><Cpu size={16} className="text-text-muted"/> <span>{ctx?.hardware.cpu_percent || '--'}% CPU</span></div>
           <div className="flex items-center gap-2"><Activity size={16} className="text-text-muted"/> <span>{ctx?.hardware.ram_percent || '--'}% RAM</span></div>
           
@@ -85,15 +86,18 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
             <span className="text-xs font-bold text-status-success">ONLINE</span>
           </div>
 
-          <button className="p-2 hover:bg-card rounded-lg transition-colors relative">
+          <button className="p-2 hover:bg-card rounded-lg transition-colors relative md:hidden ml-auto">
             <Bell size={18} />
           </button>
         </div>
+        <button className="hidden md:block p-2 hover:bg-card rounded-lg transition-colors relative ml-4">
+          <Bell size={18} />
+        </button>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
         {/* Sidebar */}
-        <aside className={`${isSidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 shrink-0 border-r border-border-subtle bg-surface/50 backdrop-blur-md overflow-y-auto scrollbar-hide flex flex-col`}>
+        <aside className={`${isSidebarOpen ? 'w-64' : 'w-0'} absolute md:relative z-40 h-full transition-all duration-300 shrink-0 border-r border-border-subtle bg-surface/95 md:bg-surface/50 backdrop-blur-md overflow-y-auto scrollbar-hide flex flex-col`}>
           <div className="p-4 flex-1">
             <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted mb-2 px-2">Principal</div>
             <NavItem id="chat" icon={MessageSquare} label="Chat Auditor" />
@@ -108,10 +112,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
             <NavItem id="gameserver" icon={Gamepad2} label="Game Servers" />
 
             <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted mt-6 mb-2 px-2">IA & Sistema</div>
+            <NavItem id="tinka" icon={Dices} label="La Tinka Engine" />
             <NavItem id="multiagent" icon={Bot} label="Multi-Agent" />
             <NavItem id="hardware" icon={Cpu} label="Hardware" />
             <NavItem id="cost" icon={DollarSign} label="Cost Center" />
             <NavItem id="watchdog" icon={Activity} label="Watchdog" />
+            <NavItem id="autonomy" icon={Brain} label="Autonomy Engine" badge={(ctx as any)?.autonomy_patches} />
 
             <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted mt-6 mb-2 px-2">Herramientas</div>
             <NavItem id="sessions" icon={Save} label="Sessions" />
@@ -129,6 +135,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
             <NavItem id="config" icon={Settings} label="Configuración" />
 
             <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted mt-6 mb-2 px-2">💰 Monetización</div>
+            <NavItem id="youtubeanalyzer" icon={PlayCircle} label="YouTube Analyzer" />
             <NavItem id="monetization" icon={TrendingUp} label="Monetization Hub" />
             <NavItem id="bountyhunter" icon={Target} label="Bounty Hunter" />
             <NavItem id="softwarefactory" icon={Code2} label="Dev Studio / Fábrica" />

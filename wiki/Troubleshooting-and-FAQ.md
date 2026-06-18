@@ -1,13 +1,10 @@
-# Troubleshooting y Preguntas Frecuentes
+# Troubleshooting y FAQ
 
-## Problema: Fooocus no arranca o se cuelga
-**Síntoma:** El log arroja _Fooocus offline_ e intenta hacer fallback a Pollinations infinitamente hasta que te bannean con HTTP 402.
-**Solución:** Si intentabas renderizar un Motor Matemático (V17), asegúrate de que su ID de estilo (ej. `turing_patterns`) esté debidamente registrado en `CINEMA_STYLES` dentro de `script_builder.py` y en la lista de intercepción GLSL en `pipeline.py`.
+### 1. El portal de noticias tiene errores de decodificación JSON.
+**Solución:** Revisa los logs de `task-*`. Puede ocurrir si un proveedor LLM falla y devuelve un JSON en un bloque markdown inesperado. El sistema ahora tiene un parche en `clean_llm_response()` para extraer y limpiar la salida.
 
-## Problema: El sistema dice "OAUTH_ERROR detectado"
-**Causa:** Tu cuenta de Google en modo "En pruebas" ha revocado los tokens tras 7 días.
-**Qué hace el sistema:** Gravity continuará renderizando en local pero abortará el envío a la nube de forma segura.
-**Solución Real:** Generar un nuevo token en tu consola y sustituir `youtube_oauth.json`.
+### 2. Fooocus no arranca desde el `INICIAR_TODO.bat`
+**Explicación:** Por defecto, Fooocus arranca en "modo manual" para ahorrar RAM (frecuentemente más de 12GB requeridos). Debes activarlo manualmente desde el Mission Control (L0).
 
-## Problema: FFmpeg no se reconoce
-**Solución:** Gravity integra un binario FFMPEG en la ruta `_integrations\ffmpeg\ffmpeg.exe`. Si tu script usa subprocess globalmente para el comando `ffmpeg` en lugar de la constante `FFMPEG_EXE`, fallará si tu PC no lo tiene en el PATH de Windows.
+### 3. Problemas de Push a Github en el Agente Periodístico
+**Solución:** Verifica que el usuario local de Windows tenga las credenciales de Git cacheadas globalmente (`git config --global credential.helper wincred`).

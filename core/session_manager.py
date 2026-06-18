@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         GRAVITY AI - SESSION MANAGER V15.2 PRO [Diamond-Tier Edition]         ║
+║         GRAVITY AI - SESSION MANAGER V16.0 PRO [Diamond-Tier Edition]         ║
 ║                       Sesiones con Fork/Merge + Export                       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
@@ -184,7 +184,7 @@ class SessionManager:
                         self._history.append(copy.deepcopy(msg))
             return True
 
-    # ── MemDir (V15.2 PRO) ────────────────────────────────────────────────────────
+    # ── MemDir (V16.0 PRO) ────────────────────────────────────────────────────────
     
     def inject_mem_dir(self, workspace_path: str) -> int:
         """
@@ -233,7 +233,7 @@ class SessionManager:
                 
             return len(full_injection) // 4
 
-    # ── Token Optimization (V15.2 PRO) ─────────────────────────────────────────────
+    # ── Token Optimization (V16.0 PRO) ─────────────────────────────────────────────
 
     def trim_history(self, max_tokens: int = 128000) -> int:
         """

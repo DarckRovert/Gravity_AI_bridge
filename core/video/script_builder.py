@@ -9,7 +9,7 @@ CINEMA_STYLES: dict[str, dict] = {
     "documental": {
         "label":  "Documental",
         "prefix": "Cinematic documentary, photorealistic, professional lighting, 16:9 landscape, dramatic composition, high detail, award-winning photography",
-        "negative": "cartoon, anime, painting, sketch, low quality, blurry",
+        "negative": "worst quality, low quality, bad anatomy, bad hands, cartoon, anime, painting, sketch, blurry, mutated, ugly, messy, text, watermark",
     },
     "anime": {
         "label":  "Anime",
@@ -19,7 +19,7 @@ CINEMA_STYLES: dict[str, dict] = {
     "epico": {
         "label":  "Épico / Fantasy",
         "prefix": "Epic fantasy artwork, dramatic lighting, cinematic atmosphere, detailed digital painting, heroic composition, 16:9",
-        "negative": "modern, mundane, low quality, stock photo",
+        "negative": "worst quality, low quality, modern, mundane, stock photo, bad anatomy, ugly, blurry, text, watermark",
     },
     "noir": {
         "label":  "Noir / Thriller",
@@ -60,6 +60,11 @@ CINEMA_STYLES: dict[str, dict] = {
         "label":  "Publicidad / Comercial",
         "prefix": "High-end commercial photography, ultra sharp, vivid studio lighting, 4k resolution, bright and energetic, modern product advertising, 16:9",
         "negative": "dark, gloomy, low quality, amateur, blurry, messy",
+    },
+    "shitpost_satira": {
+        "label":  "Shitpost / Sátira (Tío Vladi Style)",
+        "prefix": "Absurd surreal AI meme, satirical, highly saturated, cynical, chaotic internet collage, tiktok viral aesthetic, weird crossover, 16:9",
+        "negative": "serious, professional, elegant, boring, realistic documentary",
     },
     "biomechanic_v14": {
         "label":  "Biomecánica V14 (Audio-Reativo)",
@@ -165,18 +170,13 @@ def _extract_visual_anchor(topic: str) -> str:
 
 def _get_scene_visual_context(image_path: str) -> str:
     """
-    Extrae tags visuales de la escena N-1 para mantener consistencia visual en la escena N
+    Analiza una imagen estática y genera los prompts visuales descriptivos
     utilizando WD14 Tagger via ComfyUI.
-
-    Usa build_img2prompt_workflow programáticamente si el archivo JSON externo no existe.
     Copia la imagen al directorio /input de ComfyUI antes de ejecutar el workflow.
-
-    Args:
-        image_path: Ruta absoluta a la imagen fuente.
-
-    Returns:
-        String con tags visuales separados por coma, o "" si ComfyUI no está disponible.
     """
+    if not image_path or image_path.endswith(".mp4"):
+        return ""
+
     import time
     import shutil
     try:
@@ -389,6 +389,9 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
         "veraz, rico en detalles y sumamente informativo sin perder el tono narrativo.\n"
         "Si detectas CONTENIDO WEB EXTRAÍDO (por URL directa), compórtate como un experto publicista: analiza "
         "los servicios, productos o menú ofrecidos y diseña un guión altamente persuasivo.\n"
+        "REGLA DE TONO ESPECIAL: Si el estilo es 'Shitpost / Sátira', tu narración DEBE ser extremadamente sarcástica, "
+        "cínica, provocadora, usar humor negro, absurdo y jerga de internet (como un meme viral o shitpost de TikTok "
+        "al estilo sátira política/social). NO seas aburrido ni formal.\n"
         f"Estilo visual: {style_info['label']} — {style_prefix}\n"
         f"Idioma de narración: {lang_label}\n\n"
     )
@@ -404,7 +407,8 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
     user_prompt += (
         "REGLA CRÍTICA DE CONSISTENCIA VISUAL: El campo 'image_prompt' de CADA escena "
         "DEBE comenzar describiendo al personaje/sujeto principal con los MISMOS atributos visuales "
-        "(raza, color, rasgos físicos, nombre) en todas las escenas. Nunca omitas estos atributos.\n\n"
+        "(raza, color, rasgos físicos, nombre) en todas las escenas. Nunca omitas estos atributos.\n"
+        "REGLA DE CALIDAD VISUAL: Tu 'image_prompt' debe ser extremadamente detallado, al estilo Stable Diffusion (ej: 'masterpiece, best quality, ultra detailed, cinematic lighting, 8k resolution, volumetric fog, sharp focus, ray tracing'). Describe expresiones faciales, ropa, iluminación y ángulos de cámara.\n\n"
         "REGLA CRÍTICA DE NARRACIÓN: El campo 'narration' DEBE contener ÚNICAMENTE lo que dirá el "
         "locutor en voz en off. DEBE ser una historia fluida o un texto publicitario atrapante. "
         "PROHIBIDO incluir metadatos como 'Escena 1', 'Imagen:', 'Título:', o direcciones de cámara. "
@@ -416,7 +420,7 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
         "    {\n"
         '      "title": "Título de escena MUY CORTO",\n'
         '      "character_anchor": "Descripción compacta en inglés del sujeto principal con atributos físicos fijos",\n'
-        '      "image_prompt": "Descripción visual detallada en inglés. DEBE incluir el character_anchor al inicio.",\n'
+        '      "image_prompt": "Descripción visual ultra detallada (estilo SDXL) en inglés. DEBE incluir el character_anchor, cámara, iluminación y atmósfera.",\n'
         f'      "narration": "Texto de narración en {lang_label} para esta escena (2-4 oraciones)."\n'
         "    }\n"
         "  ]\n"
@@ -427,7 +431,9 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
     try:
         from core import provider_manager
         from core.multi_agent import PipelineStep, run_pipeline
+        from core.ai_process_manager import start_engine, stop_engine
         import yaml
+        import time
         
         writer_prov, writer_mod = None, None
         audit_prov, audit_mod = None, None
@@ -444,6 +450,19 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
                     audit_mod = ar["auditor"].get("model")
         except Exception:
             pass
+            
+        # AUTO-WAKE: Encender IA local si está configurada y apagada
+        initial_scan = provider_manager.scan_all()
+        healthy_names = [res.name for res in initial_scan if res.is_healthy]
+        
+        llms_to_wake = [p for p in [writer_prov, audit_prov] if p in ["LM Studio", "Ollama", "Jan AI"] and p not in healthy_names]
+        if llms_to_wake:
+            for prov in set(llms_to_wake):
+                log.info(f"[VideoStudio] [Auto-Wake] Encendiendo motor LLM: {prov}...")
+                start_engine(prov)
+            log.info("[VideoStudio] Esperando 12s a que la IA local cargue...")
+            time.sleep(12)
+            provider_manager.scan_all(force=True)  # Forzar re-escaneo para detectarlos
             
         best_result, best_model = provider_manager.get_best()
         if not best_result:
@@ -478,12 +497,26 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
 
         start = content.find("{")
         end   = content.rfind("}") + 1
-        if start != -1 and end > start:
+        start_list = content.find("[")
+        end_list = content.rfind("]") + 1
+        
+        if start_list != -1 and end_list > start_list and (start == -1 or start_list < start):
+            content = content[start_list:end_list]
+        elif start != -1 and end > start:
             content = content[start:end]
 
-        data = json.loads(content)
-        scenes = data.get("scenes", [])
-        generated_title = data.get("video_title", original_topic[:60])
+        try:
+            data = json.loads(content) if content else {}
+        except json.JSONDecodeError:
+            log.warning(f"[VideoStudio] LLM devolvió un formato inválido o vacío. Contenido: {content[:100]}")
+            data = {}
+            
+        if isinstance(data, list):
+            scenes = data
+            generated_title = original_topic[:60]
+        else:
+            scenes = data.get("scenes", [])
+            generated_title = data.get("video_title", original_topic[:60])
         
         if isinstance(scenes, list) and len(scenes) > 0:
             anchor = ""
@@ -500,6 +533,17 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
 
     except Exception as e:
         log.warning(f"[VideoStudio] LLM no disponible ({e}). Fallback con escenas genéricas.")
+    finally:
+        # AUTO-SLEEP: Matar incondicionalmente los motores LLM para liberar 4-8GB de RAM
+        try:
+            from core.ai_process_manager import stop_engine
+            killed_any = False
+            for prov in ["LM Studio", "Ollama", "Jan AI"]:
+                res = stop_engine(prov)
+                # Omitir errores de que el proceso no existía
+            log.info("[VideoStudio] [Auto-Sleep] Motores de texto apagados. RAM libre para Fooocus/ComfyUI.")
+        except Exception:
+            pass
 
     anchor = topic[:120]
     _fallback_narrations = [

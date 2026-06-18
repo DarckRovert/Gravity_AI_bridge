@@ -1,139 +1,31 @@
-# Configuración Git Ignore
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
+*.py[cod]
+*$py.class
 .env
 .venv/
-env.bak/
-venv.bak/
-
-# Logs del entorno pre-rotación y bases SQLite internas del Bridge
-*.log
-_cache.sqlite
-_cache.sqlite-wal
-_cache.sqlite-shm
-_saves/
-_rag_index/
-
-# Archivos de empaquetado/Build (Pyinstaller, VSCode, Vite)
-build/
-dist/
-*.egg-info/
-.vscode/
-.idea/
-.DS_Store
-
-# Archivos temporales de Fooocus e Integraciones locales
-_integrations/Fooocus/
-_integrations/ffmpeg/
-_integrations/ComfyUI-Zluda/
-_saves/
-temp/
-__pycache__/
-
-# Datos en tiempo de ejecución (no son código)
-_audit_log*.jsonl
-_image_queue.sqlite
-_cost_log.json
-_first_run_done
-_knowledge.json
-_settings.json
-
-# Video Studio V10.2 — outputs y base de datos de cola
-_videos/
-_video_queue.sqlite
-
-# Seguridad — Claves cifradas DPAPI y bases de datos de runtime (NUNCA versionar)
-_keystore.bin
-gravity.db
-*.bin
-rotate_keys.py.bak
-_integrations/*.json
-_archivo/
-_knowledge.json.bak*
-.agents/scratch_openclaude/
-config.yaml
-
-# Scripts de prueba y desarrollo locales
-scratch_*.py
-test_inputs.py
-test_llm.py
-test_post*.py
-# Configuración Git Ignore
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
 env/
 venv/
-.env
-.venv/
-env.bak/
-venv.bak/
-
-# Logs del entorno pre-rotación y bases SQLite internas del Bridge
 *.log
-_cache.sqlite
-_cache.sqlite-wal
-_cache.sqlite-shm
-_saves/
-_rag_index/
+_keys/
+*.bin
 
-# Archivos de empaquetado/Build (Pyinstaller, VSCode, Vite)
+_integrations/
 build/
 dist/
-*.egg-info/
-.vscode/
-.idea/
-.DS_Store
-
-# Archivos temporales de Fooocus e Integraciones locales
-_integrations/Fooocus/
-_integrations/ffmpeg/
-_integrations/ComfyUI-Zluda/
-_saves/
-temp/
-__pycache__/
-
-# Datos en tiempo de ejecución (no son código)
-_audit_log*.jsonl
-_image_queue.sqlite
-_cost_log.json
-_first_run_done
-_knowledge.json
-_settings.json
-
-# Video Studio V10.2 — outputs y base de datos de cola
 _videos/
-_video_queue.sqlite
-
-# Seguridad — Claves cifradas DPAPI y bases de datos de runtime (NUNCA versionar)
-_keystore.bin
-gravity.db
-*.bin
-rotate_keys.py.bak
-_integrations/*.json
 _archivo/
-_knowledge.json.bak*
-.agents/scratch_openclaude/
-config.yaml
-
-# Scripts de prueba y desarrollo locales
-scratch_*.py
-test_inputs.py
-test_llm.py
-test_post*.py
-fix_urls.py
-
-# Integraciones pesadas y modelos locales (V15.1 PRO)
-_integrations/v2v_engine/models/
-_integrations/ComfyUI_windows_portable/
-dxdiag.txt
 _basura/
-remotion_workspace/public/
-remotion_workspace/temp_props_*.json
+ensayos_generados/
+libros_generados/
+ficcion_generada/
+_sessions/
+_migrations/
+_rag_index/
+_cache.sqlite*
+_image_queue.sqlite*
+_video_queue.sqlite*
+*.db
+.vscode/
+.continue/
+remotion_workspace/
+scratch/

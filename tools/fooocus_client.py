@@ -1,5 +1,5 @@
 """
-Gravity AI Bridge V15.2 PRO — Fooocus (CPU) Satellite Client
+Gravity AI Bridge V16.0 PRO — Fooocus (CPU) Satellite Client
 Tool: fooocus_client
 Endpoint: http://127.0.0.1:7861 (Fooocus HTTP API — modo CPU)
 Hardware: AMD Ryzen 7 8700G — CPU puro (sin DirectML, sin crash)
@@ -158,10 +158,17 @@ def generate_image(request: ImageGenRequest) -> ImageGenResponse:
             return {"success": True, "images": [], "error": None, "job_id": job_id}
     except Exception:
         # 2. Si falla (404), intentar disparo Gradio directo (Automation Bridge)
-        return trigger_gradio_generation(prompt_text, performance, f"{width}\u00d7{height}")
+        return trigger_gradio_generation(
+            prompt=prompt_text,
+            performance=performance,
+            aspect_ratio=f"{width}\u00d7{height}",
+            negative_prompt=neg_prompt,
+            overwrite_step=str(payload["advanced_params"]["overwrite_step"]),
+            sampler_name=payload["advanced_params"]["sampler_name"]
+        )
 
 
-def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ratio: str = "1024x1024") -> ImageGenResponse:
+def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ratio: str = "1024x1024", negative_prompt: str = "", overwrite_step: str = "30", sampler_name: str = "euler") -> ImageGenResponse:
     """
     Disparador via subproceso nativo al Python embebido de Fooocus.
     Verifica la aparición real de archivos en OUTPUT_DIR para evitar
@@ -204,15 +211,15 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
 
     try:
         proc = subprocess.Popen(
-            [fooocus_python, trigger_script, prompt, performance, aspect_ratio_safe],
+            [fooocus_python, trigger_script, prompt, performance, aspect_ratio_safe, negative_prompt, overwrite_step, sampler_name],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             creationflags=creationflags,
         )
 
-        # Esperar hasta 900 segundos (15 min) — Fooocus en CPU es lento
+        # Esperar hasta 2400 segundos (40 min) — Fooocus en CPU es lento en modo Quality
         try:
-            stdout_bytes, stderr_bytes = proc.communicate(timeout=900)
+            stdout_bytes, stderr_bytes = proc.communicate(timeout=2400)
             stdout_str: str = stdout_bytes.decode("utf-8", errors="replace")
             stderr_str: str = stderr_bytes.decode("utf-8", errors="replace")
             
@@ -221,6 +228,9 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
                 out_file.write(f"\n--- Disparando: {prompt[:80]} [{performance}] [{aspect_ratio_safe}] ---\n")
                 out_file.write(stdout_str + "\n")
                 if stderr_str: out_file.write(stderr_str + "\n")
+                
+            if proc.returncode != 0:
+                return {"success": False, "images": [], "job_id": None, "error": f"El trigger falló (código {proc.returncode}): {stderr_str}"}
                 
             # Interceptar fallos tempranos en el trigger nativo
             import json as _json
@@ -246,7 +256,7 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
             proc.wait()
             return {
                 "success": False, "images": [], "job_id": None,
-                "error": "Timeout: Fooocus no completó la generación en 15 minutos.",
+                "error": "Timeout: Fooocus no completó la generación en 40 minutos.",
             }
 
     except Exception as e:
@@ -412,7 +422,7 @@ def batch_generate(
 # ─── Self-test ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    print("[Gravity :: Fooocus Client V15.2 PRO] Health check...")
+    print("[Gravity :: Fooocus Client V16.0 PRO] Health check...")
     status: HealthStatus = health_check()
     print(f"  Online : {status['online']}")
     print(f"  Version: {status['version']}")

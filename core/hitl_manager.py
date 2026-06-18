@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — HITL MANAGER V15.2 PRO [Diamond Edition]                           ║
+║  GRAVITY AI — HITL MANAGER V16.0 PRO [Diamond Edition]                           ║
 ║  Interceptor de herramientas de alto riesgo.                                  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

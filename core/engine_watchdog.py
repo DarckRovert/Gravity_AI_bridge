@@ -1,24 +1,29 @@
 """
 ╔══════════════════════════════════════════════════════════╗
-║     GRAVITY AI ENGINE WATCHDOG V15.2 PRO                      ║
-║     Auto-Detección, Auto-Switch y Auto-Optimización      ║
+║     GRAVITY AI ENGINE WATCHDOG V16.0 PRO                 ║
+║     Auto-Detección, Auto-Switch, Auto-Optimización       ║
+║     + Daemon Health Monitor con Auto-Restart             ║
 ╚══════════════════════════════════════════════════════════╝
 
 Corre en segundo plano como hilo demonio.
-Delega toda la lógica de detección y routing al V15.2 PROviderManager.
-Persiste la selección en _settings.json.
+- Gestiona el routing automático de proveedores LLM.
+- Monitorea los daemons críticos de Gravity y los relanza si mueren.
+- Expone get_health() para el dashboard de autonomía.
 """
 
 import threading
 import time
 import json
 import os
+from datetime import datetime, timezone
+from typing import Dict, Any, Optional, Callable
 from core import provider_manager
+from core.logger import log
 
 BASE_DIR       = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SETTINGS_FILE  = os.path.join(BASE_DIR, "_settings.json")
 
-# ── Global state ──────────────────────────────────────────────────────────────
+# ── Global state — Provider routing ───────────────────────────────────────────
 _current_provider_name = None
 _current_model         = None
 _current_url           = None
@@ -29,6 +34,135 @@ _lock                  = threading.RLock()
 _settings_lock         = threading.RLock()
 _on_switch_callbacks   = []
 _started               = False
+
+# ── Daemon Health Monitor ─────────────────────────────────────────────────────
+# Registro de daemons críticos: {nombre: {thread, restart_fn, restart_count, last_restart}}
+_daemon_registry: Dict[str, Dict[str, Any]] = {}
+_daemon_lock = threading.RLock()
+DAEMON_CHECK_INTERVAL = 30   # segundos entre checks
+MAX_RESTARTS_PER_HOUR = 6    # máximo de reinicios por daemon por hora
+
+
+def register_daemon(
+    name: str,
+    thread: threading.Thread,
+    restart_fn: Optional[Callable] = None,
+) -> None:
+    """
+    Registra un daemon crítico para monitoreo.
+
+    Args:
+        name:       Nombre identificador (ej. 'autonomy_engine')
+        thread:     El objeto threading.Thread que corre el daemon
+        restart_fn: Función sin argumentos que relanza el daemon.
+                    Si es None, el daemon se registra solo para monitoreo.
+    """
+    with _daemon_lock:
+        _daemon_registry[name] = {
+            "thread":         thread,
+            "restart_fn":     restart_fn,
+            "restart_count":  0,
+            "restart_times":  [],
+            "last_restart":   None,
+            "status":         "running",
+        }
+    log.debug(f"[Watchdog] Daemon registrado para monitoreo: {name}")
+
+
+def _is_daemon_alive(name: str) -> bool:
+    """Retorna True si el thread del daemon sigue vivo."""
+    with _daemon_lock:
+        entry = _daemon_registry.get(name)
+    if not entry:
+        return True  # No registrado = no monitoreado = no intervenir
+    t = entry.get("thread")
+    return t is not None and t.is_alive()
+
+
+def _relaunch_daemon(name: str) -> bool:
+    """
+    Intenta relanzar un daemon muerto.
+    Respeta el límite MAX_RESTARTS_PER_HOUR.
+    Retorna True si se pudo relanzar.
+    """
+    with _daemon_lock:
+        entry = _daemon_registry.get(name)
+        if not entry or not entry.get("restart_fn"):
+            log.warning(f"[Watchdog] Daemon '{name}' no tiene restart_fn. No se puede relanzar.")
+            entry["status"] = "dead_no_restart"
+            return False
+
+        # Limpiar reinicios de hace más de 1 hora
+        now = time.time()
+        entry["restart_times"] = [t for t in entry["restart_times"] if now - t < 3600]
+
+        if len(entry["restart_times"]) >= MAX_RESTARTS_PER_HOUR:
+            log.error(
+                f"[Watchdog] Daemon '{name}' superó {MAX_RESTARTS_PER_HOUR} reinicios/hora. "
+                "Marcado como FAILED. Requiere intervención manual."
+            )
+            entry["status"] = "failed_max_restarts"
+            return False
+
+        restart_fn = entry["restart_fn"]
+
+    try:
+        new_thread = restart_fn()
+        with _daemon_lock:
+            entry = _daemon_registry[name]
+            entry["thread"]       = new_thread
+            entry["restart_times"].append(time.time())
+            entry["restart_count"] += 1
+            entry["last_restart"]  = datetime.now(timezone.utc).isoformat()
+            entry["status"]        = "restarted"
+        log.info(f"[Watchdog] Daemon '{name}' relanzado (reinicio #{entry['restart_count']})")
+        return True
+    except Exception as e:
+        log.error(f"[Watchdog] Error relanzando daemon '{name}': {e}")
+        with _daemon_lock:
+            _daemon_registry[name]["status"] = "restart_failed"
+        return False
+
+
+def _monitor_daemons() -> None:
+    """Verifica si los daemons críticos siguen vivos y los relanza si no."""
+    with _daemon_lock:
+        names = list(_daemon_registry.keys())
+
+    for name in names:
+        if not _is_daemon_alive(name):
+            log.warning(f"[Watchdog] Daemon muerto detectado: '{name}'. Intentando relanzar...")
+            _relaunch_daemon(name)
+
+
+def get_health() -> Dict[str, Any]:
+    """
+    Retorna el estado de salud del sistema para el dashboard.
+    Incluye estado de cada daemon registrado.
+    """
+    with _daemon_lock:
+        daemons_health = {}
+        for name, entry in _daemon_registry.items():
+            t = entry.get("thread")
+            daemons_health[name] = {
+                "alive":          t is not None and t.is_alive(),
+                "status":         entry.get("status", "unknown"),
+                "restart_count":  entry.get("restart_count", 0),
+                "last_restart":   entry.get("last_restart"),
+                "can_restart":    entry.get("restart_fn") is not None,
+            }
+
+    with _lock:
+        provider_info = {
+            "name":  _current_provider_name,
+            "model": _current_model,
+        }
+
+    return {
+        "ts":       datetime.now(timezone.utc).isoformat(),
+        "provider": provider_info,
+        "daemons":  daemons_health,
+    }
 
 
 def get_active_state():
@@ -133,6 +267,13 @@ def _watchdog_loop(interval_seconds=30, verbose=False):
     global _current_api_opts, _hardware_profile
 
     while True:
+        # ── 1. Monitor de daemons críticos ────────────────────────────────
+        try:
+            _monitor_daemons()
+        except Exception as _mon_e:
+            log.debug(f"[Watchdog] Error en monitor de daemons: {_mon_e}")
+
+        # ── 2. Auto-switch de proveedor LLM ───────────────────────────────
         try:
             best_prov, best_mod = provider_manager.get_best()
 

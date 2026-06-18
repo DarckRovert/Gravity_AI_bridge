@@ -10,6 +10,37 @@ class PostRoutesMixin:
     def do_POST(self):
         print('DEBUG do_POST path:', repr(self.path))
 
+        # /v1/youtube/analyzer/process — Analizar video de YouTube
+        if self.path == "/v1/youtube/analyzer/process":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data = json.loads(self.rfile.read(length)) if length else {}
+                url = data.get("url", "").strip()
+                
+                if not url:
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "url es requerida"}).encode())
+                    return
+
+                from tools.youtube_analyzer import YouTubeAnalyzer
+                analyzer = YouTubeAnalyzer()
+                result = analyzer.process_url(url)
+                
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps(result).encode())
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+
         # /v1/bounties/action — Marcar trabajo como aplicado o descartado
         if self.path == "/v1/bounties/action":
             try:
@@ -157,8 +188,8 @@ class PostRoutesMixin:
                     self.wfile.write(json.dumps({"error": "Prompt vacío"}).encode())
                     return
                     
-                import re, os, zipfile, datetime
-                from core import provider_manager, config_manager
+                import re as _re, os as _os, zipfile as _zipfile, datetime as _datetime
+                from core import provider_manager as _fpm, config_manager as _fcm
                 
                 system_prompt = (
                     "Eres un Ingeniero de Software Senior Autónomo.\n"
@@ -177,49 +208,49 @@ class PostRoutesMixin:
                     {"role": "user", "content": prompt}
                 ]
                 
-                config = config_manager.load_config()
+                config = _fcm.load_config()
                 provider_name = config.get("model.default_provider", "LM Studio")
-                plugin = provider_manager.get_plugin(provider_name)
+                plugin = _fpm.get_plugin(provider_name)
                 if not plugin:
                     raise Exception(f"No hay proveedor de IA disponible ({provider_name}).")
                     
                 chunks = list(plugin.chat_stream(messages, "auto", {}))
                 response_text = "".join(chunks)
                 
-                response_text = re.sub(r'<think>.*?</think>', '', response_text, flags=re.DOTALL).strip()
+                response_text = _re.sub(r'<think>.*?</think>', '', response_text, flags=_re.DOTALL).strip()
                 
-                BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-                entregables_dir = os.path.join(BASE_DIR, "_entregables")
-                os.makedirs(entregables_dir, exist_ok=True)
+                _BASE_DIR = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+                entregables_dir = _os.path.join(_BASE_DIR, "_entregables")
+                _os.makedirs(entregables_dir, exist_ok=True)
                 
                 # Encontrar bloques: **Archivo:** nombre \n ```lang \n codigo \n ```
                 pattern = r'\*\*Archivo:\*\*\s*([^\n`]+).*?```\w*\n(.*?)```'
-                matches = list(re.finditer(pattern, response_text, re.DOTALL))
+                matches = list(_re.finditer(pattern, response_text, _re.DOTALL))
                 
-                folder_name = "entregable_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                project_path = os.path.join(entregables_dir, folder_name)
-                os.makedirs(project_path, exist_ok=True)
+                folder_name = "entregable_" + _datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                project_path = _os.path.join(entregables_dir, folder_name)
+                _os.makedirs(project_path, exist_ok=True)
                 
                 files_created = 0
                 for match in matches:
                     filename = match.group(1).strip()
                     code = match.group(2)
-                    filename = os.path.basename(filename) # Evitar path traversal
-                    file_path = os.path.join(project_path, filename)
+                    filename = _os.path.basename(filename) # Evitar path traversal
+                    file_path = _os.path.join(project_path, filename)
                     with open(file_path, "w", encoding="utf-8") as f:
                         f.write(code)
                     files_created += 1
                     
-                with open(os.path.join(project_path, "RAW_RESPONSE.md"), "w", encoding="utf-8") as f:
+                with open(_os.path.join(project_path, "RAW_RESPONSE.md"), "w", encoding="utf-8") as f:
                     f.write(response_text)
                     
                 zip_filename = folder_name + ".zip"
-                zip_path = os.path.join(entregables_dir, zip_filename)
-                with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                    for root, dirs, files in os.walk(project_path):
+                zip_path = _os.path.join(entregables_dir, zip_filename)
+                with _zipfile.ZipFile(zip_path, 'w', _zipfile.ZIP_DEFLATED) as zipf:
+                    for root, dirs, files in _os.walk(project_path):
                         for file in files:
-                            abs_path = os.path.join(root, file)
-                            rel_path = os.path.relpath(abs_path, project_path)
+                            abs_path = _os.path.join(root, file)
+                            rel_path = _os.path.relpath(abs_path, project_path)
                             zipf.write(abs_path, rel_path)
                             
                 self.send_response(200)
@@ -1560,7 +1591,7 @@ class PostRoutesMixin:
                         _base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
                         kb_data, _ = data_guardian.load_knowledge(os.path.join(_base_dir, "_knowledge.json"))
                         _sys_prompt = (
-                            "Eres Gravity AI V15.2 PRO, Auditor Senior. "
+                            "Eres Gravity AI V16.0 PRO, Auditor Senior. "
                             "PROTOCOLO: Lógica interna en inglés. Salida final en español estrictamente. "
                             "Sin rellenos conversacionales. Solo hechos técnicos fríos. Resolución directa."
                         )
@@ -1874,8 +1905,90 @@ class PostRoutesMixin:
             handle_obs_spark_remove(self)
             return
 
+        # ── V16.0 PRO Autonomous Edition POST handlers ───────────────────────────
+
+        # POST /v1/autonomy/trigger — Forzar un ciclo OODA inmediato
+        if self.path == "/v1/autonomy/trigger":
+            try:
+                from core.autonomy_engine import trigger_cycle
+                result = trigger_cycle()
+                body = json.dumps(result, ensure_ascii=False).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # POST /v1/reflection/trigger — Forzar un ciclo de reflexión inmediato
+        if self.path == "/v1/reflection/trigger":
+            try:
+                import threading
+                from core.self_reflection import run_reflection_cycle
+                t = threading.Thread(target=run_reflection_cycle, daemon=True, name="ReflectionTrigger")
+                t.start()
+                body = json.dumps({"ok": True, "message": "Ciclo de auto-reflexión iniciado en background."}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # POST /v1/reflection/patches/<patch_id>/approve
+        if self.path.startswith("/v1/reflection/patches/") and self.path.endswith("/approve"):
+            try:
+                patch_id = self.path.split("/v1/reflection/patches/")[1].replace("/approve", "").strip()
+                from core.self_reflection import approve_patch
+                result = approve_patch(patch_id)
+                body = json.dumps(result, ensure_ascii=False).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # POST /v1/reflection/patches/<patch_id>/reject
+        if self.path.startswith("/v1/reflection/patches/") and self.path.endswith("/reject"):
+            try:
+                patch_id = self.path.split("/v1/reflection/patches/")[1].replace("/reject", "").strip()
+                length = int(self.headers.get("Content-Length", 0))
+                data = json.loads(self.rfile.read(length)) if length else {}
+                reason = data.get("reason", "")
+                from core.self_reflection import reject_patch
+                result = reject_patch(patch_id, reason)
+                body = json.dumps(result, ensure_ascii=False).encode("utf-8")
+                self.send_response(200 if result.get("ok") else 400)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
         # Fallback 404 para cualquier otra ruta POST
         self.send_response(404)
         self._send_cors()
         self.end_headers()
         self.wfile.write(json.dumps({"error": "POST path not found"}).encode())
+

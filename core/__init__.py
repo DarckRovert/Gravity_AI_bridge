@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         GRAVITY AI — CORE INITIALIZER V15.2 PRO [Diamond Edition]            ║
+║         GRAVITY AI — CORE INITIALIZER V16.0 PRO [Diamond Edition]            ║
 ║         Punto de entrada unificado para el núcleo de Gravity AI Bridge       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

@@ -102,11 +102,13 @@ def vote(
     messages:  List[Dict[str, Any]],
     providers: Optional[List[str]] = None,
     n_models:  int                 = 3,
+    mode:      str                 = "vote",  # "vote" | "synthesize"
 ) -> Dict[str, Any]:
     """
-    Runs parallel compare() and selects the response with least divergence
-    (centroid similarity via word overlap — no embeddings required).
-    Returns the winning response dict.
+    Runs parallel compare() and selects the best response.
+    
+    mode="vote"      → Selecciona la respuesta con mayor similitud semántica (TF-IDF cosine).
+    mode="synthesize"→ Envía todas las respuestas a un modelo árbitro para sintetizar.
     """
     results = compare(messages, providers=providers, n_models=n_models)
     if not results:
@@ -114,28 +116,76 @@ def vote(
     if len(results) == 1:
         return results[0]
 
+    if mode == "synthesize":
+        from core.provider_manager import complete as pm_complete
+        all_responses = "\n\n".join(
+            f"[{r.get('provider')}/{r.get('model')}]:\n{r.get('response', '')[:1000]}"
+            for r in results
+        )
+        synth_prompt = (
+            "Eres un árbitro experto. Se te presentan las respuestas de varios modelos de IA a la misma pregunta. "
+            "Sintetiza y unifica estas respuestas en una única respuesta final, coherente y completa, "
+            "aprovechando los mejores elementos de cada una. No menciones qué modelo aportó qué.\n\n"
+            f"PREGUNTA ORIGINAL:\n{messages[-1].get('content', '')[:500]}\n\n"
+            f"RESPUESTAS:\n{all_responses}"
+        )
+        try:
+            synth = pm_complete([{"role": "user", "content": synth_prompt}])
+            if synth:
+                return {"provider": "synthesized", "model": "multi", "response": synth, "elapsed": 0}
+        except Exception:
+            pass  # fallback a vote estándar
+
+    # TF-IDF cosine similarity
+    def _tfidf_vector(text: str) -> dict:
+        import re
+        from collections import Counter
+        import math
+        words = re.findall(r'\w+', text.lower())
+        tf = Counter(words)
+        total = sum(tf.values()) or 1
+        return {w: c / total for w, c in tf.items()}
+
+    def _cosine(v1: dict, v2: dict) -> float:
+        common = set(v1) & set(v2)
+        if not common:
+            return 0.0
+        dot = sum(v1[w] * v2[w] for w in common)
+        norm1 = sum(x ** 2 for x in v1.values()) ** 0.5
+        norm2 = sum(x ** 2 for x in v2.values()) ** 0.5
+        return dot / (norm1 * norm2) if norm1 and norm2 else 0.0
+
+    # Fallback a Jaccard para textos muy cortos (< 50 tokens)
     def _word_set(text: str) -> set:
         import re
         return set(re.findall(r'\w+', text.lower()))
 
+    vectors = [_tfidf_vector(r["response"]) for r in results]
+    use_cosine = all(len(r["response"].split()) >= 50 for r in results)
+
     best_score = -1.0
     best       = results[0]
     for i, r in enumerate(results):
-        ws_i  = _word_set(r["response"])
         score = 0.0
         for j, other in enumerate(results):
             if i == j:
                 continue
-            ws_j  = _word_set(other["response"])
-            inter = len(ws_i & ws_j)
-            union = len(ws_i | ws_j) or 1
-            score += inter / union
+            if use_cosine:
+                score += _cosine(vectors[i], vectors[j])
+            else:
+                ws_i = _word_set(r["response"])
+                ws_j = _word_set(other["response"])
+                inter = len(ws_i & ws_j)
+                union = len(ws_i | ws_j) or 1
+                score += inter / union
         score /= (len(results) - 1)
         if score > best_score:
             best_score = score
             best       = r
 
-    return {**best, "vote_score": round(best_score, 3), "candidates": len(results)}
+    method = "cosine" if use_cosine else "jaccard"
+    return {**best, "vote_score": round(best_score, 3), "candidates": len(results), "method": method}
+
 
 
 # ── Sequential pipeline ───────────────────────────────────────────────────────

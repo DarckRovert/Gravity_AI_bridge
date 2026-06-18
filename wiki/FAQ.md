@@ -1,4 +1,4 @@
-# ❓ FAQ — Gravity AI Bridge V15.2 PRO
+# ❓ FAQ — Gravity AI Bridge V16.0 PRO
 
 Preguntas frecuentes y troubleshooting del ecosistema.
 
@@ -26,13 +26,13 @@ Preguntas frecuentes y troubleshooting del ecosistema.
 > El Motor GLSL necesita que OpenGL 3.3 Core esté disponible. En sistemas sin GPU dedicada, verifica que los drivers estén al día. En Intel: instala el Intel Graphics Driver más reciente desde `intel.com/drivers`.
 
 **P: `iChannel0` sampler error — el render falla en el primer frame.**
-> Este bug fue corregido en V15.2. El renderer ahora bindea incondicionalmente una textura fallback 1×1 negra a `iChannel0` antes de cada frame. Si ves este error, asegúrate de estar en la versión más reciente del `glsl_renderer_v13.py`.
+> Este bug fue corregido en V16.0. El renderer ahora bindea incondicionalmente una textura fallback 1×1 negra a `iChannel0` antes de cada frame. Si ves este error, asegúrate de estar en la versión más reciente del `glsl_renderer_v13.py`.
 
 **P: Pollinations tarda mucho o devuelve una imagen de 1px.**
 > El sistema usa un cascading de 3 modelos con timeouts de 90s, 150s y 210s. Si todos fallan (red lenta o API saturada), activa el fallback procedural: el sistema genera una nebulosa fractal FBM en Numpy automáticamente. No requiere ninguna acción manual.
 
 **P: Los Shorts no se generan / error "Audio no encontrado".**
-> Corregido en V15.2 (`pipeline.py`). El pipeline ahora valida `os.path.isfile(temp_short_src)` antes de invocar FFmpeg. Asegúrate de estar en la última versión.
+> Corregido en V16.0 (`pipeline.py`). El pipeline ahora valida `os.path.isfile(temp_short_src)` antes de invocar FFmpeg. Asegúrate de estar en la última versión.
 
 **P: Los subtítulos de los Shorts usan una fuente genérica fea.**
 > El renderizador headless de Remotion (Chromium) necesita acceso a internet para descargar `Montserrat` e `Inter` de Google Fonts vía `@import url(...)` en `index.css`. Si el servidor no tiene internet, las fuentes harán fallback a `sans-serif` del sistema. Puedes pre-descargar las fuentes y referenciarlas localmente.
@@ -90,4 +90,4 @@ Preguntas frecuentes y troubleshooting del ecosistema.
 > Crea un handler en `api/routes/handlers/` siguiendo la estructura de `video_handler.py`. Regístralo en `api/routes/mixin_get.py` o `mixin_post.py` según el método HTTP. Los handlers heredan CORS automáticamente.
 
 **P: ¿Puedo usar el sistema en Linux/Mac?**
-> El sistema está optimizado para Windows 10/11 (Windows DPAPI, SAPI TTS, MangosD). El Motor GLSL y Remotion funcionan en Linux, pero SAPI TTS y el cifrado de keys requieren adaptaciones. No hay soporte oficial para Linux/Mac en V15.2.
+> El sistema está optimizado para Windows 10/11 (Windows DPAPI, SAPI TTS, MangosD). El Motor GLSL y Remotion funcionan en Linux, pero SAPI TTS y el cifrado de keys requieren adaptaciones. No hay soporte oficial para Linux/Mac en V16.0.

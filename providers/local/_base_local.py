@@ -69,7 +69,7 @@ def pick_active_model(models: List[Dict[str, Any]]) -> Optional[str]:
 def _http_post_stream(
     url: str,
     payload: dict,
-    timeout: float = 60.0,
+    timeout: float = 300.0,
 ) -> Generator[bytes, None, None]:
     """POST JSON, yield raw response lines with safe execution timeouts."""
     data = json.dumps(payload).encode("utf-8")
@@ -83,9 +83,12 @@ def _http_post_stream(
                 yield line
     except urllib.error.HTTPError as e:
         error_body = e.read().decode("utf-8", errors="ignore")
-        yield f"[Gravity Error] HTTP {e.code}: {error_body}".encode("utf-8")
+        # Envolver el error en un evento SSE válido para que llegue al frontend
+        err_json = json.dumps({"choices": [{"delta": {"content": f"\n\n❌ **Error del Modelo Local (HTTP {e.code}):**\n```\n{error_body}\n```"}}]})
+        yield f"data: {err_json}\n\n".encode("utf-8")
     except Exception as e:
-        yield f"[Gravity Error] {str(e)}".encode("utf-8")
+        err_json = json.dumps({"choices": [{"delta": {"content": f"\n\n❌ **Error de Conexión o Timeout con Modelo Local:**\n```\n{str(e)}\n```"}}]})
+        yield f"data: {err_json}\n\n".encode("utf-8")
 
 
 def _http_post(url: str, payload: dict, timeout: float = 60.0) -> bytes:

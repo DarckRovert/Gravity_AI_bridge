@@ -365,8 +365,8 @@ def generate_procedural_video(prompt: str, seed: int, w: int, h: int, duration_s
         
     cmd.append(out_mp4)
     
-    n_cores = multiprocessing.cpu_count()
-    print(f"\n[Motor Matemático V5] PARALELO: Usando {n_cores} núcleos de CPU.", file=sys.stderr)
+    n_cores = min(multiprocessing.cpu_count(), 4)
+    print(f"\n[Motor Matemático V5] PARALELO: Usando {n_cores} núcleos de CPU (Límite RAM).", file=sys.stderr)
     print(f"[Motor Matemático V5] Renderizando {total_frames} frames ({w}x{h}) para {os.path.basename(out_mp4)}...", file=sys.stderr)
     
     try:
@@ -378,8 +378,7 @@ def generate_procedural_video(prompt: str, seed: int, w: int, h: int, duration_s
         ]
         
         with multiprocessing.Pool(processes=n_cores) as pool:
-            # imap asegura que recibimos los frames en orden secuencial
-            for frame_idx, img_bytes in pool.imap(_render_frame_worker, args_list, chunksize=4):
+            for frame_idx, img_bytes in pool.imap(_render_frame_worker, args_list, chunksize=1):
                 proc.stdin.write(img_bytes)
                 if frame_idx % 24 == 0:
                     e = audio_energy[frame_idx]

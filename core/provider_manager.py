@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║        GRAVITY AI - PROVIDER MANAGER V15.2 PRO [Diamond-Tier Edition]         ║
+║        GRAVITY AI - PROVIDER MANAGER V16.0 PRO [Diamond-Tier Edition]         ║
 ║                     Orquestador universal: local + cloud                     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
@@ -291,7 +291,7 @@ def get_cost_estimate(provider_name: str, model: str, input_chars: int, output_c
 
 
 if __name__ == "__main__":
-    print("Provider Manager V15.2 PRO — Universal scan\n")
+    print("Provider Manager V16.0 PRO — Universal scan\n")
     results = scan_all(force=True)
     for r in results:
         tag = "✅" if r.is_healthy else "🔴"

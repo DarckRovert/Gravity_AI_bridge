@@ -102,8 +102,51 @@ def get_engine_path(provider_name: str) -> Optional[str]:
     return c.get("ai_engines", {}).get(provider_name)
 
 
+def is_engine_running(provider_name: str) -> bool:
+    """Verifica si el proceso del motor ya está corriendo usando psutil."""
+    if not _PSUTIL_OK:
+        return False
+        
+    pn = provider_name.lower()
+    targets = []
+    if "lm studio" in pn:
+        targets = ["LM Studio.exe", "lmstudioworker.exe"]
+    elif "ollama" in pn:
+        targets = ["ollama.exe", "ollama app.exe", "ollama_llama_server.exe"]
+    elif "jan" in pn:
+        targets = ["Jan.exe"]
+        
+    for proc in psutil.process_iter(['name', 'cmdline', 'cwd']):
+        try:
+            name = proc.info.get('name', '')
+            if not name: continue
+            
+            p_cwd   = proc.info.get('cwd', '') or ''
+            cmdline = " ".join(proc.info.get('cmdline', []) or [])
+            
+            if "fooocus" in pn and "python.exe" in name.lower():
+                if "launch.py" in cmdline or "Fooocus" in p_cwd:
+                    return True
+            if "comfyui" in pn and "python.exe" in name.lower():
+                if "comfyui\\main.py" in cmdline.lower() or "comfyui" in p_cwd.lower():
+                    return True
+            if "v2v" in pn and "python.exe" in name.lower():
+                if "v2v_pipeline.py" in cmdline.lower() or "v2v_server.py" in cmdline.lower() or "v2v_engine" in p_cwd.lower():
+                    return True
+                    
+            if targets and any(t.lower() in name.lower() for t in targets):
+                return True
+        except (psutil.AccessDenied, psutil.NoSuchProcess):
+            continue
+    return False
+
+
 def start_engine(provider_name: str) -> Dict[str, Any]:
     """Inicia silenciosamente el motor si se conoce su ruta."""
+    if is_engine_running(provider_name):
+        log.info(f"[AI Process Manager] {provider_name} ya está en ejecución a nivel proceso. Evitando duplicados.")
+        return {"success": True, "message": f"{provider_name} ya estaba corriendo."}
+        
     path = get_engine_path(provider_name)
     if not path or not os.path.exists(path):
         return {
@@ -117,8 +160,8 @@ def start_engine(provider_name: str) -> Dict[str, Any]:
         CREATE_NEW_CONSOLE = 0x00000010
         CREATE_NO_WINDOW = 0x08000000
         
-        # Para V2V, necesitamos consola visible para que la GUI de OpenCV no de problemas
-        if "v2v" in provider_name.lower():
+        # Para V2V, Fooocus o ComfyUI, necesitamos consola visible para debug y UI
+        if "v2v" in provider_name.lower() or "fooocus" in provider_name.lower() or "comfyui" in provider_name.lower():
             proc_flags = CREATE_NEW_CONSOLE
         else:
             proc_flags = DETACHED_PROCESS | CREATE_NO_WINDOW

@@ -1,0 +1,141 @@
+profile: production
+server:
+  host: 0.0.0.0
+  port: 7860
+  log_level: INFO
+model:
+  default_provider: LM Studio
+  default_model: auto
+  ctx_size: 32768
+  temperature: 0.6
+  top_p: 0.9
+  stream: true
+  agent_language: en
+  user_language: es
+cache:
+  enabled: true
+  ttl_hours: 24
+rate_limit:
+  enabled: true
+  requests_per_minute: 60
+fooocus:
+  mode: cpu
+  port: 7861
+  sampler: euler
+  scheduler: normal
+  steps: 30
+  width: 832
+  height: 1216
+  performance: Speed
+  base_model: juggernautXL_v8Rundiffusion.safetensors
+game_servers:
+  wow_vanilla:
+    enabled: true
+    display_name: WoW Vanilla (MaNGOS)
+    type: mangos
+    server_dir: F:\Project_Anarchy_Core\MaNGOS
+    worldserver_exe: mangosd.exe
+    realmd_exe: realmd.exe
+    mysql_start_bat: F:\Project_Anarchy_Core\MaNGOS\Start MySQL.bat
+    mysql_stop_bat: F:\Project_Anarchy_Core\MaNGOS\Stop MySQL.bat
+    log_file: F:\Project_Anarchy_Core\MaNGOS\logs\Server.log
+    auto_restart: true
+    restart_delay_seconds: 15
+    db_host: 127.0.0.1
+    db_port: 3306
+    db_name: characters
+    db_user: root
+    db_pass: root
+    db_name_auth: realmd
+ai_engines:
+  LM Studio: C:\Users\darck\AppData\Local\Programs\LM Studio\LM Studio.exe
+  Ollama: C:\Users\darck\AppData\Local\Programs\Ollama\ollama app.exe
+  Fooocus: F:\Gravity_AI_bridge\_integrations\Fooocus\run_amd.bat
+  ComfyUI: F:\Gravity_AI_bridge\_integrations\ComfyUI_windows_portable\run_amd_gpu.bat
+  V2V Engine: F:\Gravity_AI_bridge\_integrations\v2v_engine\run_v2v.bat
+agent_routing:
+  auditor:
+    provider: LM Studio
+    model: auto
+  planner:
+    provider: LM Studio
+    model: auto
+  coder:
+    provider: LM Studio
+    model: auto
+  researcher:
+    provider: LM Studio
+    model: auto
+  executor:
+    provider: LM Studio
+    model: auto
+  default:
+    provider: LM Studio
+    model: auto
+firecrawl_api_key: fc-42c664a8782a48caa0e81ab640dc8ff5
+youtube:
+  enabled: true
+  auto_upload: true
+  default_category: '28'
+  default_privacy: public
+  quota_daily_limit: 50
+  tags_base:
+  - IA
+  - Inteligencia Artificial
+  - DarckRovert
+  - Gravity AI
+  oauth_credentials_path: _integrations/youtube_oauth.json
+scheduler:
+  enabled: true
+  time_utc: 08:00
+  videos_per_day: 2
+  niches_file: inputs/niches.json
+branding:
+  watermark_enabled: true
+  watermark_text: '@DarckRovert'
+  watermark_opacity: 0.55
+language_cloner:
+  enabled: true
+  languages:
+  - en
+  original_lang: es
+affiliates:
+  enabled: true
+  max_links_per_video: 3
+  ids:
+    NordVPN: gravity_darck
+    Binance: gravity_darck
+    Hostinger: gravity_darck
+    Curiosity Stream: gravity_darck
+    eToro: gravity_darck
+    Wise: gravity_darck
+    Audible: gravity_darck
+    Skillshare: gravity_darck
+    ExpressVPN: gravity_darck
+    Coursera: gravity_darck
+    _default: gravity_darck
+social:
+  tiktok:
+    enabled: true
+    privacy_level: SELF_ONLY
+    credentials_file: _integrations/tiktok_creds.json
+  instagram:
+    enabled: true
+    credentials_file: _integrations/instagram_creds.json
+comfyui:
+  enabled: true
+  url: http://127.0.0.1:8188
+  animation_level: 2
+obs_websocket:
+  enabled: true
+  host: 127.0.0.1
+  port: 4455
+  password: JZe2JTFSolWLni2i
+  auto_connect: true
+  reconnect_interval_s: 10
+obs_spark:
+  enabled: true
+  overlays_dir: _integrations/obs_overlays
+  system_prompt_extra: ''
+  default_width: 400
+  default_height: 300

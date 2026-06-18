@@ -1,5 +1,5 @@
 """
-Gravity AI — Web Search Module V15.2 PRO
+Gravity AI — Web Search Module V16.0 PRO
 Realiza búsquedas autónomas en DuckDuckGo y scrapea contenido para inyectar conocimiento enriquecido.
 Garantiza tolerancia a fallos, reintentos de red y total seguridad multihilo.
 """
@@ -32,14 +32,14 @@ def search_and_scrape(query: str, max_results: int = 2) -> str:
     if not query or not query.strip():
         return ""
 
-    url: str = "https://html.duckduckgo.com/html/"
+    url: str = "https://lite.duckduckgo.com/lite/"
     payload: bytes = urllib.parse.urlencode({"q": query, "kl": "es-es"}).encode("utf-8")
     
     req = urllib.request.Request(
         url,
         data=payload,
         headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) GravityAI/15.1 (KHTML, like Gecko)",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Content-Type": "application/x-www-form-urlencoded"
         }
     )

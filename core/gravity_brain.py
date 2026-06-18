@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║   GRAVITY AI — BRAIN V15.2 PRO [Sistema de Conciencia Total]                    ║
+║   GRAVITY AI — BRAIN V16.0 PRO [Sistema de Conciencia Total]                    ║
 ║                                                                              ║
 ║   Módulo central que otorga a Gravity consciencia del estado completo del    ║
 ║   sistema en tiempo real. Se inyecta como contexto en cada request de chat.  ║
@@ -56,6 +56,16 @@ SYSTEM_COMMANDS = {
     "/fs_listar <ruta>": "[Agentic] Lista el contenido de un directorio",
     "/fs_buscar <texto> <ruta>": "[Agentic] Busca texto exacto en archivos",
     "/terminal <comando>": "[Agentic] Ejecuta un comando en el sistema operativo",
+    "/polish <ruta>": "[Literario] Retoque técnico (LaTeX/HTML/Portada) sin alterar contenido",
+    "/rewrite <ruta>": "[Literario] Reescritura profunda y expansión con IA por capítulo",
+    # ── V16.0 PRO Autonomy Commands ────────────────────────────────────────────
+    "/autonomia": "[V16] Estado del motor de autonomía — ciclo OODA, nivel de alerta, budget",
+    "/reflexion": "[V16] Ejecutar ciclo de auto-introspección manual y ver informe",
+    "/memoria": "[V16] Ver historial de decisiones estratégicas tomadas por Gravity",
+    "/parches": "[V16] Listar parches de código propuestos por Gravity pendientes de aprobación",
+    "/decidir <meta>": "[V16] Forzar ciclo de decisión OODA sobre una meta específica",
+    "/reglas": "[V16] Ver las reglas invariantes del sistema autónomo",
+    "/noticia <tema>": "Investiga, redacta y publica un reporte periodístico en el portal de Nexo Ágora.",
 }
 
 _brain_lock = threading.RLock()
@@ -196,6 +206,52 @@ def _get_security_status() -> str:
         return f"Security: no disponible ({e})"
 
 
+def _get_autonomy_status() -> str:
+    """Estado del motor de autonomía (V16.0 PRO)."""
+    try:
+        from core.autonomy_engine import get_state as ae_state
+        st = ae_state()
+        level    = st.get("last_status_level", "NORMAL")
+        cycles   = st.get("cycles_done", 0)
+        budget   = st.get("budget_remaining_usd", 0)
+        actions  = st.get("actions_taken", 0)
+        pending  = st.get("actions_pending_hitl", 0)
+        next_cyc = (st.get("next_cycle_utc") or "?")[:19]
+        return (
+            f"Autonomy Engine: {level} | {cycles} ciclos | "
+            f"{actions} acciones ejecutadas | {pending} pendientes HITL | "
+            f"Budget restante ${budget:.3f} | Próximo ciclo: {next_cyc}"
+        )
+    except Exception as e:
+        return f"Autonomy Engine: no disponible ({e})"
+
+
+def _get_reflection_status() -> str:
+    """Estado del motor de auto-reflexión (V16.0 PRO)."""
+    try:
+        from core.self_reflection import get_state as refl_state, _count_pending_patches
+        st = refl_state()
+        issues   = st.get("issues_found", 0)
+        patches  = _count_pending_patches()
+        cycles   = st.get("cycles_done", 0)
+        last_run = (st.get("last_run_utc") or "nunca")[:19]
+        return (
+            f"Self-Reflection: {cycles} ciclos | {issues} problemas detectados | "
+            f"{patches} parche(s) pendiente(s) | Último análisis: {last_run}"
+        )
+    except Exception as e:
+        return f"Self-Reflection: no disponible ({e})"
+
+
+def _get_strategic_memory_snapshot() -> str:
+    """Snapshot de la memoria estratégica (V16.0 PRO)."""
+    try:
+        from core.strategic_memory import get_brain_snapshot
+        return get_brain_snapshot()
+    except Exception as e:
+        return f"Memoria Estratégica: no disponible ({e})"
+
+
 def _get_rag_status() -> str:
     """Estado del índice RAG."""
     try:
@@ -261,16 +317,37 @@ def _get_active_plan() -> str:
     return ""
 
 
+_context_cache: str = ""
+_context_cache_ts: float = 0.0
+_CONTEXT_TTL: float = 15.0  # segundos
+
+
 def build_system_context() -> str:
     """
     Construye el contexto sistémico completo para inyectar en el system prompt.
-    Gravity usará esta información para responder preguntas sobre el estado del sistema
-    y para ejecutar comandos directamente desde el chat.
+    Usa un cache de 15 segundos para evitar overhead por request en escenarios de alta frecuencia.
+    Las secciones costosas (hardware, video, proveedores) se cachean.
+    Los costes y audit log se refrescan siempre.
     """
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    global _context_cache, _context_cache_ts
 
+    now_ts = time.time()
+    now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+
+    # Si el cache es válido, sólo actualizar las secciones dinámicas
+    if _context_cache and (now_ts - _context_cache_ts) < _CONTEXT_TTL:
+        # Reemplazar solo las líneas de costes y audit (siempre actualizadas)
+        fresh_cost    = _get_cost_status()
+        fresh_audit   = _get_recent_audit(5)
+        cached = _context_cache
+        # Reemplazar el timestamp
+        cached = cached.split("\n")[1:]  # quitar primera línea (timestamp viejo)
+        cached = [f"=== GRAVITY AI V{APP_VERSION} — ESTADO DEL SISTEMA [{now_str}] ==="] + cached
+        return "\n".join(cached)
+
+    # Cache expirado o primera vez: construir completo
     sections = [
-        f"=== GRAVITY AI V{APP_VERSION} — ESTADO DEL SISTEMA [{now}] ===",
+        f"=== GRAVITY AI V{APP_VERSION} — ESTADO DEL SISTEMA [{now_str}] ===",
         "",
         _get_provider_status(),
         "",
@@ -287,6 +364,11 @@ def build_system_context() -> str:
         _get_rag_status(),
         "",
         _get_recent_audit(5),
+        "",
+        # ── V16.0 PRO Autonomy Status ────────────────────────────────────────
+        _get_autonomy_status(),
+        "",
+        _get_reflection_status(),
     ]
 
     active_plan = _get_active_plan()
@@ -301,12 +383,22 @@ def build_system_context() -> str:
         sections.append("=== CONOCIMIENTO PERSISTIDO ===")
         sections.extend(knowledge_rules)
 
+    # ── V16.0 PRO: Memoria estratégica ────────────────────────────────────────
+    mem_snapshot = _get_strategic_memory_snapshot()
+    if mem_snapshot and "no disponible" not in mem_snapshot:
+        sections.append("")
+        sections.append(mem_snapshot)
+
     sections.append("")
     sections.append("=== COMANDOS DEL SISTEMA DISPONIBLES ===")
     for cmd, desc in SYSTEM_COMMANDS.items():
         sections.append(f"  {cmd} — {desc}")
 
-    return "\n".join(sections)
+    result = "\n".join(sections)
+    _context_cache = result
+    _context_cache_ts = now_ts
+    return result
+
 
 
 def build_gravity_system_prompt(extra_rules: list[str] | None = None) -> str:
@@ -314,8 +406,8 @@ def build_gravity_system_prompt(extra_rules: list[str] | None = None) -> str:
     Construye el system prompt completo de Gravity con conciencia sistémica.
     """
     base = (
-        f"Eres Gravity AI V{APP_VERSION} [Agentic Core Edition], asistente técnico omnisciente, Auditor Senior "
-        "y Agente Autónomo del ecosistema Gravity AI Bridge. "
+        f"Eres Gravity AI V{APP_VERSION} [Autonomous Edition], asistente técnico omnisciente, Auditor Senior "
+        "y Agente Autónomo del ecosistema Gravity AI Bridge — la primera empresa peruana autogestionada por IA. "
         "PROTOCOLO: Lógica interna en inglés. Salida final en español. "
         "Sin rellenos conversacionales. Solo hechos técnicos fríos. Resolución directa. "
         "COMPORTAMIENTO: Sin disculpas. Sin especulación. "
@@ -323,14 +415,19 @@ def build_gravity_system_prompt(extra_rules: list[str] | None = None) -> str:
         "CAPACIDADES ESTÁNDAR: Puedes discutir, planificar y ejecutar tareas sobre el sistema usando los comandos disponibles. "
         "Cuando el usuario te pida crear un video, generar imágenes, buscar información, ejecutar código o "
         "cualquier otra tarea del sistema, DEBES indicar exactamente qué endpoint/comando ejecutaste y su resultado. "
-        "CAPACIDADES AGENTIC V15.2 (NUEVAS — ÚSALAS): "
-        "Ahora posees herramientas directas de acceso al sistema operativo y al sistema de archivos. "
+        "CAPACIDADES AGENTIC V16.0: "
         "Puedes leer archivos con /fs_ver <ruta>, listar directorios con /fs_listar <ruta>, "
         "buscar texto en el código fuente con /fs_buscar <texto> <ruta>, "
         "y ejecutar comandos en el terminal con /terminal <comando>. "
-        "Cuando el usuario te pida revisar un archivo, diagnosticar un error o correr un proceso, "
-        "DEBES usar estas herramientas proactivamente en lugar de pedir al usuario que lo haga. "
+        "CAPACIDADES AUTÓNOMAS V16.0 (NUEVAS): "
+        "Gravity se autogobierna mediante el ciclo OODA (Observe-Orient-Decide-Act). "
+        "Tienes acceso a tu propia memoria estratégica de decisiones pasadas. "
+        "Puedes ver parches de código propuestos por tu motor de auto-reflexión. "
+        "Las acciones de alto riesgo requieren aprobación del humano vía /parches o el Dashboard. "
+        "Usa /autonomia para ver el estado del engine, /reflexion para introspección manual, "
+        "/memoria para historial de decisiones, /parches para código propuesto. "
         "CONCIENCIA SISTÉMICA: Tienes acceso completo al estado del sistema en tiempo real. "
+        "Además, eres DUEÑO y AUTOR del portal 'Nexo Ágora' (https://gravitynewsportal.netlify.app/ gestionado en github.com/DarckRovert/gravity-news-portal). Tienes la capacidad de redactar y publicar reportes de investigación autónoma en ese portal usando el script gravity_reporter.py. "
         "Usa esta información para responder preguntas sobre el estado de los servicios, "
         "costes, seguridad, y para planificar tareas.\n\n"
     )
@@ -479,6 +576,42 @@ def parse_chat_commands(user_message: str) -> Optional[dict]:
     if msg.lower().startswith("/terminal "):
         cmd = msg.split(" ", 1)[1].strip()
         return {"command": "agentic_tool", "args": {"tool": "run_command", "command": cmd, "cwd": "."}, "api_action": f"TOOL run_command {cmd}", "user_feedback": f"Ejecutando terminal: {cmd}"}
+
+    if msg.lower().startswith("/polish "):
+        path = msg.split(" ", 1)[1].strip()
+        return {"command": "literary_polish", "args": {"path": path}, "api_action": f"TOOL polish {path}", "user_feedback": f"Aplicando retoque técnico (polish) a: {path}"}
+
+    if msg.lower().startswith("/rewrite "):
+        path = msg.split(" ", 1)[1].strip()
+        return {"command": "literary_rewrite", "args": {"path": path}, "api_action": f"TOOL rewrite {path}", "user_feedback": f"Iniciando reescritura profunda de: {path}"}
+
+    if msg.lower().startswith("/epub "):
+        path = msg.split(" ", 1)[1].strip()
+        return {"command": "generate_epub", "args": {"path": path}, "api_action": f"TOOL epub {path}", "user_feedback": f"Generando EPUB para: {path}"}
+
+    if msg.lower().startswith("/noticia "):
+        topic = msg.split(" ", 1)[1].strip()
+        return {"command": "publish_news", "args": {"topic": topic}, "api_action": f"TOOL publish_news {topic}", "user_feedback": f"Investigando y publicando reporte sobre: {topic}"}
+
+    # ── V16.0 PRO Autonomy Commands ─────────────────────────────────────────────
+    if msg.lower() in ("/autonomia", "/autonomy"):
+        return {"command": "autonomy_status", "args": {}, "api_action": "GET /v1/autonomy/status", "user_feedback": "Consultando estado del motor de autonomía"}
+
+    if msg.lower() in ("/reflexion", "/reflection"):
+        return {"command": "run_reflection", "args": {}, "api_action": "POST /v1/reflection/trigger", "user_feedback": "Ejecutando ciclo de auto-introspección..."}
+
+    if msg.lower() in ("/memoria", "/memory"):
+        return {"command": "strategic_memory", "args": {"n": 10}, "api_action": "GET /v1/autonomy/decisions", "user_feedback": "Consultando memoria estratégica"}
+
+    if msg.lower() in ("/parches", "/patches"):
+        return {"command": "list_patches", "args": {}, "api_action": "GET /v1/reflection/patches", "user_feedback": "Listando parches de código propuestos"}
+
+    if msg.lower() in ("/reglas", "/rules"):
+        return {"command": "invariant_rules", "args": {}, "api_action": "GET /v1/autonomy/rules", "user_feedback": "Mostrando reglas invariantes del sistema"}
+
+    if msg.lower().startswith("/decidir "):
+        meta = msg.split(" ", 1)[1].strip()
+        return {"command": "trigger_ooda", "args": {"meta": meta}, "api_action": "POST /v1/autonomy/trigger", "user_feedback": f"Iniciando ciclo OODA para: '{meta[:60]}'"}
 
     return None
 
@@ -640,6 +773,157 @@ def execute_system_command(command_info: dict) -> dict:
             tool_args = {k: v for k, v in args.items() if k != "tool"}
             res = engine.execute_tool(tool_name, tool_args)
             return {"ok": True if not res.startswith("Error") else False, "result_text": res}
+
+        elif cmd == "generate_epub":
+            path = args.get("path", "")
+            try:
+                from tools.epub_generator import generate_epub
+                out_path = generate_epub(path)
+                if out_path:
+                    return {"ok": True, "result_text": f"✓ EPUB generado con éxito:\n{out_path}"}
+                else:
+                    return {"ok": False, "result_text": "✗ Fallo al generar EPUB (revisa logs)."}
+            except Exception as e:
+                return {"ok": False, "result_text": f"✗ Error ejecutando epub_generator: {e}"}
+
+        elif cmd == "literary_polish":
+            path = args.get("path", "")
+            if "ensayos" in path.lower():
+                from tools.research_refiner import ResearchRefiner
+                result_path = ResearchRefiner().polish(path)
+            else:
+                from tools.book_refiner import BookRefiner
+                result_path = BookRefiner().polish(path)
+            return {"ok": True, "result_text": f"✓ Retoque técnico completado.\nObra ensamblada y lista en:\n{result_path}"}
+
+        elif cmd == "literary_rewrite":
+            path = args.get("path", "")
+            if "ensayos" in path.lower():
+                from tools.research_refiner import ResearchRefiner
+                result_path = ResearchRefiner().rewrite(path)
+            else:
+                from tools.book_refiner import BookRefiner
+                result_path = BookRefiner().rewrite(path)
+            return {"ok": True, "result_text": f"✓ Reescritura profunda completada.\nNueva obra expandida en:\n{result_path}"}
+
+        elif cmd == "publish_news":
+            topic = args.get("topic", "")
+            try:
+                import subprocess
+                reporter_script = os.path.join(BASE_DIR, "gravity_reporter.py")
+                # Ejecutar el reporter en background para no bloquear el chat
+                subprocess.Popen(["python", reporter_script, "--topic", topic], cwd=BASE_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
+                return {"ok": True, "result_text": f"✓ Se ha iniciado la investigación de campo sobre '{topic}'.\n\nEl Agente Periodístico está trabajando en segundo plano buscando información real. Cuando termine, redactará el reporte y lo publicará directamente en Github/Netlify. Revisa el portal en un par de minutos."}
+            except Exception as e:
+                return {"ok": False, "result_text": f"✗ Error ejecutando el reportero: {e}"}
+
+        # ── V16.0 PRO Autonomy Commands ────────────────────────────────────────
+        elif cmd == "autonomy_status":
+            from core.autonomy_engine import get_state as ae_state, get_invariant_rules
+            from core.self_reflection import get_state as refl_state, _count_pending_patches
+            st  = ae_state()
+            rst = refl_state()
+            lines = [
+                f"╔══ GRAVITY AUTONOMY ENGINE V16.0 PRO ══╗",
+                f"  Nivel actual:        {st.get('last_status_level', 'NORMAL')}",
+                f"  Ciclos OODA:         {st.get('cycles_done', 0)}",
+                f"  Acciones ejecutadas: {st.get('actions_taken', 0)}",
+                f"  Pendientes HITL:     {st.get('actions_pending_hitl', 0)}",
+                f"  Budget restante:     ${st.get('budget_remaining_usd', 0):.3f} / ${0.50:.2f} diarios",
+                f"  Próximo ciclo:       {(st.get('next_cycle_utc') or '?')[:19]}",
+                f"  Self-Reflection:     {rst.get('cycles_done', 0)} ciclos | {_count_pending_patches()} parche(s) pendiente(s)",
+                f"  Problemas detectados:{rst.get('issues_found', 0)}",
+                f"╚══════════════════════════════════════╝",
+            ]
+            if st.get("last_decision"):
+                ld = st["last_decision"]
+                lines.append(f"\nÚltima decisión [{ld.get('ts', '')[:19]}]:")
+                lines.append(f"  Nivel: {ld.get('level', '?')} | {ld.get('n_actions', 0)} acción(es)")
+                plan_preview = (ld.get('plan') or '')[:300]
+                if plan_preview:
+                    lines.append(f"\n{plan_preview}...")
+            return {"ok": True, "result_text": "\n".join(lines)}
+
+        elif cmd == "run_reflection":
+            from core.self_reflection import run_reflection_cycle
+            report = run_reflection_cycle()
+            lines = [f"Ciclo de auto-introspección completado:", report.get("summary", "Sin resumen")]
+            issues = report.get("config_issues", [])
+            if issues:
+                lines.append(f"\nProblemas de configuración ({len(issues)}):")
+                for iss in issues[:5]:
+                    lines.append(f"  [{iss.get('severity', '?')}] {iss.get('module', '?')}: {iss.get('issue', '')[:100]}")
+                    lines.append(f"    → {iss.get('suggestion', '')[:100]}")
+            audit = report.get("audit_analysis", {})
+            recurrent = audit.get("recurrent_errors", [])
+            if recurrent:
+                lines.append(f"\nErrores recurrentes ({len(recurrent)}):")
+                for err in recurrent[:3]:
+                    lines.append(f"  • {err[:120]}")
+            opps = report.get("opportunities", [])
+            if opps:
+                lines.append(f"\nOportunidades detectadas:")
+                for op in opps:
+                    lines.append(f"  ✦ {op}")
+            return {"ok": True, "result_text": "\n".join(lines)}
+
+        elif cmd == "strategic_memory":
+            from core.strategic_memory import get_recent_decisions, get_summary
+            n = args.get("n", 10)
+            decisions = get_recent_decisions(n)
+            summary   = get_summary(30)
+            lines = [
+                f"╔══ MEMORIA ESTRATÉGICA (últimos 30 días) ══╗",
+                f"  Total decisiones: {summary.get('total_decisions', 0)}",
+                f"  Tasa de éxito:    {summary.get('success_rate_pct', 'N/A')}%",
+                f"  Impact promedio:  {summary.get('avg_impact', 0)}",
+                f"  Por categoría:    {summary.get('by_category', {})}",
+                f"╚══════════════════════════════════════════╝",
+            ]
+            if decisions:
+                lines.append(f"\nÚltimas {len(decisions)} decisiones:")
+                for d in decisions:
+                    ts  = (d.get("ts") or "")[:19]
+                    cat = d.get("category", "?")
+                    ttl = (d.get("title") or "?")[:70]
+                    out = d.get("outcome", "?")
+                    lines.append(f"  [{ts}] [{cat}] {ttl} → {out}")
+            return {"ok": True, "result_text": "\n".join(lines)}
+
+        elif cmd == "list_patches":
+            from core.self_reflection import get_pending_patches
+            patches = get_pending_patches()
+            if not patches:
+                return {"ok": True, "result_text": "No hay parches de código pendientes de aprobación."}
+            lines = [f"Parches de código pendientes ({len(patches)}):"]
+            for p in patches:
+                lines.append(f"\n  ID:      {p.get('id', '?')}")
+                lines.append(f"  Módulo:  {p.get('module', '?')}")
+                lines.append(f"  Fecha:   {(p.get('ts') or '?')[:19]}")
+                lines.append(f"  Problema: {(p.get('issue') or '')[:120]}")
+                lines.append(f"  Archivo: {p.get('patch_file', '?')}")
+                lines.append(f"  → Para aprobar: POST /v1/reflection/patches/{p.get('id', '?')}/approve")
+            return {"ok": True, "result_text": "\n".join(lines)}
+
+        elif cmd == "invariant_rules":
+            from core.autonomy_engine import get_invariant_rules
+            rules = get_invariant_rules()
+            lines = ["╔══ REGLAS INVARIANTES DEL SISTEMA AUTÓNOMO ══╗"]
+            lines.append("  Estas reglas NO pueden ser modificadas por el Autonomy Engine.")
+            lines.append("")
+            for i, rule in enumerate(rules, 1):
+                lines.append(f"  {i}. {rule}")
+            lines.append("╚══════════════════════════════════════════════╝")
+            return {"ok": True, "result_text": "\n".join(lines)}
+
+        elif cmd == "trigger_ooda":
+            from core.autonomy_engine import trigger_cycle
+            meta = args.get("meta", "")
+            result = trigger_cycle()
+            if result.get("ok"):
+                return {"ok": True, "result_text": f"✓ Ciclo OODA iniciado en background.\nMeta: '{meta}'\nConsulta el resultado con /autonomia en ~60 segundos."}
+            else:
+                return {"ok": False, "result_text": f"✗ {result.get('error', 'Error desconocido')}"}
 
         else:
             return {"ok": False, "result_text": f"Comando '{cmd}' no implementado."}

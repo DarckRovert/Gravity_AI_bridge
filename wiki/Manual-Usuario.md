@@ -1,4 +1,4 @@
-# 📖 Manual de Usuario — Gravity AI Bridge V15.2 PRO
+# 📖 Manual de Usuario — Gravity AI Bridge V16.0 PRO
 
 Guía paso a paso para operar el Dashboard y todos los módulos del ecosistema.
 

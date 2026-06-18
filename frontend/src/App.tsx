@@ -30,6 +30,9 @@ import { BountyHunter } from './components/BountyHunter';
 import { SoftwareFactory } from './components/SoftwareFactory';
 import { Infiltrator } from './components/Infiltrator';
 import { ToastContainer } from './components/Toast';
+import { TinkaDashboard } from './components/TinkaDashboard';
+import { YouTubeAnalyzer } from './components/YouTubeAnalyzer';
+import { AutonomyPanel } from './components/AutonomyPanel';
 
 import type { PanelId } from './types';
 
@@ -75,6 +78,9 @@ function App() {
       case 'bountyhunter': return <BountyHunter />;
       case 'softwarefactory': return <SoftwareFactory />;
       case 'infiltrator': return <Infiltrator />;
+      case 'tinka': return <TinkaDashboard />;
+      case 'youtubeanalyzer': return <YouTubeAnalyzer />;
+      case 'autonomy': return <AutonomyPanel />;
       default:
         return (
           <div className="flex items-center justify-center h-full text-text-muted text-lg font-medium">

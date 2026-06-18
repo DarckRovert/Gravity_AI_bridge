@@ -1,0 +1,6 @@
+{
+    "last_model": "model-variant-12",
+    "provider": "ollama",
+    "provider_protocol": "ollama",
+    "api_url": "http://localhost:11434"
+}

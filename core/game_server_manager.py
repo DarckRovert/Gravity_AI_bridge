@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         GRAVITY AI — GAME SERVER MANAGER V15.2 PRO [Diamond Edition]             ║
+║         GRAVITY AI — GAME SERVER MANAGER V16.0 PRO [Diamond Edition]             ║
 ║         Gestión de servidores de juegos desde el Bridge                      ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

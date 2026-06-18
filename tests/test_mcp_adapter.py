@@ -1,5 +1,5 @@
 """
-Tests unitarios para core/mcp_adapter.py — V15.2 PRO
+Tests unitarios para core/mcp_adapter.py — V16.0 PRO
 Cubre: connect(), _read_line_timeout(), backoff, health check, call_tool(), disconnect().
 """
 import json

@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║         GRAVITY AI — DEPLOY MANAGER V15.2 PRO                                     ║
+║         GRAVITY AI — DEPLOY MANAGER V16.0 PRO                                     ║
 ║         Pipeline automatizado: Build → Deploy a Netlify                      ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

@@ -1,7 +1,7 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  GRAVITY AI — ANIMATION ENGINE V1.0                                         ║
-║  Motor de Animación de Imágenes (MAI) — Gravity Studio V15.2 PRO               ║
+║  Motor de Animación de Imágenes (MAI) — Gravity Studio V16.0 PRO               ║
 ║                                                                              ║
 ║  Sistema de 3 niveles con fallback progresivo:                              ║
 ║    L0 — FFmpeg nativo (zoompan, filtros básicos) — sin dependencias         ║
@@ -434,68 +434,9 @@ def animate_with_variations(
         w = img_w if img_w % 2 == 0 else img_w - 1
         h = img_h if img_h % 2 == 0 else img_h - 1
 
-     # ── Generador local de variaciones (sin peticiones de red) ─────────────────
-    # Las variaciones se generan mediante transformaciones geométricas y de color
-    # aplicadas localmente sobre la imagen base. Sin API, sin bans, sin latencia.
-    # Tipos de transformación cinematográfica por variación:
-    _LOCAL_TRANSFORMS = [
-        {"zoom": 1.00, "pan_x": 0,     "pan_y": 0,     "brightness": 1.00},  # var0: original
-        {"zoom": 1.04, "pan_x": 0,     "pan_y": 0,     "brightness": 1.00},  # var1: zoom-in suave
-        {"zoom": 1.04, "pan_x": +0.03, "pan_y": 0,     "brightness": 1.02},  # var2: zoom + pan derecha + brillo
-        {"zoom": 1.07, "pan_x": +0.03, "pan_y": -0.02, "brightness": 1.02},  # var3: zoom mayor + pan diagonal
-    ]
+    variation_paths: list[str] = [image_path]
 
-    variation_paths: list[str] = []
-
-    try:
-        from PIL import Image, ImageEnhance
-    except Exception as _pil_err:
-        from core.logger import log
-        log.warning(f"[VideoStudio] PIL no disponible para variaciones locales: {_pil_err}")
-        return None
-
-    with Image.open(image_path) as _base_img:
-        base_pil = _base_img.convert("RGB")
-        bw, bh = base_pil.size
-
-    for i in range(n_variations):
-        var_path = os.path.join(output_dir, f"scene_{scene_idx:02d}_var{i:02d}.png")
-        t = _LOCAL_TRANSFORMS[i % len(_LOCAL_TRANSFORMS)]
-        try:
-            img = base_pil.copy()
-
-            # Aplicar zoom + pan como recorte centrado con offset
-            zoom = t["zoom"]
-            crop_w = int(bw / zoom)
-            crop_h = int(bh / zoom)
-            # Pan: desplazamiento porcentual del centro
-            offset_x = int(bw * t["pan_x"])
-            offset_y = int(bh * t["pan_y"])
-            cx = bw // 2 + offset_x
-            cy = bh // 2 + offset_y
-            left  = max(0, cx - crop_w // 2)
-            top   = max(0, cy - crop_h // 2)
-            right = min(bw, left + crop_w)
-            bot   = min(bh, top + crop_h)
-            img = img.crop((left, top, right, bot)).resize((bw, bh), Image.Resampling.LANCZOS)
-
-            # Ajuste de brillo sutil
-            if t["brightness"] != 1.0:
-                img = ImageEnhance.Brightness(img).enhance(t["brightness"])
-
-            # Redimensionar a la resolución objetivo si es necesario
-            if (bw, bh) != (w, h):
-                img = img.resize((w, h), Image.Resampling.LANCZOS)
-
-            img.save(var_path, "PNG")
-            variation_paths.append(var_path)
-        except Exception as _ve:
-            from core.logger import log
-            log.warning(f"[VideoStudio] Error en variación local {i}: {_ve}. Usando copia directa.")
-            shutil.copy2(image_path, var_path)
-            variation_paths.append(var_path)
-
-    # ── Bonus: 1 variación Pollinations si la API no está bloqueada ─────────────
+    # ── Variaciones Pollinations (API) ─────────────
     # Solo se intenta si tenemos cuota disponible — no bloquea el pipeline si falla.
     try:
         from tools.pollinations_generator import generate as poll_gen, is_blocked
@@ -618,6 +559,10 @@ def animate_with_comfyui(
     """
     if not image_path or not os.path.isfile(image_path):
         return None
+
+    # [Nativo para Ryzen sin dGPU] ComfyUI deshabilitado permanentemente para evitar OOM 
+    # y caídas del servidor de Fooocus. Forzando el fallback a L1 (Ken Burns) siempre.
+    return None
 
     try:
         import sys as _sys

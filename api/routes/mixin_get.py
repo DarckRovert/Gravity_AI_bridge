@@ -43,7 +43,7 @@ class GetRoutesMixin:
                 from dashboard import get_dashboard_html
                 body = get_dashboard_html()
             except Exception:
-                body = b"<h1>Gravity AI Bridge V15.2 PRO</h1><p>No se encontro frontend/dist/index.html. Ejecuta 'npm run build' en /frontend.</p>"
+                body = b"<h1>Gravity AI Bridge V16.0 PRO</h1><p>No se encontro frontend/dist/index.html. Ejecuta 'npm run build' en /frontend.</p>"
             
             try:
                 self.send_response(200)
@@ -798,6 +798,90 @@ class GetRoutesMixin:
         """GET /v1/video/status — Estado completo de la cola de video con métricas de disco."""
         from api.routes.handlers.video_handler import handle_video_status
         handle_video_status(self)
+
+    # ── La Tinka Engine ────────────────────────────────────────────────────────
+    def _serve_tinka_status(self):
+        try:
+            import sys, os
+            BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            tools_dir = os.path.join(BASE, "tools")
+            if tools_dir not in sys.path:
+                sys.path.insert(0, tools_dir)
+            from tinka_engine import TinkaEngine
+            engine = TinkaEngine(os.path.join(BASE, "tinka_history.db"))
+            body = json.dumps(engine.status(), indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500); self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_tinka_analyze(self):
+        try:
+            import sys, os
+            BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            tools_dir = os.path.join(BASE, "tools")
+            if tools_dir not in sys.path:
+                sys.path.insert(0, tools_dir)
+            from tinka_engine import TinkaEngine
+            engine = TinkaEngine(os.path.join(BASE, "tinka_history.db"))
+            body = json.dumps(engine.analyze_patterns(), indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500); self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_tinka_predict(self):
+        try:
+            import sys, os
+            BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            tools_dir = os.path.join(BASE, "tools")
+            if tools_dir not in sys.path:
+                sys.path.insert(0, tools_dir)
+            from tinka_engine import TinkaEngine
+            engine = TinkaEngine(os.path.join(BASE, "tinka_history.db"))
+            prediction = engine.predict_next_draw()
+            body = json.dumps({"prediction": prediction}, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500); self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_tinka_update(self):
+        try:
+            import sys, os
+            BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            tools_dir = os.path.join(BASE, "tools")
+            if tools_dir not in sys.path:
+                sys.path.insert(0, tools_dir)
+            from tinka_engine import TinkaEngine
+            import urllib.parse
+            params = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(self.path).query))
+            force_dummy = params.get("dummy", "false").lower() == "true"
+            
+            engine = TinkaEngine(os.path.join(BASE, "tinka_history.db"))
+            full_crawl = params.get('full', 'false').lower() == 'true'
+            result = engine.update_database(full_crawl=full_crawl, force_dummy=force_dummy, num_dummy=100)
+            body = json.dumps({"ok": True, "inserted": result}, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500); self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
 
     def _serve_video_voices(self):
         """GET /v1/video/voices — Lista voces SAPI + info de motores TTS activos."""
@@ -1595,6 +1679,120 @@ class GetRoutesMixin:
             self._send_cors()
             self.end_headers()
             self.wfile.write(json.dumps(status, ensure_ascii=False).encode("utf-8"))
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    # ── V16.0 PRO Autonomous Edition ────────────────────────────────────────────
+
+    def _serve_autonomy_status(self):
+        """GET /v1/autonomy/status — Estado completo del Autonomy Engine."""
+        import json
+        try:
+            from core.autonomy_engine import get_state
+            from core.self_reflection import get_state as refl_state, _count_pending_patches
+            ae = get_state()
+            rs = refl_state()
+            payload = {
+                "autonomy_engine":   ae,
+                "self_reflection":   {**rs, "patches_pending": _count_pending_patches()},
+                "ok":                True,
+            }
+            body = json.dumps(payload, indent=2, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_autonomy_decisions(self):
+        """GET /v1/autonomy/decisions — Historial de decisiones estratégicas."""
+        import json
+        try:
+            from core.strategic_memory import get_recent_decisions, get_summary
+            decisions = get_recent_decisions(50)
+            summary   = get_summary(30)
+            body = json.dumps(
+                {"decisions": decisions, "summary": summary, "count": len(decisions)},
+                indent=2, ensure_ascii=False, default=str,
+            ).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_autonomy_rules(self):
+        """GET /v1/autonomy/rules — Reglas invariantes del sistema."""
+        import json
+        try:
+            from core.autonomy_engine import get_invariant_rules, AUTONOMY_DAILY_BUDGET_USD, DECISION_INTERVAL_H
+            rules = get_invariant_rules()
+            body = json.dumps({
+                "invariant_rules":         rules,
+                "daily_budget_usd":        AUTONOMY_DAILY_BUDGET_USD,
+                "decision_interval_hours": DECISION_INTERVAL_H,
+                "ok":                      True,
+            }, indent=2, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_reflection_report(self):
+        """GET /v1/reflection/report — Último informe de auto-introspección."""
+        import json
+        try:
+            from core.self_reflection import get_last_report
+            report = get_last_report()
+            if report is None:
+                body = json.dumps({"ok": False, "message": "Aún no se ha ejecutado ningún ciclo de reflexión."}).encode("utf-8")
+            else:
+                body = json.dumps({"ok": True, "report": report}, indent=2, ensure_ascii=False, default=str).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_reflection_patches(self):
+        """GET /v1/reflection/patches — Parches de código pendientes de aprobación."""
+        import json
+        try:
+            from core.self_reflection import get_pending_patches
+            patches = get_pending_patches()
+            body = json.dumps(
+                {"ok": True, "patches": patches, "count": len(patches)},
+                indent=2, ensure_ascii=False, default=str,
+            ).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
         except Exception as e:
             self.send_response(500)
             self._send_cors()

@@ -1,5 +1,5 @@
 """
-Gravity AI — Tool Base Classes V15.2 PRO
+Gravity AI — Tool Base Classes V16.0 PRO
 All tools implement Tool and return ToolResult.
 """
 from abc import ABC, abstractmethod

@@ -82,6 +82,22 @@ TASK_PROFILES = {
         "switch_message": "[THINK] Switching to deep reasoning model...",
         "min_score_to_switch": 4,  # FEAT-05: minimum score threshold
     },
+    "creative": {
+        "weight": 0,
+        "keywords": {
+            "ensayo": 4, "essay": 4, "capítulo": 3, "chapter": 3,
+            "novela": 4, "ficción": 4, "filosofía": 4, "poema": 4,
+            "redacta": 3, "escribe": 3, "narración": 4, "libro": 3,
+            "osint": 5, "investigación": 3, "research": 3,
+            "tesis": 4, "argumento": 3, "prosa": 4, "relato": 4,
+            "guion": 4, "script writing": 4, "write": 3, "narrative": 4,
+            "story": 3, "contenido": 2, "artículo": 3, "editorial": 3,
+        },
+        "preferred_model_keywords": ["llama", "mistral", "gemma", "claude", "gpt", "command"],
+        "description": "Creative writing, essays, OSINT research, narrative generation",
+        "switch_message": "[CREATE] Switching to creative/generalist model...",
+        "min_score_to_switch": 4,
+    },
 }
 
 # ── Module State (singleton) ──────────────────────────────────────────────────
@@ -119,12 +135,13 @@ def classify_task(text: str, history: list = None) -> str:
     Classifies the task type from input text + recent conversation context.
 
     Returns:
-        "code"   → code-specialist model preferred
-        "reason" → reasoning-specialist model preferred
-        "any"    → no strong preference (BUG-07: will NOT trigger a switch)
+        "code"     → code-specialist model preferred
+        "reason"   → reasoning-specialist model preferred
+        "creative" → creative/generalist model preferred
+        "any"      → no strong preference (BUG-07: will NOT trigger a switch)
     """
     text_lower = text.lower()
-    scores = {"code": 0, "reason": 0}
+    scores = {"code": 0, "reason": 0, "creative": 0}
 
     for task, profile in TASK_PROFILES.items():
         for keyword, weight in profile["keywords"].items():
@@ -142,19 +159,25 @@ def classify_task(text: str, history: list = None) -> str:
                 if keyword in last_user:
                     scores[task] += weight * 0.3
 
-    code_score   = scores["code"]
-    reason_score = scores["reason"]
+    code_score     = scores["code"]
+    reason_score   = scores["reason"]
+    creative_score = scores["creative"]
 
-    if code_score == 0 and reason_score == 0:
+    if code_score == 0 and reason_score == 0 and creative_score == 0:
         return "any"
-    if code_score >= reason_score + 3:
+
+    # Determinar el perfil ganador con ventaja mínima de 3 puntos
+    best = max(scores, key=lambda k: scores[k])
+    second = sorted(scores.values(), reverse=True)[1]
+    if scores[best] - second >= 3:
+        return best
+    # Sin ventaja clara: retornar el perfil con mayor score (sin empate forzado)
+    if code_score > reason_score and code_score > creative_score:
         return "code"
-    if reason_score >= code_score + 3:
+    if reason_score > code_score and reason_score > creative_score:
         return "reason"
-    if code_score > reason_score:
-        return "code"
-    if reason_score > code_score:
-        return "reason"
+    if creative_score > code_score and creative_score > reason_score:
+        return "creative"
     return "any"
 
 
@@ -165,14 +188,15 @@ def _rank_model(model_name: str, task: str) -> int:
     name_lower = model_name.lower()
     score = 0
 
-    if task == "code":
-        preferred = TASK_PROFILES["code"]["preferred_model_keywords"]
-        avoid     = TASK_PROFILES["reason"]["preferred_model_keywords"]
-    elif task == "reason":
-        preferred = TASK_PROFILES["reason"]["preferred_model_keywords"]
-        avoid     = TASK_PROFILES["code"]["preferred_model_keywords"]
-    else:
-        return 1  # Any model is fine
+    if task not in TASK_PROFILES:
+        return 1  # desconocido: cualquier modelo vale
+
+    preferred = TASK_PROFILES[task]["preferred_model_keywords"]
+    # Penalizar keywords de perfiles opuestos (todos los demás)
+    avoid = []
+    for other_task, other_profile in TASK_PROFILES.items():
+        if other_task != task:
+            avoid.extend(other_profile["preferred_model_keywords"])
 
     for kw in preferred:
         if kw in name_lower:

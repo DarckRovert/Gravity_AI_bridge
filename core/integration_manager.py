@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║               GRAVITY AI - CORE INTEGRATION MANAGER V15.2 PRO                ║
+║               GRAVITY AI - CORE INTEGRATION MANAGER V16.0 PRO                ║
 ║           Dynamic Scanner, Loader, and Orchestrator of Plugins               ║
 ╚══════════════════════════════════════════════════════════════════════════════╗
 """

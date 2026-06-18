@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — SOCIAL ASSETS GENERATOR V15.2 PRO [Diamond-Tier Edition]       ║
+║  GRAVITY AI — SOCIAL ASSETS GENERATOR V16.0 PRO [Diamond-Tier Edition]       ║
 ║  Generador automático de activos sociales (Twitter/X, Instagram, LinkedIn)   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -71,6 +71,9 @@ def generate_social_assets(
             "Cada tweet separado con una línea en blanco.]\n\n"
             "--- INSTAGRAM CAROUSEL ---\n"
             "[Texto para 5-7 diapositivas. Cada diapositiva: '🟦 SLIDE X: [texto corto y visual]']\n\n"
+            "--- TIKTOK CAPTION ---\n"
+            "[Texto súper corto, sarcástico/irónico o con gancho fuerte estilo shitpost. Usa pocos emojis. "
+            "Incluye de 3 a 5 hashtags muy virales relacionados al tema.]\n\n"
             "--- LINKEDIN POST ---\n"
             "[Post profesional con gancho fuerte, historia/valor y CTA claro. Máx 300 palabras.]\n"
         )

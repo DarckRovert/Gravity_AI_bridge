@@ -148,6 +148,10 @@ class ComfyUIClient:
                             data = msg.get("data", {})
                             if data.get("node") is None and data.get("prompt_id") == prompt_id:
                                 break  # Ejecución completada
+                        elif msg.get("type") == "execution_error":
+                            err_data = msg.get("data", {})
+                            if err_data.get("prompt_id") == prompt_id:
+                                raise RuntimeError(f"ComfyUI abortó la generación: {err_data.get('exception_type')}")
             finally:
                 ws.close()
 
@@ -279,6 +283,83 @@ class ComfyUIClient:
             raise RuntimeError(f"ComfyUI upload HTTP {e.code}: {e.read().decode('utf-8', errors='replace')[:200]}")
         except Exception as e:
             raise RuntimeError(f"ComfyUI upload_image error: {e}")
+
+    def build_text2image_workflow(
+        self,
+        positive_prompt: str,
+        negative_prompt: str = "ugly, deformed, blurry, low quality, watermark",
+        width: int = 512,
+        height: int = 512,
+        model_name: str = "v1-5-pruned-emaonly-fp16.safetensors",
+        steps: int = 20,
+        cfg: float = 7.0,
+        seed: int = 42,
+    ) -> dict:
+        """
+        Construye un workflow Text-to-Image estandar para SD 1.5.
+        Genera una sola imagen basada en el prompt.
+        """
+        width  = max(64, (width  // 8) * 8)
+        height = max(64, (height // 8) * 8)
+
+        workflow = {
+            "4": {
+                "class_type": "CheckpointLoaderSimple",
+                "inputs": {"ckpt_name": model_name}
+            },
+            "5": {
+                "class_type": "EmptyLatentImage",
+                "inputs": {
+                    "width": width,
+                    "height": height,
+                    "batch_size": 1
+                }
+            },
+            "6": {
+                "class_type": "CLIPTextEncode",
+                "inputs": {
+                    "text": positive_prompt,
+                    "clip": ["4", 1]
+                }
+            },
+            "7": {
+                "class_type": "CLIPTextEncode",
+                "inputs": {
+                    "text": negative_prompt,
+                    "clip": ["4", 1]
+                }
+            },
+            "3": {
+                "class_type": "KSampler",
+                "inputs": {
+                    "seed": seed,
+                    "steps": steps,
+                    "cfg": cfg,
+                    "sampler_name": "euler",
+                    "scheduler": "normal",
+                    "denoise": 1.0,
+                    "model": ["4", 0],
+                    "positive": ["6", 0],
+                    "negative": ["7", 0],
+                    "latent_image": ["5", 0]
+                }
+            },
+            "8": {
+                "class_type": "VAEDecode",
+                "inputs": {
+                    "samples": ["3", 0],
+                    "vae": ["4", 2]
+                }
+            },
+            "9": {
+                "class_type": "SaveImage",
+                "inputs": {
+                    "filename_prefix": "gravity_t2i",
+                    "images": ["8", 0]
+                }
+            }
+        }
+        return workflow
 
     def build_img2video_workflow(
         self,

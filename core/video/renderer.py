@@ -16,7 +16,10 @@ DEFAULT_FPS = 24
 SECONDS_PER_SCENE = 8
 FADE_DURATION = 0.4
 DEFAULT_BGM_VOLUME = 0.1
+DEFAULT_BGM_VOLUME = 0.1
 
+_fooocus_dead = False
+_comfy_dead = False
 _branding_cache = None
 def _get_branding_config() -> dict:
     global _branding_cache
@@ -55,29 +58,24 @@ def _generate_scene_image(
             w, h = int(parts[0]), int(parts[1])
 
     # ── Motor 1: Fooocus (Motor Local Principal) ───────────────────────────────
+    global _fooocus_dead
     try:
         from tools.fooocus_client import trigger_gradio_generation, health_check
         import time
 
         is_online = health_check().get("online")
-        if not is_online:
-            from core.ai_process_manager import start_engine
-            log.info("[VideoStudio] Fooocus offline. Auto-iniciando Fooocus...")
-            res = start_engine("Fooocus")
-            if res.get("success"):
-                # Esperar hasta 90 segundos a que la API de Gradio responda (Modelos pesados toman tiempo en cargar)
-                for _ in range(45):
-                    time.sleep(2)
-                    if health_check().get("online"):
-                        is_online = True
-                        log.info("[VideoStudio] Fooocus iniciado correctamente.")
-                        break
+        if not is_online and not _fooocus_dead:
+            log.info("[VideoStudio] Fooocus offline. Auto-inicio deshabilitado para ahorrar RAM. Fallback activo.")
+            _fooocus_dead = True
 
         if is_online:
             result = trigger_gradio_generation(
                 prompt       = prompt,
                 performance  = "Speed",
                 aspect_ratio = f"{w}*{h}",
+                negative_prompt = negative,
+                overwrite_step = "8",
+                sampler_name = "euler"
             )
             if result.get("success") and result.get("images"):
                 img_src = result["images"][0]
@@ -89,9 +87,50 @@ def _generate_scene_image(
         else:
             log.warning("[VideoStudio] Fooocus offline o falló al iniciar. Haciendo fallback a Pollinations.")
     except Exception as e:
-        log.warning(f"[VideoStudio] [Fooocus] Exception escena {scene_idx}: {e}. Fallback a Pollinations.")
+        log.warning(f"[VideoStudio] [Fooocus] Exception escena {scene_idx}: {e}. Fallback a ComfyUI.")
 
-    # ── Motor 2: Pollinations (Fallback Cloud) ─────────────────────────────────
+    # ── Motor 2: ComfyUI (Fallback L2 Local Secundario) ───────────────────────
+    global _comfy_dead
+    try:
+        from core.ai_process_manager import start_engine, stop_engine
+        from _integrations.comfy_client import ComfyUIClient
+        import time
+        import shutil
+        
+        comfy_client = ComfyUIClient()
+        is_comfy_online = comfy_client.is_online(timeout=2.0)
+        
+        if not is_comfy_online and not _comfy_dead:
+            log.info("[VideoStudio] ComfyUI offline. Auto-inicio deshabilitado para ahorrar RAM. Fallback activo.")
+            _comfy_dead = True
+                        
+        if is_comfy_online:
+            wf = comfy_client.build_text2image_workflow(
+                positive_prompt=prompt + ", masterpiece, best quality, highly detailed, 8k resolution, cinematic lighting",
+                negative_prompt=negative + ", worst quality, low quality, normal quality, blurry",
+                width=w,
+                height=h,
+                seed=scene_seed
+            )
+            prompt_id = comfy_client.queue_prompt(wf)
+            # Damos hasta 10 min por imagen en CPU
+            outputs = comfy_client.wait_for_completion(prompt_id, timeout_seconds=600.0)
+            
+            for out in outputs:
+                if out.get("type") == "output" and out.get("filename", "").endswith(".png"):
+                    img_data = comfy_client.get_image(out["filename"], out.get("subfolder", ""), out["type"])
+                    with open(out_path, "wb") as f:
+                        f.write(img_data)
+                    log.info(f"[VideoStudio] [ComfyUI L2] Escena {scene_idx}: {os.path.basename(out_path)}")
+                    return out_path
+                    
+            log.warning(f"[VideoStudio] [ComfyUI L2] Falló escena {scene_idx}: No se encontró imagen generada.")
+        else:
+            log.warning("[VideoStudio] ComfyUI offline o falló al iniciar. Haciendo fallback a Pollinations.")
+    except Exception as e:
+        log.warning(f"[VideoStudio] [ComfyUI L2] Exception escena {scene_idx}: {e}")
+
+    # ── Motor 3: Pollinations (Fallback Cloud) ─────────────────────────────────
     try:
         from tools.pollinations_generator import generate as poll_gen
         
@@ -102,9 +141,8 @@ def _generate_scene_image(
             output_path     = out_path,
             width           = w,
             height          = h,
-            model           = "flux",  # Forzamos flux para cinemático
             seed            = scene_seed,
-            enhance         = False,
+            enhance         = True,
             negative_prompt = negative,
         )
         if result.get("success") and os.path.isfile(out_path):
@@ -115,7 +153,30 @@ def _generate_scene_image(
     except Exception as e:
         log.warning(f"[VideoStudio] [Pollinations] Exception escena {scene_idx}: {e}")
 
-    # ── Motor 3: Generador de Arte Generativo (Offline — Siempre disponible) ───
+    # ── Motor 4: LoremFlickr (Fallback L4 - Fotos Reales) ──────────────────────
+    try:
+        import urllib.request
+        import shutil
+        import re
+        
+        # Extraer algunas palabras clave del prompt para buscar en Flickr
+        words = re.sub(r'[^a-zA-Z0-9\s]', '', prompt).split()
+        keywords = ",".join([w for w in words if len(w) > 3][:3])
+        if not keywords:
+            keywords = "abstract"
+            
+        lorem_url = f"https://loremflickr.com/{w}/{h}/{keywords}?lock={scene_seed}"
+        req = urllib.request.Request(lorem_url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=15) as response, open(out_path, 'wb') as out_file:
+            shutil.copyfileobj(response, out_file)
+            
+        if os.path.isfile(out_path):
+            log.info(f"[VideoStudio] [LoremFlickr L4] Escena {scene_idx}: Foto real obtenida para '{keywords}'")
+            return out_path
+    except Exception as e:
+        log.warning(f"[VideoStudio] [LoremFlickr L4] Exception escena {scene_idx}: {e}")
+
+    # ── Motor 5: Generador de Arte Generativo (Fallback L5 Offline Abstracto) ───
     try:
         from core.video.procedural_generator import generate_procedural_video
         out_mp4 = out_path.replace("_image.png", "_video.mp4")
@@ -132,7 +193,7 @@ def _generate_scene_image(
             out_mp4=out_mp4
         )
         if result_path and os.path.isfile(result_path):
-            log.info(f"[VideoStudio] [Arte Generativo] Escena {scene_idx}: motor procedural V4 completado.")
+            log.info(f"[VideoStudio] [Arte Generativo L5] Escena {scene_idx}: motor procedural completado.")
             return result_path
     except Exception as e:
         log.warning(f"[VideoStudio] [Arte Generativo] Falló generador matemático: {e}")

@@ -96,7 +96,7 @@ try:
 except Exception as e:
     checks['Knowledge Base'] = f'ERROR: {e}'
 
-print('=== AUDITORIA SISTEMA GRAVITY V15.2 ===')
+print('=== AUDITORIA SISTEMA GRAVITY V16.0 ===')
 for k,v in checks.items():
     icon = 'OK' if v.startswith('OK') else '!!'
     print(f'[{icon}] {k}: {v}')

@@ -1,19 +1,19 @@
 # 🧠 Plan de Evolución Agéntica — Gravity AI Bridge V16.0 Roadmap
 
-Estado: **V15.2 PRO Activo** | Próximo hito: **V16.0 Autonomous Studio**
+Estado: **V16.0 PRO Activo** | Próximo hito: **V16.0 Autonomous Studio**
 
 ---
 
 ## ✅ Hitos Completados
 
-### V15.2 PRO — Motor Cinematic God-Tier (Junio 2026)
+### V16.0 PRO — Motor Cinematic God-Tier (Junio 2026)
 - [x] Motor GLSL PBR V13 con IBL, Lens Flares, Mandelbulb Raymarching
 - [x] Post-procesado Hollywood: Cyber Glitch, ACES TM, Film Grain, Vignette
 - [x] Generador AI ultra-resiliente con cascading Pollinations + FBM Procedural
 - [x] Interfaz Remotion/React Cyberpunk (Karaoke neón, VHS Scanlines)
 - [x] Pipeline multi-parte FFmpeg+Whisper completamente estabilizado
 
-### V15.2 PRO — Omniscient-Tier (Mayo 2026)
+### V16.0 PRO — Omniscient-Tier (Mayo 2026)
 - [x] Arquitectura modular `/core/video/` (5 submódulos desacoplados)
 - [x] VTuber Engine V4.0 FasterLivePortrait ONNX (30-60 FPS)
 - [x] Multi-Agent Orchestrator con voting, debate y routing por rol

@@ -1,10 +1,10 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — SESSION RUNNER V15.2 PRO [Diamond-Tier Edition]                ║
+║  GRAVITY AI — SESSION RUNNER V16.0 PRO [Diamond-Tier Edition]                ║
 ║  Multi-Session Bridge con control de capacidad real                          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Cambios V15.2 PRO:
+Cambios V16.0 PRO:
   - BoundedSemaphore(32) real regulado atómicamente
   - Locks de instancia locales en SessionHandle para evitar liberación doble
   - Fallback defensivo en available_slots() si _value es eliminado de CPython

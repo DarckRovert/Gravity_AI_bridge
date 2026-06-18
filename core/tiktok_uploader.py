@@ -151,20 +151,37 @@ def upload_to_tiktok(job_id: int, video_path: str, title: str,
     creds        = _load_tiktok_creds()
     access_token = creds.get("access_token", "")
 
-    if not access_token:
-        _log_attempt("tiktok", job_id, "dry_run")
-        return {
-            "ok": False, "dry_run": True,
-            "error": "Sin access_token en tiktok_creds.json. Configura la TikTok Developer App.",
-            "setup_url": "https://developers.tiktok.com/doc/content-posting-api-get-started",
-        }
-
     if not os.path.isfile(video_path):
         return {"ok": False, "error": f"Archivo no encontrado: {video_path}"}
 
     tags     = tags or ["IA", "DarckRovert", "Shorts"]
     hashtags = " ".join(f"#{t.replace(' ', '')}" for t in tags[:5])
     caption  = f"{title[:100]}\n\n{hashtags}"
+
+    job_dir = os.path.dirname(video_path)
+    assets_path = os.path.join(job_dir, "social_assets.txt")
+    if os.path.isfile(assets_path):
+        try:
+            with open(assets_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            if "--- TIKTOK CAPTION ---" in content:
+                parts = content.split("--- TIKTOK CAPTION ---")
+                if len(parts) > 1:
+                    tt_cap = parts[1].split("---")[0].strip()
+                    if tt_cap:
+                        caption = tt_cap
+        except Exception as e:
+            log.warning(f"[TikTok] Error leyendo social_assets.txt: {e}")
+
+    if not access_token:
+        log.info(f"[TikTok] Sin credenciales API. Usando Playwright Worker (proceso aislado)...")
+        from core._playwright_worker import run_isolated
+        res = run_isolated("upload_tiktok", video_path=video_path, caption=caption)
+        if res.get("ok"):
+            _log_attempt("tiktok", job_id, "uploaded", video_id="stealth")
+        else:
+            _log_attempt("tiktok", job_id, "failed", error=res.get("error", "Error stealth"))
+        return res
 
     try:
         file_size = os.path.getsize(video_path)
@@ -264,17 +281,19 @@ def upload_to_instagram(job_id: int, video_path: str, title: str,
     ig_user_id   = creds.get("ig_user_id", "")
     cdn_base_url = creds.get("cdn_base_url", "")  # URL pública donde está el video
 
-    if not all([access_token, ig_user_id]):
-        _log_attempt("instagram", job_id, "dry_run")
-        return {
-            "ok": False, "dry_run": True,
-            "error": "Sin credenciales en instagram_creds.json.",
-            "setup_url": "https://developers.facebook.com/docs/instagram-api/guides/content-publishing",
-        }
-
     tags     = tags or ["IA", "DarckRovert"]
     hashtags = " ".join(f"#{t.replace(' ', '')}" for t in tags[:15])
     caption  = f"{title[:200]}\n\n{hashtags}"
+
+    if not all([access_token, ig_user_id]):
+        log.info(f"[Instagram] Sin credenciales API. Usando Playwright Worker (proceso aislado)...")
+        from core._playwright_worker import run_isolated
+        res = run_isolated("upload_instagram", video_path=video_path, caption=caption)
+        if res.get("ok"):
+            _log_attempt("instagram", job_id, "uploaded", video_id="stealth")
+        else:
+            _log_attempt("instagram", job_id, "failed", error=res.get("error", "Error stealth"))
+        return res
 
     if not cdn_base_url:
         return {

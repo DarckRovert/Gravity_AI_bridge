@@ -11,6 +11,7 @@ import time
 import socket
 import hashlib
 import io
+import json
 from typing import Dict, Any, Optional, List
 
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
@@ -24,9 +25,9 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 # ─── Constantes del Módulo ───────────────────────────────────────────────────
 POLLINATIONS_BASE: str = "https://image.pollinations.ai/prompt/{prompt}"
 DEFAULT_MODEL: str = "flux"        # Motores válidos: flux | turbo | dreamshaper
-DEFAULT_TIMEOUT: int = 15         # Segundos máximos de tolerancia por imagen
+DEFAULT_TIMEOUT: int = 30         # Subido a 30s: Flux puede tardar 20-25s en imágenes complejas
 MAX_RETRIES: int = 2
-RETRY_DELAY: float = 2.0          # Segundos entre reintentos
+RETRY_DELAY: float = 3.0          # Segundos entre reintentos
 RATE_LIMIT_COOLDOWN: float = 300.0 # Segundos de cooldown tras recibir un 402 (5 minutos)
 
 # ─── Estado global de bloqueo por rate-limit ─────────────────────────────────
@@ -63,7 +64,7 @@ def generate(
     height: int = 832,
     model: str = DEFAULT_MODEL,
     seed: Optional[int] = None,
-    enhance: bool = True,
+    enhance: bool = False,   # False: no contaminar el prompt con la IA interna de Pollinations
     nologo: bool = True,
     negative_prompt: str = "",
 ) -> Dict[str, Any]:
@@ -92,7 +93,7 @@ def generate(
             time.sleep(remaining)
         reset_block()
 
-    time.sleep(3.0)  # Rate limiting mínimo entre peticiones
+    time.sleep(5.0)  # Rate limiting: Pollinations se satura fácilmente en horas punta
 
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
 
@@ -157,23 +158,20 @@ def generate(
         except urllib.error.HTTPError as e:
             err = f"HTTP {e.code}: {e.reason}"
             if e.code == 402:
-                if model != "" or params.get("enhance") == "true":
+                if any(k in params for k in ["model", "enhance", "nologo", "width", "height", "seed"]):
                     # Primer 402: quitar parámetros de pago y reintentar inmediatamente sin gastar intento
-                    print("[Pollinations] Error 402: eliminando 'model' y 'enhance' para siguiente intento.", file=sys.stderr)
+                    print("[Pollinations] Error 402: eliminando parámetros premium para siguiente intento.", file=sys.stderr)
                     model = ""
-                    params.pop("model", None)
-                    params["enhance"] = "false"
+                    for k in ["model", "enhance", "nologo", "width", "height", "seed"]:
+                        if k in params:
+                            del params[k]
                     query = "&".join(f"{k}={urllib.parse.quote(v)}" for k, v in params.items())
-                    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?{query}"
+                    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?{query}" if query else f"https://image.pollinations.ai/prompt/{encoded_prompt}"
                     continue 
                 else:
                     # Bloqueo real de IP
-                    set_blocked()
-                    remaining = int(_blocked_until - time.time())
-                    print(f"[Pollinations] ⏳ Ban detectado en pleno vuelo. Esperando {remaining}s...", file=sys.stderr)
-                    time.sleep(remaining + 2)
-                    reset_block()
-                    continue # Reintentar sin gastar intento
+                    print("[Pollinations] ⏳ Ban detectado en pleno vuelo. Abortando motor Pollinations para permitir fallback local.", file=sys.stderr)
+                    return {"success": False, "path": None, "error": "Rate-limit 402 permanente.", "status_code": 402}
 
         except urllib.error.URLError as e:
             err = f"URLError: {e.reason}"
@@ -188,7 +186,7 @@ def generate(
         
         attempt += 1
 
-    return {"success": False, "path": None, "error": err}
+    return {"success": False, "path": None, "error": err, "status_code": 0}
 
 
 def health_check() -> Dict[str, Any]:

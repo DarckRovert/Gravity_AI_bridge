@@ -11,7 +11,7 @@ _singleton_lock = threading.RLock()
 
 class ToolEngine:
     """
-    Motor de Herramientas (Agentic Core V15.2)
+    Motor de Herramientas (Agentic Core V16.0)
     Proporciona capacidades autónomas al LLM de Gravity para interactuar con el sistema operativo,
     sistema de archivos y ejecución de código con exclusión mutua estricta y resiliencia en Windows.
     """

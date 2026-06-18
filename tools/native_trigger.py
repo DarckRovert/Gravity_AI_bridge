@@ -23,6 +23,7 @@ async def run_gradio(
     prompt: str,
     performance: str,
     aspect_ratio: str,
+    negative_prompt: str,
     fooocus_url: str = "http://127.0.0.1:7861",
 ) -> None:
     ws_url: str = fooocus_url.replace("http://", "ws://").replace("https://", "wss://") + "/queue/join"
@@ -45,7 +46,9 @@ async def run_gradio(
         "neg_prompt": "Negative Prompt", 
         "perf": "Performance", 
         "aspect": "Aspect Ratios",
-        "num": "Image Number"
+        "num": "Image Number",
+        "overwrite_step": "Forced Overwrite of Sampling Step",
+        "sampler_name": "Sampler"
     }
     
     for c in components:
@@ -84,7 +87,7 @@ async def run_gradio(
         if cid == cid_map.get("prompt"):
             val = prompt
         elif cid == cid_map.get("neg_prompt"):
-            val = "low quality, bad anatomy, text, watermark, deformed"
+            val = negative_prompt if negative_prompt else "low quality, bad anatomy, text, watermark, deformed"
         elif cid == cid_map.get("perf"):
             val = performance
         elif cid == cid_map.get("aspect"):
@@ -98,9 +101,31 @@ async def run_gradio(
                         break
         elif cid == cid_map.get("num"):
             val = 1
+        elif cid == cid_map.get("overwrite_step"):
+            if len(sys.argv) > 5:
+                try: val = int(sys.argv[5])
+                except: val = 30
+            else:
+                val = 30
+        else:
+            val = comp_data.get(cid)
+            
+        if val is None and cid in comp_choices and len(comp_choices[cid]) > 0:
+            first_choice = comp_choices[cid][0]
+            val = first_choice[1] if isinstance(first_choice, list) and len(first_choice) > 1 else first_choice
+
         args.append(val)
 
     expected_len = len(get_task_fn["inputs"])
+    print(f"\n[NativeTrigger] cid_map: {cid_map}")
+    print(f"[NativeTrigger] args length: {len(args)}")
+    # Dump out args briefly
+    for i, a in enumerate(args):
+        if a is not None and isinstance(a, str) and len(a) > 50:
+            print(f"  arg {i}: {a[:50]}...")
+        else:
+            print(f"  arg {i}: {a}")
+            
     if len(args) > expected_len:
         args = args[:expected_len]
     elif len(args) < expected_len:
@@ -173,8 +198,9 @@ def main():
     prompt = sys.argv[1]
     performance = sys.argv[2]
     aspect_ratio = sys.argv[3]
+    negative_prompt = sys.argv[4] if len(sys.argv) > 4 else ""
     
-    asyncio.run(run_gradio(prompt, performance, aspect_ratio))
+    asyncio.run(run_gradio(prompt, performance, aspect_ratio, negative_prompt))
 
 if __name__ == "__main__":
     main()

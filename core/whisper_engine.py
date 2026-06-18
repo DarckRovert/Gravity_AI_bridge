@@ -77,7 +77,7 @@ class WhisperEngine:
         words_data = []
         with _whisper_transcribe_lock:
             try:
-                if self.use_npu:
+                if not hasattr(self.model, 'transcribe'):
                     logger.info("Transcribiendo usando Pipeline ONNX (DirectML)...")
                     result = self.model(audio_path, generate_kwargs={"language": "spanish"})
                     for chunk in result.get("chunks", []):

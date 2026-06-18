@@ -1,24 +1,23 @@
-# Arquitectura del Sistema (Deep-Dive)
+# Arquitectura Profunda (L0, L1, L2)
 
-Gravity está dividido en capas interconectadas:
+## Estructura de Capas
 
-## 1. El Puente de IA (`ask_deepseek.py` / `model_client.py`)
-Responsable de extraer anclajes visuales, escribir guiones dinámicos (`script_builder.py`) e invocar los promts para generadores de imagen de fallback. Utiliza un esquema de Rate-Limit nativo (Exponential Backoff) para evitar bloqueos por APIs externas.
+1. **L0: Cerebro y Coordinación (Gravity Bridge Server)**
+   - Puerto `7860`.
+   - Carga el entorno de Gradio (`bridge_server.py`) y el motor cognitivo (`gravity_brain.py`).
+   - El Motor de Autonomía (`autonomy_engine.py`) opera aquí en un ciclo OODA de 6 horas, tomando decisiones sobre gasto, contenido y seguridad.
 
-## 2. El Pipeline de Video (`pipeline.py`)
-El corazón del ecosistema. Determina dinámicamente si el `job` es tradicional o puramente matemático:
+2. **L1: Motor de Renderizado Estático (Fooocus Studio)**
+   - Puertos `7861` y `7862`.
+   - Controla la API para la generación asíncrona de miniaturas y recursos gráficos.
 
-### Ruta Tradicional (AI-First)
-1. Invoca Fooocus o Pollinations para generar fondos consistentes.
-2. Descarga TTS y Subtítulos (Whisper).
-3. Corta y anima con FFMPEG.
+3. **L2: Motor de Renderizado Dinámico (ComfyUI / LTX)**
+   - Puerto `8188`.
+   - Utilizado para animaciones pesadas y pipelines de contenido de video en lote.
 
-### Ruta Demoscene V17 (Matemática Pura)
-Diseñada exclusivamente para Music Videos (`job_type = "music"`):
-1. Omite completamente la IA 2D.
-2. Analiza las frecuencias del espectro con `audio_analyzer.py` (Graves, Medios, Agudos).
-3. Inyecta la matriz multi-banda directamente en un fragment shader de GLSL (`glsl_renderer_v13.py`).
-4. Compila el video y exporta la versión *Máster Horizontal* y luego la _recorta inteligentemente_ a un Short *Vertical 9:16*.
-
-## 3. Escudo OAuth2 (Persistencia)
-Ubicado en `youtube_uploader.py`. Valida la salud de los `refresh_tokens`. Si detecta `invalid_grant`, frena las peticiones HTTP **sin matar el hilo de renderizado local**, garantizando que el usuario obtenga sus archivos MP4 físicos.
+## Reportero Autónomo
+Un proceso demonio continuo (`news_daemon.py`) que:
+1. Utiliza `gravity_reporter.py`.
+2. Busca temáticas usando herramientas de WebSearch.
+3. Inyecta respuestas LLM en `news.json` en un repositorio independiente (`gravity-news-portal`).
+4. Realiza sincronizaciones automáticas a través de `git commit` y `git push` a Netlify.

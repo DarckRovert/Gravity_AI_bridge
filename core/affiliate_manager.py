@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — AFFILIATE MANAGER V15.2 PRO                                    ║
+║  GRAVITY AI — AFFILIATE MANAGER V16.0 PRO                                    ║
 ║  Inyección automática de enlaces CPA en descripciones de YouTube por nicho   ║
 ║                                                                              ║
 ║  Garantiza seguridad multihilo absoluta, exclusión mutua y atomicidad en     ║

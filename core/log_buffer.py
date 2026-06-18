@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — LOG BUFFER V15.2 PRO [Diamond-Tier Edition]                    ║
+║  GRAVITY AI — LOG BUFFER V16.0 PRO [Diamond-Tier Edition]                    ║
 ║  Módulo extraído de game_server_manager.py (Exclusión Mutua Segura)          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

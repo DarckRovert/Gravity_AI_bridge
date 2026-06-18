@@ -142,9 +142,13 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
         try:
             print(f"[*] Intentando con proveedor principal: {best_p.name} | Modelo: {best_m}")
             response_raw = provider_manager.complete(messages=messages, model=best_m, provider=best_p.name, options=opts)
+            if response_raw and ("\"title\"" not in response_raw.lower() or "\"fulltext\"" not in response_raw.lower()):
+                print(f"[!] Respuesta de proveedor inválida o mensaje de error: {response_raw}")
+                response_raw = ""
         except Exception as e:
             print(f"[!] Fallo con el proveedor principal {best_p.name}: {e}")
             response_raw = ""
+            
             
     # Fallback si falló el principal
     if not response_raw:
@@ -165,6 +169,9 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
             print(f"[+] Proveedor alternativo encontrado: {alt_p.name} | Modelo: {alt_m}")
             try:
                 response_raw = provider_manager.complete(messages=messages, model=alt_m, provider=alt_p.name, options=opts)
+                if response_raw and ("\"title\"" not in response_raw.lower() or "\"fulltext\"" not in response_raw.lower()):
+                    print(f"[!] Respuesta del proveedor alternativo inválida: {response_raw}")
+                    response_raw = ""
             except Exception as e2:
                 print(f"[!] Fallo también con el proveedor alternativo {alt_p.name}: {e2}")
         else:

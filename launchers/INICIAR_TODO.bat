@@ -1,12 +1,12 @@
 @echo off
-title Gravity AI Bridge V15.2 PRO -- Arranque Completo
+title Gravity AI Bridge V16.0 PRO -- Arranque Completo
 setlocal enabledelayedexpansion
 color 0B
 cls
 
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|          GRAVITY AI BRIDGE V15.2 PRO [Ecosistema Total]                 ^|
+echo  ^|          GRAVITY AI BRIDGE V16.0 PRO [Ecosistema Total]                 ^|
 echo  ^|          Motor de Animacion (MAI) L0/L1/L2 habilitado                   ^|
 echo  +--------------------------------------------------------------------------+
 echo.
@@ -26,53 +26,32 @@ if not exist "%ROOT%\bridge_server.py" (
     exit /b 1
 )
 
-REM ── 1. Liberar puertos previos (7860, 7861, 7862, 7863) ────────────────────
-echo  [1/4] Liberando puertos previos (7860, 7861, 7862, 7863)...
-for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7860 " ^| findstr LISTENING') do (
-    taskkill /F /PID %%p >nul 2>&1
-)
-for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7861 " ^| findstr LISTENING') do (
-    taskkill /F /PID %%p >nul 2>&1
-)
-for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7862 " ^| findstr LISTENING') do (
-    taskkill /F /PID %%p >nul 2>&1
-)
-for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7863 " ^| findstr LISTENING') do (
-    taskkill /F /PID %%p >nul 2>&1
-)
+REM ── 1. Liberar puertos secundarios previos (7861, 7862, 7863) ──────────────
+echo  [1/4] Liberando puertos secundarios...
+for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7861 " ^| findstr LISTENING') do ( taskkill /F /PID %%p >nul 2>&1 )
+for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7862 " ^| findstr LISTENING') do ( taskkill /F /PID %%p >nul 2>&1 )
+for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7863 " ^| findstr LISTENING') do ( taskkill /F /PID %%p >nul 2>&1 )
 timeout /t 2 /nobreak >nul
-echo  [OK] Puertos liberados.
 
-REM ── 2. Bridge Server + Dashboard (7860) ───────────────────────────────────────
+REM ── 2. Bridge Server (GravityAI) ──────────────────────────────────────────
 echo.
-echo  [2/4] Iniciando Bridge Server (puerto 7860)...
-start "Gravity :: Bridge Server" cmd /k "cd /d "%ROOT%" && python bridge_server.py"
-
-REM Polling real del puerto 7860
-echo  [INFO] Esperando a que el Bridge levante en :7860 (max 45s)...
-set "_BRIDGE_OK=0"
-for /L %%i in (1,1,45) do (
-    if "!_BRIDGE_OK!"=="0" (
-        netstat -ano | findstr ":7860 " | findstr "LISTENING" >nul 2>&1
-        if not errorlevel 1 (
-            set "_BRIDGE_OK=1"
-            echo  [OK] Bridge Server listo en %%is.
-        ) else (
-            timeout /t 1 /nobreak >nul
-        )
-    )
-)
-if "!_BRIDGE_OK!"=="0" (
-    echo  [!] ADVERTENCIA: Bridge no respondio en 45s. Verifica Python y dependencias.
-    echo  [!] Continuando de todas formas (puede tardar mas en hardware lento).
+echo  [2/4] Verificando nucleo de Gravity...
+set _BRIDGE_OK=0
+netstat -ano | findstr ":7860 " | findstr "LISTENING" >nul 2>&1
+if not errorlevel 1 (
+    set _BRIDGE_OK=1
+    echo  [OK] GravityAI esta corriendo en segundo plano, Puerto 7860 activo.
+) else (
+    echo  [!] Gravity no esta respondiendo en el puerto 7860.
+    echo  [!] Verifica que el servicio de Windows GravityAI este iniciado.
 )
 
-REM ── 3. Motor Fooocus CPU (7861) ────────────────────────────────────────────────
+REM ── 3. Motor Fooocus CPU (7861) ───────────────────────────────────────────
 echo.
 echo  [3/4] Verificando Motor Fooocus CPU...
 if not exist "%PYTHON_EMB%" (
     echo  [SKIP] Python embebido de Fooocus no encontrado: %PYTHON_EMB%
-    echo  [INFO] Generacion de imagenes via Pollinations (fallback automatico activo).
+    echo  [INFO] Generacion de imagenes via Pollinations ^(fallback automatico activo^).
     goto :after_fooocus
 )
 if not exist "%FOOOCUS_SCRIPT%" (
@@ -81,27 +60,9 @@ if not exist "%FOOOCUS_SCRIPT%" (
     goto :after_fooocus
 )
 
-echo  [3/4] Iniciando Motor Fooocus CPU (puerto 7861)...
-start "Gravity :: Motor [Fooocus CPU]" cmd /k "cd /d "%FOOOCUS_DIR%" && "%PYTHON_EMB%" -s Fooocus\entry_with_update.py --always-cpu --all-in-fp32 --disable-async-cuda-allocation --port 7861 --disable-in-browser --disable-analytics"
-echo  [OK] Motor Fooocus iniciando en segundo plano...
+echo  [3/4] Motor Fooocus configurado en modo Manual.
+echo  [INFO] Para ahorrar memoria RAM, inicia Fooocus desde el Dashboard (Mission Control) cuando lo necesites.
 
-REM Polling real de Fooocus (BUG: antes usaba timeout ciego de 20s)
-echo  [INFO] Esperando a que Fooocus este listo en :7861 (max 120s)...
-set "_FOOOCUS_OK=0"
-for /L %%i in (1,1,120) do (
-    if "!_FOOOCUS_OK!"=="0" (
-        netstat -ano | findstr ":7861 " | findstr "LISTENING" >nul 2>&1
-        if not errorlevel 1 (
-            set "_FOOOCUS_OK=1"
-            echo  [OK] Motor Fooocus listo en %%is.
-        ) else (
-            timeout /t 1 /nobreak >nul
-        )
-    )
-)
-if "!_FOOOCUS_OK!"=="0" (
-    echo  [!] ADVERTENCIA: Fooocus no respondio en 120s. Studio UI puede no funcionar.
-)
 
 REM ── 4. Fooocus Studio UI (7862) ────────────────────────────────────────────────
 :after_fooocus
@@ -114,15 +75,21 @@ if not exist "%STUDIO_UI%" (
 start "Gravity :: Fooocus Studio UI" cmd /k "cd /d "%ROOT%" && python tools\fooocus_studio_ui.py"
 echo  [OK] Studio UI iniciado.
 
+echo.
+echo  [5/5] Despertando al Agente Periodistico Autonomo...
+start "Gravity :: Agente Periodistico" cmd /k "cd /d "%ROOT%" && python news_daemon.py"
+echo  [OK] Agente Periodistico iniciado en background.
+
 :launch_done
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|          GRAVITY AI BRIDGE V15.2 PRO — Ecosistema Completo               ^|
+echo  ^|          GRAVITY AI BRIDGE V16.0 PRO — Ecosistema Completo               ^|
 echo  +--------------------------------------------------------------------------+
 echo  ^|   Dashboard Web:    http://localhost:7860  (Chat, V2V, Video Studio)    ^|
 echo  ^|   Fooocus Motor:    http://127.0.0.1:7861  (API generacion imagenes)    ^|
 echo  ^|   Fooocus Studio:   http://127.0.0.1:7862  (UI de generacion)           ^|
 echo  ^|   V2V WebSocket:    ws://127.0.0.1:7863    (Motor en vivo)              ^|
+echo  ^|   Periodista:       Autonomo y en ejecucion silenciosa                  ^|
 echo  ^|   MAI L2 ComfyUI:   http://localhost:8188  (si activo)                  ^|
 echo  ^|                                                                          ^|
 echo  ^|   [!] V2V Engine: inicia desde el panel V2V Live Studio                 ^|
@@ -135,5 +102,5 @@ echo  Abriendo el Dashboard principal en tu navegador...
 timeout /t 2 /nobreak >nul
 start http://127.0.0.1:7860/
 echo.
-echo  [LISTO] Ecosistema Gravity AI V15.2 PRO iniciado. Esta ventana puede cerrarse.
+echo  [LISTO] Ecosistema Gravity AI V16.0 PRO iniciado. Esta ventana puede cerrarse.
 pause

@@ -16,7 +16,7 @@ logger = logging.getLogger("gravity")
 def _cloud_request_stream(url: str, payload: Dict[str, Any], headers: Dict[str, str]) -> Generator[str, None, None]:
     """Streams SSE from any OpenAI-compatible cloud endpoint using requests library."""
     try:
-        with requests.post(url, json=payload, headers=headers, stream=True, timeout=60) as r:
+        with requests.post(url, json=payload, headers=headers, stream=True, timeout=300) as r:
             r.raise_for_status()
             for line in r.iter_lines(decode_unicode=True):
                 if not line:
@@ -41,12 +41,15 @@ def _cloud_request_stream(url: str, payload: Dict[str, Any], headers: Dict[str, 
                     pass
     except Exception as e:
         logger.error(f"[CloudStream] Error streaming from {url}: {e}")
+        err_msg = f"\n\n[**SYSTEM ERROR**: Fallo crítico de conexión con la nube. Error: {str(e)}]\n\n"
+        yield f"data: {json.dumps({'choices': [{'delta': {'content': err_msg}}]})}\n\n"
+        yield "data: [DONE]\n\n"
 
 
 def _cloud_request_complete(url: str, payload: Dict[str, Any], headers: Dict[str, str]) -> str:
     """Non-streaming cloud request using requests library."""
     try:
-        r = requests.post(url, json=payload, headers=headers, timeout=60)
+        r = requests.post(url, json=payload, headers=headers, timeout=300)
         r.raise_for_status()
         d = r.json()
         if "choices" in d and d["choices"]:

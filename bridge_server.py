@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║          GRAVITY AI - BRIDGE SERVER V15.2 PRO [Omniscient-Tier Edition]          ║
+║          GRAVITY AI - BRIDGE SERVER V16.0 PRO [Omniscient-Tier Edition]          ║
 ║            Enrutador Universal OpenAI-Compatible + Multi-Session             ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
@@ -52,8 +52,9 @@ from api.state import check_rate_limit, register_ip_hit, geoip_cache, recent_ips
 from core.rate_limiter   import check_access
 from core.metrics import record_request, record_tokens, record_latency, record_error, get_metrics_data
 from core import service_loader
+from core.db_migrator import run_pending as _run_db_migrations
 
-# ── V15.2 PRO Multi-Session Bridge ────────────────────────────────────────────────
+# ── V16.0 PRO Multi-Session Bridge ────────────────────────────────────────────────
 from core.session_runner import SessionSpawner, start_orphan_reaper
 
 ACTIVE_SESSIONS = {}
@@ -61,7 +62,7 @@ MAX_SESSIONS = 32
 
 def bridge_poll_loop():
     """Loop continuo de polling asíncrono para orquestar sub-sesiones en paralelo."""
-    log.info("[V15.2 PRO] Multi-Session Poll Loop activado. Capacidad máxima: 32.")
+    log.info("[V16.0 PRO] Multi-Session Poll Loop activado. Capacidad máxima: 32.")
     spawner = SessionSpawner(sys.executable, os.path.join(_BASE, "ask_deepseek.py"))
     
     while True:
@@ -142,7 +143,7 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             "/v1/gameserver/log":   self._serve_gameserver_log,
             "/v1/gameserver/players":self._serve_gameserver_players,
             "/registro":            self._serve_registro,
-            # ── V15.2 PRO Endpoints ────────────────────────────────────────
+            # ── V16.0 PRO Endpoints ────────────────────────────────────────
             "/v1/hardware":         self._serve_hardware,
             "/v1/hardware/stats":   self._serve_hardware,
             "/v1/cost":             self._serve_cost,
@@ -150,10 +151,10 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             "/v1/sessions":         self._serve_sessions,
             "/v1/rag/status":       self._serve_rag_status,
             "/v1/rag/search":       self._serve_rag_search,
-            # ── V15.2 PRO New Endpoints ─────────────────────────────────────────────
+            # ── V16.0 PRO New Endpoints ─────────────────────────────────────────────
             "/v1/queue/stream":     self._serve_queue_stream,
             "/v1/fabricaweb/status":self._serve_fabricaweb_status,
-            # ── V15.2 PRO Video Studio ──────────────────────────────────────────────
+            # ── V16.0 PRO Video Studio ──────────────────────────────────────────────
             "/v1/video/status":     self._serve_video_status,
             "/v1/video/download":   self._serve_video_download,
             "/v1/video/voices":     self._serve_video_voices,
@@ -161,27 +162,27 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             "/v1/video/stream":     self._serve_video_stream,
             "/v1/video/thumbnail":  self._serve_video_thumbnail,
             "/v1/video/list":       self._serve_video_list,
-            # ── V15.2 PRO Image Lab (Pollinations) ────────────────────────────────────────
+            # ── V16.0 PRO Image Lab (Pollinations) ────────────────────────────────────────
             "/v1/image/health":     self._serve_pollinations_health,
             "/v1/image/lab/history":self._serve_image_lab_list,
-            # ── V15.2 PRO Diamond Tier ───────────────────────────────────────────────
+            # ── V16.0 PRO Diamond Tier ───────────────────────────────────────────────
             "/v1/sessions/active":       self._serve_active_sessions,
             "/v1/mcp/status":            self._serve_mcp_status,
             "/v1/mcp/resource":          self._serve_mcp_resource,
             "/v1/hitl/pending":          self._serve_hitl_pending,
             "/v1/tools/firecrawl/health":self._serve_firecrawl_health,
-            # ── V15.2 PRO Gravity Brain ──────────────────────────────────────────────
+            # ── V16.0 PRO Gravity Brain ──────────────────────────────────────────────
             "/v1/gravity/context":       self._serve_gravity_context,
-            # ── V15.2 PRO MAI Animations ────────────────────────────────────────────
+            # ── V16.0 PRO MAI Animations ────────────────────────────────────────────
             "/v1/video/animations":      self._serve_video_animations,
             "/v1/processes":             self._serve_processes,
-            # ── V15.2 PRO Monetización ─────────────────────────────────────────────
+            # ── V16.0 PRO Monetización ─────────────────────────────────────────────
             "/v1/scheduler/status":       self._serve_scheduler_status,
             "/v1/scheduler/niches":       self._serve_scheduler_niches,
             "/v1/youtube/status":         self._serve_youtube_status,
             "/v1/youtube/auth/url":       self._serve_youtube_auth_url,
             "/v1/video/upload-status":    self._serve_video_upload_status,
-            # ── V15.2 Monetization Hub ────────────────────────────────────────
+            # ── V16.0 Monetization Hub ────────────────────────────────────────
             "/v1/revenue/summary":        self._serve_revenue_summary,
             "/v1/revenue/timeline":       self._serve_revenue_timeline,
             "/v1/revenue/top":            self._serve_revenue_top_jobs,
@@ -201,6 +202,17 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             "/v1/bounties":               self._serve_bounties,
             "/v1/factory/list":           self._serve_factory_list,
             "/v1/infiltrator/status":     self._serve_infiltrator_status,
+            # ── La Tinka Engine ────────────────────────────────────────────────────
+            "/v1/tinka/status":           self._serve_tinka_status,
+            "/v1/tinka/analyze":          self._serve_tinka_analyze,
+            "/v1/tinka/predict":          self._serve_tinka_predict,
+            "/v1/tinka/update":           self._serve_tinka_update,
+            # ── V16.0 PRO Autonomous Edition ───────────────────────────────────────
+            "/v1/autonomy/status":        self._serve_autonomy_status,
+            "/v1/autonomy/decisions":     self._serve_autonomy_decisions,
+            "/v1/autonomy/rules":         self._serve_autonomy_rules,
+            "/v1/reflection/report":      self._serve_reflection_report,
+            "/v1/reflection/patches":     self._serve_reflection_patches,
         }
 
         # Rutas con query string (?server=&lines=)
@@ -229,10 +241,22 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
 # ── Entry point ───────────────────────────────────────────────────────────────
 def run_server():
     port = config.get("server.port", 7860)
+
+    # ── Migraciones de base de datos ──────────────────────────────────────────
+    try:
+        migration_results = _run_db_migrations()
+        total_applied = sum(v for v in migration_results.values() if v > 0)
+        if total_applied > 0:
+            log.info(f"[DBMigrator] {total_applied} migración(es) aplicadas al arrancar.")
+        else:
+            log.info("[DBMigrator] Todas las bases de datos están al día.")
+    except Exception as _mig_e:
+        log.error(f"[DBMigrator] Error en migraciones de arranque: {_mig_e}")
+
     provider_manager.scan_all()
     threading.Thread(target=background_scanner, daemon=True, name="GravityBGScanner").start()
 
-    # Arrancar módulos background V15.2 PRO de manera tolerante a fallos
+    # Arrancar módulos background V16.0 PRO de manera tolerante a fallos
     service_loader.start_service("core.security_monitor")
     service_loader.start_service("core.image_queue")
     service_loader.start_service("core.video_pipeline")
@@ -249,6 +273,35 @@ def run_server():
             log.error(f"Failed to discover apps in ai_process_manager: {e}")
             
     service_loader.start_service("core.content_scheduler")
+
+    # ── V16.0 PRO Autonomous Edition — Autogovernance Daemons ─────────────────
+    service_loader.start_service("core.self_reflection")
+    service_loader.start_service("core.autonomy_engine")
+    log.info("[V16.0 PRO] Self-Reflection + Autonomy Engine daemons iniciados.")
+
+    # ── Registrar daemons críticos en el watchdog para auto-restart ───────────
+    try:
+        from core.engine_watchdog import register_daemon
+        import threading as _th
+
+        # Mapa: daemon_id → (nombre_exacto_del_thread, restart_fn)
+        # Los nombres son los definidos con name= en threading.Thread() de cada módulo
+        _daemon_map = {
+            "autonomy_engine":   ("GravityAutonomyEngine",    lambda: service_loader.start_service("core.autonomy_engine")),
+            "self_reflection":   ("GravitySelfReflection",   lambda: service_loader.start_service("core.self_reflection")),
+            "content_scheduler": ("GravityContentScheduler", lambda: service_loader.start_service("core.content_scheduler")),
+            "security_monitor":  ("GravitySecurityMonitor",  lambda: service_loader.start_service("core.security_monitor")),
+        }
+        for daemon_id, (thread_name, restart_fn) in _daemon_map.items():
+            # Búsqueda exacta por nombre de thread
+            t = next((th for th in _th.enumerate() if th.name == thread_name), None)
+            if t:
+                register_daemon(daemon_id, t, restart_fn)
+                log.debug(f"[Watchdog] Daemon registrado: {daemon_id} ({thread_name})")
+            else:
+                log.warning(f"[Watchdog] Thread '{thread_name}' no encontrado para daemon '{daemon_id}'")
+    except Exception as _wd_e:
+        log.warning(f"[Watchdog] No se pudo registrar daemons para monitoreo: {_wd_e}")
 
     # ── Gravity OBS Control — Auto-conexion con OBS Studio ────────────────────
     obs_module = service_loader.load_module("core.obs_client")
@@ -267,20 +320,20 @@ def run_server():
             _wal_conn = _sqlite3.connect(_wal_path)
             _wal_conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             _wal_conn.close()
-            log.info("[V15.2 PRO] WAL checkpoint completado en _cache.sqlite.")
+            log.info("[V16.0 PRO] WAL checkpoint completado en _cache.sqlite.")
     except Exception as _e:
-        log.debug(f"[V15.2 PRO] WAL checkpoint salteado: {_e}")
+        log.debug(f"[V16.0 PRO] WAL checkpoint salteado: {_e}")
 
-    log.info("[V15.2 PRO] Security Monitor, Image Queue, Video Pipeline, Engine Watchdog, AI Process Manager activos.")
+    log.info("[V16.0 PRO] Security Monitor, Image Queue, Video Pipeline, Engine Watchdog, AI Process Manager activos.")
 
-    # Iniciar Multi-Session Poll Loop (V15.2 PRO)
+    # Iniciar Multi-Session Poll Loop (V16.0 PRO)
     threading.Thread(target=bridge_poll_loop, daemon=True, name="BridgePollLoop").start()
 
-    # Iniciar daemon de limpieza de sesiones huérfanas (V15.2 PRO)
+    # Iniciar daemon de limpieza de sesiones huérfanas (V16.0 PRO)
     start_orphan_reaper()
-    log.info("[V15.2 PRO] OrphanReaper daemon activado.")
+    log.info("[V16.0 PRO] OrphanReaper daemon activado.")
 
-    log.info(f"Gravity Bridge V15.2 PRO — http://localhost:{port} | Dashboard: / | API: /v1")
+    log.info(f"Gravity Bridge V16.0 PRO — http://localhost:{port} | Dashboard: / | API: /v1")
     server = ThreadingHTTPServer(("0.0.0.0", port), GravityBridgeHandler)
     try:
         server.serve_forever()
