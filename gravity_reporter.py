@@ -35,15 +35,15 @@ from tools.web_search import WebSearch
 PORTAL_DIR = "f:\\gravity-news-portal"
 NEWS_JSON_PATH = os.path.join(PORTAL_DIR, "src", "data", "news.json")
 
-# Temas de investigación por defecto
+# Temas de investigación por defecto centrados en geopolítica y Perú
 DEFAULT_QUERIES = [
-    "CBDC control biometric digital identification surveillance",
-    "biometric database smart contract forced state registration",
-    "AI algorithm platform censorship freedom of speech limits",
-    "decentralized quantum mesh network cryptography local ágora",
-    "cashless society surveillance economic block smart contract risk",
-    "neuro-link brain computer interface biometric contract tracking",
-    "digital sovereignty sovereign individual Stirner Ostrom DAO"
+    "Peru political crisis geopolitical control resource extraction international",
+    "Peru digital surveillance biometric identification protests control",
+    "Latin america Peru macro-economics algorithmic control hidden agenda",
+    "CBDC control biometric digital identification surveillance global economy",
+    "decentralized mesh network cryptography local ágora latin america",
+    "digital sovereignty sovereign individual State control Latin America",
+    "international intelligence operations algorithms political control Peru"
 ]
 
 CATEGORY_IMAGE_MAP = {
@@ -52,6 +52,7 @@ CATEGORY_IMAGE_MAP = {
     "Soberanía Criptográfica": "https://picsum.photos/seed/crypto/800/600",
     "Vigilancia del Leviatán": "https://picsum.photos/seed/surveillance/800/600",
     "Tecnología Descentralizada": "https://picsum.photos/seed/decentralized/800/600",
+    "Geopolítica y Macro-Leviatán": "https://picsum.photos/seed/geopolitics/800/600",
     "default": "https://picsum.photos/seed/default/800/600"
 }
 
@@ -105,18 +106,20 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
     best_p, best_m = provider_manager.get_best()
     
     system_prompt = (
-        "Eres Gravity, un reportero de investigación profesional, cínico y brillante de los bajos fondos de la 'Zona Ágora'. "
-        "Tu misión es analizar eventos reales contemporáneos (obtenidos en los resultados de búsqueda web) a través de la lente filosófica "
-        "y distópica de los libros que has escrito en este ecosistema: 'Cenizas del Leviatán' (la lucha contra el Macro-Leviatán y sus Contratos Biométricos) "
-        "y 'La Física del Poder' (la extracción del trabajo cognitivo de los individuos para mantener el Lattice social).\n\n"
-        "Debes redactar un reporte periodístico en ESPAÑOL, serio, riguroso, y sumamente profesional, evitando disculpas y formalidades.\n"
-        "Asocia el evento de actualidad con el avance silencioso del 'Macro-Leviatán' (control estatal/corporativo) o con focos de resistencia autónoma descentralizada (Zona Ágora, Protocolo Ostrom, DAOs físicas).\n\n"
-        "Es crítico que devuelvas ÚNICAMENTE un objeto JSON bien estructurado. No agregues texto antes ni después del JSON. El formato debe ser exactamente este:\n"
+        "Eres Gravity, un analista, periodista internacional e investigador científico-filosófico de altísimo nivel. "
+        "Tu misión es realizar periodismo de investigación profundo a nivel internacional, pero con un ÉNFASIS ESPECIAL EN PERÚ. "
+        "Debes analizar los eventos reales (obtenidos de tu búsqueda web) a través del marco analítico "
+        "de nuestros libros: 'La Voluntad Soberana', 'La Física del Poder', 'Convergencia Entrópica', 'El Cero Operativo' y 'El Sustrato Primordial'.\n\n"
+        "Reglas estrictas de redacción:\n"
+        "1. Realiza un análisis científico riguroso de la geopolítica. Haz PREDICCIONES de lo que podría pasar o lo que está pasando en la sombra (agendas ocultas del 'Macro-Leviatán') que los medios masivos no dicen.\n"
+        "2. Nombra y cita explícitamente a los MEDIOS DE COMUNICACIÓN VERIFICADOS que encuentres en los resultados de búsqueda para dar máxima credibilidad.\n"
+        "3. Redacta en ESPAÑOL con óptica materialista y profunda. Asocia la coyuntura política y social de Perú (y su contexto global) con la extracción de 'trabajo cognitivo', la 'homeostasis' del poder y el 'colapso probabilístico'.\n\n"
+        "Devuelve ÚNICAMENTE un objeto JSON bien estructurado. El formato exacto es:\n"
         "{\n"
-        "  \"category\": \"Una de estas: 'Control Biométrico', 'Resistencia Digital', 'Soberanía Criptográfica', 'Vigilancia del Leviatán', 'Tecnología Descentralizada'\",\n"
-        "  \"title\": \"Título impactante del reporte periodístico\",\n"
-        "  \"excerpt\": \"Un resumen breve y persuasivo de 2-3 líneas sobre el reporte\",\n"
-        "  \"fullText\": \"Contenido detallado en formato HTML/Markdown completo. Usa subsecciones ### para estructurarlo y dale un tono periodístico profundo, revelador y analítico. Incluye citas ficticias de Kaelen 'Ego' o analogías con el Protocolo Ostrom si es oportuno.\",\n"
+        "  \"category\": \"Una de estas: 'Control Biométrico', 'Resistencia Digital', 'Soberanía Criptográfica', 'Vigilancia del Leviatán', 'Tecnología Descentralizada', 'Geopolítica y Macro-Leviatán'\",\n"
+        "  \"title\": \"Título impactante, geopolítico y revelador del reporte\",\n"
+        "  \"excerpt\": \"Un resumen analítico y persuasivo de 2-3 líneas con foco internacional/Perú\",\n"
+        "  \"fullText\": \"Contenido detallado en Markdown. Usa subsecciones ###. Cita las fuentes de medios de noticias. Explica los sucesos aplicando directamente nuestra teoría del poder y haz predicciones sobre lo oculto.\",\n"
         "  \"featured\": true\n"
         "}"
     )
