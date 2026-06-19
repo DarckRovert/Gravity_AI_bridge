@@ -224,11 +224,13 @@ def write_science_article(search_results: str, query: str) -> Dict[str, Any]:
         "author": "Nexo Ágora — Redacción Científica",
         "date": datetime.now().isoformat(),
         "readingTime": article_data.get("readingTime", 8),
-        "image": CATEGORY_IMAGE_MAP.get(article_data.get("category", ""), CATEGORY_IMAGE_MAP["default"]),
         "featured": bool(article_data.get("featured", False)),
         "tags": [],
         "fullText": article_data.get("fullText", "")
     }
+
+    base_img = CATEGORY_IMAGE_MAP.get(article_data.get("category", ""), CATEGORY_IMAGE_MAP["default"])
+    normalized["image"] = base_img.replace("/800/600", f"-{normalized['id'][:15]}/800/600")
 
     return normalized
 

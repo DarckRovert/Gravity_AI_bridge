@@ -40661,3 +40661,434 @@
 {"timestamp": "2026-06-19T22:43:49.781613Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
 {"timestamp": "2026-06-19T22:43:49.782191Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
 {"timestamp": "2026-06-19T22:43:49.783515Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.905744Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.906955Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.907372Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 35783 (proceso: EpicOnlineServicesUserHelper.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.907705Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59643 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.908045Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.908351Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 52399 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.908639Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.908874Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49864 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.909178Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.909519Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.909837Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.910128Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63200 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.910410Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.910670Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55939 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.910955Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.911272Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.911506Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55938 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.911852Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.912146Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49863 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.912426Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62805 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.912710Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56687 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.913201Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59642 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.913503Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.913834Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.914228Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.914580Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.914891Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.915157Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.915396Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 42050 (proceso: OneDrive.Sync.Service.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.915676Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.916057Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.916320Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.916664Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 53636 (proceso: chrome-headless-shell.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.916929Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.917248Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.917538Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:45:02.918331Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.881425Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.882226Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.882620Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 35783 (proceso: EpicOnlineServicesUserHelper.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.882939Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59643 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.883294Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.883572Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 52399 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.883866Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.884171Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49864 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.884434Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.884711Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.884950Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.885260Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63200 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.885562Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.885824Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55939 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.886290Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.886719Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.886993Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55938 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.887297Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.887561Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49863 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.887804Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62805 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.888080Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56687 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.888413Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59642 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.888708Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.889030Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.889514Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.889922Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.890306Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.890650Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.890923Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 42050 (proceso: OneDrive.Sync.Service.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.891373Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.891903Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.892243Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.892635Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.892914Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 53636 (proceso: chrome-headless-shell.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.893235Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.893546Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:46:05.894162Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.514195Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.515042Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.515684Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 35783 (proceso: EpicOnlineServicesUserHelper.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.519583Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59643 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.520197Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.520578Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 52399 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.520949Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.521303Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49864 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.521660Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.522073Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.522346Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.522681Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63200 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.522978Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.523289Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55939 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.523568Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.523888Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.524170Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55938 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.524476Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.524741Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49863 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.525220Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62805 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.525536Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56687 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.525924Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59642 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.526203Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.526458Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.526828Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.527230Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.527542Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.527844Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.528126Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 42050 (proceso: OneDrive.Sync.Service.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.528399Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.528721Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.529013Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.529353Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.529600Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 53636 (proceso: chrome-headless-shell.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.529979Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.530261Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:47:12.531006Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:14.772649Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 5032)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.886375Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.887820Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.888491Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 35783 (proceso: EpicOnlineServicesUserHelper.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.888882Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59643 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.889344Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.889833Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 52399 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.890512Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.890955Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49864 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.891414Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.892305Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.892823Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.893300Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63200 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.893967Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.894452Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55939 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.895027Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.895549Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.895919Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55938 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.896382Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.896827Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49863 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.897307Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62805 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.897726Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56687 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.898344Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59642 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.898802Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.899252Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.899986Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.900834Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.902340Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.903078Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.903555Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 42050 (proceso: OneDrive.Sync.Service.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.904146Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.904905Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.905482Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.906157Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.906619Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 53636 (proceso: chrome-headless-shell.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.907339Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.907876Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:48:21.911201Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.809136Z", "level": "INFO", "message": "Nuevo proceso detectado: smartscreen.exe (PID 37884)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.865615Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.867470Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 52399 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.868181Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.872379Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55938 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.874434Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49863 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.875267Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.876514Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.877488Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.877916Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55939 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.878656Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.879703Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56687 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.880427Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59642 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.881409Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.882031Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.882555Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.883246Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.884204Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.884965Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.885813Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 53636 (proceso: chrome-headless-shell.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.886344Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.887058Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.887987Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49864 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.888639Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.889324Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63200 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.890218Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.891093Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.891713Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.892632Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.893235Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 35783 (proceso: EpicOnlineServicesUserHelper.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.893887Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59643 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.895003Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.895919Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.896978Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.897428Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62805 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.898049Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 42050 (proceso: OneDrive.Sync.Service.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.898683Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:49:34.900382Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:37.505641Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 6216)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.283307Z", "level": "INFO", "message": "Nuevo proceso detectado: WmiPrvSE.exe (PID 38036)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.351276Z", "level": "INFO", "message": "Nuevo proceso detectado: msedgewebview2.exe (PID 38492)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.414121Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.416221Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 52399 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.417934Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.419425Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55938 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.420601Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49863 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.421449Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.422522Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.423301Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.423887Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55939 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.424532Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.424973Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56687 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.425433Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59642 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.426747Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.427513Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.428070Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.428685Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.429284Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.430030Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.430443Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 53636 (proceso: chrome-headless-shell.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.430877Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.433038Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.434112Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49864 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.434778Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.435214Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63200 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.437524Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.438550Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.439563Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.440241Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.440921Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 35783 (proceso: EpicOnlineServicesUserHelper.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.441371Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59643 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.441979Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.442462Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.442867Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.443347Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62805 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.443887Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 42050 (proceso: OneDrive.Sync.Service.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.444323Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:50:46.445818Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.181530Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.183222Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.183818Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 35783 (proceso: EpicOnlineServicesUserHelper.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.184351Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59643 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.184846Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.185369Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 52399 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.185941Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.186264Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49864 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.186744Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.187245Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.187627Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.188009Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63200 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.188444Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.188783Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55939 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.189340Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.189818Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.190133Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55938 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.190549Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.190978Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49863 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.191386Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62805 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.191790Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56687 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.192211Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59642 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.192551Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.192938Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.193567Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.194228Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.194777Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.195780Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.196237Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 42050 (proceso: OneDrive.Sync.Service.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.196618Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.197299Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.197702Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.198093Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 53636 (proceso: chrome-headless-shell.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.198455Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.198761Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.199081Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:51:58.202084Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:04.970351Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 28320)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.056906Z", "level": "INFO", "message": "Nuevo proceso detectado: WmiApSrv.exe (PID 33936)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.660116Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.660781Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.661099Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 35783 (proceso: EpicOnlineServicesUserHelper.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.661376Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59643 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.661705Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.662022Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 52399 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.662328Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.662574Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49864 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.662916Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.663329Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.663647Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.664057Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63200 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.664368Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.664659Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55939 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.664987Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.665392Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.666315Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55938 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.666871Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.667403Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49863 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.667737Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62805 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.668043Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56687 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.668439Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59642 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.668749Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.669090Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.669476Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.669922Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.670228Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.670533Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.670788Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 42050 (proceso: OneDrive.Sync.Service.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.671075Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.671452Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.671725Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.672267Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 53636 (proceso: chrome-headless-shell.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.672751Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.673691Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.674082Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:53:06.675450Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.799358Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 38572)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.827231Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.828882Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.829495Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 35783 (proceso: EpicOnlineServicesUserHelper.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.829929Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59643 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.830494Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.830946Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 52399 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.831565Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.832060Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49864 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.833059Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.833787Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.834412Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.834996Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63200 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.835749Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.836507Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55939 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.837103Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.837844Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.838421Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55938 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.839294Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.839905Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49863 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.840345Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62805 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.840786Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56687 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.841520Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59642 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.842015Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.842841Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.843660Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.844156Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.844610Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.845307Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.845963Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 42050 (proceso: OneDrive.Sync.Service.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.846575Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.847437Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.848227Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.848891Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.849330Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 53636 (proceso: chrome-headless-shell.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.849921Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.850517Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:54:15.852199Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.219767Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 31688)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.779490Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.780607Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 52399 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.798921Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.799591Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55938 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.800128Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49863 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.800751Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.801803Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.802705Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.803666Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55939 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.804565Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.808918Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56687 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.810197Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59642 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.811650Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.812898Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.813904Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.814948Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.815576Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.816451Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.817161Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.817892Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.818286Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49864 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.818893Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.819526Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63200 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.820183Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.820768Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.821641Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.822415Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.823304Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 35783 (proceso: EpicOnlineServicesUserHelper.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.824644Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59643 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.825957Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.826650Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.827435Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.828022Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62805 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.828807Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 42050 (proceso: OneDrive.Sync.Service.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.830198Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:55:23.835005Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:25.192290Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 9884)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:25.467515Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 13100)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:25.482972Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 13220)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:25.503790Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 13412)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:25.673340Z", "level": "INFO", "message": "Nuevo proceso detectado: remotion.exe (PID 15424)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:25.689050Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 15888)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:25.924152Z", "level": "INFO", "message": "Nuevo proceso detectado: node.exe (PID 17144)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:26.235935Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 21828)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:26.372637Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 23288)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:26.380466Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 23392)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:26.448851Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 24724)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:26.633833Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 26696)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.042073Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 30320)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.396129Z", "level": "INFO", "message": "Nuevo proceso detectado: esbuild.exe (PID 37064)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.403622Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 37136)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.431894Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 38564)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.441278Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.441761Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 52399 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.442079Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.442345Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55938 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.442616Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49863 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.442914Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.443299Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.443573Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.443824Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 55939 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.444131Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.444372Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56044 (proceso: chrome-headless-shell.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.444704Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 56687 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.445018Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59642 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.445386Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.445907Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12995 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.446198Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.446479Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 5357 (proceso: System)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.446775Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12563 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.447180Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.447463Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59129 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.447853Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12110 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.448113Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 49864 (proceso: language_server_windows_x64.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.448439Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 39998 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.448748Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 63200 (proceso: lmlink-connector.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.449089Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12993 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.449431Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 54842 (proceso: SmartConnect.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.449792Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12465 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.450181Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.450549Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 35783 (proceso: EpicOnlineServicesUserHelper.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.450845Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 59643 (proceso: Antigravity IDE.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.451253Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12025 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.451568Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.451872Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12143 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.452147Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 62805 (proceso: Voicemod.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.452477Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 42050 (proceso: OneDrive.Sync.Service.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.452785Z", "level": "WARNING", "message": "Puerto no reconocido en escucha: 12119 (proceso: NortonSvc.exe)", "source": "security_monitor"}
+{"timestamp": "2026-06-19T22:56:27.453799Z", "level": "CRITICAL", "message": "Modificación externa detectada en archivo crítico: bridge_server.py", "source": "security_monitor"}

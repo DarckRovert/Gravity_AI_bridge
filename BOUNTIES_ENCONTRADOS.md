@@ -2981,3 +2981,42 @@ I need a full-function e-commerce website built with Django from the ground up. 
 
 ---
 
+## 🎯 Oportunidad: Modern Health Tracking App UI
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-19 17:53:15
+**Enlace original:** https://www.freelancer.com/projects/figma/Modern-Health-Tracking-App.html
+
+### Descripción Original del Cliente
+```text
+I need a complete UI/UX concept built in Figma for a health-tracking mobile app. The project covers roughly ten screens and should feel fresh, clean, and unmistakably modern.    Core purpose   The app... (Budget: ₹12500 - ₹37500 INR, Jobs: Figma, Graphic Design, iPhone, Mobile App Development, UI / User Interface, User Experience Research, User Interface / IA, UX / User Experience)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I saw your need for a modern Health Tracking App UI in Figma. I don't just design; I engineer high-fidelity experiences using AI-assisted layout generation and automation to reduce iteration time by 50%.
+> 
+> My process leverages advanced UX research tools and automated asset optimization to ensure the final deliverable is fresh, clean, and unmistakably modern—delivering faster than standard workflows. I specialize in scalable iOS UI patterns and interactive prototyping ready for seamless handoff.
+> 
+> I can begin the first screen immediately with a structured design system that ensures consistency across all ten screens. Let's discuss how my technical infrastructure can accelerate your development timeline while maintaining top-tier visual quality.
+> 
+> Ready to start today.
+> 
+> Best,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Bubble Business Management App
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-19 17:56:19
+**Enlace original:** https://www.freelancer.com/projects/web-application/Bubble-Business-Management-App.html
+
+### Descripción Original del Cliente
+```text
+I'm looking for an experienced Bubble developer to create a web-based business management application. The app should include:  - User Management: Role-based access, user profiles, and permissions. - Reporting and Analytics: Custom dashboards, data visualization, and export options... (Budget: ₹12500 - ₹37500 INR, Jobs: Analytics, Business Management, Data Analytics, Data Visualization, Prototyping, UI / User Interface, Web Application, Web Development)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there, I specialize in Bubble apps backed by advanced AI infrastructure. I’ve built management platforms with granular role-based access and complex data visualization. My competitive edge lies in integrating automated workflows and intelligent scraping to populate analytics dashboards without manual entry, significantly slashing development time. I don’t just code; I architect scalable backend logic for high-load environments. This ensures a production-ready app that outperforms standard no-code builds through automation efficiency. I handle the complexity of AI integration and custom data pipelines seamlessly. Let’s connect to discuss how we can accelerate your timeline while maintaining clean, robust structure. Ready to deliver faster with a superior tech stack implementation.
+
+---
+

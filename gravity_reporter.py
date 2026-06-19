@@ -361,7 +361,9 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
     normalized["id"] = slugify(normalized["title"])
     normalized["category"] = category
     normalized["date"] = datetime.now().isoformat()
-    normalized["image"] = CATEGORY_IMAGE_MAP.get(category, CATEGORY_IMAGE_MAP["default"])
+    base_img = CATEGORY_IMAGE_MAP.get(category, CATEGORY_IMAGE_MAP["default"])
+    # Añadimos los primeros 15 caracteres del slug al seed de la imagen para que sea única por artículo
+    normalized["image"] = base_img.replace("/800/600", f"-{normalized['id'][:15]}/800/600")
     
     return normalized
 
