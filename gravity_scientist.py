@@ -14,6 +14,7 @@ import re
 import random
 import time
 import logging
+import urllib.parse
 from datetime import datetime
 from typing import Dict, Any, Tuple
 
@@ -229,8 +230,8 @@ def write_science_article(search_results: str, query: str) -> Dict[str, Any]:
         "fullText": article_data.get("fullText", "")
     }
 
-    base_img = CATEGORY_IMAGE_MAP.get(article_data.get("category", ""), CATEGORY_IMAGE_MAP["default"])
-    normalized["image"] = base_img.replace("/800/600", f"-{normalized['id'][:15]}/800/600")
+    title_encoded = urllib.parse.quote(normalized["title"])
+    normalized["image"] = f"https://image.pollinations.ai/prompt/cyberpunk%20science%20dark%20lab%20{title_encoded}?width=800&height=600&nologo=true"
 
     return normalized
 

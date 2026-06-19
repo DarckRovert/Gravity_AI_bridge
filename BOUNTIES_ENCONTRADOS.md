@@ -3020,3 +3020,63 @@ I'm looking for an experienced Bubble developer to create a web-based business m
 
 ---
 
+## 🎯 Oportunidad: AI Sales &amp; Lead Generation Partner Needed
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-19 17:58:46
+**Enlace original:** https://www.freelancer.com/projects/lead-generation/Sales-Lead-Generation-Partner-Needed.html
+
+### Descripción Original del Cliente
+```text
+Summary # AI Sales &amp; Lead Generation Commission-Based Partner  ## Target Industries:  Hotels and hospitality, Restaurants and cafes, Real estate agencies, Gyms and fitness centers, Beauty salons and spas,... (Budget: $250 - $750 USD, Jobs: Appointment Setting, B2B Marketing, Lead Generation, Leads, Sales, SAS, Telemarketing)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I specialize in architecting AI-driven sales infrastructure. For your hospitality and B2B verticals, I deploy Python-based web scrapers coupled with LLM agents for real-time lead qualification and enrichment. My stack integrates Apollo Data for validation, Twilio for outbound sequencing, and Airtable to manage pipelines automatically without manual input.
+> 
+> Unlike generalists, I focus on the *engine*: automated appointment setting via AI voice analysis ensures higher conversion rates from day one. I can architect a specific scraping pipeline for lead-heavy pages within 48 hours, scaling your outreach volume while maintaining rigorous data hygiene.
+> 
+> Ready to deploy this infrastructure? Let’s discuss the stack and how we hit your targets faster than manual methods.
+
+---
+
+## 🎯 Oportunidad: Full-Stack Freelancer for Precipitation Data Website
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-19 18:01:00
+**Enlace original:** https://www.freelancer.com/projects/react-js/Full-Stack-Freelancer-for-Precipitation.html
+
+### Descripción Original del Cliente
+```text
+**Freelance Full-Stack Developer Required – Heatmap Dashboard MVP**  I am looking for a freelance full-stack developer to build an MVP version of a fast, SEO-friendly heatmap dashboard website.  The goal... (Budget: ₹12500 - ₹37500 INR, Jobs: Full Stack Development, Next.js, React.js, SEO, Tailwind CSS)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I can deliver your SEO-friendly Precipitation Data Heatmap MVP immediately using Next.js, React, and Tailwind CSS. My approach integrates AI-driven scraping automation for efficient data ingestion, ensuring high-performance rendering from launch.
+> 
+> Unlike traditional devs, my infrastructure leverages parallel task execution for Lighthouse optimization, automatic sitemap generation, and meta-tag structuring. This means a crawlable, fast dashboard built significantly ahead of schedule with scalable architecture. I prioritize SEO core web vitals to ensure indexability.
+> 
+> No lengthy discovery needed—review my GitHub or previous SEO projects to validate speed. Ready to deploy your MVP within the specified budget range with premium quality output. Let's discuss the data pipeline specifics next.
+
+---
+
+## 🎯 Oportunidad: LinkedIn Data Extraction and Delivery
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-19 18:04:26
+**Enlace original:** https://www.freelancer.com/projects/data-management/LinkedIn-Data-Extraction-Delivery.html
+
+### Descripción Original del Cliente
+```text
+I need a comprehensive extraction of contact details from 2500 LinkedIn profiles.   Requirements: - Extract the following data:   - Name and title   - Company and role   - Email and phone number - Deliver... (Budget: ₹1500 - ₹12500 INR, Jobs: Data Entry, Data Management, Excel, Web Search)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I can extract data from 2500 LinkedIn profiles using advanced Python automation and bypassing standard anti-bot protections. My stack includes Puppeteer, Selenium, and custom proxy rotation to ensure high success rates for public fields like titles and companies. For emails/phones, I utilize specific heuristic scraping techniques combined with public source cross-referencing to validate accuracy before delivery.
+> 
+> I handle 2500 profiles quickly using parallelized web scraping infrastructure. Data will be cleaned in CSV/Excel, removing duplicates and standardizing formats immediately. I have experience with LinkedIn’s CAPTCHA handling via AI models to keep the flow uninterrupted. Ready to deliver a clean dataset within the timeline specified. Let me know your preferred deadline so we can align accordingly.
+> 
+> Best, [Name]
+
+---
+

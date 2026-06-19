@@ -361,9 +361,9 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
     normalized["id"] = slugify(normalized["title"])
     normalized["category"] = category
     normalized["date"] = datetime.now().isoformat()
-    base_img = CATEGORY_IMAGE_MAP.get(category, CATEGORY_IMAGE_MAP["default"])
-    # Añadimos los primeros 15 caracteres del slug al seed de la imagen para que sea única por artículo
-    normalized["image"] = base_img.replace("/800/600", f"-{normalized['id'][:15]}/800/600")
+    
+    title_encoded = urllib.parse.quote(normalized["title"])
+    normalized["image"] = f"https://image.pollinations.ai/prompt/cyberpunk%20news%20dark%20photorealistic%20{title_encoded}?width=800&height=600&nologo=true"
     
     return normalized
 
