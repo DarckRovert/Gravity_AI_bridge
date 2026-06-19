@@ -15,6 +15,7 @@ import random
 import time
 import logging
 import urllib.parse
+import urllib.request
 from datetime import datetime
 from typing import Dict, Any, Tuple
 
@@ -236,9 +237,9 @@ def write_science_article(search_results: str, query: str) -> Dict[str, Any]:
 
     # Pre-calentamiento para caché en CDN
     try:
-        import urllib.request
         logging.info(f"[*] Pre-calentando imagen IA científica...")
-        urllib.request.urlopen(img_url, timeout=30)
+        req = urllib.request.Request(img_url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
+        urllib.request.urlopen(req, timeout=45)
         logging.info("[✓] Imagen IA científica lista en CDN.")
     except Exception as e:
         logging.warning(f"[!] Aviso al pre-calentar imagen: {e}")

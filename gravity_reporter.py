@@ -368,9 +368,9 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
     
     # Pre-calentamiento: Le damos tiempo a Pollinations para que genere la imagen y la guarde en caché.
     try:
-        import urllib.request
         logging.info(f"[*] Pre-calentando imagen IA en Pollinations (esperando generación)...")
-        urllib.request.urlopen(img_url, timeout=30)
+        req = urllib.request.Request(img_url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
+        urllib.request.urlopen(req, timeout=45)
         logging.info("[✓] Imagen IA lista en CDN.")
     except Exception as e:
         logging.warning(f"[!] Aviso: No se pudo pre-calentar la imagen. Se generará on-demand. {e}")

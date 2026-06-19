@@ -3,160 +3,6 @@ Aquí irán apareciendo los trabajos técnicos extraídos con su propuesta de ve
 
 ---
 
-## 🎯 Oportunidad: Cold Call Appointment Setter
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-12 17:27:07
-**Enlace original:** https://www.freelancer.com/projects/b2b-marketing/Cold-Call-Appointment-Setter-40510273.html
-
-### Descripción Original del Cliente
-```text
-I’m rolling out a focused B2B outreach campaign and need a confident caller to turn cold contacts into booked meetings and closed deals. The sole metric that matters to me is the number of closed deals you add to my portfolio... (Budget: $2 - $8 USD, Jobs: Appointment Setting, B2B Marketing, CRM, Lead Generation, Sales, Salesforce.com, Telemarketing, VoIP)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey,
-> 
-> I read your requirement for maximizing closed deals through B2B outreach. I understand that standard telemarketing approaches are bottlenecked by manual effort and list decay. My expertise lies in building scalable sales infrastructure, not just making calls.
-> 
-> My system bypasses typical cold calling limitations entirely. I deploy an integrated stack utilizing advanced data scraping (for real-time contact validation), AI script optimization, and automation workflows. This allows us to rapidly scale high-conversion campaigns far beyond manual capacity, guaranteeing a superior lead flow that targets decision-makers directly.
-> 
-> I don't just set appointments; I optimize the entire top of the funnel—from list generation to qualified meeting booking—using APIs and CRM integrations (Salesforce proficiency is standard).
-> 
-> Let’s discuss implementing a proprietary outreach engine designed specifically for maximizing your deal closure rate. Ready to start when you are.
-
----
-
-## 🎯 Oportunidad: Homepage Visual Redesign in Figma
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-12 17:27:37
-**Enlace original:** https://www.freelancer.com/projects/figma/Homepage-Visual-Redesign-Figma.html
-
-### Descripción Original del Cliente
-```text
-I need our current homepage to feel fresh, modern, and consistent with today’s UX standards while keeping its information architecture intact. The task is a focused visual style update of an existing interface, delivered as a complete, ready-to-hand-off Figma file... (Budget: $250 - $750 AUD, Jobs: Figma, Graphic Design, HTML, UI / User Interface, User Interface / IA, UX / User Experience, Web Design, Website Design)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey there,
-> 
-> I understand you need a visual refresh for your homepage that adheres to modern UX standards while strictly preserving the current information architecture (IA). I specialize in focused UI overhauls, making this a perfect fit.
-> 
-> My process goes beyond mere aesthetics. While delivering a pixel-perfect Figma handoff is standard, my approach integrates advanced workflows—leveraging AI pattern recognition and streamlined automation scripts—to accelerate design validation and ensure absolute consistency across all states. This dramatically reduces revision cycles and accelerates the path from concept to ready-for-dev assets.
-> 
-> I will provide a clean, structured, component-based Figma file ready for immediate implementation. Let's quickly connect to review your current IA structure so I can scope the visual system and deliver maximum impact efficiently.
-
----
-
-## 🎯 Oportunidad: Descriptions produits Marketplace percutantes
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-12 17:28:37
-**Enlace original:** https://www.freelancer.com/projects/seo/Descriptions-produits-Marketplace.html
-
-### Descripción Original del Cliente
-```text
-J’ai besoin d’un rédacteur web pour rédiger des descriptions de produits destinées à une Marketplace. Chaque fiche devra :  • Présenter clairement les caractéristiques techniques essentielles   • Mettre... (Budget: $250 - $750 USD, Jobs: Article Writing, Content Creation, Content Development, Content Writing, Copywriting, French Translator, Product Descriptions, SEO)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey, I specialize in optimizing product listings for high-volume e-commerce Marketplaces.
-> 
-> I understand you need impactful, SEO-optimized descriptions that clearly present technical specs while driving conversions—not just text writing; this requires a structured approach.
-> 
-> My process goes far beyond standard copywriting. I integrate advanced automation pipelines: first, I use intelligent scraping to ingest raw product data (specs, manuals). Then, AI/NLP models refine and structure this data into compelling, human-readable narratives optimized for specific Marketplace SEO parameters. This ensures technical accuracy at scale without sacrificing tone or flow.
-> 
-> The result is consistency, speed, and superior conversion rates compared to manual writing. I can handle high volumes efficiently, freeing you from content bottlenecks.
-> 
-> Let's discuss the volume of product lines. I'm ready to start streamlining your entire catalog process immediately.
-
----
-
-## 🎯 Oportunidad: Shopify Carbon Fiber Parts Store
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-12 17:59:01
-**Enlace original:** https://www.freelancer.com/projects/web-development/Shopify-Carbon-Fiber-Parts-Store.html
-
-### Descripción Original del Cliente
-```text
-The project is a full build-out of a modern, sleek Shopify storefront dedicated to more than 100 distinct carbon-fiber parts. The catalogue has to feel lightweight and high-tech, mirroring the material we sell, while remaining fast and intuitive on both desktop and mobile... (Budget: $750 - $1500 USD, Jobs: eCommerce, HTML, Payment Gateway Integration, Shopify Development, Shopify Templates, Web Development, Website Design, Website Development)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey,
-> 
-> I specialize in high-performance Shopify e-commerce builds, and this carbon fiber project aligns perfectly with my niche expertise. I understand you need a storefront that doesn't just look sleek—it must *perform* like the material it sells.
-> 
-> My focus will be on optimizing speed (Core Web Vitals compliance) and creating a highly scalable product architecture for 100+ unique SKUs. To accelerate development, I integrate advanced tools: using headless components for maximum speed, AI-driven content structuring, and automated data pipelines to manage your diverse catalog ingestion effortlessly.
-> 
-> I guarantee an intuitive UX/UI that minimizes friction across both mobile and desktop views while ensuring seamless payment gateway integration.
-> 
-> I'm ready to start building a truly lightweight, high-tech platform immediately. Let’s discuss the technical roadmap.
-
----
-
-## 🎯 Oportunidad: Modern Backyard Outbuildings Plans
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-12 17:59:24
-**Enlace original:** https://www.freelancer.com/projects/building-designer/Modern-Backyard-Outbuildings-Plans.html
-
-### Descripción Original del Cliente
-```text
-I’m ready to move forward on two small but important additions to my backyard: a 120 sq ft covered outdoor kitchen and a separate 120 sq ft reading room. I already have every appliance for the kitchen... (Budget: $750 - $1500 USD, Jobs: 3D Modelling, 3D Rendering, Architectural Rendering, Architectural Visualization, Architecture, AutoCAD, Building Architecture, Building Design, Home Design, Interior Design)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey,
-> 
-> I specialize in transforming conceptual spaces into precise, buildable digital blueprints. Your project—the 120 sq ft covered kitchen and reading room additions—is exactly within my core competency of advanced architectural visualization and structural modeling.
-> 
-> My approach goes beyond standard CAD work. I integrate AI-driven design tools and automated workflow pipelines (including data scraping for material research/code compliance) to accelerate the drafting process dramatically. This means you get hyper-detailed, photorealistic renders and complete AutoCAD schematics faster and with fewer revisions than traditional methods.
-> 
-> I handle the full lifecycle: conceptualization, detailed building architecture, interior layout planning, through final visualization (ArchViz). I am structured to optimize efficiency while maintaining impeccable aesthetic quality for both your kitchen setup and reading area.
-> 
-> Let's schedule a quick call to discuss how my automated design stack can deliver superior results for this project immediately.
-
----
-
-## 🎯 Oportunidad: Instantly CRM Email Automation Specialist
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-12 18:00:02
-**Enlace original:** https://www.freelancer.com/projects/email-marketing/Instantly-CRM-Email-Automation.html
-
-### Descripción Original del Cliente
-```text
-I run all outbound through Instantly and now want to push our email activity further by wiring the tool into a lightweight automation-friendly CRM. Your job is to take the campaigns I have sketched out... (Budget: $10 - $15 USD, Jobs: A/B Testing, Automation, CRM, Email Marketing, Lead Generation, Mailchimp, PHP, Software Architecture)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey,
-> 
-> I understand you need to elevate your outbound flow by integrating Instantly with a robust, lightweight CRM layer for advanced automation and structured A/B testing. This requires more than just connecting APIs; it demands sound software architecture.
-> 
-> My expertise lies in building scalable communication infrastructure—specifically around complex API workflows and data pipeline optimization. I don't just build integrations; I architect them.
-> 
-> I can rapidly implement your campaigns while simultaneously improving the underlying system by incorporating advanced elements like intelligent lead scoring (via scraping/AI inputs) and error-proofing the workflow logic. This ensures resilience far beyond a standard Zapier setup.
-> 
-> Let’s scope this architecture out immediately. Send over your campaign sketches, and I'll outline the exact technical blueprint for maximum efficiency gain.
-> 
-> Ready to build better automation today.
-
----
-
-## 🎯 Oportunidad: Wix Site Enhancements &amp; Optimization
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-12 18:00:26
-**Enlace original:** https://www.freelancer.com/projects/wix/Wix-Site-Enhancements-Optimization.html
-
-### Descripción Original del Cliente
-```text
-My current Wix website needs a tidy round of improvements so it looks sharp on every device and inspires more trust with new visitors.   Here’s what I need done:  • Photo formatting – Several images spill over or crop oddly... (Budget: $250 - $750 USD, Jobs: Graphic Design, HTML, JSON, PHP, Web Design, Web Development, Website Design, Website Optimization, Wix)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey there,
-> 
-> I specialize in elevating existing websites from functional to conversion machines, particularly within the Wix ecosystem. Your need for comprehensive photo formatting and overall visual optimization is right in my wheelhouse.
-> 
-> Simply fixing images isn't enough; we need robust performance and cross-device consistency. I don't just use standard design tools—I integrate advanced workflow automation (using APIs/AI frameworks) to audit your current structure, identifying both the immediate layout fixes and potential underlying code bottlenecks that are slowing down perceived speed and trust signals.
-> 
-> My process involves a deep technical audit: ensuring responsive image loading (`srcset`), optimizing CSS stacking contexts for perfect alignment across all breakpoints, and improving overall site architecture for SEO crawlability. This approach guarantees not just a "tidy round of improvements," but a professionally engineered boost in user experience and visitor confidence.
-> 
-> Let's schedule a quick chat to scope out the full technical implementation plan. I can start immediately.
-
----
-
 ## 🎯 Oportunidad: Call Handling for Design Business
 **Plataforma:** Freelancer.com | **Detectado:** 2026-06-12 18:01:01
 **Enlace original:** https://www.freelancer.com/projects/appointment-setting/Call-Handling-for-Design-Business.html
@@ -3097,6 +2943,29 @@ I need a comprehensive extraction of contact details from 2500 LinkedIn profiles
 > I have extensive experience building portfolio/leadership sites that are visually stunning yet performant. By combining design precision with automated development infrastructure, I deliver robust, maintainable code ready for deployment. This approach guarantees a faster turnaround and higher quality than standard manual transcription.
 > 
 > Let’s connect to discuss the scope and timeline. You’ll get a high-end static site without the cost of manual pixel-by-pixel reconstruction.
+> 
+> Best,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Backend Real Estate Assistant Needed
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-19 18:10:04
+**Enlace original:** https://www.freelancer.com/projects/administrative-support/Backend-Real-Estate-Assistant-Needed.html
+
+### Descripción Original del Cliente
+```text
+I'm looking for a dedicated backend real estate assistant to support my operations. Your main tasks will include:  Data Entry: Accurately inputting property data and tenant information. Listing Properties: Helping to prepare and publish property listings... (Budget: $2 - $8 USD, Jobs: Administrative Support, Bookkeeping, Customer Service, Data Entry, Data Management, Excel, Property Management, Real Estate, Time Management, Virtual Assistant)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I need to clarify why standard data entry is outdated for your backend needs. I specialize in building automated infrastructures using Python, web scraping, and API integrations (Make/Zapier) to manage property listings and tenant data.
+> 
+> Unlike manual VAs, I create custom scripts that extract, clean, and upload data instantly, reducing your turnaround time by up to 80%. My approach ensures database integrity via backend validation, not just copy-pasting. If you want high-speed, error-free data management that scales, I am the technical solution.
+> 
+> Ready to demonstrate a sample automation for your stack? Let’s discuss how we can optimize your workflow immediately.
 > 
 > Best,
 > [Your Name]
