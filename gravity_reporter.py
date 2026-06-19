@@ -363,8 +363,18 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
     normalized["date"] = datetime.now().isoformat()
     
     title_encoded = urllib.parse.quote(normalized["title"])
-    normalized["image"] = f"https://image.pollinations.ai/prompt/cyberpunk%20news%20dark%20photorealistic%20{title_encoded}?width=800&height=600&nologo=true"
+    img_url = f"https://image.pollinations.ai/prompt/cyberpunk%20news%20dark%20photorealistic%20{title_encoded}?width=800&height=600&nologo=true"
+    normalized["image"] = img_url
     
+    # Pre-calentamiento: Le damos tiempo a Pollinations para que genere la imagen y la guarde en caché.
+    try:
+        import urllib.request
+        logging.info(f"[*] Pre-calentando imagen IA en Pollinations (esperando generación)...")
+        urllib.request.urlopen(img_url, timeout=30)
+        logging.info("[✓] Imagen IA lista en CDN.")
+    except Exception as e:
+        logging.warning(f"[!] Aviso: No se pudo pre-calentar la imagen. Se generará on-demand. {e}")
+
     return normalized
 
 def update_news_json(new_article: Dict[str, Any]):

@@ -3080,3 +3080,26 @@ I need a comprehensive extraction of contact details from 2500 LinkedIn profiles
 
 ---
 
+## 🎯 Oportunidad: Convert Website Mockups into Static Website
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-19 18:07:52
+**Enlace original:** https://www.freelancer.com/projects/html/Convert-Website-Mockups-into-Static.html
+
+### Descripción Original del Cliente
+```text
+# Freelance Requirement: Convert Website Mockups into HTML, CSS &amp; Assets  ## Project Overview  I have final website mockup images for a personal portfolio/leadership website. I need a frontend designer/developer to convert these mockups into clean, responsive **HTML + CSS + assets**... (Budget: ₹1500 - ₹12500 INR, Jobs: CSS, CSS3, Frontend Development, Graphic Design, HTML, HTML5, JavaScript, Web Design, Web Development)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I’ll convert your mockups into a production-ready, responsive static site using clean HTML5/CSS3. My workflow leverages AI-driven design recognition and automation scripts to streamline the conversion—ensuring pixel-perfect accuracy without manual bottlenecks. Unlike standard transcription, my process integrates asset optimization, responsive grid generation, and semantic markup validation at scale.
+> 
+> I have extensive experience building portfolio/leadership sites that are visually stunning yet performant. By combining design precision with automated development infrastructure, I deliver robust, maintainable code ready for deployment. This approach guarantees a faster turnaround and higher quality than standard manual transcription.
+> 
+> Let’s connect to discuss the scope and timeline. You’ll get a high-end static site without the cost of manual pixel-by-pixel reconstruction.
+> 
+> Best,
+> [Your Name]
+
+---
+

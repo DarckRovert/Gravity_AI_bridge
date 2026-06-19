@@ -231,7 +231,17 @@ def write_science_article(search_results: str, query: str) -> Dict[str, Any]:
     }
 
     title_encoded = urllib.parse.quote(normalized["title"])
-    normalized["image"] = f"https://image.pollinations.ai/prompt/cyberpunk%20science%20dark%20lab%20{title_encoded}?width=800&height=600&nologo=true"
+    img_url = f"https://image.pollinations.ai/prompt/cyberpunk%20science%20dark%20lab%20{title_encoded}?width=800&height=600&nologo=true"
+    normalized["image"] = img_url
+
+    # Pre-calentamiento para caché en CDN
+    try:
+        import urllib.request
+        logging.info(f"[*] Pre-calentando imagen IA científica...")
+        urllib.request.urlopen(img_url, timeout=30)
+        logging.info("[✓] Imagen IA científica lista en CDN.")
+    except Exception as e:
+        logging.warning(f"[!] Aviso al pre-calentar imagen: {e}")
 
     return normalized
 
