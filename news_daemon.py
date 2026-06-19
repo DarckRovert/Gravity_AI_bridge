@@ -1,3 +1,10 @@
+"""
+GRAVITY AI — DAEMON ORQUESTADOR V2.0
+Orquesta los tres agentes de manera autónoma según rotación programada:
+  - gravity_reporter.py   → Noticias de coyuntura (cada ciclo)
+  - gravity_essayist.py   → Ensayos filosóficos (cada 2 ciclos)
+  - gravity_scientist.py  → Artículos científicos (cada 3 ciclos)
+"""
 import time
 import subprocess
 import random
@@ -5,36 +12,75 @@ import os
 from datetime import datetime
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-REPORTER_SCRIPT = os.path.join(BASE_DIR, "gravity_reporter.py")
 
-print("======================================================================")
-print("  Gravity AI - Reportero Autonomo (Modo Daemon Continuo)              ")
-print("======================================================================")
-print("[*] Este agente estara despierto en segundo plano buscando, analizando")
-print("[*] y publicando noticias 100% reales en tu portal de manera autonoma.")
+REPORTER_SCRIPT  = os.path.join(BASE_DIR, "gravity_reporter.py")
+ESSAYIST_SCRIPT  = os.path.join(BASE_DIR, "gravity_essayist.py")
+SCIENTIST_SCRIPT = os.path.join(BASE_DIR, "gravity_scientist.py")
 
-# El primer ciclo arranca mas rápido para que el usuario pueda ver actividad (ej. en 10 minutos)
-# Luego, los siguientes ciclos seran cada 4 a 8 horas.
+def banner():
+    print("=" * 70)
+    print("  GRAVITY AI — ORQUESTADOR AUTÓNOMO V2.0 (3 Agentes Activos)")
+    print("  Reporter · Essayist · Scientist")
+    print("=" * 70)
+    print("[*] El sistema editorial autónomo está en línea.")
+    print("[*] Noticias: cada ciclo | Ensayos: cada 2 ciclos | Ciencia: cada 3 ciclos")
+
+def run_agent(script_path: str, agent_name: str):
+    """Lanza un agente como subproceso y registra su resultado."""
+    print(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [{agent_name}] Iniciando...")
+    try:
+        result = subprocess.run(
+            ["python", script_path],
+            cwd=BASE_DIR,
+            timeout=600  # 10 min máximo por agente
+        )
+        if result.returncode == 0:
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] [{agent_name}] ✓ Completado exitosamente.")
+        else:
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] [{agent_name}] ⚠ Finalizó con código {result.returncode}.")
+    except subprocess.TimeoutExpired:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] [{agent_name}] ✗ Timeout. El agente tardó más de 10 minutos.")
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] [{agent_name}] ✗ Error: {e}")
+
+
+banner()
+
+# Primer ciclo arranca en 10 minutos para dar tiempo al usuario a ver actividad
 is_first_run = True
+cycle_count = 0
 
 while True:
     if is_first_run:
         wait_mins = 10
-        print(f"\n[*] El agente esta analizando el panorama mundial. Iniciara en {wait_mins} minutos...")
+        print(f"\n[*] Primera ejecución en {wait_mins} minutos...")
         time.sleep(wait_mins * 60)
         is_first_run = False
-    
-    print(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Iniciando ciclo de investigacion periodistica...")
-    
-    try:
-        subprocess.run(["python", REPORTER_SCRIPT], cwd=BASE_DIR)
-    except Exception as e:
-        print(f"Error ejecutando el reportero: {e}")
-        
-    # Calcular proxima ejecucion (ej. entre 4 y 8 horas para mantener el portal actualizado pero no spamear)
+
+    cycle_count += 1
+    print(f"\n{'='*50}")
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] CICLO #{cycle_count}")
+    print(f"{'='*50}")
+
+    # Reporter: siempre
+    run_agent(REPORTER_SCRIPT, "REPORTER")
+
+    # Essayist: cada 2 ciclos
+    if cycle_count % 2 == 0:
+        run_agent(ESSAYIST_SCRIPT, "ESSAYIST")
+    else:
+        print(f"[*] [ESSAYIST] Saltado en este ciclo (próxima vez en ciclo #{cycle_count + 1})")
+
+    # Scientist: cada 3 ciclos
+    if cycle_count % 3 == 0:
+        run_agent(SCIENTIST_SCRIPT, "SCIENTIST")
+    else:
+        print(f"[*] [SCIENTIST] Saltado en este ciclo (próxima vez en ciclo #{(cycle_count // 3 + 1) * 3})")
+
+    # Calcular próxima ejecución (entre 4 y 8 horas)
     wait_hours = random.uniform(4, 8)
     next_run = datetime.fromtimestamp(time.time() + (wait_hours * 3600))
-    print(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Ciclo completado. El agente periodistico tomara un descanso.")
-    print(f"[*] Proxima publicacion programada para: {next_run.strftime('%Y-%m-%d %H:%M:%S')} (en aprox {wait_hours:.1f} horas)")
-    
+    print(f"\n[*] Ciclo #{cycle_count} completado.")
+    print(f"[*] Próxima ejecución: {next_run.strftime('%Y-%m-%d %H:%M:%S')} (en {wait_hours:.1f}h)")
+
     time.sleep(wait_hours * 3600)

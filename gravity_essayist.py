@@ -298,7 +298,22 @@ def main():
     if args.topic_index is not None and 0 <= args.topic_index < len(ESSAY_TOPICS):
         topic = ESSAY_TOPICS[args.topic_index]
     else:
-        topic = random.choice(ESSAY_TOPICS)
+        existing_titles = set()
+        if os.path.exists(ESSAYS_JSON_PATH):
+            try:
+                with open(ESSAYS_JSON_PATH, "r", encoding="utf-8") as f:
+                    for e in json.load(f):
+                        existing_titles.add(e.get("title", ""))
+            except Exception:
+                pass
+        
+        # Filtramos temas que ya estén en el JSON por su título base
+        available_topics = [t for t in ESSAY_TOPICS if t["topic"] not in existing_titles]
+        if not available_topics:
+            logging.info("[*] Todos los temas base agotados. Reiniciando ciclo de temas.")
+            available_topics = ESSAY_TOPICS
+            
+        topic = random.choice(available_topics)
 
     logging.info(f"[*] Tema seleccionado: {topic['topic']}")
 
