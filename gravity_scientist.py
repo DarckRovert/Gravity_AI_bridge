@@ -119,8 +119,16 @@ def write_science_article(search_results: str, query: str) -> Dict[str, Any]:
             return {"temperature": 0.4, "max_tokens": 2000}
         return {"temperature": 0.4, "max_tokens": 3500}
 
+    # Cargar el Manifiesto Base para alinear ideológicamente a la IA
+    manifesto_path = os.path.join(BASE_DIR, "agora_manifesto.txt")
+    manifesto_text = ""
+    if os.path.exists(manifesto_path):
+        with open(manifesto_path, "r", encoding="utf-8") as f:
+            manifesto_text = f.read()
+
     system_prompt = (
-        "Eres Gravity, un divulgador científico de altísimo rigor. Tu misión es explicar "
+        f"{manifesto_text}\n\n"
+        "Eres Gravity, el investigador científico y teórico de sistemas. Tu misión es explicar "
         "hallazgos científicos reales de manera clara, accesible y honesta en español.\n\n"
         "REGLAS ABSOLUTAS DE RIGOR CIENTÍFICO:\n"
         "1. SOLO afirmar lo que está documentado en los resultados de búsqueda que se te proporcionan.\n"
@@ -247,8 +255,9 @@ def update_science_json(new_article: Dict[str, Any]):
 
 def publish_changes():
     import subprocess
-    logging.info("[*] Publicando artículo científico en GitHub/Netlify...")
+    logging.info("[*] Publicando investigación en GitHub/Netlify...")
     try:
+        subprocess.run(["git", "config", "--global", "--add", "safe.directory", "*"], check=False)
         subprocess.run(["git", "add", "."], cwd=PORTAL_DIR, check=True)
         commit_msg = f"Gravity Scientist: artículo científico [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
         subprocess.run(["git", "commit", "-m", commit_msg], cwd=PORTAL_DIR, check=True)

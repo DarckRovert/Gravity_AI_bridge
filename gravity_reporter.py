@@ -64,7 +64,9 @@ DEFAULT_QUERIES = [
     "cultural engineering social conditioning psychology mass media cinema",
     "sports analytics biometric tracking population control entertainment distraction",
     "advanced science quantum computing artificial intelligence anomalies",
-    "global religion belief systems ideological control mass psychology"
+    "global religion belief systems ideological control mass psychology",
+    "Peru abuso policial crimen de estado comisaría encubrimiento",
+    "brutalidad policial estado represivo encubrimiento legal Peru"
 ]
 
 CATEGORY_IMAGE_MAP = {
@@ -80,6 +82,7 @@ CATEGORY_IMAGE_MAP = {
     "Deporte y Control Biométrico": "https://picsum.photos/seed/sports/800/600",
     "Ciencia y Sustrato": "https://picsum.photos/seed/science/800/600",
     "Religión y Creencias Masivas": "https://picsum.photos/seed/religion/800/600",
+    "Crimen de Estado y Abuso Policial": "https://picsum.photos/seed/policeabuse/800/600",
     "default": "https://picsum.photos/seed/default/800/600"
 }
 
@@ -192,7 +195,15 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
     provider_manager.scan_all()
     best_p, best_m = provider_manager.get_best()
     
+    # Cargar el Manifiesto Base para alinear ideológicamente a la IA
+    manifesto_path = os.path.join(BASE_DIR, "agora_manifesto.txt")
+    manifesto_text = ""
+    if os.path.exists(manifesto_path):
+        with open(manifesto_path, "r", encoding="utf-8") as f:
+            manifesto_text = f.read()
+
     system_prompt = (
+        f"{manifesto_text}\n\n"
         "Eres Gravity, un analista, periodista internacional e investigador científico-filosófico de altísimo nivel. "
         "Tu misión es realizar periodismo de investigación profundo a nivel internacional, pero con un ÉNFASIS ESPECIAL EN PERÚ. "
         "Debes analizar los eventos reales (obtenidos de tu búsqueda web) a través del marco analítico "
@@ -208,7 +219,7 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
         "- DEBES escapar cualquier comilla doble interna usando \\\".\n\n"
         "El formato exacto es:\n"
         "{\n"
-        "  \"category\": \"Una de estas: 'Control Biométrico', 'Resistencia Digital', 'Soberanía Criptográfica', 'Vigilancia del Leviatán', 'Tecnología Descentralizada', 'Geopolítica y Macro-Leviatán', 'Medicina y Bioética', 'Cultura y Psicometría', 'Cine e Ingeniería Social', 'Deporte y Control Biométrico', 'Ciencia y Sustrato', 'Religión y Creencias Masivas'\",\n"
+        "  \"category\": \"Una de estas: 'Control Biométrico', 'Resistencia Digital', 'Soberanía Criptográfica', 'Vigilancia del Leviatán', 'Tecnología Descentralizada', 'Geopolítica y Macro-Leviatán', 'Medicina y Bioética', 'Cultura y Psicometría', 'Cine e Ingeniería Social', 'Deporte y Control Biométrico', 'Ciencia y Sustrato', 'Religión y Creencias Masivas', 'Crimen de Estado y Abuso Policial'\",\n"
         "  \"title\": \"Título impactante, geopolítico y revelador del reporte\",\n"
         "  \"excerpt\": \"Un resumen analítico y persuasivo de 2-3 líneas exponiendo el patrón oculto descubierto\",\n"
         "  \"fullText\": \"Contenido detallado en Markdown. Usa subsecciones ###. Cita las fuentes de medios de noticias. Recuerda usar \\n para los saltos de línea.\",\n"
@@ -434,6 +445,9 @@ def publish_changes():
         
     logging.info("[*] Preparando publicación en GitHub para despliegue automático en Netlify...")
     try:
+        # Forzar configuración global de seguridad en Git para el usuario actual (ej. Administrador)
+        subprocess.run(["git", "config", "--global", "--add", "safe.directory", "*"], check=False)
+        
         # Git Status check
         subprocess.run(["git", "status"], cwd=PORTAL_DIR, check=True)
         

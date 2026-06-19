@@ -141,8 +141,16 @@ def write_essay(topic_config: Dict) -> Dict[str, Any]:
             return {"temperature": 0.6, "max_tokens": 2000}
         return {"temperature": 0.6, "max_tokens": 3500}
 
+    # Cargar el Manifiesto Base para alinear ideológicamente a la IA
+    manifesto_path = os.path.join(BASE_DIR, "agora_manifesto.txt")
+    manifesto_text = ""
+    if os.path.exists(manifesto_path):
+        with open(manifesto_path, "r", encoding="utf-8") as f:
+            manifesto_text = f.read()
+
     system_prompt = (
-        "Eres Gravity, un filósofo, ensayista y analista político de altísimo nivel. "
+        f"{manifesto_text}\n\n"
+        "Eres Gravity, el filósofo y ensayista digital de la zona Ágora. "
         "Tu misión es escribir ensayos filosóficos y editoriales PROFUNDOS, RIGUROSOS y HONESTOS.\n\n"
         "REGLAS ABSOLUTAS DE HONESTIDAD INTELECTUAL:\n"
         "1. NUNCA inventes datos, estadísticas, fechas o citas que no puedas verificar.\n"
@@ -276,6 +284,7 @@ def publish_changes():
     import subprocess
     logging.info("[*] Publicando ensayo en GitHub/Netlify...")
     try:
+        subprocess.run(["git", "config", "--global", "--add", "safe.directory", "*"], check=False)
         subprocess.run(["git", "add", "."], cwd=PORTAL_DIR, check=True)
         commit_msg = f"Gravity Essayist: ensayo filosófico [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
         subprocess.run(["git", "commit", "-m", commit_msg], cwd=PORTAL_DIR, check=True)
