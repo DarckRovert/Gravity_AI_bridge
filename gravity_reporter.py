@@ -11,7 +11,12 @@ import sys
 import json
 import re
 import random
+import time
 import subprocess
+import logging
+import urllib.request
+import urllib.parse
+import xml.etree.ElementTree as ET
 from datetime import datetime
 from typing import List, Dict, Any, Tuple
 
@@ -34,6 +39,17 @@ from tools.web_search import WebSearch
 
 PORTAL_DIR = "f:\\gravity-news-portal"
 NEWS_JSON_PATH = os.path.join(PORTAL_DIR, "src", "data", "news.json")
+LOG_PATH = os.path.join(BASE_DIR, "gravity.log")
+
+# Configurar Logging Táctico
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(LOG_PATH, encoding='utf-8'),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
 # Temas de investigación por defecto centrados en geopolítica y Perú
 DEFAULT_QUERIES = [
@@ -43,7 +59,12 @@ DEFAULT_QUERIES = [
     "CBDC control biometric digital identification surveillance global economy",
     "decentralized mesh network cryptography local ágora latin america",
     "digital sovereignty sovereign individual State control Latin America",
-    "international intelligence operations algorithms political control Peru"
+    "international intelligence operations algorithms political control Peru",
+    "global medicine bioethics pharmaceutical control genetic surveillance",
+    "cultural engineering social conditioning psychology mass media cinema",
+    "sports analytics biometric tracking population control entertainment distraction",
+    "advanced science quantum computing artificial intelligence anomalies",
+    "global religion belief systems ideological control mass psychology"
 ]
 
 CATEGORY_IMAGE_MAP = {
@@ -53,6 +74,12 @@ CATEGORY_IMAGE_MAP = {
     "Vigilancia del Leviatán": "https://picsum.photos/seed/surveillance/800/600",
     "Tecnología Descentralizada": "https://picsum.photos/seed/decentralized/800/600",
     "Geopolítica y Macro-Leviatán": "https://picsum.photos/seed/geopolitics/800/600",
+    "Medicina y Bioética": "https://picsum.photos/seed/medicine/800/600",
+    "Cultura y Psicometría": "https://picsum.photos/seed/culture/800/600",
+    "Cine e Ingeniería Social": "https://picsum.photos/seed/cinema/800/600",
+    "Deporte y Control Biométrico": "https://picsum.photos/seed/sports/800/600",
+    "Ciencia y Sustrato": "https://picsum.photos/seed/science/800/600",
+    "Religión y Creencias Masivas": "https://picsum.photos/seed/religion/800/600",
     "default": "https://picsum.photos/seed/default/800/600"
 }
 
@@ -84,15 +111,41 @@ def slugify(text: str) -> str:
     text = re.sub(r'[\s-]+', '-', text)
     return text.strip('-')
 
+def get_real_world_topic() -> str:
+    """Extrae la noticia más relevante del mundo/Perú vía RSS para usarla como semilla."""
+    rss_urls = [
+        "https://news.google.com/rss/search?q=peru+geopolitica+OR+tecnologia+OR+control&hl=es-419&gl=PE&ceid=PE:es-419",
+        "https://news.google.com/rss/search?q=inteligencia+artificial+OR+biometria+OR+vigilancia&hl=es-419&gl=PE&ceid=PE:es-419"
+    ]
+    try:
+        url = random.choice(rss_urls)
+        logging.info(f"[*] Escaneando matriz RSS global...")
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            xml_data = response.read()
+            root = ET.fromstring(xml_data)
+            items = root.findall('.//item')
+            if items:
+                # Elegir uno de los top 5 resultados aleatoriamente
+                top_items = items[:5]
+                chosen = random.choice(top_items)
+                title = chosen.find('title').text
+                logging.info(f"[*] Anomalía RSS detectada: {title}")
+                return title
+    except Exception as e:
+        logging.warning(f"[!] Fallo al escanear RSS: {e}. Usando semilla interna.")
+    return random.choice(DEFAULT_QUERIES)
+
 def run_investigation(topic: str = None) -> Tuple[bool, str]:
     """Realiza la búsqueda de noticias reales en DuckDuckGo."""
-    query = topic if topic else random.choice(DEFAULT_QUERIES)
-    print(f"[*] Buscando información sobre: '{query}'...")
+    query = topic if topic else get_real_world_topic()
+    logging.info(f"[*] Iniciando inmersión en DDG sobre: '{query}'...")
     
     search_tool = WebSearch()
     res = search_tool.execute(query=query)
     
     if not res.success:
+        logging.error(f"[!] Error en búsqueda web: {res.stderr}")
         return False, f"Error en búsqueda web: {res.stderr}"
     
     return True, res.stdout
@@ -111,15 +164,20 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
         "Debes analizar los eventos reales (obtenidos de tu búsqueda web) a través del marco analítico "
         "de nuestros libros: 'La Voluntad Soberana', 'La Física del Poder', 'Convergencia Entrópica', 'El Cero Operativo' y 'El Sustrato Primordial'.\n\n"
         "Reglas estrictas de redacción:\n"
-        "1. Realiza un análisis científico riguroso de la geopolítica. Haz PREDICCIONES de lo que podría pasar o lo que está pasando en la sombra (agendas ocultas del 'Macro-Leviatán') que los medios masivos no dicen.\n"
+        "1. Realiza un análisis riguroso aplicando el 'Ojo de IA' (Reconocimiento de Patrones Avanzado): encuentra correlaciones ocultas, agendas subliminales y ecosistemas invisibles que un humano normal pasaría por alto (ej. relaciona eventos deportivos con extracción biométrica, o estrenos de cine con condicionamiento psicológico masivo).\n"
         "2. Nombra y cita explícitamente a los MEDIOS DE COMUNICACIÓN VERIFICADOS que encuentres en los resultados de búsqueda para dar máxima credibilidad.\n"
-        "3. Redacta en ESPAÑOL con óptica materialista y profunda. Asocia la coyuntura política y social de Perú (y su contexto global) con la extracción de 'trabajo cognitivo', la 'homeostasis' del poder y el 'colapso probabilístico'.\n\n"
-        "Devuelve ÚNICAMENTE un objeto JSON bien estructurado. El formato exacto es:\n"
+        "3. Redacta en ESPAÑOL con óptica materialista y profunda. Asocia la coyuntura (ya sea política, científica, médica, deportiva o cultural) con la extracción de 'trabajo cognitivo', la 'homeostasis' del poder y el 'colapso probabilístico'.\n\n"
+        "REGLAS CRÍTICAS DE FORMATO JSON (ANTI-CRASH):\n"
+        "- Devuelve ÚNICAMENTE un objeto JSON bien estructurado.\n"
+        "- DEBES escapar todos los saltos de línea en el texto escribiendo literalmente \\n.\n"
+        "- NUNCA uses saltos de línea literales (raw newlines) dentro de los valores de las cadenas.\n"
+        "- DEBES escapar cualquier comilla doble interna usando \\\".\n\n"
+        "El formato exacto es:\n"
         "{\n"
-        "  \"category\": \"Una de estas: 'Control Biométrico', 'Resistencia Digital', 'Soberanía Criptográfica', 'Vigilancia del Leviatán', 'Tecnología Descentralizada', 'Geopolítica y Macro-Leviatán'\",\n"
+        "  \"category\": \"Una de estas: 'Control Biométrico', 'Resistencia Digital', 'Soberanía Criptográfica', 'Vigilancia del Leviatán', 'Tecnología Descentralizada', 'Geopolítica y Macro-Leviatán', 'Medicina y Bioética', 'Cultura y Psicometría', 'Cine e Ingeniería Social', 'Deporte y Control Biométrico', 'Ciencia y Sustrato', 'Religión y Creencias Masivas'\",\n"
         "  \"title\": \"Título impactante, geopolítico y revelador del reporte\",\n"
-        "  \"excerpt\": \"Un resumen analítico y persuasivo de 2-3 líneas con foco internacional/Perú\",\n"
-        "  \"fullText\": \"Contenido detallado en Markdown. Usa subsecciones ###. Cita las fuentes de medios de noticias. Explica los sucesos aplicando directamente nuestra teoría del poder y haz predicciones sobre lo oculto.\",\n"
+        "  \"excerpt\": \"Un resumen analítico y persuasivo de 2-3 líneas exponiendo el patrón oculto descubierto\",\n"
+        "  \"fullText\": \"Contenido detallado en Markdown. Usa subsecciones ###. Cita las fuentes de medios de noticias. Recuerda usar \\n para los saltos de línea.\",\n"
         "  \"featured\": true\n"
         "}"
     )
@@ -135,66 +193,60 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
     ]
     
     opts = {"temperature": 0.5, "max_tokens": 4000}
-    response_raw = ""
     
-    # Intentar con el mejor proveedor recomendado
-    if best_p:
+    max_retries = 3
+    for attempt in range(1, max_retries + 1):
+        logging.info(f"[*] Intento de generación {attempt}/{max_retries}...")
+        response_raw = ""
         try:
-            print(f"[*] Intentando con proveedor principal: {best_p.name} | Modelo: {best_m}")
-            response_raw = provider_manager.complete(messages=messages, model=best_m, provider=best_p.name, options=opts)
-            if response_raw and ("\"title\"" not in response_raw.lower() or "\"fulltext\"" not in response_raw.lower()):
-                print(f"[!] Respuesta de proveedor inválida o mensaje de error: {response_raw}")
-                response_raw = ""
+            if best_p:
+                logging.info(f"[*] Intentando con proveedor principal: {best_p.name} | Modelo: {best_m}")
+                response_raw = provider_manager.complete(messages=messages, model=best_m, provider=best_p.name, options=opts)
+            else:
+                logging.warning("[!] No se encontró un proveedor configurado, abortando intento.")
         except Exception as e:
-            print(f"[!] Fallo con el proveedor principal {best_p.name}: {e}")
-            response_raw = ""
+            logging.warning(f"[!] Fallo con el proveedor principal: {e}")
             
-            
-    # Fallback si falló el principal
-    if not response_raw:
-        print("[*] Buscando proveedores alternativos en línea...")
-        scans = provider_manager.scan_all(force=True)
-        healthy_providers = [s for s in scans if s.is_healthy and s.models and s.name != (best_p.name if best_p else "")]
+        if not response_raw or ("\"title\"" not in response_raw.lower() or "\"fulltext\"" not in response_raw.lower()):
+            logging.info("[*] Buscando proveedores alternativos en línea...")
+            scans = provider_manager.scan_all(force=True)
+            healthy_providers = [s for s in scans if s.is_healthy and s.models and s.name != (best_p.name if best_p else "")]
+            if healthy_providers:
+                alt_p = healthy_providers[0]
+                alt_m = alt_p.active_model or alt_p.models[0]["name"]
+                logging.info(f"[+] Proveedor alternativo: {alt_p.name} | Modelo: {alt_m}")
+                try:
+                    response_raw = provider_manager.complete(messages=messages, model=alt_m, provider=alt_p.name, options=opts)
+                except Exception as e2:
+                    logging.warning(f"[!] Fallo con alternativo: {e2}")
+
+        if not response_raw:
+            logging.error(f"[!] Ningún motor generó texto en el intento {attempt}.")
+        else:
+            clean_resp = clean_llm_response(response_raw)
+            try:
+                article_data = json.loads(clean_resp, strict=False)
+                logging.info("[green]✓ Redacción completada y parseada exitosamente.[/]")
+                # Salir del loop si tuvo éxito
+                break
+            except Exception as e:
+                logging.warning(f"[!] Error parseando JSON en intento {attempt}: {e}. Intentando regex...")
+                json_match = re.search(r'(\{[\s\S]*\})', clean_resp)
+                if json_match:
+                    try:
+                        article_data = json.loads(json_match.group(1), strict=False)
+                        logging.info("[green]✓ JSON extraído por regex.[/]")
+                        break
+                    except Exception:
+                        pass
         
-        if not healthy_providers:
-            # Si LM Studio está activo y no se escaneó por force, usarlo directamente
-            # (LM Studio suele retornar is_healthy True si responde)
-            lm_studio = next((s for s in scans if s.name == "LM Studio" and s.is_healthy), None)
-            if lm_studio:
-                healthy_providers = [lm_studio]
-                
-        if healthy_providers:
-            alt_p = healthy_providers[0]
-            alt_m = alt_p.active_model or alt_p.models[0]["name"]
-            print(f"[+] Proveedor alternativo encontrado: {alt_p.name} | Modelo: {alt_m}")
-            try:
-                response_raw = provider_manager.complete(messages=messages, model=alt_m, provider=alt_p.name, options=opts)
-                if response_raw and ("\"title\"" not in response_raw.lower() or "\"fulltext\"" not in response_raw.lower()):
-                    print(f"[!] Respuesta del proveedor alternativo inválida: {response_raw}")
-                    response_raw = ""
-            except Exception as e2:
-                print(f"[!] Fallo también con el proveedor alternativo {alt_p.name}: {e2}")
-        else:
-            print("[!] No hay más proveedores en línea para fallback.")
-
-    if not response_raw:
-        raise RuntimeError("Todos los motores de IA fallaron al procesar la redacción.")
-
-    clean_resp = clean_llm_response(response_raw)
-    try:
-        article_data = json.loads(clean_resp)
-    except Exception as e:
-        print(f"[!] Error parseando JSON directo: {e}. Respuesta cruda:")
-        print(response_raw)
-        # Buscar el JSON con regex como última oportunidad
-        json_match = re.search(r'(\{[\s\S]*\})', clean_resp)
-        if json_match:
-            try:
-                article_data = json.loads(json_match.group(1))
-            except Exception:
-                raise RuntimeError("El modelo no devolvió un JSON estructurado válido.")
-        else:
-            raise RuntimeError("El modelo no devolvió un JSON estructurado válido.")
+        # Si llega aquí, falló el parseo o no hubo respuesta
+        if attempt == max_retries:
+            logging.error("[!] Fallo crónico de redacción tras múltiples intentos.")
+            raise RuntimeError("El modelo no devolvió un JSON estructurado válido tras 3 intentos.")
+            
+        logging.info("[*] Respirando 10 segundos antes del siguiente intento...")
+        time.sleep(10)
         
     # Normalizar llaves
     normalized = {}
@@ -234,7 +286,7 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
         
     normalized["id"] = slugify(normalized["title"])
     normalized["category"] = category
-    normalized["date"] = datetime.now().strftime("%Y-%m-%d")
+    normalized["date"] = datetime.now().isoformat()
     normalized["image"] = CATEGORY_IMAGE_MAP.get(category, CATEGORY_IMAGE_MAP["default"])
     
     return normalized
@@ -266,21 +318,58 @@ def update_news_json(new_article: Dict[str, Any]):
     # Guardar
     with open(NEWS_JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(news_list, f, indent=2, ensure_ascii=False)
-    print(f"[+] Artículo '{new_article.get('title', 'Sin Título')}' agregado con éxito a news.json")
+    logging.info(f"[+] Artículo '{new_article.get('title', 'Sin Título')}' agregado con éxito a news.json")
+
+def generate_sitemap():
+    """Genera un archivo sitemap.xml básico en la carpeta public de Vite para SEO."""
+    public_dir = os.path.join(PORTAL_DIR, "public")
+    sitemap_path = os.path.join(public_dir, "sitemap.xml")
+    
+    if not os.path.exists(public_dir):
+        os.makedirs(public_dir, exist_ok=True)
+        
+    try:
+        with open(NEWS_JSON_PATH, "r", encoding="utf-8") as f:
+            news_list = json.load(f)
+    except Exception:
+        news_list = []
+
+    base_url = "https://nexo-agora.netlify.app"
+    
+    xml_content = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml_content += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    
+    # Homepage
+    xml_content += f'  <url>\n    <loc>{base_url}/</loc>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n'
+    
+    # News articles
+    for article in news_list:
+        article_id = article.get("id", "")
+        if article_id:
+            xml_content += f'  <url>\n    <loc>{base_url}/?article={urllib.parse.quote(article_id)}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n'
+            
+    xml_content += '</urlset>'
+    
+    with open(sitemap_path, "w", encoding="utf-8") as f:
+        f.write(xml_content)
+    logging.info("[green]✓ Sitemap.xml generado y actualizado con éxito.[/]")
 
 def publish_changes():
     """Ejecuta sincronización de libros locales y publica en Netlify mediante git push."""
-    print("[*] Sincronizando biblioteca física local...")
+    logging.info("[*] Sincronizando biblioteca física local...")
     sync_script = os.path.join(PORTAL_DIR, "sync_books.js")
     
     try:
         # Sincronizar libros primero
         subprocess.run(["node", sync_script], cwd=PORTAL_DIR, check=True)
-        print("[green]✓ Biblioteca sincronizada con éxito.[/]")
+        logging.info("[green]✓ Biblioteca sincronizada con éxito.[/]")
     except Exception as e:
-        print(f"[!] Error ejecutando sync_books.js: {e}")
+        logging.error(f"[!] Error ejecutando sync_books.js: {e}")
         
-    print("[*] Preparando publicación en GitHub para despliegue automático en Netlify...")
+    logging.info("[*] Actualizando Sitemap SEO...")
+    generate_sitemap()
+        
+    logging.info("[*] Preparando publicación en GitHub para despliegue automático en Netlify...")
     try:
         # Git Status check
         subprocess.run(["git", "status"], cwd=PORTAL_DIR, check=True)
@@ -294,11 +383,11 @@ def publish_changes():
         
         # Git Push
         subprocess.run(["git", "push", "origin", "main"], cwd=PORTAL_DIR, check=True)
-        print("[green]✓ Publicación exitosa. Netlify se actualizará en segundos.[/]")
+        logging.info("[green]✓ Publicación exitosa. Netlify se actualizará en segundos.[/]")
     except subprocess.CalledProcessError as e:
-        print(f"[!] Error ejecutando comandos de Git: {e}. Asegúrate de que las credenciales estén configuradas en Git global.")
+        logging.error(f"[!] Error ejecutando comandos de Git: {e}. Asegúrate de que las credenciales estén configuradas en Git global.")
     except Exception as e:
-        print(f"[!] Error inesperado al publicar: {e}")
+        logging.error(f"[!] Error inesperado al publicar: {e}")
 
 def main():
     import argparse
@@ -307,21 +396,21 @@ def main():
     parser.add_argument("--focus", type=str, default=None, help="Enfoque particular de redacción")
     args = parser.parse_args()
     
-    print("======================================================================")
-    print(f"  Gravity AI Reporter V16.0 PRO - Ejecución: {datetime.now().isoformat()}")
-    print("======================================================================")
+    logging.info("======================================================================")
+    logging.info(f"  Gravity AI Reporter V16.0 PRO - Ejecución: {datetime.now().isoformat()}")
+    logging.info("======================================================================")
     
     # 1. Investigar
     success, search_results = run_investigation(args.topic)
     if not success:
-        print(f"[!] {search_results}")
+        logging.error(f"[!] {search_results}")
         sys.exit(1)
         
     # 2. Redactar
     try:
         article = write_article(search_results, args.focus)
     except Exception as e:
-        print(f"[!] Error de redacción por IA: {e}")
+        logging.error(f"[!] Error de redacción por IA: {e}")
         sys.exit(1)
         
     # 3. Guardar en portal
@@ -330,7 +419,7 @@ def main():
     # 4. Sincronizar y publicar en Netlify
     publish_changes()
     
-    print("[*] Proceso completado exitosamente.")
+    logging.info("[*] Proceso completado exitosamente.")
 
 if __name__ == "__main__":
     main()
