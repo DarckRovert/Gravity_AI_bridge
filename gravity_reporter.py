@@ -104,6 +104,40 @@ def clean_llm_response(text: str) -> str:
         
     return text.strip()
 
+def repair_truncated_json(text: str) -> str:
+    """
+    Intenta reparar un JSON truncado (típico de LM Studio con contexto corto).
+    Estrategia: extraer campos ya cerrados y construir un objeto parcial válido.
+    """
+    # Extraer todos los campos que ya cerraron correctamente con regex
+    repaired = {}
+    
+    # Buscar campos de string
+    for field in ["category", "title", "excerpt"]:
+        m = re.search(rf'"{field}"\s*:\s*"((?:[^"\\]|\\.)*)"', text, re.DOTALL)
+        if m:
+            repaired[field] = m.group(1).replace('\\n', '\n').replace('\\"', '"')
+    
+    # Buscar fullText — puede estar truncado, tomamos lo que hay
+    ft_match = re.search(r'"fullText"\s*:\s*"(.*?)(?:"|$)', text, re.DOTALL)
+    if ft_match:
+        ft = ft_match.group(1)
+        # Limpiar escapes parciales al final
+        ft = ft.rstrip('\\').replace('\\n', '\n').replace('\\"', '"')
+        if not ft.endswith('.'):
+            ft += ' [Transmisión cortada — fragmento recuperado por el sistema Ágora.]'
+        repaired["fullText"] = ft
+    
+    # featured
+    feat_m = re.search(r'"featured"\s*:\s*(true|false)', text)
+    repaired["featured"] = feat_m.group(1) == 'true' if feat_m else False
+    
+    if "title" in repaired and "fullText" in repaired:
+        logging.info("[*] JSON reparado por extracción de campos parciales.")
+        return json.dumps(repaired, ensure_ascii=False)
+    
+    return ""
+
 def slugify(text: str) -> str:
     """Genera un slug de URL a partir de un título."""
     text = text.lower()
@@ -192,20 +226,40 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
         {"role": "user", "content": user_prompt}
     ]
     
-    opts = {"temperature": 0.5, "max_tokens": 4000}
-    
+    # Detectar si el proveedor principal está muerto (401) para saltar directo al alternativo
+    principal_dead = False
+    if best_p:
+        try:
+            probe_opts = {"temperature": 0.1, "max_tokens": 10}
+            probe_msgs = [{"role": "user", "content": "ping"}]
+            provider_manager.complete(messages=probe_msgs, model=best_m, provider=best_p.name, options=probe_opts)
+        except Exception as probe_err:
+            if "401" in str(probe_err) or "Unauthorized" in str(probe_err):
+                logging.warning(f"[!] Proveedor principal {best_p.name} rechaza con 401. Saltando directamente a alternativo.")
+                principal_dead = True
+
+    # LM Studio tiene límite de contexto menor — reducir tokens para evitar truncamiento
+    def get_opts_for_provider(provider_name: str) -> dict:
+        if provider_name and "lm studio" in provider_name.lower():
+            return {"temperature": 0.5, "max_tokens": 2000}
+        return {"temperature": 0.5, "max_tokens": 3500}
+
     max_retries = 3
     for attempt in range(1, max_retries + 1):
         logging.info(f"[*] Intento de generación {attempt}/{max_retries}...")
         response_raw = ""
         try:
-            if best_p:
+            if best_p and not principal_dead:
                 logging.info(f"[*] Intentando con proveedor principal: {best_p.name} | Modelo: {best_m}")
-                response_raw = provider_manager.complete(messages=messages, model=best_m, provider=best_p.name, options=opts)
+                response_raw = provider_manager.complete(messages=messages, model=best_m, provider=best_p.name, options=get_opts_for_provider(best_p.name))
             else:
-                logging.warning("[!] No se encontró un proveedor configurado, abortando intento.")
+                logging.warning("[!] No se encontró un proveedor configurado o está muerto, escalando a alternativo.")
         except Exception as e:
-            logging.warning(f"[!] Fallo con el proveedor principal: {e}")
+            if "401" in str(e) or "Unauthorized" in str(e):
+                logging.warning(f"[!] Proveedor principal devuelve 401. Marcando como muerto para este ciclo.")
+                principal_dead = True
+            else:
+                logging.warning(f"[!] Fallo con el proveedor principal: {e}")
             
         if not response_raw or ("\"title\"" not in response_raw.lower() or "\"fulltext\"" not in response_raw.lower()):
             logging.info("[*] Buscando proveedores alternativos en línea...")
@@ -216,7 +270,7 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
                 alt_m = alt_p.active_model or alt_p.models[0]["name"]
                 logging.info(f"[+] Proveedor alternativo: {alt_p.name} | Modelo: {alt_m}")
                 try:
-                    response_raw = provider_manager.complete(messages=messages, model=alt_m, provider=alt_p.name, options=opts)
+                    response_raw = provider_manager.complete(messages=messages, model=alt_m, provider=alt_p.name, options=get_opts_for_provider(alt_p.name))
                 except Exception as e2:
                     logging.warning(f"[!] Fallo con alternativo: {e2}")
 
@@ -236,6 +290,15 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
                     try:
                         article_data = json.loads(json_match.group(1), strict=False)
                         logging.info("[green]✓ JSON extraído por regex.[/]")
+                        break
+                    except Exception:
+                        pass
+                # Último recurso: reparador de JSON truncado
+                repaired_str = repair_truncated_json(clean_resp)
+                if repaired_str:
+                    try:
+                        article_data = json.loads(repaired_str, strict=False)
+                        logging.info("[green]✓ JSON reparado por extracción de campos parciales.[/]")
                         break
                     except Exception:
                         pass
