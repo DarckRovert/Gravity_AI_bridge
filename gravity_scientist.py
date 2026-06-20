@@ -100,21 +100,7 @@ def run_search(query: str) -> str:
 
 def write_science_article(search_results: str, query: str) -> Dict[str, Any]:
     """Redacta un artículo científico de divulgación basado en resultados reales."""
-    provider_manager.scan_all()
-    best_p, best_m = provider_manager.get_best()
-
-    principal_dead = False
-    if best_p:
-        try:
-            provider_manager.complete(
-                messages=[{"role": "user", "content": "ping"}],
-                model=best_m, provider=best_p.name,
-                options={"temperature": 0.1, "max_tokens": 10}
-            )
-        except Exception as e:
-            if "401" in str(e) or "Unauthorized" in str(e):
-                principal_dead = True
-                logging.warning(f"[!] Proveedor principal {best_p.name} muerto (401).")
+    # (El escaneo global y fallback ahora se realiza en modo Cascada más abajo)
 
     def get_opts(pname):
         if pname and "lm studio" in pname.lower():
@@ -166,55 +152,58 @@ def write_science_article(search_results: str, query: str) -> Dict[str, Any]:
         {"role": "user", "content": user_prompt}
     ]
 
+    # ── NUEVO SISTEMA DE FALLBACK EN CASCADA ──
+    logging.info("[*] Escaneando matriz global de modelos disponibles...")
+    scans = provider_manager.scan_all(force=True)
+    healthy_providers = [s for s in scans if s.is_healthy and s.models]
+    
+    # Ordenar: Cloud primero, Local (LM Studio) al final
+    cloud_providers = [p for p in healthy_providers if p.category == "cloud"]
+    local_providers = [p for p in healthy_providers if p.category == "local"]
+    cascade = cloud_providers + local_providers
+
+    if not cascade:
+        logging.error("[!] Ningún proveedor de IA está activo. No se puede generar el artículo científico.")
+        raise RuntimeError("Ningún proveedor de IA está disponible.")
+
     article_data = None
-    for attempt in range(1, 4):
-        logging.info(f"[*] Intento {attempt}/3...")
-        response_raw = ""
+    
+    # Bucle en cascada
+    for idx, provider in enumerate(cascade):
+        model = provider.active_model or provider.models[0]["name"]
+        logging.info(f"[*] [CASCADA {idx+1}/{len(cascade)}] Intentando generación científica con: {provider.name} | Modelo: {model}")
+        
         try:
-            if best_p and not principal_dead:
-                response_raw = provider_manager.complete(
-                    messages=messages, model=best_m,
-                    provider=best_p.name, options=get_opts(best_p.name)
-                )
-            else:
-                raise ValueError("Principal muerto")
-        except Exception as e:
-            if "401" in str(e) or "Unauthorized" in str(e):
-                principal_dead = True
-            scans = provider_manager.scan_all(force=True)
-            alts = [s for s in scans if s.is_healthy and s.models and s.name != (best_p.name if best_p else "")]
-            if alts:
-                alt_p = alts[0]
-                alt_m = alt_p.active_model or alt_p.models[0]["name"]
+            response_raw = provider_manager.complete(
+                messages=messages, 
+                model=model, 
+                provider=provider.name, 
+                options=get_opts(provider.name)
+            )
+            
+            if response_raw:
+                clean = clean_llm_response(response_raw)
                 try:
-                    response_raw = provider_manager.complete(
-                        messages=messages, model=alt_m,
-                        provider=alt_p.name, options=get_opts(alt_p.name)
-                    )
-                except Exception as e2:
-                    logging.warning(f"[!] Fallo alternativo: {e2}")
-
-        if response_raw:
-            clean = clean_llm_response(response_raw)
-            try:
-                article_data = json.loads(clean, strict=False)
-                logging.info("[✓] Artículo científico parseado exitosamente.")
-                break
-            except Exception:
-                brace = re.search(r'(\{[\s\S]*\})', clean)
-                if brace:
-                    try:
-                        article_data = json.loads(brace.group(1), strict=False)
-                        logging.info("[✓] Artículo extraído por regex.")
-                        break
-                    except Exception:
-                        pass
-
-        if attempt < 3:
-            time.sleep(10)
+                    article_data = json.loads(clean, strict=False)
+                    logging.info(f"[green]✓ Redacción científica exitosa usando {provider.name}.[/]")
+                    break
+                except Exception:
+                    brace = re.search(r'(\{[\s\S]*\})', clean)
+                    if brace:
+                        try:
+                            article_data = json.loads(brace.group(1), strict=False)
+                            logging.info(f"[green]✓ JSON científico extraído por regex con {provider.name}.[/]")
+                            break
+                        except Exception:
+                            pass
+            
+            logging.warning(f"[!] {provider.name} no devolvió un JSON válido. Saltando al siguiente modelo en la cascada.")
+            
+        except Exception as e:
+            logging.warning(f"[!] Fallo crítico con {provider.name} ({e}). Saltando al siguiente modelo en la cascada...")
 
     if not article_data:
-        raise RuntimeError("El modelo no generó un artículo científico válido tras 3 intentos.")
+        raise RuntimeError("La cascada completa de modelos falló o se agotó. Abortando generación.")
 
     normalized = {
         "id": slugify(article_data.get("title", query)),

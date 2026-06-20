@@ -237,17 +237,19 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
         {"role": "user", "content": user_prompt}
     ]
     
-    # Detectar si el proveedor principal está muerto (401) para saltar directo al alternativo
-    principal_dead = False
-    if best_p:
-        try:
-            probe_opts = {"temperature": 0.1, "max_tokens": 10}
-            probe_msgs = [{"role": "user", "content": "ping"}]
-            provider_manager.complete(messages=probe_msgs, model=best_m, provider=best_p.name, options=probe_opts)
-        except Exception as probe_err:
-            if "401" in str(probe_err) or "Unauthorized" in str(probe_err):
-                logging.warning(f"[!] Proveedor principal {best_p.name} rechaza con 401. Saltando directamente a alternativo.")
-                principal_dead = True
+    # ── NUEVO SISTEMA DE FALLBACK EN CASCADA ──
+    logging.info("[*] Escaneando matriz global de modelos disponibles...")
+    scans = provider_manager.scan_all(force=True)
+    healthy_providers = [s for s in scans if s.is_healthy and s.models]
+    
+    # Ordenar: Cloud primero, Local (LM Studio) al final
+    cloud_providers = [p for p in healthy_providers if p.category == "cloud"]
+    local_providers = [p for p in healthy_providers if p.category == "local"]
+    cascade = cloud_providers + local_providers
+
+    if not cascade:
+        logging.error("[!] Ningún proveedor de IA está activo. No se puede generar el artículo.")
+        return {}
 
     # LM Studio tiene límite de contexto menor — reducir tokens para evitar truncamiento
     def get_opts_for_provider(provider_name: str) -> dict:
@@ -255,72 +257,57 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
             return {"temperature": 0.5, "max_tokens": 2000}
         return {"temperature": 0.5, "max_tokens": 3500}
 
-    max_retries = 3
-    for attempt in range(1, max_retries + 1):
-        logging.info(f"[*] Intento de generación {attempt}/{max_retries}...")
-        response_raw = ""
-        try:
-            if best_p and not principal_dead:
-                logging.info(f"[*] Intentando con proveedor principal: {best_p.name} | Modelo: {best_m}")
-                response_raw = provider_manager.complete(messages=messages, model=best_m, provider=best_p.name, options=get_opts_for_provider(best_p.name))
-            else:
-                logging.warning("[!] No se encontró un proveedor configurado o está muerto, escalando a alternativo.")
-        except Exception as e:
-            if "401" in str(e) or "Unauthorized" in str(e):
-                logging.warning(f"[!] Proveedor principal devuelve 401. Marcando como muerto para este ciclo.")
-                principal_dead = True
-            else:
-                logging.warning(f"[!] Fallo con el proveedor principal: {e}")
-            
-        if not response_raw or ("\"title\"" not in response_raw.lower() or "\"fulltext\"" not in response_raw.lower()):
-            logging.info("[*] Buscando proveedores alternativos en línea...")
-            scans = provider_manager.scan_all(force=True)
-            healthy_providers = [s for s in scans if s.is_healthy and s.models and s.name != (best_p.name if best_p else "")]
-            if healthy_providers:
-                alt_p = healthy_providers[0]
-                alt_m = alt_p.active_model or alt_p.models[0]["name"]
-                logging.info(f"[+] Proveedor alternativo: {alt_p.name} | Modelo: {alt_m}")
-                try:
-                    response_raw = provider_manager.complete(messages=messages, model=alt_m, provider=alt_p.name, options=get_opts_for_provider(alt_p.name))
-                except Exception as e2:
-                    logging.warning(f"[!] Fallo con alternativo: {e2}")
-
-        if not response_raw:
-            logging.error(f"[!] Ningún motor generó texto en el intento {attempt}.")
-        else:
-            clean_resp = clean_llm_response(response_raw)
-            try:
-                article_data = json.loads(clean_resp, strict=False)
-                logging.info("[green]✓ Redacción completada y parseada exitosamente.[/]")
-                # Salir del loop si tuvo éxito
-                break
-            except Exception as e:
-                logging.warning(f"[!] Error parseando JSON en intento {attempt}: {e}. Intentando regex...")
-                json_match = re.search(r'(\{[\s\S]*\})', clean_resp)
-                if json_match:
-                    try:
-                        article_data = json.loads(json_match.group(1), strict=False)
-                        logging.info("[green]✓ JSON extraído por regex.[/]")
-                        break
-                    except Exception:
-                        pass
-                # Último recurso: reparador de JSON truncado
-                repaired_str = repair_truncated_json(clean_resp)
-                if repaired_str:
-                    try:
-                        article_data = json.loads(repaired_str, strict=False)
-                        logging.info("[green]✓ JSON reparado por extracción de campos parciales.[/]")
-                        break
-                    except Exception:
-                        pass
+    article_data = None
+    
+    # Bucle en cascada: intenta con cada modelo de la lista
+    for idx, provider in enumerate(cascade):
+        model = provider.active_model or provider.models[0]["name"]
+        logging.info(f"[*] [CASCADA {idx+1}/{len(cascade)}] Intentando generación con: {provider.name} | Modelo: {model}")
         
-        # Si llega aquí, falló el parseo o no hubo respuesta
-        if attempt == max_retries:
-            logging.error("[!] Fallo crónico de redacción tras múltiples intentos.")
-            raise RuntimeError("El modelo no devolvió un JSON estructurado válido tras 3 intentos.")
+        try:
+            response_raw = provider_manager.complete(
+                messages=messages, 
+                model=model, 
+                provider=provider.name, 
+                options=get_opts_for_provider(provider.name)
+            )
             
-        logging.info("[*] Respirando 10 segundos antes del siguiente intento...")
-        time.sleep(10)
+            if response_raw and ("\"title\"" in response_raw.lower() and "\"fulltext\"" in response_raw.lower()):
+                clean_resp = clean_llm_response(response_raw)
+                try:
+                    # Validar JSON
+                    article_data = json.loads(clean_resp, strict=False)
+                    logging.info(f"[green]✓ Redacción exitosa usando {provider.name}.[/]")
+                    break # Éxito, salir de la cascada
+                except Exception as e:
+                    logging.warning(f"[!] Error parseando JSON: {e}. Intentando regex...")
+                    json_match = re.search(r'(\{[\s\S]*\})', clean_resp)
+                    if json_match:
+                        try:
+                            article_data = json.loads(json_match.group(1), strict=False)
+                            logging.info(f"[green]✓ JSON extraído por regex con {provider.name}.[/]")
+                            break
+                        except:
+                            pass
+                    
+                    # Último recurso: reparador de JSON truncado
+                    repaired_str = repair_truncated_json(clean_resp)
+                    if repaired_str:
+                        try:
+                            article_data = json.loads(repaired_str, strict=False)
+                            logging.info(f"[green]✓ JSON reparado por extracción de campos parciales ({provider.name}).[/]")
+                            break
+                        except:
+                            pass
+            
+            logging.warning(f"[!] {provider.name} no devolvió un JSON válido. Saltando al siguiente modelo en la cascada.")
+            
+        except Exception as e:
+            logging.warning(f"[!] Fallo crítico con {provider.name} ({e}). Saltando al siguiente modelo en la cascada...")
+
+    if not article_data:
+        logging.error("[!] La cascada completa de modelos falló o se agotó. Abortando redacción.")
+        raise RuntimeError("La cascada de modelos no devolvió un JSON válido.")
         
     # Normalizar llaves
     normalized = {}

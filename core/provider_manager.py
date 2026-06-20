@@ -18,7 +18,7 @@ _lock              = threading.RLock()
 _cached_results:   List[ProviderResult]  = []
 _cached_plugins:   Dict[str, ProviderPlugin] = {}  # name → plugin
 _last_scan_time:   float = 0.0
-_SCAN_TTL:         float = 30.0   # seconds before re-scanning
+_SCAN_TTL:         float = 60.0   # seconds before re-scanning
 
 
 def _load_settings() -> Dict[str, Any]:
@@ -127,7 +127,7 @@ def scan_all(force: bool = False) -> List[ProviderResult]:
             futures = {ex.submit(_safe_check, p): p for p in plugins}
             for fut, plug in futures.items():
                 try:
-                    results.append(fut.result(timeout=8.0))
+                    results.append(fut.result(timeout=20.0))
                 except concurrent.futures.TimeoutError:
                     from providers.base import ProviderResult
                     results.append(ProviderResult(
@@ -136,7 +136,7 @@ def scan_all(force: bool = False) -> List[ProviderResult]:
                         is_healthy=False,
                         models=[],
                         active_model=None,
-                        response_ms=8000,
+                        response_ms=20000,
                         category=getattr(plug, "category", "local"),
                         key_configured=False,
                     ))
