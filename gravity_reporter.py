@@ -245,10 +245,21 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
     # Ordenar: Cloud primero, Local (LM Studio) al final
     cloud_providers = [p for p in healthy_providers if p.category == "cloud"]
     local_providers = [p for p in healthy_providers if p.category == "local"]
-    cascade = cloud_providers + local_providers
+    
+    # Aplanar todos los modelos (Priorizando el active_model si existe)
+    cascade_models = []
+    for p in (cloud_providers + local_providers):
+        if p.active_model:
+            cascade_models.append((p, p.active_model))
+            for m_dict in p.models:
+                if m_dict["name"] != p.active_model:
+                    cascade_models.append((p, m_dict["name"]))
+        else:
+            for m_dict in p.models:
+                cascade_models.append((p, m_dict["name"]))
 
-    if not cascade:
-        logging.error("[!] Ningún proveedor de IA está activo. No se puede generar el artículo.")
+    if not cascade_models:
+        logging.error("[!] Ningún proveedor o modelo de IA está activo. No se puede generar el artículo.")
         return {}
 
     # LM Studio tiene límite de contexto menor — reducir tokens para evitar truncamiento
@@ -260,9 +271,8 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
     article_data = None
     
     # Bucle en cascada: intenta con cada modelo de la lista
-    for idx, provider in enumerate(cascade):
-        model = provider.active_model or provider.models[0]["name"]
-        logging.info(f"[*] [CASCADA {idx+1}/{len(cascade)}] Intentando generación con: {provider.name} | Modelo: {model}")
+    for idx, (provider, model) in enumerate(cascade_models):
+        logging.info(f"\n[*] [CASCADA {idx+1}/{len(cascade_models)}] Intentando generación con: {provider.name} | Modelo: {model}")
         
         try:
             response_raw = provider_manager.complete(
