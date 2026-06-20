@@ -86,7 +86,7 @@ class GeminiProvider(ProviderPlugin):
                 url, data=data,
                 headers={"Content-Type": "application/json"}
             )
-            with urllib.request.urlopen(req, timeout=60) as r:
+            with urllib.request.urlopen(req, timeout=300) as r:
                 for raw in r:
                     line = raw.decode("utf-8", errors="ignore").strip()
                     if not line.startswith("data:"):
@@ -129,7 +129,7 @@ class GeminiProvider(ProviderPlugin):
                 url, data=data,
                 headers={"Content-Type": "application/json"}
             )
-            with urllib.request.urlopen(req, timeout=60) as r:
+            with urllib.request.urlopen(req, timeout=300) as r:
                 d = json.loads(r.read().decode())
             for cand in d.get("candidates", []):
                 for part in cand.get("content", {}).get("parts", []):

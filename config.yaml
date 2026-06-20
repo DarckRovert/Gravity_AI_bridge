@@ -86,7 +86,7 @@ youtube:
   - Gravity AI
   oauth_credentials_path: _integrations/youtube_oauth.json
 scheduler:
-  enabled: true
+  enabled: false
   time_utc: 08:00
   videos_per_day: 2
   niches_file: inputs/niches.json

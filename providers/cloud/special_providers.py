@@ -66,7 +66,7 @@ class AzureOpenAIProvider(ProviderPlugin):
         data    = json.dumps(payload).encode()
         req     = urllib.request.Request(url, data=data, headers=headers)
         try:
-            with urllib.request.urlopen(req, timeout=60) as r:
+            with urllib.request.urlopen(req, timeout=300) as r:
                 for raw in r:
                     line = raw.decode("utf-8", errors="ignore").strip()
                     if line.startswith("data:") and line[5:].strip() not in ("", "[DONE]"):
@@ -93,7 +93,7 @@ class AzureOpenAIProvider(ProviderPlugin):
         data    = json.dumps(payload).encode()
         req     = urllib.request.Request(url, data=data, headers=headers)
         try:
-            with urllib.request.urlopen(req, timeout=60) as r:
+            with urllib.request.urlopen(req, timeout=300) as r:
                 d = json.loads(r.read().decode())
             return str(d["choices"][0]["message"]["content"]) if "choices" in d else ""
         except Exception as e:
@@ -165,7 +165,7 @@ class CohereProvider(ProviderPlugin):
             "https://api.cohere.com/v1/chat", data=data, headers=self._headers()
         )
         try:
-            with urllib.request.urlopen(req, timeout=60) as r:
+            with urllib.request.urlopen(req, timeout=300) as r:
                 for raw in r:
                     line = raw.decode("utf-8", errors="ignore").strip()
                     if not line:
@@ -196,7 +196,7 @@ class CohereProvider(ProviderPlugin):
             "https://api.cohere.com/v1/chat", data=data, headers=self._headers()
         )
         try:
-            with urllib.request.urlopen(req, timeout=60) as r:
+            with urllib.request.urlopen(req, timeout=300) as r:
                 d = json.loads(r.read().decode())
             return str(d.get("text", ""))
         except Exception as e:

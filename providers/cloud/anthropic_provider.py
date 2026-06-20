@@ -89,7 +89,7 @@ class AnthropicProvider(ProviderPlugin):
         req  = urllib.request.Request(ANTHROPIC_API, data=data, headers=self._headers())
         thinking_open = False
         try:
-            with urllib.request.urlopen(req, timeout=60) as r:
+            with urllib.request.urlopen(req, timeout=300) as r:
                 for raw in r:
                     line = raw.decode("utf-8", errors="ignore").strip()
                     if not line.startswith("data:"):
@@ -138,7 +138,7 @@ class AnthropicProvider(ProviderPlugin):
                 payload["system"] = system
             data = json.dumps(payload).encode()
             req  = urllib.request.Request(ANTHROPIC_API, data=data, headers=self._headers())
-            with urllib.request.urlopen(req, timeout=60) as r:
+            with urllib.request.urlopen(req, timeout=300) as r:
                 d = json.loads(r.read().decode())
             for block in d.get("content", []):
                 if block.get("type") == "text":
