@@ -72,7 +72,7 @@ class LMStudioProvider(_OpenAICompatLocalProvider):
         for port in self._alt_ports:
             t0   = time.time()
             url  = f"http://localhost:{port}"
-            data = _http_get(f"{url}{self._health_path}", timeout=0.8)
+            data = _http_get(f"{url}{self._health_path}", timeout=2.5)
             if data and "data" in data:
                 r             = self._make_result(url)
                 r.is_healthy  = True
@@ -88,7 +88,7 @@ class LMStudioProvider(_OpenAICompatLocalProvider):
         if self._last_working_url:
             return self._last_working_url
         for port in self._alt_ports:
-            data = _http_get(f"http://localhost:{port}/v1/models", timeout=0.5)
+            data = _http_get(f"http://localhost:{port}/v1/models", timeout=2.5)
             if data:
                 url = f"http://localhost:{port}"
                 self._last_working_url = url
