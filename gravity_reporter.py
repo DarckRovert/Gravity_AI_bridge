@@ -191,9 +191,7 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
     """Usa el LLM de Gravity para redactar la noticia basada en los libros de lore y el contexto web."""
     print("[*] Iniciando motor cognitivo para redacción del artículo...")
     
-    # 1. Intentar obtener el proveedor configurado por defecto o bloqueado
-    provider_manager.scan_all()
-    best_p, best_m = provider_manager.get_best()
+    # 1. Ya no se usa get_best(), se escanean todos en cascada más abajo
     
     # Cargar el Manifiesto Base para alinear ideológicamente a la IA
     manifesto_path = os.path.join(BASE_DIR, "agora_manifesto.txt")

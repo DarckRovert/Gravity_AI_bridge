@@ -119,23 +119,6 @@ def write_essay(topic_config: Dict) -> Dict[str, Any]:
     """Usa el LLM para redactar un ensayo filosófico riguroso."""
     logging.info(f"[*] Redactando ensayo sobre: '{topic_config['topic']}'...")
 
-    provider_manager.scan_all()
-    best_p, best_m = provider_manager.get_best()
-
-    # Detectar y saltar proveedores con 401
-    principal_dead = False
-    if best_p:
-        try:
-            probe = provider_manager.complete(
-                messages=[{"role": "user", "content": "ping"}],
-                model=best_m, provider=best_p.name,
-                options={"temperature": 0.1, "max_tokens": 10}
-            )
-        except Exception as e:
-            if "401" in str(e) or "Unauthorized" in str(e):
-                logging.warning(f"[!] Proveedor {best_p.name} muerto (401). Escalando.")
-                principal_dead = True
-
     def get_opts(pname):
         if pname and "lm studio" in pname.lower():
             return {"temperature": 0.6, "max_tokens": 2000}
