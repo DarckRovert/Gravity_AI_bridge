@@ -215,19 +215,36 @@ def write_science_article(search_results: str, query: str) -> Dict[str, Any]:
     if not article_data:
         raise RuntimeError("La cascada completa de modelos falló o se agotó. Abortando generación.")
 
+    # Normalizar llaves para tolerar que el LLM las traduzca al español
+    translated_data = {}
+    for k, v in article_data.items():
+        k_lower = k.lower()
+        if k_lower in ("title", "titulo", "título"):
+            translated_data["title"] = v
+        elif k_lower in ("subtitle", "subtitulo", "subtítulo"):
+            translated_data["subtitle"] = v
+        elif k_lower in ("excerpt", "extracto", "resumen"):
+            translated_data["excerpt"] = v
+        elif k_lower in ("fulltext", "texto", "contenido", "cuerpo"):
+            translated_data["fullText"] = v
+        elif k_lower in ("category", "categoria", "categoría"):
+            translated_data["category"] = v
+        else:
+            translated_data[k] = v
+
     normalized = {
-        "id": slugify(article_data.get("title", query)),
+        "id": slugify(translated_data.get("title", query)),
         "type": "science",
-        "category": article_data.get("category", "Ciencia"),
-        "title": article_data.get("title", "Hallazgo Científico Interceptado"),
-        "subtitle": article_data.get("subtitle", ""),
-        "excerpt": article_data.get("excerpt", ""),
+        "category": translated_data.get("category", "Ciencia"),
+        "title": translated_data.get("title", "Hallazgo Científico Interceptado"),
+        "subtitle": translated_data.get("subtitle", ""),
+        "excerpt": translated_data.get("excerpt", ""),
         "author": "Nexo Ágora — Redacción Científica",
         "date": datetime.now().isoformat(),
-        "readingTime": article_data.get("readingTime", 8),
-        "featured": bool(article_data.get("featured", False)),
+        "readingTime": translated_data.get("readingTime", 8),
+        "featured": bool(translated_data.get("featured", False)),
         "tags": [],
-        "fullText": article_data.get("fullText", "")
+        "fullText": translated_data.get("fullText", "")
     }
 
     title_encoded = urllib.parse.quote(normalized["title"])

@@ -280,7 +280,7 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
                 options=get_opts_for_provider(provider.name)
             )
             
-            if response_raw and ("\"title\"" in response_raw.lower() and "\"fulltext\"" in response_raw.lower()):
+            if response_raw:
                 clean_resp = clean_llm_response(response_raw)
                 try:
                     # Validar JSON

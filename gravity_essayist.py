@@ -234,21 +234,38 @@ def write_essay(topic_config: Dict) -> Dict[str, Any]:
     if not essay_data:
         raise RuntimeError("La cascada completa de modelos falló o se agotó. Abortando generación.")
 
+    # Normalizar llaves para tolerar que el LLM las traduzca al español
+    translated_data = {}
+    for k, v in essay_data.items():
+        k_lower = k.lower()
+        if k_lower in ("title", "titulo", "título"):
+            translated_data["title"] = v
+        elif k_lower in ("subtitle", "subtitulo", "subtítulo"):
+            translated_data["subtitle"] = v
+        elif k_lower in ("excerpt", "extracto", "resumen"):
+            translated_data["excerpt"] = v
+        elif k_lower in ("fulltext", "texto", "contenido", "cuerpo"):
+            translated_data["fullText"] = v
+        elif k_lower in ("category", "categoria", "categoría"):
+            translated_data["category"] = v
+        else:
+            translated_data[k] = v
+
     # Normalizar
     normalized = {
-        "id": slugify(essay_data.get("title", topic_config["topic"])),
+        "id": slugify(translated_data.get("title", topic_config["topic"])),
         "type": "essay",
-        "category": essay_data.get("category", "Filosofía y Soberanía"),
-        "title": essay_data.get("title", topic_config["topic"]),
-        "subtitle": essay_data.get("subtitle", ""),
-        "excerpt": essay_data.get("excerpt", ""),
+        "category": translated_data.get("category", "Filosofía y Soberanía"),
+        "title": translated_data.get("title", topic_config["topic"]),
+        "subtitle": translated_data.get("subtitle", ""),
+        "excerpt": translated_data.get("excerpt", ""),
         "author": "Nexo Ágora — Redacción Filosófica",
         "date": datetime.now().isoformat(),
-        "readingTime": essay_data.get("readingTime", 10),
-        "image": CATEGORY_IMAGE_MAP.get(essay_data.get("category", ""), CATEGORY_IMAGE_MAP["default"]),
-        "featured": bool(essay_data.get("featured", False)),
+        "readingTime": translated_data.get("readingTime", 10),
+        "image": CATEGORY_IMAGE_MAP.get(translated_data.get("category", ""), CATEGORY_IMAGE_MAP["default"]),
+        "featured": bool(translated_data.get("featured", False)),
         "tags": [],
-        "fullText": essay_data.get("fullText", "")
+        "fullText": translated_data.get("fullText", "")
     }
 
     return normalized

@@ -799,6 +799,19 @@ class GetRoutesMixin:
         from api.routes.handlers.video_handler import handle_video_status
         handle_video_status(self)
 
+    # ── Journalist Autonomous OSINT ─────────────────────────────────────────────
+    def _serve_journalist_status(self):
+        from api.routes.handlers.journalist_handler import handle_journalist_status
+        handle_journalist_status(self)
+
+    def _serve_journalist_log(self):
+        from api.routes.handlers.journalist_handler import handle_journalist_log
+        handle_journalist_log(self)
+
+    def _serve_journalist_news(self):
+        from api.routes.handlers.journalist_handler import handle_journalist_news
+        handle_journalist_news(self)
+
     # ── La Tinka Engine ────────────────────────────────────────────────────────
     def _serve_tinka_status(self):
         try:

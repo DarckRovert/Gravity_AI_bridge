@@ -793,6 +793,21 @@ class PostRoutesMixin:
             handle_gameserver_expose(self)
             return
 
+        # ── Journalist Autonomous OSINT ─────────────────────────────────────────────
+        if self.path == "/v1/journalist/start":
+            from api.routes.handlers.journalist_handler import handle_journalist_start
+            handle_journalist_start(self)
+            return
+
+        if self.path == "/v1/journalist/stop":
+            from api.routes.handlers.journalist_handler import handle_journalist_stop
+            handle_journalist_stop(self)
+            return
+
+        if self.path == "/v1/journalist/portal/start":
+            from api.routes.handlers.journalist_handler import handle_journalist_portal_start
+            handle_journalist_portal_start(self)
+            return
 
         if self.path == "/v1/ai/start":
             try:

@@ -213,6 +213,10 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             "/v1/autonomy/rules":         self._serve_autonomy_rules,
             "/v1/reflection/report":      self._serve_reflection_report,
             "/v1/reflection/patches":     self._serve_reflection_patches,
+            # ── Periodista Autónomo (OSINT) ────────────────────────────────────────
+            "/v1/journalist/status":      self._serve_journalist_status,
+            "/v1/journalist/log":         self._serve_journalist_log,
+            "/v1/journalist/news":        self._serve_journalist_news,
         }
 
         # Rutas con query string (?server=&lines=)
