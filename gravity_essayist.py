@@ -278,6 +278,31 @@ def update_essays_json(new_essay: Dict[str, Any]):
     with open(ESSAYS_JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(essays_list, f, indent=2, ensure_ascii=False)
     logging.info(f"[+] Ensayo '{new_essay.get('title')}' guardado en essays.json")
+    
+    # --- AUTO-ENCOLAR VIDEO DE ENSAYO PARA TIKTOK ---
+    try:
+        from core.video.pipeline import add_job
+        topic_text = f"Reflexión: {new_essay.get('title', '')}. {new_essay.get('excerpt', '')}"
+        video_title = f"TikTok Ensayo: {new_essay.get('title', '')}"[:60]
+        
+        add_job(
+            topic=topic_text,
+            title=video_title,
+            n_scenes=5,
+            style="cyberpunk",
+            resolution="832x1216",
+            duration_mode="auto",
+            fps=30,
+            animation_effect="pulse",
+            animation_level=1,
+            ken_burns=True,
+            intro_card=False,
+            transitions=True,
+            job_type="tts"
+        )
+        logging.info(f"[green]✓ Video Vertical de Ensayo (TikTok) encolado automáticamente: {video_title}[/]")
+    except Exception as e:
+        logging.error(f"[!] Fallo al encolar auto-video para TikTok: {e}")
 
 def publish_changes():
     """Hace git push del portal."""
