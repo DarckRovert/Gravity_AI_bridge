@@ -32,14 +32,14 @@ def run_agent(script_path: str, agent_name: str):
         result = subprocess.run(
             ["python", script_path],
             cwd=BASE_DIR,
-            timeout=600  # 10 min máximo por agente
+            timeout=2700  # 45 min máximo por agente (para tolerar la cascada completa de LLMs)
         )
         if result.returncode == 0:
             print(f"[{datetime.now().strftime('%H:%M:%S')}] [{agent_name}] ✓ Completado exitosamente.")
         else:
             print(f"[{datetime.now().strftime('%H:%M:%S')}] [{agent_name}] ⚠ Finalizó con código {result.returncode}.")
     except subprocess.TimeoutExpired:
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] [{agent_name}] ✗ Timeout. El agente tardó más de 10 minutos.")
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] [{agent_name}] ✗ Timeout. El agente tardó más de 45 minutos (Cascada agotada).")
     except Exception as e:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] [{agent_name}] ✗ Error: {e}")
 
