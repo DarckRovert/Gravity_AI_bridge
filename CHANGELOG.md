@@ -4,6 +4,15 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
+## [V16.1 PRO] Resiliencia de APIs & Field Reporters · 20/06/2026
+
+**[ESTABILIDAD BAJO ALTA CARGA Y EXPANSIÓN DEL ECOSISTEMA]**
+
+### Provider Manager (Local LLMs)
+- **Tolerancia a Estrangulamiento de RAM (`openai_compat_provider.py`)**: Se extendió drásticamente el `timeout` de los *health checks* de 0.8s a 2.5s. Esto previene que el Bridge descarte erróneamente a proveedores locales (como LM Studio u Ollama) cuando el procesador o la RAM están saturados, garantizando un enlace robusto con la IA en escenarios de alto estrés computacional.
+
+---
+
 ## [V16.0 PRO] Motor Cinematic V2.0 PBR — God-Tier Visual Engine · 02/06/2026
 
 **[EVOLUCIÓN A MOTOR GRÁFICO HÍBRIDO GLSL/REMOTION CON POST-PROCESADO HOLLYWOOD]**
