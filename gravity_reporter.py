@@ -402,6 +402,31 @@ def update_news_json(new_article: Dict[str, Any]):
     with open(NEWS_JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(news_list, f, indent=2, ensure_ascii=False)
     logging.info(f"[+] Artículo '{new_article.get('title', 'Sin Título')}' agregado con éxito a news.json")
+    
+    # --- AUTO-ENCOLAR VIDEO DE TIKTOK ---
+    try:
+        from core.video.pipeline import add_job
+        topic_text = f"Resumen de Noticia: {new_article.get('title', '')}. {new_article.get('excerpt', '')}"
+        video_title = f"TikTok: {new_article.get('title', '')}"[:60]
+        
+        add_job(
+            topic=topic_text,
+            title=video_title,
+            n_scenes=5,
+            style="cyberpunk",
+            resolution="832x1216",
+            duration_mode="auto",
+            fps=30,
+            animation_effect="pulse",
+            animation_level=1,
+            ken_burns=True,
+            intro_card=False,
+            transitions=True,
+            job_type="tts"
+        )
+        logging.info(f"[green]✓ Video Vertical (TikTok) encolado automáticamente: {video_title}[/]")
+    except Exception as e:
+        logging.error(f"[!] Fallo al encolar auto-video para TikTok: {e}")
 
 def generate_sitemap():
     """Genera un archivo sitemap.xml básico en la carpeta public de Vite para SEO."""

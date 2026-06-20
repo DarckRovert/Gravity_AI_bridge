@@ -265,6 +265,31 @@ def update_science_json(new_article: Dict[str, Any]):
     with open(SCIENCE_JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(articles, f, indent=2, ensure_ascii=False)
     logging.info(f"[+] Artículo '{new_article.get('title')}' guardado en science.json")
+    
+    # --- AUTO-ENCOLAR VIDEO CIENTÍFICO DE TIKTOK ---
+    try:
+        from core.video.pipeline import add_job
+        topic_text = f"Sabías que: {new_article.get('title', '')}. {new_article.get('excerpt', '')}"
+        video_title = f"TikTok Science: {new_article.get('title', '')}"[:60]
+        
+        add_job(
+            topic=topic_text,
+            title=video_title,
+            n_scenes=5,
+            style="cyberpunk",
+            resolution="832x1216",
+            duration_mode="auto",
+            fps=30,
+            animation_effect="pulse",
+            animation_level=1,
+            ken_burns=True,
+            intro_card=False,
+            transitions=True,
+            job_type="tts"
+        )
+        logging.info(f"[green]✓ Video Vertical Científico (TikTok) encolado automáticamente: {video_title}[/]")
+    except Exception as e:
+        logging.error(f"[!] Fallo al encolar auto-video para TikTok: {e}")
 
 def publish_changes():
     import subprocess
