@@ -224,7 +224,7 @@ export const MissionControl: React.FC = () => {
             {[1,2,3].map(i => (
               <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-card border border-border-subtle">
                 <div className="text-xs text-text-muted font-mono w-20">10:42:{10+i} AM</div>
-                <div className="flex-1 text-sm text-text-primary">Servicio base sincronizado con Gravity Brain V15.2 PRO.</div>
+                <div className="flex-1 text-sm text-text-primary">Servicio base sincronizado con Gravity Brain V16.0 PRO.</div>
                 <div className="px-2 py-1 rounded bg-status-success/10 text-status-success text-[10px] font-bold">INFO</div>
               </div>
             ))}

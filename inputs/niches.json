@@ -94,9 +94,9 @@
       "bgm_type": "documental",
       "n_scenes": 60,
       "estimated_cpm_usd": 5.0,
-      "times_used": 4,
-      "last_used": "2026-05-10T08:00:02.020755Z",
-      "last_topic_used": "Los 10 lugares más extremos de la Tierra"
+      "times_used": 5,
+      "last_used": "2026-06-21T02:30:26.004132Z",
+      "last_topic_used": "Los animales más peligrosos del mundo"
     },
     {
       "id": "motivacion_exito",
@@ -112,9 +112,9 @@
       "bgm_type": "heroico",
       "n_scenes": 60,
       "estimated_cpm_usd": 7.0,
-      "times_used": 4,
-      "last_used": "2026-05-10T08:00:00.014612Z",
-      "last_topic_used": "El método que usan los millonarios para no perder el tiempo"
+      "times_used": 5,
+      "last_used": "2026-06-21T02:30:23.990906Z",
+      "last_topic_used": "Cómo reprogramar tu mente para el éxito"
     }
   ]
 }

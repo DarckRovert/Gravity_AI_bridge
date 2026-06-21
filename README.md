@@ -81,7 +81,7 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 | 📋 Audit Log | Historial de peticiones con rotación automática |
 | ⚙️ Configuración | API keys, modelo activo, links rápidos |
 
-### 🔄 Multi-Session Bridge V15.2 PRO (`core/session_runner.py`)
+### 🔄 Multi-Session Bridge V16.0 PRO (`core/session_runner.py`)
 - `CapacityWake` + `SessionSpawner`: hasta 32 subprocesos de agente aislados simultáneos.
 - Spawn vía UI con selector de **rol** (auditor/planner/coder/researcher/executor).
 - Kill de workers activos con estado PID en tiempo real.
@@ -148,7 +148,7 @@ Sistema pasivo integrado en el pipeline de renderizado que multiplica los ingres
 - Pre-flight MySQL antes de arrancar (evita corrupción de Character-Files).
 - Auto-backup `mysqldump` en cierre, historial de jugadores, exposición WAN.
 
-### 🎥 OBS Studio Control & Gravity Spark V15.2 PRO (`core/obs_client.py` & `core/obs_spark_engine.py`)
+### 🎥 OBS Studio Control & Gravity Spark V16.0 PRO (`core/obs_client.py` & `core/obs_spark_engine.py`)
 - **Control Total de OBS**: Auto-conexión vía WebSocket v5. Gestiona escenas, fuentes, mute/volumen, streaming y grabación desde la API.
 - **Gravity Spark (Motor de Overlays AI)**: Reemplaza costosos servicios de overlays web. Genera código HTML/JS autocontenido en tiempo real usando tu LLM local, inyectándolo directamente como `Browser Source` en OBS.
 - Capacidad de **modificar overlays al vuelo** ("hazlo azul", "añade un borde neón") sin recargar OBS.
@@ -196,7 +196,7 @@ python bridge_server.py
 Dashboard disponible en: `http://localhost:7860`
 
 ### Instalación con Installer (Windows)
-Descargar `Gravity_AI_Bridge_V15.2_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
+Descargar `Gravity_AI_Bridge_V16.0_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
 
 ---
 

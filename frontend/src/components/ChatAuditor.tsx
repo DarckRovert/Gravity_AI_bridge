@@ -5,12 +5,12 @@ import type { Message } from '../types';
 export const ChatAuditor: React.FC = () => {
   const defaultMessage: Message = {
     role: 'system',
-    content: `🤖 **Gravity AI V15.2 PRO [Agentic Core Edition] — En Línea**\n\nSistema de orquestación unificada con capacidades de Agente Autónomo de Sistema.\n\n**Módulos Activos:**\n- 🧠 **Gravity Brain V15.2**: LLM con conciencia sistémica total.\n- 📁 **Agentic ToolEngine**: Acceso directo al SO y sistema de archivos.\n- 🎥 **Video Studio**: Fábrica de monetización autónoma + YouTube auto-upload.\n- 📹 **V2V Live Studio**: Transformación de cámara en tiempo real vía DirectML.\n- 💰 **Revenue Tracker**: Afiliados CPA inyectados en cada descripción.\n\n**Comandos Estándar:**\n\`/help\` — Lista completa de comandos\n\`/status\` — Auditoría del sistema en vivo\n\`/video crear <tema>\` — Encola un video\n\n**Herramientas Agentic [V15.2 PRO]:**\n\`/fs_ver <ruta>\` — Lee cualquier archivo del proyecto\n\`/fs_listar <ruta>\` — Lista un directorio\n\`/fs_buscar <texto> <ruta>\` — Busca en el código fuente\n\`/terminal <comando>\` — Ejecuta comandos del sistema operativo`
+    content: `🤖 **Gravity AI V16.0 PRO [Agentic Core Edition] — En Línea**\n\nSistema de orquestación unificada con capacidades de Agente Autónomo de Sistema.\n\n**Módulos Activos:**\n- 🧠 **Gravity Brain V16.0**: LLM con conciencia sistémica total.\n- 📁 **Agentic ToolEngine**: Acceso directo al SO y sistema de archivos.\n- 🎥 **Video Studio**: Fábrica de monetización autónoma + YouTube auto-upload.\n- 📹 **V2V Live Studio**: Transformación de cámara en tiempo real vía DirectML.\n- 💰 **Revenue Tracker**: Afiliados CPA inyectados en cada descripción.\n\n**Comandos Estándar:**\n\`/help\` — Lista completa de comandos\n\`/status\` — Auditoría del sistema en vivo\n\`/video crear <tema>\` — Encola un video\n\n**Herramientas Agentic [V16.0 PRO]:**\n\`/fs_ver <ruta>\` — Lee cualquier archivo del proyecto\n\`/fs_listar <ruta>\` — Lista un directorio\n\`/fs_buscar <texto> <ruta>\` — Busca en el código fuente\n\`/terminal <comando>\` — Ejecuta comandos del sistema operativo`
   };
 
   const [messages, setMessages] = useState<Message[]>(() => {
     try {
-      const saved = localStorage.getItem('gravity_chat_auditor_history_v15');
+      const saved = localStorage.getItem('gravity_chat_auditor_history_v16');
       if (saved) {
         return JSON.parse(saved);
       }
@@ -33,7 +33,7 @@ export const ChatAuditor: React.FC = () => {
   }, [messages]);
 
   useEffect(() => {
-    localStorage.setItem('gravity_chat_auditor_history_v15', JSON.stringify(messages));
+    localStorage.setItem('gravity_chat_auditor_history_v16', JSON.stringify(messages));
   }, [messages]);
 
   const handleSend = async () => {
@@ -57,7 +57,7 @@ export const ChatAuditor: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'gravity-brain-v15',
+          model: 'gravity-brain-v16',
           messages: [...messages, { role: 'user', content: userMsg }].filter(m => m.role !== 'system'),
           stream: true
         })

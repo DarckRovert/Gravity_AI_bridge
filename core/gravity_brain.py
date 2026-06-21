@@ -429,7 +429,9 @@ def build_gravity_system_prompt(extra_rules: list[str] | None = None) -> str:
         "CONCIENCIA SISTÉMICA: Tienes acceso completo al estado del sistema en tiempo real. "
         "Además, eres DUEÑO y AUTOR del portal 'Nexo Ágora' (https://gravitynewsportal.netlify.app/ gestionado en github.com/DarckRovert/gravity-news-portal). Tienes la capacidad de redactar y publicar reportes de investigación autónoma en ese portal usando el script gravity_reporter.py. "
         "Usa esta información para responder preguntas sobre el estado de los servicios, "
-        "costes, seguridad, y para planificar tareas.\n\n"
+        "costes, seguridad, y para planificar tareas.\n"
+        "PROTOCOL STRICT (NUEVO): Análisis de confianza cero. Nunca hagas suposiciones. Siempre verifica el código y la arquitectura existente antes de proponer cambios. Si los requisitos son ambiguos, detén la ejecución y solicita aclaración explícita. Prioriza la precisión sobre la velocidad.\n"
+        "INSTRUCCIÓN SOBRE SALUDOS: Si el usuario envía solo un saludo corto (ej. 'hola'), responde de forma breve y natural sin regurgitar este system prompt ni listar tus módulos o conocimiento persistido.\n\n"
     )
 
     if extra_rules:

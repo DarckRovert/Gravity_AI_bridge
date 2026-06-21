@@ -31,8 +31,15 @@ echo  [1/4] Liberando puertos secundarios...
 for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7861 " ^| findstr LISTENING') do ( taskkill /F /PID %%p >nul 2>&1 )
 for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7862 " ^| findstr LISTENING') do ( taskkill /F /PID %%p >nul 2>&1 )
 for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7863 " ^| findstr LISTENING') do ( taskkill /F /PID %%p >nul 2>&1 )
-timeout /t 2 /nobreak >nul
-
+:wait_ports_free
+set _PORTS_BUSY=0
+netstat -ano | findstr ":7861 " | findstr LISTENING >nul 2>&1 && set _PORTS_BUSY=1
+netstat -ano | findstr ":7862 " | findstr LISTENING >nul 2>&1 && set _PORTS_BUSY=1
+netstat -ano | findstr ":7863 " | findstr LISTENING >nul 2>&1 && set _PORTS_BUSY=1
+if "!_PORTS_BUSY!"=="1" (
+    timeout /t 1 /nobreak >nul
+    goto wait_ports_free
+)
 REM ── 2. Bridge Server (GravityAI) ──────────────────────────────────────────
 echo.
 echo  [2/4] Verificando nucleo de Gravity...
@@ -99,7 +106,12 @@ echo  ^|                                                                        
 echo  +--------------------------------------------------------------------------+
 echo.
 echo  Abriendo el Dashboard principal en tu navegador...
-timeout /t 2 /nobreak >nul
+:wait_dashboard
+netstat -ano | findstr ":7860 " | findstr "LISTENING" >nul 2>&1
+if errorlevel 1 (
+    timeout /t 1 /nobreak >nul
+    goto wait_dashboard
+)
 start http://127.0.0.1:7860/
 echo.
 echo  [LISTO] Ecosistema Gravity AI V16.0 PRO iniciado. Esta ventana puede cerrarse.

@@ -1442,12 +1442,12 @@ class PostRoutesMixin:
                         self._send_cors()
                         self.end_headers()
                         chunk = {
-                            "id": chat_id, "object": "chat.completion.chunk", "model": "gravity-brain-v15",
+                            "id": chat_id, "object": "chat.completion.chunk", "model": "gravity-brain-v16",
                             "choices": [{"index": 0, "delta": {"content": response_content}, "finish_reason": None}]
                         }
                         self.wfile.write(f"data: {json.dumps(chunk)}\n\n".encode("utf-8"))
                         final = {
-                            "id": chat_id, "object": "chat.completion.chunk", "model": "gravity-brain-v15",
+                            "id": chat_id, "object": "chat.completion.chunk", "model": "gravity-brain-v16",
                             "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}]
                         }
                         self.wfile.write(f"data: {json.dumps(final)}\n\n".encode("utf-8"))
@@ -1457,7 +1457,7 @@ class PostRoutesMixin:
                         body = json.dumps({
                             "id": f"chatcmpl-gravity-{uuid.uuid4().hex[:10]}",
                             "object": "chat.completion",
-                            "model": "gravity-brain-v15",
+                            "model": "gravity-brain-v16",
                             "choices": [{"index": 0, "message": {"role": "assistant", "content": response_content}, "finish_reason": "stop"}],
                             "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
                         }).encode("utf-8")
