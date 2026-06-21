@@ -28,25 +28,25 @@ if not exist "%ROOT%\bridge_server.py" (
 )
 
 REM ── 1. Liberar puertos secundarios previos (7861, 7862, 7863) ──────────────
-echo  [1/4] Liberando puertos secundarios...
-for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7861 " ^| findstr LISTENING') do ( taskkill /F /PID %%p >nul 2>&1 )
-for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7862 " ^| findstr LISTENING') do ( taskkill /F /PID %%p >nul 2>&1 )
-for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7863 " ^| findstr LISTENING') do ( taskkill /F /PID %%p >nul 2>&1 )
-set _PORT_RETRIES=0
-:wait_ports_free
-set _PORTS_BUSY=0
-netstat -ano | findstr ":7861 " | findstr LISTENING >nul 2>&1 && set _PORTS_BUSY=1
-netstat -ano | findstr ":7862 " | findstr LISTENING >nul 2>&1 && set _PORTS_BUSY=1
-netstat -ano | findstr ":7863 " | findstr LISTENING >nul 2>&1 && set _PORTS_BUSY=1
-if "!_PORTS_BUSY!"=="1" (
-    set /a _PORT_RETRIES+=1
-    if !_PORT_RETRIES! lss 10 (
-        timeout /t 1 /nobreak >nul
-        goto wait_ports_free
-    ) else (
-        echo  [!] Advertencia: No se pudieron liberar todos los puertos secundarios.
-    )
-)
+echo  [1/4] Omitiendo liberación de puertos para no cerrar al agente local...
+REM for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7861 " ^| findstr LISTENING') do ( taskkill /F /PID %%p >nul 2>&1 )
+REM for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7862 " ^| findstr LISTENING') do ( taskkill /F /PID %%p >nul 2>&1 )
+REM for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7863 " ^| findstr LISTENING') do ( taskkill /F /PID %%p >nul 2>&1 )
+REM set _PORT_RETRIES=0
+REM :wait_ports_free
+REM set _PORTS_BUSY=0
+REM netstat -ano | findstr ":7861 " | findstr LISTENING >nul 2>&1 && set _PORTS_BUSY=1
+REM netstat -ano | findstr ":7862 " | findstr LISTENING >nul 2>&1 && set _PORTS_BUSY=1
+REM netstat -ano | findstr ":7863 " | findstr LISTENING >nul 2>&1 && set _PORTS_BUSY=1
+REM if "!_PORTS_BUSY!"=="1" (
+REM     set /a _PORT_RETRIES+=1
+REM     if !_PORT_RETRIES! lss 10 (
+REM         timeout /t 1 /nobreak >nul
+REM         goto wait_ports_free
+REM     ) else (
+REM         echo  [!] Advertencia: No se pudieron liberar todos los puertos secundarios.
+REM     )
+REM )
 REM ── 2. Bridge Server (GravityAI) ──────────────────────────────────────────
 echo.
 echo  [2/4] Verificando nucleo de Gravity...
