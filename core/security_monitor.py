@@ -392,14 +392,14 @@ def _scan_process_behavior() -> None:
                         try:
                             cmd_list = proc.cmdline()
                             if cmd_list and len(cmd_list) > 1:
-                                # El primer argumento es la shell. Verificamos el comando real.
+                                import re
+                                # El primer argumento es la shell. Extraemos el comando real.
                                 full_cmd = " ".join(cmd_list[1:]).lower()
-                                # Limpiar flags comunes de ejecución de shells
-                                if full_cmd.startswith("/c "): full_cmd = full_cmd[3:].strip()
-                                elif full_cmd.startswith("-c "): full_cmd = full_cmd[3:].strip()
+                                # Limpiar flags comunes de ejecución y comillas
+                                full_cmd = re.sub(r'^(?:/c|-c|-command)\s+', '', full_cmd).strip(' "\'')
                                 
                                 # Whitelist estricta: el comando DEBE empezar con el binario legítimo
-                                safe_cmds = ["git ", "pip ", "npm ", "uv ", "build", "conda", "activate"]
+                                safe_cmds = ["git ", "pip ", "npm ", "uv ", "build", "conda ", "activate "]
                                 if any(full_cmd.startswith(safe) for safe in safe_cmds):
                                     continue
                         except Exception:
