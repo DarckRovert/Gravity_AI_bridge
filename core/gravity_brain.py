@@ -29,7 +29,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KNOWLEDGE_FILE = os.path.join(BASE_DIR, "_knowledge.json")
 SETTINGS_FILE = os.path.join(BASE_DIR, "_settings.json")
 
-APP_VERSION = "15.1"
+APP_VERSION = "16.0"
 
 # ── Comandos disponibles del sistema (chat slash commands) ────────────────────
 
@@ -613,6 +613,31 @@ def parse_chat_commands(user_message: str) -> Optional[dict]:
         meta = msg.split(" ", 1)[1].strip()
         return {"command": "trigger_ooda", "args": {"meta": meta}, "api_action": "POST /v1/autonomy/trigger", "user_feedback": f"Iniciando ciclo OODA para: '{meta[:60]}'"}
 
+    if msg.lower().startswith("/modelo"):
+        parts = msg.split(" ", 1)
+        target = parts[1].strip() if len(parts) > 1 else ""
+        return {
+            "command": "change_model", 
+            "args": {"target": target}, 
+            "api_action": "POST /v1/model/lock", 
+            "user_feedback": f"Cambiando proveedor a '{target}'" if target else "Restaurando IA a modo Automático..."
+        }
+
+    if msg.lower().startswith("/rag "):
+        state = msg.split(" ", 1)[1].strip()
+        return {"command": "toggle_rag", "args": {"state": state}, "api_action": "POST /v1/rag/toggle", "user_feedback": f"Cambiando estado RAG a: '{state}'"}
+
+    if msg.lower().startswith("/fabrica "):
+        prompt = msg.split(" ", 1)[1].strip()
+        return {"command": "run_factory", "args": {"prompt": prompt}, "api_action": "POST /v1/factory/generate", "user_feedback": "Iniciando Fábrica de Software. Esto puede tardar varios minutos..."}
+
+    if msg.lower() in ("/tareas", "/jobs"):
+        return {"command": "list_tasks", "args": {}, "api_action": "GET /v1/status", "user_feedback": "Consultando el Monitor de Tareas en Segundo Plano..."}
+
+    if msg.lower().startswith("/investiga "):
+        query = msg.split(" ", 1)[1].strip()
+        return {"command": "web_search", "args": {"query": query}, "api_action": "GET /v1/tools/search", "user_feedback": f"Investigando en internet: '{query}'"}
+
     return None
 
 
@@ -625,7 +650,106 @@ def execute_system_command(command_info: dict) -> dict:
     args = command_info.get("args", {})
 
     try:
-        if cmd == "create_plan":
+        if cmd == "change_model":
+            target = args.get("target", "").lower()
+            settings_path = os.path.join(BASE_DIR, "_settings.json")
+            
+            with _brain_lock:
+                for i in range(5):
+                    try:
+                        with open(settings_path, "r", encoding="utf-8") as f:
+                            settings = json.load(f)
+                        
+                        if not target or target in ("auto", "automatico", "dinamico"):
+                            settings["model_locked"] = False
+                            settings.pop("locked_provider", None)
+                            settings.pop("locked_model", None)
+                            msg_res = "✓ Modo **Automático** activado. El sistema elegirá dinámicamente entre Nube y Local según disponibilidad."
+                        elif "local" in target or "lm" in target or "studio" in target or target == "2":
+                            settings["model_locked"] = True
+                            settings["locked_provider"] = "LM Studio"
+                            settings["locked_model"] = "local-model"
+                            msg_res = "✓ Modelo anclado exitosamente a **LM Studio (Local)**. Todas las peticiones irán por la red local."
+                        elif "nube" in target or "nvidia" in target or target == "1":
+                            settings["model_locked"] = True
+                            settings["locked_provider"] = "Nvidia NIM"
+                            settings["locked_model"] = "meta/llama-3.3-70b-instruct"
+                            msg_res = "✓ Modelo anclado exitosamente a **Nvidia NIM (Nube)**. Maxima capacidad de razonamiento activada."
+                        else:
+                            return {"ok": False, "result_text": "✗ Comando inválido. Opciones válidas:\n- `/modelo auto` (Recomendado)\n- `/modelo local`\n- `/modelo nube`"}
+
+                        with open(settings_path, "w", encoding="utf-8") as f:
+                            json.dump(settings, f, indent=4, ensure_ascii=False)
+                        break
+                    except Exception as e:
+                        if i == 4:
+                            return {"ok": False, "result_text": f"✗ Error accediendo a configuración: {e}"}
+                        time.sleep(0.05)
+                        
+            return {"ok": True, "result_text": msg_res}
+
+        elif cmd == "toggle_rag":
+            state = args.get("state", "").lower()
+            settings_path = os.path.join(BASE_DIR, "_settings.json")
+            try:
+                with open(settings_path, "r", encoding="utf-8") as f:
+                    settings = json.load(f)
+                if state in ("on", "true", "1", "activar"):
+                    settings["rag_enabled"] = True
+                    msg_res = "✓ Cerebro Documental (RAG) **ACTIVADO**. La IA buscará respuestas en tus PDFs y archivos locales."
+                else:
+                    settings["rag_enabled"] = False
+                    msg_res = "✓ Cerebro Documental (RAG) **DESACTIVADO**. La IA usará solo su base de datos general."
+                with open(settings_path, "w", encoding="utf-8") as f:
+                    json.dump(settings, f, indent=4, ensure_ascii=False)
+                return {"ok": True, "result_text": msg_res}
+            except Exception as e:
+                return {"ok": False, "result_text": f"✗ Error modificando configuración RAG: {e}"}
+
+        elif cmd == "run_factory":
+            import urllib.request
+            from core.config_manager import config
+            port = config.get("server.port", 7860)
+            prompt = args.get("prompt", "")
+            try:
+                req = urllib.request.Request(f"http://127.0.0.1:{port}/v1/factory/generate", data=json.dumps({"prompt": prompt}).encode(), headers={'Content-Type': 'application/json'})
+                resp = urllib.request.urlopen(req, timeout=600)
+                res = json.loads(resp.read())
+                if res.get("ok"):
+                    return {"ok": True, "result_text": f"✓ **Fábrica de Software Finalizada**\n\nEl proyecto se ha compilado y comprimido correctamente.\n📁 Archivo: `{res.get('filename')}`\n📄 Archivos creados: {res.get('files_created')}\n\nPuedes encontrar el ZIP en la carpeta `_entregables/` de Gravity."}
+                else:
+                    return {"ok": False, "result_text": f"✗ Error en la fábrica: {res.get('error', 'desconocido')}"}
+            except Exception as e:
+                return {"ok": False, "result_text": f"✗ Error al contactar el motor de fábrica: {e}"}
+
+        elif cmd == "list_tasks":
+            from core import video_pipeline
+            from core import infiltrator
+            import psutil
+            
+            lines = ["📋 **Monitor de Tareas Activas:**\n"]
+            vid_status = _get_video_status()
+            lines.append(f"🎥 **Video Studio:**\n  {vid_status}")
+            
+            if hasattr(infiltrator, "manager") and infiltrator.manager.is_running:
+                lines.append("🕵️ **Infiltrator OSINT:**\n  🟢 Activo y buscando oportunidades.")
+            else:
+                lines.append("🕵️ **Infiltrator OSINT:**\n  🔴 Apagado.")
+                
+            try:
+                from core import v2v_engine
+                if hasattr(v2v_engine, "is_running") and v2v_engine.is_running():
+                    lines.append("📹 **VTuber (V2V):**\n  🟢 Renderizando en tiempo real.")
+                else:
+                    lines.append("📹 **VTuber (V2V):**\n  🔴 Apagado.")
+            except ImportError:
+                lines.append("📹 **VTuber (V2V):**\n  🔴 Módulo no disponible.")
+                
+            mem = psutil.virtual_memory()
+            lines.append(f"\n💻 **RAM Usada:** {mem.percent}%")
+            return {"ok": True, "result_text": "\n".join(lines)}
+
+        elif cmd == "create_plan":
             tarea = args.get("tarea", "")
             plan_file = os.path.join(BASE_DIR, "_gravity_plan.md")
             

@@ -50,12 +50,12 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 - **Reasoning Stripper**: Filtra tokens `<think>` de modelos como DeepSeek-R1 via Regex antes de mostrarlos.
 - **Agent Routing**: Selección dinámica de modelo/proveedor según `--role` (auditor, planner, coder, researcher, executor).
 
-### 🖥️ Dashboard V15.2 PRO React SPA (`frontend/dist`)
+### 🖥️ Dashboard V16.1 PRO React SPA (`frontend/dist`)
 Panel de control unificado con 25 componentes orquestados en tiempo real:
 
 | Panel | Función |
 |---|---|
-| 💬 Chat Auditor | LLM chat con streaming SSE, plantillas y soporte multi-rol |
+| 💬 Chat Auditor | LLM chat con streaming SSE, plantillas, soporte multi-rol y **comandos nativos** (`/limpiar`, `/rag`, `/fabrica`, `/tareas`, `/investiga`) |
 | 🏠 Mission Control | KPIs en vivo: tokens, queue, costos, modelos activos |
 | 🎨 Vision Studio | UI iframe de Fooocus integrado |
 | 🖼️ Image Queue | Cola Fooocus con SSE stream de progreso |

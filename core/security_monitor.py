@@ -89,6 +89,15 @@ LEGITIMATE_PROCESS_NAMES: Set[str] = {
     "ollama.exe", "jan.exe", "koboldcpp.exe",
 }
 
+# Herramientas de hacking / debugging prohibidas (Anti-Tampering)
+BLACKLIST_TOOLS: Set[str] = {
+    "x64dbg.exe", "x32dbg.exe", "cheatengine-x86_64.exe", "cheatengine-i386.exe",
+    "procdump.exe", "procdump64.exe", "processhacker.exe", "wireshark.exe",
+    "tcpview.exe", "fiddler.exe", "burpsuite.exe", "ollydbg.exe", "ida64.exe"
+}
+
+MAX_IO_WRITE_MB = 500  # Limite de escritura sospechosa (MB)
+
 # Archivos críticos cuyo hash se monitorea
 CRITICAL_FILES: List[str] = [
     os.path.join(BASE_DIR, "bridge_server.py"),
@@ -100,6 +109,7 @@ CRITICAL_FILES: List[str] = [
 ]
 
 SCAN_INTERVAL_SECONDS: int = 60
+ACTIVE_DEFENSE: bool = True  # Transformar de IDS (monitoreo pasivo) a IPS (defensa letal activa)
 
 # ── Estado Global ──────────────────────────────────────────────────────────────
 
@@ -112,6 +122,8 @@ _state: Dict[str, Any] = {
     "open_ports": [],
     "suspicious_ports": [],
     "file_integrity": {},
+    "banned_ips": [],
+    "killed_tools": [],
     "psutil_available": _PSUTIL_OK,
     "scans_today": 0,
 }
@@ -225,7 +237,8 @@ def _scan_ports() -> Tuple[List[Dict[str, Any]], List[int]]:
             proc_name_lower = ""
             try:
                 if conn.pid:
-                    proc_name = psutil.Process(conn.pid).name()
+                    p_name = psutil.Process(conn.pid).name()
+                    proc_name = p_name if p_name else "?"
                     proc_name_lower = proc_name.lower()
             except Exception:
                 pass
@@ -246,10 +259,21 @@ def _scan_ports() -> Tuple[List[Dict[str, Any]], List[int]]:
 
             if is_suspicious:
                 suspicious.append(port)
-                _record_alert(
-                    "WARNING",
-                    f"Puerto no reconocido en escucha: {port} (proceso: {proc_name})"
-                )
+                alert_msg = f"Puerto no reconocido en escucha: {port} (proceso: {proc_name})"
+                
+                # IPS: Defensa Activa (Matar proceso)
+                killed = False
+                if ACTIVE_DEFENSE and conn.pid:
+                    try:
+                        psutil.Process(conn.pid).kill()
+                        alert_msg += f" -> [DEFENSA ACTIVA] Proceso PID {conn.pid} aniquilado."
+                        _record_alert("ACTION", alert_msg)
+                        killed = True
+                    except Exception as e:
+                        alert_msg += f" -> [FALLO DEFENSA] Error al matar: {e}"
+                
+                if not killed:
+                    _record_alert("WARNING", alert_msg)
 
             open_ports.append({
                 "port":       port,
@@ -284,19 +308,171 @@ def _scan_file_integrity() -> Dict[str, Dict[str, Any]]:
                 _baseline_hashes[path] = current_hash
             results[fname] = {"status": "baseline_set", "hash": current_hash[:12] + "..."}
         elif current_hash != baseline_hash:
-            _record_alert(
-                "CRITICAL",
-                f"Modificación externa detectada en archivo crítico: {fname}"
-            )
-            results[fname] = {
-                "status": "MODIFIED",
-                "hash": current_hash[:12] + "...",
-                "baseline": baseline_hash[:12] + "...",
-            }
+            alert_msg = f"Modificación externa detectada en archivo crítico: {fname}"
+            
+            # IPS: Defensa Activa (Curación por Git Restore)
+            restored = False
+            if ACTIVE_DEFENSE:
+                try:
+                    # Sobreescribimos cualquier inyección restaurando del repositorio git
+                    subprocess.run(["git", "restore", path], cwd=BASE_DIR, check=True)
+                    new_hash = _sha256(path)
+                    with _lock:
+                        if new_hash:
+                            _baseline_hashes[path] = new_hash
+                            
+                    alert_msg += " -> [DEFENSA ACTIVA] Archivo curado y restaurado vía Git."
+                    _record_alert("ACTION", alert_msg)
+                    results[fname] = {"status": "RESTORED", "hash": new_hash[:12] + "..." if new_hash else "?"}
+                    restored = True
+                except Exception as e:
+                    alert_msg += f" -> [FALLO DEFENSA] No se pudo restaurar: {e}"
+            
+            if not restored:
+                _record_alert("CRITICAL", alert_msg)
+                results[fname] = {
+                    "status": "MODIFIED",
+                    "hash": current_hash[:12] + "...",
+                    "baseline": baseline_hash[:12] + "...",
+                }
         else:
             results[fname] = {"status": "ok", "hash": current_hash[:12] + "..."}
 
     return results
+
+
+def _scan_anti_tampering() -> List[str]:
+    """Detecta y aniquila herramientas de debugging o análisis de memoria (Anti-Dump)."""
+    if not _PSUTIL_OK:
+        return []
+        
+    killed = []
+    try:
+        for proc in psutil.process_iter(["pid", "name"]):
+            try:
+                name = (proc.info.get("name") or "").lower()
+                if name in BLACKLIST_TOOLS:
+                    if ACTIVE_DEFENSE:
+                        proc.kill()
+                        _record_alert("CRITICAL", f"[ANTI-TAMPERING] Herramienta prohibida aniquilada: {name} (PID {proc.info['pid']})")
+                    else:
+                        _record_alert("WARNING", f"[ANTI-TAMPERING] Herramienta prohibida detectada: {name}")
+                    killed.append(name)
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+    except Exception:
+        pass
+    return killed
+
+
+def _scan_process_behavior() -> None:
+    """Previene ejecución de comandos shell desde procesos sensibles (Prevención RCE)."""
+    if not _PSUTIL_OK:
+        return
+        
+    try:
+        my_pid = os.getpid()
+        for proc in psutil.process_iter(["pid", "name", "ppid"]):
+            try:
+                name = (proc.info.get("name") or "").lower()
+                ppid = proc.info.get("ppid")
+                
+                # Shells ejecutados directamente por Gravity
+                if name in ["cmd.exe", "powershell.exe", "pwsh.exe", "bash.exe", "sh.exe"]:
+                    if ppid == my_pid:
+                        # Evitar falsos positivos: revisar cmdline
+                        try:
+                            cmd_list = proc.cmdline()
+                            cmdline = " ".join(cmd_list).lower() if cmd_list else ""
+                            # Whitelist de subprocesos legítimos comunes
+                            if any(safe in cmdline for safe in ["git ", "pip ", "npm ", "uv ", "build", "conda", "activate"]):
+                                continue
+                        except Exception:
+                            pass
+                        
+                        if ACTIVE_DEFENSE:
+                            try:
+                                proc.kill()
+                                _record_alert("CRITICAL", f"[ANTI-RCE] Intento de shell sospechoso bloqueado: {name} (PID {proc.info['pid']})")
+                            except psutil.NoSuchProcess:
+                                pass
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+    except Exception:
+        pass
+
+
+def _scan_network_threats() -> List[str]:
+    """Banea IPs externas que realicen un número excesivo de conexiones concurrentes (Anti-DoS/Brute-Force)."""
+    if not _PSUTIL_OK:
+        return []
+    
+    banned = []
+    ip_connections = {}
+    MAX_CONCURRENT_CONNECTIONS = 50  # Umbral para considerar DoS/DDoS
+    
+    try:
+        for conn in psutil.net_connections(kind="tcp"):
+            if conn.raddr:
+                r_ip = conn.raddr.ip
+                l_port = conn.laddr.port
+                
+                # Ignorar IPs locales (Loopback y LAN)
+                if r_ip and not (r_ip.startswith("127.") or r_ip.startswith("192.168.") or r_ip.startswith("10.") or r_ip == "::1"):
+                    # Solo contar conexiones concurrentes a los puertos de Gravity
+                    if l_port in WHITELIST_PORTS:
+                        ip_connections[r_ip] = ip_connections.get(r_ip, 0) + 1
+
+        for r_ip, count in ip_connections.items():
+            if count > MAX_CONCURRENT_CONNECTIONS and ACTIVE_DEFENSE:
+                with _lock:
+                    if r_ip not in _state.get("banned_ips", []):
+                        cmd = f'netsh advfirewall firewall add rule name="GravityBan_DoS_{r_ip}" dir=in action=block remoteip={r_ip}'
+                        subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        _state.setdefault("banned_ips", []).append(r_ip)
+                        banned.append(r_ip)
+                        _record_alert("CRITICAL", f"[FIREWALL] IP externa {r_ip} bloqueada por ataque DoS ({count} conexiones simultáneas)")
+    except Exception:
+        pass
+    return banned
+
+
+def _scan_io_anomalies() -> None:
+    """Busca procesos con alta I/O que podrían ser ransomware."""
+    if not _PSUTIL_OK:
+        return
+        
+    try:
+        for proc in psutil.process_iter(["pid", "name", "io_counters"]):
+            try:
+                io = proc.info.get("io_counters")
+                if io:
+                    write_mb = io.write_bytes / (1024 * 1024)
+                    if write_mb > MAX_IO_WRITE_MB:
+                        name = (proc.info.get("name") or "").lower()
+                        
+                        # Prevenir falsos positivos: Whitelist de ejecutables y directorios confiables
+                        exe_path = ""
+                        try:
+                            exe_path = proc.exe().lower() if proc.exe() else ""
+                        except Exception:
+                            # Si no tenemos permisos para ver el exe, suele ser un proceso clave del sistema (NT AUTHORITY)
+                            # Lo ignoramos para no congelar el sistema operativo entero.
+                            continue
+                            
+                        if "windows\\" in exe_path or "program files" in exe_path or "steam" in exe_path or "epic games" in exe_path:
+                            continue
+
+                        if name not in LEGITIMATE_PROCESS_NAMES and name not in BLACKLIST_TOOLS:
+                            if ACTIVE_DEFENSE:
+                                proc.suspend()
+                                _record_alert("CRITICAL", f"[ANTI-RANSOMWARE] I/O masivo detectado ({write_mb:.1f} MB). Proceso SUSPENDIDO: {name}")
+                            else:
+                                _record_alert("WARNING", f"[ANTI-RANSOMWARE] I/O masivo en {name}: {write_mb:.1f} MB.")
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+    except Exception:
+        pass
 
 
 # ── Loop Principal ─────────────────────────────────────────────────────────────
@@ -308,6 +484,12 @@ def _monitor_loop() -> None:
             procs = _scan_processes()
             ports, suspicious = _scan_ports()
             integrity = _scan_file_integrity()
+            
+            # Nuevos escaneos EDR
+            killed_tools = _scan_anti_tampering()
+            _scan_process_behavior()
+            banned_ips = _scan_network_threats()
+            _scan_io_anomalies()
 
             # Calcular score real: 100 - penalizaciones por alertas
             with _lock:
@@ -337,6 +519,11 @@ def _monitor_loop() -> None:
                 _state["open_ports"] = ports
                 _state["suspicious_ports"] = suspicious
                 _state["file_integrity"] = integrity
+                
+                # Extender estado
+                if killed_tools:
+                    _state.setdefault("killed_tools", []).extend(killed_tools)
+                
                 _state["scans_today"] = _state.get("scans_today", 0) + 1
 
         except Exception:
@@ -365,6 +552,11 @@ def force_scan() -> Dict[str, Any]:
     procs = _scan_processes()
     ports, suspicious = _scan_ports()
     integrity = _scan_file_integrity()
+    
+    killed_tools = _scan_anti_tampering()
+    _scan_process_behavior()
+    banned_ips = _scan_network_threats()
+    _scan_io_anomalies()
 
     with _lock:
         _state["last_scan"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -373,6 +565,10 @@ def force_scan() -> Dict[str, Any]:
         _state["open_ports"] = ports
         _state["suspicious_ports"] = suspicious
         _state["file_integrity"] = integrity
+        
+        if killed_tools:
+            _state.setdefault("killed_tools", []).extend(killed_tools)
+            
         _state["scans_today"] = _state.get("scans_today", 0) + 1
         return dict(_state)
 

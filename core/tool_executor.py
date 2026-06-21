@@ -10,7 +10,13 @@ Garantiza exclusión mutua mediante RLock de la ejecución de código y tools co
 
 import re
 import threading
+import subprocess
+import tempfile
+import os
+import logging
 from typing import Dict, Any, List, Tuple
+
+log = logging.getLogger("gravity.tool_executor")
 
 from tools.code_runner import CodeRunner
 from tools.web_search  import WebSearch
@@ -77,6 +83,34 @@ class ToolExecutor:
     def run_first_code_block(self, ai_response: str, language: str = "") -> Tuple[bool, str]:
         """Helper extraído del propio code runner para uso directo del comando !run de forma thread-safe."""
         with _executor_lock:
+            # --- V16.5 PRO: Active Sandboxing ---
+            try:
+                # Comprobar si docker está disponible en el host
+                subprocess.run(["docker", "--version"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                
+                # Extraemos el código
+                match = re.search(r"```(?:python|py)?\s*(.*?)```", ai_response, re.DOTALL | re.IGNORECASE)
+                code_to_run = match.group(1).strip() if match else ai_response.strip()
+
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    script_path = os.path.join(tmpdir, "sandbox.py")
+                    with open(script_path, "w", encoding="utf-8") as f:
+                        f.write(code_to_run)
+                    
+                    log.info("[ToolExecutor] Ejecutando código en Docker Sandbox seguro...")
+                    res = subprocess.run(
+                        ["docker", "run", "--rm", "--network", "none", "-m", "512m", "-v", f"{tmpdir}:/sandbox", "python:3.10-slim", "python", "/sandbox/sandbox.py"],
+                        capture_output=True, text=True, timeout=15
+                    )
+                    
+                    if res.returncode == 0:
+                        return True, f"[Docker Sandbox] {res.stdout}"
+                    else:
+                        return False, f"[Sandbox Error] {res.stderr or res.stdout}"
+            except Exception as e:
+                log.debug(f"[ToolExecutor] Sandboxing falló o no disponible ({e}). Usando fallback local.")
+            
+            # --- Fallback Local ---
             res = self.tools["code_runner"].execute_from_text(ai_response, language)
             return res.success, res.stdout if res.success else res.stderr
 

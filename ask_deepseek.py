@@ -57,7 +57,7 @@ except ImportError:
 # ── Reasoning Stripper (módulo compartido) ───────────────────────────────────
 from core.reasoning_stripper import ReasoningStripper  # noqa: E402
 
-APP_VERSION    = "15.1"
+APP_VERSION    = "16.0"
 BASE_DIR       = os.path.dirname(__file__)
 KNOWLEDGE_FILE = os.path.join(BASE_DIR, "_knowledge.json")
 
@@ -884,3 +884,5 @@ if __name__ == "__main__":
     for tname, succ, out in tools.parse_and_execute_all(resp):
         if not succ:
             print(f"[Tool {tname} Error] {out}")
+
+# INYECCIÓN MALICIOSA TEST IPS

@@ -77,7 +77,7 @@ def _encrypt(plaintext: str) -> bytes:
     if platform.system() == "Windows":
         try:
             import win32crypt  # type: ignore[import-not-found]
-            return win32crypt.CryptProtectData(raw, None, None, None, None, 0)
+            return win32crypt.CryptProtectData(raw, None, None, None, None, 4)
         except Exception:
             pass
     # Fallback XOR

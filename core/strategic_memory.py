@@ -22,6 +22,13 @@ import time
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional
 
+try:
+    import networkx as nx
+    _NX_OK = True
+except ImportError:
+    nx = None
+    _NX_OK = False
+
 from core.logger import log
 
 BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -345,6 +352,57 @@ def get_summary(days: int = 30) -> Dict[str, Any]:
             return {"error": str(e)}
 
 
+def get_knowledge_graph() -> Dict[str, Any]:
+    """
+    Construye un Knowledge Graph in-memory a partir de decisiones y patrones,
+    usando NetworkX. Identifica los nodos (categorías/patrones) más centrales (PageRank).
+    """
+    if not _NX_OK:
+        return {"error": "NetworkX no está instalado. Instala networkx para usar Graph-RAG."}
+
+    G = nx.Graph()
+    with _db_lock:
+        try:
+            conn = _get_conn()
+            
+            # Nodos y aristas de Decisiones -> Categorías -> Outcomes
+            decisions = conn.execute("SELECT id, category, title, outcome FROM strategic_decisions LIMIT 100").fetchall()
+            for d in decisions:
+                node_id = f"dec_{d['id']}"
+                G.add_node(node_id, type="decision", title=d["title"])
+                G.add_node(d["category"], type="category")
+                G.add_node(d["outcome"], type="outcome")
+                
+                G.add_edge(node_id, d["category"], relation="belongs_to")
+                G.add_edge(node_id, d["outcome"], relation="resulted_in")
+
+            # Nodos de Patrones
+            patterns = conn.execute("SELECT pattern_key, hits FROM system_patterns LIMIT 100").fetchall()
+            for p in patterns:
+                node_id = f"pat_{p['pattern_key']}"
+                cat = p["pattern_key"].split(":")[0] if ":" in p["pattern_key"] else "general"
+                G.add_node(node_id, type="pattern", hits=p["hits"])
+                G.add_node(cat, type="category")
+                G.add_edge(node_id, cat, relation="related_to", weight=p["hits"])
+
+            conn.close()
+
+            # Análisis de centralidad (PageRank)
+            pagerank = nx.pagerank(G, weight="weight")
+            central_nodes = sorted(pagerank.items(), key=lambda x: x[1], reverse=True)[:5]
+            
+            return {
+                "nodes_count": G.number_of_nodes(),
+                "edges_count": G.number_of_edges(),
+                "most_central_nodes": [
+                    {"node": str(node), "score": round(score, 4)} 
+                    for node, score in central_nodes
+                ]
+            }
+        except Exception as e:
+            log.error(f"[StrategicMemory] Error en Knowledge Graph: {e}")
+            return {"error": str(e)}
+
 def get_brain_snapshot() -> str:
     """
     Retorna un resumen compacto para inyectar en el system prompt de Gravity.
@@ -375,6 +433,13 @@ def get_brain_snapshot() -> str:
             lines.append("Patrones detectados:")
             for p in patterns[:3]:
                 lines.append(f"  {p['pattern_key']} (×{p['hits']}): {str(p['pattern_val'])[:80]}")
+
+        # Inyectar Knowledge Graph Insights si está activo
+        graph_data = get_knowledge_graph()
+        if "error" not in graph_data:
+            lines.append("Insights Graph-RAG (Nodos Críticos):")
+            for c in graph_data.get("most_central_nodes", []):
+                lines.append(f"  - {c['node']} (centralidad: {c['score']})")
 
         return "\n".join(lines)
     except Exception as e:

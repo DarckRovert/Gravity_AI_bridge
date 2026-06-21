@@ -4,6 +4,9 @@ import yaml
 import time
 import logging
 import threading
+import urllib.request
+import urllib.error
+import json
 from typing import Dict, Any, Optional
 
 # psutil es opcional — si no está instalado el motor de stop funciona en modo reducido
@@ -142,12 +145,28 @@ def is_engine_running(provider_name: str) -> bool:
 
 
 def start_engine(provider_name: str) -> Dict[str, Any]:
-    """Inicia silenciosamente el motor si se conoce su ruta."""
+    """Inicia el motor, localmente o en un nodo Swarm si está configurado."""
+    c = get_config()
+    node_ip = c.get("swarm_node_ip")
+    path = get_engine_path(provider_name)
+
+    if node_ip and node_ip.lower() != "local":
+        log.info(f"[AI Process Manager] Delegando START de {provider_name} a nodo {node_ip}...")
+        try:
+            req = urllib.request.Request(
+                f"http://{node_ip}:8888/v1/swarm/engine",
+                data=json.dumps({"action": "start", "provider_name": provider_name, "executable_path": path}).encode("utf-8"),
+                headers={"Content-Type": "application/json", "Authorization": "Bearer GRAVITY_SWARM_TOKEN_16"}
+            )
+            with urllib.request.urlopen(req, timeout=5) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except Exception as e:
+            return {"success": False, "error": f"Error comunicando con Swarm Node ({node_ip}): {e}"}
+
     if is_engine_running(provider_name):
         log.info(f"[AI Process Manager] {provider_name} ya está en ejecución a nivel proceso. Evitando duplicados.")
         return {"success": True, "message": f"{provider_name} ya estaba corriendo."}
         
-    path = get_engine_path(provider_name)
     if not path or not os.path.exists(path):
         return {
             "success": False,
@@ -190,7 +209,23 @@ def start_engine(provider_name: str) -> Dict[str, Any]:
 
 
 def stop_engine(provider_name: str) -> Dict[str, Any]:
-    """Mata el proceso nativo buscando ejecutables coincidentes."""
+    """Mata el proceso nativo, local o remotamente si usa Swarm."""
+    c = get_config()
+    node_ip = c.get("swarm_node_ip")
+
+    if node_ip and node_ip.lower() != "local":
+        log.info(f"[AI Process Manager] Delegando STOP de {provider_name} a nodo {node_ip}...")
+        try:
+            req = urllib.request.Request(
+                f"http://{node_ip}:8888/v1/swarm/engine",
+                data=json.dumps({"action": "stop", "provider_name": provider_name}).encode("utf-8"),
+                headers={"Content-Type": "application/json", "Authorization": "Bearer GRAVITY_SWARM_TOKEN_16"}
+            )
+            with urllib.request.urlopen(req, timeout=5) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except Exception as e:
+            return {"success": False, "error": f"Error comunicando con Swarm Node ({node_ip}): {e}"}
+
     if not _PSUTIL_OK:
         return {"success": False, "error": "psutil no instalado. Ejecuta: pip install psutil"}
 

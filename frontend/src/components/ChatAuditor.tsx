@@ -43,6 +43,11 @@ export const ChatAuditor: React.FC = () => {
     setInput('');
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
     
+    if (userMsg.toLowerCase() === '/limpiar' || userMsg.toLowerCase() === '/reset') {
+      setMessages([defaultMessage]);
+      return;
+    }
+    
     setMessages(prev => [...prev, { role: 'user', content: userMsg }, { role: 'assistant', content: '' }]);
     setIsStreaming(true);
 

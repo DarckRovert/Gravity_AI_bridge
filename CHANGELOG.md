@@ -4,9 +4,16 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
-## [V16.1 PRO] Resiliencia de APIs & Field Reporters · 20/06/2026
+## [V16.1 PRO] Omniscient Chat Commands & Resiliencia · 20/06/2026
 
-**[ESTABILIDAD BAJO ALTA CARGA Y EXPANSIÓN DEL ECOSISTEMA]**
+**[COMANDOS NATIVOS EN CHAT Y ESTABILIDAD BAJO ALTA CARGA]**
+
+### Chat Auditor (Interfaz & Backend)
+- **Botón de Pánico de Memoria (`/limpiar` o `/reset`)**: Limpieza inmediata de la memoria local en React para evitar OOM (Out Of Memory) en LLMs locales, reseteando la UI sin recargar la página.
+- **Control RAG Dinámico (`/rag on/off`)**: Inyección de comando en el motor de ruteo (`gravity_brain.py`) para activar o desactivar la búsqueda documental en caliente, modificando el `_settings.json` instantáneamente.
+- **Invocador de Fábrica de Software (`/fabrica <idea>`)**: Vinculación síncrona mediante llamada interna a `POST /v1/factory/generate`, permitiendo desarrollar software empaquetado (.zip) directamente desde el chat web con feedback visual en tiempo real.
+- **Monitor de Tareas Universal (`/tareas` o `/jobs`)**: Consolidación del estado asíncrono de múltiples daemons (Video Studio, Infiltrator OSINT, VTuber V2V) y métricas de RAM física usando `psutil`, reportado en una consola virtual dentro del chat.
+- **Navegador Local On-Demand (`/investiga <tema>`)**: Alias inteligente que mapea hacia el scraper nativo `WebSearch`, dotando al modelo local de acceso a internet bajo demanda.
 
 ### Provider Manager (Local LLMs)
 - **Tolerancia a Estrangulamiento de RAM (`openai_compat_provider.py`)**: Se extendió drásticamente el `timeout` de los *health checks* de 0.8s a 2.5s. Esto previene que el Bridge descarte erróneamente a proveedores locales (como LM Studio u Ollama) cuando el procesador o la RAM están saturados, garantizando un enlace robusto con la IA en escenarios de alto estrés computacional.

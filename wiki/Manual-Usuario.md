@@ -42,6 +42,13 @@ El panel de chat principal con soporte multi-rol y streaming SSE.
 | **RAG Toggle** | Inyecta contexto de tu base de conocimiento local |
 | **Streaming SSE** | Los tokens aparecen en tiempo real sin esperar respuesta completa |
 
+**Comandos Nativos Soportados:**
+- `/limpiar` o `/reset`: Limpia la pantalla y el contexto de React para evitar que la memoria explote en modelos locales.
+- `/rag on` o `/rag off`: Enciende o apaga dinámicamente la inyección de documentos locales.
+- `/fabrica <idea>`: Ejecuta el motor de creación de software y devuelve un archivo ZIP.
+- `/tareas` o `/jobs`: Muestra un monitor en consola virtual de los módulos asíncronos (Video, Infiltrator, V2V, etc.).
+- `/investiga <tema>`: Utiliza la API de Firecrawl/WebSearch para inyectar contexto de la web al chat.
+
 **Tip:** Si tu mensaje contiene una URL, el sistema la raspa automáticamente (Firecrawl/urllib) e inyecta el contenido en el contexto.
 
 ---
