@@ -263,7 +263,8 @@ def _scan_ports() -> Tuple[List[Dict[str, Any]], List[int]]:
                     p = psutil.Process(conn.pid)
                     exe_path = p.exe().lower() if p.exe() else ""
                     cmd_line = " ".join(p.cmdline()).lower() if p.cmdline() else ""
-                    if ".gemini" in exe_path or ".gemini" in cmd_line:
+                    cwd_path = p.cwd().lower() if p.cwd() else ""
+                    if ".gemini" in exe_path or ".gemini" in cmd_line or ".gemini" in cwd_path:
                         is_suspicious = False
                 except Exception:
                     pass
