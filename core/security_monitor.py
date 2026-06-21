@@ -243,19 +243,22 @@ def _scan_ports() -> Tuple[List[Dict[str, Any]], List[int]]:
             except Exception:
                 pass
 
-            # Un puerto es sospechoso SOLO si:
-            # 1. No está en la whitelist de puertos conocidos del ecosistema, Y
-            # 2. El proceso dueño NO es un proceso legítimo conocido
+            # Un puerto es sospechoso si no está en la whitelist estricta.
+            # Endurecimiento: python/node NO tienen pase libre para abrir cualquier puerto.
             in_port_whitelist    = port in WHITELIST_PORTS
             is_legitimate_proc   = proc_name_lower in LEGITIMATE_PROCESS_NAMES
-            # Los puertos del sistema (<1024) siempre son seguros
-            is_system_port       = port <= 1024
+            is_system_proc       = proc_name_lower in ["svchost.exe", "system", "lsass.exe", "wininit.exe", "services.exe", "spoolsv.exe", "smss.exe"]
 
-            is_suspicious = (
-                not is_system_port
-                and not in_port_whitelist
-                and not is_legitimate_proc
-            )
+            if is_legitimate_proc:
+                # Si es un intérprete, SOLO puede abrir puertos conocidos del ecosistema
+                is_suspicious = not in_port_whitelist
+            else:
+                # Los puertos del sistema (<1024) solo son seguros si el proceso dueño es crítico de Windows
+                is_system_port = port <= 1024
+                if is_system_port and is_system_proc:
+                    is_suspicious = False
+                else:
+                    is_suspicious = not in_port_whitelist
 
             if is_suspicious:
                 suspicious.append(port)
@@ -342,7 +345,12 @@ def _scan_file_integrity() -> Dict[str, Dict[str, Any]]:
 
 
 def _scan_anti_tampering() -> List[str]:
-    """Detecta y aniquila herramientas de debugging o análisis de memoria (Anti-Dump)."""
+    """
+    Detecta y aniquila herramientas de debugging o análisis de memoria (Anti-Dump).
+    [!] LIMITACIÓN ZERO-TRUST: La detección se basa en nombres de proceso exactos.
+    Un atacante puede evadir esto renombrando el ejecutable malicioso.
+    Solución futura: Integración con reglas YARA o firmas SHA-256 en memoria.
+    """
     if not _PSUTIL_OK:
         return []
         
@@ -383,10 +391,17 @@ def _scan_process_behavior() -> None:
                         # Evitar falsos positivos: revisar cmdline
                         try:
                             cmd_list = proc.cmdline()
-                            cmdline = " ".join(cmd_list).lower() if cmd_list else ""
-                            # Whitelist de subprocesos legítimos comunes
-                            if any(safe in cmdline for safe in ["git ", "pip ", "npm ", "uv ", "build", "conda", "activate"]):
-                                continue
+                            if cmd_list and len(cmd_list) > 1:
+                                # El primer argumento es la shell. Verificamos el comando real.
+                                full_cmd = " ".join(cmd_list[1:]).lower()
+                                # Limpiar flags comunes de ejecución de shells
+                                if full_cmd.startswith("/c "): full_cmd = full_cmd[3:].strip()
+                                elif full_cmd.startswith("-c "): full_cmd = full_cmd[3:].strip()
+                                
+                                # Whitelist estricta: el comando DEBE empezar con el binario legítimo
+                                safe_cmds = ["git ", "pip ", "npm ", "uv ", "build", "conda", "activate"]
+                                if any(full_cmd.startswith(safe) for safe in safe_cmds):
+                                    continue
                         except Exception:
                             pass
                         
@@ -460,7 +475,17 @@ def _scan_io_anomalies() -> None:
                             # Lo ignoramos para no congelar el sistema operativo entero.
                             continue
                             
-                        if "windows\\" in exe_path or "program files" in exe_path or "steam" in exe_path or "epic games" in exe_path:
+                        # Prevenir falsos positivos: Whitelist de directorios confiables absolutos
+                        safe_prefixes = [
+                            "c:\\windows\\", 
+                            "c:\\program files\\", 
+                            "c:\\program files (x86)\\"
+                        ]
+                        # Evitar bypasses (ej. carpeta "steam" en el escritorio de un usuario)
+                        is_safe_dir = any(exe_path.startswith(p) for p in safe_prefixes)
+                        is_game_dir = ("\\steam\\" in exe_path or "\\epic games\\" in exe_path) and not exe_path.startswith("c:\\users\\")
+                        
+                        if is_safe_dir or is_game_dir:
                             continue
 
                         if name not in LEGITIMATE_PROCESS_NAMES and name not in BLACKLIST_TOOLS:
