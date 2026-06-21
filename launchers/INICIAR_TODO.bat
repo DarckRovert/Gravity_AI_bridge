@@ -31,14 +31,20 @@ echo  [1/4] Liberando puertos secundarios...
 for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7861 " ^| findstr LISTENING') do ( taskkill /F /PID %%p >nul 2>&1 )
 for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7862 " ^| findstr LISTENING') do ( taskkill /F /PID %%p >nul 2>&1 )
 for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7863 " ^| findstr LISTENING') do ( taskkill /F /PID %%p >nul 2>&1 )
+set _PORT_RETRIES=0
 :wait_ports_free
 set _PORTS_BUSY=0
 netstat -ano | findstr ":7861 " | findstr LISTENING >nul 2>&1 && set _PORTS_BUSY=1
 netstat -ano | findstr ":7862 " | findstr LISTENING >nul 2>&1 && set _PORTS_BUSY=1
 netstat -ano | findstr ":7863 " | findstr LISTENING >nul 2>&1 && set _PORTS_BUSY=1
 if "!_PORTS_BUSY!"=="1" (
-    timeout /t 1 /nobreak >nul
-    goto wait_ports_free
+    set /a _PORT_RETRIES+=1
+    if !_PORT_RETRIES! lss 10 (
+        timeout /t 1 /nobreak >nul
+        goto wait_ports_free
+    ) else (
+        echo  [!] Advertencia: No se pudieron liberar todos los puertos secundarios.
+    )
 )
 REM ── 2. Bridge Server (GravityAI) ──────────────────────────────────────────
 echo.
@@ -105,14 +111,19 @@ echo  ^|   [!] NO cierres ventanas de motores mientras trabajas                 
 echo  ^|                                                                          ^|
 echo  +--------------------------------------------------------------------------+
 echo.
-echo  Abriendo el Dashboard principal en tu navegador...
-:wait_dashboard
-netstat -ano | findstr ":7860 " | findstr "LISTENING" >nul 2>&1
-if errorlevel 1 (
-    timeout /t 1 /nobreak >nul
-    goto wait_dashboard
+if "!_BRIDGE_OK!"=="1" (
+    echo  Esperando a que el Dashboard responda...
+    :wait_dashboard
+    netstat -ano | findstr ":7860 " | findstr "LISTENING" >nul 2>&1
+    if errorlevel 1 (
+        timeout /t 1 /nobreak >nul
+        goto wait_dashboard
+    )
+    echo  Abriendo el Dashboard principal en tu navegador...
+    start http://127.0.0.1:7860/
+) else (
+    echo  [!] Dashboard no se abrira porque el servicio GravityAI esta detenido.
 )
-start http://127.0.0.1:7860/
 echo.
 echo  [LISTO] Ecosistema Gravity AI V16.0 PRO iniciado. Esta ventana puede cerrarse.
 pause
