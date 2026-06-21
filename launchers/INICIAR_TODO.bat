@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 title Gravity AI Bridge V16.0 PRO -- Arranque Completo
 setlocal enabledelayedexpansion
 color 0B
@@ -56,7 +57,9 @@ if not errorlevel 1 (
     echo  [OK] GravityAI esta corriendo en segundo plano, Puerto 7860 activo.
 ) else (
     echo  [!] Gravity no esta respondiendo en el puerto 7860.
-    echo  [!] Verifica que el servicio de Windows GravityAI este iniciado.
+    echo  [+] Iniciando puente de Gravity AI automaticamente...
+    start "Gravity AI Bridge Server" cmd /k "cd /d "%ROOT%" && python bridge_server.py"
+    set _BRIDGE_OK=1
 )
 
 REM ── 3. Motor Fooocus CPU (7861) ───────────────────────────────────────────

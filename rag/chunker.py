@@ -34,6 +34,8 @@ def chunk_text(
     pos       = 0
 
     for part in parts:
+        if not part:
+            continue
         is_code = part.startswith("```")
         if is_code:
             # Code block: add as single chunk if too big, or append to buf
@@ -47,20 +49,27 @@ def chunk_text(
                 if not buf:
                     buf_start = pos
                 buf += part
+            pos += len(part)
         else:
-            # Regular text: split by paragraphs
-            paragraphs = re.split(r"\n\n+", part)
-            for para in paragraphs:
-                if len(buf) + len(para) + 2 > max_chars and buf.strip():
-                    chunks.append({"text": buf.strip(), "start": buf_start, "end": pos})
-                    overlap   = buf[-overlap_chars:] if len(buf) > overlap_chars else buf
-                    buf       = overlap + para + "\n\n"
-                    buf_start = pos - len(overlap)
+            # Regular text: split by paragraphs, keep separators
+            subparts = re.split(r"(\n\n+)", part)
+            for subpart in subparts:
+                if not subpart:
+                    continue
+                if subpart.startswith("\n\n"):
+                    buf += subpart
+                    pos += len(subpart)
                 else:
-                    if not buf:
-                        buf_start = pos
-                    buf += para + "\n\n"
-        pos += len(part)
+                    if len(buf) + len(subpart) > max_chars and buf.strip():
+                        chunks.append({"text": buf.strip(), "start": buf_start, "end": pos})
+                        overlap   = buf[-overlap_chars:] if len(buf) > overlap_chars else buf
+                        buf       = overlap + subpart
+                        buf_start = pos - len(overlap)
+                    else:
+                        if not buf:
+                            buf_start = pos
+                        buf += subpart
+                    pos += len(subpart)
 
     if buf.strip():
         chunks.append({"text": buf.strip(), "start": buf_start, "end": pos})

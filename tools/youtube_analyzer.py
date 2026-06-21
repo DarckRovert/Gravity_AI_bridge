@@ -75,9 +75,10 @@ class YouTubeAnalyzer:
         try:
             from faster_whisper import WhisperModel
         except ImportError:
-            log.warning("faster-whisper no está instalado. Instalándolo en background...")
-            os.system("pip install faster-whisper")
-            return "[Aviso: faster-whisper no estaba instalado. Intenta de nuevo más tarde.]"
+            log.warning("faster-whisper no está instalado. Instalándolo automáticamente...")
+            import subprocess
+            subprocess.run([sys.executable, "-m", "pip", "install", "faster-whisper"], check=True)
+            from faster_whisper import WhisperModel
 
         audio_file = os.path.join(self.tmp_dir, f"{video_id}.mp3")
         ydl_opts = {

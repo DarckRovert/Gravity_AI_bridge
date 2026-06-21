@@ -39,8 +39,8 @@ echo  [OK]
 echo.
 
 REM ── Verificar entry point ────────────────────────────────────────────────────
-if not exist "gravity_launcher.pyw" (
-    echo  [ERROR] No se encontro gravity_launcher.pyw en F:\Gravity_AI_bridge\
+if not exist "%ROOT%\gravity_launcher.pyw" (
+    echo  [ERROR] No se encontro gravity_launcher.pyw en %ROOT%
     echo  [ERROR] Asegurate de ejecutar este script desde la carpeta correcta.
     pause
     exit /b 1
@@ -82,11 +82,13 @@ if exist "GravityBridge.spec" (
       --icon assets\gravity_icon.ico ^
       --add-data "frontend\dist;web" ^
       --add-data "core;core" ^
+      --add-data "api;api" ^
       --add-data "rag;rag" ^
       --add-data "providers;providers" ^
       --add-data "tools;tools" ^
+      --add-data "integrations;integrations" ^
       --add-data "_knowledge.json;." ^
-      --add-data "config.yaml;." ^
+      --add-data "config.yaml.example;." ^
       --add-data "assets;assets" ^
       --hidden-import pystray ^
       --hidden-import PIL ^
@@ -98,6 +100,10 @@ if exist "GravityBridge.spec" (
       --hidden-import win32api ^
       --hidden-import win32security ^
       --hidden-import prometheus_client ^
+      --hidden-import moderngl ^
+      --hidden-import pyttsx3 ^
+      --hidden-import faster_whisper ^
+      --hidden-import obsws_python ^
       --collect-all pystray ^
       --distpath dist ^
       --workpath build ^

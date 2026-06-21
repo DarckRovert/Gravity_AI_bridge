@@ -108,7 +108,6 @@ def scan_all(force: bool = False) -> List[ProviderResult]:
             try:
                 return plugin.check_health()
             except Exception as _e:
-                from providers.base import ProviderResult
                 return ProviderResult(
                     name=plugin.name,
                     url=getattr(plugin, "base_url", ""),
@@ -129,7 +128,6 @@ def scan_all(force: bool = False) -> List[ProviderResult]:
                 try:
                     results.append(fut.result(timeout=20.0))
                 except concurrent.futures.TimeoutError:
-                    from providers.base import ProviderResult
                     results.append(ProviderResult(
                         name=plug.name,
                         url=getattr(plug, "base_url", ""),

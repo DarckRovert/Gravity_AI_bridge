@@ -46,12 +46,15 @@ class OllamaProvider(ProviderPlugin):
     ) -> Generator[str, None, None]:
         url = f"http://localhost:{self.default_port}/api/chat"
         p   = self._payload(messages, model, options, True)
-        for raw in _http_post_stream(url, p):
-            d = _safe_json(raw)
-            if d and "message" in d:
-                chunk = d["message"].get("content", "")
-                if chunk:
-                    yield chunk
+        try:
+            for raw in _http_post_stream(url, p):
+                d = _safe_json(raw)
+                if d and "message" in d:
+                    chunk = d["message"].get("content", "")
+                    if chunk:
+                        yield chunk
+        except Exception as e:
+            yield f"\n\n[**SYSTEM ERROR**: Fallo de conexión con Ollama. Error: {str(e)}]\n\n"
 
     def chat_complete(
         self,
@@ -86,10 +89,13 @@ class OllamaProvider(ProviderPlugin):
             msgs[-1]["images"] = images_b64
         url = f"http://localhost:{self.default_port}/api/chat"
         p   = self._payload(msgs, model, options, True)
-        for raw in _http_post_stream(url, p):
-            d = _safe_json(raw)
-            if d and "message" in d:
-                chunk = d["message"].get("content", "")
-                if chunk:
-                    yield chunk
+        try:
+            for raw in _http_post_stream(url, p):
+                d = _safe_json(raw)
+                if d and "message" in d:
+                    chunk = d["message"].get("content", "")
+                    if chunk:
+                        yield chunk
+        except Exception as e:
+            yield f"\n\n[**SYSTEM ERROR**: Fallo de conexión con Ollama. Error: {str(e)}]\n\n"
 

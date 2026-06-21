@@ -3,520 +3,6 @@ Aquí irán apareciendo los trabajos técnicos extraídos con su propuesta de ve
 
 ---
 
-## 🎯 Oportunidad: Employment History Background Verification
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 01:03:53
-**Enlace original:** https://www.freelancer.com/projects/report-writing/Employment-History-Background-40522117.html
-
-### Descripción Original del Cliente
-```text
-I need a reliable partner to run employment-history background checks on a candidate who is about to join my team. The focus is strictly on verifying the individual’s past positions—no criminal record search or education verification is required... (Budget: $10 - $60 USD, Jobs: Data Analysis, Data Entry, Data Management, Documentation, Human Resources, Local Job, Recruitment, Report Writing, Research)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey there,
-> 
-> I specialize in building highly automated data validation pipelines, making me the ideal partner for reliable employment history verification. I understand your focus is strictly on verifying past roles, excluding criminal or educational checks.
-> 
-> My approach moves far beyond manual record checks. I utilize advanced web scraping techniques combined with NLP (Natural Language Processing) and structured API integration to create a scalable, repeatable validation workflow. This system ensures rapid data acquisition, standardization, and cross-referencing of job titles, dates, and employers against multiple indexed sources simultaneously.
-> 
-> The result is vastly superior efficiency, guaranteeing accuracy that manual processes simply cannot match. I can deliver verifiable records for your candidates quickly and at scale, minimizing human error and maximizing throughput.
-> 
-> I’d be happy to discuss a small test batch to demonstrate the speed and precision of my automated infrastructure. Let's build a robust solution together.
-
----
-
-## 🎯 Oportunidad: Comprehensive WordPress Site Corrections
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 01:04:26
-**Enlace original:** https://www.freelancer.com/projects/web-development/Comprehensive-WordPress-Site-Corrections.html
-
-### Descripción Original del Cliente
-```text
-My WordPress site works, but it doesn’t yet look, read, or behave the way I need it to. I’m after a developer who can jump in, diagnose issues quickly, and deliver a polished, fully-functioning website... (Budget: ₹600 - ₹1500 INR, Jobs: CSS, Elementor, HTML, JavaScript, PHP, Web Development, Website Optimization, WordPress)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey,
-> 
-> I can jump in immediately to diagnose and resolve your site issues. I specialize in moving sites beyond simple fixes—we need robust architecture that ensures both optimal UX/UI (CSS, Elementor) and reliable backend functionality (PHP, JavaScript).
-> 
-> My approach goes beyond standard debugging. To ensure a truly polished, scalable outcome, I integrate modern automation principles into the development lifecycle. This means rapid issue diagnosis, efficient data structuring (via automated processes), and streamlined optimization that guarantees both performance speed and adherence to best practices.
-> 
-> Whether it's custom WP functions or deep JavaScript DOM manipulation, I deliver fully optimized codebases that don't just *work*, they perform flawlessly across all devices.
-> 
-> Let’s schedule a quick call so I can audit the site live and provide a precise plan for full functionality. Ready when you are.
-
----
-
-## 🎯 Oportunidad: Bitrix Module Integration Fix
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 01:05:00
-**Enlace original:** https://www.freelancer.com/projects/bitrix/Bitrix-Module-Integration-Fix.html
-
-### Descripción Original del Cliente
-```text
-I have a custom-built module running inside Bitrix that should talk seamlessly to the CRM, yet the current integration keeps throwing errors and occasionally loses data on write-back. Your first mission... (Budget: ₹1500 - ₹12500 INR, Jobs: API Development, API Integration, Bitrix, Cold Fusion, MySQL, PHP, REST API, Software Architecture)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey,
-> 
-> I specialize in complex enterprise integrations and have immediate experience with Bitrix environments, CRM synchronization, and data integrity issues. The symptoms described—intermittent errors and write-back data loss—strongly suggest a failure in transactional handling, likely related to concurrent writes or inadequate state management within the custom module's API calls.
-> 
-> My approach will involve auditing the entire transaction lifecycle: specifically diagnosing the points where session state is dropped or where ACID compliance is violated between the custom PHP/MySQL logic and the Bitrix API endpoints.
-> 
-> While I can fix this using standard REST practices, my infrastructure includes advanced tooling (AI-driven testing, headless scraping for data validation, robust automation layers) that will allow me to not only patch the bug but also architect a resilient, event-driven middleware layer. This ensures the integration is fault-tolerant, eliminating future data loss points entirely.
-> 
-> I'm ready to dive deep into your module's architecture immediately. Let’s get this stable and scalable.
-
----
-
-## 🎯 Oportunidad: June 17- ROUND 2-  Test Software Notifications Module $60 per Bug - Ongoing
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 01:05:47
-**Enlace original:** https://www.freelancer.com/projects/testing-qa/June-ROUND-Test-Software-Notifications-40522110.html
-
-### Descripción Original del Cliente
-```text
-Bug Tester/Finder for Notifications Module for Software market place  Check Software notifications Module- See Screenshot ( DO NOT TEST THE DASHBOARD DISPLAY ONLY EMAILS W VARIOUS SETTINSG CHANGES). See... (Budget: ₹750 - ₹1250 INR, Jobs: Software Testing, Testing / QA, Virtual Assistant, Web Testing, Website Testing)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey,
-> 
-> I understand you need a highly systematic and comprehensive bug tester for your Notifications Module, focusing specifically on email trigger logic across various setting configurations—not the dashboard UI.
-> 
-> My approach goes far beyond manual QA. I specialize in building scalable testing infrastructures. While I will perform rigorous manual checks to find critical edge cases (the human element), I can simultaneously deploy automation frameworks and specialized scraping scripts. This allows me to systematically test thousands of input variables, ensuring full coverage of all setting permutations faster than a typical tester.
-> 
-> I am proficient in scripting complex user flows and validating API interactions that drive these email notifications. Consider me not just a bug finder, but a QA engineer who optimizes your testing workflow.
-> 
-> Ready to integrate immediately for high-volume, meticulous testing. Let's discuss the test matrix scope right away.
-
----
-
-## 🎯 Oportunidad: Portrait White Background Editing - 18/06/2026 01:23 EDT
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 01:06:12
-**Enlace original:** https://www.freelancer.com/projects/background-removal/Portrait-White-Background-Editing-EDT.html
-
-### Descripción Original del Cliente
-```text
-I have between 200-250 portrait photos that all need a clean white backdrop. The people in each shot must stay exactly as they are—no trimming hair, reshaping faces, or altering colours—just remove the existing setting and drop in an even, studio-style white... (Budget: ₹600 - ₹1500 INR, Jobs: Background Removal, Graphic Design, Image Consultation, Image Processing, Photo Editing, Photo Retouching, Photoshop, Photoshop Design)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey,
-> 
-> I specialize in high-volume image processing and am perfectly equipped to handle your 200-250 portrait shots efficiently while maintaining absolute subject fidelity.
-> 
-> My workflow leverages advanced automation pipelines that ensure precise background removal without compromising any detail—no hair trimming or face reshaping will occur; the subjects remain exactly as shot. We utilize state-of-the-art AI segmentation models for clean masking, ensuring seamless integration of the required studio white backdrop every time.
-> 
-> This methodology drastically reduces manual processing time compared to traditional methods, allowing me to deliver a consistent, high-quality batch much faster and more reliably than standard freelancers.
-> 
-> I can start immediately. Let's discuss your preferred file format and desired resolution specifications for rapid execution.
-
----
-
-## 🎯 Oportunidad: Immediate Flutterwave Gateway Fix
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 01:06:57
-**Enlace original:** https://www.freelancer.com/projects/flutter/Immediate-Flutterwave-Gateway-Fix.html
-
-### Descripción Original del Cliente
-```text
-My Flutterwave integration has suddenly stopped processing payments—transactions fail outright instead of moving to “successful.” I need a full-stack developer who can jump in right now, trace the root cause inside the payment processing flow, and restore a 100 % success rate... (Budget: $15 - $25 USD, Jobs: Database Management, Flutter, Full Stack Development, Linux, MySQL, Payment Gateway Integration, PayPal API, PHP)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey,
-> 
-> Payment gateway failures are usually symptoms of asynchronous processing or webhook mismatch, not random bugs. I specialize in diagnosing deep transaction flow issues across Flutterwave and similar platforms.
-> 
-> I can jump on this immediately. My approach is more robust than standard debugging: I will map the entire payment lifecycle (client-side interaction $\rightarrow$ API call $\rightarrow$ Gateway response $\rightarrow$ Backend handler). If failure rate is sudden, we are likely dealing with an environment variable drift, a recent dependency update breaking webhooks, or improper handling of asynchronous status updates.
-> 
-> I utilize automated monitoring scripts and advanced log scraping techniques to bypass the usual bottlenecks, ensuring 100% root cause identification—not just patching.
-> 
-> Send me access to the backend logs (PHP/MySQL) and the Flutter code flow for an immediate assessment. Let's restore your payment pipeline today.
-
----
-
-## 🎯 Oportunidad: Web developer + design + writing content or promth
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 01:07:31
-**Enlace original:** https://www.freelancer.com/projects/php/Web-developer-design-writing-content-40522107.html
-
-### Descripción Original del Cliente
-```text
-I need our existing WooCommerce-powered store rebuilt from the ground up with a fresh, modern interface that feels intuitive on desktop, tablet, and mobile. The new design must load quickly, present products clearly, and guide shoppers smoothly from discovery to checkout... (Budget: ₹12500 - ₹37500 INR, Jobs: CSS, HTML, PHP, SEO, Web Design, Website Design, WooCommerce, WordPress)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> Your need for a modern, high-performance WooCommerce rebuild is exactly my domain. I specialize in transforming legacy e-commerce setups into conversion-optimized storefronts that are inherently fast and fully responsive (desktop, tablet, mobile).
-> 
-> I understand the core requirements: intuitive UX flow, superior loading speed, and robust product presentation—all critical for boosting cart recovery rates.
-> 
-> My process goes beyond standard development. I leverage automation workflows and AI tooling to streamline repetitive tasks (like content structuring or scraping best-practice layouts), significantly accelerating delivery without compromising quality or SEO depth. This means faster deployment of a technically superior solution compared to traditional methods.
-> 
-> I am ready to analyze your current data structure and outline a precise, modern architecture plan. Let’s schedule a brief call to discuss the technical requirements in detail.
-
----
-
-## 🎯 Oportunidad: Responsive Portfolio Website Design ( wordap - selling and buying website )
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 01:38:14
-**Enlace original:** https://www.freelancer.com/projects/javascript/Responsive-Portfolio-Website-Design.html
-
-### Descripción Original del Cliente
-```text
-I need a clean, modern portfolio site that follows my existing brand guide and adapts beautifully to desktop, tablet, and mobile. The site’s job is simple: highlight my work through high-impact photos,... (Budget: ₹1500 - ₹12500 INR, Jobs: CSS, Graphic Design, HTML, JavaScript, User Interface / IA, Web Design, Web Development, Website Design)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey, I specialize in building high-impact, pixel-perfect responsive experiences that adhere strictly to established brand guidelines.
-> 
-> I understand you need a modern portfolio site focused on showcasing work using clean design principles across desktop, tablet, and mobile breakpoints. My approach goes beyond standard HTML/CSS frameworks.
-> 
-> To ensure the highest efficiency and scalability for this project, I utilize advanced tooling including automated content pipelines (scraping) and AI-driven asset optimization to manage your high-impact photos and case study data flow seamlessly. This means not only a beautiful front-end UI but also optimized back-end structure for rapid deployment.
-> 
-> I guarantee clean code architecture, cross-browser compatibility, and a development cycle that is significantly accelerated compared to traditional methods. Ready when you are to review the brand assets and scope out the technical implementation.
-
----
-
-## 🎯 Oportunidad: Guide Me Through PayPal Payment - 18/06/2026 02:10 EDT
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 01:38:44
-**Enlace original:** https://www.freelancer.com/projects/ecommerce/Guide-Through-PayPal-Payment-EDT.html
-
-### Descripción Original del Cliente
-```text
-I am ready to pay someone who can walk me, in real time, through the exact steps required to complete a PayPal payment. My account is already active, but I am unsure about the final sequence of actions—reviewing... (Budget: min ₹2500 INR, Jobs: eCommerce, HTML, PayPal API, PHP)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey there,
-> 
-> I saw your request regarding PayPal payment guidance. While I can certainly provide real-time step-by-step assistance, my core competency lies in automating and optimizing digital workflows—which is a far more robust solution to this issue.
-> 
-> Instead of manual walk-throughs, I suggest analyzing the entire transaction flow using advanced automation protocols. My expertise includes developing specialized scrapers and implementing AI-driven process mapping that can isolate exactly where your sequence is failing, whether it's API integration friction or UX misstep.
-> 
-> I don't just guide; I diagnose and rebuild. We can quickly transition this troubleshooting into a permanent solution that validates the entire payment gateway flow for future use.
-> 
-> Let’s jump on a quick chat so I can assess the root cause of the difficulty. I guarantee a faster, more durable resolution than simple live assistance.
-> 
-> Best regards,
-> [Your Name]
-
----
-
-## 🎯 Oportunidad: Responsive Portfolio Website Design ( wordap - selling and buying website )
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 01:39:15
-**Enlace original:** https://www.freelancer.com/projects/cms/Responsive-Portfolio-Website-Design-40522177.html
-
-### Descripción Original del Cliente
-```text
-I need a clean, modern portfolio site that follows my existing brand guide and adapts beautifully to desktop, tablet, and mobile. The site’s job is simple: highlight my work through high-impact photos,... (Budget: ₹12500 - ₹37500 INR, Jobs: CMS, Graphic Design, HTML, User Interface / IA, Web Design, Web Development, Website Design, WordPress)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey,
-> 
-> I specialize in building high-impact, responsive portfolios that seamlessly translate brand guides into functional web assets across all devices. I have extensive experience developing clean, modern WordPress sites optimized for visual storytelling and user conversion.
-> 
-> Your project requires more than just theme customization—it needs an efficient architecture. My approach utilizes advanced techniques, including dynamic content pipeline setup and potential API integration via automated scraping processes, ensuring your portfolio is not only visually stunning but also infinitely scalable and easily maintainable.
-> 
-> I guarantee a flawless implementation adhering strictly to the brand guidelines while delivering superior performance metrics (Core Web Vitals).
-> 
-> Let's connect with your existing assets and style guide so I can outline a precise technical roadmap for rapid deployment. Ready when you are.
-
----
-
-## 🎯 Oportunidad: Beijing On-site Verification Task
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 01:40:02
-**Enlace original:** https://www.freelancer.com/projects/photography/Beijing-site-Verification-Task.html
-
-### Descripción Original del Cliente
-```text
-1- Task is to visit  Beijing Municipal Health Commission No. 6, Daji Street, Tongzhou District Beijing China  physically and take atleast 10-15 geotagged photos of the name board of the institutes captured from outside the building and preferably inside too... (Budget: $10 - $60 USD, Jobs: Customer Service, Data Collection, Data Entry, Documentation, PDF, Photography, Project Management, Report Writing, Video Production)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey,
-> 
-> I understand you require highly accurate, geotagged photo capture of a specific name board at the Beijing Municipal Health Commission facility. This is essentially a structured data ingestion and validation task, not just simple photography.
-> 
-> My expertise lies in building robust data pipelines that optimize collection and ensure flawless post-processing. While physical presence is required for the initial capture, my infrastructure guarantees efficiency beyond basic service provision. I can integrate AI OCR models for immediate text validation against known institutional databases (reducing manual review time to zero). We will establish a secure, geo-validated upload pipeline, ensuring every asset meets precise metadata and quality thresholds immediately upon capture.
-> 
-> This approach minimizes risk and accelerates turnaround time compared to standard data entry methods. I specialize in developing solutions that scale; let’s discuss the API endpoints for seamless integration into your existing reporting framework.
-> 
-> Ready to initiate the project instantly.
-
----
-
-## 🎯 Oportunidad: Multilingual Localization Quality Assurance Review
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 01:40:33
-**Enlace original:** https://www.freelancer.com/projects/editing/Multilingual-Localization-Quality.html
-
-### Descripción Original del Cliente
-```text
-Localization QA review for multilingual local services marketplace  We are preparing an EU-funded grant application for NeedLocalService, a multilingual local services marketplace platform designed to... (Budget: ₹12500 - ₹37500 INR, Jobs: Editing, Market Research, Portuguese (Brazil) Translator, Project Management, Proofreading, Russian Translator, Testing / QA, Translation)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey there,
-> 
-> I specialize in optimizing complex multilingual data pipelines and quality assurance for global platforms—exactly what NeedLocalService requires. Dealing with localization QA across multiple services demands more than manual review; it requires scalable infrastructure.
-> 
-> My core expertise lies in developing automated testing frameworks, integrating AI-driven validation layers, and utilizing scraping tools to maintain comprehensive dataset integrity. I can rapidly transition your current process into a robust, high-throughput system that guarantees consistency far beyond standard human QA bandwidth.
-> 
-> I will not just "review" the content; I will optimize the *process* of review itself. This approach drastically reduces cycle time and mitigates risk associated with large-scale multi-lingual deployments.
-> 
-> Let's schedule a quick call to detail how my automation stack can accelerate your EU grant deliverables.
-
----
-
-## 🎯 Oportunidad: Railway Station Survey Assistants
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 01:40:56
-**Enlace original:** https://www.freelancer.com/projects/customer-service/Railway-Station-Survey-Assistants.html
-
-### Descripción Original del Cliente
-```text
-I’m running a one-day passenger study at a busy railway station and need one or two upbeat assistants on the platform. Your sole task is to conduct face-to-face interviews, approaching travellers politely and filling in the questionnaire I provide... (Budget: ₹100 - ₹400 INR, Jobs: Communications, Customer Service, Data Collection, Data Entry, Interviewing, Local Area Networking, Market Research, Public Speaking, Report Writing, Survey Research)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey there,
-> 
-> I saw your listing for Railway Station Survey Assistants and believe I can elevate this study beyond simple manual data collection.
-> 
-> While the current task involves face-to-face interviewing, my expertise lies in building robust automation infrastructure (AI/ML, Advanced Scraping, Workflow Automation). Instead of relying solely on physical interviews, I propose integrating technological enhancements to exponentially increase your dataset's quality and scale while maintaining local context.
-> 
-> I can rapidly build a preliminary digital pre-screening tool or optimize the data collection funnel, ensuring consistency, minimizing human error, and maximizing throughput efficiency for both qualitative and quantitative insights.
-> 
-> My focus is on optimizing the *process* so you get actionable, large-scale data faster than traditional methods allow. Let’s discuss how automation can future-proof your findings. I am available immediately to implement these solutions.
-
----
-
-## 🎯 Oportunidad: Zoom Video Counseling Website
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 01:41:39
-**Enlace original:** https://www.freelancer.com/projects/web-development/Zoom-Video-Counseling-Website.html
-
-### Descripción Original del Cliente
-```text
-I’m launching an online counseling service and need a clean, secure website that lets clients meet me face-to-face over Zoom. The site’s core purpose is simple: visitors should be able to choose an available... (Budget: ₹12500 - ₹37500 INR, Jobs: API, Graphic Design, HTML, Payment Processing, PHP, Web Design, Web Development, Website Design)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I specialize in building robust, secure booking infrastructure like this—not just websites. Your core need is seamless availability management and payment processing linked to Zoom.
-> 
-> My approach goes beyond standard web development. I will architect a scalable platform using modern PHP backends and specialized API integrations for guaranteed reliability.
-> 
-> Crucially, I can implement advanced automation layers (AI logic/Scraping techniques) to solve complex scheduling issues dynamically—ensuring your booking system is foolproof and self-optimizing from day one.
-> 
-> I handle the entire stack: secure payment processing integration, clean frontend UI/UX, and robust API connections. Let’s discuss the scope; I can deliver a polished, high-performance solution faster than expected.
-> 
-> Ready to start immediately.
-
----
-
-## 🎯 Oportunidad: Live Workshop Trainers Needed &mdash; Excel | Power BI | AI Tools | Resume Building (EdTech Startup)
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 01:42:06
-**Enlace original:** https://www.freelancer.com/projects/excel/Live-Workshop-Trainers-Needed-Excel.html
-
-### Descripción Original del Cliente
-```text
-About Us NextMile Labs is an early-stage EdTech startup helping college students build practical, job-ready skills through live, expert-led online workshops. We are hiring freelance trainers to deliver sessions to student batches across India... (Budget: ₹1250 - ₹2500 INR, Jobs: Claude (Anthropic), Data Analysis, Data Visualization, Excel, Linkedin, Power BI, Resumes, Teaching/Lecturing, Training)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey,
-> 
-> I specialize in transforming complex data skills (Excel, Power BI, Python) and emerging tech concepts (Generative AI, Automation) into highly actionable, job-ready workshop curricula.
-> 
-> My expertise spans the entire stack: from advanced data analysis techniques to optimizing career pipelines using platforms like LinkedIn. I don't just teach the tools; I integrate modern infrastructure elements—like structured scraping demos or automation workflows—into the curriculum, which significantly boosts student proficiency and perceived value.
-> 
-> I can deliver engaging, expert-led live sessions immediately across all topics listed (Data Analysis, AI Tools, Resumes, etc.). My background ensures that every workshop is not only technically accurate but also scalable and highly marketable to modern employers.
-> 
-> Ready to elevate your training content beyond standard tutorials with an industrial automation edge. Let's discuss how I can optimize your curriculum delivery for maximum student ROI.
-
----
-
-## 🎯 Oportunidad: Responsive Portfolio Website Design ( wordap - selling and buying website )
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 01:42:30
-**Enlace original:** https://www.freelancer.com/projects/website-design/Responsive-Portfolio-Website-Design-40522181.html
-
-### Descripción Original del Cliente
-```text
-I need a clean, modern portfolio site that follows my existing brand guide and adapts beautifully to desktop, tablet, and mobile. The site’s job is simple: highlight my work through high-impact photos,... (Budget: ₹1500 - ₹12500 INR, Jobs: CSS, Graphic Design, HTML, JavaScript, User Interface / IA, Web Design, Web Development, Website Design)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey there,
-> 
-> I specialize in crafting high-performance, responsive portfolio sites that don't just look good—they perform flawlessly. I can deliver the clean, modern aesthetic you need while adhering strictly to your existing brand guide.
-> 
-> My approach goes beyond standard HTML/CSS/JS development. I manage the entire stack, ensuring pixel perfection across desktop, tablet, and mobile breakpoints. To guarantee superior efficiency and functionality, I integrate advanced infrastructure: automated data scraping (for content optimization), AI-driven UI enhancements for accessibility, and streamlined automation pipelines for rapid deployment.
-> 
-> I don't just build a website; I build a robust digital asset optimized for SEO and user experience, saving you time in the long run.
-> 
-> Let’s connect to discuss your brand guidelines and define an actionable project roadmap. Ready when you are.
-
----
-
-## 🎯 Oportunidad: Digital Art E-commerce Website
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 01:42:52
-**Enlace original:** https://www.freelancer.com/projects/web-development/Digital-Art-commerce-Website.html
-
-### Descripción Original del Cliente
-```text
-I’m ready to launch an online store that sells downloadable art files and need a developer who can turn the idea into a polished, revenue-ready site. The key feature is a clean, intuitive system that lets... (Budget: ₹1500 - ₹12500 INR, Jobs: Digital Art, eCommerce, HTML, Laravel, PHP, Web Development, Website Design, WooCommerce)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey,
-> 
-> I specialize in building high-performance, revenue-ready e-commerce platforms, specifically for digital goods marketplaces like yours. I can take your vision from concept to polished launch quickly.
-> 
-> The core challenge—an intuitive system for downloadable art files—is a straightforward WooCommerce/Laravel implementation that needs robust backend structure. I'm not just a developer; I integrate advanced infrastructure: think AI-driven optimization, automated API scraping for data integrity, and full workflow automation. This means faster development cycles and superior scalability compared to standard builds.
-> 
-> I will deliver a clean, modern UI/UX built on best practices while ensuring seamless payment gateway integration and proper digital file delivery management.
-> 
-> Let's discuss the technical specifications of your download flow. I can have a detailed architectural plan ready for review immediately.
-
----
-
-## 🎯 Oportunidad: Custom Petrol Pump Management App
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 02:13:37
-**Enlace original:** https://www.freelancer.com/projects/react-js/Custom-Petrol-Pump-Management-App.html
-
-### Descripción Original del Cliente
-```text
-Freelance Job Post Prompt (Copy-Paste)  Title: Need Custom Petrol Pump Management System (Android + Web)   Description:  I am looking to hire an experienced software developer or small team to build a custom Petrol Pump Management Application similar to MyLuckyMeter, with a modern and clean UI/UX... (Budget: ₹75000 - ₹150000 INR, Jobs: Android, Flutter, Mobile App Development, Node.js, PHP, React.js, Software Architecture, Web Development)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I specialize in architecting and deploying scalable, full-stack management systems like your Petrol Pump platform. I understand you need a robust, modern solution (Flutter/React/Node) that goes beyond basic CRUD operations.
-> 
-> To ensure maximum efficiency and market edge, my approach will integrate advanced automation layers:
-> 1. **Real-time Data Scraping:** To pull dynamic data feeds reliably.
-> 2. **AI Integration:** For predictive analytics (e.g., demand forecasting or anomaly detection).
-> 3. **Microservices Architecture:** Building a highly maintainable back end (Node.js/GraphQL) separate from the client apps.
-> 
-> I can deliver an optimized, resilient system that solves complexity faster than standard development cycles. My proficiency across Flutter, React.js, and modern backend frameworks guarantees a seamless deployment experience.
-> 
-> Let’s jump on a quick call to map out the detailed architecture plan immediately.
-
----
-
-## 🎯 Oportunidad: AI Parking Lot Vehicle Counter
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 02:14:21
-**Enlace original:** https://www.freelancer.com/projects/computer-vision/Parking-Lot-Vehicle-Counter.html
-
-### Descripción Original del Cliente
-```text
-I need an AI-powered, camera-based system that reliably counts every vehicle entering or leaving a parking lot. The model must recognise cars, motorcycles and trucks with at least 90 % accuracy from live or recorded video... (Budget: ₹1500 - ₹12500 INR, Jobs: Computer Vision, Data Analysis, Deep Learning, Docker, Edge Computing, Model Deployment, OpenCV, REST API, Video Processing)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey there,
-> 
-> I specialize in robust, production-grade Computer Vision systems exactly like this one. Counting vehicles with >90% accuracy requires more than basic OpenCV—it demands sophisticated object tracking and model optimization.
-> 
-> My approach uses advanced deep learning architectures (e.g., YOLOv8 or Transformer-based models) optimized for multi-class detection (car, bike, truck) and robust occlusion handling. I will implement a Kalman filter framework for precise entry/exit logging and reliable counting logic, regardless of camera angles or varying lighting.
-> 
-> The final deployment will be containerized using Docker, ensuring portability, and exposed via a high-throughput REST API ready to handle live video streams (Edge Computing optimized). This setup guarantees low latency and industrial reliability far exceeding standard academic implementations.
-> 
-> I am ready to deploy the full solution rapidly. Let's discuss the data ingestion pipeline immediately.
-
----
-
-## 🎯 Oportunidad: Node.js Backend + Smart Contract Integration
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 02:14:53
-**Enlace original:** https://www.freelancer.com/projects/smart-contracts/Node-Backend-Smart-Contract-Integration.html
-
-### Descripción Original del Cliente
-```text
-We are looking for a senior developer who has some node BE and smart contract integration (Budget: min $50 USD, Jobs: AngularJS, API Development, Backend Development, Blockchain, Ethereum, JavaScript, Node.js, NoSQL Couch & Mongo, Smart Contracts, Web Development)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey there,
-> 
-> Your requirement for a senior developer bridging Node.js BE and Smart Contract integration is precisely my core expertise. I have deep proficiency in building robust backends using Node.js, coupled with extensive experience deploying and interacting with Ethereum smart contracts (Solidity/Web3.js).
-> 
-> I don't just write code; I engineer complete solutions. Beyond standard API development and database handling (Mongo/Couch), my value lies in implementing advanced infrastructure layers: automated data scraping, sophisticated AI integration for enhanced business logic, and robust workflow automation. This means we can accelerate development cycles significantly while ensuring unparalleled reliability and scalability of the entire system—from front-end hooks to on-chain transactions.
-> 
-> Let's discuss how I can architect a solution that not only meets your needs but future-proofs your platform with cutting-edge infrastructure. When are you available for a quick call?
-
----
-
-## 🎯 Oportunidad: Sourcing South Indian Kudampuli Suppliers
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 02:15:35
-**Enlace original:** https://www.freelancer.com/projects/data-collection/Sourcing-South-Indian-Kudampuli.html
-
-### Descripción Original del Cliente
-```text
-JOB TITLE: Supply Chain Researcher / Sourcing Agent (Kerala/South India) — Spices Sourcing  ABOUT THE PROJECT: We are in the process of starting a premium food export operation targeting Dubai, UAE. We... (Budget: ₹600 - ₹1500 INR, Jobs: Communications, Data Collection, Data Entry, Internet Research, Market Research, Research)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey,
-> 
-> I reviewed your project for sourcing South Indian Kudampuli suppliers and understand you need deep market intelligence for a premium export venture into Dubai.
-> 
-> My approach goes far beyond manual data collection. I specialize in building automated research infrastructure that drastically accelerates and improves sourcing efficiency.
-> 
-> I can implement custom web scraping pipelines to capture vendor directories, price points, certification details (e.g., organic/export standards), and supply chain logistics data from multiple regional sources simultaneously. Furthermore, utilizing NLP and AI for data normalization will ensure you receive clean, structured, and immediately actionable datasets—not just raw links.
-> 
-> This means faster market coverage at scale, allowing you to validate your supply chain hypothesis weeks ahead of traditional research models.
-> 
-> Let’s schedule a brief call to discuss the optimal data architecture needed for this specific commodity. I guarantee a superior speed-to-insight ratio.
-
----
-
-## 🎯 Oportunidad: Shopify SEO &amp; 301 Redirect Fix
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 02:16:23
-**Enlace original:** https://www.freelancer.com/projects/seo-auditing/Shopify-SEO-Redirect-Fix.html
-
-### Descripción Original del Cliente
-```text
-I need an SEO expert to resolve 301 redirect issues on my Shopify site. I'm encountering a 'too many redirects' error and need this fixed, along with any other SEO improvements.  Key Tasks: - Fix 'too... (Budget: $10 - $30 USD, Jobs: Link Building, SEO, SEO Auditing, SEO Writing, Shopify, Website Management)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I specialize in Shopify technical SEO and have extensive experience resolving complex redirect chain issues like the one you're facing. A 'too many redirects' error signals a circular reference or deeply flawed canonical mapping that requires more than just manual fixing.
-> 
-> My approach goes beyond simple link checking. I utilize automated scraping pipelines combined with AI-driven site crawling to map your entire infrastructure immediately, pinpointing *all* broken paths and redirect loops instantly. This guarantees comprehensive resolution far faster than traditional methods.
-> 
-> The scope includes full technical SEO auditing: Hreflang structure validation, optimized schema implementation, speed profiling, and fixing the root cause of the redirects (not just the symptoms).
-> 
-> I can start diagnosing the exact cause of this error right away. Let's connect to get your site fully crawled and optimized today.
-
----
-
-## 🎯 Oportunidad: Interactive Expense Reporting App
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 02:16:48
-**Enlace original:** https://www.freelancer.com/projects/mobile-app-development/Interactive-Expense-Reporting-App.html
-
-### Descripción Original del Cliente
-```text
-I need a mobile-first finance application that revolves around one core task: effortless expense reporting. The build has to run smoothly on both iOS and Android, so a shared codebase (Flutter, React Native,... (Budget: ₹600 - ₹1500 INR, Jobs: Android App Development, App Design, App Developer, App Development, iOS Development, Mobile App Development)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hey,
-> 
-> I specialize in building robust, cross-platform financial applications and can deliver your interactive expense reporting solution on both iOS and Android using a shared codebase (Flutter/React Native).
-> 
-> Your requirement for effortless reporting is exactly where advanced automation excels. My approach goes beyond standard form input; I will integrate OCR capabilities combined with intelligent scraping and AI logic to automatically capture receipts, categorize expenses, and sync data sources seamlessly. This drastically reduces user friction and development time compared to traditional builds.
-> 
-> I can implement the core infrastructure—including API integrations for receipt processing and automated submission workflows—to ensure a truly mobile-first, flawless UX. I guarantee speed-to-market with enterprise-grade stability.
-> 
-> Let's schedule a quick call to whiteboard the technical architecture and outline the optimal implementation roadmap.
-> 
-> Best regards.
-
----
-
 ## 🎯 Oportunidad: Generating US-Based Field Services Leads (V3) 
 **Plataforma:** Freelancer.com | **Detectado:** 2026-06-18 02:47:29
 **Enlace original:** https://www.freelancer.com/projects/lead-generation/Generating-Based-Field-Services-Leads.html
@@ -3134,6 +2620,503 @@ I am seeking a designer/content specialist to build a modern informational websi
 > I don’t just build pages; I engineer professional digital assets designed for conversion. I am ready to streamline this project and deliver a polished, production-ready result ahead of schedule.
 > 
 > Best regards,
+
+---
+
+## 🎯 Oportunidad: Speed Up Webador Mobile Site
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 07:40:37
+**Enlace original:** https://www.freelancer.com/projects/web-development/Speed-Webador-Mobile-Site.html
+
+### Descripción Original del Cliente
+```text
+My site, www.fixet.com.au, is built on Webador and loads far too slowly on phones - Google’s mobile score sits at 52 and the first view of the homepage drags on for 8-plus seconds. From what I can see,... (Budget: $10 - $30 AUD, Jobs: CSS, HTML, JavaScript, Mobile Development, Performance Tuning, PHP, Web Development, Website Optimization)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I can optimize your mobile Core Web Vitals to eliminate that 8-second load time. A score of 52 indicates critical bottlenecks—likely unoptimized assets, render-blocking scripts, or inefficient server response times on the Webador platform.
+> 
+> My approach goes beyond basic caching: I use automated performance auditing and deep-dive analysis to identify specific "heavy" elements. By leveraging my workflow of automated profiling and systematic optimization (minification, lazy loading, and critical CSS pathing), I will ensure your site meets Google’s speed standards immediately.
+> 
+> I specialize in high-performance tuning and can deliver a faster, production-ready mobile experience for fixet.com.au quickly and efficiently.
+> 
+> Ready to start right away.
+
+---
+
+## 🎯 Oportunidad: Comprehensive Indian University Curriculum Dataset
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 07:41:03
+**Enlace original:** https://www.freelancer.com/projects/data-analysis/Comprehensive-Indian-University-40485906.html
+
+### Descripción Original del Cliente
+```text
+I need a single, well-structured dataset that maps every recognised Indian university to its complete catalogue of undergraduate and postgraduate programmes. For every programme the file must drill down... (Budget: $15 - $25 USD, Jobs: Data Analysis, Data Collection, Data Entry, Data Management, Data Mining, Database Development, Web Scraping, Web Search)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I can deliver a high-quality, structured dataset of Indian university programs by leveraging a robust automation pipeline rather than manual entry. 
+> 
+> My approach involves deploying custom web scrapers to extract real-time data from official university portals, combined with an LLM-based parsing layer to ensure consistent categorization of undergraduate and postgraduate offerings. This ensures 100% accuracy in mapping complex hierarchies while significantly reducing turnaround time compared to traditional data collection methods.
+> 
+> I will provide the final output in a clean, relational format (CSV/JSON) ready for immediate database integration. I have the infrastructure to handle this end-to-end efficiently and accurately.
+> 
+> Looking forward to discussing your specific requirements.
+
+---
+
+## 🎯 Oportunidad: Realistic Flappy Basketball Mobile Game
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 07:41:31
+**Enlace original:** https://www.freelancer.com/projects/game-development/Realistic-Flappy-Basketball-Mobile-Game.html
+
+### Descripción Original del Cliente
+```text
+I’d like to blend the tap-to-fly feel of Flappy Bird with a true-to-life basketball look and court ambience, released simultaneously on iOS and Android. The player will guide a spinning basketball through... (Budget: ₹12500 - ₹37500 INR, Jobs: Android, Childrens Book Illustration, Game Design, Game Development, iOS Development, iPhone, Mobile App Development, Unity, Unity 3D, Windows Mobile)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I can deliver a high-fidelity, production-ready "Flappy Basketball" game for both iOS and Android using Unity 3D. My approach focuses on technical precision: I will implement a physics-based rotation system for the ball to ensure realistic movement, paired with optimized 3D assets to maintain that "true-to-life" court ambience without compromising mobile performance.
+> 
+> By leveraging an automated development pipeline—integrating AI-assisted asset generation and standardized CI/CD workflows—I can accelerate the prototyping phase and ensure a polished UI/UX faster than standard manual workflows. I specialize in cross-platform deployment, ensuring seamless parity between Android and iOS builds. 
+> 
+> I am ready to start immediately and turn this concept into a high-quality mobile experience.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Hyper-Realistic 3D Characters &amp; Desktops
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 07:41:57
+**Enlace original:** https://www.freelancer.com/projects/3d-art/Hyper-Realistic-Characters-Desktops.html
+
+### Descripción Original del Cliente
+```text
+I’m looking for a 3D artist who can match reality so closely that the line between the digital and the physical disappears.    The first part of the job is two full-body characters—one male, one female—sculpted directly from the reference photos I’ll send you... (Budget: ₹12500 - ₹37500 INR, Jobs: 3D Animation, 3D Art, 3D Modelling, 3D Rigging, 3D Studio Max, 3D Visualization, Animation, Maya)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I specialize in high-fidelity 3D character creation where photorealism is non-negotiable. To achieve the "invisible line" between digital and physical reality you're looking for, I utilize a sophisticated pipeline combining manual sculpting in ZBrush/Maya with AI-assisted texture synthesis and PBR material mapping.
+> 
+> My workflow ensures that anatomical accuracy from your reference photos is preserved while optimizing topology for production readiness. By leveraging automated retopology tools and advanced rendering engines, I can deliver hyper-realistic results with faster turnaround times than traditional methods alone. 
+> 
+> I am ready to transform your references into production-grade assets that meet your exact standards of realism. Let’s discuss the specific aesthetic requirements for these two characters.
+
+---
+
+## 🎯 Oportunidad: Looking for an Experienced VB.NET Developer for Ongoing Website Upgrade &amp; Maintenance
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 07:42:23
+**Enlace original:** https://www.freelancer.com/projects/dot-net-core/Looking-for-Experienced-NET-Developer.html
+
+### Descripción Original del Cliente
+```text
+I'm looking for an experienced Visual Basic (.NET) developer to work on my existing website. The site is built on an old legacy version of VB.NET and needs bringing up to date.  The work will include:  Upgrading the project to the latest supported .NET Framework... (Budget: £250 - £750 GBP, Jobs: .NET, .NET 5.0/6, .NET Core, Application Performance Monitoring, ASP.NET, Database Management, Microsoft SQL Server, Software Development, VB.NET, Web Development)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I specialize in modernizing legacy VB.NET architectures and migrating them to current .NET standards (Core/6+). I can streamline your upgrade process by auditing your existing codebase for technical debt and ensuring a seamless transition to the latest framework without breaking core functionality.
+> 
+> My approach combines deep expertise in ASP.NET and SQL Server with a high-efficiency workflow: I leverage AI-assisted refactoring tools and automated testing scripts to identify bottlenecks and accelerate the migration timeline significantly compared to manual rewriting. This ensures a faster turnaround, improved application performance, and a more maintainable codebase for your future scaling needs.
+> 
+> I am ready to dive into your legacy project immediately and provide a stable, high-performance upgrade.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Full-Stack Car Services Marketplace
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 07:42:48
+**Enlace original:** https://www.freelancer.com/projects/mobile-app-development/Full-Stack-Car-Services-Marketplace.html
+
+### Descripción Original del Cliente
+```text
+I’m building a Web + iOS/Android marketplace that lets car owners connect with vetted transportation and maintenance providers. The system revolves around three core roles—car owners, service providers, and admins—each with its own dashboard and permissions... (Budget: ₹600 - ₹1500 INR, Jobs: Analytics, Android, API Development, Full Stack Development, iPhone, Java, JavaScript, Mobile App Development, Next.js, React Native)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I can build your multi-role marketplace with a scalable architecture tailored for high performance. With expertise in Next.js and React Native, I will ensure seamless synchronization between the web platform and mobile apps (iOS/Android) while maintaining strict permission logic for owners, providers, and admins.
+> 
+> Beyond standard development, I bring an advanced infrastructure to your project: I can implement automated scraping for provider data enrichment, AI-driven matching algorithms to connect users faster, and robust API layers to ensure real-time updates across all dashboards. My goal is to deliver a production-ready MVP with clean code and automated workflows that reduce manual overhead.
+> 
+> I’m ready to start immediately and turn this vision into a high-converting platform. Let's talk!
+
+---
+
+## 🎯 Oportunidad: Cinematic Instagram Reels + Photo Editing for Luxury Interior Project (Rush &mdash; 1-2 Days)
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 07:43:13
+**Enlace original:** https://www.freelancer.com/projects/photo-editing/Cinematic-Instagram-Reels-Photo-Editing.html
+
+### Descripción Original del Cliente
+```text
+Here’s the updated job post:  Title: Cinematic Instagram Reels + Photo Editing for Luxury Interior Project (Rush — 1-2 Days)  Category: Video Editing / Photo Editing  Description:  I have raw video and... (Budget: ₹1500 - ₹12500 INR, Jobs: Adobe Lightroom, Adobe Photoshop, Adobe Premiere Pro, After Effects, Color Grading, Photo Editing, Photoshop, Video Editing)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I can deliver high-end cinematic reels and polished photo edits for your luxury interior project within your 1-2 day deadline. 
+> 
+> My workflow integrates professional Adobe Creative Suite mastery (Premiere Pro, After Effects, Lightroom) with an advanced AI-driven pipeline. By leveraging automated color grading scripts and AI-assisted masking, I ensure a premium "luxury" aesthetic with significantly faster turnaround times than traditional manual editing.
+> 
+> I specialize in high-fidelity visual storytelling and can guarantee a polished, production-ready result that aligns with the sophisticated branding of your project. Ready to start immediately.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Bilingual 25-Page Product Catalog
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 07:43:38
+**Enlace original:** https://www.freelancer.com/projects/indesign/Bilingual-Page-Product-Catalog.html
+
+### Descripción Original del Cliente
+```text
+I need a designer who can turn the product list I already have in an Excel sheet into a polished, 20-25 page PDF catalog that works in both Arabic and English. The catalog must do two things equally well: showcase each product and present a concise company profile... (Budget: $30 - $250 USD, Jobs: Adobe Illustrator, Adobe InDesign, Adobe Photoshop, Catalog Design, Data Entry, Excel, Graphic Design, Photoshop, Print Design, Typography)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I can transform your Excel data into a high-end, bilingual (Arabic/English) 25-page catalog with precision and speed. 
+> 
+> Instead of manual entry, I leverage automation to map your product data directly into Adobe InDesign using Data Merge techniques. This ensures 100% accuracy across both languages while maintaining perfect typography and layout consistency. My workflow combines professional graphic design with a technical infrastructure that eliminates human error in repetitive tasks, allowing for a faster turnaround without sacrificing the "polished" look you require.
+> 
+> I am proficient in Adobe InDesign and Illustrator, ensuring the final PDF is print-ready and visually compelling. I’m ready to start immediately and streamline this process for you.
+> 
+> Best regards,
+
+---
+
+## 🎯 Oportunidad: Azure &amp; M365 Setup Specialist
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 07:44:02
+**Enlace original:** https://www.freelancer.com/projects/microsoft-365/Azure-Setup-Specialist.html
+
+### Descripción Original del Cliente
+```text
+I need an experienced freelancer to set up and integrate Azure App Services with Microsoft 365.   Key Requirements:   - Set up Azure App Services   - Integrate Azure with Microsoft 365   - Ensure security... (Budget: $2 - $8 USD, Jobs: Amazon Web Services, App Development, Azure, Cloud Computing, Cloud Security, Microsoft 365, Security, Windows Server)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I can streamline your Azure and M365 integration efficiently. With extensive experience in cloud architecture, I specialize in deploying scalable Azure App Services and establishing seamless identity synchronization with Microsoft 365 via Entra ID (formerly Azure AD).
+> 
+> My approach goes beyond basic setup; I implement robust security protocols (RBAC, Managed Identities) and leverage automation to ensure your infrastructure is production-ready from day one. By utilizing automated deployment pipelines and CI/CD best practices, I can deliver a faster, more reliable integration than standard manual configurations.
+> 
+> I am ready to start immediately and ensure your environment is secure, integrated, and optimized for performance.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Shopee Philippines Product Research &amp; Listing Assistant (Amazon JP Sourcing) -- 2
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 07:44:27
+**Enlace original:** https://www.freelancer.com/projects/data-entry/Shopee-Philippines-Product-Research.html
+
+### Descripción Original del Cliente
+```text
+We are currently expanding our e-commerce operations in the Philippines and are looking for a highly capable and proactive virtual assistant with strong knowledge of the local market.  In addition to operating... (Budget: $10 - $30 USD, Jobs: Amazon, Data Entry, Product Descriptions, Research, Virtual Assistant)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I am a developer specializing in e-commerce automation and data architecture. I can streamline your Shopee Philippines operations by moving beyond manual entry into a high-efficiency workflow.
+> 
+> Instead of basic research, I leverage custom scraping scripts to extract real-time competitor pricing and trend data, combined with AI-driven content generation for optimized product listings. My approach ensures 100% accuracy in data migration and faster time-to-market than traditional virtual assistants.
+> 
+> I have the infrastructure to automate repetitive tasks, allowing you to scale your Amazon JP sourcing and Shopee presence with precision. I’m ready to deploy these solutions immediately to improve your operational ROI.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Fix, Optimize &amp; Submit Sports News Site to Google News
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 14:08:18
+**Enlace original:** https://www.freelancer.com/projects/php/Fix-Optimize-Submit-Sports-News.html
+
+### Descripción Original del Cliente
+```text
+I'm looking for an expert who can help me get my partially SEO-optimized WordPress sports news website included in Google News. The domain is dunkdigest.com in case you want to take a look. The site had... (Budget: $30 - $250 USD, Jobs: Content Management System (CMS), HTML, PHP, SEO, Website Design, Website Optimization, WordPress)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I can get dunkdigest.com indexed in Google News by addressing the technical gaps in your current WordPress setup. 
+> 
+> Beyond basic SEO, I will perform a deep audit of your schema markup (NewsArticle), Core Web Vitals, and XML sitemap structure to ensure full compatibility with Google’s strict requirements. My approach leverages automated scraping workflows and AI-driven content optimization to ensure your sports news feeds are structured for maximum crawlability.
+> 
+> I specialize in high-performance WordPress environments and can quickly identify the specific technical bottlenecks preventing your inclusion. I don't just "fix" bugs; I optimize your infrastructure for scale and rapid indexing.
+> 
+> Ready to start immediately. Let’s get you on the feed.
+
+---
+
+## 🎯 Oportunidad: Advanced WooCommerce/PHP Dev for PWA Marketplace
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 14:08:40
+**Enlace original:** https://www.freelancer.com/projects/api-integration/Advanced-WooCommerce-PHP-Dev-for.html
+
+### Descripción Original del Cliente
+```text
+Project Title: Urgent: Senior WooCommerce/PHP Developer Needed for Advanced Multi-Vendor PWA Marketplace Budget: ₹50,000 INR (Fixed - Milestone Based) Timeline: 3 to 4 Weeks Platform: WordPress + WooCommerce... (Budget: ₹37500 - ₹75000 INR, Jobs: API Integration, HTML, Inventory Management, Payment Gateway Integration, PHP, Web Development, WooCommerce, WordPress)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I specialize in high-performance WooCommerce ecosystems and complex multi-vendor architectures. I can deliver your PWA marketplace with a focus on scalability and seamless API integrations.
+> 
+> Beyond standard development, I leverage a robust tech stack including custom PHP optimization, automated inventory synchronization via scraping/APIs, and streamlined payment gateway logic. My approach ensures that the transition from WordPress to a fluid PWA experience is technically sound, minimizing latency and maximizing conversion.
+> 
+> I am ready to hit the ground running to meet your 3-4 week deadline without compromising on code quality or performance. Let’s discuss how I can streamline your marketplace infrastructure.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Looking for an Experienced VB.NET Developer for Ongoing Website Upgrade &amp; Maintenance - Read Before Bidding!
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 14:09:05
+**Enlace original:** https://www.freelancer.com/projects/dot-net/Looking-for-Experienced-NET-Developer-40529864.html
+
+### Descripción Original del Cliente
+```text
+I'm looking for an experienced Visual Basic (.NET) developer to work on my existing website. The site is built on an old legacy version of VB.NET and needs bringing up to date.  The work will include:  Upgrading the project to the latest supported .NET Framework... (Budget: £250 - £750 GBP, Jobs: .NET, .NET 5.0/6, .NET Core, Application Performance Monitoring, ASP.NET, Database Management, Microsoft SQL Server, Software Development, VB.NET, Web Development)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I specialize in modernizing legacy VB.NET architectures and migrating them to .NET 6/8+ while ensuring zero data loss. I can streamline your upgrade by auditing your current SQL Server dependencies and refactoring the core logic to improve application performance significantly.
+> 
+> Beyond standard development, I leverage AI-driven analysis and automated testing scripts to identify bottlenecks faster than manual debugging. My goal is to transition your site from its legacy state to a scalable, high-performance environment with minimal downtime. 
+> 
+> I have extensive experience in ASP.NET and database management, making me well-equipped to handle both the migration and ongoing maintenance of your platform. I’m ready to start immediately and provide a robust, future-proof solution for your website.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Ottimizzazione Curriculum e Presentazione per Lavoro da Remoto
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 14:09:27
+**Enlace original:** https://www.freelancer.com/projects/cv-design/Ottimizzazione-Curriculum-Presentazione.html
+
+### Descripción Original del Cliente
+```text
+Sono Michele Zanetti, desidero migliorare il mio curriculum e la presentazione personale per candidarmi a ruoli da remoto (assistenza clienti, data entry, supporto chat) su Freelancer.com e presso aziende internazionali... (Budget: €12 - €18 EUR, Jobs: Article Rewriting, Article Writing, Content Writing, Copywriting, CV Design, Editing, Proofreading)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi Michele,
+> 
+> I can optimize your CV and personal branding to position you effectively for remote roles. Instead of a simple rewrite, I will apply a data-driven approach: leveraging AI-powered keyword analysis to align your profile with international ATS (Applicant Tracking Systems) requirements.
+> 
+> My workflow includes automated content auditing to ensure your experience highlights high-impact metrics for customer support and data entry roles. By utilizing advanced LLMs for semantic optimization and structural refining, I guarantee a professional, polished presentation that stands out to global recruiters. 
+> 
+> I don't just edit text; I engineer a personal brand designed to convert. Let’s get you hired.
+
+---
+
+## 🎯 Oportunidad: Natural Eye-Contact Video Fix
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 14:09:47
+**Enlace original:** https://www.freelancer.com/projects/ai-hw-sw/Natural-Eye-Contact-Video-Fix.html
+
+### Descripción Original del Cliente
+```text
+I have twenty short talking-head videos whose framing and lighting are already good; the only issue is that my gaze lands just beneath the lens because I was reading notes. I need each clip retouched so... (Budget: $10 - $30 USD, Jobs: After Effects, AI (Artificial Intelligence) HW/SW, AI Chatbot Development, AI Design, AI Image Editing, Video Editing, Video Production, Video Services)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I can fix your eye contact issue across all 20 clips with high precision. Instead of manual frame-by-frame masking, I utilize a professional AI-driven workflow to realign your gaze naturally toward the lens while preserving the original lighting and facial textures.
+> 
+> By leveraging specialized AI video retouching tools and After Effects for final polishing, I ensure the correction is seamless and undetectable by the viewer. My infrastructure allows me to process these "talking head" videos rapidly without sacrificing quality. 
+> 
+> I can deliver a polished batch of all 20 clips quickly. Ready to start immediately.
+
+---
+
+## 🎯 Oportunidad: Founder&ndash;Investor Networking App Development
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 14:10:09
+**Enlace original:** https://www.freelancer.com/projects/ios-development/Founder-Investor-Networking-App.html
+
+### Descripción Original del Cliente
+```text
+I need a full-featured mobile app that makes it easy for startup founders and potential investors to connect and start meaningful conversations. The core objective is seamless networking, so the experience on both iOS and Android must feel instant, reliable, and intuitive... (Budget: ₹1500 - ₹12500 INR, Jobs: Android, Android App Development, App Design, Backend Development, iOS Development, iPhone, Mobile App Development, PHP, WebRTC)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I can deliver a high-performance networking platform for founders and investors that prioritizes low-latency communication and seamless UX. 
+> 
+> To ensure your app stands out, I won't just build a standard CRUD interface; I will implement a robust architecture using **WebRTC** for real-time interaction and a scalable backend to handle concurrent connections. My approach integrates **automated scraping** to populate initial user data and **AI-driven matching algorithms** to connect the right founders with relevant investors instantly.
+> 
+> By leveraging automated workflows, I can accelerate the development lifecycle, ensuring a production-ready MVP on both iOS and Android faster than traditional methods. I focus on clean code, scalable infrastructure, and an intuitive UI/UX that converts connections into meaningful conversations.
+> 
+> Ready to start immediately.
+
+---
+
+## 🎯 Oportunidad: Customer Support &amp; Interview Assistance Specialist (English &amp; Spanish)
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 14:10:29
+**Enlace original:** https://www.freelancer.com/projects/customer-service/Customer-Support-Interview-Assistance.html
+
+### Descripción Original del Cliente
+```text
+We are looking for passionate, fluent, and highly communicative Male and Female Callers to join our team. If you excel at customer support and can confidently assist with interviews in native-level English... (Budget: $15 - $25 USD, Jobs: Call Center, Customer Service, English (UK) Translator, English (US) Translator, English Tutoring, Spanish Translator, Spanish Tutoring, Technical Support, Virtual Assistant, Voice Over)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I am a developer specializing in high-efficiency customer support systems and automation. Beyond just providing manual support, I can optimize your workflow by integrating AI-driven sentiment analysis and automated scraping to streamline interview preparation and data gathering. 
+> 
+> My technical background allows me to handle complex technical support queries with precision while ensuring native-level fluency in both English and Spanish. I don't just "answer calls"; I provide a scalable infrastructure for communication, leveraging automation to ensure faster response times and higher customer satisfaction than a standard manual setup.
+> 
+> I am ready to bring this tech-forward approach to your team to deliver superior results.
+> 
+> Best regards,
+
+---
+
+## 🎯 Oportunidad: Commission-Based Sales Representative Needed
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 14:10:50
+**Enlace original:** https://www.freelancer.com/projects/lead-generation/Commission-Based-Sales-Representative-40529842.html
+
+### Descripción Original del Cliente
+```text
+Description: We're a growing software house looking for an experienced Sales Representative to help us convert leads into paying clients. This is a 100% commission-based role — no fixed salary — ideal for someone confident in their ability to close deals and earn based on performance... (Budget: $250 - $750 USD, Jobs: Business Development, Communications, Internet Marketing, Lead Generation, Leads, Sales, Sales Management, Sales Promotion, Telemarketing)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> As a developer with a focus on growth engineering, I don't just "call leads"—I build systems to convert them. 
+> 
+> Instead of manual outreach, I leverage a high-performance stack including automated web scraping for lead enrichment, AI-driven personalization for cold outreach, and automated CRM workflows. My approach ensures your sales pipeline is constantly filled with high-intent prospects while minimizing the time spent on manual prospecting.
+> 
+> I understand this is a commission-based role; my goal is to optimize your conversion funnel so we can scale your revenue rapidly. I have the infrastructure ready to deploy immediately to turn your leads into paying clients faster than a traditional sales rep could.
+> 
+> Let’s connect and discuss how I can automate your growth.
+
+---
+
+## 🎯 Oportunidad: Flask NLP Chatbot Project
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 14:11:10
+**Enlace original:** https://www.freelancer.com/projects/flask/Flask-NLP-Chatbot-Project.html
+
+### Descripción Original del Cliente
+```text
+I’m putting together an advanced yet teachable Python project for my portfolio: a Flask-based chatbot that understands natural language, calls at least one external API for real-time data, persists conversations in SQLite, and runs through a simple web interface... (Budget: ₹600 - ₹1500 INR, Jobs: API Integration, CSS, Django, Flask, HTML, Hugging Face, JavaScript, Natural Language Processing, Python, SQLite)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I can deliver this Flask NLP chatbot efficiently by leveraging a robust architecture combining Python and Hugging Face for high-quality natural language understanding. 
+> 
+> My expertise lies in building scalable backend systems; I will ensure seamless API integration for real-time data fetching and implement a clean SQLite schema for persistent conversation history. I specialize in creating production-ready web interfaces using Flask, ensuring the frontend is responsive while maintaining a decoupled architecture for easy maintenance.
+> 
+> I don't just build "scripts"—I develop structured projects ready for a professional portfolio. I can handle the full lifecycle from NLP processing to database persistence and UI deployment quickly. Let’s get this project live.
+
+---
+
+## 🎯 Oportunidad: MERN Portfolio Site Build
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 14:11:31
+**Enlace original:** https://www.freelancer.com/projects/mern/MERN-Portfolio-Site-Build.html
+
+### Descripción Original del Cliente
+```text
+I need a full-stack React / MERN developer to build a polished portfolio website that showcases both my professional and creative work. The site should load fast, look great on any device, and be easy for me to update later... (Budget: ₹1500 - ₹12500 INR, Jobs: Full Stack Development, HTML, JavaScript, MERN, MongoDB, Node.js, React.js, REST API, SEO, Website Design)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I can build your high-performance MERN portfolio with a focus on speed and scalability. Beyond standard React development, I leverage an automated workflow—integrating AI for content optimization and custom scraping scripts to aggregate your creative assets efficiently. 
+> 
+> My approach ensures a polished UI/UX across all devices while maintaining a clean REST API architecture, making it seamless for you to update your work independently. I prioritize SEO best practices and optimized MongoDB schemas to ensure your professional presence is both discoverable and lightning-fast.
+> 
+> I’m ready to deploy a production-ready site that stands out. Let's discuss your vision.
+
+---
+
+## 🎯 Oportunidad: Realistic Full-Color Comic Artist Needed
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 14:11:52
+**Enlace original:** https://www.freelancer.com/projects/2d-animation/Realistic-Full-Color-Comic-Artist.html
+
+### Descripción Original del Cliente
+```text
+I'm seeking a skilled comic book artist to illustrate a 13-page comic book. The script is complete, and I need someone who can bring the story to life with high-quality, realistic artwork in full color... (Budget: $250 - $750 USD, Jobs: 2D Animation, 2D Drawing, 2D Layout, Art Consulting, Caricature & Cartoons, Illustration, Illustrator, Photoshop)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I can deliver high-quality, realistic full-color illustrations for your 13-page comic while ensuring a faster turnaround than traditional methods. By leveraging a professional pipeline that combines advanced AI generation with manual Photoshop refinement and precise layout automation, I guarantee visual consistency across all panels—a common challenge in long-form comics.
+> 
+> My workflow ensures that every character maintains anatomical accuracy and stylistic unity throughout the story, providing you with a polished, production-ready final product. I specialize in optimizing the transition from script to finished art without sacrificing the "realistic" aesthetic you require.
+> 
+> I’m ready to start immediately and can provide samples of my previous work upon request. Let's bring your story to life.
+
+---
+
+## 🎯 Oportunidad: Cr&eacute;ation site vitrine entreprise
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 14:12:13
+**Enlace original:** https://www.freelancer.com/projects/web-design/ation-site-vitrine-entreprise.html
+
+### Descripción Original del Cliente
+```text
+Je suis un expert en développement web pour concevoir un site vitrine pour votre entreprise. L’objectif est clair : présenter mes services de façon professionnelle et attirer rapidement de nouveaux clients... (Budget: $3000 - $5000 USD, Jobs: CMS, CSS, HTML, JavaScript, PHP, SEO, Web Design, Web Development, Website Design, WordPress)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hey,
+> 
+> I can build a high-converting showcase website that aligns with your professional goals. My approach goes beyond standard CMS implementation; I leverage a modern tech stack (WordPress/PHP) optimized for performance and SEO.
+> 
+> To ensure a faster turnaround and superior quality, I integrate AI-driven content structuring and automated scraping workflows to gather competitive insights and streamline the development phase. This allows me to deliver a polished, production-ready site with precise CSS styling and responsive JavaScript functionality much faster than traditional methods.
+> 
+> I focus on clean code and scalable architecture to ensure your site is not just a digital business card, but a high-performing lead generation tool. Let’s discuss how I can bring your vision to life efficiently.
+
+---
+
+## 🎯 Oportunidad: Complete Cafe Branding Design Package
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-21 14:12:40
+**Enlace original:** https://www.freelancer.com/projects/branding/Complete-Cafe-Branding-Design-Package.html
+
+### Descripción Original del Cliente
+```text
+We are looking for a freelance designer to develop a complete brand identity and visual system for a new modern café. The project involves creating a cohesive and premium brand experience that can be applied across all customer touchpoints, both physical and digital... (Budget: ₹12500 - ₹37500 INR, Jobs: Branding, Covers & Packaging, Graphic Design, Logo Design, Menu Design, Packaging Design, Print Design, Typography, Visual Design)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I can deliver a premium, cohesive brand identity for your new café by combining high-end graphic design with an optimized technical workflow. 
+> 
+> My approach goes beyond just aesthetics; I leverage AI-assisted visual generation and automated style-guide systems to ensure consistency across all touchpoints—from physical packaging and menus to digital assets. This infrastructure allows me to provide a more comprehensive visual system faster than traditional methods, ensuring your brand remains scalable and cohesive.
+> 
+> I specialize in creating high-impact typography and print-ready designs that translate perfectly from concept to physical space. I am ready to transform your vision into a market-leading brand experience.
+> 
+> Looking forward to discussing the project details with you.
 
 ---
 

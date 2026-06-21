@@ -57,7 +57,7 @@ Source: "..\dist\GravityBridge.exe";          DestDir: "{app}";               Fl
 Source: "..\frontend\dist\*";                 DestDir: "{app}\web";           Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; ── Configuración inicial (no sobreescribir si ya existe) ────────────────────
-Source: "..\config.yaml";                     DestDir: "{app}";               Flags: ignoreversion onlyifdoesntexist
+Source: "..\config.yaml.example";                     DestDir: "{app}"; DestName: "config.yaml"; Flags: ignoreversion onlyifdoesntexist
 Source: "..\_knowledge.json";                 DestDir: "{app}";               Flags: ignoreversion onlyifdoesntexist
 
 ; ── Assets (icono, etc.) ─────────────────────────────────────────────────────

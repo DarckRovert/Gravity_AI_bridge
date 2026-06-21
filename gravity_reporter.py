@@ -479,18 +479,12 @@ def publish_changes():
     try:
         # Forzar configuración global de seguridad en Git para el usuario actual (ej. Administrador)
         subprocess.run(["git", "config", "--global", "--add", "safe.directory", "*"], check=False)
+        subprocess.run(["git", "status"], cwd=PORTAL_DIR, check=False)
         
-        # Git Status check
-        subprocess.run(["git", "status"], cwd=PORTAL_DIR, check=True)
-        
-        # Git Add
         subprocess.run(["git", "add", "."], cwd=PORTAL_DIR, check=True)
-        
-        # Git Commit
-        commit_msg = f"Gravity Reporter: reporte de investigación autónomo [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
-        subprocess.run(["git", "commit", "-m", commit_msg], cwd=PORTAL_DIR, check=True)
-        
-        # Git Push
+        commit_msg = f"Gravity Reporter: noticias diarias [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
+        # check=False para no crashear si no hay cambios
+        subprocess.run(["git", "commit", "-m", commit_msg], cwd=PORTAL_DIR, check=False)
         subprocess.run(["git", "push", "origin", "main"], cwd=PORTAL_DIR, check=True)
         logging.info("[green]✓ Publicación exitosa. Netlify se actualizará en segundos.[/]")
     except subprocess.CalledProcessError as e:

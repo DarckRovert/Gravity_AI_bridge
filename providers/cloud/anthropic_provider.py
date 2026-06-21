@@ -117,6 +117,7 @@ class AnthropicProvider(ProviderPlugin):
                         pass
         except Exception as e:
             logger.error(f"[AnthropicStream] Error in chat_stream: {e}")
+            yield f"\n\n[**SYSTEM ERROR**: Fallo crítico en Anthropic. Error: {str(e)}]\n\n"
         finally:
             if thinking_open:
                 yield "</think>\n\n"

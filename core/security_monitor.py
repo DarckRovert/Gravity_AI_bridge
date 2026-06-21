@@ -59,6 +59,7 @@ WHITELIST_PORTS: Set[int] = {
     9090,   # Prometheus
     9229,   # Node debugger
     8188,   # ComfyUI
+    4455,   # OBS WebSocket
 }
 
 # Procesos legítimos que pueden abrir puertos aleatorios sin ser sospechosos.
@@ -67,7 +68,8 @@ LEGITIMATE_PROCESS_NAMES: Set[str] = {
     # Sistema operativo Windows
     "svchost.exe", "lsass.exe", "wininit.exe", "services.exe",
     "explorer.exe", "winlogon.exe", "spoolsv.exe", "taskmgr.exe",
-    "audiodg.exe", "dwm.exe", "csrss.exe", "smss.exe",
+    "audiodg.exe", "dwm.exe", "csrss.exe", "smss.exe", "dllhost.exe", "conhost.exe",
+    "sihost.exe", "ctfmon.exe", "smartscreen.exe",
     # Navegadores
     "chrome.exe", "firefox.exe", "msedge.exe", "brave.exe", "opera.exe",
     "iexplore.exe", "chromium.exe", "vivaldi.exe",
@@ -84,9 +86,9 @@ LEGITIMATE_PROCESS_NAMES: Set[str] = {
     "dropbox.exe", "onedrive.exe", "googledrivefs.exe", "syncthing.exe",
     "nordvpn.exe", "mullvad.exe", "protonvpn.exe", "tailscale.exe",
     "docker.exe", "dockerd.exe", "wsl.exe", "wslhost.exe",
-    # Gravity / IA local
+    # Gravity / IA local / Video
     "gravitybridge.exe", "lm studio.exe", "lmstudio.exe",
-    "ollama.exe", "jan.exe", "koboldcpp.exe",
+    "ollama.exe", "jan.exe", "koboldcpp.exe", "obs64.exe", "obs32.exe",
 }
 
 # Herramientas de hacking / debugging prohibidas (Anti-Tampering)
@@ -247,18 +249,20 @@ def _scan_ports() -> Tuple[List[Dict[str, Any]], List[int]]:
             # Endurecimiento: python/node NO tienen pase libre para abrir cualquier puerto.
             in_port_whitelist    = port in WHITELIST_PORTS
             is_legitimate_proc   = proc_name_lower in LEGITIMATE_PROCESS_NAMES
-            is_system_proc       = proc_name_lower in ["svchost.exe", "system", "lsass.exe", "wininit.exe", "services.exe", "spoolsv.exe", "smss.exe"]
+            is_system_proc       = proc_name_lower in ["svchost.exe", "system", "lsass.exe", "wininit.exe", "services.exe", "spoolsv.exe", "smss.exe", "csrss.exe", "winlogon.exe", "explorer.exe", "taskmgr.exe", "dwm.exe"]
+            is_interpreter       = proc_name_lower in ["node.exe", "python.exe", "python3.exe", "java.exe", "javaw.exe"]
 
-            if is_legitimate_proc:
+            if is_system_proc:
+                is_suspicious = False
+            elif is_interpreter:
                 # Si es un intérprete, SOLO puede abrir puertos conocidos del ecosistema
                 is_suspicious = not in_port_whitelist
+            elif is_legitimate_proc:
+                # Otros procesos legítimos (navegadores, juegos, etc.) pueden abrir puertos
+                is_suspicious = False
             else:
-                # Los puertos del sistema (<1024) solo son seguros si el proceso dueño es crítico de Windows
-                is_system_port = port <= 1024
-                if is_system_port and is_system_proc:
-                    is_suspicious = False
-                else:
-                    is_suspicious = not in_port_whitelist
+                # Procesos desconocidos no pueden abrir puertos fuera de la whitelist
+                is_suspicious = not in_port_whitelist
 
             if is_suspicious:
                 suspicious.append(port)

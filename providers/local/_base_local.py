@@ -82,13 +82,9 @@ def _http_post_stream(
             for line in r:
                 yield line
     except urllib.error.HTTPError as e:
-        error_body = e.read().decode("utf-8", errors="ignore")
-        # Envolver el error en un evento SSE válido para que llegue al frontend
-        err_json = json.dumps({"choices": [{"delta": {"content": f"\n\n❌ **Error del Modelo Local (HTTP {e.code}):**\n```\n{error_body}\n```"}}]})
-        yield f"data: {err_json}\n\n".encode("utf-8")
+        raise e
     except Exception as e:
-        err_json = json.dumps({"choices": [{"delta": {"content": f"\n\n❌ **Error de Conexión o Timeout con Modelo Local:**\n```\n{str(e)}\n```"}}]})
-        yield f"data: {err_json}\n\n".encode("utf-8")
+        raise e
 
 
 def _http_post(url: str, payload: dict, timeout: float = 60.0) -> bytes:
@@ -124,22 +120,25 @@ def _openai_compat_stream(
     Streams SSE lines and yields content string chunks.
     """
     url = f"{base_url.rstrip('/')}{path}"
-    for raw_line in _http_post_stream(url, payload):
-        line = raw_line.decode("utf-8", errors="ignore").strip()
-        if not line.startswith("data:"):
-            continue
-        data_str = line[5:].strip()
-        if data_str == "[DONE]":
-            break
-        d = _safe_json(data_str)
-        if d and "choices" in d and d["choices"]:
-            delta = d["choices"][0].get("delta", {})
-            chunk = delta.get("content", "")
-            r_chunk = delta.get("reasoning_content", "")
-            if r_chunk:
-                yield "<think>" + r_chunk + "</think>"
-            if chunk:
-                yield chunk
+    try:
+        for raw_line in _http_post_stream(url, payload):
+            line = raw_line.decode("utf-8", errors="ignore").strip()
+            if not line.startswith("data:"):
+                continue
+            data_str = line[5:].strip()
+            if data_str == "[DONE]":
+                break
+            d = _safe_json(data_str)
+            if d and "choices" in d and d["choices"]:
+                delta = d["choices"][0].get("delta", {})
+                chunk = delta.get("content", "")
+                r_chunk = delta.get("reasoning_content", "")
+                if r_chunk:
+                    yield "<think>" + r_chunk + "</think>"
+                if chunk:
+                    yield chunk
+    except Exception as e:
+        yield f"\n\n[**SYSTEM ERROR**: Fallo de conexión con Modelo Local. Error: {str(e)}]\n\n"
 
 
 def _openai_compat_complete(

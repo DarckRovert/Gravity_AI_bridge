@@ -100,7 +100,7 @@ COMPONENTS = {
 
 CORE_PKGS = [
     "rich", "pyfiglet", "pyreadline3", "pyyaml", "httpx",
-    "requests", "psutil",
+    "requests", "psutil", "gradio", "moderngl"
 ]
 
 
@@ -357,6 +357,16 @@ def _pip_install(pkgs: list[str], progress: Progress, task_id) -> list[str]:
 def phase_install_deps(components: dict, progress: Progress) -> list[str]:
     """Instala todas las dependencias. Retorna lista de paquetes fallidos."""
     all_pkgs = list(CORE_PKGS)
+
+    # Leer dinámicamente requirements.txt para incluir todas las dependencias
+    req_path = os.path.join(SOURCE_DIR, "requirements.txt")
+    if os.path.exists(req_path):
+        with open(req_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and line not in all_pkgs:
+                    all_pkgs.append(line)
+
     for cid, enabled in components.items():
         if enabled:
             all_pkgs.extend(COMPONENTS[cid]["pkgs"])

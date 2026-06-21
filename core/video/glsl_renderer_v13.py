@@ -1967,7 +1967,7 @@ def render_v13_video(timeline: list, multiband: dict, colorsA: np.ndarray,
     tex_stone = None
     try:
         from PIL import Image
-        tex_path = r"f:\Gravity_AI_bridge\assets\textures\inca_stone.png"
+        tex_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "assets", "textures", "inca_stone.png")
         if os.path.exists(tex_path):
             img = Image.open(tex_path).convert("RGB")
             # Flip image top to bottom for OpenGL

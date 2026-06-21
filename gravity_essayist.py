@@ -324,8 +324,9 @@ def publish_changes():
     try:
         subprocess.run(["git", "config", "--global", "--add", "safe.directory", "*"], check=False)
         subprocess.run(["git", "add", "."], cwd=PORTAL_DIR, check=True)
-        commit_msg = f"Gravity Essayist: ensayo filosófico [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
-        subprocess.run(["git", "commit", "-m", commit_msg], cwd=PORTAL_DIR, check=True)
+        commit_msg = f"Gravity Essayist: nuevo ensayo [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
+        # check=False para evitar excepciones si el ensayo fue idéntico o no hay cambios
+        subprocess.run(["git", "commit", "-m", commit_msg], cwd=PORTAL_DIR, check=False)
         subprocess.run(["git", "push", "origin", "main"], cwd=PORTAL_DIR, check=True)
         logging.info("[✓] Ensayo publicado en Netlify.")
     except Exception as e:

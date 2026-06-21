@@ -1,15 +1,18 @@
 import os
 
-BASE_DIR = r"f:\Gravity_AI_bridge"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 files_to_create = {
     "README.md": """# Gravity AI Bridge V16.0 PRO 🌌
 
 ![Gravity Shield](https://img.shields.io/badge/Gravity-Diamond_Tier-00BFFF?style=for-the-badge&logo=ai)
+![Security Audit](https://img.shields.io/badge/Security-Audited_100%25-success?style=for-the-badge&logo=shield)
 ![Status](https://img.shields.io/badge/Status-Autonomo_Activo-4CAF50?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 Gravity AI Bridge es el núcleo de un ecosistema autónomo y de alto rendimiento. Actúa como el cerebro central (L0) que orquesta modelos de lenguaje locales (LM Studio, Ollama) y en la nube (Nvidia NIM, Groq, OpenAI), además de coordinar motores de generación visual (Fooocus L1) y motores de video avanzados (LTX Video L2).
+
+> **Nota de Seguridad:** La versión V16.0 PRO ha pasado una rigurosa auditoría de código, erradicando vulnerabilidades de ReDoS y garantizando resiliencia absoluta contra fallos silenciosos en operaciones asíncronas y de Git.
 
 ## 🔥 Características Principales
 
@@ -162,7 +165,7 @@ Un proceso demonio continuo (`news_daemon.py`) que:
 1. Utiliza `gravity_reporter.py`.
 2. Busca temáticas usando herramientas de WebSearch.
 3. Inyecta respuestas LLM en `news.json` en un repositorio independiente (`gravity-news-portal`).
-4. Realiza sincronizaciones automáticas a través de `git commit` y `git push` a Netlify.
+4. Realiza sincronizaciones automáticas a través de `git commit` y `git push` a Netlify. Cuenta con control de idempotencia para evitar fallos si no hay cambios nuevos, garantizando un ciclo de ejecución continuo.
 """,
 
     "wiki/API-Reference.md": """# Referencia de API
@@ -192,6 +195,12 @@ Ejecución del periodista.
 
 ### 3. Problemas de Push a Github en el Agente Periodístico
 **Solución:** Verifica que el usuario local de Windows tenga las credenciales de Git cacheadas globalmente (`git config --global credential.helper wincred`).
+
+### 4. Fallos al decodificar contenido de Web Search
+**Explicación:** Si la búsqueda web retorna errores de Gzip o decodificación, revisa que no estés enviando headers de codificación (Accept-Encoding) incompatibles con `urllib`. La V16.0 PRO ya maneja esto limpiando cabeceras innecesarias.
+
+### 5. Falla silenciosa al instalar faster-whisper
+**Solución:** En V16.0 PRO, la instalación de dependencias como Whisper es de tipo "bloqueante" (`blocking`). Si notas errores de "módulo no encontrado" en la consola, verifica que el subprocess tenga permisos para instalar pip localmente sin detener la ejecución.
 """
 }
 

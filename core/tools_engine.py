@@ -28,10 +28,13 @@ class ToolEngine:
 
     def _safe_path(self, path: str) -> str:
         """Verifica que la ruta esté dentro del workspace para evitar directory traversal."""
-        abs_path = os.path.abspath(os.path.join(self.workspace_root, path))
-        if not abs_path.startswith(self.workspace_root):
+        abs_path_orig = os.path.abspath(os.path.join(self.workspace_root, path))
+        abs_path_check = os.path.normcase(abs_path_orig)
+        root_path_check = os.path.normcase(os.path.abspath(self.workspace_root))
+        
+        if not abs_path_check.startswith(root_path_check + os.sep) and abs_path_check != root_path_check:
             raise PermissionError(f"Ruta denegada (fuera del workspace): {path}")
-        return abs_path
+        return abs_path_orig
 
     def _read_file_with_fallback(self, safe_path: str) -> str:
         """Intenta leer un archivo con codificación utf-8, con fallback a cp1252 y latin-1."""

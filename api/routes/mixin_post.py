@@ -9,6 +9,9 @@ from core.reasoning_stripper import ReasoningStripper
 class PostRoutesMixin:
     def do_POST(self):
         print('DEBUG do_POST path:', repr(self.path))
+        
+        if not self._check_rate():
+            return
 
         # /v1/youtube/analyzer/process — Analizar video de YouTube
         if self.path == "/v1/youtube/analyzer/process":

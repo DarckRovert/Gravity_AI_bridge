@@ -23,6 +23,7 @@ pystray
 Pillow
 psutil
 prometheus_client
+moderngl
 
 # Video Studio — TTS offline (Windows SAPI) y Transcripción
 pyttsx3>=2.90

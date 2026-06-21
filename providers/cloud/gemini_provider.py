@@ -103,6 +103,7 @@ class GeminiProvider(ProviderPlugin):
                         pass
         except Exception as e:
             logger.error(f"[GeminiStream] Error in stream: {e}")
+            yield f"\n\n[**SYSTEM ERROR**: Fallo crítico en Gemini. Error: {str(e)}]\n\n"
 
     def chat_complete(
         self,

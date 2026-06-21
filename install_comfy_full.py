@@ -4,7 +4,7 @@ import py7zr
 import shutil
 import subprocess
 
-BASE_DIR = r"f:\Gravity_AI_bridge\_integrations"
+BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_integrations")
 COMFY_URL = "https://github.com/Comfy-Org/ComfyUI/releases/download/v0.20.1/ComfyUI_windows_portable_nvidia.7z"
 MODEL_URL = "https://huggingface.co/Lightricks/LTX-Video/resolve/main/ltx-video-2b-v0.9.5.safetensors"
 COMFY_7Z = os.path.join(BASE_DIR, "ComfyUI_portable.7z")
@@ -53,7 +53,7 @@ def main():
 
     # 3. Install Custom Nodes
     print("Installing LTX-Video custom nodes...")
-    installer_bat = r"f:\Gravity_AI_bridge\launchers\Instalar_Modulo_Video_LTX.bat"
+    installer_bat = os.path.join(os.path.dirname(os.path.abspath(__file__)), "launchers", "Instalar_Modulo_Video_LTX.bat")
     if os.path.exists(installer_bat):
         subprocess.run([installer_bat], shell=True)
     else:

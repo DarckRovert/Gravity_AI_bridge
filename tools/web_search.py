@@ -26,9 +26,9 @@ def fetch_page_text(url: str, max_chars: int = 3000) -> str:
         )
         with urllib.request.urlopen(req, timeout=8) as r:
             raw = r.read(max_chars * 6).decode("utf-8", errors="ignore")
-        # Eliminar scripts, styles, tags HTML
-        raw = re.sub(r'<script[^>]*>.*?</script>', '', raw, flags=re.DOTALL | re.IGNORECASE)
-        raw = re.sub(r'<style[^>]*>.*?</style>', '', raw, flags=re.DOTALL | re.IGNORECASE)
+        # Eliminar scripts, styles, tags HTML (permitiendo que terminen abruptamente si el buffer se cortó)
+        raw = re.sub(r'<script[^>]*>.*?(?:</script>|$)', '', raw, flags=re.DOTALL | re.IGNORECASE)
+        raw = re.sub(r'<style[^>]*>.*?(?:</style>|$)', '', raw, flags=re.DOTALL | re.IGNORECASE)
         text = re.sub(r'<[^>]+>', ' ', raw)
         text = re.sub(r'\s{2,}', ' ', text).strip()
         return text[:max_chars]
@@ -64,7 +64,7 @@ def _ddg_search(query: str) -> List[Dict[str, str]]:
     # Análisis robusto mediante expresiones regulares eficientes
     titles: List[str] = re.findall(r'class="result__title"[^>]*>.*?<a[^>]*>(.*?)</a>', html, re.DOTALL)
     urls: List[str] = re.findall(r'class="result__url"[^>]*>\s*(.*?)\s*</a>', html, re.DOTALL)
-    snippets: List[str] = re.findall(r'class="result__snippet"[^>]*>(.*?)</span>', html, re.DOTALL)
+    snippets: List[str] = re.findall(r'class="result__snippet"[^>]*>(.*?)</(?:a|span|div)>', html, re.DOTALL)
 
     for i in range(min(MAX_RES, len(titles))):
         title_raw: str = re.sub(r"<[^>]+>", "", titles[i]).strip()
@@ -95,7 +95,6 @@ def _brave_search(query: str, api_key: str) -> List[Dict[str, str]]:
     url: str = f"{BRAVE_URL}?q={urllib.parse.quote(query)}&count={MAX_RES}"
     req = urllib.request.Request(url, headers={
         "Accept":              "application/json",
-        "Accept-Encoding":     "gzip",
         "X-Subscription-Token": api_key,
     })
     try:

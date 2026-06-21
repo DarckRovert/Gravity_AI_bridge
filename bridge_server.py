@@ -120,11 +120,15 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
         return True
 
     def do_OPTIONS(self):
+        if not self._check_rate():
+            return
         self.send_response(200)
         self._send_cors()
         self.end_headers()
 
     def do_GET(self):
+        if not self._check_rate():
+            return
         routes = {
             "/":                    self._serve_dashboard,
             "/dashboard":           self._serve_dashboard,

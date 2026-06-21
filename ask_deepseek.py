@@ -873,6 +873,10 @@ if __name__ == "__main__":
         sys.exit(0)
 
     cli = AuditorCLI(role=role)
+    
+    if cli.process_command(prompt):
+        sys.exit(0)
+        
     bp, bm = cli._get_active_provider_and_model()
     if not bp:
         print("ERROR: Sin proveedor disponible. Usa /keys set o inicia un motor local.")
@@ -885,4 +889,3 @@ if __name__ == "__main__":
         if not succ:
             print(f"[Tool {tname} Error] {out}")
 
-# INYECCIÓN MALICIOSA TEST IPS

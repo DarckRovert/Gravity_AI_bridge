@@ -2,7 +2,7 @@
 cd /d "%~dp0"
 setlocal enabledelayedexpansion
 
-REM ── Gravity AI Bridge V12.1 PRO [Omniscient-Tier Edition] - Comando Global ──────────────────────────────
+REM ── Gravity AI Bridge V16.0 PRO [Omniscient-Tier Edition] - Comando Global ──────────────────────────────
 REM Uso:  gravity "pregunta"          → respuesta directa
 REM       gravity                     → modo interactivo
 REM       gravity --help              → ayuda rápida
@@ -15,7 +15,7 @@ REM ─────────────────────────�
 
 if "%~1"=="--help" (
     echo.
-    echo  GRAVITY AI BRIDGE V12.1 PRO [Omniscient-Tier Edition] - Ayuda Rápida
+    echo  GRAVITY AI BRIDGE V16.0 PRO [Omniscient-Tier Edition] - Ayuda Rápida
     echo  ─────────────────────────────────────────
     echo  gravity                  Modo interactivo (CLI)
     echo  gravity "pregunta"       Respuesta directa rápida
@@ -23,16 +23,15 @@ if "%~1"=="--help" (
     echo  gravity --start          Iniciar TODO el ecosistema (Recomendado)
     echo  gravity --server         Iniciar solo Bridge Server backend
     echo  gravity --studio         Iniciar motor completo de Vision UI
-    echo  gravity fabrica          Iniciar motor Web3 de FabricaWeb local (React)
-    echo  gravity dashboard        Abrir dashboard ^(http://localhost:7860^)
-    echo  gravity status           Estado de los motores de IA offline/online
-    echo  gravity version          Versión actual
+    echo  gravity --dashboard      Abrir dashboard ^(http://localhost:7860^)
+    echo  gravity --status         Estado de los motores de IA
+    echo  gravity --version        Versión actual
     echo.
     exit /b 0
 )
 
 if "%~1"=="--version" (
-    echo Gravity AI Bridge V12.1 PRO [Omniscient-Tier Edition]
+    echo Gravity AI Bridge V16.0 PRO [Omniscient-Tier Edition]
     echo https://github.com/DarckRovert/Gravity_AI_bridge
     exit /b 0
 )
@@ -52,13 +51,23 @@ goto DO_RUNTIME
 
 :DO_RUNTIME
 
+if "%~1"=="--server" (
+    start "Gravity Bridge Backend" cmd /k "python %~dp0bridge_server.py"
+    exit /b 0
+)
+
+if "%~1"=="--studio" (
+    start "Gravity Fooocus Studio" cmd /k "python %~dp0tools\fooocus_studio_ui.py"
+    exit /b 0
+)
+
 if "%~1"=="--dashboard" (
     start "" "http://localhost:7860"
     exit /b 0
 )
 
 if "%~1"=="--status" (
-    python "%~dp0health_check.py"
+    python "%~dp0ask_deepseek.py" "/providers"
     exit /b 0
 )
 

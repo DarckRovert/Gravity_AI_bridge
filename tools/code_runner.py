@@ -22,7 +22,7 @@ def _extract_blocks(text: str) -> list[tuple[str, str]]:
     Extracts all fenced code blocks from text.
     Returns list of (language, code) tuples.
     """
-    pattern = r"```(\w*)\n(.*?)```"
+    pattern = r"```([a-zA-Z0-9_\-\+]*)[ \t]*\n(.*?)```"
     matches = re.findall(pattern, text, re.DOTALL)
     return [(lang.lower() or "python", code.strip()) for lang, code in matches]
 

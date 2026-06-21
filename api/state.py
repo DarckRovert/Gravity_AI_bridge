@@ -7,21 +7,12 @@ from core.logger import log
 # ── Rate Limiter State ────────────────────────────────────────────────────────
 RATE_LIMIT_MAX = 120
 RATE_LIMIT_WINDOW = 60
-ip_counts = {}  # {ip: [timestamp, ...]}
-ip_lock = threading.Lock()
+
+from core.rate_limiter import ip_limiter
 
 def check_rate_limit(ip: str) -> bool:
     """Retorna True si la IP puede hacer la request. False si está bloqueada."""
-    now = time.time()
-    with ip_lock:
-        timestamps = ip_counts.get(ip, [])
-        timestamps = [t for t in timestamps if now - t < RATE_LIMIT_WINDOW]
-        if len(timestamps) >= RATE_LIMIT_MAX:
-            ip_counts[ip] = timestamps
-            return False
-        timestamps.append(now)
-        ip_counts[ip] = timestamps
-        return True
+    return ip_limiter.is_allowed(ip, RATE_LIMIT_MAX, RATE_LIMIT_WINDOW)
 
 # ── GeoIP Tracker State ───────────────────────────────────────────────────────
 geoip_cache = {}

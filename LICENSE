@@ -1,47 +1,21 @@
-Copyright (c) 2026 Rodrigo Alejandro Vega Rojas. Todos los derechos reservados.
-Publicado bajo el seudónimo: DarckRovert
-Proyecto: Gravity AI Bridge V16.0 PRO [Omniscient-Tier]
-Repositorio oficial: https://github.com/DarckRovert/Gravity_AI_bridge
+MIT License
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-LICENCIA PROPIETARIA — TODOS LOS DERECHOS RESERVADOS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Copyright (c) 2026 DarckRovert
 
-El presente código fuente de "Gravity AI Bridge" (incluyendo su arquitectura
-nativa, integración en el flujo de World of Warcraft, puente difusivo con
-Fooocus, Video Studio CPU-Only, orquestación Multi-Agente, sistema RAG y
-todos sus módulos subsidiarios) es propiedad exclusiva de su autor y creador,
-publicado bajo el seudónimo DarckRovert.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-PROTECCIÓN LEGAL: Este software está protegido por:
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-  · Decreto Legislativo N° 822 — Ley sobre el Derecho de Autor (Perú),
-    artículos 36–39 (protección de programas de ordenador / software)
-  · Convenio de Berna para la Protección de las Obras Literarias y Artísticas
-    (Perú adherido desde 1988 — 181 estados miembro)
-  · Digital Millennium Copyright Act (DMCA — 17 U.S.C. § 512)
-    aplicable sobre la plataforma GitHub (empresa con sede en EE.UU.)
-
-La protección es automática desde el momento de creación, sin necesidad
-de registro previo (art. 3 DL 822 concordante con art. 5 Convenio de Berna).
-
-ACCIONES EXPRESAMENTE PROHIBIDAS sin autorización escrita del titular:
-
-  · Copia, reproducción o distribución total o parcial del código fuente
-  · Creación de trabajos derivados, adaptaciones o forks redistributivos
-  · Uso comercial en servicios de terceros o productos competidores
-  · Ingeniería inversa de módulos de seguridad o cifrado
-  · Publicación bajo nombre o marca diferente a DarckRovert
-  · Registro de marcas o patentes basadas en este código
-
-EVIDENCIA DE AUTORÍA: El historial de commits Git del repositorio oficial
-constituye evidencia técnica de autoría y precedencia temporal verificable
-ante cualquier tribunal bajo el Convenio de Berna.
-
-VIOLACIONES: Cualquier vulneración constituye infracción de derechos de autor
-perseguible civil y penalmente. Para reportar infracciones o solicitar una
-licencia comercial, ver el archivo NOTICE en este repositorio.
-
-LA VISUALIZACIÓN DE ESTE CÓDIGO EN GITHUB NO OTORGA NINGÚN DERECHO DE USO,
-COPIA O DISTRIBUCIÓN. "No license" bajo los términos de GitHub ToS significa
-que ninguna persona distinta al titular puede usar este código.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

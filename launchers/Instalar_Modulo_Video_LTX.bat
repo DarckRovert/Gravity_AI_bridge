@@ -17,7 +17,7 @@ set "COMFY_DIR=%COMFY_PORTABLE%\ComfyUI"
 if not exist "%COMFY_DIR%" (
     echo  [!] ERROR: No se encontro la carpeta de ComfyUI.
     echo  Asegurate de haber descargado y descomprimido ComfyUI_windows_portable.7z
-    echo  dentro de: F:\Gravity_AI_bridge\_integrations\
+    echo  dentro de: %ROOT%\_integrations\
     echo.
     pause
     exit /b 1

@@ -20,4 +20,4 @@ Un proceso demonio continuo (`news_daemon.py`) que:
 1. Utiliza `gravity_reporter.py`.
 2. Busca temáticas usando herramientas de WebSearch.
 3. Inyecta respuestas LLM en `news.json` en un repositorio independiente (`gravity-news-portal`).
-4. Realiza sincronizaciones automáticas a través de `git commit` y `git push` a Netlify.
+4. Realiza sincronizaciones automáticas a través de `git commit` y `git push` a Netlify. Cuenta con control de idempotencia para evitar fallos si no hay cambios nuevos, garantizando un ciclo de ejecución continuo.

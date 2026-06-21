@@ -1037,8 +1037,8 @@ def _process_job(
             if job_type == "music":
                 import shutil
                 music_out_dir = r"F:\PROYECTO VIDEOCLIP MUSICAL\output"
-                os.makedirs(music_out_dir, exist_ok=True)
                 try:
+                    os.makedirs(music_out_dir, exist_ok=True)
                     shutil.copy2(final_path, os.path.join(music_out_dir, os.path.basename(final_path)))
                 except Exception as c_e:
                     log.warning(f"[VideoStudio] No se pudo copiar a carpeta musical: {c_e}")

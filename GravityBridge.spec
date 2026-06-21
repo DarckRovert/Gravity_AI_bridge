@@ -1,9 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('frontend\\dist', 'web'), ('core', 'core'), ('rag', 'rag'), ('providers', 'providers'), ('tools', 'tools'), ('_knowledge.json', '.'), ('config.yaml', '.'), ('assets', 'assets')]
+datas = [('frontend\\dist', 'web'), ('core', 'core'), ('api', 'api'), ('rag', 'rag'), ('providers', 'providers'), ('tools', 'tools'), ('integrations', 'integrations'), ('_knowledge.json', '.'), ('config.yaml.example', '.'), ('assets', 'assets')]
 binaries = []
-hiddenimports = ['pystray', 'PIL', 'aiohttp', 'yaml', 'rich', 'anthropic', 'pymysql', 'win32api', 'win32security', 'prometheus_client']
+hiddenimports = ['pystray', 'PIL', 'aiohttp', 'yaml', 'rich', 'anthropic', 'pymysql', 'win32api', 'win32security', 'prometheus_client', 'moderngl', 'pyttsx3', 'faster_whisper', 'obsws_python']
 tmp_ret = collect_all('pystray')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 

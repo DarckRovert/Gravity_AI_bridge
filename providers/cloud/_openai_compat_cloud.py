@@ -42,8 +42,7 @@ def _cloud_request_stream(url: str, payload: Dict[str, Any], headers: Dict[str, 
     except Exception as e:
         logger.error(f"[CloudStream] Error streaming from {url}: {e}")
         err_msg = f"\n\n[**SYSTEM ERROR**: Fallo crítico de conexión con la nube. Error: {str(e)}]\n\n"
-        yield f"data: {json.dumps({'choices': [{'delta': {'content': err_msg}}]})}\n\n"
-        yield "data: [DONE]\n\n"
+        yield err_msg
 
 
 def _cloud_request_complete(url: str, payload: Dict[str, Any], headers: Dict[str, str]) -> str:
