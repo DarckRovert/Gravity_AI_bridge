@@ -9,7 +9,16 @@ import time
 import subprocess
 import random
 import os
+import sys
 from datetime import datetime
+
+# Forzar codificación UTF-8 para evitar errores con caracteres como ✓ o ✗
+if sys.stdout.encoding != "utf-8":
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
