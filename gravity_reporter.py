@@ -463,14 +463,14 @@ def generate_sitemap():
 def publish_changes():
     """Ejecuta sincronización de libros locales y publica en Netlify mediante git push."""
     logging.info("[*] Sincronizando biblioteca física local...")
-    sync_script = os.path.join(PORTAL_DIR, "sync_books.js")
+    sync_script = os.path.join(PORTAL_DIR, "sync_books.py")
     
     try:
         # Sincronizar libros primero
-        subprocess.run(["node", sync_script], cwd=PORTAL_DIR, check=True)
+        subprocess.run(["python", sync_script], cwd=PORTAL_DIR, check=True)
         logging.info("[green]✓ Biblioteca sincronizada con éxito.[/]")
     except Exception as e:
-        logging.error(f"[!] Error ejecutando sync_books.js: {e}")
+        logging.error(f"[!] Error ejecutando sync_books.py: {e}")
         
     logging.info("[*] Actualizando Sitemap SEO...")
     generate_sitemap()
