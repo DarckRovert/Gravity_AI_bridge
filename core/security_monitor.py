@@ -257,6 +257,16 @@ def _scan_ports() -> Tuple[List[Dict[str, Any]], List[int]]:
             elif is_interpreter:
                 # Si es un intérprete, SOLO puede abrir puertos conocidos del ecosistema
                 is_suspicious = not in_port_whitelist
+                
+                # Excepción: IDE Antigravity (Gemini) corriendo en su propio entorno
+                try:
+                    p = psutil.Process(conn.pid)
+                    exe_path = p.exe().lower() if p.exe() else ""
+                    cmd_line = " ".join(p.cmdline()).lower() if p.cmdline() else ""
+                    if ".gemini" in exe_path or ".gemini" in cmd_line:
+                        is_suspicious = False
+                except Exception:
+                    pass
             elif is_legitimate_proc:
                 # Otros procesos legítimos (navegadores, juegos, etc.) pueden abrir puertos
                 is_suspicious = False
