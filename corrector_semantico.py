@@ -43,19 +43,28 @@ def process_paragraph(paragraph: str) -> str:
     if not paragraph.strip() or len(paragraph) < 10:
         return paragraph
     
+    # Preservar indentación original
+    leading_ws = paragraph[:len(paragraph) - len(paragraph.lstrip())]
+    trailing_ws = paragraph[len(paragraph.rstrip()):]
+    
     messages = [
         {"role": "system", "content": PROMPT_SISTEMA},
-        {"role": "user", "content": paragraph}
+        {"role": "user", "content": paragraph.strip()}
     ]
     
     try:
         # get_best will automatically pick Ollama or API
         response = complete(messages=messages, task="reason").strip()
         
+        # Purga de bloques de código markdown alucinados
+        if response.startswith("```"):
+            lines = response.split("\n")
+            if len(lines) >= 2 and lines[0].startswith("```") and lines[-1].startswith("```"):
+                response = "\n".join(lines[1:-1]).strip()
+        
         # Anti-hallucination defense: Remove conversational prefixes
         lower_resp = response.lower()
-        if lower_resp.startswith("aquí tienes") or lower_resp.startswith("texto corregido") or lower_resp.startswith("claro"):
-            # If it hallucinated conversational text, fallback to original to be safe
+        if lower_resp.startswith("aquí") or lower_resp.startswith("texto") or lower_resp.startswith("claro") or lower_resp.startswith("este es"):
             print("\n  [!] Alucinación conversacional detectada. Descartando corrección.")
             return paragraph
             
@@ -65,7 +74,7 @@ def process_paragraph(paragraph: str) -> str:
             print("  [!] Abortando para evitar sobrescribir con mensajes de error.")
             sys.exit(1)
             
-        return response
+        return leading_ws + response + trailing_ws
     except Exception as e:
         print(f"\n  [!] Error procesando párrafo: {e}")
         return paragraph # Fallback to original
