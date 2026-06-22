@@ -39,6 +39,14 @@ def process_file(filepath):
     content = content.replace("acostumado", "acostumbrado")
     content = content.replace("Acostumado", "Acostumbrado")
     
+    # 3. Fix narrative placeholders (Prompt bleeding inside the text)
+    content = content.replace("[su nombre]", "Lyra")
+    content = content.replace("[Su nombre]", "Lyra")
+    content = content.replace("[Su Nombre]", "Lyra")
+    content = content.replace("[Su Nombre/IA Supervisor]", "DarckRovert")
+    content = content.replace("[Hoy]", "2142")
+    content = content.replace("[Su Nombre/Autor]", "DarckRovert")
+    
     # Remove extra empty lines left behind by the removed blocks (more than 2 consecutive newlines)
     content = re.sub(r'\n{3,}', '\n\n', content)
 
