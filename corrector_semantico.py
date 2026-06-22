@@ -1,0 +1,106 @@
+import os
+import sys
+import json
+import time
+
+# Añadimos el root de Gravity_AI_bridge para poder importar
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from core.provider_manager import complete
+
+DIRECTORIES = [
+    r"F:\Gravity_AI_bridge\ensayos_generados",
+    r"F:\Gravity_AI_bridge\ficcion_generada",
+    r"F:\Gravity_AI_bridge\libros_generados",
+    r"F:\gravity-news-portal\public\books"
+]
+
+PROMPT_SISTEMA = """Eres un editor experto en estilo Cyberpunk.
+Tu trabajo es revisar este texto en español (generado por una IA previa).
+DEBES CORREGIR:
+- Errores ortográficos (ej. "acostumado" -> "acostumbrado").
+- Sintaxis o gramática que esté rota.
+
+ESTÁ ESTRICTAMENTE PROHIBIDO:
+- Cambiar nombres propios (Leviatán, Ostrom, Sabuesos, Altair-7, Lyra, Kaelen, DarckRovert, etc).
+- Suavizar el tono oscuro, filosófico y violento.
+- Cambiar etiquetas Markdown o HTML.
+
+Solo devuelve el texto corregido. No añadas notas ni confirmaciones. Si no hay errores, devuelve el texto tal cual."""
+
+STATE_FILE = "corrector_estado.json"
+
+def load_state():
+    if os.path.exists(STATE_FILE):
+        with open(STATE_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {"processed": []}
+
+def save_state(state):
+    with open(STATE_FILE, "w", encoding="utf-8") as f:
+        json.dump(state, f, indent=4)
+
+def process_paragraph(paragraph: str) -> str:
+    if not paragraph.strip() or len(paragraph) < 10:
+        return paragraph
+    
+    messages = [
+        {"role": "system", "content": PROMPT_SISTEMA},
+        {"role": "user", "content": paragraph}
+    ]
+    
+    try:
+        # get_best will automatically pick Ollama or API
+        response = complete(messages=messages, task="reason")
+        return response.strip()
+    except Exception as e:
+        print(f"[!] Error procesando párrafo: {e}")
+        return paragraph # Fallback to original
+
+def run():
+    state = load_state()
+    print("Iniciando Corrector Semántico Cyberpunk con ProviderManager...")
+    
+    for d in DIRECTORIES:
+        if not os.path.exists(d):
+            continue
+            
+        for root, _, files in os.walk(d):
+            for file in files:
+                if not file.endswith(('.md', '.html')):
+                    continue
+                
+                filepath = os.path.join(root, file)
+                if filepath in state["processed"]:
+                    continue
+                    
+                print(f"\nAuditando: {filepath}")
+                try:
+                    with open(filepath, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                except Exception as e:
+                    print(f"Error leyendo: {e}")
+                    continue
+                
+                # Split by double newline to process paragraphs
+                paragraphs = content.split("\n\n")
+                new_paragraphs = []
+                
+                for i, p in enumerate(paragraphs):
+                    print(f"  -> Procesando párrafo {i+1}/{len(paragraphs)}", end="\r")
+                    new_p = process_paragraph(p)
+                    new_paragraphs.append(new_p)
+                    
+                print("\n  [✓] Archivo procesado.")
+                
+                new_content = "\n\n".join(new_paragraphs)
+                if new_content != content:
+                    with open(filepath, 'w', encoding='utf-8') as f:
+                        f.write(new_content)
+                
+                state["processed"].append(filepath)
+                save_state(state)
+
+if __name__ == "__main__":
+    # Test with just ONE file for the user to see it works
+    # We will slice the directory walk to just do a fast test if needed, but for now we just run it.
+    run()
