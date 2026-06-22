@@ -54,8 +54,8 @@ def process_paragraph(paragraph: str) -> str:
     ]
     
     try:
-        # Forzamos el uso de la IA local (LM Studio) en lugar de dejar que ProviderManager escoja NIM (Nube)
-        response = complete(messages=messages, provider="LM Studio", task="reason").strip()
+        # get_best will automatically pick Ollama or API
+        response = complete(messages=messages, task="reason").strip()
         
         # Purga de bloques de código markdown alucinados
         if response.startswith("```"):
