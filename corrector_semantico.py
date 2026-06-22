@@ -118,9 +118,16 @@ def run():
                     print(f"Error leyendo: {e}")
                     continue
                 
-                # Usamos split por saltos de línea para asegurar que funciona en HTML (línea por línea) y en MD.
-                # Si dividimos por \n\n, los HTML que tengan todo junto en líneas <p> colapsarán al LLM.
-                paragraphs = content.split("\n")
+                # Lógica dinámica de separación según extensión del archivo
+                if file.endswith('.md'):
+                    # En Markdown, los párrafos reales se separan por un doble salto de línea
+                    paragraphs = content.split("\n\n")
+                    separator = "\n\n"
+                else:
+                    # En HTML, las etiquetas como <p> suelen venir línea por línea
+                    paragraphs = content.split("\n")
+                    separator = "\n"
+                    
                 new_paragraphs = []
                 
                 for i, p in enumerate(paragraphs):
@@ -130,7 +137,7 @@ def run():
                     
                 print("\n  [✓] Archivo procesado.")
                 
-                new_content = "\n".join(new_paragraphs)
+                new_content = separator.join(new_paragraphs)
                 if new_content != content:
                     with open(filepath, 'w', encoding='utf-8') as f:
                         f.write(new_content)
