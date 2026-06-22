@@ -11,6 +11,7 @@ DIRECTORIES = [
     r"F:\Gravity_AI_bridge\ensayos_generados",
     r"F:\Gravity_AI_bridge\ficcion_generada",
     r"F:\Gravity_AI_bridge\libros_generados",
+    r"F:\gravity-news-portal\dist\books",
     r"F:\gravity-news-portal\public\books"
 ]
 
@@ -61,6 +62,19 @@ def process_paragraph(paragraph: str) -> str:
             lines = response.split("\n")
             if len(lines) >= 2 and lines[0].startswith("```") and lines[-1].startswith("```"):
                 response = "\n".join(lines[1:-1]).strip()
+                
+        # Defensa de fallo silencioso (respuesta vacía)
+        if not response.strip():
+            print("\n  [!] El modelo devolvió una cadena vacía. Descartando corrección.")
+            return paragraph
+            
+        # Defensa anti-truncamiento / sumarización
+        # Si la respuesta es menos del 60% del original o más del 150%, probablemente alucinó o resumió.
+        orig_len = len(paragraph.strip())
+        resp_len = len(response)
+        if resp_len < orig_len * 0.6 or resp_len > orig_len * 1.5:
+            print(f"\n  [!] Variación de longitud sospechosa ({orig_len} vs {resp_len}). Descartando corrección.")
+            return paragraph
         
         # Anti-hallucination defense: Remove conversational prefixes
         lower_resp = response.lower()
