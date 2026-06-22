@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Target, ExternalLink, Copy, CheckCircle2, AlertCircle, RefreshCw, Trash2, Settings, Save, X, Play } from 'lucide-react';
+import { showToast } from './Toast';
 
 interface Bounty {
   title: string;
@@ -114,10 +115,10 @@ export const BountyHunter: React.FC = () => {
       if (!res.ok) {
         throw new Error('Error al encolar auto-apply');
       }
-      alert('Oferta enviada al Infiltrador. Revisa el Dashboard del Infiltrador para ver el progreso.');
+      showToast('info', 'Oferta enviada al Infiltrador. Revisa el Dashboard del Infiltrador para ver el progreso.');
     } catch(e) {
       console.error(e);
-      alert('Error: Asegúrate de que el backend esté ejecutándose.');
+      showToast('error', 'Error: Asegúrate de que el backend esté ejecutándose.');
     }
   };
 

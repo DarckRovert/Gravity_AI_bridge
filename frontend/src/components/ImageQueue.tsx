@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Layers, Image as ImageIcon, Trash2, Clock, CheckCircle2, RefreshCw, Eye } from 'lucide-react';
+import { showToast } from './Toast';
+import { BRIDGE_BASE } from '../config';
 
 export const ImageQueue = () => {
   const [queue, setQueue] = useState<any[]>([]);
@@ -101,7 +103,7 @@ export const ImageQueue = () => {
        </div>
        <div className="flex gap-2">
           <button 
-            onClick={() => job.status === 'completed' && job.url ? window.open(`http://localhost:7860${job.url}`, '_blank') : alert('Vista previa no disponible o job en proceso')}
+            onClick={() => job.status === 'completed' && job.url ? window.open(`${BRIDGE_BASE}${job.url}`, '_blank') : showToast('info', 'Vista previa no disponible o job en proceso')}
             className="p-2 rounded-lg bg-surface border border-border-subtle text-text-muted hover:text-text-primary transition-all"
           >
              <Eye size={16} />

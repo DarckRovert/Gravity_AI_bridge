@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { Film, PlayCircle, Clock, CheckCircle2, AlertCircle, RefreshCw, X, Share2, Camera, MonitorPlay, Download, Trash2, Settings, Clapperboard, AudioLines, Sparkles, Layers, SlidersHorizontal } from 'lucide-react';
+import { showToast } from './Toast';
 
 export const VideoStudio = () => {
   const [status, setStatus] = useState<any>(null);
@@ -213,7 +214,7 @@ export const VideoStudio = () => {
       setActiveTab('queue');
       fetchStatus();
     } catch (e) {
-      alert('Error al encolar video');
+      showToast('error', 'Error al encolar video');
     } finally {
       setCreating(false);
     }
@@ -231,7 +232,7 @@ export const VideoStudio = () => {
       if (selectedVideo?.id === id) setSelectedVideo(null);
       fetchStatus();
     } catch (e) {
-      alert('Error crítico al borrar la producción');
+      showToast('error', 'Error crítico al borrar la producción');
     }
   };
 
@@ -246,7 +247,7 @@ export const VideoStudio = () => {
       });
       fetchStatus();
     } catch (e) {
-      alert('Error al cancelar el job');
+      showToast('error', 'Error al cancelar el job');
     }
   };
 

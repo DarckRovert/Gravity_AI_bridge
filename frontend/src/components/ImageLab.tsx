@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Palette, Image as ImageIcon, Sparkles, RefreshCw, Download, Sliders } from 'lucide-react';
+import { showToast } from './Toast';
+import { BRIDGE_BASE } from '../config';
 
   const ASPECT_OPTIONS = [
     { label: '1:1 Square',    width: 1024, height: 1024 },
@@ -50,9 +52,9 @@ export const ImageLab = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al generar');
       await fetchHistory();
-      if (data.url) setSelected(`http://localhost:7860${data.url}`);
+      if (data.url) setSelected(`${BRIDGE_BASE}${data.url}`);
     } catch (e: any) {
-      alert(e.message);
+      showToast('info', e.message);
     } finally {
       setLoading(false);
     }
@@ -184,9 +186,9 @@ export const ImageLab = () => {
               </div>
               <div className="grid grid-cols-4 gap-2 p-4 max-h-64 overflow-y-auto scrollbar-hide">
                 {images.map((img, i) => (
-                  <div key={i} className="relative group cursor-pointer" onClick={() => setSelected(`http://localhost:7860${img.url}`)}>
+                  <div key={i} className="relative group cursor-pointer" onClick={() => setSelected(`${BRIDGE_BASE}${img.url}`)}>
                     <img
-                      src={`http://localhost:7860${img.url}`}
+                      src={`${BRIDGE_BASE}${img.url}`}
                       alt={img.name}
                       className="w-full h-20 object-cover rounded-lg border border-border-subtle group-hover:border-accent-primary transition-all"
                     />

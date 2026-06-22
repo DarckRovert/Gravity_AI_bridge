@@ -50,16 +50,18 @@ export const MissionControl: React.FC = () => {
     }
   };
 
-  const Widget = ({ title, value, sub, icon: Icon, colorClass }: any) => (
-    <div className="glass-card p-6 flex flex-col group hover:scale-[1.02] transition-all cursor-default">
-      <div className="flex items-center gap-3 mb-4">
-        <div className={`p-2 rounded-lg bg-surface border border-border-subtle group-hover:border-${colorClass} transition-colors shadow-sm`}>
-          <Icon size={20} className={`text-${colorClass}`} />
+  const Widget = ({ title, value, sub, icon: Icon, colorClass, delayIndex = 1 }: any) => (
+    <div className={`glass-card p-6 flex flex-col group hover:scale-[1.03] transition-all duration-500 cursor-default stagger-${delayIndex}`}>
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none"></div>
+      <div className="flex items-center gap-4 mb-5 relative z-10">
+        <div className={`p-3 rounded-xl bg-surface border border-border-subtle group-hover:border-${colorClass}/50 transition-all shadow-inner relative overflow-hidden`}>
+          <div className={`absolute inset-0 bg-${colorClass}/10 opacity-0 group-hover:opacity-100 transition-opacity`}></div>
+          <Icon size={24} className={`text-${colorClass} drop-shadow-[0_0_8px_rgba(currentColor,0.5)]`} />
         </div>
-        <div className="text-sm font-bold text-text-muted uppercase tracking-wider">{title}</div>
+        <div className="text-[11px] font-black text-text-muted uppercase tracking-[0.2em]">{title}</div>
       </div>
-      <div className="text-3xl font-extrabold text-text-primary mb-1">{value || '--'}</div>
-      <div className="text-xs text-text-muted font-medium">{sub}</div>
+      <div className="text-4xl font-black text-white mb-2 tracking-tight drop-shadow-md relative z-10">{value || '--'}</div>
+      <div className="text-xs text-text-muted font-medium opacity-80 relative z-10">{sub}</div>
     </div>
   );
 
@@ -68,31 +70,35 @@ export const MissionControl: React.FC = () => {
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header Section */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between stagger-1">
           <div>
-            <h1 className="text-3xl font-extrabold text-text-primary tracking-tight mb-2">Mission Control</h1>
-            <p className="text-text-muted text-sm font-medium">Vista general del sistema en tiempo real gobernada por el Gravity Brain.</p>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-primary/10 border border-accent-primary/20 text-accent-primary text-[10px] font-bold tracking-widest uppercase mb-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-primary animate-pulse"></span>
+              Live Telemetry
+            </div>
+            <h1 className="text-4xl font-black text-white tracking-tighter mb-2 drop-shadow-lg">Mission Control</h1>
+            <p className="text-text-muted text-sm font-medium">Core systems monitoring powered by Gravity Brain V16.0</p>
           </div>
           <div className="flex gap-3">
             <button 
               onClick={fetchCtx}
               disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-surface border border-border-subtle rounded-xl text-sm font-bold hover:bg-card hover:border-accent-primary transition-all shadow-md disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2.5 glass-panel rounded-xl text-sm font-bold hover:bg-card hover:border-accent-primary transition-all shadow-md disabled:opacity-50"
             >
-              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refrescar
+              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Sync
             </button>
             <button 
               onClick={releaseRam}
               disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-status-error/10 border border-status-error/20 text-status-error rounded-xl text-sm font-bold hover:bg-status-error hover:text-white transition-all shadow-md"
+              className="flex items-center gap-2 px-4 py-2.5 bg-status-error/10 border border-status-error/30 text-status-error rounded-xl text-sm font-bold hover:bg-status-error hover:text-white transition-all shadow-[0_0_15px_rgba(239,68,68,0.15)]"
             >
-              <Zap size={16} /> Liberar RAM
+              <Zap size={16} /> Free RAM
             </button>
             <button 
               onClick={() => window.dispatchEvent(new CustomEvent('navigate-panel', { detail: 'tools-pro' }))}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-accent-primary to-accent-secondary text-white rounded-xl text-sm font-bold shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:scale-105 transition-all"
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-accent-primary to-accent-secondary text-white rounded-xl text-sm font-bold shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:scale-105 hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] transition-all"
             >
-              <BrainCircuit size={16} /> Advanced Tools
+              <BrainCircuit size={18} /> Advanced Tools
             </button>
           </div>
         </div>
@@ -101,46 +107,46 @@ export const MissionControl: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <Widget 
             title="Motor Activo" 
-            value={ctx?.active_provider || 'Auto-Routing'} 
+            value={ctx?.active_provider || 'Auto'} 
             sub={`Modelo: ${ctx?.active_model || 'Detectando...'}`} 
-            icon={BrainCircuit} colorClass="accent-primary" 
+            icon={BrainCircuit} colorClass="accent-primary" delayIndex={1}
           />
           <Widget 
             title="Video Studio" 
             value={ctx?.video?.pending_count || '0'} 
-            sub="Jobs de render en cola" 
-            icon={Activity} colorClass="accent-tertiary" 
+            sub="Render queue" 
+            icon={Activity} colorClass="accent-tertiary" delayIndex={2}
           />
           <Widget 
             title="Tokens Sesión" 
             value={(ctx?.cost?.session_tokens || 0).toLocaleString()} 
             sub={`Coste: $${Number(ctx?.cost?.session_cost || 0).toFixed(4)}`} 
-            icon={Database} colorClass="accent-secondary" 
+            icon={Database} colorClass="accent-secondary" delayIndex={3}
           />
           <Widget 
             title="Coste Hoy" 
             value={`$${Number(ctx?.cost?.daily_cost || 0).toFixed(2)}`} 
-            sub="Límite no superado" 
-            icon={DollarSign} colorClass="status-warning" 
+            sub="Dentro de límite" 
+            icon={DollarSign} colorClass="status-warning" delayIndex={4}
           />
           <Widget 
             title="Seguridad" 
             value={ctx?.security_alerts === 0 ? 'Seguro' : ctx?.security_alerts} 
             sub={ctx?.security_alerts === 0 ? 'Sin alertas activas' : 'Atención requerida'} 
-            icon={ShieldCheck} colorClass={ctx?.security_alerts === 0 ? "status-success" : "status-error"} 
+            icon={ShieldCheck} colorClass={ctx?.security_alerts === 0 ? "status-success" : "status-error"} delayIndex={5}
           />
           <Widget 
             title="CPU Usage" 
             value={`${ctx?.hardware?.cpu_percent || 0}%`} 
-            sub="Carga de procesamiento global" 
-            icon={Cpu} colorClass="accent-primary" 
+            sub="Carga global" 
+            icon={Cpu} colorClass="accent-primary" delayIndex={6}
           />
         </div>
 
         {/* Services Status Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 stagger-5">
           <div>
-            <h2 className="text-sm font-bold text-text-muted uppercase tracking-wider mb-4">Estado de Servicios</h2>
+            <h2 className="text-xs font-black text-text-muted uppercase tracking-[0.2em] mb-4">Estado de Servicios</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { id: 'bridge', name: 'Bridge Server', staticStatus: 'Puerto 7860', isOk: true },
@@ -157,10 +163,10 @@ export const MissionControl: React.FC = () => {
                 return (
                   <div key={srv.id} className="glass-card p-4 flex items-center justify-between gap-4 group">
                     <div className="flex items-center gap-4">
-                      <div className={`w-3 h-3 rounded-full ${isHealthy ? 'bg-status-success shadow-[0_0_8px_var(--color-status-success)] animate-blink' : 'bg-status-error/50'}`}></div>
+                      <div className={`w-2.5 h-2.5 rounded-full ${isHealthy ? 'bg-status-success shadow-[0_0_10px_var(--color-status-success)] animate-blink' : 'bg-status-error/50 shadow-[0_0_10px_var(--color-status-error)]'}`}></div>
                       <div>
-                        <div className="text-sm font-bold text-text-primary">{srv.name}</div>
-                        <div className="text-[10px] text-text-muted uppercase">{statusText} {prov?.latency_ms ? `(${prov.latency_ms}ms)` : ''}</div>
+                        <div className="text-sm font-bold text-white tracking-wide">{srv.name}</div>
+                        <div className="text-[10px] text-text-muted font-medium uppercase tracking-wider">{statusText} {prov?.latency_ms ? `(${prov.latency_ms}ms)` : ''}</div>
                       </div>
                     </div>
                     {srv.canStop && isHealthy && (
@@ -170,7 +176,7 @@ export const MissionControl: React.FC = () => {
                              fetch('/v1/ai/stop', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({provider: srv.id}) }).then(() => fetchCtx());
                            }
                         }}
-                        className="px-2 py-1 text-[10px] uppercase font-black tracking-widest text-status-error bg-status-error/10 hover:bg-status-error hover:text-white rounded transition-all opacity-0 group-hover:opacity-100"
+                        className="px-3 py-1.5 text-[10px] uppercase font-black tracking-widest text-status-error bg-status-error/10 hover:bg-status-error hover:text-white hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] rounded-lg transition-all opacity-0 group-hover:opacity-100"
                       >
                         Kill
                       </button>
@@ -182,7 +188,7 @@ export const MissionControl: React.FC = () => {
                              fetch('/v1/ai/start', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({provider: srv.id}) }).then(() => fetchCtx());
                            }
                         }}
-                        className="px-2 py-1 text-[10px] uppercase font-black tracking-widest text-status-success bg-status-success/10 hover:bg-status-success hover:text-white rounded transition-all opacity-0 group-hover:opacity-100"
+                        className="px-3 py-1.5 text-[10px] uppercase font-black tracking-widest text-status-success bg-status-success/10 hover:bg-status-success hover:text-white hover:shadow-[0_0_15px_rgba(16,185,129,0.4)] rounded-lg transition-all opacity-0 group-hover:opacity-100"
                       >
                         Start
                       </button>
@@ -194,20 +200,22 @@ export const MissionControl: React.FC = () => {
           </div>
 
           <div>
-            <h2 className="text-sm font-bold text-text-muted uppercase tracking-wider mb-4">Gestión de Motores IA</h2>
-            <div className="glass-panel p-6 rounded-2xl border border-border-subtle bg-gradient-to-br from-status-error/5 to-transparent">
-              <div className="flex items-center justify-between gap-6">
+            <h2 className="text-xs font-black text-text-muted uppercase tracking-[0.2em] mb-4">Control de Recursos</h2>
+            <div className="glass-panel p-8 rounded-2xl relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-status-error/10 to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="flex items-center justify-between gap-6 relative z-10">
                 <div className="flex-1">
-                  <div className="text-sm font-bold text-text-primary flex items-center gap-2">
-                    <Zap size={16} className="text-status-error" /> Liberación de RAM
+                  <div className="text-lg font-black text-white flex items-center gap-3 tracking-tight">
+                    <div className="p-2 bg-status-error/20 rounded-lg text-status-error"><Zap size={20} /></div> 
+                    Liberación de RAM
                   </div>
-                  <p className="text-xs text-text-muted mt-2">Detén motores pesados como <strong>Fooocus</strong> o <strong>Ollama</strong> cuando no los uses para optimizar el rendimiento global.</p>
+                  <p className="text-sm text-text-muted mt-3 font-medium leading-relaxed">Detén motores pesados como <strong>Fooocus</strong> o <strong>Ollama</strong> en un solo click para optimizar el rendimiento global.</p>
                 </div>
                 <button 
                   onClick={releaseRam}
-                  className="px-6 py-3 bg-status-error text-white rounded-xl text-sm font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(239,68,68,0.3)]"
+                  className="px-8 py-4 bg-status-error text-white rounded-xl text-sm font-black uppercase tracking-[0.1em] hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(239,68,68,0.4)] border border-status-error/50"
                 >
-                  Liberar Ahora
+                  PURGE
                 </button>
               </div>
             </div>
@@ -215,17 +223,18 @@ export const MissionControl: React.FC = () => {
         </div>
 
         {/* Activity Log Placeholder */}
-        <div className="glass-panel rounded-2xl p-6 border border-border-subtle">
-          <div className="flex items-center gap-3 mb-6">
-            <Server className="text-accent-primary" size={20} />
-            <h2 className="text-lg font-bold text-text-primary">Actividad de Infraestructura</h2>
+        <div className="glass-panel rounded-2xl p-6 relative overflow-hidden stagger-6">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-accent-primary/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
+          <div className="flex items-center gap-3 mb-6 relative z-10">
+            <div className="p-2 bg-accent-primary/10 rounded-lg border border-accent-primary/20"><Server className="text-accent-primary" size={20} /></div>
+            <h2 className="text-xl font-black text-white tracking-tight">System Events</h2>
           </div>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 relative z-10">
             {[1,2,3].map(i => (
-              <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-card border border-border-subtle">
-                <div className="text-xs text-text-muted font-mono w-20">10:42:{10+i} AM</div>
-                <div className="flex-1 text-sm text-text-primary">Servicio base sincronizado con Gravity Brain V16.0 PRO.</div>
-                <div className="px-2 py-1 rounded bg-status-success/10 text-status-success text-[10px] font-bold">INFO</div>
+              <div key={i} className="flex items-center gap-4 p-4 rounded-xl glass-card">
+                <div className="text-xs text-text-muted font-mono w-24">10:42:{10+i} AM</div>
+                <div className="flex-1 text-sm text-text-primary font-medium">Sincronización neural completada con Gravity Brain V16.0 PRO.</div>
+                <div className="px-3 py-1 rounded-md bg-status-success/15 border border-status-success/30 text-status-success text-[10px] font-black uppercase tracking-widest shadow-[0_0_10px_rgba(16,185,129,0.1)]">OK</div>
               </div>
             ))}
           </div>

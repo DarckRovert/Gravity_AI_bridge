@@ -1,6 +1,4 @@
-/**
- * Gravity AI Bridge — Configuración centralizada del cliente API
- * Cambiar BRIDGE_PORT aquí afecta todos los componentes automáticamente.
- */
 export const BRIDGE_PORT = 7860;
-export const BRIDGE_BASE = `http://localhost:${BRIDGE_PORT}`;
+export const BRIDGE_BASE = typeof window !== 'undefined' 
+  ? `${window.location.protocol}//${window.location.hostname}:${BRIDGE_PORT}`
+  : `http://localhost:${BRIDGE_PORT}`;

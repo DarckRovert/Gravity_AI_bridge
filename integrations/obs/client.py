@@ -50,6 +50,7 @@ class OBSClient:
         self._streaming     = False
         self._recording     = False
         self._current_scene = ""
+        self._last_conn_error = False
         t = threading.Thread(target=self._reconnect_loop, daemon=True, name="OBSReconnectLoop")
         t.start()
         log.info("[OBSClient] Integration driver initialized.")
@@ -90,6 +91,7 @@ class OBSClient:
                 self._obs_version = obs_version
                 self._ws_version = ws_version
                 self._connected = True
+                self._last_conn_error = False
                 self._refresh_locked()
                 
             log.info(f"[OBSClient] Connected to OBS {obs_version}")
@@ -99,7 +101,11 @@ class OBSClient:
             with self._lock:
                 self._connected = False
                 self._client    = None
-            log.warning(f"[OBSClient] Connection failed: {e}")
+                show_warn = not getattr(self, "_last_conn_error", False)
+                self._last_conn_error = True
+                
+            if show_warn:
+                log.warning(f"[OBSClient] Connection failed: {e} (Suppressing further identical warnings)")
             return {"ok": False, "error": str(e)}
 
     def disconnect(self):
@@ -343,10 +349,7 @@ def auto_connect_if_configured():
             password = cfg.get("password", _DEFAULT_PASSWORD),
         )
         result = _obs.connect()
-        if result["ok"]:
-            log.info(f"[OBSClient] Auto-connected — OBS {result['obs_version']}")
-        else:
-            log.warning(f"[OBSClient] Auto-connection failed: {result.get('error')}")
+        # Logging handled internally by connect() to prevent spam
     except Exception as e:
         log.warning(f"[OBSClient] auto_connect error: {e}")
 

@@ -70,4 +70,5 @@ export type PanelId =
   | 'infiltrator'
   | 'tinka'
   | 'youtubeanalyzer'
-  | 'autonomy';
+  | 'autonomy'
+  | 'journalist';

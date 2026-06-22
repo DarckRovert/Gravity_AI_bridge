@@ -1238,6 +1238,18 @@ def _process_job(
     finally:
         with _lock:
             _current_job = None
+            
+        # AUTO-WAKE: Restaurar el motor LLM local al terminar el renderizado
+        try:
+            from core.ai_process_manager import get_config, start_engine
+            cfg = get_config()
+            def_prov = cfg.get("model", {}).get("default_provider", "LM Studio")
+            if def_prov in cfg.get("ai_engines", {}):
+                log.info(f"[VideoStudio] [Auto-Wake] Renderizado completado. Restaurando motor de IA local: {def_prov}")
+                import threading
+                threading.Thread(target=start_engine, args=(def_prov,), daemon=True).start()
+        except Exception as e:
+            log.warning(f"[VideoStudio] Fallo al restaurar motor de IA tras render: {e}")
 
 
 def _worker_loop() -> None:

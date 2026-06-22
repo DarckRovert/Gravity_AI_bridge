@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Palette, Image as ImageIcon, Sparkles, RefreshCw, Download, Sliders, Wand2 } from 'lucide-react';
+import { BRIDGE_BASE } from '../config';
 
 const PRESETS: Record<string, string> = {
   'Cyberpunk':      ', cyberpunk aesthetic, neon lights, rain-soaked streets, ultra detailed, 8k',
@@ -57,7 +58,7 @@ export const VisionStudio = () => {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al generar');
-      setImageUrl(`http://localhost:7860${data.url}`);
+      setImageUrl(`${BRIDGE_BASE}${data.url}`);
     } catch (e: any) {
       setError(e.message);
     } finally {

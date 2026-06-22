@@ -235,87 +235,80 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
         {"role": "user", "content": user_prompt}
     ]
     
-    # ── NUEVO SISTEMA DE FALLBACK EN CASCADA ──
+    # ── NUEVO SISTEMA MULTI-AGENTE (ENJAMBRE CONCURRENTE) ──
     logging.info("[*] Escaneando matriz global de modelos disponibles...")
     scans = provider_manager.scan_all(force=True)
     healthy_providers = [s for s in scans if s.is_healthy and s.models]
     
-    # Ordenar: Cloud primero, Local (LM Studio) al final
-    cloud_providers = [p for p in healthy_providers if p.category == "cloud"]
-    local_providers = [p for p in healthy_providers if p.category == "local"]
-    
-    # Aplanar todos los modelos (Priorizando el active_model si existe)
-    cascade_models = []
-    for p in (cloud_providers + local_providers):
-        if p.active_model:
-            cascade_models.append((p, p.active_model))
-            for m_dict in p.models:
-                if m_dict["name"] != p.active_model:
-                    cascade_models.append((p, m_dict["name"]))
-        else:
-            for m_dict in p.models:
-                cascade_models.append((p, m_dict["name"]))
+    provider_names = [p.name for p in healthy_providers]
 
-    if not cascade_models:
-        logging.error("[!] Ningún proveedor o modelo de IA está activo. No se puede generar el artículo.")
+    if not provider_names:
+        logging.error("[!] Ningún proveedor de IA está activo. No se puede generar el artículo.")
         return {}
 
-    # LM Studio tiene límite de contexto menor — reducir tokens para evitar truncamiento
-    def get_opts_for_provider(provider_name: str) -> dict:
-        if provider_name and "lm studio" in provider_name.lower():
-            return {"temperature": 0.5, "max_tokens": 2000}
-        return {"temperature": 0.5, "max_tokens": 3500}
-
+    logging.info(f"[*] Lanzando petición en paralelo a múltiples IA: {', '.join(provider_names)}")
+    
+    from core.multi_agent import compare
+    # Usamos max_tokens prudente para soportar todos los modelos locales e IA en nube.
+    results = compare(
+        messages=messages,
+        providers=provider_names,
+        n_models=len(provider_names),
+        options={"temperature": 0.6, "max_tokens": 2500},
+        timeout=180.0
+    )
+    
     article_data = None
     
-    # Bucle en cascada: intenta con cada modelo de la lista
-    for idx, (provider, model) in enumerate(cascade_models):
-        logging.info(f"\n[*] [CASCADA {idx+1}/{len(cascade_models)}] Intentando generación con: {provider.name} | Modelo: {model}")
+    # Ordenar resultados por los más rápidos primero (Modo Carrera)
+    sorted_results = sorted(results, key=lambda x: x.get("elapsed", 999))
+    
+    for res in sorted_results:
+        provider_name = res.get("provider", "Unknown")
+        model = res.get("model", "Unknown")
+        response_raw = res.get("response", "")
+        elapsed = res.get("elapsed", 0)
+        
+        if not response_raw or "[Error" in response_raw or "offline" in response_raw or "[No results]" in response_raw:
+            logging.warning(f"[!] {provider_name} ({model}) falló o dio error en {elapsed}s.")
+            continue
+            
+        logging.info(f"\n[*] Evaluando respuesta de {provider_name} ({model}) completada en {elapsed}s")
         
         try:
-            response_raw = provider_manager.complete(
-                messages=messages, 
-                model=model, 
-                provider=provider.name, 
-                options=get_opts_for_provider(provider.name)
-            )
-            
-            if response_raw:
-                clean_resp = clean_llm_response(response_raw)
-                try:
-                    # Validar JSON
-                    article_data = json.loads(clean_resp, strict=False)
-                    logging.info(f"[green]✓ Redacción exitosa usando {provider.name}.[/]")
-                    break # Éxito, salir de la cascada
-                except Exception as e:
-                    logging.warning(f"[!] Error parseando JSON: {e}. Intentando regex...")
-                    json_match = re.search(r'(\{[\s\S]*\})', clean_resp)
-                    if json_match:
-                        try:
-                            article_data = json.loads(json_match.group(1), strict=False)
-                            logging.info(f"[green]✓ JSON extraído por regex con {provider.name}.[/]")
-                            break
-                        except:
-                            pass
-                    
-                    # Último recurso: reparador de JSON truncado
-                    repaired_str = repair_truncated_json(clean_resp)
-                    if repaired_str:
-                        try:
-                            article_data = json.loads(repaired_str, strict=False)
-                            logging.info(f"[green]✓ JSON reparado por extracción de campos parciales ({provider.name}).[/]")
-                            break
-                        except:
-                            pass
-            
-            logging.warning(f"[!] {provider.name} no devolvió un JSON válido. Saltando al siguiente modelo en la cascada.")
-            
+            clean_resp = clean_llm_response(response_raw)
+            try:
+                # Validar JSON
+                article_data = json.loads(clean_resp, strict=False)
+                logging.info(f"[green]✓ Redacción exitosa (GANADOR) usando {provider_name} en {elapsed}s.[/]")
+                break # Éxito, salir de la carrera
+            except Exception as e:
+                logging.warning(f"[!] Error parseando JSON de {provider_name}: {e}. Intentando regex...")
+                json_match = re.search(r'(\{[\s\S]*\})', clean_resp)
+                if json_match:
+                    try:
+                        article_data = json.loads(json_match.group(1), strict=False)
+                        logging.info(f"[green]✓ JSON extraído por regex (GANADOR) con {provider_name} en {elapsed}s.[/]")
+                        break
+                    except:
+                        pass
+                
+                # Último recurso: reparador de JSON truncado
+                repaired_str = repair_truncated_json(clean_resp)
+                if repaired_str:
+                    try:
+                        article_data = json.loads(repaired_str, strict=False)
+                        logging.info(f"[green]✓ JSON reparado parcialmente (GANADOR) con {provider_name} en {elapsed}s.[/]")
+                        break
+                    except:
+                        pass
         except Exception as e:
-            logging.warning(f"[!] Fallo crítico con {provider.name} ({e}). Saltando al siguiente modelo en la cascada...")
+            logging.warning(f"[!] Error al limpiar la respuesta de {provider_name}: {e}")
+            continue
 
     if not article_data:
-        logging.error("[!] La cascada completa de modelos falló o se agotó. Abortando redacción.")
-        raise RuntimeError("La cascada de modelos no devolvió un JSON válido.")
+        logging.error("[!] El enjambre multi-agencia falló o se agotó. Todos los modelos fallaron. Abortando redacción.")
+        raise RuntimeError("El enjambre de modelos no devolvió un JSON válido.")
         
     # Normalizar llaves
     normalized = {}
@@ -467,7 +460,7 @@ def publish_changes():
     
     try:
         # Sincronizar libros primero
-        subprocess.run(["python", sync_script], cwd=PORTAL_DIR, check=True)
+        subprocess.run([sys.executable, sync_script], cwd=PORTAL_DIR, check=True)
         logging.info("[green]✓ Biblioteca sincronizada con éxito.[/]")
     except Exception as e:
         logging.error(f"[!] Error ejecutando sync_books.py: {e}")
@@ -477,18 +470,35 @@ def publish_changes():
         
     logging.info("[*] Preparando publicación en GitHub para despliegue automático en Netlify...")
     try:
-        # Forzar configuración global de seguridad en Git para el usuario actual (ej. Administrador)
+        if not os.path.isdir(PORTAL_DIR):
+            logging.warning(f"[!] El directorio {PORTAL_DIR} no existe. Omitiendo publicación.")
+            return
+            
+        # Forzar configuración global de seguridad en Git
         subprocess.run(["git", "config", "--global", "--add", "safe.directory", "*"], check=False)
         subprocess.run(["git", "status"], cwd=PORTAL_DIR, check=False)
         
+        if not os.path.isdir(os.path.join(PORTAL_DIR, ".git")):
+            logging.warning(f"[!] {PORTAL_DIR} no es un repositorio Git. Omitiendo publicación.")
+            return
+            
         subprocess.run(["git", "add", "."], cwd=PORTAL_DIR, check=True)
         commit_msg = f"Gravity Reporter: noticias diarias [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
-        # check=False para no crashear si no hay cambios
+        
         subprocess.run(["git", "commit", "-m", commit_msg], cwd=PORTAL_DIR, check=False)
-        subprocess.run(["git", "push", "origin", "main"], cwd=PORTAL_DIR, check=True)
-        logging.info("[green]✓ Publicación exitosa. Netlify se actualizará en segundos.[/]")
+        
+        # Prevenir bloqueos si Git pide credenciales
+        env = os.environ.copy()
+        env["GIT_TERMINAL_PROMPT"] = "0"
+        
+        push_res = subprocess.run(["git", "push", "origin", "HEAD"], cwd=PORTAL_DIR, env=env, check=False, capture_output=True, text=True)
+        if push_res.returncode == 0:
+            logging.info("[green]✓ Publicación exitosa. Netlify se actualizará en segundos.[/]")
+        else:
+            logging.error(f"[!] Error al publicar en Netlify (Push fallido): {push_res.stderr.strip()}")
+            
     except subprocess.CalledProcessError as e:
-        logging.error(f"[!] Error ejecutando comandos de Git: {e}. Asegúrate de que las credenciales estén configuradas en Git global.")
+        logging.error(f"[!] Error ejecutando comando local de Git: {e}")
     except Exception as e:
         logging.error(f"[!] Error inesperado al publicar: {e}")
 

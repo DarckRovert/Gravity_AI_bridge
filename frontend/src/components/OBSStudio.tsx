@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Radio, MonitorPlay, Mic, MicOff, Volume2, StopCircle, RefreshCw, Wand2, Edit3, Trash2, Code, Layout as LayoutIcon, Eye, X, MessageSquare, BarChart2, Gift, Clock, Music, Target, Globe, Box, Film, Binary, Database } from 'lucide-react';
 import { showToast } from './Toast';
+import { BRIDGE_BASE } from '../config';
 
 interface OBSStatus {
   connected: boolean;
@@ -587,7 +588,7 @@ export const OBSStudio: React.FC = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-text-muted font-medium">URL de OBS:</span>
-                    <span className="font-semibold text-accent-primary select-all truncate max-w-[200px]" title={`http://127.0.0.1:7860/obs-overlay/${selectedOverlay.overlay_id}`}>
+                    <span className="font-semibold text-accent-primary select-all truncate max-w-[200px]" title={`${BRIDGE_BASE}/obs-overlay/${selectedOverlay.overlay_id}`}>
                       /obs-overlay/{selectedOverlay.overlay_id}
                     </span>
                   </div>

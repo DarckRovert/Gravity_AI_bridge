@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { Zap, Code, Search, GitBranch, Terminal, Send, CheckCircle, AlertCircle, Cpu, Trash2, RefreshCw } from 'lucide-react';
 import { showToast } from './Toast';
+import { BRIDGE_BASE } from '../config';
 
 type ToolMode = 'grep' | 'git' | 'search' | 'run' | 'process';
 
@@ -60,7 +61,7 @@ export const ToolsPro = () => {
         options.body = JSON.stringify(cfg.body(input));
       }
 
-      const res = await fetch(`http://localhost:7860${cfg.endpoint}`, options);
+      const res = await fetch(`${BRIDGE_BASE}${cfg.endpoint}`, options);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error del servidor');
       

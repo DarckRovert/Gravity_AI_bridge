@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ShieldAlert, CheckCircle, XCircle, Clock, AlertTriangle, Eye, Zap, Lock } from 'lucide-react';
+import { showToast } from './Toast';
 
 export const HITLApproval = () => {
   const [pending, setPending] = useState<any[]>([]);
@@ -35,7 +36,7 @@ export const HITLApproval = () => {
       if (!res.ok) throw new Error('Fallo en la operación');
       fetchPending();
     } catch (e) {
-      alert(`Error al ${action === 'approve' ? 'aprobar' : 'rechazar'} la solicitud`);
+      showToast('error', `Error al ${action === 'approve' ? 'aprobar' : 'rechazar'} la solicitud`);
     } finally {
       setProcessing(null);
     }

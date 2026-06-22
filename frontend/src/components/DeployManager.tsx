@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Rocket, CheckCircle2, XCircle, RefreshCw, Terminal, Globe } from 'lucide-react';
+import { showToast } from './Toast';
 
 export const DeployManager = () => {
   const [status, setStatus] = useState<any>(null);
@@ -27,9 +28,9 @@ export const DeployManager = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ project_path: projectPath || undefined })
       });
-      alert('Pipeline de Deploy iniciado para FabricaWeb');
+      showToast('success', 'Pipeline de Deploy iniciado para FabricaWeb');
     } catch (e) {
-      alert('Error al iniciar deploy');
+      showToast('error', 'Error al iniciar deploy');
     } finally {
       setLoading(false);
     }

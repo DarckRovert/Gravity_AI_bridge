@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
-  Brain, Zap, ShieldCheck, TrendingUp, AlertTriangle, CheckCircle,
+  Brain, Zap, ShieldCheck, TrendingUp, CheckCircle,
   XCircle, Clock, RefreshCw, Activity, Eye, Code2, Target, Lock,
   BarChart3, ChevronRight, Cpu
 } from 'lucide-react';
@@ -70,7 +70,7 @@ const LEVEL_CONFIG: Record<string, { color: string; bg: string; border: string; 
   'NORMAL':      { color: 'text-status-success',  bg: 'bg-status-success/10', border: 'border-status-success/20', label: 'NORMAL' },
 };
 
-const OUTCOME_CONFIG: Record<string, { color: string; icon: JSX.Element }> = {
+const OUTCOME_CONFIG: Record<string, { color: string; icon: React.ReactNode }> = {
   success: { color: 'text-status-success', icon: <CheckCircle size={12} /> },
   failure: { color: 'text-status-error',   icon: <XCircle size={12} /> },
   neutral: { color: 'text-text-muted',     icon: <Activity size={12} /> },
@@ -475,7 +475,7 @@ export const AutonomyPanel = () => {
 
 // ── Sub-componentes ───────────────────────────────────────────────────────────
 
-const MetricCard = ({ icon, label, value, color }: { icon: JSX.Element; label: string; value: number; color: string }) => (
+const MetricCard = ({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: number; color: string }) => (
   <div className="glass-panel p-5 rounded-2xl border border-border-subtle flex flex-col gap-2">
     <div className={`${color} opacity-80`}>{icon}</div>
     <div className="text-2xl font-black text-text-primary">{value}</div>

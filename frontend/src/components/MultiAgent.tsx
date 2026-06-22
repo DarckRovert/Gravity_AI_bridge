@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Bot, Zap, RefreshCw, Layers, ShieldCheck, Sparkles } from 'lucide-react';
+import { showToast } from './Toast';
 
 export const MultiAgent = () => {
   const [query, setQuery] = useState('');
@@ -23,7 +24,7 @@ export const MultiAgent = () => {
         setResponses(data.results || []);
       }
     } catch (e) {
-      alert('Error en consulta multi-agente');
+      showToast('error', 'Error en consulta multi-agente');
     } finally {
       setLoading(false);
     }
@@ -130,7 +131,7 @@ export const MultiAgent = () => {
               <button 
                 onClick={() => {
                   navigator.clipboard.writeText(resp.response);
-                  alert('Respuesta copiada al portapapeles');
+                  showToast('info', 'Respuesta copiada al portapapeles');
                 }}
                 className="w-full py-2 text-[10px] font-black uppercase tracking-widest text-accent-primary hover:bg-accent-primary/5 rounded-lg transition-colors flex items-center justify-center gap-2"
               >

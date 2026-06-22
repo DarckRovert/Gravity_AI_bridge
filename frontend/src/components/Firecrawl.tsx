@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Flame, Globe, Database, Code, ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
+import { showToast } from './Toast';
 
 export const Firecrawl = () => {
   const [health, setHealth] = useState<any>(null);
@@ -18,13 +19,13 @@ export const Firecrawl = () => {
       });
       const data = await res.json();
       if (data.ok) {
-        alert(`Extracción completada para: ${url}\n\nContenido enviado a memoria semántica.\nTokens aprox: ${Math.round((data.content?.length || 0) / 4)}`);
+        showToast('success', `Extracción completada para: ${url}\n\nContenido enviado a memoria semántica.\nTokens aprox: ${Math.round((data.content?.length || 0) / 4)}`);
       } else {
-        alert(`Error en crawl: ${data.error || 'Sin contenido extraído'}`);
+        showToast('error', `Error en crawl: ${data.error || 'Sin contenido extraído'}`);
       }
       setUrl('');
     } catch (e) {
-      alert('Error de conexión con el backend de Firecrawl');
+      showToast('error', 'Error de conexión con el backend de Firecrawl');
     } finally {
       setCrawling(false);
     }

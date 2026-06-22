@@ -188,8 +188,9 @@ class TestSecurityLayers(unittest.TestCase):
     def test_budget_check_respects_daily_limit(self):
         """El engine nunca gasta más del límite diario configurado."""
         import core.autonomy_engine as ae
+        from datetime import datetime, timezone
         ae._daily_spend = ae.AUTONOMY_DAILY_BUDGET_USD  # Al límite exacto
-        ae._daily_spend_date = __import__("datetime").datetime.now().strftime("%Y-%m-%d")
+        ae._daily_spend_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         from core.autonomy_engine import _check_budget
         self.assertFalse(_check_budget(0.001))  # Ni un centavo más
 

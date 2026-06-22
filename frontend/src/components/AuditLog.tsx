@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Shield, Clock, Search, RotateCcw, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { showToast } from './Toast';
 
 export const AuditLog = () => {
   const [logs, setLogs] = useState<any[]>([]);
@@ -30,7 +31,7 @@ export const AuditLog = () => {
       await fetch('/v1/audit/rotate', { method: 'POST' });
       fetchLogs();
     } catch (e) {
-      alert('Error al rotar logs');
+      showToast('error', 'Error al rotar logs');
     }
   };
 

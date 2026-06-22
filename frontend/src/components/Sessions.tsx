@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { History, Save, Play, Trash2, Clock, Terminal, ChevronRight, Zap } from 'lucide-react';
+import { showToast } from './Toast';
 
 export const Sessions = () => {
   const [sessions, setSessions] = useState<any[]>([]);
@@ -36,7 +37,7 @@ export const Sessions = () => {
          body: JSON.stringify({ session_id: id })
        });
        fetchData();
-     } catch (e) { alert('Error al levantar worker'); }
+     } catch (e) { showToast('error', 'Error al levantar worker'); }
   };
 
   const deleteSession = async (id: string) => {
@@ -49,7 +50,7 @@ export const Sessions = () => {
       });
       fetchData();
     } catch (e) {
-      alert('Error al matar sesión');
+      showToast('error', 'Error al matar sesión');
     }
   };
 

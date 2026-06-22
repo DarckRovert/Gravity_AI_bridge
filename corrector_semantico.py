@@ -25,7 +25,7 @@ ESTÁ ESTRICTAMENTE PROHIBIDO:
 - Suavizar el tono oscuro, filosófico y violento.
 - Cambiar etiquetas Markdown o HTML.
 
-Solo devuelve el texto corregido. No añadas notas ni confirmaciones. Si no hay errores, devuelve el texto tal cual."""
+Solo devuelve el texto corregido. No añadas NINGUNA nota conversacional como "Aquí tienes el texto corregido", ni comillas adicionales. Si no hay errores, devuelve el texto exactamente igual."""
 
 STATE_FILE = "corrector_estado.json"
 
@@ -50,10 +50,18 @@ def process_paragraph(paragraph: str) -> str:
     
     try:
         # get_best will automatically pick Ollama or API
-        response = complete(messages=messages, task="reason")
-        return response.strip()
+        response = complete(messages=messages, task="reason").strip()
+        
+        # Anti-hallucination defense: Remove conversational prefixes
+        lower_resp = response.lower()
+        if lower_resp.startswith("aquí tienes") or lower_resp.startswith("texto corregido") or lower_resp.startswith("claro"):
+            # If it hallucinated conversational text, fallback to original to be safe
+            print("\n  [!] Alucinación conversacional detectada. Descartando corrección.")
+            return paragraph
+            
+        return response
     except Exception as e:
-        print(f"[!] Error procesando párrafo: {e}")
+        print(f"\n  [!] Error procesando párrafo: {e}")
         return paragraph # Fallback to original
 
 def run():
@@ -81,8 +89,9 @@ def run():
                     print(f"Error leyendo: {e}")
                     continue
                 
-                # Split by double newline to process paragraphs
-                paragraphs = content.split("\n\n")
+                # Usamos split por saltos de línea para asegurar que funciona en HTML (línea por línea) y en MD.
+                # Si dividimos por \n\n, los HTML que tengan todo junto en líneas <p> colapsarán al LLM.
+                paragraphs = content.split("\n")
                 new_paragraphs = []
                 
                 for i, p in enumerate(paragraphs):
@@ -92,7 +101,7 @@ def run():
                     
                 print("\n  [✓] Archivo procesado.")
                 
-                new_content = "\n\n".join(new_paragraphs)
+                new_content = "\n".join(new_paragraphs)
                 if new_content != content:
                     with open(filepath, 'w', encoding='utf-8') as f:
                         f.write(new_content)

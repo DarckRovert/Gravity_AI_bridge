@@ -250,6 +250,12 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
 def run_server():
     port = config.get("server.port", 7860)
 
+    # ── Pre-flight Checks ─────────────────────────────────────────────────────
+    _BASE = os.path.dirname(os.path.abspath(__file__))
+    portal_dir = os.path.join(os.path.dirname(_BASE), "gravity-news-portal")
+    if not os.path.isdir(portal_dir):
+        log.warning(f"[Pre-Flight] Directorio externo faltante: {portal_dir}. La publicación de noticias fallará silenciamente.")
+
     # ── Migraciones de base de datos ──────────────────────────────────────────
     try:
         migration_results = _run_db_migrations()

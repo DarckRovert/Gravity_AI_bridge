@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BookOpen, Search, FileText, Database, Upload, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { showToast } from './Toast';
 
 export const RagIndex = () => {
   const [status, setStatus] = useState<any>(null);
@@ -28,7 +29,7 @@ export const RagIndex = () => {
         setResults(data.results || []);
       }
     } catch (e) {
-      alert('Error en búsqueda RAG');
+      showToast('error', 'Error en búsqueda RAG');
     } finally {
       setSearching(false);
     }
@@ -64,9 +65,9 @@ export const RagIndex = () => {
                   try {
                     const res = await fetch('/v1/rag/ingest', { method: 'POST', body: fd });
                     const data = await res.json();
-                    if (data.ok) { alert(`✅ ${data.indexed || files.length} documento(s) indexados correctamente.`); fetchStatus(); }
-                    else alert(`❌ Error: ${data.error || 'Fallo al indexar'}`);
-                  } catch { alert('❌ Error de conexión con el backend RAG'); }
+                    if (data.ok) { showToast('success', `✅ ${data.indexed || files.length} documento(s) indexados correctamente.`); fetchStatus(); }
+                    else showToast('error', `❌ Error: ${data.error || 'Fallo al indexar'}`);
+                  } catch { showToast('error', '❌ Error de conexión con el backend RAG'); }
                   e.target.value = '';
                 }}
               />
@@ -103,7 +104,7 @@ export const RagIndex = () => {
             </div>
 
             <button 
-              onClick={() => alert('Edita el archivo config.yaml o añade PDFs a la carpeta local _rag_sources/ para actualizar el índice.')}
+              onClick={() => showToast('info', 'Edita el archivo config.yaml o añade PDFs a la carpeta local _rag_sources/ para actualizar el índice.')}
               className="w-full py-4 rounded-2xl bg-card border border-border-subtle text-text-muted hover:text-text-primary hover:border-accent-secondary transition-all flex items-center justify-center gap-2 text-sm font-bold group"
             >
               <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-500" /> Re-indexar Base de Datos
@@ -146,7 +147,7 @@ export const RagIndex = () => {
                     </div>
                     <p className="text-sm text-text-primary leading-relaxed">{res.content}</p>
                     <div className="flex gap-2 pt-2">
-                      <button onClick={() => alert(res.content)} className="text-[10px] font-bold text-text-muted hover:text-accent-secondary transition-colors uppercase tracking-widest flex items-center gap-1"><Search size={10} /> Ver contexto completo</button>
+                      <button onClick={() => showToast('info', res.content)} className="text-[10px] font-bold text-text-muted hover:text-accent-secondary transition-colors uppercase tracking-widest flex items-center gap-1"><Search size={10} /> Ver contexto completo</button>
                     </div>
                   </div>
                 )) : (

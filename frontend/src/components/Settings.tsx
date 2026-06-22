@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Settings as SettingsIcon, Save, Key, DollarSign, Brain, Globe } from 'lucide-react';
+import { showToast } from './Toast';
 
 export const Settings = () => {
   const [settings, setSettings] = useState<any>({
@@ -41,8 +42,8 @@ export const Settings = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider, api_key: key })
       });
-      alert(`Key para ${provider} actualizada`);
-    } catch (e) { alert('Error al guardar key'); }
+      showToast('info', `Key para ${provider} actualizada`);
+    } catch (e) { showToast('error', 'Error al guardar key'); }
   };
 
   const handleSaveUniversalConfig = async (baseUrl: string, model: string) => {
@@ -53,12 +54,12 @@ export const Settings = () => {
         body: JSON.stringify({ universal_base_url: baseUrl, universal_model: model })
       });
       if (res.ok) {
-        alert('Configuración de Universal AI guardada con éxito.');
+        showToast('success', 'Configuración de Universal AI guardada con éxito.');
       } else {
-        alert('Error al guardar configuración de Universal AI.');
+        showToast('error', 'Error al guardar configuración de Universal AI.');
       }
     } catch (e) {
-      alert('Error de conexión con el Bridge.');
+      showToast('error', 'Error de conexión con el Bridge.');
     }
   };
 
@@ -149,8 +150,8 @@ export const Settings = () => {
                       onClick={async () => {
                         try {
                           await fetch('/v1/cost/limit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ limit_usd: settings.cost_limit_usd }) });
-                          alert('Limite guardado: $' + settings.cost_limit_usd);
-                        } catch(e) { alert('Error de conexion'); }
+                          showToast('info', 'Limite guardado: $' + settings.cost_limit_usd);
+                        } catch(e) { showToast('error', 'Error de conexion'); }
                       }}
                       className="w-full py-2 bg-status-success/10 text-status-success border border-status-success/20 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-status-success hover:text-white transition-all"
                     >Guardar Limite</button>

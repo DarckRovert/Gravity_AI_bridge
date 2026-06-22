@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Gamepad2, Play, Square, Activity, Users, Terminal, Save, Key } from 'lucide-react';
+import { showToast } from './Toast';
 
 export const GameServers = () => {
   const [servers, setServers] = useState<any[]>([]);
@@ -42,11 +43,11 @@ export const GameServers = () => {
       });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || `Error al ${action} el servidor`);
+        showToast('error', data.error || `Error al ${action} el servidor`);
       }
       fetchStatus();
     } catch (e) {
-      alert(`Fallo de conexión con el puente`);
+      showToast('error', `Fallo de conexión con el puente`);
     }
   };
 
@@ -54,9 +55,9 @@ export const GameServers = () => {
     try {
       const res = await fetch('/v1/gameserver/backup', { method: 'POST' });
       const data = await res.json();
-      alert(data.msg || data.error || 'Backup iniciado');
+      showToast('error', data.msg || data.error || 'Backup iniciado');
     } catch(e) {
-      alert('Error ejecutando backup');
+      showToast('error', 'Error ejecutando backup');
     }
   };
 
@@ -69,10 +70,10 @@ export const GameServers = () => {
         body: JSON.stringify({ server: 'wow_vanilla', username: regUser, password: regPass })
       });
       const data = await res.json();
-      alert(data.note || data.error || 'Proceso finalizado');
+      showToast('error', data.note || data.error || 'Proceso finalizado');
       setRegUser(''); setRegPass('');
     } catch(e) {
-      alert('Error registrando cuenta');
+      showToast('error', 'Error registrando cuenta');
     }
   };
 
@@ -86,9 +87,9 @@ export const GameServers = () => {
         body: JSON.stringify({ server: id, command: cmd })
       });
       const data = await res.json();
-      alert(data.result || data.error || 'Comando enviado');
+      showToast('error', data.result || data.error || 'Comando enviado');
     } catch(e) {
-      alert('Error enviando comando');
+      showToast('error', 'Error enviando comando');
     }
   };
 
@@ -108,7 +109,7 @@ export const GameServers = () => {
           </div>
           <div className="flex gap-2">
             <button 
-              onClick={() => alert('Información: Configura el archivo realmlist.wtf dentro de tu cliente de World of Warcraft colocando: "set realmlist 127.0.0.1"')}
+              onClick={() => showToast('info', 'Información: Configura el archivo realmlist.wtf dentro de tu cliente de World of Warcraft colocando: "set realmlist 127.0.0.1"')}
               className="px-4 py-2 rounded-xl bg-surface border border-border-subtle text-sm font-bold hover:bg-card transition-all"
             >
               Configurar Realmlist

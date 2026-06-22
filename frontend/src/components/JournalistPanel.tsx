@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Play, Square, Terminal, Activity, Rss, Clock, ExternalLink, Hash, Globe, WifiOff, FileText, LayoutList } from 'lucide-react';
+import { BRIDGE_BASE } from '../config';
 
 interface JournalistStatus {
   online: boolean;
@@ -28,7 +29,7 @@ export const JournalistPanel = () => {
 
   const handleStartPortal = async () => {
     try {
-      const res = await fetch("http://localhost:7860/v1/journalist/portal/start", { method: "POST" });
+      const res = await fetch(`${BRIDGE_BASE}/v1/journalist/portal/start`, { method: "POST" });
       if (res.ok) {
         setTimeout(() => {
           window.open("http://localhost:5173", "_blank");
@@ -225,7 +226,7 @@ export const JournalistPanel = () => {
                   className="w-full flex items-center justify-center gap-3 px-4 py-4 rounded-2xl bg-black/40 border border-status-error/30 text-status-error hover:bg-status-error/20 transition-all text-sm font-black uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Square size={18} />
-                  ABORSIÓN DE PROTOCOLO
+                  ABORTAR PROTOCOLO
                 </button>
 
                 <div className="pt-6 mt-6 border-t border-border-subtle grid grid-cols-2 gap-4">

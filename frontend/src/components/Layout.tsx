@@ -5,7 +5,7 @@ import {
   Gamepad2, Bot, Cpu, DollarSign, Activity, Save, BookOpen, 
   Plug, Wrench, Zap, Bug, ShieldAlert, Wifi, Shield, FileText, Settings, Menu, Bell,
   TrendingUp, Video as VideoIcon, Radio, Target, Code2, Ghost,
-  Dices, PlayCircle, Brain
+  Dices, PlayCircle, Brain, Newspaper
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -51,12 +51,17 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-bg text-text-primary">
       {/* Topbar */}
-      <header className="flex items-center px-4 h-14 bg-surface backdrop-blur-xl border-b border-border-subtle shrink-0 z-20">
-        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 mr-2 hover:bg-card rounded-lg transition-colors">
-          <Menu size={20} />
+      <header className="flex items-center px-6 h-16 bg-surface/80 backdrop-blur-2xl border-b border-border-subtle shrink-0 z-20 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
+        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 mr-4 hover:bg-card rounded-xl transition-all duration-300 hover:shadow-[0_0_15px_rgba(129,140,248,0.2)]">
+          <Menu size={22} className="text-accent-primary" />
         </button>
-        <div className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-accent-primary to-accent-secondary bg-clip-text text-transparent">
-          GRAVITY V16.0 PRO
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-primary to-accent-secondary flex items-center justify-center shadow-[0_0_20px_rgba(192,132,252,0.4)]">
+            <Bot size={18} className="text-white" />
+          </div>
+          <div className="text-xl font-black tracking-tighter bg-gradient-to-r from-white via-accent-primary to-accent-secondary bg-clip-text text-transparent drop-shadow-sm">
+            GRAVITY <span className="font-light opacity-80">V16.0 PRO</span>
+          </div>
         </div>
         
         <div className="hidden md:flex items-center ml-auto gap-6 text-sm font-medium">
@@ -95,10 +100,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
         </button>
       </header>
 
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex flex-1 overflow-hidden relative p-4 gap-4">
         {/* Sidebar */}
-        <aside className={`${isSidebarOpen ? 'w-64' : 'w-0'} absolute md:relative z-40 h-full transition-all duration-300 shrink-0 border-r border-border-subtle bg-surface/95 md:bg-surface/50 backdrop-blur-md overflow-y-auto scrollbar-hide flex flex-col`}>
-          <div className="p-4 flex-1">
+        <aside className={`${isSidebarOpen ? 'w-64' : 'w-0 opacity-0'} absolute md:relative z-40 h-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] shrink-0 glass-panel rounded-2xl flex flex-col`}>
+          <div className="p-4 flex-1 overflow-y-auto scrollbar-hide">
             <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted mb-2 px-2">Principal</div>
             <NavItem id="chat" icon={MessageSquare} label="Chat Auditor" />
             <NavItem id="home" icon={Home} label="Mission Control" />
@@ -140,19 +145,25 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
             <NavItem id="bountyhunter" icon={Target} label="Bounty Hunter" />
             <NavItem id="softwarefactory" icon={Code2} label="Dev Studio / Fábrica" />
             <NavItem id="infiltrator" icon={Ghost} label="Infiltrador (AGI)" />
+            <NavItem id="journalist" icon={Newspaper} label="El Periodista" />
           </div>
 
-          <div className="p-4 shrink-0 border-t border-border-subtle bg-surface">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted mb-2">Modelo Activo</div>
-            <div className="glass-card p-3 rounded-xl border border-border-subtle bg-card shadow-md">
-              <div className="text-sm font-bold text-text-primary truncate">{ctx?.active_model || 'Detectando...'}</div>
-              <div className="text-xs text-text-muted mt-1">{ctx?.active_provider ? `Activo: ${ctx.active_provider}` : 'Auto-Routing'}</div>
+          <div className="p-4 shrink-0 border-t border-border-subtle bg-surface/30 rounded-b-2xl">
+            <div className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-3 flex items-center gap-2">
+              <Activity size={12} className="text-accent-tertiary" /> Modelo Activo
+            </div>
+            <div className="relative group overflow-hidden rounded-xl border border-border-subtle bg-card/50 p-3 transition-all duration-300 hover:border-accent-primary/50 hover:shadow-[0_0_20px_rgba(129,140,248,0.15)]">
+              <div className="absolute inset-0 bg-gradient-to-r from-accent-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative z-10">
+                <div className="text-sm font-bold text-text-primary truncate drop-shadow-md">{ctx?.active_model || 'Detectando...'}</div>
+                <div className="text-xs text-text-muted mt-1 font-medium">{ctx?.active_provider ? `Activo: ${ctx.active_provider}` : 'Auto-Routing'}</div>
+              </div>
             </div>
           </div>
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 relative overflow-hidden bg-bg/50">
+        <main className="flex-1 relative overflow-hidden glass-panel rounded-2xl">
           {children}
         </main>
       </div>

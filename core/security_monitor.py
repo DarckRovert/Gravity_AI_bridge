@@ -81,7 +81,7 @@ LEGITIMATE_PROCESS_NAMES: Set[str] = {
     "battlenet.exe", "origin.exe", "eadesktop.exe",
     # Desarrollo
     "node.exe", "python.exe", "python3.exe", "code.exe", "git.exe",
-    "java.exe", "javaw.exe", "cargo.exe", "rustup.exe",
+    "java.exe", "javaw.exe", "cargo.exe", "rustup.exe", "pytest.exe",
     # Herramientas comunes
     "dropbox.exe", "onedrive.exe", "googledrivefs.exe", "syncthing.exe",
     "nordvpn.exe", "mullvad.exe", "protonvpn.exe", "tailscale.exe",
@@ -89,6 +89,12 @@ LEGITIMATE_PROCESS_NAMES: Set[str] = {
     # Gravity / IA local / Video
     "gravitybridge.exe", "lm studio.exe", "lmstudio.exe",
     "ollama.exe", "jan.exe", "koboldcpp.exe", "obs64.exe", "obs32.exe",
+    # Adicionales: Adobe, Office, VM, IDEs, Media
+    "creative cloud.exe", "adobe desktop service.exe", "photoshop.exe", "illustrator.exe", 
+    "winword.exe", "excel.exe", "powerpnt.exe", "outlook.exe",
+    "vmware.exe", "vmware-tray.exe", "vboxsvc.exe", "virtualbox.exe",
+    "idea64.exe", "pycharm64.exe", "webstorm64.exe", "rider64.exe", "clion64.exe",
+    "spotify.exe", "vlc.exe", "msmpeng.exe", "nissrv.exe",
 }
 
 # Herramientas de hacking / debugging prohibidas (Anti-Tampering)
@@ -148,6 +154,38 @@ def _sha256(path: str) -> Optional[str]:
         return h.hexdigest()
     except Exception:
         return None
+
+
+_verified_cache: Dict[str, bool] = {}
+
+def _is_verified_signature(exe_path: str) -> bool:
+    """Verifica si el ejecutable tiene una firma digital válida (Authenticode). Usa caché para rendimiento."""
+    if not exe_path or not os.path.exists(exe_path):
+        return False
+    
+    with _lock:
+        if exe_path in _verified_cache:
+            return _verified_cache[exe_path]
+
+    is_valid = False
+    try:
+        # Comando PowerShell ligero para verificar firma de Windows
+        cmd = [
+            "powershell", "-NoProfile", "-NonInteractive", "-Command", 
+            f"(Get-AuthenticodeSignature '{exe_path}').Status -eq 'Valid'"
+        ]
+        # creationflags=0x08000000 -> CREATE_NO_WINDOW para no mostrar consola en Windows
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=3, creationflags=0x08000000)
+        is_valid = "True" in result.stdout
+    except Exception:
+        pass
+
+    with _lock:
+        if len(_verified_cache) > 2000:
+            _verified_cache.clear()
+        _verified_cache[exe_path] = is_valid
+
+    return is_valid
 
 
 def _record_alert(level: str, message: str) -> None:
@@ -252,28 +290,40 @@ def _scan_ports() -> Tuple[List[Dict[str, Any]], List[int]]:
             is_system_proc       = proc_name_lower in ["svchost.exe", "system", "lsass.exe", "wininit.exe", "services.exe", "spoolsv.exe", "smss.exe", "csrss.exe", "winlogon.exe", "explorer.exe", "taskmgr.exe", "dwm.exe"]
             is_interpreter       = proc_name_lower in ["node.exe", "python.exe", "python3.exe", "java.exe", "javaw.exe"]
 
-            if is_system_proc:
+            # Whitelist global suprema para el agente de IA (Antigravity IDE)
+            is_ide_agent = False
+            try:
+                if conn.pid:
+                    p = psutil.Process(conn.pid)
+                    exe_path = p.exe().lower() if p.exe() else ""
+                    cmd_line_str = " ".join(p.cmdline()).lower() if p.cmdline() else ""
+                    cwd_path = p.cwd().lower() if p.cwd() else ""
+                    if ".gemini" in exe_path or ".gemini" in cmd_line_str or ".gemini" in cwd_path or "antigravity" in exe_path or "antigravity" in cmd_line_str:
+                        is_ide_agent = True
+            except Exception:
+                pass
+
+            if is_ide_agent:
+                is_suspicious = False
+            elif is_system_proc:
                 is_suspicious = False
             elif is_interpreter:
                 # Si es un intérprete, SOLO puede abrir puertos conocidos del ecosistema
                 is_suspicious = not in_port_whitelist
-                
-                # Excepción: IDE Antigravity (Gemini) corriendo en su propio entorno
-                try:
-                    p = psutil.Process(conn.pid)
-                    exe_path = p.exe().lower() if p.exe() else ""
-                    cmd_line = " ".join(p.cmdline()).lower() if p.cmdline() else ""
-                    cwd_path = p.cwd().lower() if p.cwd() else ""
-                    if ".gemini" in exe_path or ".gemini" in cmd_line or ".gemini" in cwd_path:
-                        is_suspicious = False
-                except Exception:
-                    pass
             elif is_legitimate_proc:
                 # Otros procesos legítimos (navegadores, juegos, etc.) pueden abrir puertos
                 is_suspicious = False
             else:
-                # Procesos desconocidos no pueden abrir puertos fuera de la whitelist
-                is_suspicious = not in_port_whitelist
+                # Validar firma digital para programas no listados explícitamente
+                try:
+                    p = psutil.Process(conn.pid) if conn.pid else None
+                    exe_path = p.exe() if p else ""
+                    if exe_path and _is_verified_signature(exe_path):
+                        is_suspicious = False
+                    else:
+                        is_suspicious = not in_port_whitelist
+                except Exception:
+                    is_suspicious = not in_port_whitelist
 
             if is_suspicious:
                 suspicious.append(port)
@@ -413,8 +463,30 @@ def _scan_process_behavior() -> None:
                                 # Limpiar flags comunes de ejecución y comillas
                                 full_cmd = re.sub(r'^(?:/c|-c|-command)\s+', '', full_cmd).strip(' "\'')
                                 
+                                # Whitelist global para Antigravity IDE (y sus shells)
+                                is_ide_agent = False
+                                try:
+                                    exe_path = proc.exe().lower() if proc.exe() else ""
+                                    cmd_line_str = " ".join(proc.cmdline()).lower() if proc.cmdline() else ""
+                                    cwd_path = proc.cwd().lower() if proc.cwd() else ""
+                                    if ".gemini" in exe_path or ".gemini" in cmd_line_str or ".gemini" in cwd_path or "antigravity" in exe_path or "antigravity" in cmd_line_str:
+                                        is_ide_agent = True
+                                        
+                                    if ppid:
+                                        parent = psutil.Process(ppid)
+                                        p_exe = parent.exe().lower() if parent.exe() else ""
+                                        p_cmd = " ".join(parent.cmdline()).lower() if parent.cmdline() else ""
+                                        p_cwd = parent.cwd().lower() if parent.cwd() else ""
+                                        if ".gemini" in p_exe or ".gemini" in p_cmd or ".gemini" in p_cwd or "antigravity" in p_exe or "antigravity" in p_cmd:
+                                            is_ide_agent = True
+                                except Exception:
+                                    pass
+
+                                if is_ide_agent:
+                                    continue
+
                                 # Whitelist estricta: el comando DEBE empezar con el binario legítimo
-                                safe_cmds = ["git ", "pip ", "npm ", "uv ", "build", "conda ", "activate "]
+                                safe_cmds = ["git ", "pip ", "npm ", "uv ", "build", "conda ", "activate ", "pytest ", "python ", "rename-item "]
                                 if any(full_cmd.startswith(safe) for safe in safe_cmds):
                                     continue
                         except Exception:
@@ -501,6 +573,10 @@ def _scan_io_anomalies() -> None:
                         is_game_dir = ("\\steam\\" in exe_path or "\\epic games\\" in exe_path) and not exe_path.startswith("c:\\users\\")
                         
                         if is_safe_dir or is_game_dir:
+                            continue
+                            
+                        # Ignorar si es un ejecutable verificado (firmado digitalmente)
+                        if _is_verified_signature(exe_path):
                             continue
 
                         if name not in LEGITIMATE_PROCESS_NAMES and name not in BLACKLIST_TOOLS:

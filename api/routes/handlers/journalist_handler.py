@@ -47,11 +47,12 @@ def handle_journalist_start(handler):
     script = os.path.join(BASE_DIR, "news_daemon.py")
     
     try:
+        log_file = open(os.path.join(BASE_DIR, "gravity.log"), "a", encoding="utf-8")
         JOURNALIST_PROC = subprocess.Popen(
             ["python", script],
             cwd=BASE_DIR,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
             creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
         )
         msg = "Periodista iniciado exitosamente"
@@ -113,7 +114,7 @@ def handle_journalist_log(handler):
         return
         
     try:
-        with open(log_path, "r", encoding="utf-8") as f:
+        with open(log_path, "r", encoding="utf-8", errors="replace") as f:
             lines = f.readlines()
             
         # Filtrar sólo las líneas que digan [PERIODISTA] (si aplica) o mostrar las últimas N

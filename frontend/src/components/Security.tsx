@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ShieldAlert, Globe, Crosshair, Cpu, Lock, MapPin, Zap, AlertCircle } from 'lucide-react';
+import { showToast } from './Toast';
 
 export const Security = () => {
   const [sec, setSec] = useState<any>(null);
@@ -35,7 +36,7 @@ export const Security = () => {
       });
       fetchSecurity();
     } catch (e) {
-      alert('Error al terminar proceso');
+      showToast('error', 'Error al terminar proceso');
     }
   };
 
@@ -130,7 +131,7 @@ export const Security = () => {
               </div>
               <div className="pt-4 border-t border-border-subtle">
                 <button 
-                  onClick={() => fetch('/v1/security/scan', { method: 'POST' }).then(() => { alert('Escaneo forzado iniciado'); fetchSecurity(); })}
+                  onClick={() => fetch('/v1/security/scan', { method: 'POST' }).then(() => { showToast('success', 'Escaneo forzado iniciado'); fetchSecurity(); })}
                   className="w-full py-3 rounded-xl bg-accent-primary text-white text-xs font-black uppercase tracking-widest hover:scale-105 transition-all"
                 >
                   Ejecutar Escaneo Total
@@ -143,10 +144,10 @@ export const Security = () => {
               <div className="text-xs font-bold text-status-error uppercase tracking-widest">Protocolo Hard-Reset</div>
               <p className="text-[10px] text-text-muted font-medium italic">En caso de compromiso total, este comando purgará todas las sesiones activas y bloqueará las API keys.</p>
               <button 
-                onClick={() => alert('Protocolo Omega Activado. Restringiendo todas las peticiones externas y limpiando estado en memoria...')}
+                onClick={() => showToast('info', 'Protocolo Omega Activado. Restringiendo todas las peticiones externas y limpiando estado en memoria...')}
                 className="mt-2 text-[10px] font-black text-status-error hover:underline uppercase"
               >
-                Activar protocol omega
+                Activar Protocolo Omega
               </button>
             </div>
           </div>

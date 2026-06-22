@@ -16,6 +16,7 @@ onnxruntime
 tokenizers
 numpy
 networkx
+scipy
 
 # Empaquetado Comercial (PyInstaller)
 pyinstaller

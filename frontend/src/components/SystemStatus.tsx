@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Activity, Server, Database, Zap, ShieldCheck, Lock, Unlock, Cpu, Globe } from 'lucide-react';
+import { showToast } from './Toast';
 
 export const SystemStatus = () => {
   const [status, setStatus] = useState<any>(null);
@@ -33,10 +34,10 @@ export const SystemStatus = () => {
       if (res.ok) {
         await fetchStatus();
       } else {
-        alert('Error al actualizar el bloqueo del modelo');
+        showToast('error', 'Error al actualizar el bloqueo del modelo');
       }
     } catch (e) {
-      alert('Error de red al bloquear modelo');
+      showToast('error', 'Error de red al bloquear modelo');
     }
   };
 
