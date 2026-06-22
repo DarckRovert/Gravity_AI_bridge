@@ -139,8 +139,10 @@ def run():
                 
                 new_content = separator.join(new_paragraphs)
                 if new_content != content:
-                    with open(filepath, 'w', encoding='utf-8') as f:
+                    tmp_filepath = filepath + ".tmp"
+                    with open(tmp_filepath, 'w', encoding='utf-8') as f:
                         f.write(new_content)
+                    os.replace(tmp_filepath, filepath)
                 
                 state["processed"].append(filepath)
                 save_state(state)
