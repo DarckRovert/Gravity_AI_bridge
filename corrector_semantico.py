@@ -27,7 +27,7 @@ ESTÁ ESTRICTAMENTE PROHIBIDO:
 
 Solo devuelve el texto corregido. No añadas NINGUNA nota conversacional como "Aquí tienes el texto corregido", ni comillas adicionales. Si no hay errores, devuelve el texto exactamente igual."""
 
-STATE_FILE = "corrector_estado.json"
+STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "corrector_estado.json")
 
 def load_state():
     if os.path.exists(STATE_FILE):
@@ -58,6 +58,12 @@ def process_paragraph(paragraph: str) -> str:
             # If it hallucinated conversational text, fallback to original to be safe
             print("\n  [!] Alucinación conversacional detectada. Descartando corrección.")
             return paragraph
+            
+        # Provider Manager offline defense
+        if response.startswith("[ProviderManager]"):
+            print(f"\n  [!] Error crítico del motor de IA: {response}")
+            print("  [!] Abortando para evitar sobrescribir con mensajes de error.")
+            sys.exit(1)
             
         return response
     except Exception as e:
