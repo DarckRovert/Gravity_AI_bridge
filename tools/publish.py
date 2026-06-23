@@ -55,6 +55,11 @@ DEVUELVE ÚNICAMENTE EL PROMPT EN INGLÉS, sin comillas, ni explicaciones."""
     
     try:
         resp = provider_manager.complete(messages)
+        import re
+        if resp:
+            resp = re.sub(r'<think>.*?</think>', '', resp, flags=re.DOTALL).strip()
+            if '<think>' in resp:
+                resp = re.sub(r'<think>.*', '', resp, flags=re.DOTALL).strip()
         prompt = resp.strip() if resp else ""
         if prompt:
             return prompt

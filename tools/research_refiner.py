@@ -149,6 +149,32 @@ class ResearchRefiner:
     def __init__(self):
         self.web_search_tool = WebSearch()
 
+    def _clean_response(self, text: str) -> str:
+        """Limpia etiquetas <think> y marcadores conversacionales."""
+        import re
+        if not text:
+            return ""
+        cleaned = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
+        if '<think>' in cleaned:
+            cleaned = re.sub(r'<think>.*', '', cleaned, flags=re.DOTALL).strip()
+            
+        if cleaned.startswith("```"):
+            cleaned = re.sub(r'^```[a-zA-Z0-9-]*\n', '', cleaned)
+            cleaned = re.sub(r'\n```$', '', cleaned)
+            
+        prefixes_to_strip = [
+            "Aquí tienes", "Aquí está", "Claro, aquí", 
+            "Entendido.", "¡Por supuesto!", "A continuación"
+        ]
+        for prefix in prefixes_to_strip:
+            if cleaned.lower().startswith(prefix.lower()):
+                lines = cleaned.split('\n')
+                while lines and (lines[0].lower().startswith(prefix.lower()) or lines[0].strip() == ""):
+                    lines.pop(0)
+                cleaned = '\n'.join(lines).strip()
+                
+        return cleaned
+
     # ── MODO POLISH ───────────────────────────────────────────────────────────
 
     def polish(self, essay_dir: str) -> str:
@@ -341,7 +367,7 @@ class ResearchRefiner:
         )
         try:
             q_raw = provider_manager.complete([{"role": "user", "content": sys_prompt}])
-            q_raw = re.sub(r"<think>.*?</think>", "", q_raw, flags=re.DOTALL).strip()
+            q_raw = self._clean_response(q_raw)
             queries = [q.strip().strip('"\'') for q in q_raw.split("\n") if q.strip()][:3]
         except Exception:
             queries = [chap_title]
@@ -428,7 +454,7 @@ ESCRIBE EL CAPÍTULO REFINADO AHORA:"""
         full_text = ""
         for i in range(3):
             response = provider_manager.complete(messages)
-            response = re.sub(r"<think>.*?</think>", "", response, flags=re.DOTALL).strip()
+            response = self._clean_response(response)
             full_text = full_text + response if i > 0 else response
 
             if full_text.strip() and full_text.strip()[-1] in ".?!\"'*:":
@@ -447,7 +473,7 @@ ESCRIBE EL CAPÍTULO REFINADO AHORA:"""
             f"Capítulo:\n{chapter_text[:3000]}"
         )
         resp = provider_manager.complete([{"role": "user", "content": sys_prompt}])
-        return re.sub(r"<think>.*?</think>", "", resp, flags=re.DOTALL).strip()
+        return self._clean_response(resp)
 
     def _ensure_cover(self, essay_dir: str, title: str, synopsis_excerpt: str) -> Optional[str]:
         for ext in [".png", ".jpg", ".jpeg", ".svg"]:

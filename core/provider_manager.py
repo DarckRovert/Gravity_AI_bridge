@@ -36,10 +36,10 @@ def _load_settings() -> Dict[str, Any]:
             return {}
 
 
-def _score_provider(result: ProviderResult, task: str) -> float:
+def _score_model(result: ProviderResult, model_name: str, task: str) -> float:
     """
-    Scores a provider result for routing.
-    Higher = better. Task is "code" | "reason" | "any".
+    Scores a specific model from a provider result for routing.
+    Higher = better.
     """
     if not result.is_healthy:
         return -999.0
@@ -53,14 +53,14 @@ def _score_provider(result: ProviderResult, task: str) -> float:
         score += 20.0
 
     # Model already loaded in GPU → big bonus
-    if result.active_model:
+    if result.active_model == model_name:
         score += 50.0
 
     # Response time penalty
     score -= result.response_ms * 0.1
 
     # Task-specific model bonuses
-    active = (result.active_model or "").lower()
+    active = model_name.lower()
     if task == "code":
         if any(k in active for k in ("coder", "codestral", "starcoder", "deepseek-coder")):
             score += 40.0
@@ -71,6 +71,16 @@ def _score_provider(result: ProviderResult, task: str) -> float:
             score += 40.0
         if result.name in ("Anthropic",) and "claude" in active:
             score += 30.0   # Claude strong reasoner
+    elif task == "bounty":
+        if any(k in active for k in ("qwen", "coder", "phi")):
+            score += 50.0
+        if "nemo" in active or "70b" in active:
+            score -= 20.0
+    elif task == "semantic":
+        if any(k in active for k in ("hermes", "nemo", "llama-3")):
+            score += 50.0
+        if "coder" in active or "phi" in active:
+            score -= 30.0
 
     # Model parameter size bonus
     for size, bonus in [("70b", 25), ("72b", 25), ("32b", 20), ("26b", 18), ("14b", 10),
@@ -108,38 +118,49 @@ def scan_all(force: bool = False) -> List[ProviderResult]:
             try:
                 return plugin.check_health()
             except Exception as _e:
-                return ProviderResult(
+                r = ProviderResult(
                     name=plugin.name,
                     url=getattr(plugin, "base_url", ""),
-                    is_healthy=False,
-                    models=[],
-                    active_model=None,
-                    response_ms=0,
-                    category=getattr(plugin, "category", "local"),
-                    key_configured=False,
+                    protocol=getattr(plugin, "protocol", "unknown"),
+                    category=getattr(plugin, "category", "local")
                 )
+                r.is_healthy=False
+                r.models=[]
+                r.active_model=None
+                r.response_ms=0
+                r.key_configured=False
+                return r
 
         results: List[ProviderResult] = []
-        with concurrent.futures.ThreadPoolExecutor(
+        ex = concurrent.futures.ThreadPoolExecutor(
             max_workers=min(len(plugins), 8), thread_name_prefix="GravityScan"
-        ) as ex:
-            futures = {ex.submit(_safe_check, p): p for p in plugins}
+        )
+        futures = {ex.submit(_safe_check, p): p for p in plugins}
+        
+        end_time = time.time() + 8.0  # 8 segundos de timeout global (20 era mucho)
+        try:
             for fut, plug in futures.items():
+                remaining = end_time - time.time()
+                if remaining <= 0: remaining = 0.001
                 try:
-                    results.append(fut.result(timeout=20.0))
+                    results.append(fut.result(timeout=remaining))
                 except concurrent.futures.TimeoutError:
-                    results.append(ProviderResult(
+                    r = ProviderResult(
                         name=plug.name,
                         url=getattr(plug, "base_url", ""),
-                        is_healthy=False,
-                        models=[],
-                        active_model=None,
-                        response_ms=20000,
-                        category=getattr(plug, "category", "local"),
-                        key_configured=False,
-                    ))
+                        protocol=getattr(plug, "protocol", "unknown"),
+                        category=getattr(plug, "category", "local")
+                    )
+                    r.is_healthy=False
+                    r.models=[]
+                    r.active_model=None
+                    r.response_ms=20000
+                    r.key_configured=False
+                    results.append(r)
                 except Exception:
                     pass
+        finally:
+            ex.shutdown(wait=False)
 
         _cached_results  = results
         _cached_plugins  = {p.name: p for p in plugins}
@@ -177,10 +198,19 @@ def get_best(task: str = "any") -> Tuple[Optional[ProviderResult], Optional[str]
     cloud_healthy = [r for r in healthy if r.category != "local"]
 
     candidates = local_healthy if local_healthy else cloud_healthy
-    scored = sorted(candidates, key=lambda r: _score_provider(r, task), reverse=True)
-    best   = scored[0]
-    model  = best.active_model or best.models[0]["name"]
-    return best, model
+    
+    best_score = -9999.0
+    best_pair = (candidates[0], candidates[0].models[0]["name"])
+    
+    for r in candidates:
+        for m in r.models:
+            m_name = m["name"]
+            score = _score_model(r, m_name, task)
+            if score > best_score:
+                best_score = score
+                best_pair = (r, m_name)
+                
+    return best_pair
 
 
 def get_plugin(name: str) -> Optional[ProviderPlugin]:

@@ -13,6 +13,13 @@ from core import provider_manager
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("GravityFictionAuthor")
 
+def atomic_write(filepath: str, content: str):
+    """Escribe un archivo de forma atómica para evitar corrupción."""
+    tmp_path = filepath + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        f.write(content)
+    os.replace(tmp_path, filepath)
+
 class GravityFictionAuthor:
     """
     Motor de generación iterativa de ficción para Gravity AI Bridge.
@@ -41,6 +48,23 @@ class GravityFictionAuthor:
         # Si quedó algún <think> sin cerrar, corta todo desde ahí
         if '<think>' in cleaned:
             cleaned = re.sub(r'<think>.*', '', cleaned, flags=re.DOTALL).strip()
+            
+        # Purga de Markdown residual
+        if cleaned.startswith("```"):
+            cleaned = re.sub(r'^```[a-zA-Z0-9-]*\n', '', cleaned)
+            cleaned = re.sub(r'\n```$', '', cleaned)
+            
+        # Limpieza conversacional
+        prefixes_to_strip = [
+            "Aquí tienes el capítulo", "Aquí está el capítulo", "Claro, aquí", 
+            "Aquí tienes la continuación", "Entendido.", "¡Por supuesto!"
+        ]
+        for prefix in prefixes_to_strip:
+            if cleaned.lower().startswith(prefix.lower()):
+                lines = cleaned.split('\n')
+                while lines and (lines[0].lower().startswith(prefix.lower()) or lines[0].strip() == ""):
+                    lines.pop(0)
+                cleaned = '\n'.join(lines).strip()
             
         return cleaned
 
@@ -172,8 +196,11 @@ class GravityFictionAuthor:
         new_lore = self._safe_complete(messages)
         
         if "NADA_NUEVO" not in new_lore.upper() and len(new_lore) > 10:
-            with open(self.lore_file_path, "a", encoding="utf-8") as f:
-                f.write("\n\n## Nuevas Entidades Descubiertas\n" + new_lore)
+            existing_lore = ""
+            if os.path.exists(self.lore_file_path):
+                with open(self.lore_file_path, "r", encoding="utf-8") as f:
+                    existing_lore = f.read()
+            atomic_write(self.lore_file_path, existing_lore + "\n\n## Nuevas Entidades Descubiertas\n" + new_lore)
             self.lore_bible += "\n\n## Nuevas Entidades Descubiertas\n" + new_lore
             logger.info("Biblia del Lore expandida dinámicamente.")
 
@@ -288,26 +315,22 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown.
                     accumulated_history = f.read()
         else:
             base_context = phase1_callable()
-            with open(os.path.join(book_dir, "1_sinopsis_base.md"), "w", encoding="utf-8") as f:
-                f.write(f"# Sinopsis de Temporada\n\n{base_context}")
+            atomic_write(os.path.join(book_dir, "1_sinopsis_base.md"), f"# Sinopsis de Temporada\n\n{base_context}")
                 
             outline = phase2_callable(base_context)
             outline_str = json.dumps(outline, indent=2, ensure_ascii=False)
-            with open(os.path.join(book_dir, "2_escaleta.json"), "w", encoding="utf-8") as f:
-                f.write(outline_str)
+            atomic_write(os.path.join(book_dir, "2_escaleta.json"), outline_str)
                 
-            with open(book_file, "w", encoding="utf-8") as f:
-                f.write(f"# {title}\n\n*Novela generada por Gravity Fiction Engine*\n\n")
-                f.write("## Índice\n")
-                for c in outline:
-                    c_title = c.get('titulo', '')
-                    import urllib.parse
-                    anchor = "#" + urllib.parse.quote(c_title.lower().replace(" ", "-").replace(":", ""))
-                    f.write(f"{c.get('numero')}. [{c_title}]({anchor})\n")
-                f.write("\n---\n\n")
+            initial_book = f"# {title}\n\n*Novela generada por Gravity Fiction Engine*\n\n## Índice\n"
+            for c in outline:
+                c_title = c.get('titulo', '')
+                import urllib.parse
+                anchor = "#" + urllib.parse.quote(c_title.lower().replace(" ", "-").replace(":", ""))
+                initial_book += f"{c.get('numero')}. [{c_title}]({anchor})\n"
+            initial_book += "\n---\n\n"
+            atomic_write(book_file, initial_book)
                 
-            with open(history_file, "w", encoding="utf-8") as f:
-                f.write("")
+            atomic_write(history_file, "")
 
         full_outline_text = "\n".join([f"Cap {c.get('numero')}: {c.get('resumen_eventos')}" for c in outline])
         
@@ -330,8 +353,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown.
             # NUEVO: Expansión Dinámica del Lore
             self._extract_and_update_lore(chapter_text)
             
-            with open(os.path.join(book_dir, f"cap_{chap_num}.md"), "w", encoding="utf-8") as f:
-                f.write(chapter_text)
+            atomic_write(os.path.join(book_dir, f"cap_{chap_num}.md"), chapter_text)
                 
             if chap_num < num_chapters:
                 new_summary = self._summarize_chapter(chapter_text)
@@ -339,51 +361,47 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown.
                 
                 # Compresión de Memoria si es necesario
                 accumulated_history = self._compress_history(accumulated_history)
-                
-                with open(history_file, "w", encoding="utf-8") as f:
-                    f.write(accumulated_history)
+                atomic_write(history_file, accumulated_history)
                 
             # Guardado atómico de metadata (Checkpoint completado)
-            with open(progress_file, "w", encoding="utf-8") as f:
-                json.dump({"ultimo_capitulo_completado": chap_num, "total": num_chapters}, f)
+            atomic_write(progress_file, json.dumps({"ultimo_capitulo_completado": chap_num, "total": num_chapters}))
                 
             # Reconstrucción dinámica del archivo del libro maestro para evitar duplicados en reinicios
-            with open(book_file, "w", encoding="utf-8") as f:
-                f.write(f"# {title}\n\n*Novela generada por Gravity Fiction Engine*\n\n")
-                f.write("## Índice\n")
-                for c in outline:
-                    c_title = c.get('titulo', '')
-                    import urllib.parse
-                    anchor = "#" + urllib.parse.quote(c_title.lower().replace(" ", "-").replace(":", ""))
-                    f.write(f"{c.get('numero')}. [{c_title}]({anchor})\n")
-                f.write("\n---\n\n")
-                for i in range(1, chap_num + 1):
-                    cf_path = os.path.join(book_dir, f"cap_{i}.md")
-                    if os.path.exists(cf_path):
-                        with open(cf_path, "r", encoding="utf-8") as cf:
-                            f.write(cf.read() + "\n\n---\n\n")
+            book_content = f"# {title}\n\n*Novela generada por Gravity Fiction Engine*\n\n## Índice\n"
+            for c in outline:
+                c_title = c.get('titulo', '')
+                import urllib.parse
+                anchor = "#" + urllib.parse.quote(c_title.lower().replace(" ", "-").replace(":", ""))
+                book_content += f"{c.get('numero')}. [{c_title}]({anchor})\n"
+            book_content += "\n---\n\n"
+            for i in range(1, chap_num + 1):
+                cf_path = os.path.join(book_dir, f"cap_{i}.md")
+                if os.path.exists(cf_path):
+                    with open(cf_path, "r", encoding="utf-8") as cf:
+                        book_content += cf.read() + "\n\n---\n\n"
+            atomic_write(book_file, book_content)
                             
             logger.info(f"Capítulo {chap_num} finalizado y guardado.")
 
         if not os.path.exists(os.path.join(book_dir, "glosario.md")):
             logger.info("Fase Final: Generando Glosario del Universo...")
             glossary_text = self._generate_glossary(accumulated_history)
-            with open(os.path.join(book_dir, "glosario.md"), "w", encoding="utf-8") as f:
-                f.write(glossary_text)
+            atomic_write(os.path.join(book_dir, "glosario.md"), glossary_text)
                 
         # Asegurarse de que el glosario esté en el archivo maestro
         if os.path.exists(os.path.join(book_dir, "glosario.md")):
             with open(os.path.join(book_dir, "glosario.md"), "r", encoding="utf-8") as gf:
-                with open(book_file, "a", encoding="utf-8") as f:
-                    f.write("\n\n" + gf.read() + "\n\n---\n\n")
+                existing_book = ""
+                with open(book_file, "r", encoding="utf-8") as f:
+                    existing_book = f.read()
+                atomic_write(book_file, existing_book + "\n\n" + gf.read() + "\n\n---\n\n")
             
         try:
             import markdown
             with open(book_file, "r", encoding="utf-8") as f:
                 md_content = f.read()
             html_content = markdown.markdown(md_content, extensions=['toc'])
-            with open(html_file, "w", encoding="utf-8") as f:
-                f.write(html_content)
+            atomic_write(html_file, html_content)
             logger.info(f"HTML renderizado guardado en: {html_file}")
         except Exception as e:
             logger.error(f"No se pudo generar HTML automático: {e}")

@@ -277,6 +277,32 @@ class BookRefiner:
     def __init__(self):
         pass
 
+    def _clean_response(self, text: str) -> str:
+        """Limpia etiquetas <think> y marcadores conversacionales."""
+        import re
+        if not text:
+            return ""
+        cleaned = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
+        if '<think>' in cleaned:
+            cleaned = re.sub(r'<think>.*', '', cleaned, flags=re.DOTALL).strip()
+            
+        if cleaned.startswith("```"):
+            cleaned = re.sub(r'^```[a-zA-Z0-9-]*\n', '', cleaned)
+            cleaned = re.sub(r'\n```$', '', cleaned)
+            
+        prefixes_to_strip = [
+            "Aquí tienes", "Aquí está", "Claro, aquí", 
+            "Entendido.", "¡Por supuesto!", "A continuación"
+        ]
+        for prefix in prefixes_to_strip:
+            if cleaned.lower().startswith(prefix.lower()):
+                lines = cleaned.split('\n')
+                while lines and (lines[0].lower().startswith(prefix.lower()) or lines[0].strip() == ""):
+                    lines.pop(0)
+                cleaned = '\n'.join(lines).strip()
+                
+        return cleaned
+
     # ── MODO POLISH ───────────────────────────────────────────────────────────
 
     def polish(self, book_dir: str) -> str:
@@ -559,8 +585,8 @@ AHORA ESCRIBE EL CAPÍTULO REFINADO:"""
         full_text = ""
         for i in range(max_cont):
             response = provider_manager.complete(messages)
-            # Limpiar tags de pensamiento
-            response = re.sub(r"<think>.*?</think>", "", response, flags=re.DOTALL).strip()
+            # Limpiar tags de pensamiento y basura conversacional
+            response = self._clean_response(response)
 
             if i > 0:
                 full_text += response
@@ -579,8 +605,8 @@ AHORA ESCRIBE EL CAPÍTULO REFINADO:"""
         cleaned_text = latex_cleaner.full_clean(full_text.strip())
         
         # Procesamiento de imágenes en línea desactivado permanentemente para evitar glitches visuales.
-        # if lore_data and book_dir:
-        #     from core.visual_lore import inject_lore_to_prompt
+        if False: # lore_data and book_dir:
+            # from core.visual_lore import inject_lore_to_prompt
             from tools.pollinations_generator import generate as poll_gen
             import uuid
             
@@ -658,7 +684,7 @@ AHORA ESCRIBE EL CAPÍTULO REFINADO:"""
         )
         messages = [{"role": "user", "content": sys_prompt}]
         resp = provider_manager.complete(messages)
-        return re.sub(r"<think>.*?</think>", "", resp, flags=re.DOTALL).strip()
+        return self._clean_response(resp)
 
     def _ensure_cover(self, book_dir: str, title: str, synopsis_excerpt: str) -> Optional[str]:
         """Genera portada vía ImageRouter si no existe ninguna imagen de portada."""

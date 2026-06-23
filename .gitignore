@@ -29,3 +29,7 @@ _video_queue.sqlite*
 .continue/
 remotion_workspace/
 scratch/
+models/
+inputs/models/
+.tmp.driveupload/
+test_concat/

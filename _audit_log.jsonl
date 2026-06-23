@@ -25357,3 +25357,708 @@
 {"timestamp": "2026-06-22T04:53:48.647521Z", "level": "ACTION", "message": "Puerto no reconocido en escucha: 53061 (proceso: chrome-headless-shell.exe) -> [DEFENSA ACTIVA] Proceso PID 12276 aniquilado.", "source": "security_monitor"}
 {"timestamp": "2026-06-22T04:53:48.771331Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 12872)", "source": "security_monitor"}
 {"timestamp": "2026-06-22T04:54:53.222589Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 4824)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:20.871307Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 4248)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:21.653931Z", "level": "INFO", "message": "Nuevo proceso detectado: NortonUI.exe (PID 12252)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:21.811144Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 14940)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:21.889069Z", "level": "INFO", "message": "Nuevo proceso detectado: powershell.exe (PID 15600)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.051175Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 17860)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.240949Z", "level": "INFO", "message": "Nuevo proceso detectado: mscopilot_proxy.exe (PID 20820)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.391844Z", "level": "INFO", "message": "Nuevo proceso detectado: Taskmgr.exe (PID 24432)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.505561Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 26664)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.513123Z", "level": "INFO", "message": "Nuevo proceso detectado: node.exe (PID 26684)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.568031Z", "level": "INFO", "message": "Nuevo proceso detectado: node.exe (PID 27448)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.594618Z", "level": "INFO", "message": "Nuevo proceso detectado: AvEmUpdate.exe (PID 27652)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.601689Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 27796)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.608884Z", "level": "INFO", "message": "Nuevo proceso detectado: dllhost.exe (PID 27808)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.615424Z", "level": "INFO", "message": "Nuevo proceso detectado: NortonUI.exe (PID 27892)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.621977Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 27972)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.629518Z", "level": "INFO", "message": "Nuevo proceso detectado: LM Studio.exe (PID 28092)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.647176Z", "level": "INFO", "message": "Nuevo proceso detectado: NortonUI.exe (PID 28152)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.661386Z", "level": "INFO", "message": "Nuevo proceso detectado: dllhost.exe (PID 28204)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.666943Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 28232)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.678733Z", "level": "INFO", "message": "Nuevo proceso detectado: language_server_windows_x64.exe (PID 28528)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.686801Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 28560)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.696560Z", "level": "INFO", "message": "Nuevo proceso detectado: node.exe (PID 28592)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.713199Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 28828)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.828615Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 14396)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.848792Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 15200)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.879513Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 25692)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:54:22.898720Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 26916)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:55:26.441930Z", "level": "INFO", "message": "Nuevo proceso detectado: LM Studio.exe (PID 11168)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:55:27.537039Z", "level": "INFO", "message": "Nuevo proceso detectado: WMIADAP.exe (PID 19216)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:55:28.709525Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 10888)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:55:28.788046Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 17364)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:55:28.838044Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 24956)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:56:38.426107Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 24704)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:56:39.075551Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 10236)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:56:39.092179Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 13020)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:56:39.112904Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 13384)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:56:39.135610Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 15048)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:56:39.177980Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 24584)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:56:39.215515Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 28124)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:57:43.109455Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 3568)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:57:43.403545Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 4168)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:57:43.810371Z", "level": "INFO", "message": "Nuevo proceso detectado: taskhostw.exe (PID 5704)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:57:43.986563Z", "level": "INFO", "message": "Nuevo proceso detectado: StoreDesktopExtension.exe (PID 5788)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:57:44.234786Z", "level": "INFO", "message": "Nuevo proceso detectado: StoreDesktopExtension.exe (PID 6472)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:57:45.602863Z", "level": "INFO", "message": "Nuevo proceso detectado: MoUsoCoreWorker.exe (PID 12336)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:57:46.327719Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 17280)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:57:47.190173Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 23828)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:57:47.788964Z", "level": "INFO", "message": "Nuevo proceso detectado: sppsvc.exe (PID 29104)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:57:47.802130Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 29184)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:57:47.815769Z", "level": "INFO", "message": "Nuevo proceso detectado: PhoneExperienceHost.exe (PID 29604)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:51.589428Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 2640)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:51.755750Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 2828)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:53.585100Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 7640)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:53.880292Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 10564)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:54.205992Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 12712)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:54.230038Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 12916)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:54.268444Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 13156)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:54.393845Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 14512)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:54.575420Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 15148)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:54.660214Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 15512)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:54.933868Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 16664)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:55.060859Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 17068)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:55.624292Z", "level": "INFO", "message": "Nuevo proceso detectado: steamwebhelper.exe (PID 20492)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:56.022343Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 23904)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:56.156936Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 24672)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:56.525567Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 27928)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:56.698086Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 28984)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:56.761964Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 29084)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:56.884650Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 3724)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:58:56.922101Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 9300)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:59:59.585974Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 1788)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T18:59:59.906095Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 2340)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:00:00.859354Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 3980)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:00:00.980982Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 4196)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:00:01.434308Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 7272)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:00:01.642581Z", "level": "INFO", "message": "Nuevo proceso detectado: msedgewebview2.exe (PID 9376)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:00:01.913067Z", "level": "INFO", "message": "Nuevo proceso detectado: dllhost.exe (PID 12676)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:00:02.187903Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 15764)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:00:02.276052Z", "level": "INFO", "message": "Nuevo proceso detectado: ScreenClippingHost.exe (PID 16744)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:00:02.580926Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 20692)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:00:03.109299Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 10960)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:00:03.127939Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 15092)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:00:03.173268Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 24104)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:01:09.236456Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 19328)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:02:11.159005Z", "level": "INFO", "message": "Nuevo proceso detectado: powershell.exe (PID 1428)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:02:11.474692Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 1868)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:02:13.012554Z", "level": "INFO", "message": "Nuevo proceso detectado: WmiPrvSE.exe (PID 4452)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:02:13.164050Z", "level": "INFO", "message": "Nuevo proceso detectado: UserOOBEBroker.exe (PID 4988)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:02:15.897461Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 20504)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:02:16.381104Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 25000)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:02:16.495387Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 26364)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:02:16.832774Z", "level": "INFO", "message": "Nuevo proceso detectado: msedgewebview2.exe (PID 29372)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:02:17.004747Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 12172)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:02:17.105128Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 26408)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:03:19.586179Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 1876)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:03:20.468014Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 3860)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:03:21.631058Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 9736)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:03:21.830568Z", "level": "INFO", "message": "Nuevo proceso detectado: python.exe (PID 11664)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:03:22.786498Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 20632)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:03:23.550605Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 1860)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:03:23.654159Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 16320)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:03:23.684904Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 20732)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:03:23.712755Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 28276)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:04:26.438407Z", "level": "INFO", "message": "Nuevo proceso detectado: dllhost.exe (PID 4132)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:04:28.581065Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 21680)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:06:34.792595Z", "level": "INFO", "message": "Nuevo proceso detectado: MoUsoCoreWorker.exe (PID 440)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:06:37.005076Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 15496)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:06:37.093149Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 16200)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:06:37.874687Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 26444)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:07:41.440129Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 11284)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:07:42.553606Z", "level": "INFO", "message": "Nuevo proceso detectado: MoUsoCoreWorker.exe (PID 24924)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:07:42.573188Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 24956)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:07:42.858542Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 28956)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:07:42.866075Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 29492)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:08:46.306036Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 16324)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:08:46.935686Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 24900)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:08:47.012754Z", "level": "INFO", "message": "Nuevo proceso detectado: smartscreen.exe (PID 26084)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:08:47.053883Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 26640)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:09:49.810412Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 3864)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:09:50.957770Z", "level": "INFO", "message": "Nuevo proceso detectado: ngen.exe (PID 7932)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:09:51.083940Z", "level": "INFO", "message": "Nuevo proceso detectado: taskhostw.exe (PID 9260)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:09:51.184124Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 10308)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:09:51.296438Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 11416)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:09:53.161602Z", "level": "INFO", "message": "Nuevo proceso detectado: ngen.exe (PID 25692)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:09:53.231831Z", "level": "INFO", "message": "Nuevo proceso detectado: mscorsvw.exe (PID 26208)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:09:53.263881Z", "level": "INFO", "message": "Nuevo proceso detectado: taskhostw.exe (PID 26216)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:09:53.556283Z", "level": "INFO", "message": "Nuevo proceso detectado: ngentask.exe (PID 27876)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:09:53.659533Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 28564)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:09:53.692732Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 28804)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:09:53.757250Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 29536)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:10:55.907811Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 2964)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:10:56.467620Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 8572)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:10:56.822790Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 16548)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:10:57.037756Z", "level": "INFO", "message": "Nuevo proceso detectado: taskhostw.exe (PID 20512)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:10:57.222976Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 24976)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:10:57.240104Z", "level": "INFO", "message": "Nuevo proceso detectado: TiWorker.exe (PID 25200)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:13:04.995427Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 2348)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:13:05.903413Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 4956)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:13:05.924900Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 4960)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:13:07.049078Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 12424)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:14:11.230188Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 12520)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:14:11.275890Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 13408)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:14:11.388818Z", "level": "INFO", "message": "Nuevo proceso detectado: PhoneExperienceHost.exe (PID 15688)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:17:17.836021Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 14260)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:19:21.039665Z", "level": "INFO", "message": "Nuevo proceso detectado: pyrefly.exe (PID 432)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:19:21.766603Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 6536)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:19:22.576287Z", "level": "INFO", "message": "Nuevo proceso detectado: sppsvc.exe (PID 22524)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:19:22.686221Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 25512)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:21:39.970971Z", "level": "INFO", "message": "Nuevo proceso detectado: WmiPrvSE.exe (PID 15220)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:21:41.215553Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 25760)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:21:41.307049Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 26540)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:21:41.640964Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 29172)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:21:41.763140Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 20944)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:21:41.828965Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 28364)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:22:46.368676Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 12676)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:22:46.557692Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 14396)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:22:47.042639Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 17524)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:22:47.352616Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 18732)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:22:47.957906Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 23780)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:22:48.481991Z", "level": "INFO", "message": "Nuevo proceso detectado: ScreenClippingHost.exe (PID 27044)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:22:48.827732Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 12336)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:22:48.871845Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 15132)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:23:53.772731Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 15944)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:23:54.873924Z", "level": "INFO", "message": "Nuevo proceso detectado: ShellHost.exe (PID 25368)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:23:55.499998Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 17632)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:23:58.842032Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (523.9 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:24:59.956475Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 2420)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:25:02.036640Z", "level": "INFO", "message": "Nuevo proceso detectado: pyrefly.exe (PID 7696)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:25:02.242917Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 8916)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:25:02.281609Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 9236)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:25:02.304884Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 9612)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:25:02.317971Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 9764)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:25:02.870875Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 14404)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:25:02.906499Z", "level": "INFO", "message": "Nuevo proceso detectado: node.exe (PID 14468)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:25:02.924306Z", "level": "INFO", "message": "Nuevo proceso detectado: language_server_windows_x64.exe (PID 14500)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:25:03.342859Z", "level": "INFO", "message": "Nuevo proceso detectado: powershell.exe (PID 15916)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:25:03.912476Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 19680)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:25:04.214123Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 22604)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:25:04.262237Z", "level": "INFO", "message": "Nuevo proceso detectado: node.exe (PID 23040)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:25:04.508838Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 24772)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:25:04.957329Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 28472)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:25:05.047476Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 29312)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:27:15.661877Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 3940)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:27:18.899032Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 20540)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:28:23.589390Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 18292)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:30:32.757710Z", "level": "INFO", "message": "Nuevo proceso detectado: dllhost.exe (PID 7836)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:30:33.987542Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 19324)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:30:34.366427Z", "level": "INFO", "message": "Nuevo proceso detectado: python.exe (PID 23772)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:30:34.514873Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 25244)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:33:45.669156Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 2020)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:33:47.277571Z", "level": "INFO", "message": "Nuevo proceso detectado: smartscreen.exe (PID 8952)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:33:47.652904Z", "level": "INFO", "message": "Nuevo proceso detectado: MoUsoCoreWorker.exe (PID 13700)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:33:48.116300Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 17044)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:33:48.204497Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 17480)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:33:48.583478Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 22696)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:33:48.984050Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 28392)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:34:52.311896Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 9972)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:34:52.432225Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 11328)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:34:53.908812Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 27164)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:35:58.045673Z", "level": "INFO", "message": "Nuevo proceso detectado: taskhostw.exe (PID 18228)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:35:58.785041Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 28248)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:37:02.153203Z", "level": "INFO", "message": "Nuevo proceso detectado: WmiPrvSE.exe (PID 9248)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:37:02.639764Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 14728)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:37:03.862346Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 29032)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:38:06.824668Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 6208)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:38:09.256334Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 24184)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:38:09.331170Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 25352)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:38:09.805014Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 7276)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:42:28.639040Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 22560)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:42:28.726179Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 23212)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:44:36.804945Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 19000)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:47:45.629539Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 3384)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:47:45.811798Z", "level": "INFO", "message": "Nuevo proceso detectado: MoUsoCoreWorker.exe (PID 4872)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:47:46.271960Z", "level": "INFO", "message": "Nuevo proceso detectado: ApplicationFrameHost.exe (PID 9364)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:47:46.354387Z", "level": "INFO", "message": "Nuevo proceso detectado: SystemSettings.exe (PID 11384)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:47:47.003304Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 25364)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:47:47.117124Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 28340)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:51:55.155115Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 3788)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:51:55.706802Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 11440)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:51:55.739251Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 11880)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:51:55.834940Z", "level": "INFO", "message": "Nuevo proceso detectado: sppsvc.exe (PID 14476)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:51:55.924750Z", "level": "INFO", "message": "Nuevo proceso detectado: WmiPrvSE.exe (PID 15484)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:51:55.971614Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 16752)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:51:56.086240Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 19828)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:51:56.154486Z", "level": "INFO", "message": "Nuevo proceso detectado: MoUsoCoreWorker.exe (PID 21800)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:51:56.264716Z", "level": "INFO", "message": "Nuevo proceso detectado: StoreDesktopExtension.exe (PID 24580)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:51:56.289398Z", "level": "INFO", "message": "Nuevo proceso detectado: TrustedInstaller.exe (PID 25128)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:51:56.308995Z", "level": "INFO", "message": "Nuevo proceso detectado: TiWorker.exe (PID 25448)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:51:56.396827Z", "level": "INFO", "message": "Nuevo proceso detectado: StoreDesktopExtension.exe (PID 28104)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:51:56.428781Z", "level": "INFO", "message": "Nuevo proceso detectado: WmiPrvSE.exe (PID 29648)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:00.602865Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 2092)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:00.933140Z", "level": "INFO", "message": "Nuevo proceso detectado: remotion.exe (PID 2588)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:01.942872Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 5052)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:03.077495Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 7472)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:03.176613Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 8320)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:03.829943Z", "level": "INFO", "message": "Nuevo proceso detectado: ffmpeg.exe (PID 14720)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:03.837497Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 14792)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:04.099632Z", "level": "INFO", "message": "Nuevo proceso detectado: node.exe (PID 16500)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:04.365310Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 19088)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:04.429805Z", "level": "INFO", "message": "Nuevo proceso detectado: node.exe (PID 20108)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:04.462624Z", "level": "INFO", "message": "Nuevo proceso detectado: esbuild.exe (PID 20484)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:04.799673Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 23236)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:04.968258Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 24452)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:05.008330Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 25068)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:05.176678Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 26064)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:05.310530Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 27324)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:05.533430Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 29536)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:05.553569Z", "level": "INFO", "message": "Nuevo proceso detectado: chrome-headless-shell.exe (PID 29548)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:08.237855Z", "level": "ACTION", "message": "Puerto no reconocido en escucha: 49768 (proceso: chrome-headless-shell.exe) -> [DEFENSA ACTIVA] Proceso PID 2092 aniquilado.", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:54:08.324764Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 8320)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:55:10.203461Z", "level": "INFO", "message": "Nuevo proceso detectado: lmlink-connector.exe (PID 5236)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:55:10.296450Z", "level": "INFO", "message": "Nuevo proceso detectado: LM Studio.exe (PID 5844)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:55:10.554288Z", "level": "INFO", "message": "Nuevo proceso detectado: LM Studio.exe (PID 7856)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:55:10.608277Z", "level": "INFO", "message": "Nuevo proceso detectado: LM Studio.exe (PID 8880)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:55:10.971229Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 15756)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:55:11.092212Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 18692)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:55:11.108789Z", "level": "INFO", "message": "Nuevo proceso detectado: LM Studio.exe (PID 19180)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:55:11.270880Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 23572)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:55:11.325873Z", "level": "INFO", "message": "Nuevo proceso detectado: LM Studio.exe (PID 24244)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:55:11.434807Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 27204)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:55:11.462957Z", "level": "INFO", "message": "Nuevo proceso detectado: LM Studio.exe (PID 28156)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T19:57:14.605808Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 2372)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:00:21.395515Z", "level": "INFO", "message": "Nuevo proceso detectado: dllhost.exe (PID 2680)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:00:21.624005Z", "level": "INFO", "message": "Nuevo proceso detectado: taskhostw.exe (PID 4524)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:00:21.996131Z", "level": "INFO", "message": "Nuevo proceso detectado: sppsvc.exe (PID 9076)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:00:22.271236Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 15172)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:02:27.144661Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 27412)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:04:30.319036Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 4812)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:04:31.377460Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 26164)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:06:35.002306Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 6980)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:07:36.758456Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 4804)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:07:36.911773Z", "level": "INFO", "message": "Nuevo proceso detectado: MoUsoCoreWorker.exe (PID 6464)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:07:37.179009Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 10180)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:07:37.482761Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 17168)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:07:37.823806Z", "level": "INFO", "message": "Nuevo proceso detectado: sppsvc.exe (PID 27268)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:08:39.152237Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 3356)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:08:40.119297Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 16496)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:09:41.968383Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 5796)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:09:42.204057Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 7572)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:09:42.304238Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 9272)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:09:42.410359Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 11620)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:09:42.534800Z", "level": "INFO", "message": "Nuevo proceso detectado: smartscreen.exe (PID 14464)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:09:42.562157Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 14688)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:09:42.643405Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 15284)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:09:42.711499Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 16708)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:09:42.768546Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 17812)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:09:43.166851Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 28364)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:09:43.317716Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 29684)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:11:48.438487Z", "level": "INFO", "message": "Nuevo proceso detectado: identity_helper.exe (PID 26580)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:12:50.839325Z", "level": "INFO", "message": "Nuevo proceso detectado: msedgewebview2.exe (PID 16400)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:13:52.556704Z", "level": "INFO", "message": "Nuevo proceso detectado: msedgewebview2.exe (PID 4084)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:13:53.140766Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 9580)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:13:53.906580Z", "level": "INFO", "message": "Nuevo proceso detectado: SnippingTool.exe (PID 24348)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:15:58.241353Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 8200)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:15:58.366137Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 10468)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:15:58.772161Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 17380)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:15:58.876398Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 19684)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:15:59.179849Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 27968)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:15:59.216386Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 29276)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:15:59.822796Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (508.2 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:17:01.135159Z", "level": "INFO", "message": "Nuevo proceso detectado: LM Studio.exe (PID 12004)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:17:02.479915Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (508.2 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:18:08.768590Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (508.2 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:19:11.606910Z", "level": "INFO", "message": "Nuevo proceso detectado: rundll32.exe (PID 6944)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:19:11.714508Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 7884)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:19:14.081340Z", "level": "INFO", "message": "Nuevo proceso detectado: explorer.exe (PID 24736)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:19:14.616042Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 9068)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:19:15.890935Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (508.2 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:20:20.505077Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 22368)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:20:20.542833Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 22460)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:20:20.875314Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 25148)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:20:21.269050Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 29672)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:20:22.137855Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (508.2 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:21:23.221085Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 2912)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:21:26.428295Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 23588)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:21:26.602472Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 24856)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:21:26.625113Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 25332)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:21:26.935361Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 29348)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:21:28.308794Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (508.2 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:22:28.778555Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 416)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:22:30.140400Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 3764)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:22:32.244697Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 16540)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:22:32.287390Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 17196)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:22:33.324730Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (508.2 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:23:39.077118Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (508.2 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:24:43.564496Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 20460)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:24:45.799366Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (508.2 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:25:51.474769Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (508.2 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:26:53.118424Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 3408)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:26:54.609544Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 9460)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:26:54.628554Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 9540)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:26:56.257022Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 20292)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:26:57.682467Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 27992)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:26:57.919430Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 24800)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:26:59.143275Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (508.2 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:28:02.002311Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 10364)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:28:02.236409Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 12156)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:28:02.798812Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 16916)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:28:03.135313Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 19972)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:28:03.168700Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 20352)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:28:03.557123Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 24088)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:28:03.663437Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 24728)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:28:03.691658Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 24816)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:28:04.024774Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 28536)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:28:05.425970Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (508.2 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:29:11.605513Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 20860)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:29:12.648295Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 27568)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:29:12.709621Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 27608)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:29:12.988837Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 9508)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:29:14.579062Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (508.2 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:30:17.383424Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 7308)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:30:17.775582Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 10588)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:30:17.809404Z", "level": "INFO", "message": "Nuevo proceso detectado: node.exe (PID 10688)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:30:18.057821Z", "level": "INFO", "message": "Nuevo proceso detectado: taskhostw.exe (PID 12616)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:30:18.634837Z", "level": "INFO", "message": "Nuevo proceso detectado: dllhost.exe (PID 17176)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:30:18.732434Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 17568)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:30:18.801219Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 18212)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:30:18.898329Z", "level": "INFO", "message": "Nuevo proceso detectado: node.exe (PID 19248)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:30:18.990567Z", "level": "INFO", "message": "Nuevo proceso detectado: language_server_windows_x64.exe (PID 20200)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:30:19.465722Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 24612)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:30:19.591983Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 25444)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:31:23.984436Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 6532)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:31:25.915196Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 17872)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:31:25.960635Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 18384)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:31:26.959207Z", "level": "INFO", "message": "Nuevo proceso detectado: ShellHost.exe (PID 27724)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:32:31.727603Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 17448)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:32:32.272631Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 22672)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:33:38.320769Z", "level": "INFO", "message": "Nuevo proceso detectado: msedgewebview2.exe (PID 27420)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:34:40.278655Z", "level": "INFO", "message": "Nuevo proceso detectado: MoUsoCoreWorker.exe (PID 2304)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:34:41.495722Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 6280)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:34:42.843932Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 16200)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:35:47.099499Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 6536)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:36:53.873980Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 13620)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:39:04.741933Z", "level": "INFO", "message": "Nuevo proceso detectado: msedgewebview2.exe (PID 17656)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:40:07.091258Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 1912)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:40:07.634304Z", "level": "INFO", "message": "Nuevo proceso detectado: smartscreen.exe (PID 2852)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:40:08.448486Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 5724)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:40:09.684912Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 14964)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:41:13.281666Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 3752)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:42:18.105617Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 4784)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:42:18.824233Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 14960)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:42:18.905099Z", "level": "INFO", "message": "Nuevo proceso detectado: WmiPrvSE.exe (PID 15896)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:42:18.968465Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 17396)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:42:19.231992Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 23592)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:42:19.249363Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 23816)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:42:19.305797Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 24636)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:42:19.325593Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 25024)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:42:19.467867Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 28480)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:42:19.480934Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 29024)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:43:22.783237Z", "level": "INFO", "message": "Nuevo proceso detectado: python.exe (PID 9664)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:43:22.880170Z", "level": "INFO", "message": "Nuevo proceso detectado: OpenConsole.exe (PID 10620)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:43:24.160408Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 22392)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:43:24.423293Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 24956)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:43:24.696938Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 28452)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:45:33.690673Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 13064)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:45:34.546351Z", "level": "INFO", "message": "Nuevo proceso detectado: SoftLandingTask.exe (PID 20436)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:46:39.196270Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 15072)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:46:39.624643Z", "level": "INFO", "message": "Nuevo proceso detectado: MoUsoCoreWorker.exe (PID 17612)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:46:40.391696Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 26236)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:47:45.796580Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 28316)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:52:03.716174Z", "level": "INFO", "message": "Nuevo proceso detectado: TrustedInstaller.exe (PID 3496)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:52:04.058307Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 4256)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:52:05.262293Z", "level": "INFO", "message": "Nuevo proceso detectado: MoUsoCoreWorker.exe (PID 9316)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:52:05.368745Z", "level": "INFO", "message": "Nuevo proceso detectado: TiWorker.exe (PID 10436)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:52:05.895145Z", "level": "INFO", "message": "Nuevo proceso detectado: smartscreen.exe (PID 15196)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:52:07.192751Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 28628)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:52:07.234840Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 29212)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:53:10.349318Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 4456)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:53:10.386368Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 4576)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:53:11.424489Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 8024)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:53:11.915146Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 11520)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:53:12.222373Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 13032)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:53:13.921809Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 25772)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:53:14.391355Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 14540)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:55:24.165576Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 8792)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:55:24.372218Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 9920)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:55:26.485053Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 28856)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:56:30.858055Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 14144)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:56:31.239736Z", "level": "INFO", "message": "Nuevo proceso detectado: MoUsoCoreWorker.exe (PID 16620)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:56:31.982350Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 22376)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:56:32.889903Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 28724)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:57:36.952160Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 7784)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:57:37.235736Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 9508)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:57:38.375459Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 17340)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:57:39.026915Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 20944)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:57:39.528400Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 24476)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:57:39.617978Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 24924)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T20:57:40.199793Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 24616)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:00:58.244031Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 25460)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:03:11.341383Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 24012)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:04:15.437241Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 7496)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:04:17.667763Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 26788)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:05:22.282507Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 13880)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:06:28.300101Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 14008)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:07:34.280923Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 14388)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:07:34.952032Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 19600)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:07:35.346582Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 24036)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:07:35.835104Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 29040)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:07:35.856340Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 29620)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:10:50.949444Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 4828)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:12:00.417497Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 29368)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:13:03.001980Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 10252)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:15:08.791601Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 23032)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:15:09.072814Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 4804)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:16:11.657335Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 26472)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:16:11.799711Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 26352)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:17:13.368900Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 7532)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:18:16.864309Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 20624)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:19:17.755923Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 2124)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:19:18.302495Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 5664)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:19:19.202476Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 20248)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:19:19.237536Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 21024)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:19:19.372131Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 24380)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:19:19.381723Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 24460)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:21:24.147699Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 14932)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:22:25.688032Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 1892)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:27:38.982319Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 24952)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:29:43.140663Z", "level": "INFO", "message": "Nuevo proceso detectado: sppsvc.exe (PID 15384)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:29:43.210512Z", "level": "INFO", "message": "Nuevo proceso detectado: MoUsoCoreWorker.exe (PID 16424)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:29:43.626272Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 28696)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:30:45.415294Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 7968)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:30:45.439973Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 8500)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:30:45.764707Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 14992)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:30:46.295482Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 24796)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:30:46.312060Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 25216)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:30:46.465144Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 29692)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:30:47.189878Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (530.7 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:31:47.241026Z", "level": "INFO", "message": "Nuevo proceso detectado: smartscreen.exe (PID 412)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:31:47.700473Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 3568)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:31:47.916067Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 5364)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:31:47.948739Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 5580)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:31:48.009581Z", "level": "INFO", "message": "Nuevo proceso detectado: identity_helper.exe (PID 5936)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:31:48.018136Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 6048)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:31:48.022661Z", "level": "INFO", "message": "Nuevo proceso detectado: language_server_windows_x64.exe (PID 6068)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:31:48.222555Z", "level": "INFO", "message": "Nuevo proceso detectado: node.exe (PID 8244)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:31:48.232098Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 8408)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:31:48.456998Z", "level": "INFO", "message": "Nuevo proceso detectado: node.exe (PID 12120)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:31:48.792365Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 17512)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:31:49.078679Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 24116)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:32:51.040483Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 11832)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:34:56.073955Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 18076)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:35:57.654367Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 4676)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:35:58.540624Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 18852)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:37:00.896874Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 11844)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:37:01.014946Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 14812)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:39:06.267490Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 23972)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:40:08.696653Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 27804)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:41:11.196901Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 6088)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:42:13.222099Z", "level": "INFO", "message": "Nuevo proceso detectado: MoUsoCoreWorker.exe (PID 18872)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:42:13.281094Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 20812)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:42:13.364944Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 22668)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:42:13.439923Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 24392)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:42:13.534621Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 27704)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:44:21.989393Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 14736)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:46:32.473817Z", "level": "INFO", "message": "Nuevo proceso detectado: sppsvc.exe (PID 17324)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:46:32.582322Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 18328)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:47:36.146650Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 5412)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:51:57.056154Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 12428)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:51:57.840102Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 20416)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:51:57.998679Z", "level": "INFO", "message": "Nuevo proceso detectado: StoreDesktopExtension.exe (PID 23068)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:51:58.213116Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 24544)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:51:58.374975Z", "level": "INFO", "message": "Nuevo proceso detectado: StoreDesktopExtension.exe (PID 26676)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:54:09.633065Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 27640)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:55:13.104249Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 6444)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:55:15.869523Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 28788)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:57:21.751878Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 1084)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:57:24.702666Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 9616)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:57:25.520452Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 16924)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:57:25.607328Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 17364)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:57:26.194825Z", "level": "INFO", "message": "Nuevo proceso detectado: smartscreen.exe (PID 23776)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:57:26.633860Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 27592)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:57:26.883047Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 29000)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:57:27.116482Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 28744)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:58:31.301365Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 9080)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:58:31.751074Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 12948)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:58:33.131064Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 25240)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:58:33.143388Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 25348)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:58:33.450948Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 28652)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T21:58:33.505219Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 29496)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:00:44.751853Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 17140)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:05:05.593978Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 7616)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:06:14.668021Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 28316)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:07:18.582357Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 6816)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:07:19.366704Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 13844)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:07:20.481968Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 23920)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:08:25.344879Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 11076)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:08:25.661984Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 13876)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:10:36.167749Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 5040)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:10:37.245525Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 10556)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:10:38.292802Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 18876)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:10:38.724144Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 23644)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:10:38.919664Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 24568)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:13:56.585946Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 17484)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:14:59.650356Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 2400)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:15:00.050132Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 3172)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:15:03.227780Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 22704)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:16:10.278223Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 24980)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:16:10.709110Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 3000)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:19:26.828946Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 6740)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:19:29.064826Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 26912)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:20:34.762434Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 24304)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:21:37.857811Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 4120)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:21:40.087533Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 17060)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:22:42.840638Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 20088)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:22:43.162235Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 29216)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:23:44.612640Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 6288)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:23:45.156733Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 15476)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:24:47.048977Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 5240)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:25:50.159569Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 15336)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:25:50.419889Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 21556)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:26:53.163465Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 25776)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:27:55.354682Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 18700)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:27:55.375255Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 19336)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:28:57.600181Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 11756)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:31:03.224924Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 19700)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:31:03.431537Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 24716)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:33:09.149725Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 23564)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:34:11.860335Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 28144)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:34:11.951808Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 20908)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:37:21.335775Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 24996)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:37:21.341302Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 25260)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:37:21.459122Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 28656)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:42:32.696462Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 4416)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:42:33.757724Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 22808)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:42:33.887548Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 25536)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:44:37.922904Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 6116)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:45:40.564119Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 8612)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:47:46.333238Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 29580)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:48:47.531916Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 5176)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:48:47.900656Z", "level": "INFO", "message": "Nuevo proceso detectado: smartscreen.exe (PID 8716)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:48:48.138370Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 13668)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:48:48.385626Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 19568)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:49:49.968901Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 6008)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:49:50.405148Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 13208)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:49:50.468515Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 14764)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:49:50.651479Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 18576)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:49:50.667887Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 18796)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:51:55.085765Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 4136)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:51:56.450916Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 12880)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:51:57.099974Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 17328)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:53:00.763164Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 3756)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:53:01.723880Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 7724)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:53:02.080355Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 10696)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:53:03.113677Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 19332)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:53:03.331802Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 22384)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:53:03.896192Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 29104)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:53:03.923329Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 29684)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:54:08.062090Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 9256)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:54:10.410071Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 8608)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:56:23.081639Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 19148)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:57:26.571121Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 9312)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:57:26.615324Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 9952)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:57:27.064320Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 14776)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T22:58:30.544408Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 4012)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:00:42.312284Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 8104)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:00:42.629228Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 10584)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:00:43.383862Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 16712)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:00:43.568756Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 17672)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:00:43.711751Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 19124)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:00:43.765613Z", "level": "INFO", "message": "Nuevo proceso detectado: powershell.exe (PID 19776)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:00:44.254362Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 24872)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:01:50.277691Z", "level": "INFO", "message": "Nuevo proceso detectado: identity_helper.exe (PID 20556)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:02:56.007663Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 15272)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:02:57.414778Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 18940)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:04:01.669847Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 15496)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:04:01.733244Z", "level": "INFO", "message": "Nuevo proceso detectado: smartscreen.exe (PID 16000)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:04:01.823073Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 18108)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:04:01.974853Z", "level": "INFO", "message": "Nuevo proceso detectado: ShellHost.exe (PID 23652)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:05:07.789922Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (527.2 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:06:11.291999Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 17464)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:06:12.361689Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 25524)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:06:13.759700Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (527.2 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:16.493189Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 4388)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:17.334297Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 5892)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:17.548376Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 6472)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:17.968412Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 7932)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:18.319058Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 11288)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:18.464056Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 12352)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:18.511723Z", "level": "INFO", "message": "Nuevo proceso detectado: powershell.exe (PID 12704)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:18.658710Z", "level": "INFO", "message": "Nuevo proceso detectado: language_server_windows_x64.exe (PID 14584)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:19.109396Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 17984)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:19.128099Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 18336)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:19.157767Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 18544)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:19.169305Z", "level": "INFO", "message": "Nuevo proceso detectado: node.exe (PID 18564)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:19.234027Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 18976)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:19.245095Z", "level": "INFO", "message": "Nuevo proceso detectado: language_server_windows_x64.exe (PID 19020)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:19.309505Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 19916)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:19.322308Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 20020)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:19.412653Z", "level": "INFO", "message": "Nuevo proceso detectado: node.exe (PID 20880)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:19.678789Z", "level": "INFO", "message": "Nuevo proceso detectado: powershell.exe (PID 23984)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:19.776633Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 25744)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:19.829428Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 27016)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:19.839514Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 27456)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:19.851168Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 27660)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:07:19.959299Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 29472)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:08:22.538563Z", "level": "INFO", "message": "Nuevo proceso detectado: node.exe (PID 3332)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:08:23.812701Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 8208)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:08:23.975557Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 9396)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:08:24.232398Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 11808)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:08:24.958888Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 18352)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:08:24.975894Z", "level": "INFO", "message": "Nuevo proceso detectado: Taskmgr.exe (PID 18424)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:08:25.201832Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 20684)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:08:25.707393Z", "level": "INFO", "message": "Nuevo proceso detectado: node.exe (PID 29352)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:09:30.203834Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 20256)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:10:32.069121Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 240)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:10:34.007537Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 8180)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:10:34.034536Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 8488)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:12:43.040442Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 9048)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:14:52.236007Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 17404)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:14:52.278709Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 17708)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:14:52.483652Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 19504)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:14:52.855647Z", "level": "INFO", "message": "Nuevo proceso detectado: smartscreen.exe (PID 24972)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:15:55.703288Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 5740)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:15:56.530145Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 10316)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:15:56.605731Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 11228)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:15:57.990686Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 25020)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:15:58.159848Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 28032)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:17:03.086344Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 25556)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:18:05.403078Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 10120)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:18:05.448610Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 10768)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:18:05.728279Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 17308)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:18:05.936842Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 23596)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:18:06.056085Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 28284)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:18:06.079319Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 28964)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:19:06.779392Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 424)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:20:09.746986Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 3296)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:20:10.396855Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 10692)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:22:14.809906Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 2916)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:22:15.074979Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 5148)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:22:15.757070Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 15908)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:22:16.314590Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 29372)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:26:24.715505Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 13856)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:26:24.860501Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchFilterHost.exe (PID 16860)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:26:25.092899Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 23628)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:29:31.612482Z", "level": "INFO", "message": "Nuevo proceso detectado: smartscreen.exe (PID 27332)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:29:31.728713Z", "level": "CRITICAL", "message": "[ANTI-RCE] Intento de shell sospechoso bloqueado: cmd.exe (PID 20748)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:30:33.436242Z", "level": "INFO", "message": "Nuevo proceso detectado: RuntimeBroker.exe (PID 9784)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:30:33.912489Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 19424)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:30:33.963757Z", "level": "INFO", "message": "Nuevo proceso detectado: pyrefly.exe (PID 19960)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:30:34.126278Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 25340)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:30:34.155782Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 26220)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:30:34.184072Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 27684)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:30:34.212737Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 28272)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:31:37.504239Z", "level": "INFO", "message": "Nuevo proceso detectado: SearchProtocolHost.exe (PID 25488)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:33:43.712945Z", "level": "CRITICAL", "message": "[ANTI-RANSOMWARE] I/O masivo detectado (535.9 MB). Proceso SUSPENDIDO: antigravity ide.exe", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:34:44.244446Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 2548)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:34:44.628247Z", "level": "INFO", "message": "Nuevo proceso detectado: node.exe (PID 5192)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:34:45.097995Z", "level": "INFO", "message": "Nuevo proceso detectado: powershell.exe (PID 10336)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:34:45.461098Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 15544)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:34:45.567737Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 17516)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:34:45.691826Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 19928)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:34:45.712281Z", "level": "INFO", "message": "Nuevo proceso detectado: Antigravity IDE.exe (PID 20160)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:34:45.838682Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 23648)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:34:45.905564Z", "level": "INFO", "message": "Nuevo proceso detectado: cmd.exe (PID 25724)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:35:48.340087Z", "level": "INFO", "message": "Nuevo proceso detectado: msedge.exe (PID 15576)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:35:48.761269Z", "level": "INFO", "message": "Nuevo proceso detectado: conhost.exe (PID 24296)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:36:50.139730Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 5212)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:36:51.124607Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 29300)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:36:51.133651Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 29484)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:41:00.721343Z", "level": "ACTION", "message": "Modificación externa detectada en archivo crítico: provider_manager.py -> [DEFENSA ACTIVA] Archivo curado y restaurado vía Git.", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:42:02.204364Z", "level": "INFO", "message": "Nuevo proceso detectado: svchost.exe (PID 8676)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:42:02.875795Z", "level": "INFO", "message": "Nuevo proceso detectado: backgroundTaskHost.exe (PID 26420)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:43:02.264454Z", "level": "INFO", "message": "Nuevo proceso detectado: powershell.exe (PID 17912)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:43:02.609924Z", "level": "INFO", "message": "Nuevo proceso detectado: NortonUI.exe (PID 27048)", "source": "security_monitor"}
+{"timestamp": "2026-06-22T23:43:02.637159Z", "level": "INFO", "message": "Nuevo proceso detectado: python.exe (PID 28096)", "source": "security_monitor"}

@@ -1,16 +1,11 @@
-# Troubleshooting y FAQ
+# 🛠️ Troubleshooting y FAQ
 
-### 1. El portal de noticias tiene errores de decodificación JSON.
-**Solución:** Revisa los logs de `task-*`. Puede ocurrir si un proveedor LLM falla y devuelve un JSON en un bloque markdown inesperado. El sistema ahora tiene un parche en `clean_llm_response()` para extraer y limpiar la salida.
+### ❌ El Orquestador no detecta mis modelos `.gguf`
+**Causa:** La ruta `inputs/models/` no está siendo escaneada o el archivo no tiene la extensión correcta.
+**Solución:** Mueve tus archivos `.gguf` a la carpeta `inputs/models/` y reinicia el puente. No necesitas compilar nada, la versión V16.2 ya incluye dependencias pre-compiladas Vulkan.
 
-### 2. Fooocus no arranca desde el `INICIAR_TODO.bat`
-**Explicación:** Por defecto, Fooocus arranca en "modo manual" para ahorrar RAM (frecuentemente más de 12GB requeridos). Debes activarlo manualmente desde el Mission Control (L0).
+### ❌ "TimeoutError" en los Logs de la consola
+**Tranquilo.** Esto significa que el Blindaje Anti-Caídas (Poison Pill Resilience) de V16.2 PRO interceptó a un motor defectuoso y cortó el lazo a los 8 segundos para evitar bloquear el resto de la IA. Es un comportamiento deseado.
 
-### 3. Problemas de Push a Github en el Agente Periodístico
-**Solución:** Verifica que el usuario local de Windows tenga las credenciales de Git cacheadas globalmente (`git config --global credential.helper wincred`).
-
-### 4. Fallos al decodificar contenido de Web Search
-**Explicación:** Si la búsqueda web retorna errores de Gzip o decodificación, revisa que no estés enviando headers de codificación (Accept-Encoding) incompatibles con `urllib`. La V16.0 PRO ya maneja esto limpiando cabeceras innecesarias.
-
-### 5. Falla silenciosa al instalar faster-whisper
-**Solución:** En V16.0 PRO, la instalación de dependencias como Whisper es de tipo "bloqueante" (`blocking`). Si notas errores de "módulo no encontrado" en la consola, verifica que el subprocess tenga permisos para instalar pip localmente sin detener la ejecución.
+### ❌ OOM (Out Of Memory)
+**Solución:** Escribe `/limpiar` en el Chat Auditor. Esto vaciará instantáneamente la VRAM de tu APU Ryzen. Si usas Ollama, Gravity aplicará "Turbo KV-Cache" automáticamente.

@@ -103,7 +103,21 @@ def slugify(text: str) -> str:
     return text.strip('-')
 
 def clean_llm_response(text: str) -> str:
-    text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
+    if not text: return ""
+    text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
+    if '<think>' in text:
+        text = re.sub(r'<think>.*', '', text, flags=re.DOTALL).strip()
+        
+    prefixes_to_strip = [
+        "Aquí tienes", "Aquí está", "Claro, aquí", "Entendido.", "¡Por supuesto!"
+    ]
+    for prefix in prefixes_to_strip:
+        if text.lower().startswith(prefix.lower()):
+            lines = text.split('\n')
+            while lines and (lines[0].lower().startswith(prefix.lower()) or lines[0].strip() == ""):
+                lines.pop(0)
+            text = '\n'.join(lines).strip()
+            
     json_match = re.search(r'```json\s*(.*?)\s*```', text, re.DOTALL)
     if json_match:
         return json_match.group(1).strip()
@@ -282,8 +296,10 @@ def update_essays_json(new_essay: Dict[str, Any]):
     essays_list.insert(0, new_essay)
     essays_list = essays_list[:20]
 
-    with open(ESSAYS_JSON_PATH, "w", encoding="utf-8") as f:
+    tmp_path = ESSAYS_JSON_PATH + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
         json.dump(essays_list, f, indent=2, ensure_ascii=False)
+    os.replace(tmp_path, ESSAYS_JSON_PATH)
     logging.info(f"[+] Ensayo '{new_essay.get('title')}' guardado en essays.json")
     
     # --- AUTO-ENCOLAR VIDEO DE ENSAYO PARA TIKTOK ---

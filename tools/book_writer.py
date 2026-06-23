@@ -17,6 +17,22 @@ from core import image_router
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("GravityAuthor")
 
+def atomic_write(filepath: str, content: str):
+    """Escribe un archivo de forma atómica para evitar corrupción."""
+    tmp_path = filepath + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        f.write(content)
+    os.replace(tmp_path, filepath)
+
+def atomic_append(filepath: str, content: str):
+    """Hace un append seguro usando lectura y atomic_write."""
+    existing = ""
+    if os.path.exists(filepath):
+        with open(filepath, "r", encoding="utf-8") as f:
+            existing = f.read()
+    atomic_write(filepath, existing + content)
+
+
 class GravityAuthor:
     """
     Motor de generación iterativa de textos largos (libros) para Gravity AI Bridge.
@@ -28,6 +44,32 @@ class GravityAuthor:
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
+    def _clean_response(self, text: str) -> str:
+        """Limpia etiquetas <think> y marcadores conversacionales."""
+        import re
+        if not text:
+            return ""
+        cleaned = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
+        if '<think>' in cleaned:
+            cleaned = re.sub(r'<think>.*', '', cleaned, flags=re.DOTALL).strip()
+            
+        if cleaned.startswith("```"):
+            cleaned = re.sub(r'^```[a-zA-Z0-9-]*\n', '', cleaned)
+            cleaned = re.sub(r'\n```$', '', cleaned)
+            
+        prefixes_to_strip = [
+            "Aquí tienes el capítulo", "Aquí está el capítulo", "Claro, aquí", 
+            "Aquí tienes la continuación", "Entendido.", "¡Por supuesto!"
+        ]
+        for prefix in prefixes_to_strip:
+            if cleaned.lower().startswith(prefix.lower()):
+                lines = cleaned.split('\n')
+                while lines and (lines[0].lower().startswith(prefix.lower()) or lines[0].strip() == ""):
+                    lines.pop(0)
+                cleaned = '\n'.join(lines).strip()
+                
+        return cleaned
+
     def _generate_synopsis(self, prompt: str) -> str:
         logger.info("Fase 1: Generando Universo, Personajes y Sinopsis...")
         sys_prompt = (
@@ -38,8 +80,7 @@ class GravityAuthor:
         )
         messages = [{"role": "user", "content": sys_prompt}]
         response = provider_manager.complete(messages)
-        import re
-        return re.sub(r'<think>.*?</think>', '', response, flags=re.DOTALL).strip()
+        return self._clean_response(response)
 
     def _generate_outline(self, synopsis: str, num_chapters: int) -> list:
         logger.info(f"Fase 2: Generando Escaleta (Índice) para {num_chapters} capítulos...")
@@ -52,8 +93,7 @@ class GravityAuthor:
         )
         messages = [{"role": "user", "content": sys_prompt}]
         response = provider_manager.complete(messages)
-        import re
-        response = re.sub(r'<think>.*?</think>', '', response, flags=re.DOTALL).strip()
+        response = self._clean_response(response)
         try:
             if isinstance(response, dict):
                 return response.get("capitulos", [])
@@ -78,8 +118,7 @@ class GravityAuthor:
         )
         messages = [{"role": "user", "content": sys_prompt}]
         response = provider_manager.complete(messages)
-        import re
-        return re.sub(r'<think>.*?</think>', '', response, flags=re.DOTALL).strip()
+        return self._clean_response(response)
 
     def _generate_bibliography(self, accumulated_history: str) -> str:
         logger.info("Fase Final: Generando Bibliografía...")
@@ -93,8 +132,7 @@ class GravityAuthor:
         )
         messages = [{"role": "user", "content": sys_prompt}]
         response = provider_manager.complete(messages)
-        import re
-        return re.sub(r'<think>.*?</think>', '', response, flags=re.DOTALL).strip()
+        return self._clean_response(response)
 
     def _generate_glossary(self, accumulated_history: str) -> str:
         logger.info("Fase Final: Generando Glosario de Términos...")
@@ -106,8 +144,7 @@ class GravityAuthor:
         )
         messages = [{"role": "user", "content": sys_prompt}]
         response = provider_manager.complete(messages)
-        import re
-        return re.sub(r'<think>.*?</think>', '', response, flags=re.DOTALL).strip()
+        return self._clean_response(response)
 
     def _write_chapter(self, chapter_data: dict, synopsis: str, full_outline_text: str, accumulated_history: str, source_text: str = None) -> str:
         chap_num = chapter_data.get("numero", 0)
@@ -149,7 +186,20 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
         full_text = ""
         for _i in range(3):
             response = provider_manager.complete(messages)
-            response = _re.sub(r'<think>.*?</think>', '', response, flags=_re.DOTALL).strip()
+            response = self._clean_response(response)
+            
+            if not response:
+                logger.warning("La IA devolvió una respuesta vacía. Reintentando...")
+                time.sleep(2)
+                continue
+            
+            # Defensa Anti-Truncamiento
+            if len(response) < 500 and _i == 0:
+                logger.warning(f"Respuesta anormalmente corta ({len(response)} chars). Forzando reintento profundo...")
+                messages.append({"role": "user", "content": "Generaste un texto muy corto. Reescribe y expande el capítulo con profundidad narrativa/académica real."})
+                time.sleep(1)
+                continue
+
             full_text = (full_text + response) if _i > 0 else response
             if full_text.strip() and full_text.strip()[-1] in ".?!\"'*:":
                 break
@@ -157,6 +207,11 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                 messages.append({"role": "assistant", "content": response})
                 messages.append({"role": "user", "content": "Continúa exactamente desde donde te quedaste."})
                 time.sleep(1)
+                
+        # Doble salto de línea estricto antes de guardar
+        full_text = full_text.replace('\n', '\n\n')
+        full_text = _re.sub(r'\n{3,}', '\n\n', full_text)
+        
         return latex_cleaner.full_clean(full_text.strip())
 
     def write_book(self, prompt: str, title: str = "Mi Libro Generado", num_chapters: int = 5):
@@ -188,8 +243,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
         )
         messages = [{"role": "user", "content": sys_prompt}]
         response = provider_manager.complete(messages)
-        import re
-        return re.sub(r'<think>.*?</think>', '', response, flags=re.DOTALL).strip()
+        return self._clean_response(response)
 
     def _generate_expansion_outline(self, analysis: str, num_chapters: int) -> list:
         logger.info(f"Fase 2: Generando Escaleta de Expansión para {num_chapters} capítulos...")
@@ -207,8 +261,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
         )
         messages = [{"role": "user", "content": sys_prompt}]
         response = provider_manager.complete(messages)
-        import re
-        response = re.sub(r'<think>.*?</think>', '', response, flags=re.DOTALL).strip()
+        response = self._clean_response(response)
         try:
             if isinstance(response, dict):
                 return response.get("capitulos", [])
@@ -267,28 +320,24 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
         else:
             # 1. Base (Sinopsis o Análisis)
             base_context = phase1_callable()
-            with open(os.path.join(book_dir, "1_contexto_base.md"), "w", encoding="utf-8") as f:
-                f.write(f"# Contexto / Análisis\n\n{base_context}")
+            atomic_write(os.path.join(book_dir, "1_contexto_base.md"), f"# Contexto / Análisis\n\n{base_context}")
                 
             # 2. Escaleta
             outline = phase2_callable(base_context)
             outline_str = json.dumps(outline, indent=2, ensure_ascii=False)
-            with open(os.path.join(book_dir, "2_escaleta.json"), "w", encoding="utf-8") as f:
-                f.write(outline_str)
+            atomic_write(os.path.join(book_dir, "2_escaleta.json"), outline_str)
                 
             # Preparar archivo principal
-            with open(book_file, "w", encoding="utf-8") as f:
-                f.write(f"# {title}\n\n*Generado y Expandido por Gravity AI Bridge*\n\n")
-                f.write("## Índice\n")
-                for c in outline:
-                    c_title = c.get('titulo', '')
-                    import urllib.parse
-                    anchor = "#" + urllib.parse.quote(c_title.lower().replace(" ", "-").replace(":", ""))
-                    f.write(f"{c.get('numero')}. [{c_title}]({anchor})\n")
-                f.write("\n---\n\n")
+            initial_book = f"# {title}\n\n*Generado y Expandido por Gravity AI Bridge*\n\n## Índice\n"
+            for c in outline:
+                c_title = c.get('titulo', '')
+                import urllib.parse
+                anchor = "#" + urllib.parse.quote(c_title.lower().replace(" ", "-").replace(":", ""))
+                initial_book += f"{c.get('numero')}. [{c_title}]({anchor})\n"
+            initial_book += "\n---\n\n"
+            atomic_write(book_file, initial_book)
                 
-            with open(history_file, "w", encoding="utf-8") as f:
-                f.write("")
+            atomic_write(history_file, "")
 
         # 3. Ciclo de Escritura
         full_outline_text = "\n".join([f"Cap {c.get('numero')}: {c.get('resumen_eventos')}" for c in outline])
@@ -300,20 +349,15 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                 
             chapter_text = self._write_chapter(chap, base_context, full_outline_text, accumulated_history, source_text)
             
-            with open(os.path.join(book_dir, f"cap_{chap_num}.md"), "w", encoding="utf-8") as f:
-                f.write(chapter_text)
-                
-            with open(book_file, "a", encoding="utf-8") as f:
-                f.write(chapter_text + "\n\n---\n\n")
+            atomic_write(os.path.join(book_dir, f"cap_{chap_num}.md"), chapter_text)
+            atomic_append(book_file, chapter_text + "\n\n---\n\n")
                 
             if chap_num < num_chapters:
                 new_summary = self._summarize_chapter(chapter_text)
                 accumulated_history += f"\n\nResumen Cap {chap_num}:\n{new_summary}"
-                with open(history_file, "w", encoding="utf-8") as f:
-                    f.write(accumulated_history)
+                atomic_write(history_file, accumulated_history)
                 
-            with open(progress_file, "w", encoding="utf-8") as f:
-                json.dump({"ultimo_capitulo_completado": chap_num, "total": num_chapters}, f)
+            atomic_write(progress_file, json.dumps({"ultimo_capitulo_completado": chap_num, "total": num_chapters}))
                 
             logger.info(f"Capítulo {chap_num} finalizado y guardado.")
             
@@ -322,12 +366,10 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
             logger.info("Fase Final: Generando Bibliografía y Referencias...")
             bibliography_text = self._generate_bibliography(accumulated_history)
             glossary_text = self._generate_glossary(accumulated_history)
-            with open(os.path.join(book_dir, "bibliografia.md"), "w", encoding="utf-8") as f:
-                f.write(bibliography_text)
-            with open(os.path.join(book_dir, "glosario.md"), "w", encoding="utf-8") as f:
-                f.write(glossary_text)
-            with open(book_file, "a", encoding="utf-8") as f:
-                f.write("\n\n" + glossary_text + "\n\n---\n\n" + bibliography_text + "\n\n---\n\n")
+            
+            atomic_write(os.path.join(book_dir, "bibliografia.md"), bibliography_text)
+            atomic_write(os.path.join(book_dir, "glosario.md"), glossary_text)
+            atomic_append(book_file, "\n\n" + glossary_text + "\n\n---\n\n" + bibliography_text + "\n\n---\n\n")
 
         # Render HTML nativo al finalizar (con tablas)
         try:
@@ -355,11 +397,10 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
 </style>
 </head>
 <body>
-{{html_body}}
+{html_body}
 </body>
 </html>""".format(html_body=html_body)
-            with open(html_file, "w", encoding="utf-8") as f:
-                f.write(full_html)
+            atomic_write(html_file, full_html)
             logger.info(f"HTML renderizado guardado en: {html_file}")
         except Exception as e:
             logger.error(f"No se pudo generar HTML automático: {e}")

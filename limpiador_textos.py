@@ -51,9 +51,11 @@ def process_file(filepath):
     content = re.sub(r'\n{3,}', '\n\n', content)
 
     if content != original_content:
-        with open(filepath, 'w', encoding='utf-8') as f:
+        tmp_filepath = filepath + ".tmp"
+        with open(tmp_filepath, 'w', encoding='utf-8') as f:
             f.write(content)
-        print(f"Modificado: {filepath}")
+        os.replace(tmp_filepath, filepath)
+        print(f"Modificado de forma segura: {filepath}")
 
 if __name__ == "__main__":
     print("Iniciando limpieza de artefactos...")

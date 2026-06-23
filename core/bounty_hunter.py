@@ -12,7 +12,7 @@ import os
 from datetime import datetime
 
 from core.logger import log
-from core.provider_manager import get_plugin
+from core.provider_manager import stream
 from core.config_manager import config
 
 _BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -120,23 +120,17 @@ CRITICAL INSTRUCTION: You MUST write the final proposal ENTIRELY in English, reg
 """
     messages = [{"role": "user", "content": prompt}]
     
-    provider_name = config.get("model.default_provider", "LM Studio")
-    plugin = get_plugin(provider_name)
-    
-    if not plugin:
-        return f"Error: No se encontró el plugin del proveedor '{provider_name}'."
-        
-    health = plugin.check_health()
-    if not health.is_healthy:
-        return f"Error: El proveedor '{provider_name}' no está respondiendo."
-        
     try:
-        model = health.active_model if health.models else "auto"
-        # Usamos chat_stream para obtener la respuesta progresivamente
-        chunks = list(plugin.chat_stream(messages, model, {}))
-        return "".join(chunks)
+        # El orquestador decidirá qué motor (Nativo, LM Studio, Cloud) es mejor para "bounty"
+        chunks = list(stream(messages=messages, task="bounty"))
+        response = "".join(chunks)
+        
+        if response.startswith("[ProviderManager]"):
+            return f"Error crítico de IA: {response}"
+            
+        return response
     except Exception as e:
-        return f"Error generando la propuesta a través de {provider_name}: {e}"
+        return f"Error generando la propuesta: {e}"
 
 def _init_bounties_file():
     """Crea el archivo con un encabezado si no existe."""

@@ -4,6 +4,23 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
+## [V16.2 PRO] The Perfect Machine: Omniscient Router & Zero-Defect Stability · 22/06/2026
+
+**[ERRADICACIÓN DEFINITIVA DE CUELLOS DE BOTELLA MULTI-HILO Y FUGAS DE MEMORIA]**
+
+### Provider Manager & Autonomous Router (`provider_manager.py`)
+- **Blindaje Anti-Caídas (Poison Pill Resilience)**: Reestructuración absoluta del hilo escáner asíncrono. En lugar de bloquear la aplicación entera esperando un motor colgado, ahora existe un temporizador global en tiempo real de 8.0 segundos. Los motores muertos (como un LM Studio que deja de responder) son aislados en contenedores `ProviderResult` sintéticos sin generar excepciones `TypeError`. Cero bloqueos.
+- **Enrutamiento Inteligente por Tareas (`_score_model`)**: El router autónomo ahora inspecciona semánticamente los nombres de archivo `.gguf` o IDs de la nube para enrutar el tráfico dinámicamente según la carga de trabajo (`bounty`, `semantic`, `code`, `reason`), primando modelos locales como `Qwen2.5-Coder` o `Hermes-3-Llama-3.1`.
+
+### Native Llama Provider (`native_provider.py`)
+- **Gestión Asíncrona de Hardware AMD Ryzen / Vulkan**: El manejador interno de `llama-cpp-python` ahora instancia candados de concurrencia (`threading.RLock`) **a nivel de clase**, evitando colisiones cuando múltiples hilos paralelos (por ejemplo en simulaciones Multi-Agente) intentan inyectar o descargar modelos simultáneamente de la VRAM compartida de la APU (Radeon 780M).
+- **Control Activo de Basura (Garbage Collection)**: Refuerzo del bucle `_load_model` para invocar activamente `gc.collect()` tras eliminar de la memoria RAM al modelo menos usado, evitando fugas crónicas de memoria durante sesiones extendidas.
+
+### Multi-Agent Orchestrator (`multi_agent.py` & `bounty_hunter.py`)
+- **Streaming Asíncrono Desbloqueado**: Modificada la inferencia de llm para procesarse **fuera del candado exclusivo**, permitiendo que múltiples instancias de agentes corran modelos en paralelo en el ecosistema sin hacer fila, exprimiendo la eficiencia del pipeline.
+
+---
+
 ## [V16.1 PRO] Omniscient Chat Commands & Resiliencia · 20/06/2026
 
 **[COMANDOS NATIVOS EN CHAT Y ESTABILIDAD BAJO ALTA CARGA]**

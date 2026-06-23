@@ -51,6 +51,9 @@ def compare(
         all_models = get_all_model_names()
         providers  = list(all_models.keys())[:n_models]
 
+    if not providers:
+        return []
+
     results: List[Dict[str, Any]] = []
     lock = threading.Lock()
 
@@ -85,13 +88,18 @@ def compare(
             "elapsed":  round(time.time() - t0, 2),
         }
 
-    with ThreadPoolExecutor(max_workers=min(len(providers), 6)) as ex:
-        futures = {ex.submit(_query, p): p for p in providers}
+    ex = ThreadPoolExecutor(max_workers=min(len(providers), 6))
+    futures = {ex.submit(_query, p): p for p in providers}
+    try:
         for future in as_completed(futures, timeout=timeout):
             try:
                 results.append(future.result())
             except Exception:
                 pass
+    except TimeoutError:
+        pass # Timeout alcanzado, retornamos los que hayan terminado
+    finally:
+        ex.shutdown(wait=False)
 
     return results
 

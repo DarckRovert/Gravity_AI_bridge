@@ -41,6 +41,19 @@ Devuelve ÚNICAMENTE el JSON válido (sin markdown, solo las llaves)."""
         
         import re
         response = re.sub(r"<think>.*?</think>", "", response, flags=re.DOTALL).strip()
+        if '<think>' in response:
+            response = re.sub(r"<think>.*", "", response, flags=re.DOTALL).strip()
+            
+        prefixes_to_strip = [
+            "Aquí tienes", "Aquí está", "Claro, aquí", 
+            "Entendido.", "¡Por supuesto!", "A continuación"
+        ]
+        for prefix in prefixes_to_strip:
+            if response.lower().startswith(prefix.lower()):
+                lines = response.split('\n')
+                while lines and (lines[0].lower().startswith(prefix.lower()) or lines[0].strip() == ""):
+                    lines.pop(0)
+                response = '\n'.join(lines).strip()
         
         if "```json" in response:
             response = response.split("```json")[1].split("```")[0].strip()

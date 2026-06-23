@@ -1,15 +1,17 @@
-# Referencia de API
+# 🔌 Referencia de la API REST
 
-## `core/provider_manager.py`
-Módulo clave para la comunicación con múltiples proveedores de LLM.
-- `complete(messages, provider=None, model=None, options=None)`
-- Conoce y enruta peticiones hacia LM Studio local, Ollama, Nvidia NIM, Groq, y OpenAI, con manejo de fallback en caso de `401 Unauthorized`.
+## 🗣️ Interfaz de Chat Universal
+`POST /v1/chat/completions`
+Formato compatible con OpenAI. Acepta `messages`, `temperature`, `max_tokens`.
+Soporta `stream=True` nativamente.
 
-## `core/autonomy_engine.py`
-Núcleo del agente CEO.
-- `run_ooda_cycle()`: Ejecuta la lectura del estado (Observe), clasifica alertas (Orient), determina acciones con LLM (Decide), ejecuta tareas de bajo riesgo (Act) y actualiza la base de conocimiento (Learn).
+## ⚡ Video Studio Pipeline
+`POST /v1/video/create`
+Desencadena la generación asíncrona de video MP4 o clips duales Híbridos GLSL.
 
-## `gravity_reporter.py`
-Ejecución del periodista.
-- Argumentos: `--topic "..."`, `--focus "..."`.
-- Fallbacks automáticos entre motores.
+## 📡 Control HITL (Human In The Loop)
+- `GET /v1/hitl/pending`: Lista peticiones detenidas esperando aprobación humana.
+- `POST /v1/hitl/approve`: Libera el comando retenido.
+- `POST /v1/hitl/reject`: Aborta la ejecución de alto riesgo.
+
+*(La documentación Swagger completa está embebida en el Dashboard bajo la pestaña System Status).*

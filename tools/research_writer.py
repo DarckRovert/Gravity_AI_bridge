@@ -20,6 +20,13 @@ from core import image_router
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("GravityResearchAuthor")
 
+def atomic_write(filepath: str, content: str):
+    """Escribe un archivo de forma atómica para evitar corrupción."""
+    tmp_path = filepath + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        f.write(content)
+    os.replace(tmp_path, filepath)
+
 class GravityResearchAuthor:
     """
     Motor de generación de ensayos investigativos para Gravity AI Bridge.
@@ -39,6 +46,24 @@ class GravityResearchAuthor:
         cleaned = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
         if '<think>' in cleaned:
             cleaned = re.sub(r'<think>.*', '', cleaned, flags=re.DOTALL).strip()
+            
+        # Purga de Markdown residual
+        if cleaned.startswith("```"):
+            cleaned = re.sub(r'^```[a-zA-Z0-9-]*\n', '', cleaned)
+            cleaned = re.sub(r'\n```$', '', cleaned)
+            
+        # Limpieza conversacional
+        prefixes_to_strip = [
+            "Aquí tienes el capítulo", "Aquí está el capítulo", "Claro, aquí", 
+            "Aquí tienes la continuación", "Entendido.", "¡Por supuesto!"
+        ]
+        for prefix in prefixes_to_strip:
+            if cleaned.lower().startswith(prefix.lower()):
+                lines = cleaned.split('\n')
+                while lines and (lines[0].lower().startswith(prefix.lower()) or lines[0].strip() == ""):
+                    lines.pop(0)
+                cleaned = '\n'.join(lines).strip()
+                
         return cleaned
 
     def _safe_complete(self, messages: list, max_retries=3, require_json=False) -> Any:
@@ -320,26 +345,22 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                     accumulated_history = f.read()
         else:
             base_context = self._generate_synopsis(prompt)
-            with open(os.path.join(book_dir, "1_sinopsis.md"), "w", encoding="utf-8") as f:
-                f.write(base_context)
+            atomic_write(os.path.join(book_dir, "1_sinopsis.md"), base_context)
                 
             outline = self._generate_outline(base_context, num_chapters, prompt)
             
-            with open(os.path.join(book_dir, "2_escaleta.json"), "w", encoding="utf-8") as f:
-                json.dump(outline, f, indent=2, ensure_ascii=False)
+            atomic_write(os.path.join(book_dir, "2_escaleta.json"), json.dumps(outline, indent=2, ensure_ascii=False))
                 
-            with open(book_file, "w", encoding="utf-8") as f:
-                f.write(f"# {title}\n\n*Investigación generada por GravityResearchAuthor*\n\n")
-                f.write("## Índice\n")
-                for c in outline:
-                    c_title = c.get('titulo', '')
-                    import urllib.parse
-                    anchor = "#" + urllib.parse.quote(c_title.lower().replace(" ", "-").replace(":", ""))
-                    f.write(f"{c.get('numero')}. [{c_title}]({anchor})\n")
-                f.write("\n---\n\n")
+            initial_book = f"# {title}\n\n*Investigación generada por GravityResearchAuthor*\n\n## Índice\n"
+            for c in outline:
+                c_title = c.get('titulo', '')
+                import urllib.parse
+                anchor = "#" + urllib.parse.quote(c_title.lower().replace(" ", "-").replace(":", ""))
+                initial_book += f"{c.get('numero')}. [{c_title}]({anchor})\n"
+            initial_book += "\n---\n\n"
+            atomic_write(book_file, initial_book)
                 
-            with open(history_file, "w", encoding="utf-8") as f:
-                f.write("")
+            atomic_write(history_file, "")
 
         # Si la longitud es libre, actualizamos num_chapters al tamaño real generado (seguro para reanudaciones)
         if num_chapters <= 0:
@@ -362,46 +383,43 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
             search_results = self._do_web_search_for_chapter(chap.get("titulo", ""), chap.get("resumen_eventos", ""), prompt)
             chapter_text = self._write_chapter(chap, base_context, full_outline_text, accumulated_history, search_results, prompt)
             
-            with open(os.path.join(book_dir, f"cap_{chap_num}.md"), "w", encoding="utf-8") as f:
-                f.write(chapter_text)
+            atomic_write(os.path.join(book_dir, f"cap_{chap_num}.md"), chapter_text)
                 
             if chap_num < num_chapters:
                 new_summary = self._summarize_chapter(chapter_text)
                 accumulated_history += f"\n\n--- SÍNTESIS CAP {chap_num} ---\n{new_summary}"
-                with open(history_file, "w", encoding="utf-8") as f:
-                    f.write(accumulated_history)
+                atomic_write(history_file, accumulated_history)
                 
-            with open(progress_file, "w", encoding="utf-8") as f:
-                json.dump({"ultimo_capitulo": chap_num, "total": num_chapters}, f)
+            atomic_write(progress_file, json.dumps({"ultimo_capitulo": chap_num, "total": num_chapters}))
                 
             # Reconstrucción dinámica para atornillar el checkpoint
-            with open(book_file, "w", encoding="utf-8") as f:
-                f.write(f"# {title}\n\n*Investigación generada por GravityResearchAuthor*\n\n")
-                f.write("## Índice\n")
-                for c in outline:
-                    c_title = c.get('titulo', '')
-                    import urllib.parse
-                    anchor = "#" + urllib.parse.quote(c_title.lower().replace(" ", "-").replace(":", ""))
-                    f.write(f"{c.get('numero')}. [{c_title}]({anchor})\n")
-                f.write("\n---\n\n")
-                for i in range(1, chap_num + 1):
-                    cf_path = os.path.join(book_dir, f"cap_{i}.md")
-                    if os.path.exists(cf_path):
-                        with open(cf_path, "r", encoding="utf-8") as cf:
-                            f.write(cf.read() + "\n\n---\n\n")
+            book_content = f"# {title}\n\n*Investigación generada por GravityResearchAuthor*\n\n## Índice\n"
+            for c in outline:
+                c_title = c.get('titulo', '')
+                import urllib.parse
+                anchor = "#" + urllib.parse.quote(c_title.lower().replace(" ", "-").replace(":", ""))
+                book_content += f"{c.get('numero')}. [{c_title}]({anchor})\n"
+            book_content += "\n---\n\n"
+            for i in range(1, chap_num + 1):
+                cf_path = os.path.join(book_dir, f"cap_{i}.md")
+                if os.path.exists(cf_path):
+                    with open(cf_path, "r", encoding="utf-8") as cf:
+                        book_content += cf.read() + "\n\n---\n\n"
+            atomic_write(book_file, book_content)
                             
             logger.info(f"Capítulo {chap_num} finalizado y guardado.")
 
         if not os.path.exists(os.path.join(book_dir, "anexos.md")):
             logger.info("Fase Final: Generando Anexos...")
             anexos = self._generate_glossary_and_bib(accumulated_history)
-            with open(os.path.join(book_dir, "anexos.md"), "w", encoding="utf-8") as f:
-                f.write(anexos)
+            atomic_write(os.path.join(book_dir, "anexos.md"), anexos)
                 
         if os.path.exists(os.path.join(book_dir, "anexos.md")):
             with open(os.path.join(book_dir, "anexos.md"), "r", encoding="utf-8") as gf:
-                with open(book_file, "a", encoding="utf-8") as f:
-                    f.write("\n\n" + gf.read() + "\n\n---\n\n")
+                existing_book = ""
+                with open(book_file, "r", encoding="utf-8") as f:
+                    existing_book = f.read()
+                atomic_write(book_file, existing_book + "\n\n" + gf.read() + "\n\n---\n\n")
             
         try:
             import markdown
@@ -410,8 +428,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                 
             # Fase de post-procesamiento anti-símbolos
             cleaned_md = self._post_process_markdown(md_content)
-            with open(book_file, "w", encoding="utf-8") as f:
-                f.write(cleaned_md)
+            atomic_write(book_file, cleaned_md)
                 
             html_content = markdown.markdown(cleaned_md, extensions=['toc', 'tables'])
             
@@ -426,8 +443,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                     logger.warning(f"No se pudo incrustar la portada en Base64: {e}")
                     
             full_html = '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8">\n</head>\n<body>\n' + cover_html + html_content + '\n</body>\n</html>'
-            with open(html_file, "w", encoding="utf-8") as f:
-                f.write(full_html)
+            atomic_write(html_file, full_html)
             logger.info(f"HTML renderizado guardado en: {html_file}")
         except Exception as e:
             logger.error(f"No se pudo generar HTML: {e}")

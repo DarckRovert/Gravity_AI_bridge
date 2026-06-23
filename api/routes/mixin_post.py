@@ -221,6 +221,18 @@ class PostRoutesMixin:
                 response_text = "".join(chunks)
                 
                 response_text = _re.sub(r'<think>.*?</think>', '', response_text, flags=_re.DOTALL).strip()
+                if '<think>' in response_text:
+                    response_text = _re.sub(r'<think>.*', '', response_text, flags=_re.DOTALL).strip()
+                    
+                prefixes_to_strip = [
+                    "Aquí tienes", "Aquí está", "Claro, aquí", "Entendido.", "¡Por supuesto!"
+                ]
+                for prefix in prefixes_to_strip:
+                    if response_text.lower().startswith(prefix.lower()):
+                        lines = response_text.split('\n')
+                        while lines and (lines[0].lower().startswith(prefix.lower()) or lines[0].strip() == ""):
+                            lines.pop(0)
+                        response_text = '\n'.join(lines).strip()
                 
                 _BASE_DIR = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
                 entregables_dir = _os.path.join(_BASE_DIR, "_entregables")

@@ -87,9 +87,23 @@ CATEGORY_IMAGE_MAP = {
 }
 
 def clean_llm_response(text: str) -> str:
-    """Elimina etiquetas de razonamiento <think> y marcas de bloques markdown JSON."""
+    """Elimina etiquetas de razonamiento <think>, limpieza conversacional y marcas markdown."""
+    if not text: return ""
     # Eliminar bloques <think>
-    text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
+    text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
+    if '<think>' in text:
+        text = re.sub(r'<think>.*', '', text, flags=re.DOTALL).strip()
+        
+    # Limpieza conversacional
+    prefixes_to_strip = [
+        "Aquí tienes", "Aquí está", "Claro, aquí", "Entendido.", "¡Por supuesto!"
+    ]
+    for prefix in prefixes_to_strip:
+        if text.lower().startswith(prefix.lower()):
+            lines = text.split('\n')
+            while lines and (lines[0].lower().startswith(prefix.lower()) or lines[0].strip() == ""):
+                lines.pop(0)
+            text = '\n'.join(lines).strip()
     
     # Extraer el bloque JSON puro si está envuelto en marcas de markdown ```json
     json_match = re.search(r'```json\s*(.*?)\s*```', text, re.DOTALL)
@@ -389,9 +403,11 @@ def update_news_json(new_article: Dict[str, Any]):
     # Mantener máximo 15 noticias para rendimiento
     news_list = news_list[:15]
     
-    # Guardar
-    with open(NEWS_JSON_PATH, "w", encoding="utf-8") as f:
+    # Guardar atómicamente
+    tmp_path = NEWS_JSON_PATH + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
         json.dump(news_list, f, indent=2, ensure_ascii=False)
+    os.replace(tmp_path, NEWS_JSON_PATH)
     logging.info(f"[+] Artículo '{new_article.get('title', 'Sin Título')}' agregado con éxito a news.json")
     
     # --- AUTO-ENCOLAR VIDEO DE TIKTOK ---

@@ -9,17 +9,32 @@ JOURNALIST_PROC = None
 def _get_status_dict():
     global JOURNALIST_PROC
     is_running = False
+    pid = None
     
     # Verificación rápida y segura vía referencia directa del proceso
     if JOURNALIST_PROC is not None:
         if JOURNALIST_PROC.poll() is None:
             is_running = True
+            pid = JOURNALIST_PROC.pid
         else:
             JOURNALIST_PROC = None
 
+    # Fallback: buscar por nombre en caso de haber sido lanzado por .bat
+    if not is_running:
+        try:
+            for p in psutil.process_iter(['pid', 'name', 'cmdline']):
+                if p.info['name'] and 'python' in p.info['name'].lower():
+                    cmd = " ".join(p.info.get('cmdline', []) or []).lower()
+                    if 'news_daemon.py' in cmd:
+                        is_running = True
+                        pid = p.info['pid']
+                        break
+        except Exception:
+            pass
+
     return {
         "online": is_running,
-        "pid": JOURNALIST_PROC.pid if is_running and JOURNALIST_PROC else None,
+        "pid": pid,
         "message": "Online" if is_running else "Offline"
     }
 

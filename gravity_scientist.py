@@ -77,7 +77,21 @@ def slugify(text: str) -> str:
     return text.strip('-')
 
 def clean_llm_response(text: str) -> str:
-    text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
+    if not text: return ""
+    text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
+    if '<think>' in text:
+        text = re.sub(r'<think>.*', '', text, flags=re.DOTALL).strip()
+        
+    prefixes_to_strip = [
+        "Aquí tienes", "Aquí está", "Claro, aquí", "Entendido.", "¡Por supuesto!"
+    ]
+    for prefix in prefixes_to_strip:
+        if text.lower().startswith(prefix.lower()):
+            lines = text.split('\n')
+            while lines and (lines[0].lower().startswith(prefix.lower()) or lines[0].strip() == ""):
+                lines.pop(0)
+            text = '\n'.join(lines).strip()
+            
     m = re.search(r'```json\s*(.*?)\s*```', text, re.DOTALL)
     if m:
         return m.group(1).strip()
@@ -273,8 +287,10 @@ def update_science_json(new_article: Dict[str, Any]):
     articles.insert(0, new_article)
     articles = articles[:20]
 
-    with open(SCIENCE_JSON_PATH, "w", encoding="utf-8") as f:
+    tmp_path = SCIENCE_JSON_PATH + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
         json.dump(articles, f, indent=2, ensure_ascii=False)
+    os.replace(tmp_path, SCIENCE_JSON_PATH)
     logging.info(f"[+] Artículo '{new_article.get('title')}' guardado en science.json")
     
     # --- AUTO-ENCOLAR VIDEO CIENTÍFICO DE TIKTOK ---
