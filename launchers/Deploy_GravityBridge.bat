@@ -48,7 +48,7 @@ if %errorlevel% neq 0 ( echo  [ERROR] git add fallo. & pause & exit /b 1 )
 echo  [2/3] Guardando version (git commit) ...
 git commit -m "%COMMIT_MSG%"
 if %errorlevel% neq 0 (
-    echo  [INFO] Sin cambios que commitear (working tree limpio).
+    echo  [INFO] Sin cambios que commitear ^(working tree limpio^).
 )
 
 echo.
