@@ -53,8 +53,8 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 - **Reasoning Stripper**: Filtra tokens `<think>` de modelos como DeepSeek-R1 via Regex antes de mostrarlos.
 - **Agent Routing**: Selección dinámica de modelo/proveedor según `--role` (auditor, planner, coder, researcher, executor).
 
-### 🖥️ Dashboard V16.2 PRO React SPA (`frontend/dist`)
-Panel de control unificado con 25 componentes orquestados en tiempo real:
+### 🖥️ Dashboard V16.3 PRO React SPA (`frontend/dist`)
+Panel de control unificado con 35 componentes orquestados en tiempo real:
 
 | Panel | Función |
 |---|---|
