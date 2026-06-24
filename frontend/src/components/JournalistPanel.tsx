@@ -29,7 +29,7 @@ export const JournalistPanel = () => {
 
   const handleStartPortal = async () => {
     try {
-      const res = await fetch(`${BRIDGE_BASE}/v1/journalist/portal/start`, { method: "POST" });
+      const res = await fetch('/v1/journalist/portal/start', { method: "POST" });
       if (res.ok) {
         setTimeout(() => {
           window.open("http://localhost:5173", "_blank");
