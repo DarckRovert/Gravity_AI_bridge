@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { Play, Square, Terminal, Activity, Rss, Clock, ExternalLink, Hash, Globe, WifiOff, FileText, LayoutList } from 'lucide-react';
-import { BRIDGE_BASE } from '../config';
 
 interface JournalistStatus {
   online: boolean;

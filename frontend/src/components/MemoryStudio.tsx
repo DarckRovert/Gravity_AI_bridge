@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrainCircuit, Database, Network, Search, Archive, GitMerge, FileText, Zap } from 'lucide-react';
+import { BrainCircuit, Database, Network, Search, Archive, GitMerge, FileText, Zap, Box } from 'lucide-react';
 
 const DUMMY_MEMORIES = [
   { id: 1, type: 'Fact', content: 'El usuario prefiere la paleta de colores oscura.', weight: 0.95, source: 'Chat Auditor', time: 'hace 2 min' },
