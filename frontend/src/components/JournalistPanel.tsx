@@ -161,7 +161,7 @@ export const JournalistPanel = () => {
                 Periodista Autónomo
               </h1>
               <p className="text-text-muted mt-1 font-medium text-sm flex items-center gap-2">
-                Agente OSINT de Inteligencia Global <span className="w-1 h-1 bg-text-muted rounded-full"></span> V16.0 PRO
+                Agente OSINT de Inteligencia Global <span className="w-1 h-1 bg-text-muted rounded-full"></span> V16.3 PRO
               </p>
             </div>
           </div>
