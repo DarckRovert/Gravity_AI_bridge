@@ -66,10 +66,13 @@ export function V2VStudio() {
         return () => clearInterval(interval);
     }, []);
 
+    const [reconnectTrigger, setReconnectTrigger] = useState(0);
+
     // ── WebSocket connection ───────────────────────────────────────────────
     useEffect(() => {
         if (status?.online && !wsRef.current) {
-            const socket = new WebSocket(`ws://${window.location.hostname}:7863`);
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const socket = new WebSocket(`${protocol}//${window.location.hostname}:7863`);
             socket.onopen = () => {
                 setWsConnected(true);
                 socket.send(JSON.stringify({ command: "get_status" }));
@@ -88,6 +91,10 @@ export function V2VStudio() {
             socket.onclose = () => {
                 setWsConnected(false);
                 wsRef.current = null;
+                // Intentar reconectar tras un delay
+                setTimeout(() => {
+                    setReconnectTrigger(prev => prev + 1);
+                }, 3000);
             };
             wsRef.current = socket;
         } else if (!status?.online && wsRef.current) {
@@ -101,7 +108,7 @@ export function V2VStudio() {
                 wsRef.current = null;
             }
         };
-    }, [status?.online]);
+    }, [status?.online, reconnectTrigger]);
 
     // ── Polling de métricas en vivo (cada 1s) ────────────────────────────
     useEffect(() => {
