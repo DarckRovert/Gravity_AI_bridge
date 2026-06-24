@@ -1,21 +1,40 @@
-import React, { useState } from 'react';
-import { Box, Search, Download, Star, Zap, Cpu, Server, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Box, Search, Star, Cpu, Server, CheckCircle2 } from 'lucide-react';
 
-const DUMMY_MODELS = [
-  { id: 'llama-3-8b', name: 'Llama 3 (8B)', provider: 'Meta', size: '4.7 GB', type: 'LLM', downloads: '1.2M', status: 'installed' },
-  { id: 'mistral-7b', name: 'Mistral 7B Instruct', provider: 'Mistral AI', size: '4.1 GB', type: 'LLM', downloads: '890K', status: 'available' },
-  { id: 'phi-3-mini', name: 'Phi-3 Mini', provider: 'Microsoft', size: '2.3 GB', type: 'LLM', downloads: '500K', status: 'available' },
-  { id: 'stable-diffusion-xl', name: 'SDXL 1.0', provider: 'Stability AI', size: '6.5 GB', type: 'Vision', downloads: '2.1M', status: 'downloading' },
-  { id: 'nomic-embed-text', name: 'Nomic Embed', provider: 'Nomic', size: '1.2 GB', type: 'Embedding', downloads: '340K', status: 'installed' },
-];
+interface RealModel {
+  id: string;
+  object: string;
+  owned_by: string;
+}
 
 export const ModelHub: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('All');
+  const [models, setModels] = useState<RealModel[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredModels = DUMMY_MODELS.filter(m => 
-    (filter === 'All' || m.type === filter) &&
-    m.name.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const res = await fetch('/v1/models');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data) {
+            setModels(json.data);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch models", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchModels();
+  }, []);
+
+  const filteredModels = models.filter(m => 
+    (filter === 'All' || m.owned_by === filter) &&
+    m.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -40,7 +59,7 @@ export const ModelHub: React.FC = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
           <input 
             type="text" 
-            placeholder="Buscar modelos por nombre, proveedor o tipo..." 
+            placeholder="Buscar modelos locales..." 
             className="w-full bg-card border border-border-subtle rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:border-accent-primary transition-colors"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -51,55 +70,46 @@ export const ModelHub: React.FC = () => {
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         >
-          <option value="All">Todos los Tipos</option>
-          <option value="LLM">LLM (Texto)</option>
-          <option value="Vision">Visión / Imagen</option>
-          <option value="Embedding">Embeddings</option>
+          <option value="All">Todos los Proveedores</option>
+          {Array.from(new Set(models.map(m => m.owned_by))).map(prov => (
+            <option key={prov} value={prov}>{prov}</option>
+          ))}
         </select>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filteredModels.map(model => (
-          <div key={model.id} className="glass-panel p-5 rounded-2xl flex flex-col hover:border-accent-primary/50 transition-colors group">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-lg font-bold text-white group-hover:text-accent-primary transition-colors">{model.name}</h3>
-                <p className="text-sm text-text-muted">{model.provider}</p>
+      {loading ? (
+        <div className="flex justify-center py-20 text-text-muted animate-pulse">Cargando modelos desde el Bridge...</div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredModels.map(model => (
+            <div key={model.id} className="glass-panel p-5 rounded-2xl flex flex-col hover:border-accent-primary/50 transition-colors group">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="text-lg font-bold text-white group-hover:text-accent-primary transition-colors">{model.id}</h3>
+                  <p className="text-sm text-text-muted">{model.owned_by}</p>
+                </div>
+                <div className="px-2 py-1 bg-surface rounded-md text-xs font-semibold text-text-muted border border-border-subtle">
+                  LLM
+                </div>
               </div>
-              <div className="px-2 py-1 bg-surface rounded-md text-xs font-semibold text-text-muted border border-border-subtle">
-                {model.type}
+              
+              <div className="flex gap-4 text-sm mb-6 text-text-muted">
+                <span className="flex items-center gap-1"><Cpu size={14} /> Activo</span>
+                <span className="flex items-center gap-1 text-status-warning"><Star size={14} /> Local</span>
               </div>
-            </div>
-            
-            <div className="flex gap-4 text-sm mb-6 text-text-muted">
-              <span className="flex items-center gap-1"><Cpu size={14} /> {model.size}</span>
-              <span className="flex items-center gap-1"><Download size={14} /> {model.downloads}</span>
-              <span className="flex items-center gap-1 text-status-warning"><Star size={14} /> Destacado</span>
-            </div>
 
-            <div className="mt-auto">
-              {model.status === 'installed' && (
+              <div className="mt-auto">
                 <button className="w-full py-2 bg-status-success/10 text-status-success rounded-xl font-bold flex justify-center items-center gap-2 border border-status-success/20">
                   <CheckCircle2 size={18} /> Instalado
                 </button>
-              )}
-              {model.status === 'available' && (
-                <button className="w-full py-2 bg-accent-primary hover:bg-accent-secondary text-white rounded-xl font-bold flex justify-center items-center gap-2 transition-colors">
-                  <Download size={18} /> Descargar
-                </button>
-              )}
-              {model.status === 'downloading' && (
-                <div className="w-full bg-card rounded-xl p-2 border border-accent-primary/30 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-accent-primary/20 w-3/4 animate-pulse"></div>
-                  <div className="relative text-center text-accent-primary font-bold text-sm flex justify-center items-center gap-2">
-                    <Zap size={14} className="animate-bounce" /> Descargando... 75%
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+          {filteredModels.length === 0 && (
+            <div className="col-span-full text-center text-text-muted py-10">No se encontraron modelos.</div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
