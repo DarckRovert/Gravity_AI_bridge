@@ -946,7 +946,7 @@ def execute_system_command(command_info: dict) -> dict:
             st  = ae_state()
             rst = refl_state()
             lines = [
-                f"╔══ GRAVITY AUTONOMY ENGINE V16.0 PRO ══╗",
+                f"╔══ GRAVITY AUTONOMY ENGINE V16.3 PRO ══╗",
                 f"  Nivel actual:        {st.get('last_status_level', 'NORMAL')}",
                 f"  Ciclos OODA:         {st.get('cycles_done', 0)}",
                 f"  Acciones ejecutadas: {st.get('actions_taken', 0)}",

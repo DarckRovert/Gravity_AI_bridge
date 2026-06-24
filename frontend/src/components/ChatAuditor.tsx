@@ -5,7 +5,27 @@ import type { Message } from '../types';
 export const ChatAuditor: React.FC = () => {
   const defaultMessage: Message = {
     role: 'system',
-    content: `🤖 **Gravity AI V16.0 PRO [Agentic Core Edition] — En Línea**\n\nSistema de orquestación unificada con capacidades de Agente Autónomo de Sistema.\n\n**Módulos Activos:**\n- 🧠 **Gravity Brain V16.0**: LLM con conciencia sistémica total.\n- 📁 **Agentic ToolEngine**: Acceso directo al SO y sistema de archivos.\n- 🎥 **Video Studio**: Fábrica de monetización autónoma + YouTube auto-upload.\n- 📹 **V2V Live Studio**: Transformación de cámara en tiempo real vía DirectML.\n- 💰 **Revenue Tracker**: Afiliados CPA inyectados en cada descripción.\n\n**Comandos Estándar:**\n\`/help\` — Lista completa de comandos\n\`/status\` — Auditoría del sistema en vivo\n\`/video crear <tema>\` — Encola un video\n\n**Herramientas Agentic [V16.0 PRO]:**\n\`/fs_ver <ruta>\` — Lee cualquier archivo del proyecto\n\`/fs_listar <ruta>\` — Lista un directorio\n\`/fs_buscar <texto> <ruta>\` — Busca en el código fuente\n\`/terminal <comando>\` — Ejecuta comandos del sistema operativo`
+    content: `🤖 **Gravity AI V16.3 PRO [Agentic Core Edition] — En Línea**
+
+Sistema de orquestación unificada con capacidades de Agente Autónomo de Sistema.
+
+**Módulos Activos:**
+- 🧠 **Gravity Brain V16.3**: LLM con conciencia sistémica total.
+- 📁 **Agentic ToolEngine**: Acceso directo al SO y sistema de archivos.
+- 🎥 **Video Studio**: Fábrica de monetización autónoma + YouTube auto-upload.
+- 📹 **V2V Live Studio**: Transformación de cámara en tiempo real vía DirectML.
+- 💰 **Revenue Tracker**: Afiliados CPA inyectados en cada descripción.
+
+**Comandos Estándar:**
+\`/help\` — Lista completa de comandos
+\`/status\` — Auditoría del sistema en vivo
+\`/video crear <tema>\` — Encola un video
+
+**Herramientas Agentic [V16.3 PRO]:**
+\`/fs_ver <ruta>\` — Lee cualquier archivo del proyecto
+\`/fs_listar <ruta>\` — Lista un directorio
+\`/fs_buscar <texto> <ruta>\` — Busca en el código fuente
+\`/terminal <comando>\` — Ejecuta comandos del sistema operativo`
   };
 
   const [messages, setMessages] = useState<Message[]>(() => {
@@ -136,14 +156,39 @@ export const ChatAuditor: React.FC = () => {
   const formatContent = (content: string) => {
     // Escapar HTML básico
     let html = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    // Negritas
+    
+    // 1. Extraer bloques de código para evitar procesar su interior
+    const codeBlocks: string[] = [];
+    html = html.replace(/```([\s\S]*?)```/g, (_, code) => {
+      const placeholder = `__CODE_BLOCK_${codeBlocks.length}__`;
+      codeBlocks.push(code);
+      return placeholder;
+    });
+
+    // 2. Extraer código en línea
+    const inlineCodes: string[] = [];
+    html = html.replace(/`(.*?)`/g, (_, code) => {
+      const placeholder = `__INLINE_CODE_${inlineCodes.length}__`;
+      inlineCodes.push(code);
+      return placeholder;
+    });
+
+    // 3. Negritas en texto plano
     html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    // Código en línea
-    html = html.replace(/`(.*?)`/g, '<code class="bg-black/40 text-accent-secondary px-1.5 py-0.5 rounded text-sm">$1</code>');
-    // Bloques de código (muy simplificado)
-    html = html.replace(/```([\s\S]*?)```/g, '<pre class="bg-[#0d1117] border border-border-subtle p-4 rounded-xl my-3 overflow-x-auto text-sm text-text-muted">$1</pre>');
-    // Saltos de línea
+    
+    // 4. Convertir saltos de línea a <br/>
     html = html.replace(/\n/g, '<br/>');
+
+    // 5. Reinsertar código en línea escapado
+    inlineCodes.forEach((code, idx) => {
+      html = html.replace(`__INLINE_CODE_${idx}__`, `<code class="bg-black/40 text-accent-secondary px-1.5 py-0.5 rounded text-sm">${code}</code>`);
+    });
+
+    // 6. Reinsertar bloques de código intactos (con fuentes mono)
+    codeBlocks.forEach((code, idx) => {
+      html = html.replace(`__CODE_BLOCK_${idx}__`, `<pre class="bg-[#0d1117] border border-border-subtle p-4 rounded-xl my-3 overflow-x-auto text-sm text-text-muted font-mono">${code}</pre>`);
+    });
+
     return html;
   };
 
