@@ -40,16 +40,12 @@ export const MemoryStudio: React.FC = () => {
       source: 'Manual_Insertion',
       confidence: 1.00
     };
-    setModels(newMem);
     setMemories([newMem, ...memories]);
     setNewEntity('');
     setNewRelation('');
     setNewTarget('');
     showToast('Nueva relación consolidada en el grafo de memoria.', 'success');
   };
-
-  // Dummy declaration so there's no unused warning
-  const setModels = (val: any) => {};
 
   const handleDelete = (id: string) => {
     if (window.confirm('¿Deseas purgar esta relación de la memoria de largo plazo?')) {
