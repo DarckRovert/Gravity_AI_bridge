@@ -154,7 +154,7 @@ class InfiltratorManager:
             try:
                 if self.context: self.context.close()
                 if self.playwright: self.playwright.stop()
-            except: pass
+            except Exception: pass
             log.info("[Infiltrator] Rutina terminada.")
 
     def _execute_task(self, task):
@@ -193,7 +193,7 @@ class InfiltratorManager:
                                     _infiltrator_state["status_msg"] = f"¡Oferta enviada exitosamente ({btn_text})!"
                                     log.info(f"[Infiltrator] 💸 Oferta enviada automáticamente a {url}")
                                     break
-                                except:
+                                except Exception:
                                     pass
                     except Exception as e:
                         log.error(f"[Infiltrator] Error al clickear el botón de enviar: {e}")

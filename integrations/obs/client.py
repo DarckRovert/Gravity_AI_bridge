@@ -299,6 +299,8 @@ class OBSClient:
 
     def stop_stream(self) -> dict:
         with self._lock:
+            if not self._connected or self._client is None:
+                return {"ok": False, "error": "OBS not connected"}
             self._req(self._client.stop_stream)
             self._streaming = False
             return {"ok": True, "action": "stop_stream"}
@@ -320,6 +322,8 @@ class OBSClient:
 
     def stop_record(self) -> dict:
         with self._lock:
+            if not self._connected or self._client is None:
+                return {"ok": False, "error": "OBS not connected"}
             self._req(self._client.stop_record)
             self._recording = False
             return {"ok": True, "action": "stop_record"}
@@ -343,10 +347,18 @@ def auto_connect_if_configured():
         cfg = config.get("obs_websocket", {})
         if not cfg.get("enabled", False):
             return
+        password = cfg.get("password", "")
+        if not password:
+            try:
+                from core.key_manager import KeyManager
+                password = KeyManager.get_key("obs_websocket_password") or _DEFAULT_PASSWORD
+            except Exception:
+                password = _DEFAULT_PASSWORD
+                
         _obs.configure(
             host     = cfg.get("host",     _DEFAULT_HOST),
             port     = int(cfg.get("port", _DEFAULT_PORT)),
-            password = cfg.get("password", _DEFAULT_PASSWORD),
+            password = password,
         )
         result = _obs.connect()
         # Logging handled internally by connect() to prevent spam

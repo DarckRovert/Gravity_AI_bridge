@@ -657,7 +657,7 @@ def _process_job(
                             h, m, s = t.split(':')
                             _track_duration = int(h) * 3600 + int(m) * 60 + float(s)
                             break
-                except: pass
+                except Exception: pass
                 if _track_duration > 0:
                     scene_duration = _track_duration / max(1, n_scenes)
             
@@ -777,7 +777,7 @@ def _process_job(
                 if "x" in resolution:
                     try:
                         w_ph, h_ph = map(int, resolution.split("x"))
-                    except:
+                    except Exception:
                         pass
                 _create_placeholder_image(scene_title, placeholder, w_ph, h_ph)
                 img_path = placeholder
@@ -1093,7 +1093,7 @@ def _process_job(
                                 # Entregar versión Horizontal (Master original)
                                 shutil.copy2(final_path, os.path.join(r"F:\PROYECTO VIDEOCLIP MUSICAL\output", os.path.basename(final_path)))
                                 log.info("[VideoStudio] Copia Dual (Horizontal + Vertical) enviada al directorio de música.")
-                            except: pass
+                            except Exception: pass
                     except Exception as e_crop:
                         log.warning(f"[VideoStudio] Error generando GLSL Short con FFMPEG: {e_crop}")
                 else:
@@ -1169,7 +1169,7 @@ def _process_job(
                         finally:
                             try:
                                 os.remove(temp_short_src)
-                            except:
+                            except Exception:
                                 pass
                             
 

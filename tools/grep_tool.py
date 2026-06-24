@@ -5,6 +5,7 @@ Estándar: Diamond-Tier (Tipado estricto, evasión de CMD en Windows y algoritmo
 import os
 import re
 import sys
+import time
 import subprocess
 import json
 import fnmatch
@@ -139,9 +140,11 @@ class GrepTool(Tool):
                                path: str, 
                                glob_pat: Optional[str], 
                                case_insensitive: bool, 
-                               limit: int) -> ToolResult:
+                               limit: int,
+                               wall_timeout: float = 12.0) -> ToolResult:
         """
         Implementación pura en Python de recorrido y filtrado de expresiones regulares.
+        Respeta un timeout de pared (`wall_timeout`) para evitar cuelgues en repos grandes.
 
         Parámetros:
             pattern (str): Expresión regular.
@@ -149,6 +152,7 @@ class GrepTool(Tool):
             glob_pat (Optional[str]): Filtro de tipo *.extension.
             case_insensitive (bool): Distinguir o ignorar mayúsculas.
             limit (int): Límite de coincidencia para proteger memoria y tokens.
+            wall_timeout (float): Máximo de segundos permitidos antes de truncar (default 12s).
 
         Retorna:
             ToolResult: Listado formateado con metadatos del fallback.
@@ -156,6 +160,8 @@ class GrepTool(Tool):
         matches: List[str] = []
         count: int = 0
         regex_flags: int = re.IGNORECASE if case_insensitive else 0
+        deadline: float = time.monotonic() + wall_timeout
+        timed_out: bool = False
         
         try:
             regex = re.compile(pattern, regex_flags)
@@ -163,10 +169,16 @@ class GrepTool(Tool):
             return ToolResult(success=False, stderr=f"Expresión regular inválida en búsqueda fallback: {str(e)}")
 
         for root, dirs, files in os.walk(path):
+            if time.monotonic() > deadline:
+                timed_out = True
+                break
             # Optimizar recorrido podando directorios innecesarios o del entorno virtual
             dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ('node_modules', '__pycache__', 'vendor', '_integrations')]
             
             for file in files:
+                if time.monotonic() > deadline:
+                    timed_out = True
+                    break
                 if glob_pat and not fnmatch.fnmatch(file, glob_pat):
                     continue
                 
@@ -187,16 +199,18 @@ class GrepTool(Tool):
                 
                 if count > limit:
                     break
-            if count > limit:
+            if count > limit or timed_out:
                 break
 
         output: str = "\n".join(matches)
-        if count > limit:
+        if timed_out:
+            output += f"\n\n[AVISO] Búsqueda truncada: timeout de {wall_timeout:.0f}s alcanzado (Modo Fallback Python)."
+        elif count > limit:
             output += f"\n\n[AVISO] Se alcanzó el límite de {limit} resultados (Modo Fallback Python)."
             
         return ToolResult(
             success=True, 
             stdout=output if matches else "No se encontraron coincidencias (Modo Fallback).",
-            data={"match_count": count, "mode": "python_fallback"}
+            data={"match_count": count, "mode": "python_fallback", "timed_out": timed_out}
         )
 

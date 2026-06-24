@@ -21,6 +21,52 @@ _lock           = threading.RLock()
 _session_cost   : float = 0.0
 _session_tokens : Dict[str, int] = {"input": 0, "output": 0}
 
+# ── Buffer en memoria para evitar I/O en cada token ───────────────────────────
+# Acumula registros del día actual. Flush a disco cada _FLUSH_INTERVAL segundos
+# o cada _FLUSH_THRESHOLD records (el que ocurra primero).
+_mem_log: Dict[str, Any] = {}          # {today: {provider: {total_cost, input_tokens, output_tokens, calls}}}
+_mem_dirty_count: int = 0              # records acumulados sin flush
+_mem_last_flush: float = 0.0           # timestamp del último flush
+_FLUSH_INTERVAL: float = 30.0          # segundos entre flushes automáticos
+_FLUSH_THRESHOLD: int = 10             # records máximos sin flush
+
+
+def _flush_mem_log() -> None:
+    """Persiste _mem_log a disco. Debe llamarse bajo _lock."""
+    global _mem_dirty_count, _mem_last_flush
+    if not _mem_dirty_count:
+        return
+    try:
+        on_disk = _load_log()
+        for day, providers in _mem_log.items():
+            if day not in on_disk:
+                on_disk[day] = {}
+            for prov, data in providers.items():
+                if prov not in on_disk[day]:
+                    on_disk[day][prov] = {"total_cost": 0.0, "input_tokens": 0, "output_tokens": 0, "calls": 0}
+                on_disk[day][prov]["total_cost"]    += data["total_cost"]
+                on_disk[day][prov]["input_tokens"]  += data["input_tokens"]
+                on_disk[day][prov]["output_tokens"] += data["output_tokens"]
+                on_disk[day][prov]["calls"]         += data["calls"]
+        _save_log(on_disk)
+        _mem_log.clear()
+        _mem_dirty_count = 0
+        _mem_last_flush = time.time()
+    except Exception:
+        pass
+
+
+def _flush_daemon() -> None:
+    """Daemon que hace flush periódico del buffer en memoria al disco."""
+    while True:
+        time.sleep(_FLUSH_INTERVAL)
+        with _lock:
+            _flush_mem_log()
+
+
+_flush_thread = threading.Thread(target=_flush_daemon, daemon=True, name="CostTrackerFlusher")
+_flush_thread.start()
+
 
 def _load_log() -> Dict[str, Any]:
     with _lock:
@@ -68,25 +114,31 @@ class CostTracker:
         output_tokens: int,
         cost_usd:      float = 0.0,
     ) -> None:
-        global _session_cost, _session_tokens
+        """Acumula en buffer de memoria. Flush a disco cada _FLUSH_THRESHOLD records o _FLUSH_INTERVAL segundos."""
+        global _session_cost, _session_tokens, _mem_dirty_count
         today = str(date.today())
 
         with _lock:
-            _session_cost          += cost_usd
+            _session_cost             += cost_usd
             _session_tokens["input"]  += input_tokens
             _session_tokens["output"] += output_tokens
 
-            log = _load_log()
-            if today not in log:
-                log[today] = {}
-            if provider not in log[today]:
-                log[today][provider] = {"total_cost": 0.0, "input_tokens": 0, "output_tokens": 0, "calls": 0}
+            # Acumular en buffer de memoria (sin I/O)
+            if today not in _mem_log:
+                _mem_log[today] = {}
+            if provider not in _mem_log[today]:
+                _mem_log[today][provider] = {"total_cost": 0.0, "input_tokens": 0, "output_tokens": 0, "calls": 0}
 
-            log[today][provider]["total_cost"]    += cost_usd
-            log[today][provider]["input_tokens"]  += input_tokens
-            log[today][provider]["output_tokens"] += output_tokens
-            log[today][provider]["calls"]         += 1
-            _save_log(log)
+            _mem_log[today][provider]["total_cost"]    += cost_usd
+            _mem_log[today][provider]["input_tokens"]  += input_tokens
+            _mem_log[today][provider]["output_tokens"] += output_tokens
+            _mem_log[today][provider]["calls"]         += 1
+            _mem_dirty_count += 1
+
+            # Flush si se alcanzó el umbral de records o el intervalo de tiempo
+            now = time.time()
+            if _mem_dirty_count >= _FLUSH_THRESHOLD or (now - _mem_last_flush) >= _FLUSH_INTERVAL:
+                _flush_mem_log()
 
     @staticmethod
     def get_session_cost() -> float:
@@ -102,19 +154,32 @@ class CostTracker:
     def get_daily_cost(day: Optional[str] = None) -> float:
         today = day or str(date.today())
         with _lock:
+            # Sumar datos en disco + buffer en memoria no-flusheado
             log = _load_log()
             day_data = log.get(today, {})
-            if not isinstance(day_data, dict):
-                return 0.0
-            return sum(float(v.get("total_cost", 0.0)) for v in day_data.values() if isinstance(v, dict))
+            disk_cost = sum(float(v.get("total_cost", 0.0)) for v in day_data.values() if isinstance(v, dict))
+            mem_cost  = sum(
+                float(v.get("total_cost", 0.0))
+                for v in _mem_log.get(today, {}).values()
+                if isinstance(v, dict)
+            )
+            return disk_cost + mem_cost
 
     @staticmethod
     def get_daily_breakdown(day: Optional[str] = None) -> Dict[str, Any]:
         today = day or str(date.today())
         with _lock:
             log = _load_log()
-            bd = log.get(today, {})
-            return dict(bd) if isinstance(bd, dict) else {}
+            bd: Dict[str, Any] = dict(log.get(today, {})) if isinstance(log.get(today), dict) else {}
+            # Fusionar con buffer en memoria no-flusheado
+            for prov, data in _mem_log.get(today, {}).items():
+                if prov not in bd:
+                    bd[prov] = {"total_cost": 0.0, "input_tokens": 0, "output_tokens": 0, "calls": 0}
+                bd[prov]["total_cost"]    += data.get("total_cost", 0.0)
+                bd[prov]["input_tokens"]  += data.get("input_tokens", 0)
+                bd[prov]["output_tokens"] += data.get("output_tokens", 0)
+                bd[prov]["calls"]         += data.get("calls", 0)
+            return bd
 
     @staticmethod
     def check_limit() -> Tuple[bool, float]:

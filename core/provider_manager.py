@@ -61,26 +61,47 @@ def _score_model(result: ProviderResult, model_name: str, task: str) -> float:
 
     # Task-specific model bonuses
     active = model_name.lower()
-    if task == "code":
-        if any(k in active for k in ("coder", "codestral", "starcoder", "deepseek-coder")):
+    
+    if task == "vision":
+        if "llava" in active:
+            score += 150.0
+    elif task == "embedding":
+        if "nomic" in active:
+            score += 150.0
+    elif task == "code":
+        if "qwen" in active and "coder" in active:
+            score += 80.0
+        elif any(k in active for k in ("coder", "codestral", "starcoder", "deepseek-coder")):
             score += 40.0
         if result.name in ("Groq",) and "qwen" in active:
-            score += 30.0   # Groq + Qwen = fast code
+            score += 30.0
     elif task == "reason":
+        if "hermes" in active:
+            score += 70.0
         if any(k in active for k in ("r1", "reasoning", "qwq", "think")):
-            score += 40.0
-        if result.name in ("Anthropic",) and "claude" in active:
-            score += 30.0   # Claude strong reasoner
-    elif task == "bounty":
-        if any(k in active for k in ("qwen", "coder", "phi")):
             score += 50.0
+        if result.name in ("Anthropic",) and "claude" in active:
+            score += 30.0
+    elif task == "bounty":
+        if "qwen" in active and "coder" in active:
+            score += 70.0
+        elif any(k in active for k in ("qwen", "coder", "phi")):
+            score += 40.0
         if "nemo" in active or "70b" in active:
             score -= 20.0
     elif task == "semantic":
-        if any(k in active for k in ("hermes", "nemo", "llama-3")):
-            score += 50.0
+        if "hermes" in active:
+            score += 70.0
+        elif any(k in active for k in ("hermes", "nemo", "llama-3")):
+            score += 40.0
         if "coder" in active or "phi" in active:
             score -= 30.0
+
+    # Penalizaciones para evitar malas rutas
+    if task != "embedding" and "nomic" in active:
+        score -= 250.0  # nomic no es para chat
+    if task != "vision" and "llava" in active:
+        score -= 60.0   # llava es para vision, no para chat estandar si hay mejores opciones
 
     # Model parameter size bonus
     for size, bonus in [("70b", 25), ("72b", 25), ("32b", 20), ("26b", 18), ("14b", 10),

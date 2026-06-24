@@ -602,6 +602,32 @@ def _queue_high_risk_action(action: Dict[str, str], session_id: str = "autonomy"
         return ""
 
 
+def _validate_invariants(action: Dict[str, str]) -> Tuple[bool, str]:
+    """Valida programáticamente que la acción no rompa reglas invariantes críticas."""
+    desc = action.get("description", "").lower()
+    mod = action.get("module", "").lower()
+    
+    if "rm " in desc or "del " in desc or "delete" in desc or "eliminar" in desc:
+        if "core/" in desc or "core\\" in desc or "core" in mod:
+            return False, "Violación de invariante: Intento de eliminar archivos en core/"
+            
+    if "_keystore.bin" in desc or "_settings.json" in desc or "_knowledge.json" in desc:
+        if "modific" in desc or "edit" in desc or "write" in desc or "escrib" in desc:
+            return False, "Violación de invariante: Intento de modificar archivos de estado protegidos"
+            
+    if "git commit" in desc or "git push" in desc:
+        return False, "Violación de invariante: Intento de hacer commit/push sin aprobación"
+        
+    if "security_monitor" in mod or "hitl_manager" in mod:
+        if "desactiv" in desc or "disable" in desc or "stop" in desc:
+            return False, "Violación de invariante: Intento de desactivar monitores de seguridad"
+            
+    if "invariant" in desc:
+        if "modific" in desc or "edit" in desc or "cambi" in desc:
+            return False, "Violación de invariante: Intento de alterar reglas inmutables"
+            
+    return True, "OK"
+
 def _act(actions: List[Dict[str, str]]) -> Dict[str, Any]:
     """
     Ejecuta todas las acciones del plan.
@@ -615,6 +641,13 @@ def _act(actions: List[Dict[str, str]]) -> Dict[str, Any]:
 
     for action in actions:
         risk = action.get("risk", "ALTA").upper()
+        
+        ok_inv, inv_msg = _validate_invariants(action)
+        if not ok_inv:
+            log.warning(f"[AutonomyEngine] Acción bloqueada por Guardarraíl: {inv_msg}")
+            results["errors"].append({"action": action, "error": inv_msg})
+            continue
+
         try:
             if risk == "BAJA":
                 ok, msg = _execute_low_risk_action(action)

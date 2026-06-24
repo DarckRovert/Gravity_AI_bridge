@@ -490,26 +490,62 @@ def _resumable_upload(access_token: str, video_path: str, metadata_bytes: bytes)
             log.error("[YouTube] Sin Location URL en respuesta de inicio.")
             return None
 
-        log.info(f"[YouTube] Subiendo {file_size/(1024*1024):.1f} MB...")
-        # 2. Enviar archivo
+        log.info(f"[YouTube] Subiendo {file_size/(1024*1024):.1f} MB en chunks...")
+        # 2. Enviar archivo en chunks — evita cargar todo el video en RAM
+        import http.client
+        import urllib.parse as _urlparse
+        parsed = _urlparse.urlparse(upload_url)
+        conn = http.client.HTTPSConnection(parsed.netloc, timeout=600)
+        chunk_size = 8 * 1024 * 1024  # 8 MB por chunk
+        uploaded = 0
         with open(video_path, "rb") as vf:
-            data = vf.read()
-        req_upload = urllib.request.Request(
-            upload_url, data=data,
-            headers={
-                "Authorization":  f"Bearer {access_token}",
-                "Content-Type":   "video/mp4",
-                "Content-Length": str(file_size),
-            },
-            method="PUT",
-        )
-        with urllib.request.urlopen(req_upload, timeout=600) as resp:
-            result = json.loads(resp.read().decode())
-        video_id = result.get("id")
-        if video_id:
-            log.info(f"[YouTube] Upload OK. ID: {video_id}")
-            return video_id
-        log.error(f"[YouTube] Upload sin ID: {result}")
+            while True:
+                chunk = vf.read(chunk_size)
+                if not chunk:
+                    break
+                end_byte = uploaded + len(chunk) - 1
+                conn.request(
+                    "PUT", parsed.path + (f"?{parsed.query}" if parsed.query else ""),
+                    body=chunk,
+                    headers={
+                        "Authorization":  f"Bearer {access_token}",
+                        "Content-Type":   "video/mp4",
+                        "Content-Range":  f"bytes {uploaded}-{end_byte}/{file_size}",
+                        "Content-Length": str(len(chunk)),
+                    }
+                )
+                resp_chunk = conn.getresponse()
+                resp_chunk.read()  # Consume body
+                uploaded += len(chunk)
+                if resp_chunk.status == 200 or resp_chunk.status == 201:
+                    # Upload completo
+                    conn.request(
+                        "PUT", parsed.path + (f"?{parsed.query}" if parsed.query else ""),
+                        body=b"",
+                        headers={
+                            "Authorization": f"Bearer {access_token}",
+                            "Content-Range": f"bytes */{file_size}",
+                            "Content-Length": "0",
+                        }
+                    )
+                    final = conn.getresponse()
+                    result = json.loads(final.read().decode())
+                    video_id = result.get("id")
+                    if video_id:
+                        log.info(f"[YouTube] Upload OK. ID: {video_id}")
+                        return video_id
+                    log.error(f"[YouTube] Upload sin ID: {result}")
+                    return None
+                elif resp_chunk.status in (308,):
+                    pct = int(uploaded / file_size * 100)
+                    if pct % 20 == 0:
+                        log.debug(f"[YouTube] Progreso: {pct}% ({uploaded/(1024*1024):.1f} MB)")
+                    continue
+                else:
+                    log.error(f"[YouTube] HTTP {resp_chunk.status} en chunk upload")
+                    return None
+        conn.close()
+        log.error("[YouTube] Upload terminó sin completarse.")
         return None
 
     except urllib.error.HTTPError as e:
@@ -663,8 +699,8 @@ def upload_video(
                 # Registrar Short en revenue tracker
                 try:
                     from core.revenue_tracker import record_upload as _rec_up
-                    _rec_up(job_id=-(job_id), niche_id=niche_id, is_short=True,
-                            platform="youtube", lang=lang, video_id=short_id)
+                    _rec_up(job_id=job_id, niche_id=niche_id, is_short=True,
+                            platform="youtube_short", lang=lang, video_id=short_id)
                 except Exception:
                     pass
 

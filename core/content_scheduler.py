@@ -95,15 +95,8 @@ def _save_niches(data: dict) -> None:
                 with open(temp_path, "w", encoding="utf-8", newline="\n") as f:
                     json.dump(data, f, ensure_ascii=False, indent=2)
                 
-                # Reemplazo atómico seguro para Windows y Linux
-                if os.path.exists(NICHES_PATH):
-                    try:
-                        os.remove(NICHES_PATH)
-                    except PermissionError:
-                        # Si no se puede borrar inmediatamente, esperamos brevemente
-                        time.sleep(0.02)
-                        os.remove(NICHES_PATH)
-                os.rename(temp_path, NICHES_PATH)
+                # Reemplazo atómico — os.replace es seguro en Windows y Linux
+                os.replace(temp_path, NICHES_PATH)
                 return
             except PermissionError as e:
                 if attempt == 4:

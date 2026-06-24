@@ -403,7 +403,7 @@ def render_v14_compute_video(timeline: list, multiband: dict, colorsA: np.ndarra
     finally:
         if 'proc' in locals() and proc.poll() is None:
             try: proc.stdin.close()
-            except: pass
+            except Exception: pass
             proc.terminate(); proc.wait()
 
     for v in vaos.values(): v.release()

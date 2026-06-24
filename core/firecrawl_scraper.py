@@ -85,8 +85,14 @@ def scrape_url(url: str, api_key: str = "") -> Dict[str, Any]:
     if not url or not url.startswith(("http://", "https://")):
         return {"ok": False, "error": "URL inválida. Debe comenzar con http:// o https://", "url": url}
 
-    # Resolver API key desde el administrador central de configuración si no se provee
-    resolved_api_key = api_key or config.get("firecrawl.api_key", "")
+    # Resolver API key: KeyManager (cifrado) > parámetro directo > fallback vacío
+    resolved_api_key = api_key
+    if not resolved_api_key:
+        try:
+            from core.key_manager import KeyManager
+            resolved_api_key = KeyManager.get_key("firecrawl") or ""
+        except Exception:
+            resolved_api_key = ""
 
     if resolved_api_key:
         res = _scrape_via_firecrawl(url, resolved_api_key)

@@ -172,11 +172,14 @@ Sistema pasivo integrado en el pipeline de renderizado que multiplica los ingres
 - Límite diario configurable; HTTP 429 al superarlo.
 - Rate limiter por IP en ventana de tiempo.
 
-### ⚙️ Engine Watchdog & Turbo KV (`core/engine_watchdog.py`)
+### ⚙️ Engine Watchdog, Turbo KV & Native Llama Memory Guard (`core/engine_watchdog.py`)
 - Monitorea el mejor proveedor disponible.
 - Lock/unlock de modelo para fijar en modo manual.
 - Compatible con perfil de hardware (VRAM, CPU cores, RAM).
 - **Turbo KV**: Detecta automáticamente si se usa Ollama y configura en tiempo de ejecución las variables de entorno `OLLAMA_KV_CACHE_TYPE=q4_0` y `OLLAMA_FLASH_ATTENTION=1` para comprimir la cache 4x.
+- **Native Llama Memory Guard**: Monitoreo dinámico en tiempo real de la RAM/VRAM física con `psutil`. Si la memoria disponible cae por debajo de 2.5 GB o el porcentaje de uso supera el 88%, el watchdog reduce el timeout de inactividad de las IAs locales a 15s.
+- **Desalojo LRU Proactivo**: Antes de cargar un modelo nativo local, estima su peso en RAM a partir del tamaño en disco del archivo `.gguf` y desaloja progresivamente los modelos más antiguos mediante LRU si no hay suficiente espacio físico libre.
+- **Enrutamiento Especializado Multicapa**: Enrutamiento automático de tareas específicas de `"vision"` (al modelo local `llava-phi-3-mini-int4.gguf`) y `"embedding"` (al modelo local `nomic-embed-text-v1.5.f16.gguf`) con penalizaciones cruzadas para evitar malas rutas en chats tradicionales.
 
 ---
 

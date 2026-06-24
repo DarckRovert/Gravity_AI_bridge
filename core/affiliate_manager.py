@@ -330,10 +330,10 @@ def log_affiliate_injection(job_id: int, niche_id: str, links_used: List[Dict[st
             if not existing:
                 rev_records.append({
                     "ts": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-                    "job_id": -(job_id + 100000),
+                    "job_id": job_id,
                     "niche_id": niche_id,
                     "is_short": False,
-                    "platform": "affiliate",
+                    "platform": "affiliate_projection",
                     "lang": "es",
                     "video_id": aff_record_id,
                     "views": 0,

@@ -83,6 +83,16 @@ def _load_config() -> Dict[str, Any]:
         log.warning(f"[GameServer] Error cargando config desde ConfigManager: {e}. Usando defaults.")
         return DEFAULT_SERVERS
 
+def _get_db_pass(server_id: str, cfg: Dict[str, Any]) -> str:
+    pwd = cfg.get("db_pass", "")
+    if not pwd:
+        try:
+            from core.key_manager import KeyManager
+            pwd = KeyManager.get_key(f"{server_id}_db_pass") or ""
+        except Exception:
+            pass
+    return pwd
+
 
 def _is_running(proc: Optional[subprocess.Popen]) -> bool:
     """Devuelve True si el proceso está vivo."""
@@ -105,7 +115,7 @@ def _tail_log(log_path: str, lines: int = 100) -> List[str]:
 
 # ── Control de Procesos ────────────────────────────────────────────────────────
 
-def _check_mysql_ready(cfg: Dict[str, Any], max_wait: int = 30) -> bool:
+def _check_mysql_ready(server_id: str, cfg: Dict[str, Any], max_wait: int = 30) -> bool:
     """Verifica que MySQL responde antes de arrancar el worldserver."""
     if not _PYMYSQL_OK:
         log.warning("[GameServer] pymysql no disponible — salteando pre-flight MySQL.")
@@ -118,7 +128,7 @@ def _check_mysql_ready(cfg: Dict[str, Any], max_wait: int = 30) -> bool:
                 host            = cfg.get("db_host", "127.0.0.1"),
                 port            = int(cfg.get("db_port", 3306)),
                 user            = cfg.get("db_user", "mangos"),
-                password        = cfg.get("db_pass", ""),
+                password        = _get_db_pass(server_id, cfg),
                 database        = cfg.get("db_name", "characters"),
                 connect_timeout = 3,
             )
@@ -192,7 +202,7 @@ def _start_server(server_id: str, cfg: Dict[str, Any]) -> Dict[str, Any]:
             log.info(f"[GameServer] MySQL ya estaba corriendo en {db_host}:{db_port}. Se omitió el bat.")
 
     # 1. Pre-flight: verificar que MySQL responde antes de arrancar worldserver
-    if not _check_mysql_ready(cfg, max_wait=30):
+    if not _check_mysql_ready(server_id, cfg, max_wait=30):
         return {
             "status":       "failed",
             "display_name": cfg.get("display_name", server_id),
@@ -393,7 +403,7 @@ def _get_players_online(server_id: str) -> List[Dict[str, Any]]:
             host    = cfg.get("db_host", "127.0.0.1"),
             port    = int(cfg.get("db_port", 3306)),
             user    = cfg.get("db_user", "mangos"),
-            password= cfg.get("db_pass", ""),
+            password= _get_db_pass(server_id, cfg),
             database= cfg.get("db_name", "characters"),
             connect_timeout=3,
         )
@@ -566,7 +576,7 @@ def register_account(server_id: str, username: str, password: str) -> Dict[str, 
             host            = cfg.get("db_host", "127.0.0.1"),
             port            = int(cfg.get("db_port", 3306)),
             user            = cfg.get("db_user", "mangos"),
-            password        = cfg.get("db_pass", ""),
+            password        = _get_db_pass(server_id, cfg),
             database        = db_auth,
             connect_timeout = 3,
         )
@@ -644,7 +654,7 @@ def expose_wan(server_id: str, public_address: str) -> Dict[str, Any]:
                 host    = cfg.get("db_host", "127.0.0.1"),
                 port    = int(cfg.get("db_port", 3306)),
                 user    = cfg.get("db_user", "mangos"),
-                password= cfg.get("db_pass", ""),
+                password= _get_db_pass(server_id, cfg),
                 database= db_auth,
                 connect_timeout=3,
             )

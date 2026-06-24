@@ -323,8 +323,8 @@ def _watchdog_loop(interval_seconds=30, verbose=False):
 
                 if did_switch:
                     if verbose and old_name is not None:
-                        print(
-                            f"\n[WATCHDOG] Switch: {old_name}/{old_model}"
+                        log.info(
+                            f"[Watchdog] Switch: {old_name}/{old_model}"
                             f" → {best_prov.name}/{best_mod}"
                             f" | ctx={api_opts.get('num_ctx', '?')}"
                         )
@@ -392,7 +392,7 @@ def start(interval_seconds=30, verbose=False):
 
             _persist_settings(best_prov, best_mod, opts)
             if verbose:
-                print(f"[⚡ WATCHDOG] Iniciado → {best_prov.name} / {best_mod}")
+                log.info(f"[Watchdog] Iniciado → {best_prov.name} / {best_mod}")
     except Exception:
         pass
 

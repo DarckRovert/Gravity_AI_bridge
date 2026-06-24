@@ -419,7 +419,14 @@ def handle_video_thumbnail(handler):
     try:
         from urllib.parse import urlparse, parse_qs
         qs = parse_qs(urlparse(handler.path).query)
-        job_id = int(qs.get('job_id', [0])[0])
+        raw_id = qs.get('job_id', ['0'])[0]
+        try:
+            job_id = int(raw_id)
+        except (ValueError, TypeError):
+            handler.send_response(400)
+            handler.end_headers()
+            handler.wfile.write(b'{"error":"job_id must be a numeric value"}')
+            return
         BASE_DIR_v = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
         thumb_path = os.path.join(BASE_DIR_v, '_videos', 'thumb_' + str(job_id) + '.jpg')
         if not os.path.isfile(thumb_path):
@@ -610,7 +617,16 @@ def handle_video_cancel(handler):
     try:
         length  = int(handler.headers.get("Content-Length", 0))
         data    = json.loads(handler.rfile.read(length)) if length else {}
-        job_id  = int(data.get("job_id", 0) or data.get("id", 0))
+        raw_id  = data.get("job_id", 0) or data.get("id", 0)
+        try:
+            job_id = int(raw_id)
+        except (ValueError, TypeError):
+            handler.send_response(400)
+            handler.send_header("Content-Type", "application/json")
+            handler._send_cors()
+            handler.end_headers()
+            handler.wfile.write(json.dumps({"error": f"job_id must be a numeric value, got: {raw_id!r}"}).encode())
+            return
         ok      = video_pipeline.cancel_job(job_id)
         handler.send_response(200)
         handler.send_header("Content-Type", "application/json")
@@ -627,7 +643,16 @@ def handle_video_delete(handler):
     try:
         length = int(handler.headers.get("Content-Length", 0))
         data   = json.loads(handler.rfile.read(length)) if length else {}
-        job_id = int(data.get("id", 0) or data.get("job_id", 0))
+        raw_id = data.get("id", 0) or data.get("job_id", 0)
+        try:
+            job_id = int(raw_id)
+        except (ValueError, TypeError):
+            handler.send_response(400)
+            handler.send_header("Content-Type", "application/json")
+            handler._send_cors()
+            handler.end_headers()
+            handler.wfile.write(json.dumps({"error": f"id must be a numeric value, got: {raw_id!r}"}).encode())
+            return
         if not job_id:
             handler.send_response(400)
             handler.send_header("Content-Type", "application/json")

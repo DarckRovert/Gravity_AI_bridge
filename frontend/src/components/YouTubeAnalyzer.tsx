@@ -1,11 +1,50 @@
 import React, { useState } from 'react';
-import { PlayCircle, Search, Clock, Eye, Target, Brain, AlignLeft, Lightbulb, TrendingUp, AlertCircle } from 'lucide-react';
+import { PlayCircle, Search, Clock, Eye, Target, Brain, AlignLeft, Lightbulb, TrendingUp, AlertCircle, ThumbsUp, MessageSquare, Activity, Copy, Download, CheckCircle } from 'lucide-react';
 
 export const YouTubeAnalyzer: React.FC = () => {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleExportMarkdown = () => {
+    if (!data) return;
+    const md = `
+# Análisis AI: ${data.title || 'Video'}
+**Canal:** ${data.channel} | **Visualizaciones:** ${data.views}
+**Engagement:** ${data.engagement_rate}% | **Hook Score:** ${data.analysis?.hook_score}/10 | **Tono:** ${data.analysis?.tone}
+
+## Resumen Ejecutivo
+${data.analysis?.summary}
+
+## Key Takeaways
+${data.analysis?.key_takeaways?.map ? data.analysis.key_takeaways.map((k: string) => `- ${k}`).join('\n') : 'N/A'}
+
+## Estrategia de Monetización
+${Array.isArray(data.analysis?.monetization_strategy) ? data.analysis.monetization_strategy.map((m: string) => `- ${m}`).join('\n') : (data.analysis?.monetization_strategy || 'N/A')}
+
+## Capítulos Clave
+${data.analysis?.timestamps?.map ? data.analysis.timestamps.map((t: any) => `- **${t.time}**: ${t.description}`).join('\n') : 'N/A'}
+    `.trim();
+    
+    navigator.clipboard.writeText(md);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownloadTxt = () => {
+    if (!data) return;
+    const takeaways = data.analysis?.key_takeaways?.join ? data.analysis.key_takeaways.join('\n') : 'N/A';
+    const md = `ANÁLISIS AI: ${data.title}\nCANAL: ${data.channel}\nENGAGEMENT: ${data.engagement_rate}%\nHOOK SCORE: ${data.analysis?.hook_score}/10\n\nRESUMEN:\n${data.analysis?.summary || 'N/A'}\n\nTAKEAWAYS:\n${takeaways}`;
+    const blob = new Blob([md], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Analysis_${(data.title || 'Video').substring(0, 20)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +100,19 @@ export const YouTubeAnalyzer: React.FC = () => {
           </h1>
           <p className="text-text-muted mt-2 text-lg">Descomposición y análisis cognitivo de contenido mediante DeepSeek AI.</p>
         </div>
+        
+        {data && !loading && (
+          <div className="flex gap-3">
+            <button onClick={handleExportMarkdown} className="px-4 py-2 bg-surface hover:bg-surface-hover border border-border-subtle rounded-lg text-sm font-bold text-white flex items-center gap-2 transition-colors">
+              {copied ? <CheckCircle size={16} className="text-green-500" /> : <Copy size={16} />}
+              {copied ? 'Copiado!' : 'Copiar MD'}
+            </button>
+            <button onClick={handleDownloadTxt} className="px-4 py-2 bg-[#FF0000]/10 hover:bg-[#FF0000]/20 border border-[#FF0000]/30 rounded-lg text-sm font-bold text-[#FF0000] flex items-center gap-2 transition-colors">
+              <Download size={16} />
+              Descargar TXT
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Input Section */}
@@ -130,10 +182,45 @@ export const YouTubeAnalyzer: React.FC = () => {
 
             <div className="flex items-center gap-6 mt-auto pt-4 border-t border-border-subtle">
               <div className="flex flex-col">
-                <span className="text-xs text-text-muted uppercase tracking-wider font-bold mb-1">Visualizaciones</span>
-                <span className="text-xl font-black text-white flex items-center gap-2">
-                  <Eye size={18} className="text-[#FF0000]" /> {formatViews(data.views)}
+                <span className="text-xs text-text-muted uppercase tracking-wider font-bold mb-1">Views</span>
+                <span className="text-lg font-black text-white flex items-center gap-2">
+                  <Eye size={16} className="text-[#FF0000]" /> {formatViews(data.views || 0)}
                 </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-text-muted uppercase tracking-wider font-bold mb-1">Likes</span>
+                <span className="text-lg font-black text-white flex items-center gap-2">
+                  <ThumbsUp size={16} className="text-blue-400" /> {formatViews(data.likes || 0)}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-text-muted uppercase tracking-wider font-bold mb-1">Comments</span>
+                <span className="text-lg font-black text-white flex items-center gap-2">
+                  <MessageSquare size={16} className="text-green-400" /> {formatViews(data.comments || 0)}
+                </span>
+              </div>
+            </div>
+
+            {/* Engagement & Tone */}
+            <div className="grid grid-cols-2 gap-4 mt-2">
+              <div className="bg-[#0a0a0a] rounded-xl p-3 border border-border-subtle flex flex-col items-center justify-center">
+                <span className="text-xs text-text-muted uppercase font-bold mb-1 flex items-center gap-1"><Activity size={12}/> Engagement</span>
+                <span className="text-2xl font-black text-[#FF0000]">{data.engagement_rate || 0}%</span>
+              </div>
+              <div className="bg-[#0a0a0a] rounded-xl p-3 border border-border-subtle flex flex-col items-center justify-center text-center">
+                <span className="text-xs text-text-muted uppercase font-bold mb-1">Tono Principal</span>
+                <span className="text-sm font-bold text-white">{data.analysis?.tone || 'N/A'}</span>
+              </div>
+            </div>
+
+            {/* Hook Score */}
+            <div className="bg-surface rounded-xl p-4 border border-border-subtle flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-white flex items-center gap-2"><Target size={16} className="text-[#FCC419]" /> Hook Score</span>
+                <span className="text-xs text-text-muted">Retención en primeros 30s</span>
+              </div>
+              <div className="w-12 h-12 rounded-full border-4 border-[#FCC419] flex items-center justify-center bg-[#FCC419]/10">
+                <span className="font-black text-white">{data.analysis?.hook_score || 0}</span>
               </div>
             </div>
           </div>
@@ -175,11 +262,39 @@ export const YouTubeAnalyzer: React.FC = () => {
                 <h3 className="text-lg font-bold text-white flex items-center gap-3 mb-4">
                   <TrendingUp className="text-[#4CAF50]" /> Estrategia de Monetización
                 </h3>
-                <p className="text-[#4CAF50] font-medium leading-relaxed">
-                  {data.analysis?.monetization_strategy}
-                </p>
+                {Array.isArray(data.analysis?.monetization_strategy) ? (
+                  <ul className="space-y-3">
+                    {data.analysis.monetization_strategy.map((m: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-3">
+                        <div className="w-2 h-2 rounded-full bg-[#4CAF50] mt-2 flex-shrink-0 shadow-[0_0_8px_rgba(76,175,80,0.8)]"></div>
+                        <span className="text-[#4ade80] font-medium leading-relaxed">{m}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-[#4ade80] font-medium leading-relaxed">
+                    {data.analysis?.monetization_strategy}
+                  </p>
+                )}
               </div>
             </div>
+
+            {/* Timestamps / Capítulos */}
+            {data.analysis?.timestamps && data.analysis.timestamps.length > 0 && (
+              <div className="glass-card rounded-2xl p-6 bg-surface border border-border-subtle shadow-lg">
+                <h3 className="text-lg font-bold text-white flex items-center gap-3 mb-4">
+                  <Clock className="text-blue-400" /> Capítulos Estructurados
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {data.analysis.timestamps.map((ts: any, i: number) => (
+                    <div key={i} className="flex items-center gap-3 bg-[#0a0a0a] p-3 rounded-lg border border-border-subtle">
+                      <span className="px-2 py-1 bg-blue-500/10 text-blue-400 text-xs font-mono font-bold rounded">{ts.time}</span>
+                      <span className="text-sm text-text-primary truncate">{ts.description}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Raw Transcript Toggle */}
             <details className="glass-card rounded-xl border border-border-subtle group/details">

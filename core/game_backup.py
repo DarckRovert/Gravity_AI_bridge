@@ -62,6 +62,12 @@ def backup_database(server_id: str, cfg: Dict[str, Any]) -> Dict[str, Any]:
         db_port: str = str(cfg.get("db_port", 3306))
         db_user: str = cfg.get("db_user", "mangos")
         db_pass: str = cfg.get("db_pass", "")
+        if not db_pass:
+            try:
+                from core.key_manager import KeyManager
+                db_pass = KeyManager.get_key(f"{server_id}_db_pass") or ""
+            except Exception:
+                pass
         db_name: str = cfg.get("db_name", "characters")
 
         cmd: List[str] = [

@@ -13,6 +13,12 @@ from typing import List, Dict, Any, Optional
 MYSQL_EXE: str = r"F:\Project_Anarchy_Core\MaNGOS\mysql5\bin\mysql.exe"
 DB_USER: str = "root"
 DB_PASS: str = "root"
+try:
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from core.key_manager import KeyManager
+    DB_PASS = KeyManager.get_key("wow_vanilla_db_pass") or "root"
+except Exception:
+    pass
 DB_NAME: str = "mangos"
 
 # Migraciones requeridas extraídas de Server.log

@@ -49,10 +49,23 @@ class YouTubeAnalyzer:
                 log.info("[YT Analyzer] No hay subtítulos automáticos. Pasando a Fallback Whisper.")
                 transcript = self._fallback_whisper(url, info.get('id', 'temp'))
 
+            likes = info.get("like_count") or 0
+            comments = info.get("comment_count") or 0
+            views = info.get("view_count") or 0
+            
+            # Cálculo de engagement
+            engagement_rate = 0
+            if views and views > 0:
+                engagement_rate = round(((likes + comments) / views) * 100, 2)
+
             return {
                 "title": info.get("title", "Unknown"),
                 "channel": info.get("uploader", "Unknown"),
-                "views": info.get("view_count", 0),
+                "views": views,
+                "likes": likes,
+                "comments": comments,
+                "engagement_rate": engagement_rate,
+                "upload_date": info.get("upload_date", ""),
                 "duration": info.get("duration", 0),
                 "thumbnail": info.get("thumbnail", ""),
                 "transcript": transcript
@@ -123,7 +136,13 @@ CRÍTICO: Escapa correctamente las comillas dobles y usa \\n para saltos de lín
 {{
     "summary": "Un resumen conciso pero profundo de 3-4 líneas del video.",
     "key_takeaways": ["Punto clave 1", "Punto clave 2", "Punto clave 3"],
-    "monetization_strategy": "Una estrategia brillante y creativa de cómo este video puede ser monetizado, o cómo yo puedo replicar este modelo de negocio/contenido para ganar dinero."
+    "monetization_strategy": ["Paso estratégico 1", "Paso estratégico 2", "Paso estratégico 3"],
+    "hook_score": 8,
+    "tone": "Polémico / Educativo",
+    "timestamps": [
+        {{"time": "[00:00]", "description": "Introducción y gancho"}},
+        {{"time": "[05:30]", "description": "Desarrollo del tema principal"}}
+    ]
 }}
         """
         
@@ -150,14 +169,20 @@ CRÍTICO: Escapa correctamente las comillas dobles y usa \\n para saltos de lín
                 return {
                     "summary": "Análisis completado pero el formato devuelto por la IA fue inválido.",
                     "key_takeaways": ["Revisar logs para el raw text."],
-                    "monetization_strategy": result_text[:800] + "..."
+                    "monetization_strategy": ["Error al parsear el JSON."],
+                    "hook_score": 0,
+                    "tone": "Desconocido",
+                    "timestamps": []
                 }
         except Exception as e:
             log.error(f"[YT Analyzer] Error de IA: {e}")
             return {
                 "summary": "No se pudo generar el análisis por parte de la IA.",
                 "key_takeaways": [],
-                "monetization_strategy": "Intenta de nuevo."
+                "monetization_strategy": [],
+                "hook_score": 0,
+                "tone": "Error",
+                "timestamps": []
             }
 
     def process_url(self, url: str) -> dict:
@@ -169,7 +194,10 @@ CRÍTICO: Escapa correctamente las comillas dobles y usa \\n para saltos de lín
             analysis = {
                 "summary": "El video no contiene suficiente diálogo hablado para generar un resumen.",
                 "key_takeaways": [],
-                "monetization_strategy": "Análisis de monetización no aplicable (falta de contenido verbal)."
+                "monetization_strategy": ["Análisis de monetización no aplicable (falta de contenido verbal)."],
+                "hook_score": 0,
+                "tone": "N/A",
+                "timestamps": []
             }
         else:
             analysis = self.analyze_with_ai(info['transcript'], info['title'])

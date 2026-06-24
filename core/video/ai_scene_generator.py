@@ -96,7 +96,7 @@ def _fooocus_online() -> bool:
         s = socket.create_connection(("127.0.0.1", 7865), timeout=1.5)
         s.close()
         return True
-    except:
+    except Exception:
         return False
 
 

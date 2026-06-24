@@ -304,7 +304,7 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
                         article_data = json.loads(json_match.group(1), strict=False)
                         logging.info(f"[green]✓ JSON extraído por regex (GANADOR) con {provider_name} en {elapsed}s.[/]")
                         break
-                    except:
+                    except Exception:
                         pass
                 
                 # Último recurso: reparador de JSON truncado
@@ -314,7 +314,7 @@ def write_article(search_results: str, prompt_override: str = None) -> Dict[str,
                         article_data = json.loads(repaired_str, strict=False)
                         logging.info(f"[green]✓ JSON reparado parcialmente (GANADOR) con {provider_name} en {elapsed}s.[/]")
                         break
-                    except:
+                    except Exception:
                         pass
         except Exception as e:
             logging.warning(f"[!] Error al limpiar la respuesta de {provider_name}: {e}")

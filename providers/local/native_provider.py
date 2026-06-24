@@ -35,16 +35,33 @@ class NativeLlamaProvider(ProviderPlugin):
 
         def watchdog_loop():
             while True:
-                time.sleep(10) # Comprueba cada 10 segundos para mayor responsividad en pruebas
+                time.sleep(10) # Comprueba cada 10 segundos
                 now = time.time()
+                try:
+                    import psutil
+                    has_psutil = True
+                except ImportError:
+                    has_psutil = False
+
                 with self._inference_lock:
                     to_delete = []
+                    # Comportamiento dinámico bajo presión de RAM
+                    current_timeout = IDLE_TIMEOUT_SEC
+                    if has_psutil:
+                        vm = psutil.virtual_memory()
+                        available_gb = vm.available / (1024 ** 3)
+                        percent_used = vm.percent
+                        # Si la memoria libre es crítica (< 2.5 GB o > 88% usada), bajamos el timeout de inactividad a 15 segundos
+                        if percent_used > 88.0 or available_gb < 2.5:
+                            current_timeout = 15.0
+                            print(f"\n[Native Llama Watchdog] ¡Presión de RAM detectada! (Uso: {percent_used}%, Disponible: {available_gb:.2f} GB). Reduciendo timeout a {current_timeout}s.")
+
                     for m_name, data in self._instances.items():
-                        if now - data["last_used"] > IDLE_TIMEOUT_SEC:
+                        if now - data["last_used"] > current_timeout:
                             to_delete.append(m_name)
                     
                     for m_name in to_delete:
-                        print(f"\n[Native Llama Watchdog] Modelo '{m_name}' inactivo por > {IDLE_TIMEOUT_SEC}s. Liberando RAM.")
+                        print(f"\n[Native Llama Watchdog] Modelo '{m_name}' inactivo por > {current_timeout}s. Liberando RAM.")
                         del self._instances[m_name]["instance"]
                         del self._instances[m_name]
                         import gc
@@ -86,7 +103,7 @@ class NativeLlamaProvider(ProviderPlugin):
                 latest = max(self._instances.items(), key=lambda x: x[1]["last_used"])
                 r.active_model = latest[0]
             else:
-                r.active_model = None
+                r.active_model = ggufs[0]["name"] if ggufs else None
         r.response_ms = 1
         return r
 
@@ -100,7 +117,33 @@ class NativeLlamaProvider(ProviderPlugin):
             self._instances[model_name]["last_used"] = time.time()
             return  # Already loaded
 
-        # LRU eviction si llegamos al límite
+        # Obtener tamaño estimado en bytes
+        model_size_bytes = os.path.getsize(path)
+
+        # Monitoreo inteligente de RAM antes de cargar
+        try:
+            import psutil
+            has_psutil = True
+        except ImportError:
+            has_psutil = False
+
+        if has_psutil:
+            # Requerimos el tamaño del modelo + 1 GB de buffer
+            required_free_bytes = model_size_bytes + 1_024_000_000
+            available_bytes = psutil.virtual_memory().available
+            
+            while available_bytes < required_free_bytes and self._instances:
+                # Evict el más antiguo cargado (LRU)
+                oldest = min(self._instances.items(), key=lambda x: x[1]["last_used"])
+                oldest_name = oldest[0]
+                print(f"\n[Native Llama] Memoria insuficiente para cargar '{model_name}' (Libre: {available_bytes/(1024**3):.2f} GB, Requerido con buffer: {required_free_bytes/(1024**3):.2f} GB). Descargando '{oldest_name}'...")
+                del self._instances[oldest_name]["instance"]
+                del self._instances[oldest_name]
+                import gc
+                gc.collect()
+                available_bytes = psutil.virtual_memory().available
+
+        # Si aún supera MAX_CONCURRENT_MODELS, aplicar el límite por LRU como salvaguarda
         if len(self._instances) >= MAX_CONCURRENT_MODELS:
             oldest = min(self._instances.items(), key=lambda x: x[1]["last_used"])
             oldest_name = oldest[0]

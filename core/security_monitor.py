@@ -376,33 +376,22 @@ def _scan_file_integrity() -> Dict[str, Dict[str, Any]]:
                 _baseline_hashes[path] = current_hash
             results[fname] = {"status": "baseline_set", "hash": current_hash[:12] + "..."}
         elif current_hash != baseline_hash:
-            alert_msg = f"Modificación externa detectada en archivo crítico: {fname}"
-            
-            # IPS: Defensa Activa (Curación por Git Restore)
-            restored = False
-            if ACTIVE_DEFENSE:
-                try:
-                    # Sobreescribimos cualquier inyección restaurando del repositorio git
-                    subprocess.run(["git", "restore", path], cwd=BASE_DIR, check=True)
-                    new_hash = _sha256(path)
-                    with _lock:
-                        if new_hash:
-                            _baseline_hashes[path] = new_hash
-                            
-                    alert_msg += " -> [DEFENSA ACTIVA] Archivo curado y restaurado vía Git."
-                    _record_alert("ACTION", alert_msg)
-                    results[fname] = {"status": "RESTORED", "hash": new_hash[:12] + "..." if new_hash else "?"}
-                    restored = True
-                except Exception as e:
-                    alert_msg += f" -> [FALLO DEFENSA] No se pudo restaurar: {e}"
-            
-            if not restored:
-                _record_alert("CRITICAL", alert_msg)
-                results[fname] = {
-                    "status": "MODIFIED",
-                    "hash": current_hash[:12] + "...",
-                    "baseline": baseline_hash[:12] + "...",
-                }
+            alert_msg = (
+                f"Modificación detectada en archivo crítico: {fname} | "
+                f"baseline={baseline_hash[:16]}... actual={current_hash[:16]}... | "
+                f"Acción requerida: revisar manualmente. Para resetear baseline use /v1/security/baseline/reset."
+            )
+            # ⚠️  NOTA DE SEGURIDAD: git restore automático ELIMINADO.
+            # Razón: el desarrollador puede modificar archivos de core legítimamente.
+            # Un auto-restore revertirá trabajo sin aviso y corromperá el estado.
+            # La defensa activa aquí = ALERTA CRÍTICA + actualización del baseline
+            # para que no genere alertas repetidas sobre el mismo cambio.
+            _record_alert("CRITICAL", alert_msg)
+            results[fname] = {
+                "status": "MODIFIED",
+                "hash": current_hash[:12] + "...",
+                "baseline": baseline_hash[:12] + "...",
+            }
         else:
             results[fname] = {"status": "ok", "hash": current_hash[:12] + "..."}
 

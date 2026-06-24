@@ -4,9 +4,21 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
-## [V16.2 PRO] The Perfect Machine: Omniscient Router & Zero-Defect Stability · 22/06/2026
+## [V16.3 PRO] Intelligent Resource Guard & Specialized Task Routing · 23/06/2026
 
-**[ERRADICACIÓN DEFINITIVA DE CUELLOS DE BOTELLA MULTI-HILO Y FUGAS DE MEMORIA]**
+**[MONITOREO DINÁMICO DE RAM EN TIEMPO REAL Y ENRUTAMIENTO DE VISIÓN/EMBEDDINGS NATIVOS]**
+
+### Native Llama Provider (`native_provider.py`)
+- **Memory Guard Adaptativo (`psutil`)**: Integración dinámica de `psutil` para monitorear la memoria RAM libre del sistema en tiempo real. Si la RAM libre cae por debajo de 2.5 GB o el porcentaje de uso supera el 88%, el watchdog de inactividad de las IAs locales disminuye adaptativamente de 300s a 15s para limpiar memoria inactiva y evitar cuellos de botella u OOMs.
+- **Desalojo LRU Proactivo ante Carga**: Antes de instanciar un nuevo modelo (`llama_cpp.Llama`), se evalúa el tamaño estimado en RAM del modelo GGUF a partir de su tamaño en disco. Si la RAM física libre es insuficiente, realiza un desalojo progresivo de los modelos más antiguos mediante LRU hasta liberar el espacio requerido de forma segura.
+
+### Provider Manager & Autonomous Router (`provider_manager.py`)
+- **Enrutamiento Especializado Multicapa**: Soporte y scoring explícito para las tareas de `"vision"` (enrutando a `llava-phi-3-mini-int4.gguf`) y `"embedding"` (enrutando a `nomic-embed-text-v1.5.f16.gguf`) con un bono masivo de +150.
+- **Protección de Malas Rutas**: Añadida una penalización estricta de -250 para evitar que el modelo de embeddings (`nomic`) sea seleccionado para chats tradicionales, y una penalización de -60 para evitar que el modelo de visión (`llava`) interfiera en consultas estándar de texto puro.
+
+---
+
+## [V16.2 PRO] The Perfect Machine: Omniscient Router & Zero-Defect Stability · 22/06/2026
 
 ### Provider Manager & Autonomous Router (`provider_manager.py`)
 - **Blindaje Anti-Caídas (Poison Pill Resilience)**: Reestructuración absoluta del hilo escáner asíncrono. En lugar de bloquear la aplicación entera esperando un motor colgado, ahora existe un temporizador global en tiempo real de 8.0 segundos. Los motores muertos (como un LM Studio que deja de responder) son aislados en contenedores `ProviderResult` sintéticos sin generar excepciones `TypeError`. Cero bloqueos.

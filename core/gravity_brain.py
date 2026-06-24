@@ -334,16 +334,12 @@ def build_system_context() -> str:
     now_ts = time.time()
     now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
-    # Si el cache es válido, sólo actualizar las secciones dinámicas
+    # Si el cache es válido, devolver el contexto completo cacheado.
+    # El TTL de 15s garantiza datos suficientemente frescos para uso normal.
+    # NO hacer actualización parcial de secciones — el código anterior calculaba
+    # fresh_cost/fresh_audit pero los descartaba sin inyectarlos al cache.
     if _context_cache and (now_ts - _context_cache_ts) < _CONTEXT_TTL:
-        # Reemplazar solo las líneas de costes y audit (siempre actualizadas)
-        fresh_cost    = _get_cost_status()
-        fresh_audit   = _get_recent_audit(5)
-        cached = _context_cache
-        # Reemplazar el timestamp
-        cached = cached.split("\n")[1:]  # quitar primera línea (timestamp viejo)
-        cached = [f"=== GRAVITY AI V{APP_VERSION} — ESTADO DEL SISTEMA [{now_str}] ==="] + cached
-        return "\n".join(cached)
+        return _context_cache
 
     # Cache expirado o primera vez: construir completo
     sections = [

@@ -104,7 +104,7 @@ async def run_gradio(
         elif cid == cid_map.get("overwrite_step"):
             if len(sys.argv) > 5:
                 try: val = int(sys.argv[5])
-                except: val = 30
+                except Exception: val = 30
             else:
                 val = 30
         else:

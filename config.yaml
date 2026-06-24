@@ -45,7 +45,6 @@ game_servers:
     db_port: 3306
     db_name: characters
     db_user: root
-    db_pass: root
     db_name_auth: realmd
 ai_engines:
   LM Studio: C:\Users\darck\AppData\Local\Programs\LM Studio\LM Studio.exe
@@ -72,7 +71,6 @@ agent_routing:
   default:
     provider: LM Studio
     model: auto
-firecrawl_api_key: fc-42c664a8782a48caa0e81ab640dc8ff5
 youtube:
   enabled: true
   auto_upload: true
@@ -86,7 +84,7 @@ youtube:
   - Gravity AI
   oauth_credentials_path: _integrations/youtube_oauth.json
 scheduler:
-  enabled: false
+  enabled: true
   time_utc: 08:00
   videos_per_day: 2
   niches_file: inputs/niches.json
@@ -130,7 +128,6 @@ obs_websocket:
   enabled: true
   host: 127.0.0.1
   port: 4455
-  password: JZe2JTFSolWLni2i
   auto_connect: true
   reconnect_interval_s: 10
 obs_spark:

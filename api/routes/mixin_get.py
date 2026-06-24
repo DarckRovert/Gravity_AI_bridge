@@ -12,6 +12,129 @@ from core.logger import log
 from api.state import check_rate_limit, register_ip_hit, geoip_cache, recent_ips, geoip_lock
 
 class GetRoutesMixin:
+    def do_OPTIONS(self):
+        if not self._check_rate():
+            return
+        self.send_response(200)
+        self._send_cors()
+        self.end_headers()
+
+    def do_GET(self):
+        if not self._check_rate():
+            return
+        routes = {
+            "/":                    self._serve_dashboard,
+            "/dashboard":           self._serve_dashboard,
+            "/health":              self._serve_health,
+            "/v1/models":           self._serve_models,
+            "/v1/status":           self._serve_status,
+            "/v1/audit":            self._serve_audit,
+            "/v1/fooocus/status":   self._serve_fooocus_status,
+            "/v1/images":           self._serve_images,
+            "/metrics":             self._serve_metrics,
+            "/v1/security":         self._serve_security,
+            "/v1/security/geoip":   self._serve_security_geoip,
+            "/v1/queue":            self._serve_queue,
+            "/v1/deploy/status":    self._serve_deploy_status,
+            "/v1/gameserver/status":self._serve_gameserver_status,
+            "/v1/gameserver/log":   self._serve_gameserver_log,
+            "/v1/gameserver/players":self._serve_gameserver_players,
+            "/registro":            self._serve_registro,
+            # ── V16.0 PRO Endpoints ────────────────────────────────────────
+            "/v1/hardware":         self._serve_hardware,
+            "/v1/hardware/stats":   self._serve_hardware,
+            "/v1/cost":             self._serve_cost,
+            "/v1/watchdog":         self._serve_watchdog,
+            "/v1/sessions":         self._serve_sessions,
+            "/v1/rag/status":       self._serve_rag_status,
+            "/v1/rag/search":       self._serve_rag_search,
+            # ── V16.0 PRO New Endpoints ─────────────────────────────────────────────
+            "/v1/queue/stream":     self._serve_queue_stream,
+            "/v1/fabricaweb/status":self._serve_fabricaweb_status,
+            # ── V16.0 PRO Video Studio ──────────────────────────────────────────────
+            "/v1/video/status":     self._serve_video_status,
+            "/v1/video/download":   self._serve_video_download,
+            "/v1/video/voices":     self._serve_video_voices,
+            "/v1/video/engines":    self._serve_video_engines,
+            "/v1/video/stream":     self._serve_video_stream,
+            "/v1/video/thumbnail":  self._serve_video_thumbnail,
+            "/v1/video/list":       self._serve_video_list,
+            # ── V16.0 PRO Image Lab (Pollinations) ────────────────────────────────────────
+            "/v1/image/health":     self._serve_pollinations_health,
+            "/v1/image/lab/history":self._serve_image_lab_list,
+            # ── V16.0 PRO Diamond Tier ───────────────────────────────────────────────
+            "/v1/sessions/active":       self._serve_active_sessions,
+            "/v1/mcp/status":            self._serve_mcp_status,
+            "/v1/mcp/resource":          self._serve_mcp_resource,
+            "/v1/hitl/pending":          self._serve_hitl_pending,
+            "/v1/tools/firecrawl/health":self._serve_firecrawl_health,
+            # ── V16.0 PRO Gravity Brain ──────────────────────────────────────────────
+            "/v1/gravity/context":       self._serve_gravity_context,
+            # ── V16.0 PRO MAI Animations ────────────────────────────────────────────
+            "/v1/video/animations":      self._serve_video_animations,
+            "/v1/processes":             self._serve_processes,
+            # ── V16.0 PRO Monetización ─────────────────────────────────────────────
+            "/v1/scheduler/status":       self._serve_scheduler_status,
+            "/v1/scheduler/niches":       self._serve_scheduler_niches,
+            "/v1/youtube/status":         self._serve_youtube_status,
+            "/v1/youtube/auth/url":       self._serve_youtube_auth_url,
+            "/v1/video/upload-status":    self._serve_video_upload_status,
+            # ── V16.0 Monetization Hub ────────────────────────────────────────
+            "/v1/revenue/summary":        self._serve_revenue_summary,
+            "/v1/revenue/timeline":       self._serve_revenue_timeline,
+            "/v1/revenue/top":            self._serve_revenue_top_jobs,
+            "/v1/youtube/quota":          self._serve_youtube_quota,
+            "/v1/social/status":          self._serve_social_status,
+            "/v1/affiliates/status":      self._serve_affiliates_status,
+            "/v1/affiliates/programs":    self._serve_affiliates_programs,
+            "/v1/language/status":        self._serve_language_status,
+            "/v1/v2v/status":             self._serve_v2v_status,
+            # ── Gravity OBS Control + Gravity Spark ───────────────────────────────
+            "/v1/obs/status":             self._serve_obs_status,
+            "/v1/obs/scenes":             self._serve_obs_scenes,
+            "/v1/obs/scene/items":        self._serve_obs_scene_items,
+            "/v1/obs/inputs":             self._serve_obs_inputs,
+            "/v1/obs/stream/status":      self._serve_obs_stream_status,
+            "/v1/obs/overlays":           self._serve_obs_overlays,
+            "/v1/bounties":               self._serve_bounties,
+            "/v1/factory/list":           self._serve_factory_list,
+            "/v1/infiltrator/status":     self._serve_infiltrator_status,
+            # ── La Tinka Engine ────────────────────────────────────────────────────
+            "/v1/tinka/status":           self._serve_tinka_status,
+            "/v1/tinka/analyze":          self._serve_tinka_analyze,
+            "/v1/tinka/predict":          self._serve_tinka_predict,
+            "/v1/tinka/update":           self._serve_tinka_update,
+            # ── V16.0 PRO Autonomous Edition ───────────────────────────────────────
+            "/v1/autonomy/status":        self._serve_autonomy_status,
+            "/v1/autonomy/decisions":     self._serve_autonomy_decisions,
+            "/v1/autonomy/rules":         self._serve_autonomy_rules,
+            "/v1/reflection/report":      self._serve_reflection_report,
+            "/v1/reflection/patches":     self._serve_reflection_patches,
+            # ── Periodista Autónomo (OSINT) ────────────────────────────────────────
+            "/v1/journalist/status":      self._serve_journalist_status,
+            "/v1/journalist/log":         self._serve_journalist_log,
+            "/v1/journalist/news":        self._serve_journalist_news,
+        }
+
+        # Rutas con query string (?server=&lines=)
+        path_clean = self.path.split("?")[0]
+        if path_clean in routes:
+            routes[path_clean]()
+        elif self.path.startswith("/static/output/"):
+            self._serve_static_output()
+        elif self.path.startswith("/static/imagelab/"):
+            self._serve_static_image_lab()
+        elif self.path.startswith("/obs-overlay/"):
+            self._serve_obs_overlay_html()
+        elif self.path.startswith("/v1/factory/download/"):
+            self._serve_factory_download()
+        else:
+            # Intentar servir desde el frontend/dist (JS, CSS, Assets)
+            self._serve_frontend_static()
+
+
+    # Rutas manejadas de forma nativa por los modulos Mixins incorporados
+
     # ── Dashboard SPA ─────────────────────────────────────────────────────────
     def _serve_dashboard(self):
         """Sirve el index.html del nuevo frontend React V12 (dist) o (web) en prod."""
@@ -57,8 +180,8 @@ class GetRoutesMixin:
 
     def _serve_frontend_static(self):
         """Sirve archivos estaticos (.js, .css, .svg) desde frontend/dist o web."""
-        import sys
-        path_clean = self.path.split("?")[0]
+        import sys, urllib.parse
+        path_clean = urllib.parse.unquote(self.path.split("?")[0])
         rel_path = path_clean.lstrip("/")
 
         BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -97,7 +220,8 @@ class GetRoutesMixin:
 
     def _serve_static_output(self):
         # Permite subdirectorios de fecha: /static/output/2026-04-13/filename.png
-        raw = self.path[len("/static/output/"):]
+        import urllib.parse
+        raw = urllib.parse.unquote(self.path[len("/static/output/"):])
         if not raw:
             self.send_response(403)
             self.end_headers()
@@ -434,11 +558,13 @@ class GetRoutesMixin:
         try:
             from fooocus_client import health_check, OUTPUT_DIR
             status = health_check()
-            # Contar imagenes generadas
+            # Contar imagenes generadas (sin recursión profunda para evitar timeouts)
             import glob
             imgs = []
             for ext in ("*.png", "*.jpg", "*.jpeg", "*.webp"):
-                imgs.extend(glob.glob(os.path.join(OUTPUT_DIR, "**", ext), recursive=True))
+                # Búsqueda no recursiva directa, y en directorios de un nivel (típico en Fooocus por fechas)
+                imgs.extend(glob.glob(os.path.join(OUTPUT_DIR, ext)))
+                imgs.extend(glob.glob(os.path.join(OUTPUT_DIR, "*", ext)))
             status["images_generated"] = len(imgs)
             status["output_dir"] = OUTPUT_DIR
             status["port"] = 7861

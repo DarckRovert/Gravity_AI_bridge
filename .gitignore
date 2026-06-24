@@ -33,3 +33,11 @@ models/
 inputs/models/
 .tmp.driveupload/
 test_concat/
+_audit_log.jsonl
+_audit_log.bak.*
+exhaustive_results*.json
+_learn_payload.txt
+corrector_estado.json
+inputs/.bounty_seen_ids.json
+inputs/.bounty_actions.json
+inputs/niches.json

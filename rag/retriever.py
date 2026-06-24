@@ -31,6 +31,7 @@ class RAGEmbedder:
     _backend: str = None   # "ollama" | "sentence_transformers" | "openai" | "tfidf"
     _model:   str = ""
     _st_model = None
+    _backend_detected: bool = False  # Flag: True cuando el backend ya fue detectado
 
     @classmethod
     def _detect_backend(cls):
@@ -39,6 +40,7 @@ class RAGEmbedder:
         if os.path.exists(os.path.join(npu_dir, "model.onnx")):
             cls._backend = "onnx_npu"
             cls._model   = "all-MiniLM-L6-v2"
+            cls._backend_detected = True
             return cls._backend
         # Try Ollama nomic-embed-text
         try:
@@ -52,6 +54,7 @@ class RAGEmbedder:
             if embed_model:
                 cls._backend = "ollama"
                 cls._model   = embed_model
+                cls._backend_detected = True
                 return cls._backend
         except Exception:
             pass
@@ -60,6 +63,7 @@ class RAGEmbedder:
             from sentence_transformers import SentenceTransformer
             cls._st_model = SentenceTransformer("all-MiniLM-L6-v2")
             cls._backend  = "sentence_transformers"
+            cls._backend_detected = True
             return cls._backend
         except Exception:
             pass
@@ -69,17 +73,22 @@ class RAGEmbedder:
             if KeyManager.has_key("openai"):
                 cls._backend = "openai"
                 cls._model   = "text-embedding-3-small"
+                cls._backend_detected = True
                 return cls._backend
         except Exception:
             pass
         # Ultimate fallback: TF-IDF pseudo-embedding (no external dependencies)
         cls._backend = "tfidf"
+        cls._backend_detected = True
         return cls._backend
 
     @classmethod
     def embed(cls, texts: list[str]) -> list[list[float]]:
         """Returns a list of embedding vectors for the given texts."""
-        backend = cls._detect_backend()
+        # Detectar backend solo una vez — evita 1 HTTP request por chunk indexado
+        if not cls._backend_detected:
+            cls._detect_backend()
+        backend = cls._backend
         if backend == "onnx_npu":
             return cls._embed_onnx_npu(texts)
         elif backend == "ollama":
