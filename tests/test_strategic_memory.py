@@ -12,11 +12,13 @@ import tempfile
 # Aislar el módulo en un DB temporal para tests
 _orig_db = None
 
+
 def setUpModule():
     """Redirige el DB a un archivo temporal antes de importar el módulo."""
     global _orig_db
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     import core.strategic_memory as sm
+
     _orig_db = sm.DB_PATH
     sm.DB_PATH = os.path.join(tempfile.gettempdir(), "_gravity_test_memory.db")
     sm._init_db()
@@ -25,6 +27,7 @@ def setUpModule():
 def tearDownModule():
     """Limpia el DB temporal."""
     import core.strategic_memory as sm
+
     try:
         if os.path.isfile(sm.DB_PATH):
             os.remove(sm.DB_PATH)
@@ -36,6 +39,7 @@ def tearDownModule():
 class TestRecordDecision(unittest.TestCase):
     def setUp(self):
         import core.strategic_memory as sm
+
         self.sm = sm
 
     def test_record_returns_positive_id(self):
@@ -59,7 +63,9 @@ class TestRecordDecision(unittest.TestCase):
 
     def test_update_outcome_success(self):
         did = self.sm.record_decision(self.sm.CAT_MONETIZE, "Monetize test")
-        ok = self.sm.update_outcome(did, self.sm.OUTCOME_SUCCESS, "everything worked", impact_score=0.8)
+        ok = self.sm.update_outcome(
+            did, self.sm.OUTCOME_SUCCESS, "everything worked", impact_score=0.8
+        )
         self.assertTrue(ok)
         row = self.sm.get_decision_by_id(did)
         self.assertEqual(row["outcome"], self.sm.OUTCOME_SUCCESS)
@@ -86,12 +92,15 @@ class TestRecordDecision(unittest.TestCase):
 class TestPatterns(unittest.TestCase):
     def setUp(self):
         import core.strategic_memory as sm
+
         self.sm = sm
 
     def test_upsert_pattern_creates(self):
         self.sm.upsert_pattern("test:module_error:bounty", "3")
         patterns = self.sm.get_patterns(prefix="test:module_error")
-        self.assertTrue(any(p["pattern_key"] == "test:module_error:bounty" for p in patterns))
+        self.assertTrue(
+            any(p["pattern_key"] == "test:module_error:bounty" for p in patterns)
+        )
 
     def test_upsert_pattern_increments_hits(self):
         key = "test:incr_pattern"
@@ -107,6 +116,7 @@ class TestPatterns(unittest.TestCase):
 class TestSummary(unittest.TestCase):
     def setUp(self):
         import core.strategic_memory as sm
+
         self.sm = sm
 
     def test_summary_returns_dict(self):

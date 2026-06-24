@@ -9,22 +9,31 @@ Uso:
     python tools/publish.py --project "Nombre"   # Publica solo las carpetas que coincidan
     python tools/publish.py --force              # Fuerza a re-procesar todo
 """
+
 import os
 import sys
-import json
 import logging
 import argparse
 import shutil
 import re
+from typing import Optional
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from tools.book_refiner import BookRefiner, _render_html, _detect_caps, _load_file, _assemble_book
+from tools.book_refiner import (
+    BookRefiner,
+    _render_html,
+    _detect_caps,
+    _load_file,
+    _assemble_book,
+)
 from core import image_router, provider_manager
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("Publisher")
 
 FICTION_DIR = os.path.join(BASE_DIR, "ficcion_generada")
@@ -33,10 +42,11 @@ FICTION_DIR = os.path.join(BASE_DIR, "ficcion_generada")
 def _generate_dynamic_cover_prompt(book_dir_path: str) -> str:
     """Lee la sinopsis del libro y pide al LLM un prompt visual en inglés para la portada."""
     synopsis = (
-        _load_file(os.path.join(book_dir_path, "1_contexto_base.md")) or
-        _load_file(os.path.join(book_dir_path, "1_sinopsis_base.md")) or ""
+        _load_file(os.path.join(book_dir_path, "1_contexto_base.md"))
+        or _load_file(os.path.join(book_dir_path, "1_sinopsis_base.md"))
+        or ""
     )
-    
+
     if not synopsis.strip():
         logger.warning("  No se encontró sinopsis. Usando prompt genérico.")
         return "Cinematic book cover, photorealistic, 8k, dark atmospheric aesthetic, no text, no letters."
@@ -52,20 +62,21 @@ SINOPSIS:
 DEVUELVE ÚNICAMENTE EL PROMPT EN INGLÉS, sin comillas, ni explicaciones."""
 
     messages = [{"role": "user", "content": sys_prompt}]
-    
+
     try:
         resp = provider_manager.complete(messages)
         import re
+
         if resp:
-            resp = re.sub(r'<think>.*?</think>', '', resp, flags=re.DOTALL).strip()
-            if '<think>' in resp:
-                resp = re.sub(r'<think>.*', '', resp, flags=re.DOTALL).strip()
+            resp = re.sub(r"<think>.*?</think>", "", resp, flags=re.DOTALL).strip()
+            if "<think>" in resp:
+                resp = re.sub(r"<think>.*", "", resp, flags=re.DOTALL).strip()
         prompt = resp.strip() if resp else ""
         if prompt:
             return prompt
     except Exception as e:
         logger.error(f"  Fallo al contactar LLM para prompt de portada: {e}")
-        
+
     return "Cinematic book cover, photorealistic, 8k, dark atmospheric aesthetic, no text, no letters."
 
 
@@ -74,7 +85,9 @@ def fix_portada(book_dir_path: str, force: bool = False) -> bool:
     cover_png = os.path.join(book_dir_path, "cover.png")
 
     if not force and os.path.exists(cover_png) and os.path.getsize(cover_png) >= 50_000:
-        logger.info(f"  Portada válida detectada: cover.png ({os.path.getsize(cover_png) // 1024} KB)")
+        logger.info(
+            f"  Portada válida detectada: cover.png ({os.path.getsize(cover_png) // 1024} KB)"
+        )
         return True
 
     svg_path = os.path.join(book_dir_path, "cover.svg")
@@ -94,7 +107,7 @@ def fix_portada(book_dir_path: str, force: bool = False) -> bool:
         height=1216,
         title=os.path.basename(book_dir_path).replace("_", " "),
     )
-    
+
     if result.get("success"):
         logger.info(f"  Portada generada exitosamente → {cover_png}")
         return True
@@ -111,13 +124,13 @@ def run_rewrite_publish(book_dir_path: str, force: bool = False) -> str:
     logger.info(f"{'='*60}")
 
     out_dir = book_dir_path.rstrip("/\\") + "_refinado"
-    
+
     # Si no hay force y el html ya existe y es reciente, podríamos saltarlo,
     # pero el refiner maneja el progreso interno.
-    
+
     result_path = refiner.rewrite(
         book_dir=book_dir_path,
-        depth="publish", # MODO 100% SEGURO (Sin LLM)
+        depth="publish",  # MODO 100% SEGURO (Sin LLM)
         output_suffix="_refinado",
         start_chapter=1,
     )
@@ -140,7 +153,7 @@ def rerender_html_refinado(book_dir_path: str, out_suffix: str = "_refinado"):
     assembled = _assemble_book(
         out_dir,
         title,
-        sorted(caps, key=lambda p: int(re.search(r'cap_(\d+)', p).group(1)))
+        sorted(caps, key=lambda p: int(re.search(r"cap_(\d+)", p).group(1))),
     )
 
     base_name = os.path.basename(book_dir_path)
@@ -149,38 +162,42 @@ def rerender_html_refinado(book_dir_path: str, out_suffix: str = "_refinado"):
     logger.info(f"  HTML universal generado: {os.path.basename(html_path)}")
 
 
-def find_books(project_filter: str = None) -> list:
+def find_books(project_filter: Optional[str] = None) -> list:
     """Busca dinámicamente carpetas de libros originales en ficcion_generada."""
     books = []
     if not os.path.exists(FICTION_DIR):
         return books
-        
+
     for item in os.listdir(FICTION_DIR):
         full_path = os.path.join(FICTION_DIR, item)
         # Ignorar directorios de output refinados o archivos
         if not os.path.isdir(full_path) or item.endswith("_refinado"):
             continue
-            
+
         # Filtro de proyecto
         if project_filter and project_filter.lower() not in item.lower():
             continue
-            
+
         # Verificar si tiene capitulos
         caps = _detect_caps(full_path)
         if caps:
             books.append(full_path)
-            
+
     return sorted(books)
 
 
 def main():
     parser = argparse.ArgumentParser(description="Publicador Universal Seguro")
-    parser.add_argument("--project", type=str, help="Filtra las carpetas que contengan este nombre")
-    parser.add_argument("--force", action="store_true", help="Fuerza la recreación de portadas y HTML")
+    parser.add_argument(
+        "--project", type=str, help="Filtra las carpetas que contengan este nombre"
+    )
+    parser.add_argument(
+        "--force", action="store_true", help="Fuerza la recreación de portadas y HTML"
+    )
     args = parser.parse_args()
 
     books_to_process = find_books(args.project)
-    
+
     if not books_to_process:
         logger.warning(f"No se encontraron libros originales en {FICTION_DIR}")
         return
@@ -211,8 +228,10 @@ def main():
         out_dir = book_dir_path.rstrip("/\\") + "_refinado"
         if os.path.isdir(book_dir_path):
             for item in os.listdir(book_dir_path):
-                if item.lower().endswith(('.png', '.jpg', '.jpeg', '.svg')):
-                    shutil.copy2(os.path.join(book_dir_path, item), os.path.join(out_dir, item))
+                if item.lower().endswith((".png", ".jpg", ".jpeg", ".svg")):
+                    shutil.copy2(
+                        os.path.join(book_dir_path, item), os.path.join(out_dir, item)
+                    )
 
     logger.info("\n=== PUBLICACIÓN UNIVERSAL FINALIZADA ===")
     logger.info("Revisa los directorios _refinado/ de cada obra.")

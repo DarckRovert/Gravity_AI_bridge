@@ -2,6 +2,7 @@
 Gravity AI Bridge — Generador de Imágenes Sin Estado (Pollinations.ai Image Generator)
 Estándar: Diamond-Tier (Tipado formal estricto, resiliencia ante red inestable y cero dependencias).
 """
+
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -12,7 +13,7 @@ import socket
 import hashlib
 import io
 import json
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     try:
@@ -24,11 +25,15 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 
 # ─── Constantes del Módulo ───────────────────────────────────────────────────
 POLLINATIONS_BASE: str = "https://image.pollinations.ai/prompt/{prompt}"
-DEFAULT_MODEL: str = "flux"        # Motores válidos: flux | turbo | dreamshaper
-DEFAULT_TIMEOUT: int = 30         # Subido a 30s: Flux puede tardar 20-25s en imágenes complejas
+DEFAULT_MODEL: str = "flux"  # Motores válidos: flux | turbo | dreamshaper
+DEFAULT_TIMEOUT: int = (
+    30  # Subido a 30s: Flux puede tardar 20-25s en imágenes complejas
+)
 MAX_RETRIES: int = 2
-RETRY_DELAY: float = 3.0          # Segundos entre reintentos
-RATE_LIMIT_COOLDOWN: float = 300.0 # Segundos de cooldown tras recibir un 402 (5 minutos)
+RETRY_DELAY: float = 3.0  # Segundos entre reintentos
+RATE_LIMIT_COOLDOWN: float = (
+    300.0  # Segundos de cooldown tras recibir un 402 (5 minutos)
+)
 
 # ─── Estado global de bloqueo por rate-limit ─────────────────────────────────
 # Compartido entre renderer.py, animation_engine.py y cualquier otro importador
@@ -47,7 +52,7 @@ def set_blocked() -> None:
     print(
         f"[Pollinations] ⛔ Rate-limit 402 detectado. Bloqueando peticiones por {int(RATE_LIMIT_COOLDOWN)}s "
         f"(hasta {time.strftime('%H:%M:%S', time.localtime(_blocked_until))}).",
-        file=sys.stderr
+        file=sys.stderr,
     )
 
 
@@ -64,7 +69,7 @@ def generate(
     height: int = 832,
     model: str = DEFAULT_MODEL,
     seed: Optional[int] = None,
-    enhance: bool = False,   # False: no contaminar el prompt con la IA interna de Pollinations
+    enhance: bool = False,  # False: no contaminar el prompt con la IA interna de Pollinations
     nologo: bool = True,
     negative_prompt: str = "",
 ) -> Dict[str, Any]:
@@ -89,7 +94,10 @@ def generate(
     if is_blocked():
         remaining = int(_blocked_until - time.time())
         if remaining > 0:
-            print(f"[Pollinations] ⏳ API en cooldown. Esperando {remaining}s para evitar ban de IP y asegurar la imagen...", file=sys.stderr)
+            print(
+                f"[Pollinations] ⏳ API en cooldown. Esperando {remaining}s para evitar ban de IP y asegurar la imagen...",
+                file=sys.stderr,
+            )
             time.sleep(remaining)
         reset_block()
 
@@ -104,17 +112,17 @@ def generate(
     # Si se suministra prompt negativo, lo concatenamos como instrucción explícita
     if negative_prompt:
         prompt = f"{prompt.strip()}. Avoid, do not include, exclude: {negative_prompt.strip()}."
-    
+
     encoded_prompt: str = urllib.parse.quote(prompt.strip(), safe="")
     params: Dict[str, str] = {
-        "width":   str(width),
-        "height":  str(height),
-        "model":   model,
-        "seed":    str(seed),
+        "width": str(width),
+        "height": str(height),
+        "model": model,
+        "seed": str(seed),
         "enhance": "true" if enhance else "false",
-        "nologo":  "true" if nologo else "false",
+        "nologo": "true" if nologo else "false",
     }
-    
+
     query: str = "&".join(f"{k}={urllib.parse.quote(v)}" for k, v in params.items())
     url: str = f"https://image.pollinations.ai/prompt/{encoded_prompt}?{query}"
     err: str = "Desconocido"
@@ -126,14 +134,14 @@ def generate(
         try:
             print(
                 f"[Pollinations] Intento {attempt}/{MAX_RETRIES} — {prompt[:60]}...",
-                file=sys.stderr
+                file=sys.stderr,
             )
             req: urllib.request.Request = urllib.request.Request(
                 url,
                 headers={
                     "User-Agent": "GravityBridge/10.2 (image-pipeline)",
-                    "Accept":     "image/png,image/*,*/*",
-                }
+                    "Accept": "image/png,image/*,*/*",
+                },
             )
             with urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT) as resp:
                 content_type: str = resp.getheader("Content-Type", "")
@@ -143,7 +151,9 @@ def generate(
                 raise ValueError("Respuesta vacía recibida desde Pollinations.ai.")
 
             if "image" not in content_type and not data.startswith(b"\x89PNG"):
-                raise ValueError(f"La respuesta de red no es una imagen válida. Content-Type={content_type}")
+                raise ValueError(
+                    f"La respuesta de red no es una imagen válida. Content-Type={content_type}"
+                )
 
             with open(output_path, "wb") as f:
                 f.write(data)
@@ -151,27 +161,47 @@ def generate(
             size_kb: float = len(data) / 1024
             print(
                 f"[Pollinations] OK — {size_kb:.1f} KB → {os.path.basename(output_path)}",
-                file=sys.stderr
+                file=sys.stderr,
             )
             return {"success": True, "path": output_path, "error": None}
 
         except urllib.error.HTTPError as e:
             err = f"HTTP {e.code}: {e.reason}"
             if e.code == 402:
-                if any(k in params for k in ["model", "enhance", "nologo", "width", "height", "seed"]):
+                if any(
+                    k in params
+                    for k in ["model", "enhance", "nologo", "width", "height", "seed"]
+                ):
                     # Primer 402: quitar parámetros de pago y reintentar inmediatamente sin gastar intento
-                    print("[Pollinations] Error 402: eliminando parámetros premium para siguiente intento.", file=sys.stderr)
+                    print(
+                        "[Pollinations] Error 402: eliminando parámetros premium para siguiente intento.",
+                        file=sys.stderr,
+                    )
                     model = ""
                     for k in ["model", "enhance", "nologo", "width", "height", "seed"]:
                         if k in params:
                             del params[k]
-                    query = "&".join(f"{k}={urllib.parse.quote(v)}" for k, v in params.items())
-                    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?{query}" if query else f"https://image.pollinations.ai/prompt/{encoded_prompt}"
-                    continue 
+                    query = "&".join(
+                        f"{k}={urllib.parse.quote(v)}" for k, v in params.items()
+                    )
+                    url = (
+                        f"https://image.pollinations.ai/prompt/{encoded_prompt}?{query}"
+                        if query
+                        else f"https://image.pollinations.ai/prompt/{encoded_prompt}"
+                    )
+                    continue
                 else:
                     # Bloqueo real de IP
-                    print("[Pollinations] ⏳ Ban detectado en pleno vuelo. Abortando motor Pollinations para permitir fallback local.", file=sys.stderr)
-                    return {"success": False, "path": None, "error": "Rate-limit 402 permanente.", "status_code": 402}
+                    print(
+                        "[Pollinations] ⏳ Ban detectado en pleno vuelo. Abortando motor Pollinations para permitir fallback local.",
+                        file=sys.stderr,
+                    )
+                    return {
+                        "success": False,
+                        "path": None,
+                        "error": "Rate-limit 402 permanente.",
+                        "status_code": 402,
+                    }
 
         except urllib.error.URLError as e:
             err = f"URLError: {e.reason}"
@@ -183,7 +213,7 @@ def generate(
         print(f"[Pollinations] Error en intento {attempt}: {err}", file=sys.stderr)
         if attempt < MAX_RETRIES:
             time.sleep(RETRY_DELAY)
-        
+
         attempt += 1
 
     return {"success": False, "path": None, "error": err, "status_code": 0}
@@ -200,7 +230,7 @@ def health_check() -> Dict[str, Any]:
         req: urllib.request.Request = urllib.request.Request(
             "https://image.pollinations.ai/",
             headers={"User-Agent": "GravityBridge/10.2"},
-            method="HEAD"
+            method="HEAD",
         )
         with urllib.request.urlopen(req, timeout=10):
             return {"online": True, "message": "Pollinations.ai accesible."}
@@ -210,13 +240,18 @@ def health_check() -> Dict[str, Any]:
 
 # ─── Interfaz CLI ─────────────────────────────────────────────────────────────
 
+
 def main() -> None:
     """
     Manejador del punto de entrada CLI.
     Formato de invocación: python pollinations_generator.py "prompt" output.png [width] [height]
     """
     if len(sys.argv) < 3:
-        print(json.dumps({"success": False, "error": "Args: prompt output.png [width] [height]"}))
+        print(
+            json.dumps(
+                {"success": False, "error": "Args: prompt output.png [width] [height]"}
+            )
+        )
         sys.exit(1)
 
     prompt: str = sys.argv[1]
@@ -231,4 +266,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -25,8 +25,8 @@ _scan_lock: threading.RLock = threading.RLock()
 # Re-export ProviderResult from the canonical location for backwards compat
 from providers.base import ProviderResult  # noqa: F401
 
-
 # ── Public API (unchanged from V6) ────────────────────────────────────────────
+
 
 def scan_all_providers(force: bool = False) -> List[Any]:
     """
@@ -34,17 +34,21 @@ def scan_all_providers(force: bool = False) -> List[Any]:
     Returns list of ProviderResult objects (backwards-compatible).
     """
     from core.provider_manager import scan_all
+
     results = scan_all(force=force)
     _save_last_scan(results)
     return results
 
 
-def auto_select_best(task: str = "any", prefer_local: bool = True) -> Tuple[Optional[Any], Optional[str]]:
+def auto_select_best(
+    task: str = "any", prefer_local: bool = True
+) -> Tuple[Optional[Any], Optional[str]]:
     """
     Auto-selects the best provider and model for the given task.
     Returns (ProviderResult | None, model_name | None).
     """
     from core.provider_manager import get_best
+
     return get_best(task)
 
 
@@ -62,21 +66,39 @@ def get_available_models(provider_name: str) -> List[str]:
 
 
 def get_all_local_providers() -> List[Any]:
-    return [r for r in scan_all_providers() if getattr(r, "category", "local") == "local"]
+    return [
+        r for r in scan_all_providers() if getattr(r, "category", "local") == "local"
+    ]
 
 
 def get_all_cloud_providers() -> List[Any]:
-    return [r for r in scan_all_providers() if getattr(r, "category", "local") == "cloud"]
+    return [
+        r for r in scan_all_providers() if getattr(r, "category", "local") == "cloud"
+    ]
 
 
 def get_provider_count() -> Dict[str, int]:
     results = scan_all_providers()
-    local: int = sum(1 for r in results if getattr(r, "category", "local") == "local" and r.is_healthy)
-    cloud: int = sum(1 for r in results if getattr(r, "category", "local") == "cloud" and r.is_healthy)
-    return {"local": local, "cloud": cloud, "total": len(results), "healthy": local + cloud}
+    local: int = sum(
+        1
+        for r in results
+        if getattr(r, "category", "local") == "local" and r.is_healthy
+    )
+    cloud: int = sum(
+        1
+        for r in results
+        if getattr(r, "category", "local") == "cloud" and r.is_healthy
+    )
+    return {
+        "local": local,
+        "cloud": cloud,
+        "total": len(results),
+        "healthy": local + cloud,
+    }
 
 
 # ── Legacy aliases (V5/V6 callers) ────────────────────────────────────────────
+
 
 def scan_providers() -> List[Any]:
     return scan_all_providers()
@@ -93,6 +115,7 @@ def select_best_provider(results: List[Any]) -> Tuple[Optional[Any], Optional[st
 
 # ── Persistence ────────────────────────────────────────────────────────────────
 
+
 def _save_last_scan(results: List[Any]) -> None:
     """Guarda de forma thread-safe los resultados de escaneo en _last_scan.json."""
     try:
@@ -100,15 +123,15 @@ def _save_last_scan(results: List[Any]) -> None:
             "scan_time": time.time(),
             "providers": [
                 {
-                    "name":       r.name,
-                    "url":        r.url,
-                    "protocol":   r.protocol,
-                    "category":   getattr(r, "category", "local"),
+                    "name": r.name,
+                    "url": r.url,
+                    "protocol": r.protocol,
+                    "category": getattr(r, "category", "local"),
                     "is_healthy": r.is_healthy,
                     "model_count": r.model_count,
                     "active_model": r.active_model,
                     "response_ms": r.response_ms,
-                    "models":      r.models[:3],
+                    "models": r.models[:3],
                 }
                 for r in results
             ],
@@ -117,7 +140,7 @@ def _save_last_scan(results: List[Any]) -> None:
             tmp_file = LAST_SCAN_FILE + ".tmp"
             with open(tmp_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
-            
+
             # Reemplazo atómico con reintentos para Windows
             for i in range(5):
                 try:
@@ -141,4 +164,3 @@ def load_last_scan() -> Dict[str, Any]:
                 return json.load(f)
     except Exception:
         return {}
-

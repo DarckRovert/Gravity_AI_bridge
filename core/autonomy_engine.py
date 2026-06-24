@@ -22,7 +22,6 @@
 """
 
 import os
-import json
 import threading
 import time
 from datetime import datetime, timezone, timedelta
@@ -59,13 +58,13 @@ _daily_spend: float = 0.0
 _daily_spend_date: str = ""
 
 _state: Dict[str, Any] = {
-    "running":         False,
-    "last_cycle_utc":  None,
-    "next_cycle_utc":  None,
-    "cycles_done":     0,
-    "last_decision":   None,
+    "running": False,
+    "last_cycle_utc": None,
+    "next_cycle_utc": None,
+    "cycles_done": 0,
+    "last_decision": None,
     "last_status_level": "NORMAL",
-    "actions_taken":   0,
+    "actions_taken": 0,
     "actions_pending_hitl": 0,
     "daily_spend_usd": 0.0,
     "budget_remaining_usd": AUTONOMY_DAILY_BUDGET_USD,
@@ -73,6 +72,7 @@ _state: Dict[str, Any] = {
 
 
 # ── Control de presupuesto ────────────────────────────────────────────────────
+
 
 def _check_budget(estimated_cost: float = 0.01) -> bool:
     """Verifica que haya presupuesto disponible para el ciclo actual."""
@@ -85,7 +85,7 @@ def _check_budget(estimated_cost: float = 0.01) -> bool:
 
     remaining = AUTONOMY_DAILY_BUDGET_USD - _daily_spend
     with _lock:
-        _state["daily_spend_usd"]   = round(_daily_spend, 4)
+        _state["daily_spend_usd"] = round(_daily_spend, 4)
         _state["budget_remaining_usd"] = round(remaining, 4)
 
     return remaining >= estimated_cost
@@ -96,13 +96,14 @@ def _deduct_budget(cost: float) -> None:
     global _daily_spend
     _daily_spend += cost
     with _lock:
-        _state["daily_spend_usd"]   = round(_daily_spend, 4)
+        _state["daily_spend_usd"] = round(_daily_spend, 4)
         _state["budget_remaining_usd"] = round(
             AUTONOMY_DAILY_BUDGET_USD - _daily_spend, 4
         )
 
 
 # ── Fase OBSERVE: Construcción del snapshot del sistema ──────────────────────
+
 
 def _observe() -> Dict[str, Any]:
     """
@@ -116,6 +117,7 @@ def _observe() -> Dict[str, Any]:
     # Revenue
     try:
         from core.revenue_tracker import get_summary as rev_summary
+
         snapshot["revenue"] = rev_summary(30)
     except Exception as e:
         snapshot["revenue"] = {"error": str(e)}
@@ -123,9 +125,10 @@ def _observe() -> Dict[str, Any]:
     # Costes de API
     try:
         from core.cost_tracker import CostTracker, _get_daily_limit
+
         snapshot["api_cost"] = {
-            "daily_usd":  CostTracker.get_daily_cost(),
-            "limit_usd":  _get_daily_limit(),
+            "daily_usd": CostTracker.get_daily_cost(),
+            "limit_usd": _get_daily_limit(),
             "session_usd": CostTracker.get_session_cost(),
         }
     except Exception as e:
@@ -134,12 +137,11 @@ def _observe() -> Dict[str, Any]:
     # Hardware
     try:
         import psutil
+
         snapshot["hardware"] = {
-            "cpu_pct":  psutil.cpu_percent(interval=None),
-            "ram_pct":  psutil.virtual_memory().percent,
-            "disk_free_gb": round(
-                psutil.disk_usage(BASE_DIR).free / (1024 ** 3), 1
-            ),
+            "cpu_pct": psutil.cpu_percent(interval=None),
+            "ram_pct": psutil.virtual_memory().percent,
+            "disk_free_gb": round(psutil.disk_usage(BASE_DIR).free / (1024**3), 1),
         }
     except Exception as e:
         snapshot["hardware"] = {"error": str(e)}
@@ -147,11 +149,16 @@ def _observe() -> Dict[str, Any]:
     # Seguridad
     try:
         from core.security_monitor import get_state as sec_state
+
         state = sec_state()
         snapshot["security"] = {
-            "score":    state.get("score", 100),
-            "critical": len([a for a in state.get("alerts", []) if a.get("level") == "CRITICAL"]),
-            "warnings": len([a for a in state.get("alerts", []) if a.get("level") == "WARNING"]),
+            "score": state.get("score", 100),
+            "critical": len(
+                [a for a in state.get("alerts", []) if a.get("level") == "CRITICAL"]
+            ),
+            "warnings": len(
+                [a for a in state.get("alerts", []) if a.get("level") == "WARNING"]
+            ),
         }
     except Exception as e:
         snapshot["security"] = {"error": str(e)}
@@ -159,12 +166,13 @@ def _observe() -> Dict[str, Any]:
     # Content scheduler
     try:
         from core.content_scheduler import get_state as sched_state
+
         snap_sched = sched_state()
         snapshot["scheduler"] = {
-            "enabled":       snap_sched.get("enabled", False),
-            "jobs_queued":   snap_sched.get("jobs_queued", 0),
-            "last_topic":    snap_sched.get("last_topic"),
-            "next_run_utc":  snap_sched.get("next_run_utc"),
+            "enabled": snap_sched.get("enabled", False),
+            "jobs_queued": snap_sched.get("jobs_queued", 0),
+            "last_topic": snap_sched.get("last_topic"),
+            "next_run_utc": snap_sched.get("next_run_utc"),
         }
     except Exception as e:
         snapshot["scheduler"] = {"error": str(e)}
@@ -172,10 +180,11 @@ def _observe() -> Dict[str, Any]:
     # Video pipeline
     try:
         from core.video_pipeline import get_queue_status
+
         vq = get_queue_status()
         snapshot["video"] = {
             "pending": vq.get("pending_count", 0),
-            "done":    len(vq.get("history", [])),
+            "done": len(vq.get("history", [])),
         }
     except Exception as e:
         snapshot["video"] = {"error": str(e)}
@@ -183,11 +192,12 @@ def _observe() -> Dict[str, Any]:
     # Self-reflection state
     try:
         from core.self_reflection import get_state as refl_state, _count_pending_patches
+
         rs = refl_state()
         snapshot["reflection"] = {
-            "issues_found":   rs.get("issues_found", 0),
+            "issues_found": rs.get("issues_found", 0),
             "patches_pending": _count_pending_patches(),
-            "cycles_done":    rs.get("cycles_done", 0),
+            "cycles_done": rs.get("cycles_done", 0),
         }
     except Exception as e:
         snapshot["reflection"] = {"error": str(e)}
@@ -195,6 +205,7 @@ def _observe() -> Dict[str, Any]:
     # Bounty hunter
     try:
         import os
+
         bounties_file = os.path.join(BASE_DIR, "BOUNTIES_ENCONTRADOS.md")
         if os.path.isfile(bounties_file):
             size = os.path.getsize(bounties_file)
@@ -208,6 +219,7 @@ def _observe() -> Dict[str, Any]:
 
 
 # ── Fase ORIENT: Clasificación del estado ────────────────────────────────────
+
 
 def _orient(snapshot: Dict[str, Any]) -> Tuple[str, List[str]]:
     """
@@ -234,7 +246,9 @@ def _orient(snapshot: Dict[str, Any]) -> Tuple[str, List[str]]:
     if limit > 0 and daily >= limit * 0.9:
         if level not in ("CRÍTICO",):
             level = "ALERTA"
-        alerts.append(f"COSTO API: ${daily:.3f} / límite ${limit:.2f} — al {round(daily/limit*100)}%")
+        alerts.append(
+            f"COSTO API: ${daily:.3f} / límite ${limit:.2f} — al {round(daily/limit*100)}%"
+        )
 
     # Hardware crítico
     hw = snapshot.get("hardware", {})
@@ -268,26 +282,32 @@ def _orient(snapshot: Dict[str, Any]) -> Tuple[str, List[str]]:
     monthly = rev.get("monthly_proj_usd", 0)
     if monthly > 0 and level == "NORMAL":
         level = "OPORTUNIDAD"
-        alerts.append(f"MONETIZACIÓN: Proyección mensual ${monthly:.2f} — analizar expansión de nichos")
+        alerts.append(
+            f"MONETIZACIÓN: Proyección mensual ${monthly:.2f} — analizar expansión de nichos"
+        )
 
     return level, alerts
 
 
 # ── Fase DECIDE: Generación del plan de acción ───────────────────────────────
 
+
 def _decide(snapshot: Dict[str, Any], level: str, alerts: List[str]) -> str:
     """
     Usa el LLM activo para generar un plan de acción estratégico.
     Retorna el plan como texto.
     """
-    alerts_text = "\n".join(f"  - {a}" for a in alerts) if alerts else "  - Ninguna alerta activa"
-    revenue  = snapshot.get("revenue", {})
+    alerts_text = (
+        "\n".join(f"  - {a}" for a in alerts) if alerts else "  - Ninguna alerta activa"
+    )
+    revenue = snapshot.get("revenue", {})
     scheduler = snapshot.get("scheduler", {})
 
     # ── Contexto de negocio enriquecido ─────────────────────────────────────
     top_videos_text = ""
     try:
         from core.revenue_tracker import get_top_jobs
+
         top = get_top_jobs(3)
         if top:
             top_videos_text = "\n".join(
@@ -300,9 +320,10 @@ def _decide(snapshot: Dict[str, Any], level: str, alerts: List[str]) -> str:
     social_text = ""
     try:
         from core.tiktok_uploader import get_status as tk_status
+
         tks = tk_status()
-        tiktok_ok  = tks.get("tiktok", {}).get("configured", False)
-        ig_ok      = tks.get("instagram", {}).get("configured", False)
+        tiktok_ok = tks.get("tiktok", {}).get("configured", False)
+        ig_ok = tks.get("instagram", {}).get("configured", False)
         uploads_24 = tks.get("tiktok", {}).get("uploads_24h", 0)
         social_text = f"TikTok={'OK' if tiktok_ok else 'NO CONFIGURADO'} | Instagram={'OK' if ig_ok else 'NO CONFIGURADO'} | Uploads 24h: {uploads_24}"
     except Exception:
@@ -310,18 +331,20 @@ def _decide(snapshot: Dict[str, Any], level: str, alerts: List[str]) -> str:
 
     cloner_text = ""
     try:
-        from core.language_cloner import get_enabled_languages, get_status as cl_status
+        from core.language_cloner import get_status as cl_status
+
         cl = cl_status()
         active_langs = cl.get("config", {}).get("languages", [])
-        all_langs    = cl.get("supported_languages", [])
-        inactive     = [l for l in all_langs if l not in active_langs]
-        cloner_text  = f"Activos: {active_langs} | Inactivos disponibles: {inactive}"
+        all_langs = cl.get("supported_languages", [])
+        inactive = [l for l in all_langs if l not in active_langs]
+        cloner_text = f"Activos: {active_langs} | Inactivos disponibles: {inactive}"
     except Exception:
         cloner_text = "No disponible"
 
     affiliate_text = ""
     try:
         from core.affiliate_manager import get_status as af_status
+
         af = af_status()
         affiliate_text = f"{af.get('total_programs', 0)} programas en {af.get('niches_covered', 0)} nichos | IDs: {', '.join((af.get('ids_configured') or [])[:5])}"
     except Exception:
@@ -396,16 +419,16 @@ JUSTIFICACIÓN: [1-2 líneas]"""
     from core.reasoning_stripper import ReasoningStripper
 
     messages = [{"role": "user", "content": prompt}]
-    options  = {"temperature": 0.3, "max_tokens": MAX_DECISION_TOKENS}
+    options = {"temperature": 0.3, "max_tokens": MAX_DECISION_TOKENS}
 
     plan: str = ""
     last_error: str = ""
 
     # Auto primero, luego local explícito, luego Ollama
     attempt_configs = [
-        {"provider": None,        "model": None},
+        {"provider": None, "model": None},
         {"provider": "LM Studio", "model": None},
-        {"provider": "Ollama",    "model": None},
+        {"provider": "Ollama", "model": None},
     ]
 
     for attempt in attempt_configs:
@@ -432,11 +455,15 @@ JUSTIFICACIÓN: [1-2 líneas]"""
         except Exception as e:
             last_error = str(e)
             provider_name = attempt["provider"] or "auto"
-            log.warning(f"[AutonomyEngine] DECIDE fallback: {provider_name} falló: {e!s:.80}")
+            log.warning(
+                f"[AutonomyEngine] DECIDE fallback: {provider_name} falló: {e!s:.80}"
+            )
             continue
 
     if not plan:
-        log.error(f"[AutonomyEngine] Todos los proveedores fallaron en DECIDE: {last_error}")
+        log.error(
+            f"[AutonomyEngine] Todos los proveedores fallaron en DECIDE: {last_error}"
+        )
         return f"ERROR en decisión: {last_error}"
 
     # Estimar costo (~$0.002 por 1K tokens, $0 si es local)
@@ -444,8 +471,6 @@ JUSTIFICACIÓN: [1-2 líneas]"""
     _deduct_budget(estimated_cost)
 
     return plan
-
-
 
 
 # ── Fase ACT: Ejecución de acciones ──────────────────────────────────────────
@@ -471,13 +496,18 @@ def _parse_actions(plan_text: str) -> List[Dict[str, str]]:
             continue
         # Formato: "N. [BAJA|ALTA] [módulo] — descripción"
         import re
-        m = re.match(r'^\d+\.\s+\[(BAJA|ALTA)\]\s+\[(.+?)\]\s+[—-]+\s*(.+)$', line, re.IGNORECASE)
+
+        m = re.match(
+            r"^\d+\.\s+\[(BAJA|ALTA)\]\s+\[(.+?)\]\s+[—-]+\s*(.+)$", line, re.IGNORECASE
+        )
         if m:
-            actions.append({
-                "risk":        m.group(1).upper(),
-                "module":      m.group(2).strip(),
-                "description": m.group(3).strip(),
-            })
+            actions.append(
+                {
+                    "risk": m.group(1).upper(),
+                    "module": m.group(2).strip(),
+                    "description": m.group(3).strip(),
+                }
+            )
 
     return actions
 
@@ -489,15 +519,18 @@ def _execute_low_risk_action(action: Dict[str, str]) -> Tuple[bool, str]:
     Retorna (ok, result_message).
     """
     import re
+
     module = action.get("module", "").lower()
-    desc   = action.get("description", "")
+    desc = action.get("description", "")
     desc_l = desc.lower()
 
     try:
         # ── 1. Activar content scheduler ────────────────────────────────────
-        if ("activ" in desc_l or "enciend" in desc_l or "habilit" in desc_l) and \
-           ("scheduler" in module or "scheduler" in desc_l):
+        if ("activ" in desc_l or "enciend" in desc_l or "habilit" in desc_l) and (
+            "scheduler" in module or "scheduler" in desc_l
+        ):
             from core.content_scheduler import start, get_state
+
             st = get_state()
             if not st.get("enabled"):
                 start()
@@ -505,28 +538,40 @@ def _execute_low_risk_action(action: Dict[str, str]) -> Tuple[bool, str]:
             return True, "Content Scheduler ya estaba activo"
 
         # ── 2. Agregar topic a niche ─────────────────────────────────────────
-        if "topic" in desc_l and ("niche" in module or "scheduler" in module or "content" in module):
+        if "topic" in desc_l and (
+            "niche" in module or "scheduler" in module or "content" in module
+        ):
             topic_match = re.search(r'["\u201c\u201d]([^"]+)["\u201c\u201d]', desc)
-            niche_match = re.search(r'(?:niche[_\s]?(?:id)?[:\s]+)(\w+)', desc, re.IGNORECASE)
+            niche_match = re.search(
+                r"(?:niche[_\s]?(?:id)?[:\s]+)(\w+)", desc, re.IGNORECASE
+            )
             if topic_match and niche_match:
                 from core.content_scheduler import add_topic
+
                 result = add_topic(niche_match.group(1), topic_match.group(1))
                 return result.get("ok", False), str(result)
 
         # ── 3. Encolar video inmediato ───────────────────────────────────────
-        if "queue_now" in desc_l or ("video" in desc_l and ("encola" in desc_l or "produce" in desc_l)):
+        if "queue_now" in desc_l or (
+            "video" in desc_l and ("encola" in desc_l or "produce" in desc_l)
+        ):
             from core.content_scheduler import queue_now
+
             result = queue_now()
             return result.get("ok", False), str(result)
 
         # ── 4. Activar idioma en Language Cloner ────────────────────────────
-        if "language_cloner" in module or "cloner" in module or \
-           ("idioma" in desc_l and ("activ" in desc_l or "habilit" in desc_l)):
-            lang_match = re.search(r'\b(pt|fr|de|it|ja|zh)\b', desc, re.IGNORECASE)
+        if (
+            "language_cloner" in module
+            or "cloner" in module
+            or ("idioma" in desc_l and ("activ" in desc_l or "habilit" in desc_l))
+        ):
+            lang_match = re.search(r"\b(pt|fr|de|it|ja|zh)\b", desc, re.IGNORECASE)
             if lang_match:
                 lang = lang_match.group(1).lower()
                 try:
                     import yaml
+
                     cfg_path = os.path.join(BASE_DIR, "config.yaml")
                     with open(cfg_path, "r", encoding="utf-8") as f:
                         cfg = yaml.safe_load(f)
@@ -542,12 +587,18 @@ def _execute_low_risk_action(action: Dict[str, str]) -> Tuple[bool, str]:
                     return False, "Requiere PyYAML — acción postergada"
 
         # ── 5. Registrar observación en knowledge base ───────────────────────
-        if "knowledge" in module or "knowledge" in desc_l or "aprende" in desc_l or "regla" in desc_l:
+        if (
+            "knowledge" in module
+            or "knowledge" in desc_l
+            or "aprende" in desc_l
+            or "regla" in desc_l
+        ):
             rule_match = re.search(r'["\u201c\u201d]([^"]+)["\u201c\u201d]', desc)
             if rule_match:
                 try:
                     from core.data_guardian import load_knowledge, save_knowledge
                     from core.gravity_brain import KNOWLEDGE_FILE
+
                     kb, _ = load_knowledge(KNOWLEDGE_FILE)
                     rules = kb.get("persistent_rules", [])
                     entry = f"[{datetime.now().strftime('%Y-%m-%d')}] [AUTONOMY] {rule_match.group(1)}"
@@ -562,33 +613,44 @@ def _execute_low_risk_action(action: Dict[str, str]) -> Tuple[bool, str]:
             return True, f"Observacion registrada: {desc[:100]}"
 
         # ── 6. Fallback: documentar en strategic_memory ──────────────────────
-        from core.strategic_memory import record_decision, CAT_SYSTEM, OUTCOME_NEUTRAL, update_outcome
+        from core.strategic_memory import (
+            record_decision,
+            CAT_SYSTEM,
+            OUTCOME_NEUTRAL,
+            update_outcome,
+        )
+
         did = record_decision(
             category=CAT_SYSTEM,
             title=f"Accion autonoma: {module}",
             description=desc,
             action_taken="Documentado en memoria estrategica (sin handler directo)",
         )
-        update_outcome(did, OUTCOME_NEUTRAL, detail="Sin ejecutor directo — solo documentado")
+        update_outcome(
+            did, OUTCOME_NEUTRAL, detail="Sin ejecutor directo — solo documentado"
+        )
         return True, f"Documentado en memoria estrategica (ID={did})"
 
     except Exception as e:
         return False, f"Error ejecutando accion [{module}]: {e}"
 
 
-def _queue_high_risk_action(action: Dict[str, str], session_id: str = "autonomy") -> str:
+def _queue_high_risk_action(
+    action: Dict[str, str], session_id: str = "autonomy"
+) -> str:
     """
     Encola una acción de alto riesgo en el HITL manager.
     Retorna el approval_id.
     """
     try:
         from core.hitl_manager import request_approval
+
         approval_id = request_approval(
             tool_name="autonomy_high_risk",
             arguments={
-                "module":      action.get("module"),
+                "module": action.get("module"),
                 "description": action.get("description"),
-                "risk":        action.get("risk"),
+                "risk": action.get("risk"),
             },
             session_id=session_id,
         )
@@ -606,27 +668,43 @@ def _validate_invariants(action: Dict[str, str]) -> Tuple[bool, str]:
     """Valida programáticamente que la acción no rompa reglas invariantes críticas."""
     desc = action.get("description", "").lower()
     mod = action.get("module", "").lower()
-    
+
     if "rm " in desc or "del " in desc or "delete" in desc or "eliminar" in desc:
         if "core/" in desc or "core\\" in desc or "core" in mod:
-            return False, "Violación de invariante: Intento de eliminar archivos en core/"
-            
+            return (
+                False,
+                "Violación de invariante: Intento de eliminar archivos en core/",
+            )
+
     if "_keystore.bin" in desc or "_settings.json" in desc or "_knowledge.json" in desc:
         if "modific" in desc or "edit" in desc or "write" in desc or "escrib" in desc:
-            return False, "Violación de invariante: Intento de modificar archivos de estado protegidos"
-            
+            return (
+                False,
+                "Violación de invariante: Intento de modificar archivos de estado protegidos",
+            )
+
     if "git commit" in desc or "git push" in desc:
-        return False, "Violación de invariante: Intento de hacer commit/push sin aprobación"
-        
+        return (
+            False,
+            "Violación de invariante: Intento de hacer commit/push sin aprobación",
+        )
+
     if "security_monitor" in mod or "hitl_manager" in mod:
         if "desactiv" in desc or "disable" in desc or "stop" in desc:
-            return False, "Violación de invariante: Intento de desactivar monitores de seguridad"
-            
+            return (
+                False,
+                "Violación de invariante: Intento de desactivar monitores de seguridad",
+            )
+
     if "invariant" in desc:
         if "modific" in desc or "edit" in desc or "cambi" in desc:
-            return False, "Violación de invariante: Intento de alterar reglas inmutables"
-            
+            return (
+                False,
+                "Violación de invariante: Intento de alterar reglas inmutables",
+            )
+
     return True, "OK"
+
 
 def _act(actions: List[Dict[str, str]]) -> Dict[str, Any]:
     """
@@ -635,13 +713,13 @@ def _act(actions: List[Dict[str, str]]) -> Dict[str, Any]:
     """
     results = {
         "executed_low_risk": [],
-        "queued_high_risk":  [],
-        "errors":            [],
+        "queued_high_risk": [],
+        "errors": [],
     }
 
     for action in actions:
         risk = action.get("risk", "ALTA").upper()
-        
+
         ok_inv, inv_msg = _validate_invariants(action)
         if not ok_inv:
             log.warning(f"[AutonomyEngine] Acción bloqueada por Guardarraíl: {inv_msg}")
@@ -651,21 +729,25 @@ def _act(actions: List[Dict[str, str]]) -> Dict[str, Any]:
         try:
             if risk == "BAJA":
                 ok, msg = _execute_low_risk_action(action)
-                results["executed_low_risk"].append({
-                    "action": action,
-                    "ok":     ok,
-                    "result": msg,
-                })
+                results["executed_low_risk"].append(
+                    {
+                        "action": action,
+                        "ok": ok,
+                        "result": msg,
+                    }
+                )
                 log.info(
                     f"[AutonomyEngine] Acción BAJA riesgo: "
                     f"[{action.get('module')}] {action.get('description', '')[:60]} → {'OK' if ok else 'FAIL'}"
                 )
             else:
                 approval_id = _queue_high_risk_action(action)
-                results["queued_high_risk"].append({
-                    "action":      action,
-                    "approval_id": approval_id,
-                })
+                results["queued_high_risk"].append(
+                    {
+                        "action": action,
+                        "approval_id": approval_id,
+                    }
+                )
         except Exception as e:
             results["errors"].append({"action": action, "error": str(e)})
             log.error(f"[AutonomyEngine] Error ejecutando acción: {e}")
@@ -675,6 +757,7 @@ def _act(actions: List[Dict[str, str]]) -> Dict[str, Any]:
 
 # ── Fase LEARN: Persistir en memoria estratégica ──────────────────────────────
 
+
 def _learn(
     level: str,
     plan_text: str,
@@ -683,17 +766,22 @@ def _learn(
 ) -> None:
     """Persiste el resultado del ciclo OODA en strategic_memory."""
     try:
-        from core.strategic_memory import update_outcome, OUTCOME_SUCCESS, OUTCOME_NEUTRAL, upsert_pattern
+        from core.strategic_memory import (
+            update_outcome,
+            OUTCOME_SUCCESS,
+            OUTCOME_NEUTRAL,
+            upsert_pattern,
+        )
 
-        n_low  = len(act_results.get("executed_low_risk", []))
+        n_low = len(act_results.get("executed_low_risk", []))
         n_high = len(act_results.get("queued_high_risk", []))
-        n_err  = len(act_results.get("errors", []))
+        n_err = len(act_results.get("errors", []))
 
         upsert_pattern(f"autonomy_level:{level}", datetime.now().strftime("%Y-%m-%d"))
 
         if decision_id and decision_id > 0:
             outcome = OUTCOME_SUCCESS if n_err == 0 else OUTCOME_NEUTRAL
-            impact  = 0.3 if level in ("CRÍTICO", "ALERTA") else 0.1
+            impact = 0.3 if level in ("CRÍTICO", "ALERTA") else 0.1
             update_outcome(
                 decision_id,
                 outcome,
@@ -710,6 +798,7 @@ def _learn(
 
 # ── Ciclo OODA completo ───────────────────────────────────────────────────────
 
+
 def run_ooda_cycle() -> Dict[str, Any]:
     """
     Ejecuta un ciclo completo OODA.
@@ -719,9 +808,9 @@ def run_ooda_cycle() -> Dict[str, Any]:
         _state["running"] = True
 
     result: Dict[str, Any] = {
-        "ts":    datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "ts": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "level": "NORMAL",
-        "plan":  "",
+        "plan": "",
         "actions": {},
     }
 
@@ -742,14 +831,17 @@ def run_ooda_cycle() -> Dict[str, Any]:
         # O — ORIENT
         log.info("[AutonomyEngine] Fase 2/5: ORIENT")
         level, alerts = _orient(snapshot)
-        result["level"]  = level
+        result["level"] = level
         result["alerts"] = alerts
-        log.info(f"[AutonomyEngine] Estado clasificado: {level} | {len(alerts)} alerta(s)")
+        log.info(
+            f"[AutonomyEngine] Estado clasificado: {level} | {len(alerts)} alerta(s)"
+        )
 
         # Registrar decisión en strategic_memory
         decision_id: Optional[int] = None
         try:
             from core.strategic_memory import record_decision, CAT_SYSTEM
+
             decision_id = record_decision(
                 category=CAT_SYSTEM,
                 title=f"Ciclo OODA — Nivel: {level}",
@@ -764,14 +856,16 @@ def run_ooda_cycle() -> Dict[str, Any]:
         plan_text = _decide(snapshot, level, alerts)
         result["plan"] = plan_text
         actions = _parse_actions(plan_text)
-        log.info(f"[AutonomyEngine] Plan generado: {len(actions)} acción(es) extraída(s)")
+        log.info(
+            f"[AutonomyEngine] Plan generado: {len(actions)} acción(es) extraída(s)"
+        )
 
         # A — ACT
         log.info("[AutonomyEngine] Fase 4/5: ACT")
         act_results = _act(actions)
         result["actions"] = act_results
 
-        n_low  = len(act_results.get("executed_low_risk", []))
+        n_low = len(act_results.get("executed_low_risk", []))
         n_high = len(act_results.get("queued_high_risk", []))
         log.info(
             f"[AutonomyEngine] ACT completado: {n_low} ejecutadas, "
@@ -783,17 +877,17 @@ def run_ooda_cycle() -> Dict[str, Any]:
         _learn(level, plan_text, act_results, decision_id)
 
         with _lock:
-            _state["last_decision"]         = {
-                "ts":    result["ts"],
+            _state["last_decision"] = {
+                "ts": result["ts"],
                 "level": level,
-                "plan":  plan_text[:500],
+                "plan": plan_text[:500],
                 "n_actions": len(actions),
             }
-            _state["last_status_level"]     = level
-            _state["actions_taken"]        += n_low
+            _state["last_status_level"] = level
+            _state["actions_taken"] += n_low
             _state["actions_pending_hitl"] = n_high
-            _state["cycles_done"]         += 1
-            _state["last_cycle_utc"]       = result["ts"]
+            _state["cycles_done"] += 1
+            _state["last_cycle_utc"] = result["ts"]
 
         log.info(f"[AutonomyEngine] ═══ Ciclo OODA completado. Nivel: {level} ═══")
 
@@ -809,16 +903,21 @@ def run_ooda_cycle() -> Dict[str, Any]:
 
 # ── Daemon ────────────────────────────────────────────────────────────────────
 
+
 def _autonomy_loop() -> None:
     """Loop daemon del motor de autonomía."""
-    log.info(f"[AutonomyEngine] Daemon iniciado. Ciclo OODA cada {DECISION_INTERVAL_H}h.")
+    log.info(
+        f"[AutonomyEngine] Daemon iniciado. Ciclo OODA cada {DECISION_INTERVAL_H}h."
+    )
 
     # Primer ciclo: esperar 60s después del arranque para que el sistema esté estable
     time.sleep(60)
 
     while True:
         try:
-            next_cycle = datetime.now(timezone.utc) + timedelta(hours=DECISION_INTERVAL_H)
+            next_cycle = datetime.now(timezone.utc) + timedelta(
+                hours=DECISION_INTERVAL_H
+            )
             with _lock:
                 _state["next_cycle_utc"] = next_cycle.isoformat().replace("+00:00", "Z")
 
@@ -837,7 +936,9 @@ def start() -> None:
     if _started:
         return
     _started = True
-    t = threading.Thread(target=_autonomy_loop, name="GravityAutonomyEngine", daemon=True)
+    t = threading.Thread(
+        target=_autonomy_loop, name="GravityAutonomyEngine", daemon=True
+    )
     t.start()
     log.info("[AutonomyEngine] Autonomy Engine daemon iniciado.")
 

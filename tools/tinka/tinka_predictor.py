@@ -7,6 +7,7 @@ from core import provider_manager
 
 log = logging.getLogger("TinkaPredictor")
 
+
 class TinkaPredictor:
     def __init__(self, db_manager):
         self.analyzer = TinkaAnalyzer(db_manager)
@@ -17,13 +18,15 @@ class TinkaPredictor:
         Le inyecta todas las métricas estadísticas y la matriz de transiciones de Markov
         para que la IA devuelva un razonamiento y una predicción estructurada.
         """
-        log.info("[TinkaPredictor] Recopilando datasets estadísticos y de Markov para la IA...")
-        
+        log.info(
+            "[TinkaPredictor] Recopilando datasets estadísticos y de Markov para la IA..."
+        )
+
         hot_cold = self.analyzer.get_hot_and_cold_numbers(window_size=50)
         even_odd = self.analyzer.get_even_odd_distribution()
         droughts = self.analyzer.get_droughts(self.analyzer.db.get_total_draws_count())
         markov = self.analyzer.get_markov_transitions()
-        
+
         # Formatear el contexto
         context = f"""
         METADATA HISTÓRICA LA TINKA:
@@ -52,20 +55,20 @@ Devuelve UNICAMENTE un objeto JSON estricto y válido con la siguiente estructur
     "confianza": "Baja/Media/Alta"
 }}
 """
-        
+
         try:
             log.info("[TinkaPredictor] Consultando al modelo de IA local...")
             messages = [{"role": "user", "content": prompt}]
             response = provider_manager.complete(messages)
-            
+
             result_text = response.text if hasattr(response, "text") else str(response)
-            
+
             # Limpiar posible markdown
             if "```json" in result_text:
                 result_text = result_text.split("```json")[1].split("```")[0].strip()
             elif "```" in result_text:
                 result_text = result_text.split("```")[1].split("```")[0].strip()
-                
+
             try:
                 data = json.loads(result_text)
                 # Validar la jugada (deben ser 6 numeros)
@@ -79,34 +82,45 @@ Devuelve UNICAMENTE un objeto JSON estricto y válido con la siguiente estructur
                 log.error(f"[TinkaPredictor] JSON inválido devuelto por IA: {json_e}")
                 # Fallback estricto si falla la estructura
                 import random
-                max_num = max([int(k) for k in hot_cold['hot'].keys()] + [50]) if hot_cold['hot'] else 50
-                fallback_nums = list(hot_cold['hot'].keys())[:2] + list(hot_cold['cold'].keys())[:1]
-                fallback_nums += random.sample(list(set(range(1, max_num + 1)) - set(fallback_nums)), 3)
+
+                max_num = (
+                    max([int(k) for k in hot_cold["hot"].keys()] + [50])
+                    if hot_cold["hot"]
+                    else 50
+                )
+                fallback_nums = (
+                    list(hot_cold["hot"].keys())[:2] + list(hot_cold["cold"].keys())[:1]
+                )
+                fallback_nums += random.sample(
+                    list(set(range(1, max_num + 1)) - set(fallback_nums)), 3
+                )
                 fallback_nums.sort()
                 return {
                     "jugada": fallback_nums,
                     "razonamiento": f"Fallo al interpretar el análisis profundo de la IA. Razonamiento bruto: {result_text[:200]}...",
-                    "confianza": "Baja (Fallback)"
+                    "confianza": "Baja (Fallback)",
                 }
 
         except Exception as e:
             log.error(f"[TinkaPredictor] Error fatal en la predicción IA: {e}")
             import random
+
             nums = random.sample(range(1, 51), 6)
             nums.sort()
             return {
                 "jugada": nums,
                 "razonamiento": "Motor de IA inaccesible. Esta es una jugada puramente aleatoria generada como último recurso.",
-                "confianza": "Baja (Aleatorio Crítico)"
+                "confianza": "Baja (Aleatorio Crítico)",
             }
 
     def generate_random_prediction(self):
         """Genera una jugada completamente al azar para el modo simple."""
         import random
+
         numbers = random.sample(range(1, 51), 6)
         numbers.sort()
         return {
             "jugada": numbers,
             "razonamiento": "Jugada generada mediante un algoritmo PRNG puramente aleatorio, sin heurísticas ni Inteligencia Artificial.",
-            "confianza": "Nula"
+            "confianza": "Nula",
         }

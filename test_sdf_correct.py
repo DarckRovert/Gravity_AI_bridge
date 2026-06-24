@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def map_stairs_correct(p):
     sp = np.array(p)
     # The new heightmap math:
@@ -14,6 +15,7 @@ def map_stairs_correct(p):
     safety_factor = 1.0 / 1.8
     d = vert_dist * safety_factor
     return d
+
 
 p1 = np.array([0.0, 0.19999, 0.0])
 p2 = np.array([0.0, 0.20001, 0.0])
@@ -34,9 +36,10 @@ p3 = np.array([0.0, 0.2, 0.13333])
 p4 = np.array([0.0, 0.2, 0.13334])
 d3 = map_stairs_correct(p3)
 d4 = map_stairs_correct(p4)
-print(f"Difference in SDF (Z test): {abs(d3 - d4)} vs Distance {np.linalg.norm(p3 - p4)}")
+print(
+    f"Difference in SDF (Z test): {abs(d3 - d4)} vs Distance {np.linalg.norm(p3 - p4)}"
+)
 if abs(d3 - d4) > np.linalg.norm(p3 - p4):
     print("ERROR: Lipschitz continuity violated on Z!")
 else:
     print("OK on Z")
-

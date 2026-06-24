@@ -11,7 +11,7 @@ import json
 import urllib.request
 import urllib.error
 import logging
-from typing import Generator, List, Dict, Any, Optional, Tuple
+from typing import Generator, List, Dict, Any, Tuple
 from providers.base import ProviderPlugin, ProviderResult
 from core.key_manager import KeyManager
 
@@ -21,14 +21,14 @@ GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
 
 class GeminiProvider(ProviderPlugin):
-    name: str              = "Google Gemini"
-    protocol: str          = "gemini"
-    category: str          = "cloud"
-    requires_key: bool      = True
-    supports_vision: bool   = True
+    name: str = "Google Gemini"
+    protocol: str = "gemini"
+    category: str = "cloud"
+    requires_key: bool = True
+    supports_vision: bool = True
     supports_function_calling: bool = True
-    default_context: int   = 1000000
-    _key_id: str           = "gemini"
+    default_context: int = 1000000
+    _key_id: str = "gemini"
     _available_models: List[str] = [
         "gemini-2.5-pro-exp-03-25",
         "gemini-2.0-flash",
@@ -37,7 +37,9 @@ class GeminiProvider(ProviderPlugin):
         "gemini-1.5-flash-latest",
     ]
 
-    def _convert_messages(self, messages: List[Dict[str, Any]]) -> Tuple[str, List[Dict[str, Any]]]:
+    def _convert_messages(
+        self, messages: List[Dict[str, Any]]
+    ) -> Tuple[str, List[Dict[str, Any]]]:
         """Converts OpenAI messages → (system_instruction, gemini_contents)."""
         system = ""
         contents: List[Dict[str, Any]] = []
@@ -46,45 +48,46 @@ class GeminiProvider(ProviderPlugin):
                 system += str(m.get("content", "")) + "\n"
             else:
                 role = "user" if m.get("role") == "user" else "model"
-                contents.append({
-                    "role": role,
-                    "parts": [{"text": m.get("content", "")}],
-                })
+                contents.append(
+                    {
+                        "role": role,
+                        "parts": [{"text": m.get("content", "")}],
+                    }
+                )
         return system.strip(), contents
 
     def check_health(self) -> ProviderResult:
         r = self._make_result(GEMINI_BASE)
         r.key_configured = KeyManager.has_key(self._key_id)
         if r.key_configured:
-            r.is_healthy   = True
-            r.models       = [{"name": m, "size": 0} for m in self._available_models]
+            r.is_healthy = True
+            r.models = [{"name": m, "size": 0} for m in self._available_models]
             r.active_model = self._available_models[0]
         return r
 
     def chat_stream(
         self,
         messages: List[Dict[str, Any]],
-        model:    str,
-        options:  Dict[str, Any],
+        model: str,
+        options: Dict[str, Any],
     ) -> Generator[str, None, None]:
         try:
-            key   = KeyManager.get_key(self._key_id) or ""
+            key = KeyManager.get_key(self._key_id) or ""
             system, contents = self._convert_messages(messages)
             payload: Dict[str, Any] = {
-                "contents":           contents,
+                "contents": contents,
                 "generationConfig": {
                     "maxOutputTokens": options.get("max_tokens", 8192),
-                    "temperature":     options.get("temperature", 0.7),
+                    "temperature": options.get("temperature", 0.7),
                 },
             }
             if system:
                 payload["systemInstruction"] = {"parts": [{"text": system}]}
 
-            url  = f"{GEMINI_BASE}/{model}:streamGenerateContent?alt=sse&key={key}"
+            url = f"{GEMINI_BASE}/{model}:streamGenerateContent?alt=sse&key={key}"
             data = json.dumps(payload).encode()
-            req  = urllib.request.Request(
-                url, data=data,
-                headers={"Content-Type": "application/json"}
+            req = urllib.request.Request(
+                url, data=data, headers={"Content-Type": "application/json"}
             )
             with urllib.request.urlopen(req, timeout=300) as r:
                 for raw in r:
@@ -108,27 +111,26 @@ class GeminiProvider(ProviderPlugin):
     def chat_complete(
         self,
         messages: List[Dict[str, Any]],
-        model:    str,
-        options:  Dict[str, Any],
+        model: str,
+        options: Dict[str, Any],
     ) -> str:
         try:
-            key   = KeyManager.get_key(self._key_id) or ""
+            key = KeyManager.get_key(self._key_id) or ""
             system, contents = self._convert_messages(messages)
             payload: Dict[str, Any] = {
-                "contents":           contents,
+                "contents": contents,
                 "generationConfig": {
                     "maxOutputTokens": options.get("max_tokens", 8192),
-                    "temperature":     options.get("temperature", 0.7),
+                    "temperature": options.get("temperature", 0.7),
                 },
             }
             if system:
                 payload["systemInstruction"] = {"parts": [{"text": system}]}
 
-            url  = f"{GEMINI_BASE}/{model}:generateContent?key={key}"
+            url = f"{GEMINI_BASE}/{model}:generateContent?key={key}"
             data = json.dumps(payload).encode()
-            req  = urllib.request.Request(
-                url, data=data,
-                headers={"Content-Type": "application/json"}
+            req = urllib.request.Request(
+                url, data=data, headers={"Content-Type": "application/json"}
             )
             with urllib.request.urlopen(req, timeout=300) as r:
                 d = json.loads(r.read().decode())
@@ -143,8 +145,8 @@ class GeminiProvider(ProviderPlugin):
     def get_cost_per_million_tokens(self, model: str) -> Dict[str, float]:
         costs = {
             "gemini-2.5-pro-exp-03-25": {"input": 1.25, "output": 10.00},
-            "gemini-2.0-flash":         {"input": 0.075, "output": 0.30},
-            "gemini-1.5-pro-latest":    {"input": 1.25,  "output": 5.00},
-            "gemini-1.5-flash-latest":  {"input": 0.075, "output": 0.30},
+            "gemini-2.0-flash": {"input": 0.075, "output": 0.30},
+            "gemini-1.5-pro-latest": {"input": 1.25, "output": 5.00},
+            "gemini-1.5-flash-latest": {"input": 0.075, "output": 0.30},
         }
         return costs.get(model, {"input": 1.25, "output": 5.00})

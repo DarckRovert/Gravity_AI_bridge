@@ -19,19 +19,19 @@ import re
 import csv
 import io
 import threading
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 
-BASE_DIR      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _settings_lock = threading.RLock()
 
 # Mapa de modelos AMD iGPU conocidos → versión GFX para ROCm
 AMD_GFX_MAP: Dict[str, str] = {
-    "890m":    "12.0.0",   # Strix Halo
-    "880m":    "11.5.0",   # Hawk Point 2
-    "780m":    "11.0.0",   # Phoenix (Ryzen 7 8700G)
-    "760m":    "11.0.0",   # Phoenix
-    "740m":    "11.0.0",   # Phoenix
-    "680m":    "10.3.5",   # Van Gogh (Steam Deck)
+    "890m": "12.0.0",  # Strix Halo
+    "880m": "11.5.0",  # Hawk Point 2
+    "780m": "11.0.0",  # Phoenix (Ryzen 7 8700G)
+    "760m": "11.0.0",  # Phoenix
+    "740m": "11.0.0",  # Phoenix
+    "680m": "10.3.5",  # Van Gogh (Steam Deck)
     "rx 7900": "11.0.0",
     "rx 7800": "11.0.0",
     "rx 7700": "11.0.0",
@@ -48,8 +48,13 @@ def _run_cmd(cmd: str, timeout: int = 4) -> str:
     """Runs a shell command and returns stdout, suppressing all errors."""
     try:
         result = subprocess.run(
-            cmd, capture_output=True, text=True,
-            timeout=timeout, shell=True, encoding="utf-8", errors="ignore"
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            shell=True,
+            encoding="utf-8",
+            errors="ignore",
         )
         return result.stdout.strip()
     except Exception:
@@ -103,7 +108,7 @@ def _parse_ram_windows() -> int:
     ps_cmd = "(Get-CimInstance -ClassName Win32_ComputerSystem).TotalPhysicalMemory"
     out = _run_cmd(f'powershell -NoProfile -Command "{ps_cmd}"', timeout=5)
     try:
-        return int(out.strip()) // (1024 ** 2)
+        return int(out.strip()) // (1024**2)
     except Exception:
         return 32768  # fallback 32GB
 
@@ -133,7 +138,7 @@ def _parse_ram_linux() -> int:
     """Returns total system RAM in MB on Linux."""
     out = _run_cmd("grep MemTotal /proc/meminfo 2>/dev/null")
     try:
-        match = re.search(r'\d+', out)
+        match = re.search(r"\d+", out)
         if match:
             return int(match.group()) // 1024
         return 16384
@@ -148,33 +153,44 @@ def _classify_gpu(name: str, vram_bytes: int, total_ram_mb: int) -> Dict[str, An
     """
     name_lower = name.lower()
     info: Dict[str, Any] = {
-        "name":        name,
-        "vram_bytes":  vram_bytes,
-        "vram_mb":     vram_bytes // (1024 ** 2) if vram_bytes > 0 else 0,
-        "vendor":      "unknown",
-        "is_igpu":     False,
-        "gpu_type":    "cpu",
+        "name": name,
+        "vram_bytes": vram_bytes,
+        "vram_mb": vram_bytes // (1024**2) if vram_bytes > 0 else 0,
+        "vendor": "unknown",
+        "is_igpu": False,
+        "gpu_type": "cpu",
         "gfx_version": None,
     }
 
     if "amd" in name_lower or "radeon" in name_lower:
-        info["vendor"]   = "amd"
+        info["vendor"] = "amd"
         info["gpu_type"] = "rocm"
         igpu_keywords = [
-            "780m", "760m", "740m", "890m", "880m", "680m",
-            "integrated", "igpu", "vega", "raphael", "phoenix",
+            "780m",
+            "760m",
+            "740m",
+            "890m",
+            "880m",
+            "680m",
+            "integrated",
+            "igpu",
+            "vega",
+            "raphael",
+            "phoenix",
         ]
-        info["is_igpu"]     = any(k in name_lower for k in igpu_keywords)
+        info["is_igpu"] = any(k in name_lower for k in igpu_keywords)
         info["gfx_version"] = _detect_amd_gfx(name_lower)
 
-    elif any(x in name_lower for x in ["nvidia", "geforce", "rtx", "gtx", "quadro", "tesla"]):
-        info["vendor"]   = "nvidia"
+    elif any(
+        x in name_lower for x in ["nvidia", "geforce", "rtx", "gtx", "quadro", "tesla"]
+    ):
+        info["vendor"] = "nvidia"
         info["gpu_type"] = "cuda"
 
     elif "intel" in name_lower:
-        info["vendor"]   = "intel"
+        info["vendor"] = "intel"
         info["gpu_type"] = "vulkan"
-        info["is_igpu"]  = True
+        info["is_igpu"] = True
 
     # iGPU with shared memory: OS reports fictitious VRAM (512MB or similar).
     # Estimate real allocated VRAM as 35% of total system RAM.
@@ -194,23 +210,25 @@ def detect_gpu() -> Dict[str, Any]:
       - total_ram_mb: total system RAM
     """
     profile: Dict[str, Any] = {
-        "gpu_name":    "Unknown",
-        "vendor":      "unknown",
-        "vram_mb":     8192,
+        "gpu_name": "Unknown",
+        "vendor": "unknown",
+        "vram_mb": 8192,
         "total_ram_mb": 16384,
-        "is_igpu":     False,
-        "gpu_type":    "cpu",
+        "is_igpu": False,
+        "gpu_type": "cpu",
         "gfx_version": None,
-        "all_gpus":    [],          # FEAT-14: all detected GPUs
+        "all_gpus": [],  # FEAT-14: all detected GPUs
     }
 
     is_windows = platform.system() == "Windows"
-    raw_gpus   = _parse_gpu_windows() if is_windows else _parse_gpu_linux()
-    total_ram  = _parse_ram_windows() if is_windows else _parse_ram_linux()
+    raw_gpus = _parse_gpu_windows() if is_windows else _parse_gpu_linux()
+    total_ram = _parse_ram_windows() if is_windows else _parse_ram_linux()
     profile["total_ram_mb"] = total_ram
 
     # Classify all raw GPU entries
-    classified = [_classify_gpu(g["name"], g["vram_bytes"], total_ram) for g in raw_gpus]
+    classified = [
+        _classify_gpu(g["name"], g["vram_bytes"], total_ram) for g in raw_gpus
+    ]
     profile["all_gpus"] = classified
 
     if not classified:
@@ -227,17 +245,19 @@ def detect_gpu() -> Dict[str, Any]:
         primary = max(igpus, key=lambda g: g["vram_mb"])
 
     if primary:
-        profile["gpu_name"]    = primary["name"]
-        profile["vram_mb"]     = primary["vram_mb"]
-        profile["vendor"]      = primary["vendor"]
-        profile["is_igpu"]     = primary["is_igpu"]
-        profile["gpu_type"]    = primary["gpu_type"]
+        profile["gpu_name"] = primary["name"]
+        profile["vram_mb"] = primary["vram_mb"]
+        profile["vendor"] = primary["vendor"]
+        profile["is_igpu"] = primary["is_igpu"]
+        profile["gpu_type"] = primary["gpu_type"]
         profile["gfx_version"] = primary["gfx_version"]
 
     return profile
 
 
-def calculate_optimal_ctx(vram_mb: int, model_size_b: int = 32, kv_quant: str = "q4_0") -> int:
+def calculate_optimal_ctx(
+    vram_mb: int, model_size_b: int = 32, kv_quant: str = "q4_0"
+) -> int:
     """
     Calculates the maximum context window that fits in available VRAM.
 
@@ -283,8 +303,16 @@ def get_full_profile() -> Dict[str, Any]:
                 if isinstance(settings, dict):
                     model_name = settings.get("last_model", "").lower()
                     for size_str, size_b in [
-                        ("70b", 70), ("72b", 72), ("32b", 32), ("30b", 30),
-                        ("14b", 14), ("13b", 13), ("8b", 8), ("7b", 7), ("3b", 3), ("1b", 1)
+                        ("70b", 70),
+                        ("72b", 72),
+                        ("32b", 32),
+                        ("30b", 30),
+                        ("14b", 14),
+                        ("13b", 13),
+                        ("8b", 8),
+                        ("7b", 7),
+                        ("3b", 3),
+                        ("1b", 1),
                     ]:
                         if size_str in model_name:
                             model_size_b = size_b
@@ -292,19 +320,19 @@ def get_full_profile() -> Dict[str, Any]:
         except Exception:
             pass
 
-    kv_quant    = "q4_0" if gpu["vram_mb"] < 10000 else "q8_0"
+    kv_quant = "q4_0" if gpu["vram_mb"] < 10000 else "q8_0"
     optimal_ctx = calculate_optimal_ctx(gpu["vram_mb"], model_size_b, kv_quant)
 
     npu_name = _parse_npu_windows() if platform.system() == "Windows" else None
 
     return {
         **gpu,
-        "npu_name":     npu_name,
+        "npu_name": npu_name,
         "model_size_b": model_size_b,
-        "kv_quant":     kv_quant,
-        "optimal_ctx":  optimal_ctx,
-        "is_amd":       gpu["vendor"] == "amd",
-        "is_nvidia":    gpu["vendor"] == "nvidia",
+        "kv_quant": kv_quant,
+        "optimal_ctx": optimal_ctx,
+        "is_amd": gpu["vendor"] == "amd",
+        "is_nvidia": gpu["vendor"] == "nvidia",
     }
 
 
@@ -316,7 +344,9 @@ if __name__ == "__main__":
     p = get_full_profile()
     print(f"  GPU (Primary)  : {p['gpu_name']}")
     print(f"  Vendor         : {p['vendor'].upper()}")
-    print(f"  Tipo           : {'iGPU (Integrada)' if p['is_igpu'] else 'dGPU (Dedicada)'}")
+    print(
+        f"  Tipo           : {'iGPU (Integrada)' if p['is_igpu'] else 'dGPU (Dedicada)'}"
+    )
     print(f"  VRAM Estimada  : {p['vram_mb']:,} MB ({p['vram_mb']/1024:.1f} GB)")
     print(f"  RAM Total      : {p['total_ram_mb']:,} MB ({p['total_ram_mb']//1024} GB)")
     print(f"  GPU Backend    : {p['gpu_type'].upper()}")
@@ -329,9 +359,10 @@ if __name__ == "__main__":
         print(f"\n  Todas las GPUs detectadas ({len(p['all_gpus'])}):")
         for i, g in enumerate(p["all_gpus"]):
             tag = "[iGPU]" if g["is_igpu"] else "[dGPU]"
-            print(f"    [{i}] {tag} {g['name']} — {g['vram_mb']:,} MB ({g['vendor'].upper()})")
+            print(
+                f"    [{i}] {tag} {g['name']} — {g['vram_mb']:,} MB ({g['vendor'].upper()})"
+            )
 
     print(f"\n  Modelo ({p['model_size_b']}B)   : {p['kv_quant'].upper()} KV-Cache")
     print(f"  Contexto Óptimo : {p['optimal_ctx']:,} tokens")
     print()
-

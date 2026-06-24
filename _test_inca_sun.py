@@ -6,15 +6,16 @@ sys.path.insert(0, r"f:\Gravity_AI_bridge")
 
 from core.logger import log
 import logging
+
 # Aumentar verbosidad para ver progreso
 log.setLevel(logging.INFO)
 
 from core.video.audio_analyzer import extract_multiband_energy
 from core.video.timeline_director import generate_timeline, generate_color_sequence
 from core.video.v13_ai_director import analyze_lyrics_sections
-from core.video.ai_scene_generator import generate_scene_images
 from core.video.glsl_renderer_v13 import render_v13_video
 from core.video.subtitle_engine import generate_ass_subtitles
+
 
 def main():
     audio_path = r"F:\PROYECTO VIDEOCLIP MUSICAL\input\Inca Sun.mp3"
@@ -24,7 +25,7 @@ def main():
     fps = 24
     print("[1/5] Extrayendo energía multibanda del audio...")
     multiband = extract_multiband_energy(audio_path, fps)
-    total_frames = len(multiband.get('bass', []))
+    total_frames = len(multiband.get("bass", []))
 
     if total_frames == 0:
         print("Error: No se pudo extraer información del audio.")
@@ -65,14 +66,18 @@ def main():
 
     bg_images_horiz = None
     bg_images_vert = None
-    
+
     # Generar Subtítulos
     print("[3.5/5] Generando Subtítulos (Karaoke) con Whisper...")
     horiz_ass = os.path.join(output_dir, "test_inca_horiz.ass")
     vert_ass = os.path.join(output_dir, "test_inca_vert.ass")
-    
-    generate_ass_subtitles(audio_path, horiz_ass, tgt_w=1280, tgt_h=720, lyrics_text=lyrics)
-    generate_ass_subtitles(audio_path, vert_ass, tgt_w=720, tgt_h=1280, lyrics_text=lyrics)
+
+    generate_ass_subtitles(
+        audio_path, horiz_ass, tgt_w=1280, tgt_h=720, lyrics_text=lyrics
+    )
+    generate_ass_subtitles(
+        audio_path, vert_ass, tgt_w=720, tgt_h=1280, lyrics_text=lyrics
+    )
 
     out_horiz = os.path.join(output_dir, "Inca_Sun_Horizontal.mp4")
     print(f"Renderizando video: {out_horiz}")
@@ -89,7 +94,7 @@ def main():
         speed_multiplier=speed_mult_arr,
         turbulence=turb_mult_arr,
         background_images=bg_images_horiz,
-        subtitle_file=horiz_ass
+        subtitle_file=horiz_ass,
     )
 
     # VERTICAL
@@ -112,10 +117,11 @@ def main():
         speed_multiplier=speed_mult_arr,
         turbulence=turb_mult_arr,
         background_images=bg_images_vert,
-        subtitle_file=vert_ass
+        subtitle_file=vert_ass,
     )
 
     print("\n=== PROCESO COMPLETADO EXITOSAMENTE ===")
+
 
 if __name__ == "__main__":
     main()

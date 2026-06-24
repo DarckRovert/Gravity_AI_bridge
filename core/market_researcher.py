@@ -9,7 +9,7 @@ Busca y analiza la competencia en la web de forma automática, estructurando
 briefings competitivos mediante los mejores LLMs locales disponibles.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, List
 from core.logger import log
 from core.web_search import search_and_scrape
 from core.provider_manager import get_best, complete
@@ -31,19 +31,23 @@ def analyze_competitors(topic: str) -> str:
         return ""
 
     log.info(f"[MarketResearch] Analizando a la competencia para: '{topic}'")
-    
+
     # 1. Buscar en DuckDuckGo resultados de YouTube y artículos top
     query: str = f"{topic} youtube video"
     try:
         raw_data: str = search_and_scrape(query, max_results=3)
     except Exception as search_err:
-        log.error(f"[MarketResearch] Error al realizar búsqueda y raspado: {search_err}")
+        log.error(
+            f"[MarketResearch] Error al realizar búsqueda y raspado: {search_err}"
+        )
         return ""
-    
+
     if not raw_data or not raw_data.strip():
-        log.warning("[MarketResearch] No se encontró información de la competencia en la web.")
+        log.warning(
+            "[MarketResearch] No se encontró información de la competencia en la web."
+        )
         return ""
-        
+
     # 2. Analizar la data con LLM
     prompt: str = (
         f"Eres un Analista de Mercado y Estratega de YouTube.\n"
@@ -55,28 +59,29 @@ def analyze_competitors(topic: str) -> str:
         "2. Qué errores evitar o qué información falta en esos videos.\n"
         "3. Una recomendación directa para que el guionista de este nuevo video los supere en retención."
     )
-    
+
     best_prov, best_model = get_best()
     if not best_prov or not best_model:
-        log.error("[MarketResearch] No hay proveedores activos o configurados para el análisis.")
+        log.error(
+            "[MarketResearch] No hay proveedores activos o configurados para el análisis."
+        )
         return ""
-        
+
     messages: List[Dict[str, str]] = [{"role": "user", "content": prompt}]
-    
+
     try:
         result: str = complete(
             messages=messages,
             model=best_model,
             provider=best_prov.name,
-            options={"temperature": 0.5, "max_tokens": 400}
+            options={"temperature": 0.5, "max_tokens": 400},
         )
         if not result or not result.strip():
             log.warning("[MarketResearch] Respuesta vacía del LLM.")
             return ""
-            
+
         log.info("[MarketResearch] Briefing competitivo generado exitosamente.")
         return f"\n\n[BRIEFING COMPETITIVO (MARKET RESEARCH)]:\n{result}\n"
     except Exception as e:
         log.error(f"[MarketResearch] Error analizando competidores vía LLM: {e}")
         return ""
-

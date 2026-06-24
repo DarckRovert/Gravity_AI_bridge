@@ -23,4 +23,6 @@ Debe ser el clímax absoluto de la obra. Un tono grandilocuente, científico, t�
 if __name__ == "__main__":
     author = GravityResearchAuthor()
     # Generaremos 5 capítulos.
-    author.write_research_book(prompt=prompt_maestro, title="La Fractura del Espejo", num_chapters=5)
+    author.write_research_book(
+        prompt=prompt_maestro, title="La Fractura del Espejo", num_chapters=5
+    )

@@ -12,7 +12,7 @@ import os
 import json
 import time
 import threading
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -30,17 +30,17 @@ def _safe_write_file(path: str, content: str) -> None:
     dir_name: str = os.path.dirname(path)
     if dir_name:
         os.makedirs(dir_name, exist_ok=True)
-        
+
     with open(tmp_path, "w", encoding="utf-8") as f:
         f.write(content)
-        
+
     for i in range(5):
         try:
             os.replace(tmp_path, path)
             return
         except PermissionError:
             time.sleep(0.05)
-    
+
     # Intento final forzado (si falla, propagará la excepción)
     os.replace(tmp_path, path)
 
@@ -64,7 +64,9 @@ class IDEIntegrator:
                 IDEIntegrator._configure_aider()
                 IDEIntegrator._configure_cursor()
             else:
-                print(f"[!] Herramienta no reconocida: {tool}. Opciones: continue, aider, cursor, todo")
+                print(
+                    f"[!] Herramienta no reconocida: {tool}. Opciones: continue, aider, cursor, todo"
+                )
 
     @staticmethod
     def _configure_continue() -> None:
@@ -75,11 +77,11 @@ class IDEIntegrator:
             "version: 10.0.0\n"
             "schema: v1\n"
             "models:\n"
-            "  - name: \"Gravity Bridge\"\n"
+            '  - name: "Gravity Bridge"\n'
             "    provider: openai\n"
             "    model: gravity-bridge-auto\n"
-            "    apiBase: \"http://localhost:7860/v1\"\n"
-            "    apiKey: \"gravity-local\"\n"
+            '    apiBase: "http://localhost:7860/v1"\n'
+            '    apiKey: "gravity-local"\n'
         )
         path: str = os.path.join(target_dir, "config.yaml")
         with _ide_lock:
@@ -105,12 +107,14 @@ class IDEIntegrator:
         """Configura Cursor en la carpeta de integraciones."""
         target_dir: str = os.path.join(BASE_DIR, "_integrations")
         cfg: Dict[str, Any] = {
-            "models": [{
-                "name": "Gravity Bridge",
-                "provider": "openai",
-                "baseUrl": "http://localhost:7860/v1",
-                "apiKey": "gravity-local"
-            }]
+            "models": [
+                {
+                    "name": "Gravity Bridge",
+                    "provider": "openai",
+                    "baseUrl": "http://localhost:7860/v1",
+                    "apiKey": "gravity-local",
+                }
+            ]
         }
         path: str = os.path.join(target_dir, "cursor.json")
         with _ide_lock:
@@ -121,7 +125,6 @@ class IDEIntegrator:
 
 if __name__ == "__main__":
     import sys
+
     tool_arg: str = sys.argv[1] if len(sys.argv) > 1 else "todo"
     IDEIntegrator.integrate(tool_arg)
-
-

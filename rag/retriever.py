@@ -27,9 +27,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # ── Embedder ──────────────────────────────────────────────────────────────────
 
+
 class RAGEmbedder:
-    _backend: str = None   # "ollama" | "sentence_transformers" | "openai" | "tfidf"
-    _model:   str = ""
+    _backend: str = None  # "ollama" | "sentence_transformers" | "openai" | "tfidf"
+    _model: str = ""
     _st_model = None
     _backend_detected: bool = False  # Flag: True cuando el backend ya fue detectado
 
@@ -39,7 +40,7 @@ class RAGEmbedder:
         npu_dir = os.path.join(BASE_DIR, "rag", "models", "npu_minilm")
         if os.path.exists(os.path.join(npu_dir, "model.onnx")):
             cls._backend = "onnx_npu"
-            cls._model   = "all-MiniLM-L6-v2"
+            cls._model = "all-MiniLM-L6-v2"
             cls._backend_detected = True
             return cls._backend
         # Try Ollama nomic-embed-text
@@ -50,10 +51,12 @@ class RAGEmbedder:
                 ).read()
             )
             models = [m["name"] for m in data.get("models", [])]
-            embed_model = next((m for m in models if "embed" in m or "nomic" in m), None)
+            embed_model = next(
+                (m for m in models if "embed" in m or "nomic" in m), None
+            )
             if embed_model:
                 cls._backend = "ollama"
-                cls._model   = embed_model
+                cls._model = embed_model
                 cls._backend_detected = True
                 return cls._backend
         except Exception:
@@ -61,8 +64,9 @@ class RAGEmbedder:
         # Try sentence-transformers
         try:
             from sentence_transformers import SentenceTransformer
+
             cls._st_model = SentenceTransformer("all-MiniLM-L6-v2")
-            cls._backend  = "sentence_transformers"
+            cls._backend = "sentence_transformers"
             cls._backend_detected = True
             return cls._backend
         except Exception:
@@ -70,9 +74,10 @@ class RAGEmbedder:
         # Try OpenAI embeddings
         try:
             from core.key_manager import KeyManager
+
             if KeyManager.has_key("openai"):
                 cls._backend = "openai"
-                cls._model   = "text-embedding-3-small"
+                cls._model = "text-embedding-3-small"
                 cls._backend_detected = True
                 return cls._backend
         except Exception:
@@ -101,17 +106,22 @@ class RAGEmbedder:
             return cls._embed_tfidf(texts)
 
     _onnx_session = None
-    _tokenizer    = None
+    _tokenizer = None
 
     @classmethod
     def _embed_onnx_npu(cls, texts):
         global onnxruntime, tokenizers, numpy
         import sys
-        
+
         # PHASE 3: Gravity Hybrid Delegation (Conda Support)
         # If current python is 3.14+, we delegate to a 3.11 environment to use NPU
         import shutil
-        if sys.version_info.major == 3 and sys.version_info.minor >= 14 and shutil.which("conda"):
+
+        if (
+            sys.version_info.major == 3
+            and sys.version_info.minor >= 14
+            and shutil.which("conda")
+        ):
             return cls._embed_hybrid_conda(texts)
         elif sys.version_info.major == 3 and sys.version_info.minor >= 14:
             # conda not available, fallback directly to TF-IDF
@@ -125,62 +135,72 @@ class RAGEmbedder:
             except ImportError:
                 # onnxruntime/tokenizers not installed in this environment — fallback to TF-IDF
                 return cls._embed_tfidf(texts)
-            
+
             # ENFORCE ABSOLUTE CANONICAL PATHS FOR NPU DRIVER (Awakening V2)
             install_dir = r"C:\Program Files\RyzenAI\1.7.1"
-            npu_dir     = os.path.join(BASE_DIR, "rag", "models", "npu_minilm")
-            npu_bin     = os.path.join(install_dir, "onnxruntime", "bin")
-            voe_dir     = os.path.join(install_dir, "voe-4.0-win_amd64")
+            npu_dir = os.path.join(BASE_DIR, "rag", "models", "npu_minilm")
+            npu_bin = os.path.join(install_dir, "onnxruntime", "bin")
+            voe_dir = os.path.join(install_dir, "voe-4.0-win_amd64")
             xclbin_path = os.path.join(voe_dir, "xclbins", "phoenix", "4x4.xclbin")
             config_file = os.path.join(voe_dir, "vaip_config.json")
-            cache_dir   = os.path.join(BASE_DIR, "rag", "cache")
-            
+            cache_dir = os.path.join(BASE_DIR, "rag", "cache")
+
             # 1. Force Silence (Bypass UnicodeDecodeError)
-            os.environ['ORT_LOGGING_LEVEL'] = '3'
-            
+            os.environ["ORT_LOGGING_LEVEL"] = "3"
+
             # 2. Critical NPU Plugin Handshake
-            os.environ['ORT_VITISAI_EP_PATH'] = voe_dir
+            os.environ["ORT_VITISAI_EP_PATH"] = voe_dir
             if os.path.exists(npu_bin) and hasattr(os, "add_dll_directory"):
                 os.add_dll_directory(npu_bin)
                 os.add_dll_directory(voe_dir)
                 os.environ["PATH"] = f"{npu_bin};{voe_dir};" + os.environ["PATH"]
-            
+
             # 3. Awakening V2: Provider Options Structure
-            provider_options = [{
-                'config_file': config_file,
-                'cacheDir': cache_dir,
-                'cacheKey': 'gravity_v71_npu',
-                'target': 'X1',
-                'xclbin': xclbin_path
-            }, {}, {}]
-            
+            provider_options = [
+                {
+                    "config_file": config_file,
+                    "cacheDir": cache_dir,
+                    "cacheKey": "gravity_v71_npu",
+                    "target": "X1",
+                    "xclbin": xclbin_path,
+                },
+                {},
+                {},
+            ]
+
             try:
                 model_path = os.path.join(npu_dir, "model_int8.onnx")
                 cls._onnx_session = onnxruntime.InferenceSession(
-                    model_path, 
-                    providers=['VitisAIExecutionProvider', 'DmlExecutionProvider', 'CPUExecutionProvider'],
-                    provider_options=provider_options
+                    model_path,
+                    providers=[
+                        "VitisAIExecutionProvider",
+                        "DmlExecutionProvider",
+                        "CPUExecutionProvider",
+                    ],
+                    provider_options=provider_options,
                 )
             except Exception:
                 # Fallback to GPU (DML)
                 cls._onnx_session = onnxruntime.InferenceSession(
-                    os.path.join(npu_dir, "model_int8.onnx"), 
-                    providers=['DmlExecutionProvider', 'CPUExecutionProvider']
+                    os.path.join(npu_dir, "model_int8.onnx"),
+                    providers=["DmlExecutionProvider", "CPUExecutionProvider"],
                 )
-            
-            cls._tokenizer = Tokenizer.from_file(os.path.join(npu_dir, "tokenizer.json"))
+
+            cls._tokenizer = Tokenizer.from_file(
+                os.path.join(npu_dir, "tokenizer.json")
+            )
 
         results = []
         for text in texts:
             encoded = cls._tokenizer.encode(text)
             input_ids = numpy.array([encoded.ids], dtype=numpy.int64)
             attn_mask = numpy.array([encoded.attention_mask], dtype=numpy.int64)
-            type_ids  = numpy.array([encoded.type_ids], dtype=numpy.int64)
-            
+            type_ids = numpy.array([encoded.type_ids], dtype=numpy.int64)
+
             inputs = {
                 "input_ids": input_ids,
                 "attention_mask": attn_mask,
-                "token_type_ids": type_ids
+                "token_type_ids": type_ids,
             }
             outputs = cls._onnx_session.run(None, inputs)
             # Perform mean pooling on the output
@@ -200,15 +220,16 @@ class RAGEmbedder:
         """
         import subprocess
         import tempfile
+
         env_name = "gravity-npu"
-        
+
         # 1. Create temporary exchange files
         with tempfile.NamedTemporaryFile("w", delete=False, suffix=".json") as f_in:
             json.dump(texts, f_in)
             in_path = f_in.name
-            
+
         out_path = in_path + ".out.json"
-        
+
         # 2. Worker script (one-liner version)
         worker_code = (
             f"import json, os, sys; "
@@ -218,24 +239,28 @@ class RAGEmbedder:
             f"vecs = RAGEmbedder._embed_onnx_npu(texts); "
             f"with open(r'{out_path}', 'w') as fo: json.dump(vecs, fo)"
         )
-        
+
         # 3. Execution
-        cmd = f"conda run -n {env_name} python -c \"{worker_code}\""
+        cmd = f'conda run -n {env_name} python -c "{worker_code}"'
         try:
             subprocess.run(cmd, shell=True, check=True, capture_output=True)
             with open(out_path, "r") as f_out:
                 results = json.load(f_out)
         except Exception as e:
             # If hybrid fails, fallback to TF-IDF in current process
-            err_msg = getattr(e, 'stderr', b'').decode(errors='ignore') or str(e)
+            err_msg = getattr(e, "stderr", b"").decode(errors="ignore") or str(e)
             import logging
-            logging.getLogger("gravity.rag").debug(f"[HYBRID] Conda delegation failed, using TF-IDF: {err_msg}")
+
+            logging.getLogger("gravity.rag").debug(
+                f"[HYBRID] Conda delegation failed, using TF-IDF: {err_msg}"
+            )
             return cls._embed_tfidf(texts)
         finally:
             # Cleanup
             for p in [in_path, out_path]:
-                if os.path.exists(p): os.remove(p)
-                
+                if os.path.exists(p):
+                    os.remove(p)
+
         return results
 
     @classmethod
@@ -243,9 +268,10 @@ class RAGEmbedder:
         results = []
         for text in texts:
             payload = json.dumps({"model": cls._model, "prompt": text}).encode()
-            req     = urllib.request.Request(
-                "http://localhost:11434/api/embeddings", data=payload,
-                headers={"Content-Type": "application/json"}
+            req = urllib.request.Request(
+                "http://localhost:11434/api/embeddings",
+                data=payload,
+                headers={"Content-Type": "application/json"},
             )
             try:
                 with urllib.request.urlopen(req, timeout=30) as r:
@@ -263,10 +289,11 @@ class RAGEmbedder:
     @classmethod
     def _embed_openai(cls, texts):
         from core.key_manager import KeyManager
+
         key = KeyManager.get_key("openai")
         payload = json.dumps({"input": texts, "model": cls._model}).encode()
         headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
-        req     = urllib.request.Request(
+        req = urllib.request.Request(
             "https://api.openai.com/v1/embeddings", data=payload, headers=headers
         )
         with urllib.request.urlopen(req, timeout=30) as r:
@@ -281,15 +308,17 @@ class RAGEmbedder:
         real embedding backend is available. Zero dependencies.
         """
         DIM = 512
+
         def _hash_vec(text):
-            words = re.findall(r'\w+', text.lower())
-            vec   = [0.0] * DIM
+            words = re.findall(r"\w+", text.lower())
+            vec = [0.0] * DIM
             for w in words:
                 h = int(hashlib.md5(w.encode()).hexdigest(), 16) % DIM
                 vec[h] += 1.0
             # L2 normalize
-            norm = math.sqrt(sum(x*x for x in vec)) or 1.0
+            norm = math.sqrt(sum(x * x for x in vec)) or 1.0
             return [x / norm for x in vec]
+
         return [_hash_vec(t) for t in texts]
 
     @classmethod
@@ -299,6 +328,7 @@ class RAGEmbedder:
 
 # ── Retriever ─────────────────────────────────────────────────────────────────
 
+
 class RAGRetriever:
     @staticmethod
     def retrieve(query: str, top_k: int = 5) -> list[dict]:
@@ -307,13 +337,14 @@ class RAGRetriever:
         Returns top-K chunks sorted by combined score.
         """
         from rag.vector_store import VectorStore
+
         query_emb = RAGEmbedder.embed([query])[0]
-        results   = VectorStore.search(query_emb, top_k=top_k * 2)
+        results = VectorStore.search(query_emb, top_k=top_k * 2)
 
         # BM25-like keyword boost
-        query_words = set(re.findall(r'\w+', query.lower()))
+        query_words = set(re.findall(r"\w+", query.lower()))
         for r in results:
-            doc_words   = Counter(re.findall(r'\w+', r["text"].lower()))
+            doc_words = Counter(re.findall(r"\w+", r["text"].lower()))
             keyword_score = sum(doc_words[w] for w in query_words if w in doc_words)
             r["combined"] = r["similarity"] * 0.7 + min(keyword_score / 20.0, 0.3)
 
@@ -329,9 +360,9 @@ class RAGRetriever:
         parts = ["**Contexto recuperado del índice RAG:**\n"]
         total = 0
         for i, r in enumerate(results, 1):
-            src   = r.get("source", "unknown")
-            sim   = r.get("similarity", 0.0)
-            text  = r["text"]
+            src = r.get("source", "unknown")
+            sim = r.get("similarity", 0.0)
+            text = r["text"]
             block = f"\n--- Fragmento {i} (fuente: {os.path.basename(src)}, sim={sim:.2f}) ---\n{text}\n"
             if total + len(block) > max_chars:
                 break
@@ -342,15 +373,17 @@ class RAGRetriever:
 
 # ── Indexer (high-level API) ──────────────────────────────────────────────────
 
+
 class RAGIndexer:
     @staticmethod
     def index_text(text: str, source: str = "manual", metadata: dict = None) -> int:
         """Chunks and indexes a text string."""
-        from rag.chunker      import chunk_text
+        from rag.chunker import chunk_text
         from rag.vector_store import VectorStore
+
         chunks = chunk_text(text)
         for c in chunks:
-            c["source"]   = source
+            c["source"] = source
             c["metadata"] = metadata or {}
         if not chunks:
             return 0
@@ -361,29 +394,55 @@ class RAGIndexer:
     def index_file(path: str) -> int:
         """Reads, chunks and indexes a single file."""
         from rag.chunker import chunk_file
+
         chunks = chunk_file(path)
         if not chunks:
             return 0
         embeddings = RAGEmbedder.embed([c["text"] for c in chunks])
         from rag.vector_store import VectorStore
+
         return VectorStore.upsert(chunks, embeddings)
 
     @staticmethod
     def index_folder(folder: str, extensions: set = None) -> tuple[int, int]:
         """Indexes all matching files in a folder. Returns (files, chunks) count."""
         if extensions is None:
-            extensions = {".py",".js",".ts",".md",".txt",".rs",".go",".java",
-                          ".c",".cpp",".h",".lua",".sh",".yaml",".toml",".json"}
-        skip_dirs = {".git","node_modules",".venv","__pycache__","target",".next","dist"}
+            extensions = {
+                ".py",
+                ".js",
+                ".ts",
+                ".md",
+                ".txt",
+                ".rs",
+                ".go",
+                ".java",
+                ".c",
+                ".cpp",
+                ".h",
+                ".lua",
+                ".sh",
+                ".yaml",
+                ".toml",
+                ".json",
+            }
+        skip_dirs = {
+            ".git",
+            "node_modules",
+            ".venv",
+            "__pycache__",
+            "target",
+            ".next",
+            "dist",
+        }
         file_count, chunk_count = 0, 0
         for root, dirs, files in os.walk(folder):
             dirs[:] = [d for d in dirs if d not in skip_dirs]
             for fname in files:
                 if any(fname.endswith(e) for e in extensions):
-                    path   = os.path.join(root, fname)
-                    added  = RAGIndexer.index_file(path)
+                    path = os.path.join(root, fname)
+                    added = RAGIndexer.index_file(path)
                     if added > 0:
-                        file_count  += 1
+                        file_count += 1
                         chunk_count += added
         return file_count, chunk_count
 
@@ -392,18 +451,18 @@ class RAGIndexer:
         """Extracts text from a PDF and indexes it."""
         try:
             import pypdf
+
             with open(path, "rb") as f:
                 reader = pypdf.PdfReader(f)
             text = "\n\n".join(p.extract_text() or "" for p in reader.pages)
         except ImportError:
             try:
                 from PyPDF2 import PdfReader
+
                 with open(path, "rb") as f:
                     reader = PdfReader(f)
-                text = "\n\n".join(
-                    p.extract_text() or "" for p in reader.pages
-                )
-            except Exception as e:
+                text = "\n\n".join(p.extract_text() or "" for p in reader.pages)
+            except Exception:
                 return 0
         except Exception:
             return 0

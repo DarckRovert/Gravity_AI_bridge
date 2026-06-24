@@ -27,18 +27,19 @@ SETTINGS_FILE: str = os.path.join(BASE_DIR, "_settings.json")
 # ── Estado ─────────────────────────────────────────────────────────────────────
 
 _state: Dict[str, Any] = {
-    "status":     "idle",        # idle | building | deploying | done | failed
-    "last_run":   None,
-    "project":    None,
-    "log":        [],
+    "status": "idle",  # idle | building | deploying | done | failed
+    "last_run": None,
+    "project": None,
+    "log": [],
     "netlify_url": None,
-    "error":      None,
+    "error": None,
 }
 _lock: threading.RLock = threading.RLock()
 _running: bool = False
 
 
 # ── Detección de Herramientas ──────────────────────────────────────────────────
+
 
 def _which(cmd: str) -> Optional[str]:
     """
@@ -48,11 +49,8 @@ def _which(cmd: str) -> Optional[str]:
         args: Dict[str, Any] = {"capture_output": True, "text": True, "timeout": 5}
         if os.name == "nt":
             args["creationflags"] = subprocess.CREATE_NO_WINDOW
-        
-        result = subprocess.run(
-            ["where" if os.name == "nt" else "which", cmd],
-            **args
-        )
+
+        result = subprocess.run(["where" if os.name == "nt" else "which", cmd], **args)
         if result.returncode == 0:
             return result.stdout.strip().splitlines()[0]
     except Exception:
@@ -65,9 +63,9 @@ def check_tools() -> Dict[str, bool]:
     Verifica la disponibilidad de npm, netlify CLI y node en el entorno.
     """
     return {
-        "npm":     _which("npm") is not None,
+        "npm": _which("npm") is not None,
         "netlify": _which("netlify") is not None,
-        "node":    _which("node") is not None,
+        "node": _which("node") is not None,
     }
 
 
@@ -86,7 +84,7 @@ def get_project_path() -> Optional[str]:
             except (PermissionError, json.JSONDecodeError):
                 if attempt == 4:
                     return None
-                time.sleep(0.05 * (2 ** attempt))
+                time.sleep(0.05 * (2**attempt))
             except Exception:
                 return None
         return None
@@ -109,7 +107,7 @@ def detect_output_dir(project_path: str) -> str:
                 with open(path, "r", encoding="utf-8", errors="replace") as f:
                     return f.read()
             except PermissionError:
-                time.sleep(0.05 * (2 ** attempt))
+                time.sleep(0.05 * (2**attempt))
             except Exception:
                 return ""
         return ""
@@ -168,8 +166,8 @@ def detect_output_dir(project_path: str) -> str:
     return project_path  # Último fallback absoluto
 
 
-
 # ── Pipeline ───────────────────────────────────────────────────────────────────
+
 
 def _log(msg: str) -> None:
     """
@@ -189,7 +187,7 @@ def _run_step(cmd: List[str], cwd: str, timeout: int = 300) -> tuple[bool, str]:
     """
     try:
         _log(f"$ {' '.join(cmd)}")
-        
+
         kwargs: Dict[str, Any] = {
             "cwd": cwd,
             "stdout": subprocess.PIPE,
@@ -200,9 +198,9 @@ def _run_step(cmd: List[str], cwd: str, timeout: int = 300) -> tuple[bool, str]:
         }
         if os.name == "nt":
             kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
-            
+
         proc = subprocess.Popen(cmd, **kwargs)
-        
+
         output_lines: List[str] = []
         # Leer salida en tiempo real
         if proc.stdout:
@@ -237,12 +235,14 @@ def _pipeline(project_path: str) -> None:
     global _running
 
     with _lock:
-        _state["status"]     = "building"
-        _state["log"]        = []
+        _state["status"] = "building"
+        _state["log"] = []
         _state["netlify_url"] = None
-        _state["error"]      = None
-        _state["last_run"]   = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-        _state["project"]    = project_path
+        _state["error"] = None
+        _state["last_run"] = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
+        _state["project"] = project_path
 
     _log(f"Iniciando pipeline para: {project_path}")
 
@@ -250,7 +250,7 @@ def _pipeline(project_path: str) -> None:
     if not tools["npm"]:
         with _lock:
             _state["status"] = "failed"
-            _state["error"]  = "npm no encontrado en el PATH del sistema."
+            _state["error"] = "npm no encontrado en el PATH del sistema."
         _running = False
         return
 
@@ -261,7 +261,7 @@ def _pipeline(project_path: str) -> None:
     if not ok:
         with _lock:
             _state["status"] = "failed"
-            _state["error"]  = "Build fallido. Revisa el log."
+            _state["error"] = "Build fallido. Revisa el log."
         _running = False
         return
 
@@ -270,9 +270,11 @@ def _pipeline(project_path: str) -> None:
     # ── Paso 2: Deploy ─────────────────────────────────────────────────────────
     if not tools["netlify"]:
         with _lock:
-            _state["status"]     = "done"
+            _state["status"] = "done"
             _state["netlify_url"] = None
-            _state["error"]      = "netlify CLI no instalado. Build listo pero no desplegado."
+            _state["error"] = (
+                "netlify CLI no instalado. Build listo pero no desplegado."
+            )
         _running = False
         return
 
@@ -285,7 +287,7 @@ def _pipeline(project_path: str) -> None:
     ok, output = _run_step(
         ["netlify", "deploy", "--prod", f"--dir={out_dir}"],
         cwd=project_path,
-        timeout=120
+        timeout=120,
     )
 
     # Extraer URL de Netlify del output
@@ -300,16 +302,17 @@ def _pipeline(project_path: str) -> None:
 
     with _lock:
         if ok:
-            _state["status"]     = "done"
+            _state["status"] = "done"
             _state["netlify_url"] = netlify_url
         else:
             _state["status"] = "failed"
-            _state["error"]  = "Deploy fallido. Revisa el log."
+            _state["error"] = "Deploy fallido. Revisa el log."
 
     _running = False
 
 
 # ── API Pública ────────────────────────────────────────────────────────────────
+
 
 def start_deploy(project_path: Optional[str] = None) -> Dict[str, Any]:
     """
@@ -328,7 +331,7 @@ def start_deploy(project_path: Optional[str] = None) -> Dict[str, Any]:
             return {
                 "started": False,
                 "reason": f"Ruta de proyecto inválida o no configurada: {project_path}. "
-                          "Configura 'active_project_path' en _settings.json."
+                "Configura 'active_project_path' en _settings.json.",
             }
 
         _running = True
@@ -353,4 +356,3 @@ def get_status() -> Dict[str, Any]:
             "tools": check_tools(),
             "running": _running,
         }
-

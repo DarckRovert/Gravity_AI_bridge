@@ -2,15 +2,14 @@
 Tests unitarios para core/session_runner.py — V16.0 PRO
 Cubre: BoundedSemaphore, SessionHandle, spawn(), terminate(), shutdown(), reaper.
 """
-import sys
-import time
+
 import subprocess
 import threading
 import pytest
 from unittest.mock import patch, MagicMock
 
-
 # ── Fixture: entorno aislado ───────────────────────────────────────────────────
+
 
 @pytest.fixture(autouse=True)
 def clean_sessions():
@@ -55,6 +54,7 @@ def _make_mock_proc(alive: bool = True, pid: int = 9999) -> MagicMock:
 
 # ── Tests de CapacityWake / BoundedSemaphore ───────────────────────────────────
 
+
 class TestBoundedSemaphore:
 
     def test_semaphore_initial_capacity(self, clean_sessions):
@@ -84,6 +84,7 @@ class TestBoundedSemaphore:
 
 
 # ── Tests de SessionHandle ────────────────────────────────────────────────────
+
 
 class TestSessionHandle:
 
@@ -157,6 +158,7 @@ class TestSessionHandle:
 
 # ── Tests de SessionSpawner ───────────────────────────────────────────────────
 
+
 class TestSessionSpawner:
 
     def test_spawn_registers_session(self, clean_sessions):
@@ -164,7 +166,9 @@ class TestSessionSpawner:
         mock_proc = _make_mock_proc(pid=1234)
 
         with patch("subprocess.Popen", return_value=mock_proc):
-            spawner = sr.SessionSpawner(python_executable="python", script_path="fake.py")
+            spawner = sr.SessionSpawner(
+                python_executable="python", script_path="fake.py"
+            )
             handle = spawner.spawn("sess-001", {})
 
         assert "sess-001" in sr.active_sessions
@@ -209,6 +213,7 @@ class TestSessionSpawner:
 
 
 # ── Tests de API pública ───────────────────────────────────────────────────────
+
 
 class TestPublicAPI:
 
@@ -257,6 +262,7 @@ class TestPublicAPI:
 
 
 # ── Tests de reap_dead_sessions ───────────────────────────────────────────────
+
 
 class TestOrphanReaper:
 

@@ -1,7 +1,5 @@
 import os
 import urllib.request
-import py7zr
-import shutil
 import subprocess
 
 BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_integrations")
@@ -10,8 +8,10 @@ MODEL_URL = "https://huggingface.co/Lightricks/LTX-Video/resolve/main/ltx-video-
 COMFY_7Z = os.path.join(BASE_DIR, "ComfyUI_portable.7z")
 EXTRACT_PATH = os.path.join(BASE_DIR, "ComfyUI_windows_portable")
 
+
 def download_file(url, path):
     print(f"Downloading {url} to {path}...")
+
     def report(block_num, block_size, total_size):
         read_so_far = block_num * block_size
         if total_size > 0:
@@ -21,9 +21,10 @@ def download_file(url, path):
         else:
             if block_num % 1000 == 0:
                 print(f"Downloaded {read_so_far / 1024 / 1024:.2f} MB")
-    
+
     urllib.request.urlretrieve(url, path, reporthook=report)
     print("Download complete.")
+
 
 def main():
     if not os.path.exists(BASE_DIR):
@@ -33,7 +34,7 @@ def main():
     if not os.path.exists(EXTRACT_PATH):
         if not os.path.exists(COMFY_7Z):
             download_file(COMFY_URL, COMFY_7Z)
-        
+
         print(f"Extracting {COMFY_7Z} using 7zr.exe...")
         exe_7z = os.path.join(BASE_DIR, "7zr.exe")
         subprocess.run([exe_7z, "x", COMFY_7Z, f"-o{BASE_DIR}", "-y"], check=True)
@@ -44,7 +45,13 @@ def main():
         print("ComfyUI already extracted.")
 
     # 2. Download Model
-    model_dest = os.path.join(EXTRACT_PATH, "ComfyUI", "models", "checkpoints", "ltx-video-2b-v0.9.5.safetensors")
+    model_dest = os.path.join(
+        EXTRACT_PATH,
+        "ComfyUI",
+        "models",
+        "checkpoints",
+        "ltx-video-2b-v0.9.5.safetensors",
+    )
     os.makedirs(os.path.dirname(model_dest), exist_ok=True)
     if not os.path.exists(model_dest):
         download_file(MODEL_URL, model_dest)
@@ -53,13 +60,18 @@ def main():
 
     # 3. Install Custom Nodes
     print("Installing LTX-Video custom nodes...")
-    installer_bat = os.path.join(os.path.dirname(os.path.abspath(__file__)), "launchers", "Instalar_Modulo_Video_LTX.bat")
+    installer_bat = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "launchers",
+        "Instalar_Modulo_Video_LTX.bat",
+    )
     if os.path.exists(installer_bat):
         subprocess.run([installer_bat], shell=True)
     else:
         print("Installer bat not found.")
 
     print("ALL DONE!")
+
 
 if __name__ == "__main__":
     main()

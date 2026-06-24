@@ -7,117 +7,118 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 
 CINEMA_STYLES: dict[str, dict] = {
     "documental": {
-        "label":  "Documental",
+        "label": "Documental",
         "prefix": "Cinematic documentary, photorealistic, professional lighting, 16:9 landscape, dramatic composition, high detail, award-winning photography",
         "negative": "worst quality, low quality, bad anatomy, bad hands, cartoon, anime, painting, sketch, blurry, mutated, ugly, messy, text, watermark",
     },
     "anime": {
-        "label":  "Anime",
+        "label": "Anime",
         "prefix": "Anime style, vibrant colors, high-quality illustration, detailed cel shading, dynamic scene, 16:9 aspect",
         "negative": "photorealistic, 3D render, low quality, blurry, ugly",
     },
     "epico": {
-        "label":  "Épico / Fantasy",
+        "label": "Épico / Fantasy",
         "prefix": "Epic fantasy artwork, dramatic lighting, cinematic atmosphere, detailed digital painting, heroic composition, 16:9",
         "negative": "worst quality, low quality, modern, mundane, stock photo, bad anatomy, ugly, blurry, text, watermark",
     },
     "noir": {
-        "label":  "Noir / Thriller",
+        "label": "Noir / Thriller",
         "prefix": "Film noir, high contrast black and white, moody shadows, 1940s aesthetic, dramatic chiaroscuro, cinematic still, 16:9",
         "negative": "colorful, bright, cheerful, low quality",
     },
     "infantil": {
-        "label":  "Infantil / Cuento",
+        "label": "Infantil / Cuento",
         "prefix": "Children's storybook illustration, cute and colorful, soft warm lighting, friendly characters, Pixar-style, 16:9",
         "negative": "dark, scary, violent, photorealistic, gore",
     },
     "naturaleza": {
-        "label":  "Naturaleza / Wildlife",
+        "label": "Naturaleza / Wildlife",
         "prefix": "National Geographic photography, ultra high resolution, dramatic natural lighting, pristine nature, macro or wide landscape, 16:9",
         "negative": "people, buildings, urban, low quality",
     },
     "cyberpunk": {
-        "label":  "Cyberpunk / Sci-Fi",
+        "label": "Cyberpunk / Sci-Fi",
         "prefix": "Cyberpunk cityscape, neon lights, rain-soaked streets, futuristic dystopia, cinematic composition, ultra-detailed, 16:9",
         "negative": "medieval, nature, low quality, blurry",
     },
     "historico": {
-        "label":  "Histórico / Épocas",
+        "label": "Histórico / Épocas",
         "prefix": "Historical epic scene, period-accurate set design, dramatic oil painting style, cinematic lighting, 16:9",
         "negative": "modern, sci-fi, cartoon, low quality",
     },
     "lofi": {
-        "label":  "Lo-Fi / Estudiantil",
+        "label": "Lo-Fi / Estudiantil",
         "prefix": "Lofi aesthetic, cozy study room, warm pastel colors, rain window, soft grain texture, illustration style, calm atmosphere, 16:9",
         "negative": "dark, scary, violent, photorealistic, high contrast, gore",
     },
     "retro80s": {
-        "label":  "Retro 80s / Synth-wave",
+        "label": "Retro 80s / Synth-wave",
         "prefix": "Synthwave retro 1980s aesthetic, neon pink and purple gradients, grid horizon, chrome lettering, vaporwave sunset, cinematic 16:9",
         "negative": "modern minimal, flat design, photography, low quality, blurry",
     },
     "publicitario": {
-        "label":  "Publicidad / Comercial",
+        "label": "Publicidad / Comercial",
         "prefix": "High-end commercial photography, ultra sharp, vivid studio lighting, 4k resolution, bright and energetic, modern product advertising, 16:9",
         "negative": "dark, gloomy, low quality, amateur, blurry, messy",
     },
     "shitpost_satira": {
-        "label":  "Shitpost / Sátira (Tío Vladi Style)",
+        "label": "Shitpost / Sátira (Tío Vladi Style)",
         "prefix": "Absurd surreal AI meme, satirical, highly saturated, cynical, chaotic internet collage, tiktok viral aesthetic, weird crossover, 16:9",
         "negative": "serious, professional, elegant, boring, realistic documentary",
     },
     "biomechanic_v14": {
-        "label":  "Biomecánica V14 (Audio-Reativo)",
+        "label": "Biomecánica V14 (Audio-Reativo)",
         "prefix": "GLSL Biomechanic Shader, audio-reactive kinematics, procedural generation",
         "negative": "static, rigid, low quality",
     },
     "galactic": {
-        "label":  "Sistema Galáctico V17",
+        "label": "Sistema Galáctico V17",
         "prefix": "Galaxy system, accretion disk, cinematic volumetric black hole",
         "negative": "static, rigid, low quality",
     },
     "oceanic": {
-        "label":  "Océano 3D (TDM)",
+        "label": "Océano 3D (TDM)",
         "prefix": "3D procedural ocean, realistic lighting, raymarching",
         "negative": "static, rigid, low quality",
     },
     "protean": {
-        "label":  "Nubes Volumétricas (Nimitz)",
+        "label": "Nubes Volumétricas (Nimitz)",
         "prefix": "3D volumetric clouds, lightning flashes, raymarching",
         "negative": "static, rigid, low quality",
     },
     "interstellar": {
-        "label":  "Interestelar / Relatividad",
+        "label": "Interestelar / Relatividad",
         "prefix": "Relativistic raytracing, black hole accretion disk, gravitational lensing",
         "negative": "static, rigid, low quality",
     },
     "inception_kifs": {
-        "label":  "Inception KIFS (Fractales)",
+        "label": "Inception KIFS (Fractales)",
         "prefix": "Non-euclidean fractal folded space, kaleidoscope, raymarching",
         "negative": "static, rigid, low quality",
     },
     "neon_fluid": {
-        "label":  "Fluido de Neón (Navier-Stokes)",
+        "label": "Fluido de Neón (Navier-Stokes)",
         "prefix": "Neon fluid dynamics, curl noise advection, turbulent smoke",
         "negative": "static, rigid, low quality",
     },
     "organic_core": {
-        "label":  "Núcleo Orgánico (SSS)",
+        "label": "Núcleo Orgánico (SSS)",
         "prefix": "Organic pulsating core, subsurface scattering, translucent tissue",
         "negative": "static, rigid, low quality",
     },
     "turing_patterns": {
-        "label":  "Patrones de Turing (Reacción-Difusión)",
+        "label": "Patrones de Turing (Reacción-Difusión)",
         "prefix": "Bioluminescent cellular growth, reaction-diffusion, turing patterns",
         "negative": "static, rigid, low quality",
     },
     "inca_math": {
-        "label":  "Matemática Inca (Chacana)",
+        "label": "Matemática Inca (Chacana)",
         "prefix": "Sacred geometry, Chakana, ancient incan aesthetics, volumetric god rays",
         "negative": "static, rigid, low quality",
     },
 }
 DEFAULT_STYLE = "documental"
+
 
 def _extract_visual_anchor(topic: str) -> str:
     """
@@ -142,9 +143,10 @@ def _extract_visual_anchor(topic: str) -> str:
     )
     try:
         from core import provider_manager
+
         messages = [
             {"role": "system", "content": system_prompt},
-            {"role": "user",   "content": user_prompt},
+            {"role": "user", "content": user_prompt},
         ]
         best_result, best_model = provider_manager.get_best()
         if not best_result:
@@ -158,12 +160,14 @@ def _extract_visual_anchor(topic: str) -> str:
         anchor = anchor.strip().strip('"').strip("'")
         for prefix in ("anchor:", "→", "-", "*"):
             if anchor.lower().startswith(prefix):
-                anchor = anchor[len(prefix):].strip()
+                anchor = anchor[len(prefix) :].strip()
         if len(anchor) > 10:
             log.info(f"[VideoStudio] Visual Anchor extraído: '{anchor[:80]}'")
             return anchor
     except Exception as e:
-        log.warning(f"[VideoStudio] LLM anchor fallback ({e}). Usando topic como anchor.")
+        log.warning(
+            f"[VideoStudio] LLM anchor fallback ({e}). Usando topic como anchor."
+        )
 
     return topic[:120]
 
@@ -179,22 +183,29 @@ def _get_scene_visual_context(image_path: str) -> str:
 
     import time
     import shutil
+
     try:
         from _integrations.comfy_client import ComfyUIClient
+
         client = ComfyUIClient()
         if not client.is_online():
             return ""
 
-        input_dir = os.path.join(BASE_DIR, "_integrations", "ComfyUI_windows_portable", "ComfyUI", "input")
+        input_dir = os.path.join(
+            BASE_DIR, "_integrations", "ComfyUI_windows_portable", "ComfyUI", "input"
+        )
         os.makedirs(input_dir, exist_ok=True)
         img_name = f"img2prompt_{os.path.basename(image_path)}"
         shutil.copy2(image_path, os.path.join(input_dir, img_name))
 
         # Intentar cargar el workflow desde archivo JSON; si no existe, construirlo
-        workflow_path = os.path.join(BASE_DIR, "_integrations", "workflow_img2prompt.json")
+        workflow_path = os.path.join(
+            BASE_DIR, "_integrations", "workflow_img2prompt.json"
+        )
         if os.path.exists(workflow_path):
             with open(workflow_path, "r", encoding="utf-8") as f:
                 import json as _json
+
                 workflow = _json.load(f)
             workflow["1"]["inputs"]["image"] = img_name
         else:
@@ -217,9 +228,10 @@ def _get_scene_visual_context(image_path: str) -> str:
             elapsed += 2
 
     except Exception as e:
-        log.debug(f"[VideoStudio] Error en img2prompt (ComfyUI offline/Tagger fail): {e}")
+        log.debug(
+            f"[VideoStudio] Error en img2prompt (ComfyUI offline/Tagger fail): {e}"
+        )
     return ""
-
 
 
 def _normalize_topic_for_lore(topic: str) -> str:
@@ -227,7 +239,11 @@ def _normalize_topic_for_lore(topic: str) -> str:
     Normaliza un topic para búsqueda en el lore.
     """
     t = topic.lower().strip()
-    t = re.sub(r"\s*(parte|part|capitulo|capítulo|episode|ep|vol|volume|\#)\s*[\divxlc]+\s*$", "", t).strip()
+    t = re.sub(
+        r"\s*(parte|part|capitulo|capítulo|episode|ep|vol|volume|\#)\s*[\divxlc]+\s*$",
+        "",
+        t,
+    ).strip()
     return t
 
 
@@ -259,7 +275,7 @@ def _get_lore_context(topic: str, limit_chars: int = 4000) -> str:
                 body = block
             else:
                 header_raw = block[:end_marker].strip()
-                body = block[end_marker + 3:].strip()
+                body = block[end_marker + 3 :].strip()
 
             header_norm = _normalize_topic_for_lore(header_raw)
 
@@ -274,9 +290,7 @@ def _get_lore_context(topic: str, limit_chars: int = 4000) -> str:
                     match = True
 
             if match:
-                relevant_blocks.append(
-                    f"=== HISTORIA: {header_raw} ===\n{body}"
-                )
+                relevant_blocks.append(f"=== HISTORIA: {header_raw} ===\n{body}")
 
         if relevant_blocks:
             context = "\n\n".join(relevant_blocks)
@@ -286,7 +300,9 @@ def _get_lore_context(topic: str, limit_chars: int = 4000) -> str:
             )
             return context[-limit_chars:]
 
-        log.info(f"[VideoStudio] Lore: sin historia previa para '{topic}'. Inicio de nueva historia.")
+        log.info(
+            f"[VideoStudio] Lore: sin historia previa para '{topic}'. Inicio de nueva historia."
+        )
         return ""
 
     except Exception as e:
@@ -294,23 +310,31 @@ def _get_lore_context(topic: str, limit_chars: int = 4000) -> str:
         return ""
 
 
-def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str, use_lore: bool = True) -> tuple[list[dict], str, str]:
+def _generate_script(
+    topic: str, n_scenes: int, style: str, narration_lang: str, use_lore: bool = True
+) -> tuple[list[dict], str, str]:
     """
     Genera guión estructurado incorporando contexto de lore previo y un título global.
     """
     original_topic = topic
-    urls = re.findall(r'(https?://\S+)', topic)
+    urls = re.findall(r"(https?://\S+)", topic)
     scraped_successfully = False
-    
+
     if urls:
         try:
             from core.firecrawl_scraper import scrape_url
+
             for url in urls[:1]:
                 if "youtube.com" in url or "youtu.be" in url:
-                    log.info("[VideoStudio] URL de YouTube detectada. Obteniendo título oficial vía oEmbed para enlazar lore...")
+                    log.info(
+                        "[VideoStudio] URL de YouTube detectada. Obteniendo título oficial vía oEmbed para enlazar lore..."
+                    )
                     try:
                         import requests
-                        oembed_url = f"https://www.youtube.com/oembed?url={url}&format=json"
+
+                        oembed_url = (
+                            f"https://www.youtube.com/oembed?url={url}&format=json"
+                        )
                         res = requests.get(oembed_url, timeout=5)
                         if res.status_code == 200:
                             yt_data = res.json()
@@ -318,61 +342,86 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
                             if yt_title:
                                 topic = topic.replace(url, f"{yt_title}")
                                 original_topic = topic
-                                log.info(f"[VideoStudio] Título de YouTube recuperado: '{yt_title}'")
+                                log.info(
+                                    f"[VideoStudio] Título de YouTube recuperado: '{yt_title}'"
+                                )
                     except Exception as yt_e:
-                        log.warning(f"[VideoStudio] Error obteniendo oEmbed de YouTube: {yt_e}")
+                        log.warning(
+                            f"[VideoStudio] Error obteniendo oEmbed de YouTube: {yt_e}"
+                        )
                     break
-                    
+
                 log.info(f"[VideoStudio] URL detectada en topic. Raspando: {url}")
                 api_key = ""
                 try:
                     import yaml
-                    with open(os.path.join(BASE_DIR, "config.yaml"), "r", encoding="utf-8") as f:
+
+                    with open(
+                        os.path.join(BASE_DIR, "config.yaml"), "r", encoding="utf-8"
+                    ) as f:
                         cfg = yaml.safe_load(f) or {}
                         api_key = cfg.get("firecrawl_api_key", "")
                 except Exception as _cfg_e:
-                    log.debug(f"[VideoStudio] No se pudo leer firecrawl_api_key: {_cfg_e}")
-                
+                    log.debug(
+                        f"[VideoStudio] No se pudo leer firecrawl_api_key: {_cfg_e}"
+                    )
+
                 scrape_res = scrape_url(url, api_key=api_key)
                 if scrape_res.get("ok"):
                     scraped_text = scrape_res.get("content", "")[:4000]
-                    topic = topic.replace(url, f"[{url} - CONTENIDO WEB EXTRAÍDO:\n{scraped_text}\n]")
-                    log.info("[VideoStudio] URL Raspada e inyectada con éxito en el guion.")
+                    topic = topic.replace(
+                        url, f"[{url} - CONTENIDO WEB EXTRAÍDO:\n{scraped_text}\n]"
+                    )
+                    log.info(
+                        "[VideoStudio] URL Raspada e inyectada con éxito en el guion."
+                    )
                     scraped_successfully = True
         except Exception as e:
             log.warning(f"[VideoStudio] Error raspando URL: {e}")
-            
+
     if not scraped_successfully:
         try:
             from core.web_search import search_and_scrape
-            log.info(f"[VideoStudio] Investigando en internet sobre: '{original_topic[:50]}' para nutrir el guion...")
+
+            log.info(
+                f"[VideoStudio] Investigando en internet sobre: '{original_topic[:50]}' para nutrir el guion..."
+            )
             knowledge = search_and_scrape(original_topic, max_results=2)
             if knowledge:
                 topic = f"{topic}\n\n[CONOCIMIENTO OBTENIDO DE INTERNET PARA CONTEXTO Y PRECISIÓN:\n{knowledge}\n]"
-                log.info("[VideoStudio] Conocimiento inyectado exitosamente en el guion.")
+                log.info(
+                    "[VideoStudio] Conocimiento inyectado exitosamente en el guion."
+                )
         except Exception as e:
             log.warning(f"[VideoStudio] Error en auto-investigación web: {e}")
 
         try:
             from core.market_researcher import analyze_competitors
+
             competitor_brief = analyze_competitors(original_topic)
             if competitor_brief:
                 topic = f"{topic}{competitor_brief}"
         except Exception as e:
             log.warning(f"[VideoStudio] Error en análisis de mercado: {e}")
 
-    style_info     = CINEMA_STYLES.get(style, CINEMA_STYLES[DEFAULT_STYLE])
-    style_prefix   = style_info["prefix"]
-    
+    style_info = CINEMA_STYLES.get(style, CINEMA_STYLES[DEFAULT_STYLE])
+    style_prefix = style_info["prefix"]
+
     lore_context = ""
     if use_lore:
         lore_context = _get_lore_context(original_topic)
         if lore_context:
-            log.info(f"[VideoStudio] Contexto de Lore recuperado ({len(lore_context)} chars)")
+            log.info(
+                f"[VideoStudio] Contexto de Lore recuperado ({len(lore_context)} chars)"
+            )
 
     lang_names = {
-        "es": "español", "en": "English", "pt": "português",
-        "fr": "français", "de": "Deutsch", "it": "italiano",
+        "es": "español",
+        "en": "English",
+        "pt": "português",
+        "fr": "français",
+        "de": "Deutsch",
+        "it": "italiano",
     }
     lang_label = lang_names.get(narration_lang, "español")
 
@@ -381,7 +430,7 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
         "Tu objetivo es crear narrativas visuales y auditivas que cautiven al espectador. "
         "Responde ÚNICAMENTE con JSON válido, sin texto adicional."
     )
-    
+
     user_prompt = (
         f"Crea un guión de {n_scenes} escenas para un video sobre el siguiente tema o contenido: '{topic}'.\n"
         "Si detectas CONOCIMIENTO OBTENIDO DE INTERNET, compórtate como un investigador experto: utiliza la "
@@ -434,12 +483,14 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
         from core.ai_process_manager import start_engine, stop_engine
         import yaml
         import time
-        
+
         writer_prov, writer_mod = None, None
         audit_prov, audit_mod = None, None
-        
+
         try:
-            with open(os.path.join(BASE_DIR, "config.yaml"), "r", encoding="utf-8") as f:
+            with open(
+                os.path.join(BASE_DIR, "config.yaml"), "r", encoding="utf-8"
+            ) as f:
                 cfg = yaml.safe_load(f) or {}
                 ar = cfg.get("agent_routing", {})
                 if ar.get("coder"):
@@ -450,12 +501,16 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
                     audit_mod = ar["auditor"].get("model")
         except Exception:
             pass
-            
+
         # AUTO-WAKE: Encender IA local si está configurada y apagada
         initial_scan = provider_manager.scan_all()
         healthy_names = [res.name for res in initial_scan if res.is_healthy]
-        
-        llms_to_wake = [p for p in [writer_prov, audit_prov] if p in ["LM Studio", "Ollama", "Jan AI"] and p not in healthy_names]
+
+        llms_to_wake = [
+            p
+            for p in [writer_prov, audit_prov]
+            if p in ["LM Studio", "Ollama", "Jan AI"] and p not in healthy_names
+        ]
         if llms_to_wake:
             for prov in set(llms_to_wake):
                 log.info(f"[VideoStudio] [Auto-Wake] Encendiendo motor LLM: {prov}...")
@@ -463,44 +518,57 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
             log.info("[VideoStudio] Esperando 12s a que la IA local cargue...")
             time.sleep(12)
             provider_manager.scan_all(force=True)  # Forzar re-escaneo para detectarlos
-            
+
         best_result, best_model = provider_manager.get_best()
         if not best_result:
             raise RuntimeError("No hay proveedor LLM activo")
-            
+
         writer_prov = writer_prov or best_result.name
         writer_mod = writer_mod if writer_mod and writer_mod != "auto" else best_model
-        
+
         audit_prov = audit_prov or best_result.name
         audit_mod = audit_mod if audit_mod and audit_mod != "auto" else best_model
 
         messages = [
             {"role": "system", "content": system_prompt},
-            {"role": "user",   "content": user_prompt},
+            {"role": "user", "content": user_prompt},
         ]
-        
-        log.info(f"[VideoStudio] Iniciando pipeline Multi-Agente para el guion (Escritor: {writer_prov}, Auditor: {audit_prov})...")
-        
+
+        log.info(
+            f"[VideoStudio] Iniciando pipeline Multi-Agente para el guion (Escritor: {writer_prov}, Auditor: {audit_prov})..."
+        )
+
         steps = [
             PipelineStep(provider=writer_prov, model=writer_mod),
-            PipelineStep(provider=audit_prov, model=audit_mod, role="Actúa como un Auditor Experto en Retención de Audiencia. Revisa el JSON anterior. Mejora los ganchos emocionales de la narración en los primeros 5 segundos. Asegúrate de que los image_prompts sean extremadamente cinemáticos y consistentes. Devuelve ÚNICAMENTE EL JSON CORREGIDO, sin explicaciones ni markdown text. Solo JSON puro.")
+            PipelineStep(
+                provider=audit_prov,
+                model=audit_mod,
+                role="Actúa como un Auditor Experto en Retención de Audiencia. Revisa el JSON anterior. Mejora los ganchos emocionales de la narración en los primeros 5 segundos. Asegúrate de que los image_prompts sean extremadamente cinemáticos y consistentes. Devuelve ÚNICAMENTE EL JSON CORREGIDO, sin explicaciones ni markdown text. Solo JSON puro.",
+            ),
         ]
-        
-        content = run_pipeline(steps=steps, initial_messages=messages, options={"temperature": 0.7})
+
+        content = run_pipeline(
+            steps=steps, initial_messages=messages, options={"temperature": 0.7}
+        )
 
         content = content.strip()
         if content.startswith("```"):
             parts = content.split("```")
             content = parts[1] if len(parts) > 1 else parts[0]
-            if content.startswith("json"): content = content[4:]
+            if content.startswith("json"):
+                content = content[4:]
         content = content.strip()
 
         start = content.find("{")
-        end   = content.rfind("}") + 1
+        end = content.rfind("}") + 1
         start_list = content.find("[")
         end_list = content.rfind("]") + 1
-        
-        if start_list != -1 and end_list > start_list and (start == -1 or start_list < start):
+
+        if (
+            start_list != -1
+            and end_list > start_list
+            and (start == -1 or start_list < start)
+        ):
             content = content[start_list:end_list]
         elif start != -1 and end > start:
             content = content[start:end]
@@ -508,16 +576,18 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
         try:
             data = json.loads(content) if content else {}
         except json.JSONDecodeError:
-            log.warning(f"[VideoStudio] LLM devolvió un formato inválido o vacío. Contenido: {content[:100]}")
+            log.warning(
+                f"[VideoStudio] LLM devolvió un formato inválido o vacío. Contenido: {content[:100]}"
+            )
             data = {}
-            
+
         if isinstance(data, list):
             scenes = data
             generated_title = original_topic[:60]
         else:
             scenes = data.get("scenes", [])
             generated_title = data.get("video_title", original_topic[:60])
-        
+
         if isinstance(scenes, list) and len(scenes) > 0:
             anchor = ""
             for sc in scenes:
@@ -532,16 +602,21 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
         raise ValueError("LLM no devolvió lista JSON válida en 'scenes'")
 
     except Exception as e:
-        log.warning(f"[VideoStudio] LLM no disponible ({e}). Fallback con escenas genéricas.")
+        log.warning(
+            f"[VideoStudio] LLM no disponible ({e}). Fallback con escenas genéricas."
+        )
     finally:
         # AUTO-SLEEP: Matar incondicionalmente los motores LLM para liberar 4-8GB de RAM
         try:
             from core.ai_process_manager import stop_engine
+
             killed_any = False
             for prov in ["LM Studio", "Ollama", "Jan AI"]:
                 res = stop_engine(prov)
                 # Omitir errores de que el proceso no existía
-            log.info("[VideoStudio] [Auto-Sleep] Motores de texto apagados. RAM libre para Fooocus/ComfyUI.")
+            log.info(
+                "[VideoStudio] [Auto-Sleep] Motores de texto apagados. RAM libre para Fooocus/ComfyUI."
+            )
         except Exception:
             pass
 
@@ -558,11 +633,11 @@ def _generate_script(topic: str, n_scenes: int, style: str, narration_lang: str,
     style_prefix = style_info["prefix"]
     scenes = [
         {
-            "title":            f"Capítulo {i+1}",
+            "title": f"Capítulo {i+1}",
             "character_anchor": anchor,
-            "image_prompt":     f"{anchor}, cinematic scene {i+1}, {style_prefix}, high detail, dramatic lighting",
-            "narration":        _fallback_narrations[i % len(_fallback_narrations)],
-            "mood":             "neutral",
+            "image_prompt": f"{anchor}, cinematic scene {i+1}, {style_prefix}, high detail, dramatic lighting",
+            "narration": _fallback_narrations[i % len(_fallback_narrations)],
+            "mood": "neutral",
         }
         for i in range(n_scenes)
     ]

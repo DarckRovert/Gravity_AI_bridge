@@ -33,6 +33,7 @@ if not server_up:
 
 print("Servidor en linea. Ejecutando tests...")
 
+
 def test_endpoint(name, url, method="GET"):
     global errors
     print(f"\n[TEST] Ejecutando: {name} ({url})")
@@ -40,11 +41,12 @@ def test_endpoint(name, url, method="GET"):
         req = urllib.request.Request(url, method=method)
         with urllib.request.urlopen(req) as response:
             data = json.loads(response.read().decode("utf-8"))
-            print(f"[EXITO] Respuesta:")
+            print("[EXITO] Respuesta:")
             print(json.dumps(data, indent=2))
     except Exception as e:
         print(f"[ERROR]: {e}")
         errors += 1
+
 
 try:
     test_endpoint("Status Inicial", f"{base_url}/status")
@@ -59,7 +61,7 @@ finally:
         server_proc.wait(timeout=5)
     except subprocess.TimeoutExpired:
         server_proc.kill()
-    
+
     if errors == 0:
         print("\n[OK] TODOS LOS TESTS PASARON SIN ERRORES.")
     else:

@@ -2,16 +2,16 @@
 Tests unitarios para core/mcp_adapter.py — V16.0 PRO
 Cubre: connect(), _read_line_timeout(), backoff, health check, call_tool(), disconnect().
 """
+
 import json
-import queue
 import subprocess
 import threading
 import time
 import pytest
-from unittest.mock import patch, MagicMock, PropertyMock
-
+from unittest.mock import patch, MagicMock
 
 # ── Fixture: adaptador aislado ─────────────────────────────────────────────────
+
 
 @pytest.fixture()
 def adapter(tmp_path):
@@ -34,7 +34,7 @@ def adapter(tmp_path):
 def _make_mock_proc(stdout_lines: list[str] = None, alive: bool = True) -> MagicMock:
     """Crea un mock de subprocess.Popen para MCP."""
     proc = MagicMock(spec=subprocess.Popen)
-    proc.pid  = 42
+    proc.pid = 42
     proc.poll.return_value = None if alive else 0
     proc.stdin = MagicMock()
     proc.stdout = MagicMock()
@@ -49,6 +49,7 @@ def _make_mock_proc(stdout_lines: list[str] = None, alive: bool = True) -> Magic
 
 
 # ── Tests de connect() ────────────────────────────────────────────────────────
+
 
 class TestConnect:
 
@@ -82,6 +83,7 @@ class TestConnect:
 
 
 # ── Tests de _read_line_timeout() ─────────────────────────────────────────────
+
 
 class TestReadLineTimeout:
 
@@ -122,6 +124,7 @@ class TestReadLineTimeout:
 
 
 # ── Tests de _send_request() / call_tool() ────────────────────────────────────
+
 
 class TestSendRequest:
 
@@ -166,7 +169,9 @@ class TestSendRequest:
         adapter.process = None
 
         with patch.object(adapter, "connect", return_value=False) as mock_connect:
-            with patch.object(adapter, "_reconnect_with_backoff", return_value=False) as mock_reconnect:
+            with patch.object(
+                adapter, "_reconnect_with_backoff", return_value=False
+            ) as mock_reconnect:
                 result = adapter.call_tool("tool", {})
 
         assert "error" in result
@@ -199,15 +204,22 @@ class TestSendRequest:
         for t in threads:
             t.join()
 
-        assert len(ids) == len(set(ids)), "IDs duplicados detectados — no es thread-safe"
+        assert len(ids) == len(
+            set(ids)
+        ), "IDs duplicados detectados — no es thread-safe"
 
 
 # ── Tests de list_tools() / list_resources() ─────────────────────────────────
 
+
 class TestListEndpoints:
 
     def test_list_tools_returns_list(self, adapter):
-        tools_resp = {"jsonrpc": "2.0", "id": 1, "result": {"tools": [{"name": "tool1"}]}}
+        tools_resp = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {"tools": [{"name": "tool1"}]},
+        }
         with patch.object(adapter, "_send_request", return_value=tools_resp):
             result = adapter.list_tools()
         assert isinstance(result, list)
@@ -219,7 +231,11 @@ class TestListEndpoints:
         assert result == []
 
     def test_list_resources_returns_list(self, adapter):
-        res_resp = {"jsonrpc": "2.0", "id": 1, "result": {"resources": [{"uri": "file://a"}]}}
+        res_resp = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {"resources": [{"uri": "file://a"}]},
+        }
         with patch.object(adapter, "_send_request", return_value=res_resp):
             result = adapter.list_resources()
         assert isinstance(result, list)
@@ -227,6 +243,7 @@ class TestListEndpoints:
 
 
 # ── Tests de health_check() ────────────────────────────────────────────────────
+
 
 class TestHealthCheck:
 
@@ -246,6 +263,7 @@ class TestHealthCheck:
 
 
 # ── Tests de disconnect() ─────────────────────────────────────────────────────
+
 
 class TestDisconnect:
 

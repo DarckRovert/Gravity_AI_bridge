@@ -20,14 +20,20 @@ for line in lines:
                 in_shader = True
                 current_shader_name = var_name
                 current_shader_lines = []
-                out_lines.append(f'{current_shader_name} = open(os.path.join(os.path.dirname(__file__), "shaders", "{current_shader_name.lower()}.glsl"), "r", encoding="utf-8").read()\n')
+                out_lines.append(
+                    f'{current_shader_name} = open(os.path.join(os.path.dirname(__file__), "shaders", "{current_shader_name.lower()}.glsl"), "r", encoding="utf-8").read()\n'
+                )
                 continue
         out_lines.append(line)
     else:
         if line.strip() == "'''" or line.strip() == "'''  # end":
             in_shader = False
             # Save shader to file
-            with open(os.path.join(shader_dir, f"{current_shader_name.lower()}.glsl"), "w", encoding="utf-8") as sf:
+            with open(
+                os.path.join(shader_dir, f"{current_shader_name.lower()}.glsl"),
+                "w",
+                encoding="utf-8",
+            ) as sf:
                 sf.write("".join(current_shader_lines))
         else:
             current_shader_lines.append(line)

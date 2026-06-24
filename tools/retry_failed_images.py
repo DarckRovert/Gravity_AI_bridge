@@ -10,12 +10,12 @@ Uso:
 Ejemplo:
     python tools/retry_failed_images.py ficcion_generada/Cenizas_del_Leviatan_Libro_3_refinado
 """
+
 import os
 import sys
 import json
 import time
 import logging
-import re
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
@@ -24,13 +24,15 @@ if BASE_DIR not in sys.path:
 from core.visual_lore import inject_lore_to_prompt
 from tools.pollinations_generator import generate as poll_gen
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("RetryImages")
 
 # ─── Configuración de reintentos más agresiva que la original ─────────────────
-MAX_RETRIES    = 4       # Más intentos que los 2 del refiner original
-RETRY_DELAY    = 8.0     # Espera entre intentos (Pollinations se recupera si le damos tiempo)
-INTER_IMG_WAIT = 5.0     # Pausa entre imágenes para no saturar la API
+MAX_RETRIES = 4  # Más intentos que los 2 del refiner original
+RETRY_DELAY = 8.0  # Espera entre intentos (Pollinations se recupera si le damos tiempo)
+INTER_IMG_WAIT = 5.0  # Pausa entre imágenes para no saturar la API
 
 
 def _load_lore(refined_dir: str) -> dict:
@@ -57,8 +59,13 @@ def _load_lore(refined_dir: str) -> dict:
             logger.info(f"Lore cargado desde: {candidate2}")
             return json.load(f)
 
-    logger.warning("No se encontró lore_book.json. Las imágenes se generarán sin descripción de personajes.")
-    return {"global_style": "cinematic, hyperrealistic, highly detailed", "characters": {}}
+    logger.warning(
+        "No se encontró lore_book.json. Las imágenes se generarán sin descripción de personajes."
+    )
+    return {
+        "global_style": "cinematic, hyperrealistic, highly detailed",
+        "characters": {},
+    }
 
 
 def _retry_single(entry: dict, refined_dir: str, lore_data: dict) -> bool:
@@ -67,9 +74,9 @@ def _retry_single(entry: dict, refined_dir: str, lore_data: dict) -> bool:
     Devuelve True si tuvo éxito.
     """
     img_filename = entry["img_filename"]
-    img_path     = os.path.join(refined_dir, img_filename)
-    base_prompt  = entry["base_prompt"]
-    char_seed    = entry.get("char_seed")  # Semilla anclada al personaje principal
+    img_path = os.path.join(refined_dir, img_filename)
+    base_prompt = entry["base_prompt"]
+    char_seed = entry.get("char_seed")  # Semilla anclada al personaje principal
 
     # Re-inyectar el lore con la nueva versión del inject_lore_to_prompt mejorado
     final_prompt = inject_lore_to_prompt(lore_data, base_prompt)
@@ -101,9 +108,13 @@ def _retry_single(entry: dict, refined_dir: str, lore_data: dict) -> bool:
             logger.info(f"  ✅ Éxito en intento {attempt}: {img_filename}")
             return True
         else:
-            logger.warning(f"  Intento {attempt} fallido: {result.get('error', 'Desconocido')}")
+            logger.warning(
+                f"  Intento {attempt} fallido: {result.get('error', 'Desconocido')}"
+            )
 
-    logger.error(f"  ❌ Imagen {img_filename} no pudo generarse tras {MAX_RETRIES} intentos.")
+    logger.error(
+        f"  ❌ Imagen {img_filename} no pudo generarse tras {MAX_RETRIES} intentos."
+    )
     return False
 
 
@@ -134,11 +145,14 @@ def _repackage_epub(refined_dir: str) -> None:
     """
     try:
         from tools.epub_generator import generate_epub
+
         result = generate_epub(refined_dir)
         logger.info(f"EPUB re-empaquetado: {result}")
     except Exception as e:
         logger.error(f"No se pudo re-empaquetar EPUB: {e}")
-        logger.info("Puedes hacerlo manualmente con: python tools/epub_generator.py <directorio_refinado>")
+        logger.info(
+            "Puedes hacerlo manualmente con: python tools/epub_generator.py <directorio_refinado>"
+        )
 
 
 def retry_failed_images(refined_dir: str) -> None:
@@ -151,20 +165,26 @@ def retry_failed_images(refined_dir: str) -> None:
 
     failed_log_path = os.path.join(refined_dir, "failed_images.json")
     if not os.path.exists(failed_log_path):
-        logger.info("No hay imágenes fallidas registradas en este directorio. ¡Todo está perfecto!")
+        logger.info(
+            "No hay imágenes fallidas registradas en este directorio. ¡Todo está perfecto!"
+        )
         return
 
     with open(failed_log_path, "r", encoding="utf-8") as f:
         failed_entries = json.load(f)
 
     if not failed_entries:
-        logger.info("El archivo de recuperación está vacío. No hay nada que reintentar.")
+        logger.info(
+            "El archivo de recuperación está vacío. No hay nada que reintentar."
+        )
         return
 
-    logger.info(f"Se encontraron {len(failed_entries)} imágenes fallidas en '{refined_dir}'.")
+    logger.info(
+        f"Se encontraron {len(failed_entries)} imágenes fallidas en '{refined_dir}'."
+    )
     lore_data = _load_lore(refined_dir)
 
-    recovered     = []
+    recovered = []
     still_failing = []
 
     for entry in failed_entries:
@@ -181,7 +201,7 @@ def retry_failed_images(refined_dir: str) -> None:
     with open(failed_log_path, "w", encoding="utf-8") as f:
         json.dump(still_failing, f, indent=2, ensure_ascii=False)
 
-    logger.info(f"\n--- RESUMEN ---")
+    logger.info("\n--- RESUMEN ---")
     logger.info(f"  ✅ Recuperadas: {len(recovered)}")
     logger.info(f"  ❌ Aún fallidas: {len(still_failing)}")
 
@@ -190,8 +210,12 @@ def retry_failed_images(refined_dir: str) -> None:
         _repackage_epub(refined_dir)
 
     if still_failing:
-        logger.warning("Las imágenes persistentemente fallidas permanecen en failed_images.json.")
-        logger.warning("Puedes volver a ejecutar este script más tarde para reintentarlas.")
+        logger.warning(
+            "Las imágenes persistentemente fallidas permanecen en failed_images.json."
+        )
+        logger.warning(
+            "Puedes volver a ejecutar este script más tarde para reintentarlas."
+        )
 
 
 if __name__ == "__main__":

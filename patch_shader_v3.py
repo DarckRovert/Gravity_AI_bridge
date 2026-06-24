@@ -1,4 +1,3 @@
-import os
 import re
 
 filepath = r"f:\Gravity_AI_bridge\core\video\glsl_renderer_v13.py"

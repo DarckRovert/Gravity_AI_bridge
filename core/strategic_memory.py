@@ -24,6 +24,7 @@ from typing import Any, Dict, List, Optional
 
 try:
     import networkx as nx
+
     _NX_OK = True
 except ImportError:
     nx = None
@@ -43,12 +44,12 @@ OUTCOME_NEUTRAL = "neutral"
 OUTCOME_PENDING = "pending"
 
 # ── Categorías de decisión ────────────────────────────────────────────────────
-CAT_CONTENT     = "content"       # Ajuste de nichos, scheduler
-CAT_MONETIZE    = "monetize"      # Revenue, afiliados, upload
-CAT_SYSTEM      = "system"        # Config, provider, hardware
-CAT_SECURITY    = "security"      # Alertas, parches
-CAT_EVOLUTION   = "evolution"     # Mejoras de código propuestas
-CAT_OPPORTUNITY = "opportunity"   # Bounties, nuevos ingresos
+CAT_CONTENT = "content"  # Ajuste de nichos, scheduler
+CAT_MONETIZE = "monetize"  # Revenue, afiliados, upload
+CAT_SYSTEM = "system"  # Config, provider, hardware
+CAT_SECURITY = "security"  # Alertas, parches
+CAT_EVOLUTION = "evolution"  # Mejoras de código propuestas
+CAT_OPPORTUNITY = "opportunity"  # Bounties, nuevos ingresos
 
 
 def _get_conn() -> sqlite3.Connection:
@@ -106,6 +107,7 @@ _init_db()
 
 # ── API de Decisiones ─────────────────────────────────────────────────────────
 
+
 def record_decision(
     category: str,
     title: str,
@@ -131,16 +133,27 @@ def record_decision(
                         (ts, category, title, description, rationale, action_taken, outcome, metadata)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
-                    (now, category, title, description, rationale, action_taken, OUTCOME_PENDING, meta_str),
+                    (
+                        now,
+                        category,
+                        title,
+                        description,
+                        rationale,
+                        action_taken,
+                        OUTCOME_PENDING,
+                        meta_str,
+                    ),
                 )
                 conn.commit()
                 decision_id = cur.lastrowid
                 conn.close()
-                log.info(f"[StrategicMemory] Decisión #{decision_id} registrada: [{category}] {title}")
+                log.info(
+                    f"[StrategicMemory] Decisión #{decision_id} registrada: [{category}] {title}"
+                )
                 return decision_id
             except sqlite3.OperationalError as e:
                 if "locked" in str(e).lower() and attempt < 4:
-                    time.sleep(0.05 * (2 ** attempt))
+                    time.sleep(0.05 * (2**attempt))
                 else:
                     log.error(f"[StrategicMemory] Error registrando decisión: {e}")
                     return -1
@@ -177,18 +190,22 @@ def update_outcome(
                 )
                 conn.commit()
                 conn.close()
-                log.info(f"[StrategicMemory] Decisión #{decision_id} actualizada: {outcome} (score={impact_score})")
+                log.info(
+                    f"[StrategicMemory] Decisión #{decision_id} actualizada: {outcome} (score={impact_score})"
+                )
                 return True
             except sqlite3.OperationalError as e:
                 if "locked" in str(e).lower() and attempt < 4:
-                    time.sleep(0.05 * (2 ** attempt))
+                    time.sleep(0.05 * (2**attempt))
                 else:
                     log.error(f"[StrategicMemory] Error actualizando outcome: {e}")
                     return False
     return False
 
 
-def get_recent_decisions(n: int = 20, category: Optional[str] = None) -> List[Dict[str, Any]]:
+def get_recent_decisions(
+    n: int = 20, category: Optional[str] = None
+) -> List[Dict[str, Any]]:
     """Retorna las N decisiones más recientes, opcionalmente filtradas por categoría."""
     with _db_lock:
         try:
@@ -220,11 +237,14 @@ def get_decision_by_id(decision_id: int) -> Optional[Dict[str, Any]]:
             conn.close()
             return dict(row) if row else None
         except Exception as e:
-            log.error(f"[StrategicMemory] Error obteniendo decisión #{decision_id}: {e}")
+            log.error(
+                f"[StrategicMemory] Error obteniendo decisión #{decision_id}: {e}"
+            )
             return None
 
 
 # ── API de Patrones ───────────────────────────────────────────────────────────
+
 
 def upsert_pattern(pattern_key: str, pattern_val: str) -> None:
     """
@@ -252,7 +272,7 @@ def upsert_pattern(pattern_key: str, pattern_val: str) -> None:
                 return
             except sqlite3.OperationalError as e:
                 if "locked" in str(e).lower() and attempt < 4:
-                    time.sleep(0.05 * (2 ** attempt))
+                    time.sleep(0.05 * (2**attempt))
                 else:
                     log.error(f"[StrategicMemory] Error en upsert_pattern: {e}")
                     return
@@ -280,6 +300,7 @@ def get_patterns(prefix: Optional[str] = None, limit: int = 50) -> List[Dict[str
 
 
 # ── Estadísticas y proyecciones ───────────────────────────────────────────────
+
 
 def get_summary(days: int = 30) -> Dict[str, Any]:
     """
@@ -325,7 +346,8 @@ def get_summary(days: int = 30) -> Dict[str, Any]:
 
             # Patrones más frecuentes
             top_patterns = [
-                dict(r) for r in conn.execute(
+                dict(r)
+                for r in conn.execute(
                     "SELECT pattern_key, pattern_val, hits FROM system_patterns ORDER BY hits DESC LIMIT 10"
                 ).fetchall()
             ]
@@ -334,18 +356,20 @@ def get_summary(days: int = 30) -> Dict[str, Any]:
 
             # Tasa de éxito
             successes = by_outcome.get(OUTCOME_SUCCESS, 0)
-            failures  = by_outcome.get(OUTCOME_FAILURE, 0)
-            resolved  = successes + failures
-            success_rate = round(successes / resolved * 100, 1) if resolved > 0 else None
+            failures = by_outcome.get(OUTCOME_FAILURE, 0)
+            resolved = successes + failures
+            success_rate = (
+                round(successes / resolved * 100, 1) if resolved > 0 else None
+            )
 
             return {
-                "period_days":    days,
+                "period_days": days,
                 "total_decisions": total,
-                "by_outcome":     by_outcome,
-                "by_category":    by_category,
-                "avg_impact":     avg_impact,
+                "by_outcome": by_outcome,
+                "by_category": by_category,
+                "avg_impact": avg_impact,
                 "success_rate_pct": success_rate,
-                "top_patterns":   top_patterns,
+                "top_patterns": top_patterns,
             }
         except Exception as e:
             log.error(f"[StrategicMemory] Error en get_summary: {e}")
@@ -358,29 +382,39 @@ def get_knowledge_graph() -> Dict[str, Any]:
     usando NetworkX. Identifica los nodos (categorías/patrones) más centrales (PageRank).
     """
     if not _NX_OK:
-        return {"error": "NetworkX no está instalado. Instala networkx para usar Graph-RAG."}
+        return {
+            "error": "NetworkX no está instalado. Instala networkx para usar Graph-RAG."
+        }
 
     G = nx.Graph()
     with _db_lock:
         try:
             conn = _get_conn()
-            
+
             # Nodos y aristas de Decisiones -> Categorías -> Outcomes
-            decisions = conn.execute("SELECT id, category, title, outcome FROM strategic_decisions LIMIT 100").fetchall()
+            decisions = conn.execute(
+                "SELECT id, category, title, outcome FROM strategic_decisions LIMIT 100"
+            ).fetchall()
             for d in decisions:
                 node_id = f"dec_{d['id']}"
                 G.add_node(node_id, type="decision", title=d["title"])
                 G.add_node(d["category"], type="category")
                 G.add_node(d["outcome"], type="outcome")
-                
+
                 G.add_edge(node_id, d["category"], relation="belongs_to")
                 G.add_edge(node_id, d["outcome"], relation="resulted_in")
 
             # Nodos de Patrones
-            patterns = conn.execute("SELECT pattern_key, hits FROM system_patterns LIMIT 100").fetchall()
+            patterns = conn.execute(
+                "SELECT pattern_key, hits FROM system_patterns LIMIT 100"
+            ).fetchall()
             for p in patterns:
                 node_id = f"pat_{p['pattern_key']}"
-                cat = p["pattern_key"].split(":")[0] if ":" in p["pattern_key"] else "general"
+                cat = (
+                    p["pattern_key"].split(":")[0]
+                    if ":" in p["pattern_key"]
+                    else "general"
+                )
                 G.add_node(node_id, type="pattern", hits=p["hits"])
                 G.add_node(cat, type="category")
                 G.add_edge(node_id, cat, relation="related_to", weight=p["hits"])
@@ -389,19 +423,22 @@ def get_knowledge_graph() -> Dict[str, Any]:
 
             # Análisis de centralidad (PageRank)
             pagerank = nx.pagerank(G, weight="weight")
-            central_nodes = sorted(pagerank.items(), key=lambda x: x[1], reverse=True)[:5]
-            
+            central_nodes = sorted(pagerank.items(), key=lambda x: x[1], reverse=True)[
+                :5
+            ]
+
             return {
                 "nodes_count": G.number_of_nodes(),
                 "edges_count": G.number_of_edges(),
                 "most_central_nodes": [
-                    {"node": str(node), "score": round(score, 4)} 
+                    {"node": str(node), "score": round(score, 4)}
                     for node, score in central_nodes
-                ]
+                ],
             }
         except Exception as e:
             log.error(f"[StrategicMemory] Error en Knowledge Graph: {e}")
             return {"error": str(e)}
+
 
 def get_brain_snapshot() -> str:
     """
@@ -422,7 +459,7 @@ def get_brain_snapshot() -> str:
         if recent:
             lines.append("Últimas decisiones:")
             for d in recent:
-                ts  = d.get("ts", "")[:19]
+                ts = d.get("ts", "")[:19]
                 cat = d.get("category", "?")
                 ttl = d.get("title", "?")[:60]
                 out = d.get("outcome", "?")
@@ -432,7 +469,9 @@ def get_brain_snapshot() -> str:
         if patterns:
             lines.append("Patrones detectados:")
             for p in patterns[:3]:
-                lines.append(f"  {p['pattern_key']} (×{p['hits']}): {str(p['pattern_val'])[:80]}")
+                lines.append(
+                    f"  {p['pattern_key']} (×{p['hits']}): {str(p['pattern_val'])[:80]}"
+                )
 
         # Inyectar Knowledge Graph Insights si está activo
         graph_data = get_knowledge_graph()

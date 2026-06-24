@@ -22,4 +22,5 @@ try:
 except Exception as e:
     print("CRASH EN WHISPER:", e)
     import traceback
+
     traceback.print_exc()

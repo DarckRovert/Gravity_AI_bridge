@@ -20,14 +20,14 @@ La historia debe seguir el formato noir-cyberpunk. Kaelen debe encontrar la form
 if __name__ == "__main__":
     lore_path = r"f:\Gravity_AI_bridge\ficcion_generada\Cenizas_del_Leviatan_Libro_3\lore_book.json"
     author = GravityFictionAuthor(lore_file=lore_path)
-    
+
     # Path a la memoria de continuidad del Libro 2 para que herede toda la trama previa
     historial_previo = r"f:\Gravity_AI_bridge\ficcion_generada\Cenizas_del_Leviatan_Libro_2\historial_continuidad.md"
-    
+
     # Generar 8 capítulos como en los libros anteriores
     author.write_fiction_book(
-        prompt=prompt_maestro, 
-        title="Cenizas del Leviatan Libro 3", 
-        num_chapters=8, 
-        previous_history_file=historial_previo
+        prompt=prompt_maestro,
+        title="Cenizas del Leviatan Libro 3",
+        num_chapters=8,
+        previous_history_file=historial_previo,
     )

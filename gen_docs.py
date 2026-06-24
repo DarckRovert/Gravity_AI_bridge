@@ -256,7 +256,6 @@ Ver [`SECURITY.md`](SECURITY.md) para política de vulnerabilidades y reporte re
   <sub><i>© 2026 DarckRovert · Gravity AI Bridge V16.0 PRO — Motor Cinematic V2.0 PBR. All architectural assets belong to their proprietary author.</i></sub>
 </div>
 """,
-
     "LICENSE": """Copyright (c) 2026 Rodrigo Alejandro Vega Rojas. Todos los derechos reservados.
 Publicado bajo el seudónimo: DarckRovert
 Proyecto: Gravity AI Bridge V16.0 PRO [Omniscient-Tier]
@@ -305,7 +304,6 @@ LA VISUALIZACIÓN DE ESTE CÓDIGO EN GITHUB NO OTORGA NINGÚN DERECHO DE USO,
 COPIA O DISTRIBUCIÓN. "No license" bajo los términos de GitHub ToS significa
 que ninguna persona distinta al titular puede usar este código.
 """,
-
     "CONTRIBUTING.md": """# Guía de Contribución para Gravity AI Bridge
 
 ¡Gracias por tu interés en contribuir al ecosistema de Gravity AI!
@@ -321,7 +319,6 @@ Toda contribución de código debe respetar estrictamente las reglas invariantes
 2. Añade documentación en la carpeta `/wiki` si alteras la arquitectura L0/L1/L2.
 3. Envía el PR detallando el consumo de recursos y tiempo de procesamiento.
 """,
-
     "CODE_OF_CONDUCT.md": """# Código de Conducta de Gravity AI
 
 El equipo y la IA detrás de Gravity se rigen por un principio básico de respeto, innovación y seguridad técnica.
@@ -330,7 +327,6 @@ El equipo y la IA detrás de Gravity se rigen por un principio básico de respet
 2. **Reporte de Brechas:** Toda brecha de seguridad (loop infinito, escape de contenedor, filtración de API keys) debe reportarse a los administradores antes de publicarla.
 3. **Respeto Mutuo:** No se tolerará acoso, discriminación o toxicidad en el entorno de desarrollo.
 """,
-
     "SECURITY.md": """# Política de Seguridad
 
 Este repositorio implementa salvaguardas avanzadas para el control de IA autónoma.
@@ -341,7 +337,6 @@ Actualmente solo se brinda soporte de seguridad a la rama principal (Gravity V16
 ## Reporte de Vulnerabilidades
 Si encuentras una manera en la que el Motor de Autonomía de Gravity pueda eludir sus bloqueos (HITL o presupuesto), repórtalo directamente mediante un Issue privado o contactando al administrador. NO crees un Issue público si el problema expone claves de API en texto plano o permite RCE remoto sin autenticación.
 """,
-
     ".github/ISSUE_TEMPLATE/bug_report.md": """---
 name: Reporte de Bug
 about: Crea un reporte para ayudarnos a mejorar la estabilidad de Gravity.
@@ -363,7 +358,6 @@ Si aplica, pega aquí la salida de error (elimina claves de API):
 - Motor: [ej. Llama 3.3, Ollama, etc]
 - Puerto afectado: [ej. 7860, 7861]
 """,
-
     ".github/ISSUE_TEMPLATE/feature_request.md": """---
 name: Solicitud de Feature
 about: Sugiere una nueva idea para el ecosistema Gravity.
@@ -375,7 +369,6 @@ assignees: DarckRovert
 **Descripción de la Feature**
 Explica tu idea y cómo encaja en la arquitectura L0, L1 o L2 de Gravity.
 """,
-
     "wiki/Home.md": """# Wiki de Gravity AI Bridge 📚
 
 Bienvenido a la Wiki Oficial del ecosistema **Gravity AI Bridge V16.0 PRO**.
@@ -388,7 +381,6 @@ Bienvenido a la Wiki Oficial del ecosistema **Gravity AI Bridge V16.0 PRO**.
 
 Gravity es un puente de software que vincula sistemas de inteligencia artificial local con integraciones de nube híbrida, formando un sistema completamente autogestionable capaz de generar reportajes, audios y videos de alta calidad con intervención humana mínima.
 """,
-
     "wiki/Architecture-Deep-Dive.md": """# Arquitectura Profunda (L0, L1, L2)
 
 ## Estructura de Capas
@@ -413,7 +405,6 @@ Un proceso demonio continuo (`news_daemon.py`) que:
 3. Inyecta respuestas LLM en `news.json` en un repositorio independiente (`gravity-news-portal`).
 4. Realiza sincronizaciones automáticas a través de `git commit` y `git push` a Netlify. Cuenta con control de idempotencia para evitar fallos si no hay cambios nuevos, garantizando un ciclo de ejecución continuo.
 """,
-
     "wiki/API-Reference.md": """# Referencia de API
 
 ## `core/provider_manager.py`
@@ -430,7 +421,6 @@ Ejecución del periodista.
 - Argumentos: `--topic "..."`, `--focus "..."`.
 - Fallbacks automáticos entre motores.
 """,
-
     "wiki/Troubleshooting-and-FAQ.md": """# Troubleshooting y FAQ
 
 ### 1. El portal de noticias tiene errores de decodificación JSON.
@@ -448,10 +438,9 @@ Ejecución del periodista.
 ### 5. Falla silenciosa al instalar faster-whisper
 **Solución:** En V16.0 PRO, la instalación de dependencias como Whisper es de tipo "bloqueante" (`blocking`). Si notas errores de "módulo no encontrado" en la consola, verifica que el subprocess tenga permisos para instalar pip localmente sin detener la ejecución.
 """,
-
 }
 
-files_to_create['.gitignore'] = """
+files_to_create[".gitignore"] = """
 __pycache__/
 *.py[cod]
 *$py.class

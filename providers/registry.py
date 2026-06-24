@@ -14,8 +14,8 @@ from typing import Dict, List, Optional, Type
 
 from providers.base import ProviderPlugin, ProviderResult
 
-_BASE   = os.path.dirname(os.path.dirname(__file__))   # F:\Gravity_AI_bridge
-_LOCK   = threading.RLock()
+_BASE = os.path.dirname(os.path.dirname(__file__))  # F:\Gravity_AI_bridge
+_LOCK = threading.RLock()
 
 
 class ProviderRegistry:
@@ -30,11 +30,11 @@ class ProviderRegistry:
         cloud_all = ProviderRegistry.get_cloud_plugins()
     """
 
-    _plugin_classes:   Dict[str, Type[ProviderPlugin]] = {}   # name → class
-    _instances:        Dict[str, ProviderPlugin]        = {}   # name → instance
-    _discovered:       bool                             = False
-    _last_discover_ts: float                            = 0.0
-    _REDISCOVER_SECS:  float                            = 60.0  # hot-reload interval
+    _plugin_classes: Dict[str, Type[ProviderPlugin]] = {}  # name → class
+    _instances: Dict[str, ProviderPlugin] = {}  # name → instance
+    _discovered: bool = False
+    _last_discover_ts: float = 0.0
+    _REDISCOVER_SECS: float = 60.0  # hot-reload interval
 
     # ── Discovery ─────────────────────────────────────────────────────────────
 
@@ -45,13 +45,21 @@ class ProviderRegistry:
         Thread-safe. Hot-reloads if called again after _REDISCOVER_SECS.
         """
         now = time.time()
-        if not force and cls._discovered and (now - cls._last_discover_ts) < cls._REDISCOVER_SECS:
+        if (
+            not force
+            and cls._discovered
+            and (now - cls._last_discover_ts) < cls._REDISCOVER_SECS
+        ):
             return
 
         with _LOCK:
             # Double-checked locking
             now = time.time()
-            if not force and cls._discovered and (now - cls._last_discover_ts) < cls._REDISCOVER_SECS:
+            if (
+                not force
+                and cls._discovered
+                and (now - cls._last_discover_ts) < cls._REDISCOVER_SECS
+            ):
                 return
 
             new_classes: Dict[str, Type[ProviderPlugin]] = {}
@@ -61,17 +69,23 @@ class ProviderRegistry:
                 if not os.path.isdir(cat_dir):
                     continue
                 for fname in sorted(os.listdir(cat_dir)):
-                    if not (fname.endswith("_provider.py") or fname.endswith("_providers.py") or fname.endswith("_cloud.py")):
+                    if not (
+                        fname.endswith("_provider.py")
+                        or fname.endswith("_providers.py")
+                        or fname.endswith("_cloud.py")
+                    ):
                         continue
                     if fname.startswith("_"):
-                        continue   # skip _base_*.py helpers
+                        continue  # skip _base_*.py helpers
                     module_name = f"providers.{category}.{fname[:-3]}"
-                    fpath       = os.path.join(cat_dir, fname)
+                    fpath = os.path.join(cat_dir, fname)
                     try:
-                        spec   = importlib.util.spec_from_file_location(module_name, fpath)
+                        spec = importlib.util.spec_from_file_location(
+                            module_name, fpath
+                        )
                         if spec is None or spec.loader is None:
                             continue
-                        mod    = importlib.util.module_from_spec(spec)
+                        mod = importlib.util.module_from_spec(spec)
                         spec.loader.exec_module(mod)
                         for attr_name in dir(mod):
                             attr = getattr(mod, attr_name)
@@ -86,8 +100,8 @@ class ProviderRegistry:
                         # Individual bad plugin must not crash the registry
                         print(f"[Registry] Failed to load {fname}: {exc}")
 
-            cls._plugin_classes   = new_classes
-            cls._discovered       = True
+            cls._plugin_classes = new_classes
+            cls._discovered = True
             cls._last_discover_ts = now
 
             # Invalidate cached instances for classes that changed
@@ -163,6 +177,7 @@ class ProviderRegistry:
         without making network requests.
         """
         from concurrent.futures import ThreadPoolExecutor
+
         with _LOCK:
             cls.discover()
             plugins = cls.get_all_plugins()
@@ -170,8 +185,8 @@ class ProviderRegistry:
         def _safe_check(plugin: ProviderPlugin) -> ProviderResult:
             try:
                 return plugin.check_health()
-            except Exception as e:
-                r           = plugin._make_result()
+            except Exception:
+                r = plugin._make_result()
                 r.is_healthy = False
                 return r
 
@@ -179,7 +194,6 @@ class ProviderRegistry:
             results = list(ex.map(_safe_check, plugins))
 
         return results
-
 
 
 if __name__ == "__main__":

@@ -20,13 +20,13 @@ log = logging.getLogger("gravity.guardian")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # ── Límites de seguridad ───────────────────────────────────────────────────────
-MAX_HISTORY_MESSAGES = 2000      # Historial máximo antes de truncar
-MAX_MESSAGE_CHARS    = 200_000   # Longitud máxima por mensaje (~50k tokens)
-MAX_KNOWLEDGE_RULES  = 500       # Reglas máximas en _knowledge.json
-MAX_RULE_CHARS       = 2_000     # Longitud máxima por regla
-MAX_AUDIT_LINES      = 100_000   # Líneas máximas en el audit
-MAX_AUDIT_FILE_MB    = 50        # Rotación si el archivo supera este tamaño
-MAX_BACKUPS          = 3         # Máximo de backups por archivo (los más viejos se eliminan)
+MAX_HISTORY_MESSAGES = 2000  # Historial máximo antes de truncar
+MAX_MESSAGE_CHARS = 200_000  # Longitud máxima por mensaje (~50k tokens)
+MAX_KNOWLEDGE_RULES = 500  # Reglas máximas en _knowledge.json
+MAX_RULE_CHARS = 2_000  # Longitud máxima por regla
+MAX_AUDIT_LINES = 100_000  # Líneas máximas en el audit
+MAX_AUDIT_FILE_MB = 50  # Rotación si el archivo supera este tamaño
+MAX_BACKUPS = 3  # Máximo de backups por archivo (los más viejos se eliminan)
 
 VALID_ROLES = {"system", "user", "assistant", "function", "tool"}
 
@@ -35,6 +35,7 @@ _backup_lock = threading.Lock()
 
 # ── Gestión de backups ─────────────────────────────────────────────────────────
 
+
 def _backup(path: str) -> str:
     """
     Crea una copia de seguridad con timestamp de forma segura y libre de colisiones.
@@ -42,7 +43,7 @@ def _backup(path: str) -> str:
     Retorna la ruta del backup creado, o "" si falló.
     """
     with _backup_lock:
-        ts     = datetime.now().strftime("%Y%m%d_%H%M%S")
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup = f"{path}.bak_{ts}"
         try:
             shutil.copy2(path, backup)
@@ -51,7 +52,7 @@ def _backup(path: str) -> str:
             return ""
 
         # Rotar: eliminar backups viejos si excede el límite
-        pattern  = f"{path}.bak_*"
+        pattern = f"{path}.bak_*"
         existing = sorted(glob.glob(pattern))  # Orden cronológico por nombre
         while len(existing) > MAX_BACKUPS:
             oldest = existing.pop(0)
@@ -64,6 +65,7 @@ def _backup(path: str) -> str:
 
 
 # ── Carga segura de JSON ───────────────────────────────────────────────────────
+
 
 def _load_json_safe(path: str) -> tuple[Any, list[str]]:
     """
@@ -88,14 +90,18 @@ def _load_json_safe(path: str) -> tuple[Any, list[str]]:
     try:
         return json.loads(raw), warnings
     except json.JSONDecodeError as e:
-        warnings.append(f"{os.path.basename(path)} JSON inválido en línea {e.lineno}: {e.msg}")
+        warnings.append(
+            f"{os.path.basename(path)} JSON inválido en línea {e.lineno}: {e.msg}"
+        )
         # Recuperación parcial: buscar el último } o ] válido
         for end_char in ("}", "]"):
             idx = raw.rfind(end_char)
             if idx != -1:
                 try:
-                    recovered = json.loads(raw[:idx + 1])
-                    warnings.append(f"Recuperación parcial exitosa (hasta posición {idx}).")
+                    recovered = json.loads(raw[: idx + 1])
+                    warnings.append(
+                        f"Recuperación parcial exitosa (hasta posición {idx})."
+                    )
                     return recovered, warnings
                 except Exception:
                     pass
@@ -103,6 +109,7 @@ def _load_json_safe(path: str) -> tuple[Any, list[str]]:
 
 
 # ── Validación de mensajes de historial ───────────────────────────────────────
+
 
 def _is_valid_message(msg: Any) -> tuple[bool, str]:
     """Valida estructura de un mensaje de chat."""
@@ -123,6 +130,7 @@ def _is_valid_message(msg: Any) -> tuple[bool, str]:
 
 # ── Historial ─────────────────────────────────────────────────────────────────
 
+
 def validate_history(history: list) -> tuple[list, list[str]]:
     """
     Valida y sanea una lista de mensajes de historial en memoria.
@@ -133,7 +141,9 @@ def validate_history(history: list) -> tuple[list, list[str]]:
     """
     warnings = []
     if not isinstance(history, list):
-        warnings.append(f"El historial no es una lista: {type(history).__name__}. Reseteando.")
+        warnings.append(
+            f"El historial no es una lista: {type(history).__name__}. Reseteando."
+        )
         return [], warnings
 
     cleaned = []
@@ -149,20 +159,24 @@ def validate_history(history: list) -> tuple[list, list[str]]:
         content = msg.get("content", "")
         if isinstance(content, str) and len(content) > MAX_MESSAGE_CHARS:
             keep_start = int(MAX_MESSAGE_CHARS * 0.9)
-            keep_end   = MAX_MESSAGE_CHARS - keep_start
-            truncated  = (content[:keep_start]
-                          + f"\n[...TRUNCADO {len(content)-MAX_MESSAGE_CHARS:,} chars...]\n"
-                          + content[-keep_end:])
+            keep_end = MAX_MESSAGE_CHARS - keep_start
+            truncated = (
+                content[:keep_start]
+                + f"\n[...TRUNCADO {len(content)-MAX_MESSAGE_CHARS:,} chars...]\n"
+                + content[-keep_end:]
+            )
             msg = {**msg, "content": truncated}
-            warnings.append(f"Mensaje [{i}] truncado: {len(content):,} → {MAX_MESSAGE_CHARS:,} chars")
+            warnings.append(
+                f"Mensaje [{i}] truncado: {len(content):,} → {MAX_MESSAGE_CHARS:,} chars"
+            )
 
         cleaned.append(msg)
 
     if len(cleaned) > MAX_HISTORY_MESSAGES:
-        excess      = len(cleaned) - MAX_HISTORY_MESSAGES
+        excess = len(cleaned) - MAX_HISTORY_MESSAGES
         system_msgs = [m for m in cleaned if m.get("role") == "system"]
-        other_msgs  = [m for m in cleaned if m.get("role") != "system"][excess:]
-        cleaned     = system_msgs + other_msgs
+        other_msgs = [m for m in cleaned if m.get("role") != "system"][excess:]
+        cleaned = system_msgs + other_msgs
         warnings.append(f"Historial truncado: {excess} mensajes antiguos eliminados.")
 
     if removed:
@@ -176,8 +190,8 @@ def load_history_file(path: str) -> tuple[list, list[str]]:
     Carga un archivo de sesión JSON y valida su historial.
     Retorna (history_list, warnings).
     """
-    warnings  = []
-    data, w   = _load_json_safe(path)
+    warnings = []
+    data, w = _load_json_safe(path)
     warnings += w
 
     if data is None:
@@ -193,17 +207,18 @@ def load_history_file(path: str) -> tuple[list, list[str]]:
         return [], warnings
 
     history, w2 = validate_history(raw_history)
-    warnings   += w2
+    warnings += w2
     return history, warnings
 
 
 # ── Knowledge ─────────────────────────────────────────────────────────────────
 
+
 def load_knowledge(path: str) -> tuple[dict, list[str]]:
     """
     Carga y valida _knowledge.json de forma segura, previniendo
     conflictos de concurrencia mediante el cerrojo compartido de Gravity Brain.
-    
+
     Retorna (knowledge_dict_sano, warnings).
     """
     try:
@@ -212,7 +227,7 @@ def load_knowledge(path: str) -> tuple[dict, list[str]]:
         _brain_lock = None
 
     warnings = []
-    default  = {"persistent_rules": [], "version": "10.0"}
+    default = {"persistent_rules": [], "version": "10.0"}
 
     lock_context = _brain_lock if _brain_lock else threading.Lock()
 
@@ -220,13 +235,15 @@ def load_knowledge(path: str) -> tuple[dict, list[str]]:
         if not os.path.exists(path):
             return default, warnings
 
-        data, w   = _load_json_safe(path)
+        data, w = _load_json_safe(path)
         warnings += w
 
         if data is None:
             backup = _backup(path)
             if backup:
-                warnings.append(f"_knowledge.json corrupto — backup: {os.path.basename(backup)}")
+                warnings.append(
+                    f"_knowledge.json corrupto — backup: {os.path.basename(backup)}"
+                )
             return default, warnings
 
         if not isinstance(data, dict):
@@ -240,12 +257,14 @@ def load_knowledge(path: str) -> tuple[dict, list[str]]:
             raw_rules = []
 
         clean_rules = []
-        seen        = set()
-        removed_r   = 0
+        seen = set()
+        removed_r = 0
 
         for i, rule in enumerate(raw_rules):
             if not isinstance(rule, str):
-                warnings.append(f"Regla [{i}] eliminada: no es string ({type(rule).__name__})")
+                warnings.append(
+                    f"Regla [{i}] eliminada: no es string ({type(rule).__name__})"
+                )
                 removed_r += 1
                 continue
 
@@ -259,7 +278,7 @@ def load_knowledge(path: str) -> tuple[dict, list[str]]:
                 warnings.append(f"Regla [{i}] truncada a {MAX_RULE_CHARS} chars")
 
             # Deduplicar por contenido normalizado
-            key = re.sub(r'\s+', ' ', rule_stripped.lower())
+            key = re.sub(r"\s+", " ", rule_stripped.lower())
             if key in seen:
                 removed_r += 1
                 continue
@@ -267,12 +286,16 @@ def load_knowledge(path: str) -> tuple[dict, list[str]]:
             clean_rules.append(rule_stripped)
 
         if len(clean_rules) > MAX_KNOWLEDGE_RULES:
-            excess      = len(clean_rules) - MAX_KNOWLEDGE_RULES
+            excess = len(clean_rules) - MAX_KNOWLEDGE_RULES
             clean_rules = clean_rules[excess:]
-            warnings.append(f"Knowledge: {excess} reglas antiguas eliminadas (límite {MAX_KNOWLEDGE_RULES})")
+            warnings.append(
+                f"Knowledge: {excess} reglas antiguas eliminadas (límite {MAX_KNOWLEDGE_RULES})"
+            )
 
         if removed_r:
-            warnings.append(f"Knowledge: {removed_r} reglas corruptas o duplicadas eliminadas")
+            warnings.append(
+                f"Knowledge: {removed_r} reglas corruptas o duplicadas eliminadas"
+            )
 
         data["persistent_rules"] = clean_rules
         return data, warnings
@@ -282,7 +305,7 @@ def save_knowledge(path: str, data: dict) -> tuple[bool, list[str]]:
     """
     Valida y guarda knowledge de forma atómica y thread-safe (.tmp → rename)
     sincronizado bajo el cerrojo global de Gravity Brain.
-    
+
     Retorna (exito, warnings).
     """
     try:
@@ -320,9 +343,8 @@ def save_knowledge(path: str, data: dict) -> tuple[bool, list[str]]:
             return False, warnings
 
 
-
-
 # ── Audit Log ─────────────────────────────────────────────────────────────────
+
 
 def _audit_log_has_corruption(path: str) -> bool:
     """
@@ -332,6 +354,7 @@ def _audit_log_has_corruption(path: str) -> bool:
     """
     try:
         from core.audit_log import audit_logger
+
         lock_context = audit_logger._lock
     except ImportError:
         lock_context = threading.Lock()
@@ -369,12 +392,13 @@ def repair_audit_log(path: str) -> tuple[int, int, list[str]]:
     """
     try:
         from core.audit_log import audit_logger
+
         lock_context = audit_logger._lock
     except ImportError:
         lock_context = threading.Lock()
 
     warnings = []
-    
+
     with lock_context:
         if not os.path.exists(path):
             return 0, 0, warnings
@@ -395,7 +419,7 @@ def repair_audit_log(path: str) -> tuple[int, int, list[str]]:
             warnings.append(f"No se pudo leer audit_log: {e}")
             return 0, 0, warnings
 
-        ok_lines      = []
+        ok_lines = []
         removed_count = 0
 
         for i, line in enumerate(raw):
@@ -416,9 +440,11 @@ def repair_audit_log(path: str) -> tuple[int, int, list[str]]:
                     warnings.append(f"Audit línea {i+1} eliminada: {str(e)[:60]}")
 
         if len(ok_lines) > MAX_AUDIT_LINES:
-            excess   = len(ok_lines) - MAX_AUDIT_LINES
+            excess = len(ok_lines) - MAX_AUDIT_LINES
             ok_lines = ok_lines[excess:]
-            warnings.append(f"Audit: {excess} entradas antiguas descartadas (límite {MAX_AUDIT_LINES:,})")
+            warnings.append(
+                f"Audit: {excess} entradas antiguas descartadas (límite {MAX_AUDIT_LINES:,})"
+            )
 
         if removed_count > 0:
             backup = _backup(path)
@@ -442,6 +468,7 @@ def repair_audit_log(path: str) -> tuple[int, int, list[str]]:
 
 # ── Startup Check ─────────────────────────────────────────────────────────────
 
+
 def startup_check(base_dir: str = BASE_DIR) -> tuple[dict, list[str]]:
     """
     Chequeo de integridad al arranque del sistema.
@@ -458,7 +485,7 @@ def startup_check(base_dir: str = BASE_DIR) -> tuple[dict, list[str]]:
 
     # ── 1. Knowledge JSON (lectura única) ────────────────────────────────────
     kb_path = os.path.join(base_dir, "_knowledge.json")
-    kb, w   = load_knowledge(kb_path)
+    kb, w = load_knowledge(kb_path)
     all_warnings += w
 
     # ── 2. Audit JSONL (lazy: comprobación O(1) antes de reparar) ────────────

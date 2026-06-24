@@ -5,6 +5,7 @@ Orquesta los tres agentes de manera autónoma según rotación programada:
   - gravity_essayist.py   → Ensayos filosóficos (cada 2 ciclos)
   - gravity_scientist.py  → Artículos científicos (cada 3 ciclos)
 """
+
 import time
 import subprocess
 import random
@@ -15,16 +16,17 @@ from datetime import datetime
 # Forzar codificación UTF-8 para evitar errores con caracteres como ✓ o ✗
 if sys.stdout.encoding != "utf-8":
     try:
-        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
         pass
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-REPORTER_SCRIPT  = os.path.join(BASE_DIR, "gravity_reporter.py")
-ESSAYIST_SCRIPT  = os.path.join(BASE_DIR, "gravity_essayist.py")
+REPORTER_SCRIPT = os.path.join(BASE_DIR, "gravity_reporter.py")
+ESSAYIST_SCRIPT = os.path.join(BASE_DIR, "gravity_essayist.py")
 SCIENTIST_SCRIPT = os.path.join(BASE_DIR, "gravity_scientist.py")
+
 
 def banner():
     print("=" * 70)
@@ -34,21 +36,30 @@ def banner():
     print("[*] El sistema editorial autónomo está en línea.")
     print("[*] Noticias: cada ciclo | Ensayos: cada 2 ciclos | Ciencia: cada 3 ciclos")
 
+
 def run_agent(script_path: str, agent_name: str):
     """Lanza un agente como subproceso y registra su resultado."""
-    print(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [{agent_name}] Iniciando...")
+    print(
+        f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [{agent_name}] Iniciando..."
+    )
     try:
         result = subprocess.run(
             ["python", script_path],
             cwd=BASE_DIR,
-            timeout=2700  # 45 min máximo por agente (para tolerar la cascada completa de LLMs)
+            timeout=2700,  # 45 min máximo por agente (para tolerar la cascada completa de LLMs)
         )
         if result.returncode == 0:
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] [{agent_name}] ✓ Completado exitosamente.")
+            print(
+                f"[{datetime.now().strftime('%H:%M:%S')}] [{agent_name}] ✓ Completado exitosamente."
+            )
         else:
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] [{agent_name}] ⚠ Finalizó con código {result.returncode}.")
+            print(
+                f"[{datetime.now().strftime('%H:%M:%S')}] [{agent_name}] ⚠ Finalizó con código {result.returncode}."
+            )
     except subprocess.TimeoutExpired:
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] [{agent_name}] ✗ Timeout. El agente tardó más de 45 minutos (Cascada agotada).")
+        print(
+            f"[{datetime.now().strftime('%H:%M:%S')}] [{agent_name}] ✗ Timeout. El agente tardó más de 45 minutos (Cascada agotada)."
+        )
     except Exception as e:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] [{agent_name}] ✗ Error: {e}")
 
@@ -78,18 +89,24 @@ while True:
     if cycle_count % 2 == 0:
         run_agent(ESSAYIST_SCRIPT, "ESSAYIST")
     else:
-        print(f"[*] [ESSAYIST] Saltado en este ciclo (próxima vez en ciclo #{cycle_count + 1})")
+        print(
+            f"[*] [ESSAYIST] Saltado en este ciclo (próxima vez en ciclo #{cycle_count + 1})"
+        )
 
     # Scientist: cada 3 ciclos
     if cycle_count % 3 == 0:
         run_agent(SCIENTIST_SCRIPT, "SCIENTIST")
     else:
-        print(f"[*] [SCIENTIST] Saltado en este ciclo (próxima vez en ciclo #{(cycle_count // 3 + 1) * 3})")
+        print(
+            f"[*] [SCIENTIST] Saltado en este ciclo (próxima vez en ciclo #{(cycle_count // 3 + 1) * 3})"
+        )
 
     # Calcular próxima ejecución (entre 4 y 8 horas)
     wait_hours = random.uniform(4, 8)
     next_run = datetime.fromtimestamp(time.time() + (wait_hours * 3600))
     print(f"\n[*] Ciclo #{cycle_count} completado.")
-    print(f"[*] Próxima ejecución: {next_run.strftime('%Y-%m-%d %H:%M:%S')} (en {wait_hours:.1f}h)")
+    print(
+        f"[*] Próxima ejecución: {next_run.strftime('%Y-%m-%d %H:%M:%S')} (en {wait_hours:.1f}h)"
+    )
 
     time.sleep(wait_hours * 3600)

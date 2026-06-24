@@ -5,14 +5,15 @@ sys.path.insert(0, r"f:\Gravity_AI_bridge")
 
 from core.logger import log
 import logging
+
 log.setLevel(logging.INFO)
 
 from core.video.audio_analyzer import extract_multiband_energy
 from core.video.timeline_director import generate_timeline, generate_color_sequence
 from core.video.v13_ai_director import analyze_lyrics_sections
-from core.video.ai_scene_generator import generate_scene_images
 from core.video.glsl_compute_renderer_v14 import render_v14_compute_video
 from core.video.subtitle_engine import generate_ass_subtitles
+
 
 def main():
     audio_path = r"F:\PROYECTO VIDEOCLIP MUSICAL\input\Frecuencias Fantasma.wav"
@@ -22,7 +23,7 @@ def main():
     fps = 24
     print("[1/4] Extrayendo energía multibanda del audio...")
     multiband = extract_multiband_energy(audio_path, fps)
-    total_frames = len(multiband.get('bass', []))
+    total_frames = len(multiband.get("bass", []))
 
     print("[2/4] Generando timeline acústico base...")
     timeline = generate_timeline(multiband, fps)
@@ -31,8 +32,10 @@ def main():
     print("[2.5/4] Generando Subtítulos (Karaoke) y Extrayendo Letras con Whisper...")
     horiz_ass = os.path.join(output_dir, "test_peru_horiz.ass")
     # Genera subtítulos y recupera el texto real
-    _, real_lyrics = generate_ass_subtitles(audio_path, horiz_ass, tgt_w=1280, tgt_h=720, lyrics_text=None)
-    
+    _, real_lyrics = generate_ass_subtitles(
+        audio_path, horiz_ass, tgt_w=1280, tgt_h=720, lyrics_text=None
+    )
+
     print("[3/4] AI Director: Analizando contexto temático de las letras extraídas...")
     print(f"      -> Letras detectadas: {real_lyrics[:100]}...")
     ai_result = analyze_lyrics_sections(real_lyrics, total_frames, fps)
@@ -66,10 +69,11 @@ def main():
         speed_multiplier=speed_mult_arr,
         turbulence=turb_mult_arr,
         background_images=None,
-        subtitle_file=horiz_ass
+        subtitle_file=horiz_ass,
     )
 
     print("\n=== PROCESO COMPLETADO EXITOSAMENTE ===")
+
 
 if __name__ == "__main__":
     main()

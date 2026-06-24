@@ -30,10 +30,10 @@ HIGH_RISK_TOOLS: List[str] = [
 
 # ── Estado global ────────────────────────────────────────────────────────────
 _lock = threading.RLock()  # Cerrojo reentrante robusto
-_pending: Dict[str, Dict[str, Any]] = {}   # approval_id → request
-_decisions: Dict[str, str] = {}            # approval_id → "approved" | "rejected"
-_events: Dict[str, threading.Event] = {}   # approval_id → Evento de suspensión
-TIMEOUT_SECONDS: int = 120                 # Timeout auto-rechazo
+_pending: Dict[str, Dict[str, Any]] = {}  # approval_id → request
+_decisions: Dict[str, str] = {}  # approval_id → "approved" | "rejected"
+_events: Dict[str, threading.Event] = {}  # approval_id → Evento de suspensión
+TIMEOUT_SECONDS: int = 120  # Timeout auto-rechazo
 
 
 def request_approval(
@@ -47,12 +47,12 @@ def request_approval(
     approval_id: str = str(uuid.uuid4())[:12]
     with _lock:
         _pending[approval_id] = {
-            "id":         approval_id,
-            "tool":       tool_name,
-            "arguments":  arguments,
+            "id": approval_id,
+            "tool": tool_name,
+            "arguments": arguments,
             "session_id": session_id,
-            "timestamp":  time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "status":     "pending",
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "status": "pending",
         }
         # Crear un evento de sincronización exclusivo para esta aprobación
         _events[approval_id] = threading.Event()
@@ -144,8 +144,7 @@ def intercept(
     decision: str = wait_for_decision(approval_id)
 
     return {
-        "proceed":     decision == "approved",
-        "decision":    decision,
+        "proceed": decision == "approved",
+        "decision": decision,
         "approval_id": approval_id,
     }
-

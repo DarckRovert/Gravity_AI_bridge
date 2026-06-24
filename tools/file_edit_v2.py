@@ -3,13 +3,12 @@ Gravity AI — File Edit Tool V16.0 PRO (Claw Edition)
 Implementación de edición quirúrgica basada en bloques exactos.
 Inspirado en el algoritmo de Claude Code (FileEditTool).
 """
+
 import os
-import re
-from typing import Optional
 from .base_tool import Tool, ToolResult
 
 
-from typing import Optional, Any, Tuple
+from typing import Any, Tuple
 
 
 class FileEditV2(Tool):
@@ -17,6 +16,7 @@ class FileEditV2(Tool):
     Realiza cambios quirúrgicos de reemplazo de texto exacto sobre archivos en disco.
     Inspirado en el algoritmo quirúrgico de Claude Code (FileEditTool) con normalización inteligente.
     """
+
     name: str = "file_edit"
     description: str = (
         "Realiza cambios quirúrgicos en un archivo reemplazando un bloque exacto de texto. "
@@ -24,36 +24,42 @@ class FileEditV2(Tool):
     )
     requires_confirmation: bool = True
 
-    def execute(self, 
-                target_file: str, 
-                old_string: str, 
-                new_string: str, 
-                replace_all: bool = False,
-                **kwargs: Any) -> ToolResult:
+    def execute(
+        self,
+        target_file: str,
+        old_string: str,
+        new_string: str,
+        replace_all: bool = False,
+        **kwargs: Any,
+    ) -> ToolResult:
         """
         Ejecuta un reemplazo exacto del bloque provisto en el archivo especificado.
         """
         # 1. Validación de existencia
         if not os.path.exists(target_file):
-            return ToolResult(success=False, stderr=f"Archivo no encontrado: {target_file}")
-        
+            return ToolResult(
+                success=False, stderr=f"Archivo no encontrado: {target_file}"
+            )
+
         if not os.path.isfile(target_file):
-            return ToolResult(success=False, stderr=f"La ruta no es un archivo: {target_file}")
+            return ToolResult(
+                success=False, stderr=f"La ruta no es un archivo: {target_file}"
+            )
 
         try:
             # 2. Lectura y Normalización de saltos de línea (Inspirado en Claw)
-            with open(target_file, 'r', encoding='utf-8', errors='replace') as f:
+            with open(target_file, "r", encoding="utf-8", errors="replace") as f:
                 original_content = f.read()
-            
+
             # Normalizar \r\n a \n para el procesamiento
-            content = original_content.replace('\r\n', '\n')
-            old_normalized = old_string.replace('\r\n', '\n')
-            new_normalized = new_string.replace('\r\n', '\n')
+            content = original_content.replace("\r\n", "\n")
+            old_normalized = old_string.replace("\r\n", "\n")
+            new_normalized = new_string.replace("\r\n", "\n")
 
             # 3. Normalización Adicional (Quote Normalization heurístico de Claw)
             # Intentamos match exacto primero
             occurrences = content.count(old_normalized)
-            
+
             # Si no hay match, intentamos normalizar comillas
             if occurrences == 0:
                 content_norm, old_norm = self._normalize_quotes(content, old_normalized)
@@ -66,14 +72,14 @@ class FileEditV2(Tool):
             # 4. Manejo de ocurrencias
             if occurrences == 0:
                 return ToolResult(
-                    success=False, 
-                    stderr="No se encontró el bloque 'old_string' en el archivo. Verifica la indentación y caracteres especiales."
+                    success=False,
+                    stderr="No se encontró el bloque 'old_string' en el archivo. Verifica la indentación y caracteres especiales.",
                 )
-            
+
             if occurrences > 1 and not replace_all:
                 return ToolResult(
-                    success=False, 
-                    stderr=f"Se encontraron {occurrences} coincidencias. Provee más contexto en 'old_string' para que sea único."
+                    success=False,
+                    stderr=f"Se encontraron {occurrences} coincidencias. Provee más contexto en 'old_string' para que sea único.",
                 )
 
             # 5. Reemplazo Quirúrgico
@@ -83,21 +89,21 @@ class FileEditV2(Tool):
                 new_content = content.replace(old_normalized, new_normalized, 1)
 
             # 6. Post-procesamiento (Limpieza de espacios finales, excepto en MD)
-            if not target_file.endswith(('.md', '.mdx')):
-                lines = new_content.split('\n')
-                new_content = '\n'.join([line.rstrip() for line in lines])
+            if not target_file.endswith((".md", ".mdx")):
+                lines = new_content.split("\n")
+                new_content = "\n".join([line.rstrip() for line in lines])
 
             # Restaurar saltos de línea originales si es necesario
-            if '\r\n' in original_content:
-                new_content = new_content.replace('\n', '\r\n')
+            if "\r\n" in original_content:
+                new_content = new_content.replace("\n", "\r\n")
 
             # 7. Escritura Atómica
-            with open(target_file, 'w', encoding='utf-8') as f:
+            with open(target_file, "w", encoding="utf-8") as f:
                 f.write(new_content)
 
             return ToolResult(
-                success=True, 
-                stdout=f"✓ Archivo {os.path.basename(target_file)} editado con éxito ({'todas' if replace_all else '1'} coincidencia/s)."
+                success=True,
+                stdout=f"✓ Archivo {os.path.basename(target_file)} editado con éxito ({'todas' if replace_all else '1'} coincidencia/s).",
             )
 
         except Exception as e:
@@ -105,10 +111,7 @@ class FileEditV2(Tool):
 
     def _normalize_quotes(self, text: str, target: str) -> Tuple[str, str]:
         """Traduce comillas tipográficas a neutras para facilitar el match."""
-        mapping = {
-            '“': '"', '”': '"', '‘': "'", '’': "'",
-            '«': '"', '»': '"', '„': '"'
-        }
+        mapping = {"“": '"', "”": '"', "‘": "'", "’": "'", "«": '"', "»": '"', "„": '"'}
         for k, v in mapping.items():
             text = text.replace(k, v)
             target = target.replace(k, v)

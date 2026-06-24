@@ -8,12 +8,13 @@
 from core.base_plugin import GravityIntegration
 from .client import get_client, auto_connect_if_configured
 
+
 class OBSIntegration(GravityIntegration):
-    
+
     @property
     def name(self) -> str:
         return "obs"
-        
+
     @property
     def description(self) -> str:
         return "Control dinámico de escenas, audios, streams y overlays en OBS Studio por WebSockets"

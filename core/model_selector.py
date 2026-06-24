@@ -22,7 +22,6 @@ import json
 import os
 import urllib.request
 import urllib.error
-import time
 import threading
 from typing import Optional, List, Dict, Any, Tuple
 
@@ -33,28 +32,89 @@ TASK_PROFILES = {
     "code": {
         "weight": 0,
         "keywords": {
-            "/leer": 5, "/leer-carpeta": 5, "/leer-git": 4,
-            "código": 3, "code": 3, "bug": 4, "error": 2,
-            "función": 3, "function": 3, "clase": 3, "class": 3,
-            "script": 3, "refactor": 4, "optimiza": 3, "optimize": 3,
-            "audita": 4, "audit": 4, "implementa": 3, "implement": 3,
-            "python": 3, "rust": 3, "javascript": 3, "typescript": 3,
-            "golang": 3, "java": 3, "c++": 3, "kotlin": 3, "lua": 3,
-            ".py": 4, ".rs": 4, ".js": 3, ".ts": 3, ".go": 3,
-            "def ": 3, "return ": 2, "import ": 2, "class ": 3,
-            "async": 2, "await": 2, "const ": 2, "let ": 2, "var ": 2,
-            "test": 2, "unittest": 3, "pytest": 3, "debug": 3,
-            "api": 2, "endpoint": 2, "request": 2, "response": 2,
-            "sql": 3, "query": 2, "database": 2, "schema": 2,
+            "/leer": 5,
+            "/leer-carpeta": 5,
+            "/leer-git": 4,
+            "código": 3,
+            "code": 3,
+            "bug": 4,
+            "error": 2,
+            "función": 3,
+            "function": 3,
+            "clase": 3,
+            "class": 3,
+            "script": 3,
+            "refactor": 4,
+            "optimiza": 3,
+            "optimize": 3,
+            "audita": 4,
+            "audit": 4,
+            "implementa": 3,
+            "implement": 3,
+            "python": 3,
+            "rust": 3,
+            "javascript": 3,
+            "typescript": 3,
+            "golang": 3,
+            "java": 3,
+            "c++": 3,
+            "kotlin": 3,
+            "lua": 3,
+            ".py": 4,
+            ".rs": 4,
+            ".js": 3,
+            ".ts": 3,
+            ".go": 3,
+            "def ": 3,
+            "return ": 2,
+            "import ": 2,
+            "class ": 3,
+            "async": 2,
+            "await": 2,
+            "const ": 2,
+            "let ": 2,
+            "var ": 2,
+            "test": 2,
+            "unittest": 3,
+            "pytest": 3,
+            "debug": 3,
+            "api": 2,
+            "endpoint": 2,
+            "request": 2,
+            "response": 2,
+            "sql": 3,
+            "query": 2,
+            "database": 2,
+            "schema": 2,
             "```": 3,
             # Security/crypto audit keywords (FEAT-05 expansion)
-            "seguridad": 3, "security": 3, "vulnerabilidad": 4, "vulnerability": 4,
-            "criptografía": 4, "cryptography": 4, "cifrado": 3, "encrypt": 3,
-            "race condition": 5, "deadlock": 5, "memory leak": 5,
-            "unsafe": 4, "zero-trust": 4, "inyección": 4, "injection": 4,
-            "exploit": 4, "overflow": 4, "parche": 3, "patch": 3,
+            "seguridad": 3,
+            "security": 3,
+            "vulnerabilidad": 4,
+            "vulnerability": 4,
+            "criptografía": 4,
+            "cryptography": 4,
+            "cifrado": 3,
+            "encrypt": 3,
+            "race condition": 5,
+            "deadlock": 5,
+            "memory leak": 5,
+            "unsafe": 4,
+            "zero-trust": 4,
+            "inyección": 4,
+            "injection": 4,
+            "exploit": 4,
+            "overflow": 4,
+            "parche": 3,
+            "patch": 3,
         },
-        "preferred_model_keywords": ["coder", "code", "starcoder", "codellama", "deepseek-coder"],
+        "preferred_model_keywords": [
+            "coder",
+            "code",
+            "starcoder",
+            "codellama",
+            "deepseek-coder",
+        ],
         "description": "Code generation, audit, debugging, security, refactoring",
         "switch_message": "[CODE] Switching to code specialist model...",
         "min_score_to_switch": 4,  # FEAT-05: minimum score threshold
@@ -62,22 +122,68 @@ TASK_PROFILES = {
     "reason": {
         "weight": 0,
         "keywords": {
-            "por qué": 3, "porque": 2, "razona": 4, "razonamiento": 4,
-            "explica": 2, "como funciona": 3, "cómo funciona": 3,
-            "analiza": 3, "analyze": 3, "comprende": 2, "understand": 2,
-            "planifica": 3, "plan": 2, "estrategia": 3, "strategy": 3,
-            "arquitectura": 3, "architecture": 3, "diseña": 2, "design": 2,
-            "compara": 3, "compare": 3, "diferencia": 2, "difference": 2,
-            "ventajas": 2, "desventajas": 2, "pros": 2, "cons": 2,
-            "decide": 3, "debería": 2, "should": 2, "mejor opción": 3,
-            "investiga": 3, "research": 3, "aprende": 2, "learn": 2,
-            "matemática": 4, "math": 4, "álgebra": 4, "cálculo": 4,
-            "lógica": 3, "logic": 3, "demostrar": 3, "prove": 3,
-            "qué es": 2, "what is": 2, "explica cómo": 3,
-            "brainstorm": 4, "ideas": 2, "creatividad": 3, "creative": 3,
-            "think": 3, "piensa": 3, "reflexiona": 4, "recomienda": 3,
+            "por qué": 3,
+            "porque": 2,
+            "razona": 4,
+            "razonamiento": 4,
+            "explica": 2,
+            "como funciona": 3,
+            "cómo funciona": 3,
+            "analiza": 3,
+            "analyze": 3,
+            "comprende": 2,
+            "understand": 2,
+            "planifica": 3,
+            "plan": 2,
+            "estrategia": 3,
+            "strategy": 3,
+            "arquitectura": 3,
+            "architecture": 3,
+            "diseña": 2,
+            "design": 2,
+            "compara": 3,
+            "compare": 3,
+            "diferencia": 2,
+            "difference": 2,
+            "ventajas": 2,
+            "desventajas": 2,
+            "pros": 2,
+            "cons": 2,
+            "decide": 3,
+            "debería": 2,
+            "should": 2,
+            "mejor opción": 3,
+            "investiga": 3,
+            "research": 3,
+            "aprende": 2,
+            "learn": 2,
+            "matemática": 4,
+            "math": 4,
+            "álgebra": 4,
+            "cálculo": 4,
+            "lógica": 3,
+            "logic": 3,
+            "demostrar": 3,
+            "prove": 3,
+            "qué es": 2,
+            "what is": 2,
+            "explica cómo": 3,
+            "brainstorm": 4,
+            "ideas": 2,
+            "creatividad": 3,
+            "creative": 3,
+            "think": 3,
+            "piensa": 3,
+            "reflexiona": 4,
+            "recomienda": 3,
         },
-        "preferred_model_keywords": ["deepseek-r1", "r1", "reasoning", "qwq", "llama-think"],
+        "preferred_model_keywords": [
+            "deepseek-r1",
+            "r1",
+            "reasoning",
+            "qwq",
+            "llama-think",
+        ],
         "description": "Deep reasoning, analysis, math, planning, complex thinking",
         "switch_message": "[THINK] Switching to deep reasoning model...",
         "min_score_to_switch": 4,  # FEAT-05: minimum score threshold
@@ -85,15 +191,42 @@ TASK_PROFILES = {
     "creative": {
         "weight": 0,
         "keywords": {
-            "ensayo": 4, "essay": 4, "capítulo": 3, "chapter": 3,
-            "novela": 4, "ficción": 4, "filosofía": 4, "poema": 4,
-            "redacta": 3, "escribe": 3, "narración": 4, "libro": 3,
-            "osint": 5, "investigación": 3, "research": 3,
-            "tesis": 4, "argumento": 3, "prosa": 4, "relato": 4,
-            "guion": 4, "script writing": 4, "write": 3, "narrative": 4,
-            "story": 3, "contenido": 2, "artículo": 3, "editorial": 3,
+            "ensayo": 4,
+            "essay": 4,
+            "capítulo": 3,
+            "chapter": 3,
+            "novela": 4,
+            "ficción": 4,
+            "filosofía": 4,
+            "poema": 4,
+            "redacta": 3,
+            "escribe": 3,
+            "narración": 4,
+            "libro": 3,
+            "osint": 5,
+            "investigación": 3,
+            "research": 3,
+            "tesis": 4,
+            "argumento": 3,
+            "prosa": 4,
+            "relato": 4,
+            "guion": 4,
+            "script writing": 4,
+            "write": 3,
+            "narrative": 4,
+            "story": 3,
+            "contenido": 2,
+            "artículo": 3,
+            "editorial": 3,
         },
-        "preferred_model_keywords": ["llama", "mistral", "gemma", "claude", "gpt", "command"],
+        "preferred_model_keywords": [
+            "llama",
+            "mistral",
+            "gemma",
+            "claude",
+            "gpt",
+            "command",
+        ],
         "description": "Creative writing, essays, OSINT research, narrative generation",
         "switch_message": "[CREATE] Switching to creative/generalist model...",
         "min_score_to_switch": 4,
@@ -101,8 +234,10 @@ TASK_PROFILES = {
 }
 
 # ── Module State (singleton) ──────────────────────────────────────────────────
-_current_active_model: Optional[str] = None   # Currently loaded model name
-_available_models_cache: Dict[str, List[str]] = {}     # {engine_name: [model_names]} — updated by watchdog
+_current_active_model: Optional[str] = None  # Currently loaded model name
+_available_models_cache: Dict[str, List[str]] = (
+    {}
+)  # {engine_name: [model_names]} — updated by watchdog
 _last_scan_time: float = 0.0
 
 _state_lock = threading.RLock()
@@ -130,7 +265,8 @@ def get_active_model() -> Optional[str]:
 
 # ── Task Classifier ───────────────────────────────────────────────────────────
 
-def classify_task(text: str, history: list = None) -> str:
+
+def classify_task(text: str, history: Optional[list] = None) -> str:
     """
     Classifies the task type from input text + recent conversation context.
 
@@ -151,16 +287,15 @@ def classify_task(text: str, history: list = None) -> str:
     # Context bonus from last user turn (30% weight)
     if history and len(history) >= 2:
         last_user = next(
-            (m["content"].lower() for m in reversed(history) if m["role"] == "user"),
-            ""
+            (m["content"].lower() for m in reversed(history) if m["role"] == "user"), ""
         )
         for task, profile in TASK_PROFILES.items():
             for keyword, weight in profile["keywords"].items():
                 if keyword in last_user:
                     scores[task] += weight * 0.3
 
-    code_score     = scores["code"]
-    reason_score   = scores["reason"]
+    code_score = scores["code"]
+    reason_score = scores["reason"]
     creative_score = scores["creative"]
 
     if code_score == 0 and reason_score == 0 and creative_score == 0:
@@ -182,6 +317,7 @@ def classify_task(text: str, history: list = None) -> str:
 
 
 # ── Model Ranker ──────────────────────────────────────────────────────────────
+
 
 def _rank_model(model_name: str, task: str) -> int:
     """Scores how suitable a model name is for a given task type."""
@@ -217,7 +353,7 @@ def find_best_model(task: str, available_models: list):
         return None
 
     ranked = sorted(available_models, key=lambda m: _rank_model(m, task), reverse=True)
-    best   = ranked[0]
+    best = ranked[0]
 
     if _rank_model(best, task) > 0:
         return best
@@ -228,6 +364,7 @@ def find_best_model(task: str, available_models: list):
 
 
 # ── Engine-Specific Switchers ─────────────────────────────────────────────────
+
 
 def _switch_ollama_model(model_name: str) -> bool:
     global _current_active_model
@@ -247,7 +384,7 @@ def _switch_lemonade_model(model_name: str, ports: Optional[List[int]] = None) -
             req = urllib.request.Request(
                 f"http://localhost:{port}/api/v1/load",
                 data=payload,
-                headers={"Content-Type": "application/json"}
+                headers={"Content-Type": "application/json"},
             )
             with urllib.request.urlopen(req, timeout=120) as r:
                 if r.status in [200, 201, 202]:
@@ -272,6 +409,7 @@ def _switch_openai_compatible_model(model_name: str) -> bool:
 
 
 # ── Main Public API ───────────────────────────────────────────────────────────
+
 
 def get_optimal_model(
     text: str,
@@ -309,7 +447,7 @@ def get_optimal_model(
             return best_model, False
 
         # FEAT-05: Only switch if the best candidate has a meaningful score advantage
-        profile   = TASK_PROFILES.get(task, {})
+        profile = TASK_PROFILES.get(task, {})
         min_score = profile.get("min_score_to_switch", 3)
         if _rank_model(best_model, task) < min_score:
             return _current_active_model, False
@@ -321,7 +459,7 @@ def get_optimal_model(
             print(f"  {_current_active_model} → {best_model}")
 
         lemonade_keys = {"lemonade"}
-        ollama_keys   = {"ollama"}
+        ollama_keys = {"ollama"}
 
         name_lower = provider_name.lower()
         if any(k in name_lower for k in lemonade_keys) or protocol == "lemonade":
@@ -335,35 +473,39 @@ def get_optimal_model(
 
 
 def describe_selection(text: str, available_models: List[str]) -> str:
-    task  = classify_task(text)
-    best  = find_best_model(task, available_models)
+    task = classify_task(text)
+    best = find_best_model(task, available_models)
     label = {
-        "code":   "tarea de código",
+        "code": "tarea de código",
         "reason": "razonamiento profundo",
-        "any":    "consulta general (sin switch)",
+        "any": "consulta general (sin switch)",
     }.get(task, task)
     return f"Tarea: {label} → Modelo: {best or 'ninguno disponible'}"
 
 
 if __name__ == "__main__":
     tests = [
-        ("Audita este script de Python para bugs de seguridad",
-         ["qwen2.5-coder-14b", "deepseek-r1-distill-qwen-14b"]),
-        ("Por qué los modelos MoE son más eficientes?",
-         ["qwen2.5-coder-14b", "deepseek-r1-distill-qwen-14b"]),
-        ("Hola, ¿cómo estás?",
-         ["qwen2.5-coder-14b", "deepseek-r1-distill-qwen-14b"]),
-        ("/leer main.rs",
-         ["qwen2.5-coder-14b", "deepseek-r1-distill-qwen-14b"]),
-        ("Compara Redis vs PostgreSQL",
-         ["qwen2.5-coder-14b", "deepseek-r1-distill-qwen-14b"]),
+        (
+            "Audita este script de Python para bugs de seguridad",
+            ["qwen2.5-coder-14b", "deepseek-r1-distill-qwen-14b"],
+        ),
+        (
+            "Por qué los modelos MoE son más eficientes?",
+            ["qwen2.5-coder-14b", "deepseek-r1-distill-qwen-14b"],
+        ),
+        ("Hola, ¿cómo estás?", ["qwen2.5-coder-14b", "deepseek-r1-distill-qwen-14b"]),
+        ("/leer main.rs", ["qwen2.5-coder-14b", "deepseek-r1-distill-qwen-14b"]),
+        (
+            "Compara Redis vs PostgreSQL",
+            ["qwen2.5-coder-14b", "deepseek-r1-distill-qwen-14b"],
+        ),
     ]
 
     print("\n=== SMART MODEL SELECTOR V6.0 — Test ===\n")
     for text, models in tests:
         set_active_model("qwen2.5-coder-14b")
-        task  = classify_task(text)
-        best  = find_best_model(task, models)
+        task = classify_task(text)
+        best = find_best_model(task, models)
         print(f"  Input : {text[:60]}")
         print(f"  Task  : {task:<10} → Model: {best}")
         print()

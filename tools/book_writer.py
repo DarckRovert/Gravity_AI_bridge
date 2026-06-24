@@ -5,6 +5,7 @@ import logging
 import time
 import requests
 import re as _re
+from typing import Optional
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
@@ -14,8 +15,11 @@ from core import provider_manager
 from tools import latex_cleaner
 from core import image_router
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("GravityAuthor")
+
 
 def atomic_write(filepath: str, content: str):
     """Escribe un archivo de forma atómica para evitar corrupción."""
@@ -23,6 +27,7 @@ def atomic_write(filepath: str, content: str):
     with open(tmp_path, "w", encoding="utf-8") as f:
         f.write(content)
     os.replace(tmp_path, filepath)
+
 
 def atomic_append(filepath: str, content: str):
     """Hace un append seguro usando lectura y atomic_write."""
@@ -39,6 +44,7 @@ class GravityAuthor:
     Maneja el límite de tokens mediante técnicas de RAG primitivo (Ventanas Deslizantes)
     y estructuración jerárquica (Sinopsis -> Escaleta -> Capítulos).
     """
+
     def __init__(self, output_dir="libros_generados"):
         self.output_dir = os.path.join(BASE_DIR, output_dir)
         if not os.path.exists(self.output_dir):
@@ -47,27 +53,35 @@ class GravityAuthor:
     def _clean_response(self, text: str) -> str:
         """Limpia etiquetas <think> y marcadores conversacionales."""
         import re
+
         if not text:
             return ""
-        cleaned = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
-        if '<think>' in cleaned:
-            cleaned = re.sub(r'<think>.*', '', cleaned, flags=re.DOTALL).strip()
-            
+        cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+        if "<think>" in cleaned:
+            cleaned = re.sub(r"<think>.*", "", cleaned, flags=re.DOTALL).strip()
+
         if cleaned.startswith("```"):
-            cleaned = re.sub(r'^```[a-zA-Z0-9-]*\n', '', cleaned)
-            cleaned = re.sub(r'\n```$', '', cleaned)
-            
+            cleaned = re.sub(r"^```[a-zA-Z0-9-]*\n", "", cleaned)
+            cleaned = re.sub(r"\n```$", "", cleaned)
+
         prefixes_to_strip = [
-            "Aquí tienes el capítulo", "Aquí está el capítulo", "Claro, aquí", 
-            "Aquí tienes la continuación", "Entendido.", "¡Por supuesto!"
+            "Aquí tienes el capítulo",
+            "Aquí está el capítulo",
+            "Claro, aquí",
+            "Aquí tienes la continuación",
+            "Entendido.",
+            "¡Por supuesto!",
         ]
         for prefix in prefixes_to_strip:
             if cleaned.lower().startswith(prefix.lower()):
-                lines = cleaned.split('\n')
-                while lines and (lines[0].lower().startswith(prefix.lower()) or lines[0].strip() == ""):
+                lines = cleaned.split("\n")
+                while lines and (
+                    lines[0].lower().startswith(prefix.lower())
+                    or lines[0].strip() == ""
+                ):
                     lines.pop(0)
-                cleaned = '\n'.join(lines).strip()
-                
+                cleaned = "\n".join(lines).strip()
+
         return cleaned
 
     def _generate_synopsis(self, prompt: str) -> str:
@@ -83,7 +97,9 @@ class GravityAuthor:
         return self._clean_response(response)
 
     def _generate_outline(self, synopsis: str, num_chapters: int) -> list:
-        logger.info(f"Fase 2: Generando Escaleta (Índice) para {num_chapters} capítulos...")
+        logger.info(
+            f"Fase 2: Generando Escaleta (Índice) para {num_chapters} capítulos..."
+        )
         sys_prompt = (
             "Eres un arquitecto narrativo. Basado en la siguiente Sinopsis/Mundo, crea una escaleta estricta "
             f"dividida exactamente en {num_chapters} capítulos. Devuelve el resultado obligatoriamente en formato JSON válido.\n"
@@ -99,14 +115,24 @@ class GravityAuthor:
                 return response.get("capitulos", [])
             elif isinstance(response, str):
                 import re
-                json_match = re.search(r'\{.*\}', response, re.DOTALL)
+
+                json_match = re.search(r"\{.*\}", response, re.DOTALL)
                 if json_match:
                     data = json.loads(json_match.group(0))
                     return data.get("capitulos", [])
                 return json.loads(response).get("capitulos", [])
         except Exception as e:
-            logger.error(f"Fallo al parsear la escaleta JSON: {e}. Generando estructura de emergencia.")
-            return [{"numero": i, "titulo": f"Capítulo {i}", "resumen_eventos": "Continuación de la historia"} for i in range(1, num_chapters + 1)]
+            logger.error(
+                f"Fallo al parsear la escaleta JSON: {e}. Generando estructura de emergencia."
+            )
+            return [
+                {
+                    "numero": i,
+                    "titulo": f"Capítulo {i}",
+                    "resumen_eventos": "Continuación de la historia",
+                }
+                for i in range(1, num_chapters + 1)
+            ]
         return []
 
     def _summarize_chapter(self, chapter_text: str) -> str:
@@ -146,13 +172,20 @@ class GravityAuthor:
         response = provider_manager.complete(messages)
         return self._clean_response(response)
 
-    def _write_chapter(self, chapter_data: dict, synopsis: str, full_outline_text: str, accumulated_history: str, source_text: str = None) -> str:
+    def _write_chapter(
+        self,
+        chapter_data: dict,
+        synopsis: str,
+        full_outline_text: str,
+        accumulated_history: str,
+        source_text: Optional[str] = None,
+    ) -> str:
         chap_num = chapter_data.get("numero", 0)
         chap_title = chapter_data.get("titulo", f"Capítulo {chap_num}")
         chap_events = chapter_data.get("resumen_eventos", "")
-        
+
         logger.info(f"Fase 3: Escribiendo Capítulo {chap_num}: {chap_title}...")
-        
+
         expansion_instructions = ""
         if source_text:
             expansion_instructions = (
@@ -187,16 +220,23 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
         for _i in range(3):
             response = provider_manager.complete(messages)
             response = self._clean_response(response)
-            
+
             if not response:
                 logger.warning("La IA devolvió una respuesta vacía. Reintentando...")
                 time.sleep(2)
                 continue
-            
+
             # Defensa Anti-Truncamiento
             if len(response) < 500 and _i == 0:
-                logger.warning(f"Respuesta anormalmente corta ({len(response)} chars). Forzando reintento profundo...")
-                messages.append({"role": "user", "content": "Generaste un texto muy corto. Reescribe y expande el capítulo con profundidad narrativa/académica real."})
+                logger.warning(
+                    f"Respuesta anormalmente corta ({len(response)} chars). Forzando reintento profundo..."
+                )
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": "Generaste un texto muy corto. Reescribe y expande el capítulo con profundidad narrativa/académica real.",
+                    }
+                )
                 time.sleep(1)
                 continue
 
@@ -205,29 +245,43 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                 break
             if _i < 2:
                 messages.append({"role": "assistant", "content": response})
-                messages.append({"role": "user", "content": "Continúa exactamente desde donde te quedaste."})
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": "Continúa exactamente desde donde te quedaste.",
+                    }
+                )
                 time.sleep(1)
-                
+
         # Doble salto de línea estricto antes de guardar
-        full_text = full_text.replace('\n', '\n\n')
-        full_text = _re.sub(r'\n{3,}', '\n\n', full_text)
-        
+        full_text = full_text.replace("\n", "\n\n")
+        full_text = _re.sub(r"\n{3,}", "\n\n", full_text)
+
         return latex_cleaner.full_clean(full_text.strip())
 
-    def write_book(self, prompt: str, title: str = "Mi Libro Generado", num_chapters: int = 5):
+    def write_book(
+        self, prompt: str, title: str = "Mi Libro Generado", num_chapters: int = 5
+    ):
         logger.info(f"--- INICIANDO PROYECTO LITERARIO: {title} ---")
-        return self._orchestrate_writing(title, num_chapters, lambda: self._generate_synopsis(prompt), lambda s: self._generate_outline(s, num_chapters))
+        return self._orchestrate_writing(
+            title,
+            num_chapters,
+            lambda: self._generate_synopsis(prompt),
+            lambda s: self._generate_outline(s, num_chapters),
+        )
 
     # --- NUEVAS FUNCIONES DE LECTURA Y EXPANSIÓN ---
-    
+
     def _extract_text_from_google_docs(self, url: str) -> str:
         if "/edit" in url:
             url = url.split("/edit")[0] + "/export?format=txt"
-        
+
         logger.info(f"Descargando borrador desde: {url}")
         r = requests.get(url, timeout=15)
         if r.status_code != 200:
-            raise Exception("No se pudo descargar el Google Doc. Asegúrate de que el enlace sea público.")
+            raise Exception(
+                "No se pudo descargar el Google Doc. Asegúrate de que el enlace sea público."
+            )
         return r.text
 
     def _analyze_document(self, source_text: str) -> str:
@@ -246,7 +300,9 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
         return self._clean_response(response)
 
     def _generate_expansion_outline(self, analysis: str, num_chapters: int) -> list:
-        logger.info(f"Fase 2: Generando Escaleta de Expansión para {num_chapters} capítulos...")
+        logger.info(
+            f"Fase 2: Generando Escaleta de Expansión para {num_chapters} capítulos..."
+        )
         sys_prompt = (
             "Eres un arquitecto editorial. Basado en el siguiente análisis, crea un índice de "
             f"exactamente {num_chapters} capítulos diseñados para REESCRIBIR Y EXPANDIR el borrador.\n"
@@ -267,52 +323,78 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                 return response.get("capitulos", [])
             elif isinstance(response, str):
                 import re
-                json_match = re.search(r'\{.*\}', response, re.DOTALL)
+
+                json_match = re.search(r"\{.*\}", response, re.DOTALL)
                 if json_match:
                     data = json.loads(json_match.group(0))
                     return data.get("capitulos", [])
                 return json.loads(response).get("capitulos", [])
         except Exception as e:
             logger.error(f"Fallo al parsear la escaleta JSON: {e}")
-            return [{"numero": i, "titulo": f"Capítulo {i}", "resumen_eventos": "Expansión del ensayo"} for i in range(1, num_chapters + 1)]
+            return [
+                {
+                    "numero": i,
+                    "titulo": f"Capítulo {i}",
+                    "resumen_eventos": "Expansión del ensayo",
+                }
+                for i in range(1, num_chapters + 1)
+            ]
         return []
 
-    def rewrite_and_expand_document(self, source_url: str, title: str = "Libro Expandido", num_chapters: int = 5):
+    def rewrite_and_expand_document(
+        self, source_url: str, title: str = "Libro Expandido", num_chapters: int = 5
+    ):
         logger.info(f"--- INICIANDO EXPANSIÓN LITERARIA: {title} ---")
         source_text = self._extract_text_from_google_docs(source_url)
-        
+
         return self._orchestrate_writing(
-            title, 
-            num_chapters, 
-            lambda: self._analyze_document(source_text), 
+            title,
+            num_chapters,
+            lambda: self._analyze_document(source_text),
             lambda s: self._generate_expansion_outline(s, num_chapters),
-            source_text=source_text
+            source_text=source_text,
         )
 
     # --- ORQUESTADOR PRINCIPAL REUTILIZABLE ---
-    def _orchestrate_writing(self, title, num_chapters, phase1_callable, phase2_callable, source_text=None, resume=True):
+    def _orchestrate_writing(
+        self,
+        title,
+        num_chapters,
+        phase1_callable,
+        phase2_callable,
+        source_text=None,
+        resume=True,
+    ):
         book_dir = os.path.join(self.output_dir, title.replace(" ", "_"))
         if not os.path.exists(book_dir):
             os.makedirs(book_dir)
-            
+
         progress_file = os.path.join(book_dir, "progreso_metadata.json")
         book_file = os.path.join(book_dir, f"{title.replace(' ', '_')}.md")
         html_file = os.path.join(book_dir, f"{title.replace(' ', '_')}.html")
         history_file = os.path.join(book_dir, "historial_acumulado.md")
-        
+
         start_chapter = 1
         accumulated_history = ""
         base_context = ""
         outline = []
-        
-        if resume and os.path.exists(progress_file) and os.path.exists(os.path.join(book_dir, "2_escaleta.json")):
+
+        if (
+            resume
+            and os.path.exists(progress_file)
+            and os.path.exists(os.path.join(book_dir, "2_escaleta.json"))
+        ):
             logger.info("Recuperando estado de generación previo (Checkpoint)...")
             with open(progress_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 start_chapter = data.get("ultimo_capitulo_completado", 0) + 1
-            with open(os.path.join(book_dir, "2_escaleta.json"), "r", encoding="utf-8") as f:
+            with open(
+                os.path.join(book_dir, "2_escaleta.json"), "r", encoding="utf-8"
+            ) as f:
                 outline = json.load(f)
-            with open(os.path.join(book_dir, "1_contexto_base.md"), "r", encoding="utf-8") as f:
+            with open(
+                os.path.join(book_dir, "1_contexto_base.md"), "r", encoding="utf-8"
+            ) as f:
                 base_context = f.read().replace("# Contexto / Análisis\n\n", "")
             if os.path.exists(history_file):
                 with open(history_file, "r", encoding="utf-8") as f:
@@ -320,63 +402,86 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
         else:
             # 1. Base (Sinopsis o Análisis)
             base_context = phase1_callable()
-            atomic_write(os.path.join(book_dir, "1_contexto_base.md"), f"# Contexto / Análisis\n\n{base_context}")
-                
+            atomic_write(
+                os.path.join(book_dir, "1_contexto_base.md"),
+                f"# Contexto / Análisis\n\n{base_context}",
+            )
+
             # 2. Escaleta
             outline = phase2_callable(base_context)
             outline_str = json.dumps(outline, indent=2, ensure_ascii=False)
             atomic_write(os.path.join(book_dir, "2_escaleta.json"), outline_str)
-                
+
             # Preparar archivo principal
             initial_book = f"# {title}\n\n*Generado y Expandido por Gravity AI Bridge*\n\n## Índice\n"
             for c in outline:
-                c_title = c.get('titulo', '')
+                c_title = c.get("titulo", "")
                 import urllib.parse
-                anchor = "#" + urllib.parse.quote(c_title.lower().replace(" ", "-").replace(":", ""))
+
+                anchor = "#" + urllib.parse.quote(
+                    c_title.lower().replace(" ", "-").replace(":", "")
+                )
                 initial_book += f"{c.get('numero')}. [{c_title}]({anchor})\n"
             initial_book += "\n---\n\n"
             atomic_write(book_file, initial_book)
-                
+
             atomic_write(history_file, "")
 
         # 3. Ciclo de Escritura
-        full_outline_text = "\n".join([f"Cap {c.get('numero')}: {c.get('resumen_eventos')}" for c in outline])
-        
+        full_outline_text = "\n".join(
+            [f"Cap {c.get('numero')}: {c.get('resumen_eventos')}" for c in outline]
+        )
+
         for chap in outline:
             chap_num = chap.get("numero")
             if chap_num < start_chapter:
                 continue
-                
-            chapter_text = self._write_chapter(chap, base_context, full_outline_text, accumulated_history, source_text)
-            
+
+            chapter_text = self._write_chapter(
+                chap, base_context, full_outline_text, accumulated_history, source_text
+            )
+
             atomic_write(os.path.join(book_dir, f"cap_{chap_num}.md"), chapter_text)
             atomic_append(book_file, chapter_text + "\n\n---\n\n")
-                
+
             if chap_num < num_chapters:
                 new_summary = self._summarize_chapter(chapter_text)
                 accumulated_history += f"\n\nResumen Cap {chap_num}:\n{new_summary}"
                 atomic_write(history_file, accumulated_history)
-                
-            atomic_write(progress_file, json.dumps({"ultimo_capitulo_completado": chap_num, "total": num_chapters}))
-                
+
+            atomic_write(
+                progress_file,
+                json.dumps(
+                    {"ultimo_capitulo_completado": chap_num, "total": num_chapters}
+                ),
+            )
+
             logger.info(f"Capítulo {chap_num} finalizado y guardado.")
-            
+
         # Generar Bibliografía y Glosario
         if not resume or not os.path.exists(os.path.join(book_dir, "bibliografia.md")):
             logger.info("Fase Final: Generando Bibliografía y Referencias...")
             bibliography_text = self._generate_bibliography(accumulated_history)
             glossary_text = self._generate_glossary(accumulated_history)
-            
+
             atomic_write(os.path.join(book_dir, "bibliografia.md"), bibliography_text)
             atomic_write(os.path.join(book_dir, "glosario.md"), glossary_text)
-            atomic_append(book_file, "\n\n" + glossary_text + "\n\n---\n\n" + bibliography_text + "\n\n---\n\n")
+            atomic_append(
+                book_file,
+                "\n\n"
+                + glossary_text
+                + "\n\n---\n\n"
+                + bibliography_text
+                + "\n\n---\n\n",
+            )
 
         # Render HTML nativo al finalizar (con tablas)
         try:
             import markdown
+
             with open(book_file, "r", encoding="utf-8") as f:
                 md_content = f.read()
-            html_body = markdown.markdown(md_content, extensions=['toc', 'tables'])
+            html_body = markdown.markdown(md_content, extensions=["toc", "tables"])
             full_html = f"""<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -417,24 +522,28 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                     "no text or letters visible, photorealistic concept art, high quality."
                 )
                 result = image_router.generate(
-                    prompt=prompt_text, output_path=cover_path,
-                    width=832, height=1216, title=title
+                    prompt=prompt_text,
+                    output_path=cover_path,
+                    width=832,
+                    height=1216,
+                    title=title,
                 )
                 if result["success"]:
                     logger.info(f"Portada generada vía {result['provider']}")
             except Exception as e:
                 logger.warning(f"No se pudo generar portada: {e}")
-            
+
         logger.info(f"¡LIBRO FINALIZADO EXITOSAMENTE! Guardado en: {book_file}")
         return book_file
 
+
 if __name__ == "__main__":
     print(" Gravity Author Module CLI ".center(50, "="))
-    
+
     print("1) Escribir un libro desde cero (Prompting)")
     print("2) Expandir un borrador desde Google Docs")
     opcion = input("Elige una opción (1 o 2): ")
-    
+
     author = GravityAuthor()
     if opcion == "1":
         prompt = input("Idea del libro: ")
@@ -444,4 +553,6 @@ if __name__ == "__main__":
         url = input("URL de Google Docs (con permisos de lectura): ")
         title = input("Título del Libro Final: ")
         caps = int(input("Número de capítulos deseados: "))
-        author.rewrite_and_expand_document(source_url=url, title=title, num_chapters=caps)
+        author.rewrite_and_expand_document(
+            source_url=url, title=title, num_chapters=caps
+        )

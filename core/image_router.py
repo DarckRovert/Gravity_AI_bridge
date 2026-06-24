@@ -5,9 +5,9 @@
 ║   Prioridad: Pollinations Flux → Pollinations Turbo → SVG Placeholder.      ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
+
 import os
 import logging
-from typing import Optional
 
 logger = logging.getLogger("ImageRouter")
 
@@ -46,11 +46,20 @@ def generate(
         )
         if result.get("success"):
             logger.info("ImageRouter: imagen generada con Pollinations Flux.")
-            return {"success": True, "path": output_path, "provider": "pollinations/flux", "error": ""}
+            return {
+                "success": True,
+                "path": output_path,
+                "provider": "pollinations/flux",
+                "error": "",
+            }
         error_code = result.get("status_code", 0)
-        logger.warning(f"ImageRouter: Pollinations Flux falló (HTTP {error_code}). Intentando Turbo...")
+        logger.warning(
+            f"ImageRouter: Pollinations Flux falló (HTTP {error_code}). Intentando Turbo..."
+        )
     except Exception as e:
-        logger.warning(f"ImageRouter: Pollinations Flux excepción: {e}. Intentando Turbo...")
+        logger.warning(
+            f"ImageRouter: Pollinations Flux excepción: {e}. Intentando Turbo..."
+        )
 
     # ── Intento 2: Pollinations Turbo ────────────────────────────────────────
     try:
@@ -64,15 +73,24 @@ def generate(
         )
         if result2.get("success"):
             logger.info("ImageRouter: imagen generada con Pollinations Turbo.")
-            return {"success": True, "path": output_path, "provider": "pollinations/turbo", "error": ""}
-        logger.warning(f"ImageRouter: Pollinations Turbo también falló. Generando SVG placeholder...")
+            return {
+                "success": True,
+                "path": output_path,
+                "provider": "pollinations/turbo",
+                "error": "",
+            }
+        logger.warning(
+            "ImageRouter: Pollinations Turbo también falló. Generando SVG placeholder..."
+        )
     except Exception as e:
-        logger.warning(f"ImageRouter: Pollinations Turbo excepción: {e}. Generando SVG placeholder...")
+        logger.warning(
+            f"ImageRouter: Pollinations Turbo excepción: {e}. Generando SVG placeholder..."
+        )
 
     # ── Intento 3: SVG Placeholder ───────────────────────────────────────────
     svg_path = output_path.rsplit(".", 1)[0] + ".svg"
     label = title or prompt[:60]
-    svg_content = f'''<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
+    svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#0a0a1a"/>
@@ -97,13 +115,18 @@ def generate(
   <!-- Subtitle -->
   <text x="{width//2}" y="{int(height*0.60)}" font-family="Georgia, serif" font-size="16"
         fill="#6688aa" text-anchor="middle">Gravity Research Author</text>
-</svg>'''
+</svg>"""
 
     try:
         with open(svg_path, "w", encoding="utf-8") as f:
             f.write(svg_content)
         logger.info(f"ImageRouter: SVG placeholder generado en {svg_path}")
-        return {"success": True, "path": svg_path, "provider": "svg_placeholder", "error": ""}
+        return {
+            "success": True,
+            "path": svg_path,
+            "provider": "svg_placeholder",
+            "error": "",
+        }
     except Exception as e:
         logger.error(f"ImageRouter: todos los métodos fallaron. Último error: {e}")
         return {"success": False, "path": "", "provider": "", "error": str(e)}

@@ -20,27 +20,27 @@ from typing import Dict, Any, Optional, Callable
 from core import provider_manager
 from core.logger import log
 
-BASE_DIR       = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SETTINGS_FILE  = os.path.join(BASE_DIR, "_settings.json")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SETTINGS_FILE = os.path.join(BASE_DIR, "_settings.json")
 
 # ── Global state — Provider routing ───────────────────────────────────────────
 _current_provider_name = None
-_current_model         = None
-_current_url           = None
-_current_protocol      = None
-_current_api_opts      = {}
-_hardware_profile      = None
-_lock                  = threading.RLock()
-_settings_lock         = threading.RLock()
-_on_switch_callbacks   = []
-_started               = False
+_current_model = None
+_current_url = None
+_current_protocol = None
+_current_api_opts = {}
+_hardware_profile = None
+_lock = threading.RLock()
+_settings_lock = threading.RLock()
+_on_switch_callbacks = []
+_started = False
 
 # ── Daemon Health Monitor ─────────────────────────────────────────────────────
 # Registro de daemons críticos: {nombre: {thread, restart_fn, restart_count, last_restart}}
 _daemon_registry: Dict[str, Dict[str, Any]] = {}
 _daemon_lock = threading.RLock()
-DAEMON_CHECK_INTERVAL = 30   # segundos entre checks
-MAX_RESTARTS_PER_HOUR = 6    # máximo de reinicios por daemon por hora
+DAEMON_CHECK_INTERVAL = 30  # segundos entre checks
+MAX_RESTARTS_PER_HOUR = 6  # máximo de reinicios por daemon por hora
 
 
 def register_daemon(
@@ -59,12 +59,12 @@ def register_daemon(
     """
     with _daemon_lock:
         _daemon_registry[name] = {
-            "thread":         thread,
-            "restart_fn":     restart_fn,
-            "restart_count":  0,
-            "restart_times":  [],
-            "last_restart":   None,
-            "status":         "running",
+            "thread": thread,
+            "restart_fn": restart_fn,
+            "restart_count": 0,
+            "restart_times": [],
+            "last_restart": None,
+            "status": "running",
         }
     log.debug(f"[Watchdog] Daemon registrado para monitoreo: {name}")
 
@@ -88,7 +88,9 @@ def _relaunch_daemon(name: str) -> bool:
     with _daemon_lock:
         entry = _daemon_registry.get(name)
         if not entry or not entry.get("restart_fn"):
-            log.warning(f"[Watchdog] Daemon '{name}' no tiene restart_fn. No se puede relanzar.")
+            log.warning(
+                f"[Watchdog] Daemon '{name}' no tiene restart_fn. No se puede relanzar."
+            )
             entry["status"] = "dead_no_restart"
             return False
 
@@ -110,12 +112,14 @@ def _relaunch_daemon(name: str) -> bool:
         new_thread = restart_fn()
         with _daemon_lock:
             entry = _daemon_registry[name]
-            entry["thread"]       = new_thread
+            entry["thread"] = new_thread
             entry["restart_times"].append(time.time())
             entry["restart_count"] += 1
-            entry["last_restart"]  = datetime.now(timezone.utc).isoformat()
-            entry["status"]        = "restarted"
-        log.info(f"[Watchdog] Daemon '{name}' relanzado (reinicio #{entry['restart_count']})")
+            entry["last_restart"] = datetime.now(timezone.utc).isoformat()
+            entry["status"] = "restarted"
+        log.info(
+            f"[Watchdog] Daemon '{name}' relanzado (reinicio #{entry['restart_count']})"
+        )
         return True
     except Exception as e:
         log.error(f"[Watchdog] Error relanzando daemon '{name}': {e}")
@@ -131,7 +135,9 @@ def _monitor_daemons() -> None:
 
     for name in names:
         if not _is_daemon_alive(name):
-            log.warning(f"[Watchdog] Daemon muerto detectado: '{name}'. Intentando relanzar...")
+            log.warning(
+                f"[Watchdog] Daemon muerto detectado: '{name}'. Intentando relanzar..."
+            )
             _relaunch_daemon(name)
 
 
@@ -145,35 +151,35 @@ def get_health() -> Dict[str, Any]:
         for name, entry in _daemon_registry.items():
             t = entry.get("thread")
             daemons_health[name] = {
-                "alive":          t is not None and t.is_alive(),
-                "status":         entry.get("status", "unknown"),
-                "restart_count":  entry.get("restart_count", 0),
-                "last_restart":   entry.get("last_restart"),
-                "can_restart":    entry.get("restart_fn") is not None,
+                "alive": t is not None and t.is_alive(),
+                "status": entry.get("status", "unknown"),
+                "restart_count": entry.get("restart_count", 0),
+                "last_restart": entry.get("last_restart"),
+                "can_restart": entry.get("restart_fn") is not None,
             }
 
     with _lock:
         provider_info = {
-            "name":  _current_provider_name,
+            "name": _current_provider_name,
             "model": _current_model,
         }
 
     return {
-        "ts":       datetime.now(timezone.utc).isoformat(),
+        "ts": datetime.now(timezone.utc).isoformat(),
         "provider": provider_info,
-        "daemons":  daemons_health,
+        "daemons": daemons_health,
     }
 
 
 def get_active_state():
     with _lock:
         return {
-            "provider":  _current_provider_name,
-            "model":     _current_model,
-            "url":       _current_url,
-            "protocol":  _current_protocol,
-            "api_opts":  _current_api_opts.copy(),
-            "hardware":  _hardware_profile.copy() if _hardware_profile else {},
+            "provider": _current_provider_name,
+            "model": _current_model,
+            "url": _current_url,
+            "protocol": _current_protocol,
+            "api_opts": _current_api_opts.copy(),
+            "hardware": _hardware_profile.copy() if _hardware_profile else {},
         }
 
 
@@ -201,16 +207,16 @@ def _persist_settings(provider_result, model_name, api_opts):
                 data = {}
 
             # Mantiene compatibilidad V6
-            data["provider"]          = provider_result.name
+            data["provider"] = provider_result.name
             data["provider_protocol"] = provider_result.protocol
-            data["api_url"]           = provider_result.url
-            data["last_model"]        = model_name
+            data["api_url"] = provider_result.url
+            data["last_model"] = model_name
 
-            adv         = data.get("advanced_params", {})
+            adv = data.get("advanced_params", {})
             current_ctx = adv.get("num_ctx", 0)
-            new_ctx     = api_opts.get("num_ctx", 0)
+            new_ctx = api_opts.get("num_ctx", 0)
             if new_ctx > current_ctx:
-                adv["num_ctx"]          = new_ctx
+                adv["num_ctx"] = new_ctx
                 data["advanced_params"] = adv
 
             with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
@@ -228,11 +234,15 @@ def _apply_engine_optimization(provider_name, protocol):
         profile, _ = apply_all(persist=False, verbose=False)
 
         engine_key = protocol
-        pn_lower   = provider_name.lower()
-        if "lemonade"  in pn_lower: engine_key = "lemonade"
-        elif "studio"  in pn_lower: engine_key = "lm_studio"
-        elif "kobold"  in pn_lower: engine_key = "kobold"
-        elif "jan"     in pn_lower: engine_key = "jan"
+        pn_lower = provider_name.lower()
+        if "lemonade" in pn_lower:
+            engine_key = "lemonade"
+        elif "studio" in pn_lower:
+            engine_key = "lm_studio"
+        elif "kobold" in pn_lower:
+            engine_key = "kobold"
+        elif "jan" in pn_lower:
+            engine_key = "jan"
 
         try:
             with _settings_lock:
@@ -247,19 +257,24 @@ def _apply_engine_optimization(provider_name, protocol):
         if engine_key == "ollama":
             try:
                 from core.turbo_kv import get_ollama_kv_options
+
                 vram_mb = profile.get("vram_mb", 8192)
                 kv_opts = get_ollama_kv_options(vram_mb)
                 # Aplicar env vars de KV-cache al proceso actual
                 import os as _os
-                _os.environ["OLLAMA_KV_CACHE_TYPE"]  = kv_opts.get("OLLAMA_KV_CACHE_TYPE", "q4_0")
-                _os.environ["OLLAMA_FLASH_ATTENTION"] = kv_opts.get("OLLAMA_FLASH_ATTENTION", "1")
+
+                _os.environ["OLLAMA_KV_CACHE_TYPE"] = kv_opts.get(
+                    "OLLAMA_KV_CACHE_TYPE", "q4_0"
+                )
+                _os.environ["OLLAMA_FLASH_ATTENTION"] = kv_opts.get(
+                    "OLLAMA_FLASH_ATTENTION", "1"
+                )
             except Exception:
                 pass
 
         return profile, api_opts
     except Exception:
         return {}, {}
-
 
 
 def _watchdog_loop(interval_seconds=30, verbose=False):
@@ -297,24 +312,24 @@ def _watchdog_loop(interval_seconds=30, verbose=False):
 
                 with _lock:
                     did_switch = (
-                        _current_provider_name != best_prov.name or
-                        _current_model         != best_mod
+                        _current_provider_name != best_prov.name
+                        or _current_model != best_mod
                     )
 
                     if did_switch:
-                        old_name  = _current_provider_name
+                        old_name = _current_provider_name
                         old_model = _current_model
 
                         _current_provider_name = best_prov.name
-                        _current_model         = best_mod
-                        _current_url           = best_prov.url
-                        _current_protocol      = best_prov.protocol
+                        _current_model = best_mod
+                        _current_url = best_prov.url
+                        _current_protocol = best_prov.protocol
 
                         profile, api_opts = _apply_engine_optimization(
                             best_prov.name, best_prov.protocol
                         )
-                        _hardware_profile  = profile
-                        _current_api_opts  = api_opts
+                        _hardware_profile = profile
+                        _current_api_opts = api_opts
 
                         _persist_settings(best_prov, best_mod, api_opts)
 
@@ -353,6 +368,7 @@ def start(interval_seconds=30, verbose=False):
     try:
         try:
             from core.env_optimizer import apply_all
+
             profile, _ = apply_all(persist=False, verbose=verbose)
             with _lock:
                 _hardware_profile = profile
@@ -366,9 +382,9 @@ def start(interval_seconds=30, verbose=False):
         if best_prov and best_mod:
             with _lock:
                 _current_provider_name = best_prov.name
-                _current_model         = best_mod
-                _current_url           = best_prov.url
-                _current_protocol      = best_prov.protocol
+                _current_model = best_mod
+                _current_url = best_prov.url
+                _current_protocol = best_prov.protocol
 
             try:
                 with _settings_lock:
@@ -383,6 +399,7 @@ def start(interval_seconds=30, verbose=False):
 
             try:
                 from core.env_optimizer import build_api_options
+
                 opts = build_api_options(engine_key, profile or {}, user_opts)
             except Exception:
                 opts = user_opts

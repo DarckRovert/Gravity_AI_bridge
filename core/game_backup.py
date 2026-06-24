@@ -13,7 +13,7 @@ import subprocess
 import logging
 import threading
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 log = logging.getLogger("gravity.game_backup")
 
@@ -65,6 +65,7 @@ def backup_database(server_id: str, cfg: Dict[str, Any]) -> Dict[str, Any]:
         if not db_pass:
             try:
                 from core.key_manager import KeyManager
+
                 db_pass = KeyManager.get_key(f"{server_id}_db_pass") or ""
             except Exception:
                 pass
@@ -139,7 +140,9 @@ def _prune_old_backups(server_id: str) -> None:
                     os.remove(oldest)
                     log.debug(f"[GameBackup] Backup antiguo eliminado: {oldest}")
                 except Exception as e:
-                    log.warning(f"[GameBackup] No se pudo eliminar backup antiguo {oldest}: {e}")
+                    log.warning(
+                        f"[GameBackup] No se pudo eliminar backup antiguo {oldest}: {e}"
+                    )
                     break
         except Exception as e:
             log.warning(f"[GameBackup] Error podando backups viejos: {e}")
@@ -159,10 +162,12 @@ def list_backups(server_id: str) -> List[Dict[str, Any]]:
                     size_kb: float = round(os.path.getsize(fpath) / 1024, 1)
                 except Exception:
                     size_kb = 0.0
-                result.append({
-                    "filename":   fname,
-                    "path":       fpath,
-                    "size_kb":    size_kb,
-                    "created_at": fname.replace(prefix, "").replace(".sql", ""),
-                })
+                result.append(
+                    {
+                        "filename": fname,
+                        "path": fpath,
+                        "size_kb": size_kb,
+                        "created_at": fname.replace(prefix, "").replace(".sql", ""),
+                    }
+                )
         return list(reversed(result))  # Más reciente primero

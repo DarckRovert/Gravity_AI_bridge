@@ -3229,3 +3229,152 @@ I’m taking my designer label online and need a sleek, fully functioning store 
 
 ---
 
+## 🎯 Oportunidad: AI-Driven Real Estate Showcase
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 12:21:35
+**Enlace original:** https://www.freelancer.com/projects/ai-video/Driven-Real-Estate-Showcase.html
+
+### Descripción Original del Cliente
+```text
+I’m producing a marketing push for 4052 Indian Peak Rd in Mariposa, CA (link below) together with its improved, vacant adjoining parcel, and I need an AI-generated video that both educates and excites... (Budget: $30 - $250 USD, Jobs: 3D Animation, AI Content Creation, AI Video, Animation, Caricature & Cartoons, Illustration, Video Editing, Video Production)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I'm excited to apply for the AI-Driven Real Estate Showcase project. With expertise in AI, automation, and 3D animation, I can deliver a cutting-edge video that educates and excites your audience. My AI-driven tools and scraping capabilities ensure efficient, high-quality results. Let's collaborate to bring your real estate properties to life.
+> 
+> Best,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: AI Marketing Prompt Specialist -- 2
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 12:21:43
+**Enlace original:** https://www.freelancer.com/projects/ai-chatbot-development/Marketing-Prompt-Specialist.html
+
+### Descripción Original del Cliente
+```text
+I’m looking for a detail-oriented creative who can craft a bank of high-quality AI prompts that function as my personal assistant for day-to-day marketing copy needs.  What I need • Around 50 reusable... (Budget: $15 - $25 USD, Jobs: AI Chatbot Development, AI Content Creation, AI Development, AI Writing, Content Writing, Copywriting, Internet Marketing, Marketing)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I'm excited to apply for the AI Marketing Prompt Specialist role. With extensive experience in AI chatbot development and automation, I'm confident in my ability to create a robust bank of high-quality AI prompts for your marketing needs. My expertise includes data scraping, natural language processing, and AI content creation, which will enable me to deliver results faster and more efficiently than anyone else.
+> 
+> Let's discuss how I can contribute to your team and help streamline your marketing copy process.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: es un trabajao para la universidad debe de parecer asi  
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 12:21:52
+**Enlace original:** https://www.freelancer.com/projects/data-analysis/trabajao-para-universidad-debe-parecer.html
+
+### Descripción Original del Cliente
+```text
+3.- A partir de la información contenida en la base de datos ENSANUT: Plantea un tema de investigación con enfoque cuantitativo. Redacta la pregunta de investigación. Redacta el objetivo general de la investigación... (Budget: $10 - $30 USD, Jobs: Data Analysis, Data Collection, Data Visualization, Excel, Research Writing, SPSS Statistics, Statistical Analysis, Statistical Modeling, Statistics, Survey Research)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I am a skilled developer specializing in data analysis and research writing. With expertise in Excel, SPSS Statistics, and advanced statistical modeling, I am confident in my ability to quickly and accurately complete your project.
+> 
+> My background in artificial intelligence and automation allows me to efficiently collect, analyze, and visualize data. I have experience working with large datasets and can provide insightful analysis tailored to your needs.
+> 
+> I am excited about the opportunity to work with you and deliver exceptional results within your budget. Thank you for considering my application.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Enterprise WordPress Development Team Needed (Saudi Market Experience Required)
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 12:21:59
+**Enlace original:** https://www.freelancer.com/projects/user-experience-design/Enterprise-WordPress-Development-Team.html
+
+### Descripción Original del Cliente
+```text
+Title: Seeking Team for Enterprise WordPress Development Project (Saudi Market Experience Required)  We are a leading digital transformation firm seeking an experienced team or freelancer to deliver a... (Budget: $20000 - $35000 USD, Jobs: AI Development, Odoo, Penetration Testing, PHP, Portfolio Management, Project Management, Technical Writing, UX / User Experience, Website Design, WordPress)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I am a highly experienced WordPress developer specializing in AI, scraping, and automation. I have successfully completed numerous projects in the Saudi market, ensuring fast, efficient, and high-quality results. My expertise aligns perfectly with your requirements, and I am confident in delivering a superior solution.
+> 
+> Let's discuss how I can contribute to your team.
+> 
+> Best regards,  
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Indian Casino Security Contacts Database
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 12:22:10
+**Enlace original:** https://www.freelancer.com/projects/data-collection/Indian-Casino-Security-Contacts-Database.html
+
+### Descripción Original del Cliente
+```text
+I need a clean, fully verified list of the key Surveillance and Security decision-makers at every tribal/Indian casino in the United States—about 500 properties in total. For each casino I want one primary... (Budget: $30 - $250 USD, Jobs: Data Collection, Data Entry, Data Mining, Database Management, Excel, Google Sheets, Lead Generation, Web Search)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I'm a highly skilled freelance developer with expertise in data collection, data entry, data mining, and web scraping. I'd be thrilled to help you build a clean, fully verified list of key surveillance and security decision-makers at every tribal/Indian casino in the United States, totaling around 500 properties.
+> 
+> I have experience in automating data extraction processes using advanced technologies such as AI and web scraping tools. I can ensure the accuracy and reliability of the database, meeting all your requirements efficiently and effectively.
+> 
+> Let's discuss how I can assist you in this project and deliver the best possible results within your budget.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Migrate WordPress to Hostinger -- 2
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 12:22:33
+**Enlace original:** https://www.freelancer.com/projects/web-hosting/Migrate-WordPress-Hostinger.html
+
+### Descripción Original del Cliente
+```text
+I want to move my existing WordPress site—a private work project—from its current host to my Hostinger account and have it running faster than before.  What I already have • A full backup of the site (files and database) ready for you to download... (Budget: €8 - €30 EUR, Jobs: Database Management, Linux, MySQL, PHP, SSL, Web Hosting, Website Optimization, WordPress)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hey, I'm a seasoned WordPress expert with a strong background in database management, Linux, MySQL, PHP, SSL, web hosting, and website optimization. I can efficiently migrate your existing WordPress site to Hostinger, ensuring a seamless transition and improved performance. With my expertise in automation and scripting, I can complete the task quickly and accurately. I'll download the provided backup, configure the new environment, and optimize the site for better speed and security. I'm confident in my ability to deliver high-quality results and exceed your expectations. Let's discuss the project details and get started on migrating your site to Hostinger.
+
+---
+
+## 🎯 Oportunidad: Corporate One-Page WordPress Landing
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 12:22:50
+**Enlace original:** https://www.freelancer.com/projects/web-design/Corporate-One-Page-WordPress-Landing.html
+
+### Descripción Original del Cliente
+```text
+I need a single, scroll-able WordPress page that presents my company in a polished, professional and unmistakably corporate style. The page’s only true “section” will be the Home/hero area, so everything—branding,... (Budget: ₹600 - ₹1500 INR, Jobs: Corporate Identity, Elementor, Graphic Design, HTML, SEO, Web Design, Website Design, WordPress)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hey, I'm a seasoned WordPress developer with expertise in Elementor, HTML, and SEO. I can deliver a polished, professional one-page landing site that showcases your company's corporate identity. With my proficiency in web design and WordPress, I'll create a seamless scrolling experience. I leverage automation tools and cutting-edge technologies to ensure rapid development without compromising quality. My goal is to provide a top-notch solution that exceeds your expectations. I'm excited to discuss how I can bring your vision to life efficiently and effectively. Let's collaborate to create a stunning corporate landing page that reflects your brand's professionalism.
+
+---
+
+## 🎯 Oportunidad: Meta &amp; Google Lead Campaign
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 12:23:02
+**Enlace original:** https://www.freelancer.com/projects/google-ads/Meta-Google-Lead-Campaign.html
+
+### Descripción Original del Cliente
+```text
+I want to set up and run performance-oriented campaigns on both Meta (Facebook/Instagram) and Google Ads to drive a consistent flow of B2C leads and sales. Both channels are equally important to the plan,... (Budget: ₹1500 - ₹12500 INR, Jobs: A/B Testing, Content Writing, Digital Marketing, Facebook Ads, Google Ads, Google Adwords, Google Analytics, Internet Marketing, SEO)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> [**SYSTEM ERROR**: Fallo de conexión con Modelo Local. Error: <urlopen error [WinError 10061] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión>]
+
+---
+

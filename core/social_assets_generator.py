@@ -11,7 +11,7 @@ Diseño robusto, resiliente y thread-safe para escrituras y lecturas concurrente
 import os
 import json
 import threading
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 from core.logger import log
 
 BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -32,7 +32,9 @@ def generate_social_assets(
     """
     with _assets_lock:
         if not os.path.isfile(script_path):
-            log.warning(f"[SocialAssets] Job #{job_id}: script.json no encontrado en {script_path}")
+            log.warning(
+                f"[SocialAssets] Job #{job_id}: script.json no encontrado en {script_path}"
+            )
             return False
 
         try:
@@ -43,12 +45,16 @@ def generate_social_assets(
             return False
 
     # Extraer narración completa
-    narrations: List[str] = [s.get("narration", "") for s in scenes if s.get("narration")]
+    narrations: List[str] = [
+        s.get("narration", "") for s in scenes if s.get("narration")
+    ]
     if not narrations:
         log.warning(f"[SocialAssets] Job #{job_id}: No hay narración en el guion.")
         return False
 
-    full_text: str = " ".join(narrations)[:3000]  # Limitar para no saturar el contexto del LLM
+    full_text: str = " ".join(narrations)[
+        :3000
+    ]  # Limitar para no saturar el contexto del LLM
 
     try:
         from core.provider_manager import get_best, complete
@@ -58,7 +64,9 @@ def generate_social_assets(
             log.warning(f"[SocialAssets] Job #{job_id}: No hay LLM disponible.")
             return False
 
-        log.info(f"[SocialAssets] Job #{job_id}: Generando activos sociales con {best_prov.name}...")
+        log.info(
+            f"[SocialAssets] Job #{job_id}: Generando activos sociales con {best_prov.name}..."
+        )
 
         prompt: str = (
             f"Basado en este guion de video (idioma: {lang}), actúa como un Copywriter Experto "
@@ -79,7 +87,10 @@ def generate_social_assets(
         )
 
         messages: List[Dict[str, str]] = [
-            {"role": "system", "content": "Eres un experto en Social Media Marketing y Copywriting viral."},
+            {
+                "role": "system",
+                "content": "Eres un experto en Social Media Marketing y Copywriting viral.",
+            },
             {"role": "user", "content": prompt},
         ]
 
@@ -102,8 +113,9 @@ def generate_social_assets(
             with open(tmp_path, "w", encoding="utf-8") as f:
                 f.write(f"# Gravity AI — Activos Sociales | Job #{job_id}\n\n")
                 f.write(result)
-            
+
             import time
+
             for i in range(5):
                 try:
                     os.replace(tmp_path, output_path)
@@ -119,4 +131,3 @@ def generate_social_assets(
     except Exception as e:
         log.error(f"[SocialAssets] Job #{job_id}: Error inesperado: {e}")
         return False
-

@@ -1,17 +1,17 @@
 import json
 import os
-import re
 
 PORTAL_DIR = r"f:\gravity-news-portal"
 NEWS_JSON_PATH = os.path.join(PORTAL_DIR, "src", "data", "news.json")
 SCIENCE_JSON_PATH = os.path.join(PORTAL_DIR, "src", "data", "science.json")
+
 
 def fix_images(file_path):
     if not os.path.exists(file_path):
         return
     with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
-    
+
     changed = False
     for item in data:
         img_url = item.get("image", "")
@@ -30,6 +30,7 @@ def fix_images(file_path):
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
         print(f"File {file_path} saved.")
+
 
 if __name__ == "__main__":
     fix_images(NEWS_JSON_PATH)

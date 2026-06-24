@@ -41,6 +41,7 @@ def _now_iso() -> str:
 
 # ── SessionHandle ─────────────────────────────────────────────────────────────
 
+
 class SessionHandle:
     """
     Handle que representa una sesión activa, encapsulando su proceso.
@@ -115,17 +116,18 @@ class SessionHandle:
             except Exception:
                 pid = -1
             return {
-                "session_id":       self.session_id,
-                "start_time":       self.start_time,
-                "last_activity":    self.last_activity,
-                "alive":            self.is_alive(),
-                "pid":              pid,
+                "session_id": self.session_id,
+                "start_time": self.start_time,
+                "last_activity": self.last_activity,
+                "alive": self.is_alive(),
+                "pid": pid,
                 "current_activity": self.current_activity,
-                "history_count":    len(self.activities),
+                "history_count": len(self.activities),
             }
 
 
 # ── SessionSpawner ────────────────────────────────────────────────────────────
+
 
 class SessionSpawner:
     """
@@ -151,7 +153,9 @@ class SessionSpawner:
                 # Si CPython oculta el atributo privado, calculamos por exclusión
                 return max(0, _CAPACITY - len(active_sessions))
 
-    def spawn(self, session_id: str, work_data: Dict[str, Any], role: Optional[str] = None) -> SessionHandle:
+    def spawn(
+        self, session_id: str, work_data: Dict[str, Any], role: Optional[str] = None
+    ) -> SessionHandle:
         """
         Levanta un nuevo agente subproceso aislado.
 
@@ -201,6 +205,7 @@ class SessionSpawner:
 
 # ── Limpieza de huérfanos ─────────────────────────────────────────────────────
 
+
 def _reap_dead_sessions() -> int:
     """
     Elimina del registro las sesiones cuyo proceso ya terminó.
@@ -248,6 +253,7 @@ def shutdown() -> None:
 
 # ── Daemon de limpieza de huérfanos ──────────────────────────────────────────
 
+
 def _orphan_reaper_loop() -> None:
     """Loop daemon que limpia sesiones muertas cada 30s."""
     while True:
@@ -255,7 +261,9 @@ def _orphan_reaper_loop() -> None:
         try:
             reaped = _reap_dead_sessions()
             if reaped > 0:
-                log.info(f"[SessionRunner] Reaper: {reaped} sesiones huérfanas limpiadas.")
+                log.info(
+                    f"[SessionRunner] Reaper: {reaped} sesiones huérfanas limpiadas."
+                )
         except Exception as e:
             log.warning(f"[SessionRunner] Error en reaper loop: {e}")
 
@@ -271,6 +279,7 @@ def start_orphan_reaper() -> None:
 
 
 # ── API pública ───────────────────────────────────────────────────────────────
+
 
 def get_all_sessions() -> List[Dict[str, Any]]:
     """Devuelve el estado serializable de todas las sesiones activas."""

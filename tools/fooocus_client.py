@@ -15,7 +15,7 @@ import json
 import time
 import urllib.request
 import urllib.error
-from typing import TypedDict, Literal, List, Dict, Optional, Any, Union
+from typing import TypedDict, Literal, List, Dict, Optional, Any
 
 # ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -33,13 +33,14 @@ OUTPUT_DIR: str = os.path.normpath(
 )
 
 PERFORMANCE_MAP: Dict[str, str] = {
-    "Speed":   "Speed",
+    "Speed": "Speed",
     "Quality": "Quality",
     "Extreme Speed": "Extreme Speed",
     "Lightning": "Lightning",
 }
 
 # ─── TypedDicts ───────────────────────────────────────────────────────────────
+
 
 class ImageGenRequest(TypedDict, total=False):
     prompt: str
@@ -67,6 +68,7 @@ class HealthStatus(TypedDict):
 
 # ─── Health Check ─────────────────────────────────────────────────────────────
 
+
 def health_check() -> HealthStatus:
     """
     Verifica si Fooocus responde en el puerto configurado.
@@ -81,21 +83,30 @@ def health_check() -> HealthStatus:
         )
         with urllib.request.urlopen(req, timeout=5) as r:
             if r.status == 200:
-                return {"online": True, "version": "Fooocus 2.5.5 (CPU)", "message": "Fooocus UI activa."}
+                return {
+                    "online": True,
+                    "version": "Fooocus 2.5.5 (CPU)",
+                    "message": "Fooocus UI activa.",
+                }
     except urllib.error.HTTPError as e:
         # Cualquier respuesta HTTP (incluso errores) significa que Fooocus está corriendo
         if e.code < 500:
-            return {"online": True, "version": "Fooocus 2.5.5 (CPU)", "message": f"Fooocus activo (HTTP {e.code})."}
+            return {
+                "online": True,
+                "version": "Fooocus 2.5.5 (CPU)",
+                "message": f"Fooocus activo (HTTP {e.code}).",
+            }
     except Exception as e:
         return {
             "online": False,
             "version": None,
-            "message": f"Fooocus offline. Ejecuta launchers\\INICIAR_TODO.bat. Error: {e}"
+            "message": f"Fooocus offline. Ejecuta launchers\\INICIAR_TODO.bat. Error: {e}",
         }
     return {"online": False, "version": None, "message": "Fooocus sin respuesta."}
 
 
 # ─── Image Generation ─────────────────────────────────────────────────────────
+
 
 def generate_image(request: ImageGenRequest) -> ImageGenResponse:
     """
@@ -105,42 +116,46 @@ def generate_image(request: ImageGenRequest) -> ImageGenResponse:
     """
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    prompt_text: str  = request.get("prompt", "")
-    neg_prompt: str   = request.get("negative_prompt", "ugly, deformed, blurry, low quality, watermark")
-    width: int        = request.get("width", 832)
-    height: int       = request.get("height", 1216)
-    batch: int        = request.get("num_images", 1)
+    prompt_text: str = request.get("prompt", "")
+    neg_prompt: str = request.get(
+        "negative_prompt", "ugly, deformed, blurry, low quality, watermark"
+    )
+    width: int = request.get("width", 832)
+    height: int = request.get("height", 1216)
+    batch: int = request.get("num_images", 1)
     # Speed usa euler (CPU-safe). Evitar Extreme Speed / Lightning que activan LoRAs GPU-only
-    performance: str  = PERFORMANCE_MAP.get(request.get("performance", "Speed"), "Speed")  # type: ignore
-    styles: List[str] = request.get("style_selections", ["Fooocus V2", "Fooocus Enhance"])
+    performance: str = PERFORMANCE_MAP.get(request.get("performance", "Speed"), "Speed")  # type: ignore
+    styles: List[str] = request.get(
+        "style_selections", ["Fooocus V2", "Fooocus Enhance"]
+    )
 
     payload: dict = {
-        "prompt":                  prompt_text,
-        "negative_prompt":         neg_prompt,
-        "style_selections":        styles if styles else ["Fooocus V2", "Fooocus Enhance"],
-        "performance_selection":   performance,
+        "prompt": prompt_text,
+        "negative_prompt": neg_prompt,
+        "style_selections": styles if styles else ["Fooocus V2", "Fooocus Enhance"],
+        "performance_selection": performance,
         "aspect_ratios_selection": f"{width}\u00d7{height}",
-        "image_number":            batch,
-        "image_seed":              -1,
-        "sharpness":               2.0,
-        "guidance_scale":          7.0,
-        "base_model_name":         "juggernautXL_v8Rundiffusion.safetensors",
-        "refiner_model_name":      "None",
-        "refiner_switch":          0.8,
-        "loras":                   [],
+        "image_number": batch,
+        "image_seed": -1,
+        "sharpness": 2.0,
+        "guidance_scale": 7.0,
+        "base_model_name": "juggernautXL_v8Rundiffusion.safetensors",
+        "refiner_model_name": "None",
+        "refiner_switch": 0.8,
+        "loras": [],
         "advanced_params": {
-            "adaptive_cfg":      7.0,
+            "adaptive_cfg": 7.0,
             # Sampler CPU-safe: euler no requiere kernels GPU-only (evita RuntimeError)
-            "sampler_name":      "euler",
-            "scheduler_name":    "normal",
-            "overwrite_step":    30,
-            "overwrite_switch":  -1,
+            "sampler_name": "euler",
+            "scheduler_name": "normal",
+            "overwrite_step": 30,
+            "overwrite_switch": -1,
         },
-        "save_extension":  "png",
-        "save_meta_json":  False,
-        "require_base64":  False,
-        "async_process":   True,
-        "output_format":   "png",
+        "save_extension": "png",
+        "save_meta_json": False,
+        "require_base64": False,
+        "async_process": True,
+        "output_format": "png",
     }
 
     payload_data = json.dumps(payload).encode("utf-8")
@@ -150,7 +165,7 @@ def generate_image(request: ImageGenRequest) -> ImageGenResponse:
         req = urllib.request.Request(
             f"{FOOOCUS_BASE_URL}/v1/generation/text-to-image",
             data=payload_data,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
         with urllib.request.urlopen(req, timeout=5) as response:
             res_data = json.loads(response.read())
@@ -164,11 +179,18 @@ def generate_image(request: ImageGenRequest) -> ImageGenResponse:
             aspect_ratio=f"{width}\u00d7{height}",
             negative_prompt=neg_prompt,
             overwrite_step=str(payload["advanced_params"]["overwrite_step"]),
-            sampler_name=payload["advanced_params"]["sampler_name"]
+            sampler_name=payload["advanced_params"]["sampler_name"],
         )
 
 
-def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ratio: str = "1024x1024", negative_prompt: str = "", overwrite_step: str = "30", sampler_name: str = "euler") -> ImageGenResponse:
+def trigger_gradio_generation(
+    prompt: str,
+    performance: str = "Speed",
+    aspect_ratio: str = "1024x1024",
+    negative_prompt: str = "",
+    overwrite_step: str = "30",
+    sampler_name: str = "euler",
+) -> ImageGenResponse:
     """
     Disparador via subproceso nativo al Python embebido de Fooocus.
     Verifica la aparición real de archivos en OUTPUT_DIR para evitar
@@ -179,8 +201,14 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
     import sys as _sys
 
     fooocus_python: str = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", "_integrations",
-                     "Fooocus", "python_embeded", "python.exe")
+        os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "_integrations",
+            "Fooocus",
+            "python_embeded",
+            "python.exe",
+        )
     )
     trigger_script: str = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "native_trigger.py")
@@ -191,7 +219,9 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
 
     if not os.path.exists(fooocus_python):
         return {
-            "success": False, "images": [], "job_id": None,
+            "success": False,
+            "images": [],
+            "job_id": None,
             "error": "Python embebido de Fooocus no encontrado en _integrations/Fooocus/python_embeded/",
         }
 
@@ -201,8 +231,8 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
     # Snapshot ANTES: qué archivos existen ya en outputs/
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     before: set[str] = set(
-        _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.png"), recursive=True) +
-        _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.webp"), recursive=True)
+        _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.png"), recursive=True)
+        + _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.webp"), recursive=True)
     )
 
     creationflags = 0
@@ -211,7 +241,16 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
 
     try:
         proc = subprocess.Popen(
-            [fooocus_python, trigger_script, prompt, performance, aspect_ratio_safe, negative_prompt, overwrite_step, sampler_name],
+            [
+                fooocus_python,
+                trigger_script,
+                prompt,
+                performance,
+                aspect_ratio_safe,
+                negative_prompt,
+                overwrite_step,
+                sampler_name,
+            ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             creationflags=creationflags,
@@ -222,40 +261,65 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
             stdout_bytes, stderr_bytes = proc.communicate(timeout=2400)
             stdout_str: str = stdout_bytes.decode("utf-8", errors="replace")
             stderr_str: str = stderr_bytes.decode("utf-8", errors="replace")
-            
+
             # Guardar el log para depuración
             with open(log_file, "a", encoding="utf-8", errors="replace") as out_file:
-                out_file.write(f"\n--- Disparando: {prompt[:80]} [{performance}] [{aspect_ratio_safe}] ---\n")
+                out_file.write(
+                    f"\n--- Disparando: {prompt[:80]} [{performance}] [{aspect_ratio_safe}] ---\n"
+                )
                 out_file.write(stdout_str + "\n")
-                if stderr_str: out_file.write(stderr_str + "\n")
-                
+                if stderr_str:
+                    out_file.write(stderr_str + "\n")
+
             if proc.returncode != 0:
-                return {"success": False, "images": [], "job_id": None, "error": f"El trigger falló (código {proc.returncode}): {stderr_str}"}
-                
+                return {
+                    "success": False,
+                    "images": [],
+                    "job_id": None,
+                    "error": f"El trigger falló (código {proc.returncode}): {stderr_str}",
+                }
+
             # Interceptar fallos tempranos en el trigger nativo
             import json as _json
-            lines: list[str] = [L for L in stdout_str.split("\n") if L.strip() and L.strip().startswith("{")]
+
+            lines: list[str] = [
+                L
+                for L in stdout_str.split("\n")
+                if L.strip() and L.strip().startswith("{")
+            ]
             if lines:
                 try:
                     res_json: dict = _json.loads(lines[-1].strip())
                     if not res_json.get("success"):
-                        return {"success": False, "images": [], "job_id": None, "error": f"Trigger nativo falló: {res_json.get('error')}"}
-                    
+                        return {
+                            "success": False,
+                            "images": [],
+                            "job_id": None,
+                            "error": f"Trigger nativo falló: {res_json.get('error')}",
+                        }
+
                     # Detectar si Fooocus abortó instantáneamente la generación
                     data_obj: Any = res_json.get("data", {})
                     if isinstance(data_obj, dict):
                         inner_data: list = data_obj.get("data", [])
                         if inner_data and inner_data[0] is None:
-                            return {"success": False, "images": [], "job_id": None, "error": "Fooocus abortó la generación internamente. (Gradio retornó null)."}
-                            
+                            return {
+                                "success": False,
+                                "images": [],
+                                "job_id": None,
+                                "error": "Fooocus abortó la generación internamente. (Gradio retornó null).",
+                            }
+
                 except Exception:
                     pass
-                    
+
         except subprocess.TimeoutExpired:
             proc.kill()
             proc.wait()
             return {
-                "success": False, "images": [], "job_id": None,
+                "success": False,
+                "images": [],
+                "job_id": None,
                 "error": "Timeout: Fooocus no completó la generación en 40 minutos.",
             }
 
@@ -267,34 +331,37 @@ def trigger_gradio_generation(prompt: str, performance: str = "Speed", aspect_ra
     # Debemos esperar (polling) hasta que aparezca el nuevo archivo en outputs/.
     timeout_end: float = time.time() + 900  # 15 minutos de timeout
     new_files: list[str] = []
-    
+
     while time.time() < timeout_end:
         after: set[str] = set(
-            _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.png"), recursive=True) +
-            _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.webp"), recursive=True)
+            _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.png"), recursive=True)
+            + _glob.glob(os.path.join(OUTPUT_DIR, "**", "*.webp"), recursive=True)
         )
         new_files = list(after - before)
-        
+
         if new_files:
             break
-            
+
         time.sleep(5)
 
     if not new_files:
         return {
-            "success": False, "images": [], "job_id": None,
+            "success": False,
+            "images": [],
+            "job_id": None,
             "error": "Timeout de 15 minutos: Fooocus encoló el trabajo pero no apareció ningún archivo en outputs/. Revisa log o si Fooocus falló internamente.",
         }
 
     return {
         "success": True,
         "images": sorted(new_files, key=os.path.getmtime, reverse=True),
-        "error":  None,
+        "error": None,
         "job_id": f"native_{len(new_files)}_files",
     }
 
 
 # ─── Job Status Polling ───────────────────────────────────────────────────────
+
 
 def poll_job(job_id: str, timeout: int = 600, poll_interval: int = 5) -> Dict[str, Any]:
     """
@@ -310,17 +377,23 @@ def poll_job(job_id: str, timeout: int = 600, poll_interval: int = 5) -> Dict[st
             return result
         time.sleep(poll_interval)
         elapsed += poll_interval
-    return {"job_stage": "timeout", "job_progress": 0, "error": "Timeout esperando generacion"}
+    return {
+        "job_stage": "timeout",
+        "job_progress": 0,
+        "error": "Timeout esperando generacion",
+    }
 
 
 def _query_job(job_id: str) -> Dict[str, Any]:
     """Consulta puntual del estado de un job en Fooocus."""
-    payload: bytes = json.dumps({"job_id": job_id, "require_step_preview": False}).encode()
+    payload: bytes = json.dumps(
+        {"job_id": job_id, "require_step_preview": False}
+    ).encode()
     try:
         req: urllib.request.Request = urllib.request.Request(
             f"{FOOOCUS_BASE_URL}/v1/generation/query-job",
             data=payload,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
         with urllib.request.urlopen(req, timeout=10) as r:
             return json.loads(r.read())
@@ -334,6 +407,7 @@ def get_latest_outputs(n: int = 10) -> List[str]:
     Busca en el directorio outputs/ de Fooocus.
     """
     import glob as _glob
+
     images: List[str] = []
     if not os.path.isdir(OUTPUT_DIR):
         return images
@@ -346,9 +420,16 @@ def get_latest_outputs(n: int = 10) -> List[str]:
 # ─── Prompt Variation Generator ───────────────────────────────────────────────
 
 SHOT_TYPES: List[str] = [
-    "A close-up shot", "A medium shot", "A wide shot", "A full body shot",
-    "An extreme close-up shot", "A low angle shot", "A high angle shot",
-    "An over-the-shoulder shot", "A Dutch angle shot", "A bird's eye view shot"
+    "A close-up shot",
+    "A medium shot",
+    "A wide shot",
+    "A full body shot",
+    "An extreme close-up shot",
+    "A low angle shot",
+    "A high angle shot",
+    "An over-the-shoulder shot",
+    "A Dutch angle shot",
+    "A bird's eye view shot",
 ]
 
 
@@ -378,18 +459,23 @@ def generate_prompt_variations(
     prompts: List[str] = []
 
     for i in range(count):
-        shot: str     = SHOT_TYPES[i]
+        shot: str = SHOT_TYPES[i]
         activity: str = activities[i]
         if "[SHOT]" in base_prompt and "[ACTIVITY]" in base_prompt:
-            varied: str = base_prompt.replace("[SHOT]", shot).replace("[ACTIVITY]", activity)
+            varied: str = base_prompt.replace("[SHOT]", shot).replace(
+                "[ACTIVITY]", activity
+            )
         else:
-            varied = base_prompt.replace(shot_part, shot).replace(activity_part, activity)
+            varied = base_prompt.replace(shot_part, shot).replace(
+                activity_part, activity
+            )
         prompts.append(varied)
 
     return prompts
 
 
 # ─── Batch Generation ─────────────────────────────────────────────────────────
+
 
 def batch_generate(
     base_prompt: str,
@@ -404,13 +490,13 @@ def batch_generate(
 
     for variant_prompt in variations:
         req_data: ImageGenRequest = {
-            "prompt":              variant_prompt,
-            "negative_prompt":     "ugly, deformed, blurry, low quality, watermark",
-            "width":               832,
-            "height":              1216,
-            "num_images":          1,
-            "performance":         "Speed",
-            "style_selections":    ["Fooocus V2", "Fooocus Enhance"],
+            "prompt": variant_prompt,
+            "negative_prompt": "ugly, deformed, blurry, low quality, watermark",
+            "width": 832,
+            "height": 1216,
+            "num_images": 1,
+            "performance": "Speed",
+            "style_selections": ["Fooocus V2", "Fooocus Enhance"],
             "reference_image_path": reference_image_path,
         }
         result: ImageGenResponse = generate_image(req_data)

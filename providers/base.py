@@ -9,7 +9,6 @@ All providers (local and cloud) implement ProviderPlugin.
 from abc import ABC, abstractmethod
 from typing import Generator, Optional
 
-
 """
 ╔══════════════════════════════════════════════════════════════╗
 ║     GRAVITY AI — PROVIDER BASE CLASSES V13.0 PRO                  ║
@@ -18,38 +17,49 @@ from typing import Generator, Optional
 All providers (local and cloud) implement ProviderPlugin.
 """
 
-from abc import ABC, abstractmethod
-from typing import Generator, Optional, Any, Dict, List
-
+from typing import Any, Dict, List
 
 # ── Unified scan result ───────────────────────────────────────────────────────
+
 
 class ProviderResult:
     """
     Unified representation of a provider scan result.
     Backwards-compatible with V6 ProviderResult used by provider_scanner.py.
     """
+
     __slots__ = (
-        "name", "url", "protocol", "category",
-        "is_healthy", "models", "active_model", "response_ms",
-        "supports_vision", "supports_function_calling", "max_context",
-        "requires_key", "key_configured",
+        "name",
+        "url",
+        "protocol",
+        "category",
+        "is_healthy",
+        "models",
+        "active_model",
+        "response_ms",
+        "supports_vision",
+        "supports_function_calling",
+        "max_context",
+        "requires_key",
+        "key_configured",
     )
 
-    def __init__(self, name: str, url: str, protocol: str, category: str = "local") -> None:
-        self.name: str                     = name
-        self.url: str                      = url
-        self.protocol: str                 = protocol
-        self.category: str                 = category  # "local" | "cloud"
-        self.is_healthy: bool              = False
-        self.models: List[Dict[str, Any]]  = []        # [{"name": str, "size": int}]
-        self.active_model: Optional[str]   = None
-        self.response_ms: int              = 0
-        self.supports_vision: bool         = False
+    def __init__(
+        self, name: str, url: str, protocol: str, category: str = "local"
+    ) -> None:
+        self.name: str = name
+        self.url: str = url
+        self.protocol: str = protocol
+        self.category: str = category  # "local" | "cloud"
+        self.is_healthy: bool = False
+        self.models: List[Dict[str, Any]] = []  # [{"name": str, "size": int}]
+        self.active_model: Optional[str] = None
+        self.response_ms: int = 0
+        self.supports_vision: bool = False
         self.supports_function_calling: bool = False
-        self.max_context: int              = 131072
-        self.requires_key: bool            = False
-        self.key_configured: bool          = False
+        self.max_context: int = 131072
+        self.requires_key: bool = False
+        self.key_configured: bool = False
 
     # ── Backwards-compat properties (used by health_check.py, watchdog) ──────
     @property
@@ -65,11 +75,14 @@ class ProviderResult:
 
     def __repr__(self) -> str:
         status = "✅" if self.is_healthy else "🔴"
-        return (f"ProviderResult({status} {self.name} | {self.url} | "
-                f"{self.model_count}M | {self.response_ms}ms)")
+        return (
+            f"ProviderResult({status} {self.name} | {self.url} | "
+            f"{self.model_count}M | {self.response_ms}ms)"
+        )
 
 
 # ── Abstract Plugin Base ──────────────────────────────────────────────────────
+
 
 class ProviderPlugin(ABC):
     """
@@ -80,14 +93,14 @@ class ProviderPlugin(ABC):
     """
 
     # ── Class-level metadata (set these in every subclass) ───────────────────
-    name:                    str  = ""       # "Ollama", "OpenAI", "Groq" …
-    protocol:                str  = "openai" # wire protocol
-    category:                str  = "local"  # "local" | "cloud"
-    default_port:            int  = 0        # 0 → cloud / no fixed port
-    requires_key:            bool = False
-    supports_vision:         bool = False
+    name: str = ""  # "Ollama", "OpenAI", "Groq" …
+    protocol: str = "openai"  # wire protocol
+    category: str = "local"  # "local" | "cloud"
+    default_port: int = 0  # 0 → cloud / no fixed port
+    requires_key: bool = False
+    supports_vision: bool = False
     supports_function_calling: bool = False
-    default_context:         int  = 131072
+    default_context: int = 131072
 
     # ── Abstract interface ────────────────────────────────────────────────────
 
@@ -102,8 +115,8 @@ class ProviderPlugin(ABC):
     def chat_stream(
         self,
         messages: List[Dict[str, Any]],
-        model:    str,
-        options:  Dict[str, Any],
+        model: str,
+        options: Dict[str, Any],
     ) -> Generator[str, None, None]:
         """
         Streaming chat.
@@ -115,8 +128,8 @@ class ProviderPlugin(ABC):
     def chat_complete(
         self,
         messages: List[Dict[str, Any]],
-        model:    str,
-        options:  Dict[str, Any],
+        model: str,
+        options: Dict[str, Any],
     ) -> str:
         """
         Non-streaming chat. Returns the full response as a string.
@@ -126,9 +139,9 @@ class ProviderPlugin(ABC):
 
     def chat_stream_with_images(
         self,
-        messages:    List[Dict[str, Any]],
-        model:       str,
-        options:     Dict[str, Any],
+        messages: List[Dict[str, Any]],
+        model: str,
+        options: Dict[str, Any],
         image_paths: List[str],
     ) -> Generator[str, None, None]:
         """
@@ -166,14 +179,14 @@ class ProviderPlugin(ABC):
 
     def _make_result(self, url: str = "") -> ProviderResult:
         r = ProviderResult(
-            name     = self.name,
-            url      = url or (f"http://localhost:{self.default_port}" if self.default_port else ""),
-            protocol = self.protocol,
-            category = self.category,
+            name=self.name,
+            url=url
+            or (f"http://localhost:{self.default_port}" if self.default_port else ""),
+            protocol=self.protocol,
+            category=self.category,
         )
-        r.supports_vision              = self.supports_vision
-        r.supports_function_calling    = self.supports_function_calling
-        r.max_context                  = self.default_context
-        r.requires_key                 = self.requires_key
+        r.supports_vision = self.supports_vision
+        r.supports_function_calling = self.supports_function_calling
+        r.max_context = self.default_context
+        r.requires_key = self.requires_key
         return r
-

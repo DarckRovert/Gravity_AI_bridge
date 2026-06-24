@@ -5,6 +5,7 @@ o <!-- FAILED_IMAGE:img.png -->, infiere el prompt original analizando el contex
 aplica el nuevo inyector de lore, y genera las imágenes reemplazando las anteriores.
 Mantiene los mismos nombres de archivo para no romper el empaquetado EPUB.
 """
+
 import os
 import sys
 import re
@@ -30,18 +31,22 @@ NEGATIVE_PROMPT = (
     "oversaturated, overexposed"
 )
 
+
 def _load_lore(book_dir: str) -> dict:
     lore_path = os.path.join(book_dir, "lore_book.json")
     if not os.path.exists(lore_path):
         # Intentar en el dir sin '_refinado'
         parent = os.path.dirname(book_dir)
-        base = os.path.basename(book_dir).replace("_refinado", "").replace("_refined", "")
+        base = (
+            os.path.basename(book_dir).replace("_refinado", "").replace("_refined", "")
+        )
         lore_path = os.path.join(parent, base, "lore_book.json")
 
     if os.path.exists(lore_path):
         with open(lore_path, "r", encoding="utf-8") as f:
             return json.load(f)
     return {"global_style": "cinematic, hyperrealistic", "characters": {}}
+
 
 def _infer_prompt_from_context(context: str, cap_title: str) -> str:
     """Usa el LLM para inferir un buen prompt de imagen puramente visual."""
@@ -73,16 +78,21 @@ DEVUELVE ÚNICAMENTE EL PROMPT EN INGLÉS, sin comentarios ni explicaciones adic
             time.sleep(2)
     return "Cyberpunk dark neo-tokyo street scene"
 
-def process_book(refined_dir: str):
-    logger.info(f"\n{'='*50}\nProcesando libro: {os.path.basename(refined_dir)}\n{'='*50}")
-    lore_data = _load_lore(refined_dir)
-    
-    # Expresiones regulares para imágenes y fallos
-    img_pattern = re.compile(r'!\[.*?\]\((img_cap_[\w_]+\.png)\)')
-    failed_pattern = re.compile(r'<!-- FAILED_IMAGE:(img_cap_[\w_]+\.png) -->')
 
-    md_files = [f for f in os.listdir(refined_dir) if f.startswith("cap_") and f.endswith(".md")]
-    md_files.sort(key=lambda x: int(re.search(r'cap_(\d+)', x).group(1)))
+def process_book(refined_dir: str):
+    logger.info(
+        f"\n{'='*50}\nProcesando libro: {os.path.basename(refined_dir)}\n{'='*50}"
+    )
+    lore_data = _load_lore(refined_dir)
+
+    # Expresiones regulares para imágenes y fallos
+    img_pattern = re.compile(r"!\[.*?\]\((img_cap_[\w_]+\.png)\)")
+    failed_pattern = re.compile(r"<!-- FAILED_IMAGE:(img_cap_[\w_]+\.png) -->")
+
+    md_files = [
+        f for f in os.listdir(refined_dir) if f.startswith("cap_") and f.endswith(".md")
+    ]
+    md_files.sort(key=lambda x: int(re.search(r"cap_(\d+)", x).group(1)))
 
     for md_file in md_files:
         md_path = os.path.join(refined_dir, md_file)
@@ -98,41 +108,54 @@ def process_book(refined_dir: str):
 
         if not matches:
             continue
-            
-        logger.info(f"\n[{md_file}] Encontradas {len(matches)} imágenes para regenerar.")
-        
+
+        logger.info(
+            f"\n[{md_file}] Encontradas {len(matches)} imágenes para regenerar."
+        )
+
         for img_filename, start_idx, end_idx, tag_type in matches:
             logger.info(f"  → Regenerando: {img_filename}")
-            
+
             # 1. Extraer contexto (1000 caracteres antes y después)
             ctx_start = max(0, start_idx - 1000)
             ctx_end = min(len(content), end_idx + 1000)
-            context = content[ctx_start:start_idx] + "\n[AQUI VA LA IMAGEN]\n" + content[end_idx:ctx_end]
-            
+            context = (
+                content[ctx_start:start_idx]
+                + "\n[AQUI VA LA IMAGEN]\n"
+                + content[end_idx:ctx_end]
+            )
+
             # 2. Inferir prompt base con el LLM
             logger.info("    Infiriendo prompt visual con LLM...")
             base_prompt = _infer_prompt_from_context(context, md_file)
-            
+
             # 3. Anclar semilla al personaje
             char_seed = None
             for char_name in lore_data.get("characters", {}).keys():
-                search_names = [char_name] + [t for t in char_name.replace("(", "").replace(")", "").split() if len(t) > 3]
+                search_names = [char_name] + [
+                    t
+                    for t in char_name.replace("(", "").replace(")", "").split()
+                    if len(t) > 3
+                ]
                 if any(n.lower() in base_prompt.lower() for n in search_names):
-                    char_seed = int(hashlib.md5(char_name.encode("utf-8")).hexdigest()[:8], 16) % 2147483647
+                    char_seed = (
+                        int(hashlib.md5(char_name.encode("utf-8")).hexdigest()[:8], 16)
+                        % 2147483647
+                    )
                     break
-                    
+
             # 4. Inyectar lore (esto aplica los 80 palabras max y pone el personaje al inicio)
             final_prompt = inject_lore_to_prompt(lore_data, base_prompt)
             logger.info(f"    Prompt final: {final_prompt[:150]}...")
-            
+
             # 5. Borrar la imagen vieja si existe
             img_path = os.path.join(refined_dir, img_filename)
             if os.path.exists(img_path):
                 os.remove(img_path)
-                
+
             # 6. Generar con Pollinations
             for attempt in range(1, 4):
-                time.sleep(5) # Rate limit gentil
+                time.sleep(5)  # Rate limit gentil
                 res = poll_gen(
                     prompt=final_prompt,
                     output_path=img_path,
@@ -140,15 +163,19 @@ def process_book(refined_dir: str):
                     height=1024,
                     seed=char_seed,
                     enhance=False,
-                    negative_prompt=NEGATIVE_PROMPT
+                    negative_prompt=NEGATIVE_PROMPT,
                 )
                 if res.get("success"):
-                    logger.info(f"    ✅ Imagen generada correctamente ({img_filename}).")
+                    logger.info(
+                        f"    ✅ Imagen generada correctamente ({img_filename})."
+                    )
                     break
                 else:
-                    logger.warning(f"    Intento {attempt} falló. Reintentando en 8s...")
+                    logger.warning(
+                        f"    Intento {attempt} falló. Reintentando en 8s..."
+                    )
                     time.sleep(8)
-                    
+
             # Si era un tag fallido, hay que actualizar el Markdown para que ahora sea una imagen real
             if tag_type == "failed_tag":
                 placeholder = f"<!-- FAILED_IMAGE:{img_filename} -->"
@@ -161,22 +188,24 @@ def process_book(refined_dir: str):
     logger.info(f"Re-empaquetando EPUB para {os.path.basename(refined_dir)}...")
     try:
         from tools.epub_generator import generate_epub
+
         generate_epub(refined_dir)
         logger.info("✅ EPUB actualizado exitosamente.")
     except Exception as e:
         logger.error(f"Error empaquetando EPUB: {e}")
 
+
 if __name__ == "__main__":
     books = [
         r"f:\Gravity_AI_bridge\ficcion_generada\Cenizas_del_Leviatan_Libro_1_refinado",
         r"f:\Gravity_AI_bridge\ficcion_generada\Cenizas_del_Leviatan_Libro_2_refinado",
-        r"f:\Gravity_AI_bridge\ficcion_generada\Cenizas_del_Leviatan_Libro_3_refinado"
+        r"f:\Gravity_AI_bridge\ficcion_generada\Cenizas_del_Leviatan_Libro_3_refinado",
     ]
-    
+
     for b in books:
         if os.path.exists(b):
             process_book(b)
         else:
             logger.warning(f"No se encontró el directorio: {b}")
-            
+
     logger.info("\n¡REGENERACIÓN TOTAL COMPLETADA!")

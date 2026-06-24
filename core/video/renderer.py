@@ -1,6 +1,5 @@
 import os
 import subprocess
-import time
 from typing import Optional
 from core.logger import log
 from core.video.script_builder import CINEMA_STYLES, DEFAULT_STYLE
@@ -21,16 +20,22 @@ DEFAULT_BGM_VOLUME = 0.1
 _fooocus_dead = False
 _comfy_dead = False
 _branding_cache = None
+
+
 def _get_branding_config() -> dict:
     global _branding_cache
     if _branding_cache is None:
         try:
             import yaml
-            with open(os.path.join(BASE_DIR, "config.yaml"), "r", encoding="utf-8") as f:
+
+            with open(
+                os.path.join(BASE_DIR, "config.yaml"), "r", encoding="utf-8"
+            ) as f:
                 _branding_cache = (yaml.safe_load(f) or {}).get("branding", {})
         except Exception:
             _branding_cache = {}
     return _branding_cache
+
 
 def _generate_scene_image(
     prompt: str,
@@ -43,14 +48,14 @@ def _generate_scene_image(
     """
     Genera imagen de una escena con consistencia visual garantizada.
     """
-    job_dir    = os.path.join(OUTPUT_DIR, f"job_{job_id}")
-    out_path   = os.path.join(job_dir, f"scene_{scene_idx:02d}_image.png")
+    job_dir = os.path.join(OUTPUT_DIR, f"job_{job_id}")
+    out_path = os.path.join(job_dir, f"scene_{scene_idx:02d}_image.png")
     os.makedirs(job_dir, exist_ok=True)
 
-    style_info   = CINEMA_STYLES.get(style, CINEMA_STYLES[DEFAULT_STYLE])
-    negative     = style_info.get("negative", "")
-    scene_seed   = (job_seed + scene_idx * 7) % 2147483647
-    
+    style_info = CINEMA_STYLES.get(style, CINEMA_STYLES[DEFAULT_STYLE])
+    negative = style_info.get("negative", "")
+    scene_seed = (job_seed + scene_idx * 7) % 2147483647
+
     w, h = DEFAULT_IMG_W, DEFAULT_IMG_H
     if "x" in resolution:
         parts = resolution.split("x")
@@ -61,95 +66,119 @@ def _generate_scene_image(
     global _fooocus_dead
     try:
         from tools.fooocus_client import trigger_gradio_generation, health_check
-        import time
 
         is_online = health_check().get("online")
         if not is_online and not _fooocus_dead:
-            log.info("[VideoStudio] Fooocus offline. Auto-inicio deshabilitado para ahorrar RAM. Fallback activo.")
+            log.info(
+                "[VideoStudio] Fooocus offline. Auto-inicio deshabilitado para ahorrar RAM. Fallback activo."
+            )
             _fooocus_dead = True
 
         if is_online:
             result = trigger_gradio_generation(
-                prompt       = prompt,
-                performance  = "Speed",
-                aspect_ratio = f"{w}*{h}",
-                negative_prompt = negative,
-                overwrite_step = "8",
-                sampler_name = "euler"
+                prompt=prompt,
+                performance="Speed",
+                aspect_ratio=f"{w}*{h}",
+                negative_prompt=negative,
+                overwrite_step="8",
+                sampler_name="euler",
             )
             if result.get("success") and result.get("images"):
                 img_src = result["images"][0]
                 if os.path.isfile(img_src):
                     import shutil
+
                     shutil.copy2(img_src, out_path)
-                    log.info(f"[VideoStudio] [Fooocus] Escena {scene_idx}: {os.path.basename(out_path)}")
+                    log.info(
+                        f"[VideoStudio] [Fooocus] Escena {scene_idx}: {os.path.basename(out_path)}"
+                    )
                     return out_path
         else:
-            log.warning("[VideoStudio] Fooocus offline o falló al iniciar. Haciendo fallback a Pollinations.")
+            log.warning(
+                "[VideoStudio] Fooocus offline o falló al iniciar. Haciendo fallback a Pollinations."
+            )
     except Exception as e:
-        log.warning(f"[VideoStudio] [Fooocus] Exception escena {scene_idx}: {e}. Fallback a ComfyUI.")
+        log.warning(
+            f"[VideoStudio] [Fooocus] Exception escena {scene_idx}: {e}. Fallback a ComfyUI."
+        )
 
     # ── Motor 2: ComfyUI (Fallback L2 Local Secundario) ───────────────────────
     global _comfy_dead
     try:
-        from core.ai_process_manager import start_engine, stop_engine
         from _integrations.comfy_client import ComfyUIClient
-        import time
         import shutil
-        
+
         comfy_client = ComfyUIClient()
         is_comfy_online = comfy_client.is_online(timeout=2.0)
-        
+
         if not is_comfy_online and not _comfy_dead:
-            log.info("[VideoStudio] ComfyUI offline. Auto-inicio deshabilitado para ahorrar RAM. Fallback activo.")
+            log.info(
+                "[VideoStudio] ComfyUI offline. Auto-inicio deshabilitado para ahorrar RAM. Fallback activo."
+            )
             _comfy_dead = True
-                        
+
         if is_comfy_online:
             wf = comfy_client.build_text2image_workflow(
-                positive_prompt=prompt + ", masterpiece, best quality, highly detailed, 8k resolution, cinematic lighting",
-                negative_prompt=negative + ", worst quality, low quality, normal quality, blurry",
+                positive_prompt=prompt
+                + ", masterpiece, best quality, highly detailed, 8k resolution, cinematic lighting",
+                negative_prompt=negative
+                + ", worst quality, low quality, normal quality, blurry",
                 width=w,
                 height=h,
-                seed=scene_seed
+                seed=scene_seed,
             )
             prompt_id = comfy_client.queue_prompt(wf)
             # Damos hasta 10 min por imagen en CPU
             outputs = comfy_client.wait_for_completion(prompt_id, timeout_seconds=600.0)
-            
+
             for out in outputs:
-                if out.get("type") == "output" and out.get("filename", "").endswith(".png"):
-                    img_data = comfy_client.get_image(out["filename"], out.get("subfolder", ""), out["type"])
+                if out.get("type") == "output" and out.get("filename", "").endswith(
+                    ".png"
+                ):
+                    img_data = comfy_client.get_image(
+                        out["filename"], out.get("subfolder", ""), out["type"]
+                    )
                     with open(out_path, "wb") as f:
                         f.write(img_data)
-                    log.info(f"[VideoStudio] [ComfyUI L2] Escena {scene_idx}: {os.path.basename(out_path)}")
+                    log.info(
+                        f"[VideoStudio] [ComfyUI L2] Escena {scene_idx}: {os.path.basename(out_path)}"
+                    )
                     return out_path
-                    
-            log.warning(f"[VideoStudio] [ComfyUI L2] Falló escena {scene_idx}: No se encontró imagen generada.")
+
+            log.warning(
+                f"[VideoStudio] [ComfyUI L2] Falló escena {scene_idx}: No se encontró imagen generada."
+            )
         else:
-            log.warning("[VideoStudio] ComfyUI offline o falló al iniciar. Haciendo fallback a Pollinations.")
+            log.warning(
+                "[VideoStudio] ComfyUI offline o falló al iniciar. Haciendo fallback a Pollinations."
+            )
     except Exception as e:
         log.warning(f"[VideoStudio] [ComfyUI L2] Exception escena {scene_idx}: {e}")
 
     # ── Motor 3: Pollinations (Fallback Cloud) ─────────────────────────────────
     try:
         from tools.pollinations_generator import generate as poll_gen
-        
+
         # Enviar prompt limpio y estructurado
         clean_prompt = prompt.strip().replace("\n", " ")[:200]
         result = poll_gen(
-            prompt          = clean_prompt,
-            output_path     = out_path,
-            width           = w,
-            height          = h,
-            seed            = scene_seed,
-            enhance         = True,
-            negative_prompt = negative,
+            prompt=clean_prompt,
+            output_path=out_path,
+            width=w,
+            height=h,
+            seed=scene_seed,
+            enhance=True,
+            negative_prompt=negative,
         )
         if result.get("success") and os.path.isfile(out_path):
-            log.info(f"[VideoStudio] [Pollinations] Escena {scene_idx}: {os.path.basename(out_path)} (seed={scene_seed})")
+            log.info(
+                f"[VideoStudio] [Pollinations] Escena {scene_idx}: {os.path.basename(out_path)} (seed={scene_seed})"
+            )
             return out_path
         else:
-            log.warning(f"[VideoStudio] [Pollinations] Falló escena {scene_idx}: {result.get('error')}")
+            log.warning(
+                f"[VideoStudio] [Pollinations] Falló escena {scene_idx}: {result.get('error')}"
+            )
     except Exception as e:
         log.warning(f"[VideoStudio] [Pollinations] Exception escena {scene_idx}: {e}")
 
@@ -158,20 +187,24 @@ def _generate_scene_image(
         import urllib.request
         import shutil
         import re
-        
+
         # Extraer algunas palabras clave del prompt para buscar en Flickr
-        words = re.sub(r'[^a-zA-Z0-9\s]', '', prompt).split()
+        words = re.sub(r"[^a-zA-Z0-9\s]", "", prompt).split()
         keywords = ",".join([w for w in words if len(w) > 3][:3])
         if not keywords:
             keywords = "abstract"
-            
+
         lorem_url = f"https://loremflickr.com/{w}/{h}/{keywords}?lock={scene_seed}"
-        req = urllib.request.Request(lorem_url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=15) as response, open(out_path, 'wb') as out_file:
+        req = urllib.request.Request(lorem_url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=15) as response, open(
+            out_path, "wb"
+        ) as out_file:
             shutil.copyfileobj(response, out_file)
-            
+
         if os.path.isfile(out_path):
-            log.info(f"[VideoStudio] [LoremFlickr L4] Escena {scene_idx}: Foto real obtenida para '{keywords}'")
+            log.info(
+                f"[VideoStudio] [LoremFlickr L4] Escena {scene_idx}: Foto real obtenida para '{keywords}'"
+            )
             return out_path
     except Exception as e:
         log.warning(f"[VideoStudio] [LoremFlickr L4] Exception escena {scene_idx}: {e}")
@@ -179,21 +212,24 @@ def _generate_scene_image(
     # ── Motor 5: Generador de Arte Generativo (Fallback L5 Offline Abstracto) ───
     try:
         from core.video.procedural_generator import generate_procedural_video
+
         out_mp4 = out_path.replace("_image.png", "_video.mp4")
         if not out_mp4.endswith(".mp4"):
             out_mp4 = out_path + ".mp4"
-            
+
         result_path = generate_procedural_video(
-            prompt=prompt, 
-            seed=scene_seed, 
-            w=w, 
-            h=h, 
-            duration_sec=SECONDS_PER_SCENE, 
-            fps=DEFAULT_FPS, 
-            out_mp4=out_mp4
+            prompt=prompt,
+            seed=scene_seed,
+            w=w,
+            h=h,
+            duration_sec=SECONDS_PER_SCENE,
+            fps=DEFAULT_FPS,
+            out_mp4=out_mp4,
         )
         if result_path and os.path.isfile(result_path):
-            log.info(f"[VideoStudio] [Arte Generativo L5] Escena {scene_idx}: motor procedural completado.")
+            log.info(
+                f"[VideoStudio] [Arte Generativo L5] Escena {scene_idx}: motor procedural completado."
+            )
             return result_path
     except Exception as e:
         log.warning(f"[VideoStudio] [Arte Generativo] Falló generador matemático: {e}")
@@ -201,33 +237,100 @@ def _generate_scene_image(
     return None
 
 
-def _create_placeholder_image(text: str, output_path: str, w: int = DEFAULT_IMG_W, h: int = DEFAULT_IMG_H) -> None:
+def _create_placeholder_image(
+    text: str, output_path: str, w: int = DEFAULT_IMG_W, h: int = DEFAULT_IMG_H
+) -> None:
     """Genera imagen negra con texto usando Pillow como placeholder."""
     try:
         from PIL import Image, ImageDraw
-        img  = Image.new("RGB", (w, h), color=(10, 12, 20))
+
+        img = Image.new("RGB", (w, h), color=(10, 12, 20))
         draw = ImageDraw.Draw(img)
-        draw.text((w // 2, h // 2),
-                  text[:80], fill=(100, 100, 140), anchor="mm")
+        draw.text((w // 2, h // 2), text[:80], fill=(100, 100, 140), anchor="mm")
         img.save(output_path, "PNG")
     except Exception:
         with open(output_path, "wb") as f:
-            f.write(bytes([
-                0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A,
-                0x00,0x00,0x00,0x0D,0x49,0x48,0x44,0x52,
-                0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x01,
-                0x08,0x02,0x00,0x00,0x00,0x90,0x77,0x53,
-                0xDE,0x00,0x00,0x00,0x0C,0x49,0x44,0x41,
-                0x54,0x08,0xD7,0x63,0xF8,0xCF,0xC0,0x00,
-                0x00,0x00,0x02,0x00,0x01,0xE2,0x21,0xBC,
-                0x33,0x00,0x00,0x00,0x00,0x49,0x45,0x4E,
-                0x44,0xAE,0x42,0x60,0x82,
-            ]))
+            f.write(
+                bytes(
+                    [
+                        0x89,
+                        0x50,
+                        0x4E,
+                        0x47,
+                        0x0D,
+                        0x0A,
+                        0x1A,
+                        0x0A,
+                        0x00,
+                        0x00,
+                        0x00,
+                        0x0D,
+                        0x49,
+                        0x48,
+                        0x44,
+                        0x52,
+                        0x00,
+                        0x00,
+                        0x00,
+                        0x01,
+                        0x00,
+                        0x00,
+                        0x00,
+                        0x01,
+                        0x08,
+                        0x02,
+                        0x00,
+                        0x00,
+                        0x00,
+                        0x90,
+                        0x77,
+                        0x53,
+                        0xDE,
+                        0x00,
+                        0x00,
+                        0x00,
+                        0x0C,
+                        0x49,
+                        0x44,
+                        0x41,
+                        0x54,
+                        0x08,
+                        0xD7,
+                        0x63,
+                        0xF8,
+                        0xCF,
+                        0xC0,
+                        0x00,
+                        0x00,
+                        0x00,
+                        0x02,
+                        0x00,
+                        0x01,
+                        0xE2,
+                        0x21,
+                        0xBC,
+                        0x33,
+                        0x00,
+                        0x00,
+                        0x00,
+                        0x00,
+                        0x49,
+                        0x45,
+                        0x4E,
+                        0x44,
+                        0xAE,
+                        0x42,
+                        0x60,
+                        0x82,
+                    ]
+                )
+            )
 
 
 def _kenburns_vf(clip_dur: float, fps: int, w: int, h: int, scene_idx: int) -> str:
     """Wrapper legacy → delega a animation_engine para compatibilidad."""
     from core.animation_engine import build_animation_vf
+
     return build_animation_vf("kenburns", clip_dur, fps, w, h, scene_idx)
 
 
@@ -245,34 +348,76 @@ def _create_title_card(
     if not os.path.isfile(FFMPEG_EXE):
         return False
     import re as _re
-    safe_title    = _re.sub(r"[:'%]", '', title)[:60]
-    safe_subtitle = _re.sub(r"[:'%]", '', subtitle)[:80]
+
+    safe_title = _re.sub(r"[:'%]", "", title)[:60]
+    safe_subtitle = _re.sub(r"[:'%]", "", subtitle)[:80]
     vf = (
         "color=c=black:s=" + str(w) + "x" + str(h) + ":d=" + str(duration) + "[bg];"
-        "[bg]drawtext=fontsize=" + str(max(24, h // 20)) + ":fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2-40"
-        ":text='" + safe_title + "':alpha='if(lt(t,0.5),t/0.5,if(gt(t," + str(duration - 0.5) + "),(1-(t-" + str(duration - 0.5) + ")/0.5),1))',"
-        "drawtext=fontsize=" + str(max(14, h // 35)) + ":fontcolor=0xAAAAAA:x=(w-text_w)/2:y=(h-text_h)/2+40"
-        ":text='" + safe_subtitle + "':alpha='if(lt(t,0.8),t/0.8,if(gt(t," + str(duration - 0.5) + "),(1-(t-" + str(duration - 0.5) + ")/0.5),1))'"
+        "[bg]drawtext=fontsize="
+        + str(max(24, h // 20))
+        + ":fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2-40"
+        ":text='"
+        + safe_title
+        + "':alpha='if(lt(t,0.5),t/0.5,if(gt(t,"
+        + str(duration - 0.5)
+        + "),(1-(t-"
+        + str(duration - 0.5)
+        + ")/0.5),1))',"
+        "drawtext=fontsize="
+        + str(max(14, h // 35))
+        + ":fontcolor=0xAAAAAA:x=(w-text_w)/2:y=(h-text_h)/2+40"
+        ":text='"
+        + safe_subtitle
+        + "':alpha='if(lt(t,0.8),t/0.8,if(gt(t,"
+        + str(duration - 0.5)
+        + "),(1-(t-"
+        + str(duration - 0.5)
+        + ")/0.5),1))'"
     )
     cmd = [
-        FFMPEG_EXE, "-y",
-        "-f", "lavfi", "-i", vf,
-        "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100",
-        "-t", str(duration),
-        "-c:v", codec, "-preset", "fast",
-        "-c:a", "aac", "-b:a", "128k",
-        "-pix_fmt", "yuv420p",
-        "-movflags", "+faststart",
+        FFMPEG_EXE,
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        vf,
+        "-f",
+        "lavfi",
+        "-i",
+        "anullsrc=channel_layout=stereo:sample_rate=44100",
+        "-t",
+        str(duration),
+        "-c:v",
+        codec,
+        "-preset",
+        "fast",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "128k",
+        "-pix_fmt",
+        "yuv420p",
+        "-movflags",
+        "+faststart",
         output_mp4,
     ]
     try:
-        r = subprocess.run(cmd, capture_output=True, timeout=60,
-                           creationflags=subprocess.CREATE_NO_WINDOW)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            timeout=60,
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
         ok = r.returncode == 0 and os.path.isfile(output_mp4)
         if ok:
-            log.info("[VideoStudio] Intro card generada: " + os.path.basename(output_mp4))
+            log.info(
+                "[VideoStudio] Intro card generada: " + os.path.basename(output_mp4)
+            )
         else:
-            log.warning("[VideoStudio] Intro card fallida: " + r.stderr.decode(errors="replace")[-200:])
+            log.warning(
+                "[VideoStudio] Intro card fallida: "
+                + r.stderr.decode(errors="replace")[-200:]
+            )
         return ok
     except Exception as e:
         log.warning("[VideoStudio] Intro card excepcion: " + str(e))
@@ -284,16 +429,25 @@ def _extract_thumbnail(video_path: str, output_jpg: str, at_sec: float = 3.0) ->
     if not os.path.isfile(video_path) or not os.path.isfile(FFMPEG_EXE):
         return False
     cmd = [
-        FFMPEG_EXE, "-y",
-        "-ss", str(at_sec),
-        "-i", video_path,
-        "-vframes", "1",
-        "-q:v", "3",
+        FFMPEG_EXE,
+        "-y",
+        "-ss",
+        str(at_sec),
+        "-i",
+        video_path,
+        "-vframes",
+        "1",
+        "-q:v",
+        "3",
         output_jpg,
     ]
     try:
-        r = subprocess.run(cmd, capture_output=True, timeout=30,
-                           creationflags=subprocess.CREATE_NO_WINDOW)
+        r = subprocess.run(
+            cmd,
+            capture_output=True,
+            timeout=30,
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
         return r.returncode == 0 and os.path.isfile(output_jpg)
     except Exception:
         return False
@@ -328,22 +482,27 @@ def _assemble_clip(
         _input_is_video = image_path.lower().endswith((".mp4", ".webm", ".mov", ".avi"))
         if _input_is_video:
             ken_burns = False  # Desactivar zoom/paneo para conservar el movimiento nativo del video
-            
-        has_audio = audio_path and os.path.isfile(audio_path) and os.path.getsize(audio_path) > 0
+
+        has_audio = (
+            audio_path
+            and os.path.isfile(audio_path)
+            and os.path.getsize(audio_path) > 0
+        )
 
         audio_dur = SECONDS_PER_SCENE
         if has_audio:
             try:
                 probe = subprocess.run(
                     [FFMPEG_EXE, "-i", audio_path],
-                    capture_output=True, timeout=10,
-                    creationflags=subprocess.CREATE_NO_WINDOW
+                    capture_output=True,
+                    timeout=10,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
                 )
                 for line in probe.stderr.decode(errors="replace").splitlines():
                     if "Duration:" in line:
                         t = line.split("Duration:")[1].split(",")[0].strip()
                         h, m, s = t.split(":")
-                        audio_dur = int(h)*3600 + int(m)*60 + float(s)
+                        audio_dur = int(h) * 3600 + int(m) * 60 + float(s)
                         break
             except Exception:
                 pass
@@ -352,7 +511,7 @@ def _assemble_clip(
             clip_dur = float(scene_duration)
         else:
             clip_dur = audio_dur + 0.5 if has_audio else float(scene_duration)
-        fade_d     = min(FADE_DURATION, clip_dur / 3) if fade else 0.0
+        fade_d = min(FADE_DURATION, clip_dur / 3) if fade else 0.0
         fade_out_t = max(0, clip_dur - fade_d)
 
         w_val, h_val = DEFAULT_IMG_W, DEFAULT_IMG_H
@@ -364,7 +523,9 @@ def _assemble_clip(
         from core.animation_engine import build_animation_vf
 
         if ken_burns:
-            animation_vf = build_animation_vf(animation_effect, clip_dur, fps, w_val, h_val, scene_idx)
+            animation_vf = build_animation_vf(
+                animation_effect, clip_dur, fps, w_val, h_val, scene_idx
+            )
         else:
             animation_vf = (
                 f"scale={w_val}:{h_val}:force_original_aspect_ratio=decrease,"
@@ -379,6 +540,7 @@ def _assemble_clip(
         vf_parts.append("noise=alls=7:allf=t+u")
 
         if subtitles and text:
+
             def fmt_time(s: float) -> str:
                 ms = int((s % 1) * 1000)
                 m, s_int = divmod(int(s), 60)
@@ -391,11 +553,18 @@ def _assemble_clip(
             with open(srt_path, "w", encoding="utf-8") as srt_f:
                 srt_f.write(f"1\n00:00:00,000 --> {fmt_time(clip_dur)}\n{text}\n")
 
-            safe_srt = srt_path.replace('\\', '/').replace(':', '\\:')
-            vf_parts.append(f"subtitles='{safe_srt}':force_style='FontSize=26,PrimaryColour=&H0000FFFF,BorderStyle=1,Outline=3,Shadow=2,Bold=1,Alignment=2,MarginV=35'")
+            safe_srt = srt_path.replace("\\", "/").replace(":", "\\:")
+            vf_parts.append(
+                f"subtitles='{safe_srt}':force_style='FontSize=26,PrimaryColour=&H0000FFFF,BorderStyle=1,Outline=3,Shadow=2,Bold=1,Alignment=2,MarginV=35'"
+            )
 
         if scene_title:
-            safe_t = scene_title.replace("'", "").replace(":", "").replace("%", "")[:40].upper()
+            safe_t = (
+                scene_title.replace("'", "")
+                .replace(":", "")
+                .replace("%", "")[:40]
+                .upper()
+            )
             draw_t = (
                 f"drawtext=text='{safe_t}':fontcolor=white@0.7:fontsize={h_val//22}:"
                 f"x=50:y=h-100:fontfile='C\\:/Windows/Fonts/arialbd.ttf':"
@@ -406,10 +575,15 @@ def _assemble_clip(
         try:
             _wcfg = _get_branding_config()
             if _wcfg.get("watermark_enabled", True):
-                _wtext   = _wcfg.get("watermark_text", "@DarckRovert").replace("'", "").replace(":", "").replace("%", "")
+                _wtext = (
+                    _wcfg.get("watermark_text", "@DarckRovert")
+                    .replace("'", "")
+                    .replace(":", "")
+                    .replace("%", "")
+                )
                 _wopacity = float(_wcfg.get("watermark_opacity", 0.55))
-                _wsize   = max(16, h_val // 38)
-                _wmark   = (
+                _wsize = max(16, h_val // 38)
+                _wmark = (
                     f"drawtext=text='{_wtext}':fontcolor=white@{_wopacity:.2f}:fontsize={_wsize}:"
                     f"x=w-tw-18:y=h-th-18:fontfile='C\\:/Windows/Fonts/arial.ttf'"
                 )
@@ -425,31 +599,71 @@ def _assemble_clip(
         if has_audio:
             if _input_is_video:
                 cmd = [
-                    FFMPEG_EXE, "-y",
-                    "-stream_loop", "-1", "-i", image_path,
-                    "-i", audio_path,
-                    "-c:v", codec, "-preset", "fast",
-                    "-c:a", "aac", "-b:a", "192k",
-                    "-ar", "44100", "-ac", "2",
+                    FFMPEG_EXE,
+                    "-y",
+                    "-stream_loop",
+                    "-1",
+                    "-i",
+                    image_path,
+                    "-i",
+                    audio_path,
+                    "-c:v",
+                    codec,
+                    "-preset",
+                    "fast",
+                    "-c:a",
+                    "aac",
+                    "-b:a",
+                    "192k",
+                    "-ar",
+                    "44100",
+                    "-ac",
+                    "2",
                 ]
             else:
                 if "zoompan" in vf:
                     cmd = [
-                        FFMPEG_EXE, "-y",
-                        "-i", image_path,
-                        "-i", audio_path,
-                        "-c:v", codec, "-preset", "fast",
-                        "-c:a", "aac", "-b:a", "192k",
-                        "-ar", "44100", "-ac", "2",
+                        FFMPEG_EXE,
+                        "-y",
+                        "-i",
+                        image_path,
+                        "-i",
+                        audio_path,
+                        "-c:v",
+                        codec,
+                        "-preset",
+                        "fast",
+                        "-c:a",
+                        "aac",
+                        "-b:a",
+                        "192k",
+                        "-ar",
+                        "44100",
+                        "-ac",
+                        "2",
                     ]
                 else:
                     cmd = [
-                        FFMPEG_EXE, "-y",
-                        "-loop", "1", "-i", image_path,
-                        "-i", audio_path,
-                        "-c:v", codec, "-preset", "fast",
-                        "-c:a", "aac", "-b:a", "192k",
-                        "-ar", "44100", "-ac", "2",
+                        FFMPEG_EXE,
+                        "-y",
+                        "-loop",
+                        "1",
+                        "-i",
+                        image_path,
+                        "-i",
+                        audio_path,
+                        "-c:v",
+                        codec,
+                        "-preset",
+                        "fast",
+                        "-c:a",
+                        "aac",
+                        "-b:a",
+                        "192k",
+                        "-ar",
+                        "44100",
+                        "-ac",
+                        "2",
                     ]
 
             if duration_mode == "manual" and audio_dur > 0:
@@ -457,50 +671,93 @@ def _assemble_clip(
                 tempo = max(0.85, min(raw_tempo, 1.25))
                 if abs(tempo - 1.0) > 0.05:
                     cmd.extend(["-filter:a", f"atempo={tempo:.4f}"])
-                    log.info(f"[VideoStudio] Alineación de audio limitada: raw_tempo={raw_tempo:.2f} -> atempo={tempo:.4f}")
+                    log.info(
+                        f"[VideoStudio] Alineación de audio limitada: raw_tempo={raw_tempo:.2f} -> atempo={tempo:.4f}"
+                    )
 
             if duration_mode == "manual":
                 cmd.extend(["-t", str(scene_duration)])
             else:
                 cmd.append("-shortest")
 
-            cmd.extend([
-                "-vf", vf,
-                "-pix_fmt", "yuv420p",
-                "-movflags", "+faststart",
-                output_mp4,
-            ])
+            cmd.extend(
+                [
+                    "-vf",
+                    vf,
+                    "-pix_fmt",
+                    "yuv420p",
+                    "-movflags",
+                    "+faststart",
+                    output_mp4,
+                ]
+            )
         else:
             if _input_is_video:
                 cmd = [
-                    FFMPEG_EXE, "-y",
-                    "-stream_loop", "-1", "-i", image_path,
-                    "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100",
-                    "-t", str(scene_duration),
-                    "-c:v", codec, "-preset", "fast",
-                    "-c:a", "aac", "-b:a", "128k",
-                    "-vf", vf,
-                    "-pix_fmt", "yuv420p",
-                    "-movflags", "+faststart",
+                    FFMPEG_EXE,
+                    "-y",
+                    "-stream_loop",
+                    "-1",
+                    "-i",
+                    image_path,
+                    "-f",
+                    "lavfi",
+                    "-i",
+                    "anullsrc=channel_layout=stereo:sample_rate=44100",
+                    "-t",
+                    str(scene_duration),
+                    "-c:v",
+                    codec,
+                    "-preset",
+                    "fast",
+                    "-c:a",
+                    "aac",
+                    "-b:a",
+                    "128k",
+                    "-vf",
+                    vf,
+                    "-pix_fmt",
+                    "yuv420p",
+                    "-movflags",
+                    "+faststart",
                     output_mp4,
                 ]
             else:
                 cmd = [
-                    FFMPEG_EXE, "-y",
-                    "-loop", "1", "-i", image_path,
-                    "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100",
-                    "-t", str(scene_duration),
-                    "-c:v", codec, "-preset", "fast",
-                    "-c:a", "aac", "-b:a", "128k",
-                    "-vf", vf,
-                    "-pix_fmt", "yuv420p",
-                    "-movflags", "+faststart",
+                    FFMPEG_EXE,
+                    "-y",
+                    "-loop",
+                    "1",
+                    "-i",
+                    image_path,
+                    "-f",
+                    "lavfi",
+                    "-i",
+                    "anullsrc=channel_layout=stereo:sample_rate=44100",
+                    "-t",
+                    str(scene_duration),
+                    "-c:v",
+                    codec,
+                    "-preset",
+                    "fast",
+                    "-c:a",
+                    "aac",
+                    "-b:a",
+                    "128k",
+                    "-vf",
+                    vf,
+                    "-pix_fmt",
+                    "yuv420p",
+                    "-movflags",
+                    "+faststart",
                     output_mp4,
                 ]
 
         result = subprocess.run(
-            cmd, capture_output=True, timeout=180,
-            creationflags=subprocess.CREATE_NO_WINDOW
+            cmd,
+            capture_output=True,
+            timeout=180,
+            creationflags=subprocess.CREATE_NO_WINDOW,
         )
         if result.returncode == 0 and os.path.isfile(output_mp4):
             log.info(f"[VideoStudio] Clip: {os.path.basename(output_mp4)}")
@@ -520,7 +777,7 @@ def _concatenate_clips(
     bgm_type: str = "ninguna",
     bgm_volume: float = 0.1,
     codec: str = "libx264",
-    resolution: str = "1024x1024"
+    resolution: str = "1024x1024",
 ) -> bool:
     """
     Concatena clips en el video final.
@@ -530,13 +787,20 @@ def _concatenate_clips(
 
     if len(clip_paths) == 1:
         import shutil
+
         shutil.copy2(clip_paths[0], output_mp4)
         return True
 
-    missing = [p for p in clip_paths if not os.path.isfile(p) or os.path.getsize(p) == 0]
+    missing = [
+        p for p in clip_paths if not os.path.isfile(p) or os.path.getsize(p) == 0
+    ]
     if missing:
-        log.error(f"[VideoStudio] Clips faltantes o vacíos: {[os.path.basename(m) for m in missing]}")
-        clip_paths = [p for p in clip_paths if os.path.isfile(p) and os.path.getsize(p) > 0]
+        log.error(
+            f"[VideoStudio] Clips faltantes o vacíos: {[os.path.basename(m) for m in missing]}"
+        )
+        clip_paths = [
+            p for p in clip_paths if os.path.isfile(p) and os.path.getsize(p) > 0
+        ]
         if not clip_paths:
             return False
 
@@ -558,9 +822,15 @@ def _concatenate_clips(
     list_file = output_mp4 + ".list.txt"
 
     bgm_path = os.path.join(BASE_DIR, "inputs", f"bgm_{bgm_type.lower()}.mp3")
-    if bgm_type != "ninguna" and not (os.path.isfile(bgm_path) and os.path.getsize(bgm_path) > 4096):
+    if bgm_type != "ninguna" and not (
+        os.path.isfile(bgm_path) and os.path.getsize(bgm_path) > 4096
+    ):
         _ensure_bgm(bgm_type, bgm_path)
-    has_bgm = bgm_type != "ninguna" and os.path.isfile(bgm_path) and os.path.getsize(bgm_path) > 4096
+    has_bgm = (
+        bgm_type != "ninguna"
+        and os.path.isfile(bgm_path)
+        and os.path.getsize(bgm_path) > 4096
+    )
 
     # ══ CAPA 1: Re-encode completo con normalización A/V ════════════════════
     try:
@@ -569,17 +839,37 @@ def _concatenate_clips(
         if has_bgm:
             temp_concat = output_mp4 + ".temp.mp4"
             cmd_concat = [
-                FFMPEG_EXE, "-y",
-                "-f", "concat", "-safe", "0",
-                "-i", list_file,
-                "-c:v", codec, "-preset", "fast",
-                "-c:a", "aac", "-b:a", "192k",
-                "-ar", "44100", "-ac", "2",
-                "-movflags", "+faststart",
+                FFMPEG_EXE,
+                "-y",
+                "-f",
+                "concat",
+                "-safe",
+                "0",
+                "-i",
+                list_file,
+                "-c:v",
+                codec,
+                "-preset",
+                "fast",
+                "-c:a",
+                "aac",
+                "-b:a",
+                "192k",
+                "-ar",
+                "44100",
+                "-ac",
+                "2",
+                "-movflags",
+                "+faststart",
                 temp_concat,
             ]
-            r_concat = subprocess.run(cmd_concat, capture_output=True, timeout=dyn_timeout, creationflags=subprocess.CREATE_NO_WINDOW)
-            
+            r_concat = subprocess.run(
+                cmd_concat,
+                capture_output=True,
+                timeout=dyn_timeout,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+            )
+
             if r_concat.returncode == 0 and os.path.isfile(temp_concat):
                 filter_str = (
                     f"[0:a]aresample=44100,volume=1.2,asplit[sc][narr];"
@@ -588,44 +878,91 @@ def _concatenate_clips(
                     f"[narr][bgm_duck]amix=inputs=2:duration=first:dropout_transition=2,volume=1.8[aout]"
                 )
                 cmd = [
-                    FFMPEG_EXE, "-y",
-                    "-i", temp_concat,
-                    "-stream_loop", "-1", "-i", bgm_path,
-                    "-filter_complex", filter_str,
-                    "-map", "0:v",
-                    "-map", "[aout]",
-                    "-c:v", "copy",
-                    "-c:a", "aac", "-b:a", "192k",
-                    "-ar", "44100", "-ac", "2",
-                    "-movflags", "+faststart",
+                    FFMPEG_EXE,
+                    "-y",
+                    "-i",
+                    temp_concat,
+                    "-stream_loop",
+                    "-1",
+                    "-i",
+                    bgm_path,
+                    "-filter_complex",
+                    filter_str,
+                    "-map",
+                    "0:v",
+                    "-map",
+                    "[aout]",
+                    "-c:v",
+                    "copy",
+                    "-c:a",
+                    "aac",
+                    "-b:a",
+                    "192k",
+                    "-ar",
+                    "44100",
+                    "-ac",
+                    "2",
+                    "-movflags",
+                    "+faststart",
                     output_mp4,
                 ]
-                log.info(f"[VideoStudio] [L1] Concat {len(clip_paths)} clips + BGM ({bgm_type}) -> {os.path.basename(output_mp4)}")
+                log.info(
+                    f"[VideoStudio] [L1] Concat {len(clip_paths)} clips + BGM ({bgm_type}) -> {os.path.basename(output_mp4)}"
+                )
             else:
-                log.error(f"[VideoStudio] [L1] Falló pre-concat: {r_concat.stderr.decode(errors='replace')[-400:]}")
+                log.error(
+                    f"[VideoStudio] [L1] Falló pre-concat: {r_concat.stderr.decode(errors='replace')[-400:]}"
+                )
                 cmd = None
         else:
             cmd = [
-                FFMPEG_EXE, "-y",
-                "-f", "concat", "-safe", "0",
-                "-i", list_file,
-                "-c:v", codec, "-preset", "fast",
-                "-c:a", "aac", "-b:a", "192k",
-                "-ar", "44100", "-ac", "2",
-                "-movflags", "+faststart",
+                FFMPEG_EXE,
+                "-y",
+                "-f",
+                "concat",
+                "-safe",
+                "0",
+                "-i",
+                list_file,
+                "-c:v",
+                codec,
+                "-preset",
+                "fast",
+                "-c:a",
+                "aac",
+                "-b:a",
+                "192k",
+                "-ar",
+                "44100",
+                "-ac",
+                "2",
+                "-movflags",
+                "+faststart",
                 output_mp4,
             ]
-            log.info(f"[VideoStudio] [L1] Concat {len(clip_paths)} clips -> {os.path.basename(output_mp4)}")
+            log.info(
+                f"[VideoStudio] [L1] Concat {len(clip_paths)} clips -> {os.path.basename(output_mp4)}"
+            )
 
         if cmd:
-            r1 = subprocess.run(cmd, capture_output=True, timeout=dyn_timeout,
-                                creationflags=subprocess.CREATE_NO_WINDOW)
+            r1 = subprocess.run(
+                cmd,
+                capture_output=True,
+                timeout=dyn_timeout,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+            )
         _cleanup(list_file)
-        if has_bgm and 'temp_concat' in locals():
+        if has_bgm and "temp_concat" in locals():
             _cleanup(temp_concat)
 
-        if r1.returncode == 0 and os.path.isfile(output_mp4) and os.path.getsize(output_mp4) > 0:
-            log.info(f"[VideoStudio] Video final: {os.path.basename(output_mp4)} ({os.path.getsize(output_mp4)/1048576:.1f} MB)")
+        if (
+            r1.returncode == 0
+            and os.path.isfile(output_mp4)
+            and os.path.getsize(output_mp4) > 0
+        ):
+            log.info(
+                f"[VideoStudio] Video final: {os.path.basename(output_mp4)} ({os.path.getsize(output_mp4)/1048576:.1f} MB)"
+            )
             return True
 
         err1 = r1.stderr.decode(errors="replace")[-600:]
@@ -639,20 +976,37 @@ def _concatenate_clips(
     try:
         _write_list(list_file, clip_paths)
         cmd2 = [
-            FFMPEG_EXE, "-y",
-            "-f", "concat", "-safe", "0",
-            "-i", list_file,
-            "-c", "copy",
-            "-movflags", "+faststart",
+            FFMPEG_EXE,
+            "-y",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-i",
+            list_file,
+            "-c",
+            "copy",
+            "-movflags",
+            "+faststart",
             output_mp4,
         ]
         log.info("[VideoStudio] [L2] Reintentando con stream-copy...")
-        r2 = subprocess.run(cmd2, capture_output=True, timeout=dyn_timeout,
-                            creationflags=subprocess.CREATE_NO_WINDOW)
+        r2 = subprocess.run(
+            cmd2,
+            capture_output=True,
+            timeout=dyn_timeout,
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
         _cleanup(list_file)
 
-        if r2.returncode == 0 and os.path.isfile(output_mp4) and os.path.getsize(output_mp4) > 0:
-            log.info(f"[VideoStudio] Video final (stream-copy): {os.path.basename(output_mp4)} ({os.path.getsize(output_mp4)/1048576:.1f} MB)")
+        if (
+            r2.returncode == 0
+            and os.path.isfile(output_mp4)
+            and os.path.getsize(output_mp4) > 0
+        ):
+            log.info(
+                f"[VideoStudio] Video final (stream-copy): {os.path.basename(output_mp4)} ({os.path.getsize(output_mp4)/1048576:.1f} MB)"
+            )
             return True
 
         err2 = r2.stderr.decode(errors="replace")[-400:]
@@ -677,50 +1031,106 @@ def _concatenate_clips(
                 if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
                     ref_w, ref_h = int(parts[0]), int(parts[1])
             cmd_norm = [
-                FFMPEG_EXE, "-y",
-                "-i", cp,
-                "-vf", f"scale={ref_w}:{ref_h}:force_original_aspect_ratio=decrease,pad={ref_w}:{ref_h}:(ow-iw)/2:(oh-ih)/2:black,fps={DEFAULT_FPS}",
-                "-af", "aresample=44100",
-                "-c:v", codec, "-preset", "fast",
-                "-c:a", "aac", "-b:a", "128k",
-                "-ar", "44100", "-ac", "2",
-                "-pix_fmt", "yuv420p",
-                "-movflags", "+faststart",
+                FFMPEG_EXE,
+                "-y",
+                "-i",
+                cp,
+                "-vf",
+                f"scale={ref_w}:{ref_h}:force_original_aspect_ratio=decrease,pad={ref_w}:{ref_h}:(ow-iw)/2:(oh-ih)/2:black,fps={DEFAULT_FPS}",
+                "-af",
+                "aresample=44100",
+                "-c:v",
+                codec,
+                "-preset",
+                "fast",
+                "-c:a",
+                "aac",
+                "-b:a",
+                "128k",
+                "-ar",
+                "44100",
+                "-ac",
+                "2",
+                "-pix_fmt",
+                "yuv420p",
+                "-movflags",
+                "+faststart",
                 norm_out,
             ]
-            rn = subprocess.run(cmd_norm, capture_output=True, timeout=180,
-                                creationflags=subprocess.CREATE_NO_WINDOW)
-            if rn.returncode == 0 and os.path.isfile(norm_out) and os.path.getsize(norm_out) > 0:
+            rn = subprocess.run(
+                cmd_norm,
+                capture_output=True,
+                timeout=180,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+            )
+            if (
+                rn.returncode == 0
+                and os.path.isfile(norm_out)
+                and os.path.getsize(norm_out) > 0
+            ):
                 norm_clips.append(norm_out)
             else:
-                log.warning(f"[VideoStudio] [L3] No se pudo normalizar clip {idx}: {os.path.basename(cp)}")
+                log.warning(
+                    f"[VideoStudio] [L3] No se pudo normalizar clip {idx}: {os.path.basename(cp)}"
+                )
                 norm_clips.append(cp)
 
         if not norm_clips:
-            log.error("[VideoStudio] [L3] Sin clips para concatenar tras normalización.")
+            log.error(
+                "[VideoStudio] [L3] Sin clips para concatenar tras normalización."
+            )
             return False
 
         _write_list(list_file, norm_clips)
         cmd3 = [
-            FFMPEG_EXE, "-y",
-            "-f", "concat", "-safe", "0",
-            "-i", list_file,
-            "-c:v", codec, "-preset", "fast",
-            "-c:a", "aac", "-b:a", "192k",
-            "-ar", "44100", "-ac", "2",
-            "-movflags", "+faststart",
+            FFMPEG_EXE,
+            "-y",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-i",
+            list_file,
+            "-c:v",
+            codec,
+            "-preset",
+            "fast",
+            "-c:a",
+            "aac",
+            "-b:a",
+            "192k",
+            "-ar",
+            "44100",
+            "-ac",
+            "2",
+            "-movflags",
+            "+faststart",
             output_mp4,
         ]
-        log.info(f"[VideoStudio] [L3] Concat post-normalización ({len(norm_clips)} clips)...")
-        r3 = subprocess.run(cmd3, capture_output=True, timeout=dyn_timeout,
-                            creationflags=subprocess.CREATE_NO_WINDOW)
+        log.info(
+            f"[VideoStudio] [L3] Concat post-normalización ({len(norm_clips)} clips)..."
+        )
+        r3 = subprocess.run(
+            cmd3,
+            capture_output=True,
+            timeout=dyn_timeout,
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
         _cleanup(list_file)
 
-        if r3.returncode == 0 and os.path.isfile(output_mp4) and os.path.getsize(output_mp4) > 0:
-            log.info(f"[VideoStudio] Video final (L3): {os.path.basename(output_mp4)} ({os.path.getsize(output_mp4)/1048576:.1f} MB)")
+        if (
+            r3.returncode == 0
+            and os.path.isfile(output_mp4)
+            and os.path.getsize(output_mp4) > 0
+        ):
+            log.info(
+                f"[VideoStudio] Video final (L3): {os.path.basename(output_mp4)} ({os.path.getsize(output_mp4)/1048576:.1f} MB)"
+            )
             return True
 
-        log.error(f"[VideoStudio] [L3] Falló: {r3.stderr.decode(errors='replace')[-400:]}")
+        log.error(
+            f"[VideoStudio] [L3] Falló: {r3.stderr.decode(errors='replace')[-400:]}"
+        )
 
     except Exception as e3:
         log.error(f"[VideoStudio] [L3] Excepción: {e3}")
@@ -728,9 +1138,12 @@ def _concatenate_clips(
     finally:
         try:
             import shutil as _sh
+
             _sh.rmtree(norm_dir, ignore_errors=True)
         except Exception:
             pass
 
-    log.error("[VideoStudio] Las 3 capas de concatenación fallaron. Job marcado como fallido.")
+    log.error(
+        "[VideoStudio] Las 3 capas de concatenación fallaron. Job marcado como fallido."
+    )
     return False

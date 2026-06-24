@@ -59,11 +59,10 @@ class ReasoningStripper:
                     output += self.buffer[:closest_start]
                     self.buffer = self.buffer[closest_start:]
                     matched_tag: Optional[str] = next(
-                        (t for t in self.start_tags if self.buffer.startswith(t)),
-                        None
+                        (t for t in self.start_tags if self.buffer.startswith(t)), None
                     )
                     if matched_tag:
-                        self.buffer = self.buffer[len(matched_tag):]
+                        self.buffer = self.buffer[len(matched_tag) :]
                         self.in_reasoning = True
                 else:
                     # Sin tag de inicio — verificar si el buffer termina con
@@ -84,11 +83,10 @@ class ReasoningStripper:
                 if closest_end != -1:
                     self.buffer = self.buffer[closest_end:]
                     matched_tag = next(
-                        (t for t in self.end_tags if self.buffer.startswith(t)),
-                        None
+                        (t for t in self.end_tags if self.buffer.startswith(t)), None
                     )
                     if matched_tag:
-                        self.buffer = self.buffer[len(matched_tag):]
+                        self.buffer = self.buffer[len(matched_tag) :]
                         self.in_reasoning = False
                 else:
                     # Sin cierre todavía — descartar buffer actual y esperar
@@ -118,4 +116,3 @@ class ReasoningStripper:
             return ""
         stripper = ReasoningStripper()
         return stripper.process_chunk(text)
-

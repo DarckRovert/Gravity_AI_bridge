@@ -1,7 +1,6 @@
 import os
 import subprocess
 import yaml
-import time
 import logging
 import threading
 import urllib.request
@@ -12,13 +11,14 @@ from typing import Dict, Any, Optional
 # psutil es opcional — si no está instalado el motor de stop funciona en modo reducido
 try:
     import psutil
+
     _PSUTIL_OK = True
 except ImportError:
     psutil = None
     _PSUTIL_OK = False
 
-BASE_DIR     = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CONFIG_FILE  = os.path.join(BASE_DIR, "config.yaml")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CONFIG_FILE = os.path.join(BASE_DIR, "config.yaml")
 _config_lock = threading.RLock()
 
 log = logging.getLogger("gravity.ai_process_manager")
@@ -74,7 +74,9 @@ def discover_apps() -> Dict[str, str]:
         found_paths["Jan AI"] = jan
 
     # 5. ComfyUI
-    comfyui = os.path.join(base_dir, "_integrations", "ComfyUI_windows_portable", "run_amd_gpu.bat")
+    comfyui = os.path.join(
+        base_dir, "_integrations", "ComfyUI_windows_portable", "run_amd_gpu.bat"
+    )
     if os.path.exists(comfyui):
         found_paths["ComfyUI"] = comfyui
 
@@ -109,7 +111,7 @@ def is_engine_running(provider_name: str) -> bool:
     """Verifica si el proceso del motor ya está corriendo usando psutil."""
     if not _PSUTIL_OK:
         return False
-        
+
     pn = provider_name.lower()
     targets = []
     if "lm studio" in pn:
@@ -118,15 +120,16 @@ def is_engine_running(provider_name: str) -> bool:
         targets = ["ollama.exe", "ollama app.exe", "ollama_llama_server.exe"]
     elif "jan" in pn:
         targets = ["Jan.exe"]
-        
-    for proc in psutil.process_iter(['name', 'cmdline', 'cwd']):
+
+    for proc in psutil.process_iter(["name", "cmdline", "cwd"]):
         try:
-            name = proc.info.get('name', '')
-            if not name: continue
-            
-            p_cwd   = proc.info.get('cwd', '') or ''
-            cmdline = " ".join(proc.info.get('cmdline', []) or [])
-            
+            name = proc.info.get("name", "")
+            if not name:
+                continue
+
+            p_cwd = proc.info.get("cwd", "") or ""
+            cmdline = " ".join(proc.info.get("cmdline", []) or [])
+
             if "fooocus" in pn and "python.exe" in name.lower():
                 if "launch.py" in cmdline or "Fooocus" in p_cwd:
                     return True
@@ -134,9 +137,13 @@ def is_engine_running(provider_name: str) -> bool:
                 if "comfyui\\main.py" in cmdline.lower() or "comfyui" in p_cwd.lower():
                     return True
             if "v2v" in pn and "python.exe" in name.lower():
-                if "v2v_pipeline.py" in cmdline.lower() or "v2v_server.py" in cmdline.lower() or "v2v_engine" in p_cwd.lower():
+                if (
+                    "v2v_pipeline.py" in cmdline.lower()
+                    or "v2v_server.py" in cmdline.lower()
+                    or "v2v_engine" in p_cwd.lower()
+                ):
                     return True
-                    
+
             if targets and any(t.lower() in name.lower() for t in targets):
                 return True
         except (psutil.AccessDenied, psutil.NoSuchProcess):
@@ -151,40 +158,60 @@ def start_engine(provider_name: str) -> Dict[str, Any]:
     path = get_engine_path(provider_name)
 
     if node_ip and node_ip.lower() != "local":
-        log.info(f"[AI Process Manager] Delegando START de {provider_name} a nodo {node_ip}...")
+        log.info(
+            f"[AI Process Manager] Delegando START de {provider_name} a nodo {node_ip}..."
+        )
         try:
             req = urllib.request.Request(
                 f"http://{node_ip}:8888/v1/swarm/engine",
-                data=json.dumps({"action": "start", "provider_name": provider_name, "executable_path": path}).encode("utf-8"),
-                headers={"Content-Type": "application/json", "Authorization": "Bearer GRAVITY_SWARM_TOKEN_16"}
+                data=json.dumps(
+                    {
+                        "action": "start",
+                        "provider_name": provider_name,
+                        "executable_path": path,
+                    }
+                ).encode("utf-8"),
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer GRAVITY_SWARM_TOKEN_16",
+                },
             )
             with urllib.request.urlopen(req, timeout=5) as response:
                 return json.loads(response.read().decode("utf-8"))
         except Exception as e:
-            return {"success": False, "error": f"Error comunicando con Swarm Node ({node_ip}): {e}"}
+            return {
+                "success": False,
+                "error": f"Error comunicando con Swarm Node ({node_ip}): {e}",
+            }
 
     if is_engine_running(provider_name):
-        log.info(f"[AI Process Manager] {provider_name} ya está en ejecución a nivel proceso. Evitando duplicados.")
+        log.info(
+            f"[AI Process Manager] {provider_name} ya está en ejecución a nivel proceso. Evitando duplicados."
+        )
         return {"success": True, "message": f"{provider_name} ya estaba corriendo."}
-        
+
     if not path or not os.path.exists(path):
         return {
             "success": False,
             "error": f"Ruta desconocida para {provider_name}. "
-                     "Configura en config.yaml u ocurrio fallo de descubrimiento.",
+            "Configura en config.yaml u ocurrio fallo de descubrimiento.",
         }
 
     try:
         DETACHED_PROCESS = 0x00000008
         CREATE_NEW_CONSOLE = 0x00000010
         CREATE_NO_WINDOW = 0x08000000
-        
+
         # Para V2V, Fooocus o ComfyUI, necesitamos consola visible para debug y UI
-        if "v2v" in provider_name.lower() or "fooocus" in provider_name.lower() or "comfyui" in provider_name.lower():
+        if (
+            "v2v" in provider_name.lower()
+            or "fooocus" in provider_name.lower()
+            or "comfyui" in provider_name.lower()
+        ):
             proc_flags = CREATE_NEW_CONSOLE
         else:
             proc_flags = DETACHED_PROCESS | CREATE_NO_WINDOW
-            
+
         env = os.environ.copy()
 
         if path.endswith(".bat"):
@@ -214,20 +241,33 @@ def stop_engine(provider_name: str) -> Dict[str, Any]:
     node_ip = c.get("swarm_node_ip")
 
     if node_ip and node_ip.lower() != "local":
-        log.info(f"[AI Process Manager] Delegando STOP de {provider_name} a nodo {node_ip}...")
+        log.info(
+            f"[AI Process Manager] Delegando STOP de {provider_name} a nodo {node_ip}..."
+        )
         try:
             req = urllib.request.Request(
                 f"http://{node_ip}:8888/v1/swarm/engine",
-                data=json.dumps({"action": "stop", "provider_name": provider_name}).encode("utf-8"),
-                headers={"Content-Type": "application/json", "Authorization": "Bearer GRAVITY_SWARM_TOKEN_16"}
+                data=json.dumps(
+                    {"action": "stop", "provider_name": provider_name}
+                ).encode("utf-8"),
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer GRAVITY_SWARM_TOKEN_16",
+                },
             )
             with urllib.request.urlopen(req, timeout=5) as response:
                 return json.loads(response.read().decode("utf-8"))
         except Exception as e:
-            return {"success": False, "error": f"Error comunicando con Swarm Node ({node_ip}): {e}"}
+            return {
+                "success": False,
+                "error": f"Error comunicando con Swarm Node ({node_ip}): {e}",
+            }
 
     if not _PSUTIL_OK:
-        return {"success": False, "error": "psutil no instalado. Ejecuta: pip install psutil"}
+        return {
+            "success": False,
+            "error": "psutil no instalado. Ejecuta: pip install psutil",
+        }
 
     targets = []
     pn = provider_name.lower()
@@ -245,17 +285,20 @@ def stop_engine(provider_name: str) -> Dict[str, Any]:
     elif "v2v" in pn:
         targets = []  # V2V
     else:
-        return {"success": False, "error": "Firma del motor no registrada aún. No puedo apagar."}
+        return {
+            "success": False,
+            "error": "Firma del motor no registrada aún. No puedo apagar.",
+        }
 
     killed = 0
-    for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'cwd']):
+    for proc in psutil.process_iter(["pid", "name", "cmdline", "cwd"]):
         try:
-            name = proc.info.get('name', '')
+            name = proc.info.get("name", "")
             if not name:
                 continue
 
-            p_cwd   = proc.info.get('cwd', '') or ''
-            cmdline = " ".join(proc.info.get('cmdline', []) or [])
+            p_cwd = proc.info.get("cwd", "") or ""
+            cmdline = " ".join(proc.info.get("cmdline", []) or [])
 
             # Límite riguroso para Fooocus (no matar al servidor bridge u otros pythons)
             if "fooocus" in pn and "python.exe" in name.lower():
@@ -273,7 +316,11 @@ def stop_engine(provider_name: str) -> Dict[str, Any]:
 
             # Límite riguroso para V2V
             if "v2v" in pn and "python.exe" in name.lower():
-                if "v2v_pipeline.py" in cmdline.lower() or "v2v_server.py" in cmdline.lower() or "v2v_engine" in p_cwd.lower():
+                if (
+                    "v2v_pipeline.py" in cmdline.lower()
+                    or "v2v_server.py" in cmdline.lower()
+                    or "v2v_engine" in p_cwd.lower()
+                ):
                     proc.kill()
                     killed += 1
                     continue
@@ -285,6 +332,12 @@ def stop_engine(provider_name: str) -> Dict[str, Any]:
             continue
 
     if killed > 0:
-        return {"success": True, "message": f"{provider_name} detenido ({killed} procesos cerrados)."}
+        return {
+            "success": True,
+            "message": f"{provider_name} detenido ({killed} procesos cerrados).",
+        }
     else:
-        return {"success": False, "error": "No se encontró el proceso en ejecución local."}
+        return {
+            "success": False,
+            "error": "No se encontró el proceso en ejecución local.",
+        }

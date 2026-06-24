@@ -4,17 +4,24 @@ import shutil
 import logging
 from tools.epub_generator import generate_epub
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("Merger")
+
 
 def process_book(book_num: int):
     base_name = f"Cenizas_del_Leviatan_Libro_{book_num}"
     orig_dir = os.path.join("f:\\Gravity_AI_bridge\\ficcion_generada", base_name)
-    ref_dir = os.path.join("f:\\Gravity_AI_bridge\\ficcion_generada", f"{base_name}_refinado")
-    def_dir = os.path.join("f:\\Gravity_AI_bridge\\ficcion_generada", f"{base_name}_definitivo")
+    ref_dir = os.path.join(
+        "f:\\Gravity_AI_bridge\\ficcion_generada", f"{base_name}_refinado"
+    )
+    def_dir = os.path.join(
+        "f:\\Gravity_AI_bridge\\ficcion_generada", f"{base_name}_definitivo"
+    )
 
     orig_md = os.path.join(orig_dir, f"{base_name}.md")
-    
+
     if not os.path.exists(orig_md):
         logger.error(f"No se encontró el original: {orig_md}")
         return
@@ -47,12 +54,12 @@ def process_book(book_num: int):
     # Separar el contenido original por capítulos
     # El patrón es ## CAPÍTULO X
     # Vamos a usar una función de reemplazo para inyectar la imagen después de los asteriscos ***
-    
+
     def inject_image(match):
         full_match = match.group(0)
         cap_num_str = match.group(2)
         cap_num = int(cap_num_str)
-        
+
         if cap_num in images:
             img_file = images[cap_num]
             # Copiar imagen al directorio definitivo
@@ -65,8 +72,10 @@ def process_book(book_num: int):
         return full_match
 
     # Buscamos: #, ##, ### Capítulo X... o # Titulo: Capítulo X
-    pattern = re.compile(r"^(#+.*cap[ií]tulo\s+(\d+)[^\n]*\n)", re.IGNORECASE | re.MULTILINE)
-    
+    pattern = re.compile(
+        r"^(#+.*cap[ií]tulo\s+(\d+)[^\n]*\n)", re.IGNORECASE | re.MULTILINE
+    )
+
     new_content = pattern.sub(inject_image, content)
 
     with open(def_md, "w", encoding="utf-8") as f:
@@ -76,6 +85,7 @@ def process_book(book_num: int):
 
     # Empaquetar
     generate_epub(def_dir)
+
 
 if __name__ == "__main__":
     for i in range(1, 4):

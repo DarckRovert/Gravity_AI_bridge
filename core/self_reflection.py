@@ -24,9 +24,9 @@ import json
 import re
 import threading
 import time
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from core.logger import log
 
@@ -43,17 +43,18 @@ _started: bool = False
 
 # Estado observable desde el dashboard
 _state: Dict[str, Any] = {
-    "running":       False,
-    "last_run_utc":  None,
-    "next_run_utc":  None,
-    "last_report":   None,
+    "running": False,
+    "last_run_utc": None,
+    "next_run_utc": None,
+    "last_report": None,
     "patches_pending": 0,
-    "issues_found":  0,
-    "cycles_done":   0,
+    "issues_found": 0,
+    "cycles_done": 0,
 }
 
 
 # ── Utilidades ────────────────────────────────────────────────────────────────
+
 
 def _safe_read_jsonl(path: str, max_lines: int = 5000) -> List[Dict]:
     """Lee las últimas max_lines líneas de un archivo JSONL de forma segura."""
@@ -89,6 +90,7 @@ def _read_file_safe(path: str, max_bytes: int = 50_000) -> str:
 
 
 # ── Análisis del Audit Log ────────────────────────────────────────────────────
+
 
 def _analyze_audit_log(days: int = 7) -> Dict[str, Any]:
     """
@@ -127,21 +129,28 @@ def _analyze_audit_log(days: int = 7) -> Dict[str, Any]:
 
     # Módulos core conocidos que deberian tener actividad
     known_modules = {
-        "content_scheduler", "bounty_hunter", "security_monitor",
-        "image_queue", "video_pipeline", "provider_manager",
+        "content_scheduler",
+        "bounty_hunter",
+        "security_monitor",
+        "image_queue",
+        "video_pipeline",
+        "provider_manager",
     }
-    idle_modules = known_modules - {m.lower().replace("core.", "") for m in active_modules}
+    idle_modules = known_modules - {
+        m.lower().replace("core.", "") for m in active_modules
+    }
 
     return {
-        "error_counts":     dict(error_counts.most_common(10)),
+        "error_counts": dict(error_counts.most_common(10)),
         "recurrent_errors": recurrent_errors[:5],
-        "idle_modules":     list(idle_modules),
-        "active_modules":   list(active_modules)[:20],
-        "period_days":      days,
+        "idle_modules": list(idle_modules),
+        "active_modules": list(active_modules)[:20],
+        "period_days": days,
     }
 
 
 # ── Análisis de configuración ─────────────────────────────────────────────────
+
 
 def _analyze_config() -> List[Dict[str, str]]:
     """
@@ -155,56 +164,67 @@ def _analyze_config() -> List[Dict[str, str]]:
         # Verificar scheduler
         scheduler = config.get("scheduler", {})
         if not scheduler.get("enabled", False):
-            issues.append({
-                "severity": "WARNING",
-                "module":   "content_scheduler",
-                "issue":    "Scheduler deshabilitado en config — 0 videos se producirán automáticamente",
-                "suggestion": "Activar scheduler.enabled: true en config.yaml si se desea producción autónoma"
-            })
+            issues.append(
+                {
+                    "severity": "WARNING",
+                    "module": "content_scheduler",
+                    "issue": "Scheduler deshabilitado en config — 0 videos se producirán automáticamente",
+                    "suggestion": "Activar scheduler.enabled: true en config.yaml si se desea producción autónoma",
+                }
+            )
 
         # Verificar daily cost limit
         cost_limit = config.get("cost.daily_limit_usd", 0)
         if cost_limit <= 0:
-            issues.append({
-                "severity": "WARNING",
-                "module":   "cost_tracker",
-                "issue":    "Límite de costo diario no configurado o en cero",
-                "suggestion": "Configurar cost.daily_limit_usd en config.yaml para evitar gastos no controlados"
-            })
+            issues.append(
+                {
+                    "severity": "WARNING",
+                    "module": "cost_tracker",
+                    "issue": "Límite de costo diario no configurado o en cero",
+                    "suggestion": "Configurar cost.daily_limit_usd en config.yaml para evitar gastos no controlados",
+                }
+            )
 
         # Verificar ComfyUI
         comfy_enabled = config.get("comfyui.enabled", False)
         comfy_path = os.path.join(BASE_DIR, "_integrations", "ComfyUI_windows_portable")
         if comfy_enabled and not os.path.isdir(comfy_path):
-            issues.append({
-                "severity": "ERROR",
-                "module":   "comfyui",
-                "issue":    "comfyui.enabled=true pero la instalación no existe en _integrations/ComfyUI_windows_portable",
-                "suggestion": "Deshabilitar comfyui.enabled o instalar ComfyUI en la ruta esperada"
-            })
+            issues.append(
+                {
+                    "severity": "ERROR",
+                    "module": "comfyui",
+                    "issue": "comfyui.enabled=true pero la instalación no existe en _integrations/ComfyUI_windows_portable",
+                    "suggestion": "Deshabilitar comfyui.enabled o instalar ComfyUI en la ruta esperada",
+                }
+            )
 
         # Verificar providers
         providers_cfg = config.get("providers", {})
         if not providers_cfg:
-            issues.append({
-                "severity": "WARNING",
-                "module":   "provider_manager",
-                "issue":    "No hay proveedores de IA configurados en config.yaml",
-                "suggestion": "Configurar al menos un proveedor local (LM Studio, Ollama) o cloud (OpenRouter)"
-            })
+            issues.append(
+                {
+                    "severity": "WARNING",
+                    "module": "provider_manager",
+                    "issue": "No hay proveedores de IA configurados en config.yaml",
+                    "suggestion": "Configurar al menos un proveedor local (LM Studio, Ollama) o cloud (OpenRouter)",
+                }
+            )
 
     except Exception as e:
-        issues.append({
-            "severity": "ERROR",
-            "module":   "config_manager",
-            "issue":    f"Error leyendo configuración: {e}",
-            "suggestion": "Verificar que config.yaml existe y tiene formato YAML válido"
-        })
+        issues.append(
+            {
+                "severity": "ERROR",
+                "module": "config_manager",
+                "issue": f"Error leyendo configuración: {e}",
+                "suggestion": "Verificar que config.yaml existe y tiene formato YAML válido",
+            }
+        )
 
     return issues
 
 
 # ── Generación de parches ─────────────────────────────────────────────────────
+
 
 def _save_patch_proposal(
     module_name: str,
@@ -220,21 +240,21 @@ def _save_patch_proposal(
     ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     slug = re.sub(r"[^a-zA-Z0-9_]", "_", module_name)[:30]
 
-    patch_file   = os.path.join(PATCHES_DIR, f"{ts}_{slug}.patch")
-    meta_file    = os.path.join(PATCHES_DIR, f"{ts}_{slug}_meta.json")
+    patch_file = os.path.join(PATCHES_DIR, f"{ts}_{slug}.patch")
+    meta_file = os.path.join(PATCHES_DIR, f"{ts}_{slug}_meta.json")
 
     try:
         with open(patch_file, "w", encoding="utf-8") as f:
             f.write(patch_content)
 
         meta = {
-            "id":          f"{ts}_{slug}",
-            "module":      module_name,
-            "ts":          datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "issue":       issue_description,
-            "patch_file":  patch_file,
-            "status":      "pending",   # pending | approved | rejected | applied
-            "applied_ts":  None,
+            "id": f"{ts}_{slug}",
+            "module": module_name,
+            "ts": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "issue": issue_description,
+            "patch_file": patch_file,
+            "status": "pending",  # pending | approved | rejected | applied
+            "applied_ts": None,
             **(metadata or {}),
         }
         with open(meta_file, "w", encoding="utf-8") as f:
@@ -267,6 +287,7 @@ def _count_pending_patches() -> int:
 
 # ── Ciclo de introspección completo ──────────────────────────────────────────
 
+
 def run_reflection_cycle() -> Dict[str, Any]:
     """
     Ejecuta un ciclo completo de auto-introspección.
@@ -277,12 +298,12 @@ def run_reflection_cycle() -> Dict[str, Any]:
 
     start_ts = time.time()
     report: Dict[str, Any] = {
-        "ts":          datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "ts": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "audit_analysis": {},
-        "config_issues":  [],
+        "config_issues": [],
         "patches_generated": [],
-        "opportunities":  [],
-        "summary":        "",
+        "opportunities": [],
+        "summary": "",
     }
 
     log.info("[SelfReflection] Iniciando ciclo de auto-introspección...")
@@ -312,13 +333,18 @@ def run_reflection_cycle() -> Dict[str, Any]:
 
         # 4. Persistir patrones detectados
         try:
-            from core.strategic_memory import upsert_pattern, record_decision, CAT_SYSTEM, CAT_EVOLUTION
+            from core.strategic_memory import (
+                upsert_pattern,
+                record_decision,
+                CAT_SYSTEM,
+            )
+
             for mod, count in audit.get("error_counts", {}).items():
                 if count >= 3:
                     upsert_pattern(f"module_error:{mod}", str(count))
 
             for err in audit.get("recurrent_errors", []):
-                upsert_pattern(f"recurrent_error", err[:100])
+                upsert_pattern("recurrent_error", err[:100])
 
             # 5. Registrar la reflexión como decisión estratégica
             n_issues = len(config_issues) + len(audit.get("recurrent_errors", []))
@@ -327,8 +353,8 @@ def run_reflection_cycle() -> Dict[str, Any]:
                     category=CAT_SYSTEM,
                     title=f"Auto-introspección: {n_issues} problema(s) detectado(s)",
                     description=f"Ciclo de reflexión completado. Módulos idle: {idle}. "
-                                f"Errores recurrentes: {len(audit.get('recurrent_errors', []))}. "
-                                f"Problemas de config: {len(config_issues)}.",
+                    f"Errores recurrentes: {len(audit.get('recurrent_errors', []))}. "
+                    f"Problemas de config: {len(config_issues)}.",
                     rationale="Ciclo periódico de auto-análisis del sistema",
                     action_taken="Informe generado. Parches propuestos si aplica.",
                     metadata={"cycle_duration_s": round(time.time() - start_ts, 2)},
@@ -348,11 +374,11 @@ def run_reflection_cycle() -> Dict[str, Any]:
         )
 
         with _lock:
-            _state["last_report"]      = report
-            _state["issues_found"]     = total_issues
-            _state["patches_pending"]  = total_patches
-            _state["cycles_done"]     += 1
-            _state["last_run_utc"]     = report["ts"]
+            _state["last_report"] = report
+            _state["issues_found"] = total_issues
+            _state["patches_pending"] = total_patches
+            _state["cycles_done"] += 1
+            _state["last_run_utc"] = report["ts"]
 
         log.info(f"[SelfReflection] {report['summary']}")
 
@@ -367,6 +393,7 @@ def run_reflection_cycle() -> Dict[str, Any]:
 
 
 # ── Gestión de parches ────────────────────────────────────────────────────────
+
 
 def get_pending_patches() -> List[Dict[str, Any]]:
     """Retorna lista de parches pendientes de aprobación."""
@@ -414,9 +441,12 @@ def approve_patch(patch_id: str) -> Dict[str, Any]:
             patch_content = f.read()
 
         # Extraer archivo objetivo del parche (formato diff estándar: --- a/path)
-        target_match = re.search(r'^--- a/(.+)$', patch_content, re.MULTILINE)
+        target_match = re.search(r"^--- a/(.+)$", patch_content, re.MULTILINE)
         if not target_match:
-            return {"ok": False, "error": "Formato de parche inválido — no se encontró archivo objetivo"}
+            return {
+                "ok": False,
+                "error": "Formato de parche inválido — no se encontró archivo objetivo",
+            }
 
         target_rel = target_match.group(1).strip()
         target_abs = os.path.join(BASE_DIR, target_rel)
@@ -434,10 +464,13 @@ def approve_patch(patch_id: str) -> Dict[str, Any]:
         # Aplicar usando patch simple (línea por línea diff unificado)
         try:
             import subprocess
+
             result = subprocess.run(
                 ["patch", "--no-backup-if-mismatch", "-p1", "-i", patch_file],
                 cwd=BASE_DIR,
-                capture_output=True, text=True, timeout=30
+                capture_output=True,
+                text=True,
+                timeout=30,
             )
             if result.returncode != 0:
                 # Restaurar backup si falló
@@ -445,18 +478,29 @@ def approve_patch(patch_id: str) -> Dict[str, Any]:
                     f.write(original)
                 return {"ok": False, "error": f"patch falló: {result.stderr[:500]}"}
         except FileNotFoundError:
-            return {"ok": False, "error": "Comando 'patch' no disponible en el sistema. Instalar diffutils."}
+            return {
+                "ok": False,
+                "error": "Comando 'patch' no disponible en el sistema. Instalar diffutils.",
+            }
 
         # Actualizar metadata
-        meta["status"]     = "applied"
-        meta["applied_ts"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-        meta["backup"]     = backup_path
+        meta["status"] = "applied"
+        meta["applied_ts"] = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
+        meta["backup"] = backup_path
         with open(meta_file, "w", encoding="utf-8") as f:
             json.dump(meta, f, ensure_ascii=False, indent=2)
 
         # Registrar en memoria estratégica
         try:
-            from core.strategic_memory import record_decision, update_outcome, CAT_EVOLUTION, OUTCOME_SUCCESS
+            from core.strategic_memory import (
+                record_decision,
+                update_outcome,
+                CAT_EVOLUTION,
+                OUTCOME_SUCCESS,
+            )
+
             did = record_decision(
                 category=CAT_EVOLUTION,
                 title=f"Parche aplicado: {patch_id}",
@@ -485,8 +529,10 @@ def reject_patch(patch_id: str, reason: str = "") -> Dict[str, Any]:
     try:
         with open(meta_file, "r", encoding="utf-8") as f:
             meta = json.load(f)
-        meta["status"]        = "rejected"
-        meta["rejected_ts"]   = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        meta["status"] = "rejected"
+        meta["rejected_ts"] = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         meta["reject_reason"] = reason
         with open(meta_file, "w", encoding="utf-8") as f:
             json.dump(meta, f, ensure_ascii=False, indent=2)
@@ -507,7 +553,10 @@ def rollback_patch(patch_id: str) -> Dict[str, Any]:
             meta = json.load(f)
 
         if meta.get("status") != "applied":
-            return {"ok": False, "error": f"Solo se puede revertir un parche aplicado. Estado actual: {meta.get('status')}"}
+            return {
+                "ok": False,
+                "error": f"Solo se puede revertir un parche aplicado. Estado actual: {meta.get('status')}",
+            }
 
         backup = meta.get("backup", "")
         if not os.path.isfile(backup):
@@ -518,7 +567,7 @@ def rollback_patch(patch_id: str) -> Dict[str, Any]:
         if os.path.isfile(patch_file):
             with open(patch_file, "r", encoding="utf-8") as f:
                 patch_content = f.read()
-            m = re.search(r'^--- a/(.+)$', patch_content, re.MULTILINE)
+            m = re.search(r"^--- a/(.+)$", patch_content, re.MULTILINE)
             if m:
                 target_rel = m.group(1).strip()
 
@@ -529,8 +578,10 @@ def rollback_patch(patch_id: str) -> Dict[str, Any]:
             with open(target_abs, "w", encoding="utf-8") as f:
                 f.write(original)
 
-        meta["status"]      = "rolled_back"
-        meta["rollback_ts"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        meta["status"] = "rolled_back"
+        meta["rollback_ts"] = (
+            datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        )
         with open(meta_file, "w", encoding="utf-8") as f:
             json.dump(meta, f, ensure_ascii=False, indent=2)
 
@@ -541,12 +592,15 @@ def rollback_patch(patch_id: str) -> Dict[str, Any]:
 
 # ── Daemon ────────────────────────────────────────────────────────────────────
 
+
 def _reflection_loop() -> None:
     """Loop daemon del motor de reflexión."""
     log.info(f"[SelfReflection] Daemon iniciado. Ciclo cada {REFLECTION_INTERVAL_H}h.")
     while True:
         try:
-            next_run = datetime.now(timezone.utc) + timedelta(hours=REFLECTION_INTERVAL_H)
+            next_run = datetime.now(timezone.utc) + timedelta(
+                hours=REFLECTION_INTERVAL_H
+            )
             with _lock:
                 _state["next_run_utc"] = next_run.isoformat().replace("+00:00", "Z")
 
@@ -565,7 +619,9 @@ def start() -> None:
     if _started:
         return
     _started = True
-    t = threading.Thread(target=_reflection_loop, name="GravitySelfReflection", daemon=True)
+    t = threading.Thread(
+        target=_reflection_loop, name="GravitySelfReflection", daemon=True
+    )
     t.start()
     log.info("[SelfReflection] Self-Reflection daemon iniciado.")
 

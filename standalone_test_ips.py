@@ -15,12 +15,22 @@ mock_conn.laddr.port = 9999
 mock_conn.pid = 99999
 
 mock_process = MagicMock()
-mock_process.info = {"pid": 99999, "name": "hacker_simulator.exe", "ppid": 1, "io_counters": None}
+mock_process.info = {
+    "pid": 99999,
+    "name": "hacker_simulator.exe",
+    "ppid": 1,
+    "io_counters": None,
+}
 mock_process.name.return_value = "hacker_simulator.exe"
 
 # Mock para el Anti-Tampering (Cheat Engine simulado)
 mock_tampering_process = MagicMock()
-mock_tampering_process.info = {"pid": 88888, "name": "cheatengine-x86_64.exe", "ppid": 1, "io_counters": None}
+mock_tampering_process.info = {
+    "pid": 88888,
+    "name": "cheatengine-x86_64.exe",
+    "ppid": 1,
+    "io_counters": None,
+}
 
 # Mock de psutil inyectado directamente en el security_monitor
 mock_psutil = MagicMock()
@@ -45,14 +55,20 @@ for alert in state.get("alerts", []):
 
 print("=> Verificando si la defensa activa mató el proceso sospechoso de puerto...")
 if mock_process.kill.called:
-    print("[ÉXITO] El proceso simulado (PID 99999) fue ANIQUILADO por la defensa activa (kill() llamado).")
+    print(
+        "[ÉXITO] El proceso simulado (PID 99999) fue ANIQUILADO por la defensa activa (kill() llamado)."
+    )
 else:
-    print("[FALLO] La defensa activa NO llamó a kill() sobre el proceso de red sospechoso.")
+    print(
+        "[FALLO] La defensa activa NO llamó a kill() sobre el proceso de red sospechoso."
+    )
     sys.exit(1)
 
 print("=> Verificando si el Anti-Tampering detectó y mató la herramienta prohibida...")
 if mock_tampering_process.kill.called:
-    print("[ÉXITO] La herramienta prohibida (cheatengine-x86_64.exe, PID 88888) fue ANIQUILADA correctamente.")
+    print(
+        "[ÉXITO] La herramienta prohibida (cheatengine-x86_64.exe, PID 88888) fue ANIQUILADA correctamente."
+    )
 else:
     print("[FALLO] La defensa Anti-Tampering NO llamó a kill().")
     sys.exit(1)

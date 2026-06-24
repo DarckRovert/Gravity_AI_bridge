@@ -5,14 +5,14 @@ Smart chunking that respects code blocks, markdown headers, and sentence boundar
 
 import re
 
-DEFAULT_CHUNK_TOKENS  = 512
+DEFAULT_CHUNK_TOKENS = 512
 DEFAULT_OVERLAP_CHARS = 200
-CHARS_PER_TOKEN       = 4   # approximate
+CHARS_PER_TOKEN = 4  # approximate
 
 
 def chunk_text(
-    text:         str,
-    max_tokens:   int = DEFAULT_CHUNK_TOKENS,
+    text: str,
+    max_tokens: int = DEFAULT_CHUNK_TOKENS,
     overlap_chars: int = DEFAULT_OVERLAP_CHARS,
 ) -> list[dict]:
     """
@@ -28,10 +28,10 @@ def chunk_text(
     # Split by code blocks first to protect them
     parts = re.split(r"(```[\s\S]*?```)", text)
 
-    chunks    = []
-    buf       = ""
+    chunks = []
+    buf = ""
     buf_start = 0
-    pos       = 0
+    pos = 0
 
     for part in parts:
         if not part:
@@ -43,7 +43,7 @@ def chunk_text(
                 chunks.append({"text": buf.strip(), "start": buf_start, "end": pos})
                 # Overlap: carry last overlap_chars of previous chunk
                 overlap = buf[-overlap_chars:] if len(buf) > overlap_chars else buf
-                buf       = overlap + part
+                buf = overlap + part
                 buf_start = pos - len(overlap)
             else:
                 if not buf:
@@ -61,9 +61,13 @@ def chunk_text(
                     pos += len(subpart)
                 else:
                     if len(buf) + len(subpart) > max_chars and buf.strip():
-                        chunks.append({"text": buf.strip(), "start": buf_start, "end": pos})
-                        overlap   = buf[-overlap_chars:] if len(buf) > overlap_chars else buf
-                        buf       = overlap + subpart
+                        chunks.append(
+                            {"text": buf.strip(), "start": buf_start, "end": pos}
+                        )
+                        overlap = (
+                            buf[-overlap_chars:] if len(buf) > overlap_chars else buf
+                        )
+                        buf = overlap + subpart
                         buf_start = pos - len(overlap)
                     else:
                         if not buf:

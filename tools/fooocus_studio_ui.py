@@ -11,12 +11,12 @@ En su lugar:
   3. La galeria se auto-refresca cada 5s
   4. health_check ve si Fooocus responde en el puerto 7861
 """
+
 import sys
 import time
 import os
 import glob
-import threading
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Any, Optional, Tuple
 
 # Path setup correcto para importar fooocus_client
 _BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,10 +25,16 @@ if _TOOLS_DIR not in sys.path:
     sys.path.insert(0, _TOOLS_DIR)
 
 import gradio as gr
-from fooocus_client import health_check, get_latest_outputs, OUTPUT_DIR, FOOOCUS_BASE_URL, trigger_gradio_generation
-
+from fooocus_client import (
+    health_check,
+    get_latest_outputs,
+    OUTPUT_DIR,
+    FOOOCUS_BASE_URL,
+    trigger_gradio_generation,
+)
 
 # ─── Cold-start detection ─────────────────────────────────────────────────────
+
 
 def wait_for_fooocus(max_retries: int = 20, wait_sec: float = 3.0) -> bool:
     """
@@ -57,6 +63,7 @@ def get_all_images() -> List[str]:
 
 # ─── Galeria de imagenes generadas ────────────────────────────────────────────
 
+
 def refresh_gallery() -> Any:
     """Carga las ultimas 20 imagenes del output dir para mostrar en galeria."""
     imgs: List[str] = get_latest_outputs(20)
@@ -76,7 +83,10 @@ def get_fooocus_status() -> str:
 
 # ─── Instruccion de generacion (redirige al motor real) ───────────────────────
 
-def on_open_fooocus_and_wait(prompt: str, performance: str, aspect_ratio: str) -> Tuple[Optional[str], str]:
+
+def on_open_fooocus_and_wait(
+    prompt: str, performance: str, aspect_ratio: str
+) -> Tuple[Optional[str], str]:
     """
     Fooocus 2.5.5 en este build solo expone UI Gradio (no API REST).
     Esta funcion:
@@ -103,13 +113,15 @@ def on_open_fooocus_and_wait(prompt: str, performance: str, aspect_ratio: str) -
     before_count: int = len(before_set)
 
     # DISPARO AUTOMÁTICO (V16.3 PRO Upgrade)
-    gr.Info(f"🎨 Enviando comando de generación al motor (CPU)...")
+    gr.Info("🎨 Enviando comando de generación al motor (CPU)...")
     trigger_result: dict = trigger_gradio_generation(prompt, performance, aspect_ratio)
-    
+
     if trigger_result["success"]:
         gr.Info("🚀 Motor disparado con éxito. Generación iniciada en segundo plano.")
     else:
-        gr.Warning(f"⚠️ No se pudo disparar el motor automáticamente: {trigger_result['error']}")
+        gr.Warning(
+            f"⚠️ No se pudo disparar el motor automáticamente: {trigger_result['error']}"
+        )
         gr.Info("Por favor, inicia la generación manualmente en http://127.0.0.1:7861")
 
     print(f"[VisionStudio] Esperando imagen nueva en {OUTPUT_DIR}...")
@@ -127,7 +139,9 @@ def on_open_fooocus_and_wait(prompt: str, performance: str, aspect_ratio: str) -
         if new_files:
             newest: str = max(new_files, key=os.path.getmtime)
             elapsed: int = round(time.time() - start)
-            print(f"[VisionStudio] Nueva imagen detectada en {elapsed}s -> {os.path.basename(newest)}")
+            print(
+                f"[VisionStudio] Nueva imagen detectada en {elapsed}s -> {os.path.basename(newest)}"
+            )
             return newest, f"Imagen generada en {elapsed}s"
 
         elapsed = round(time.time() - start)
@@ -135,7 +149,9 @@ def on_open_fooocus_and_wait(prompt: str, performance: str, aspect_ratio: str) -
             print(f"[VisionStudio] Esperando... {elapsed}s transcurridos")
 
     print(f"[VisionStudio] Timeout tras {timeout}s")
-    gr.Warning("Timeout. Si generaste la imagen en Fooocus, usa Actualizar Galeria para verla.")
+    gr.Warning(
+        "Timeout. Si generaste la imagen en Fooocus, usa Actualizar Galeria para verla."
+    )
     return None, "Timeout"
 
 
@@ -168,7 +184,7 @@ with gr.Blocks(title="Gravity Vision Studio V16.3 PRO", css=custom_css) as demo:
                         label="Ultima imagen generada",
                         interactive=False,
                         height=600,
-                        show_label=False
+                        show_label=False,
                     )
                     gen_status = gr.Markdown("*Escribe un prompt y presiona Generar*")
 
@@ -176,7 +192,8 @@ with gr.Blocks(title="Gravity Vision Studio V16.3 PRO", css=custom_css) as demo:
                         prompt_box = gr.Textbox(
                             show_label=False,
                             placeholder="Describe la imagen que quieres generar...",
-                            scale=4, container=False
+                            scale=4,
+                            container=False,
                         )
                         gen_btn = gr.Button("🎨 Generar", variant="primary", scale=1)
 
@@ -191,21 +208,26 @@ with gr.Blocks(title="Gravity Vision Studio V16.3 PRO", css=custom_css) as demo:
                         with gr.TabItem("Ajustes"):
                             gr.Markdown("### Rendimiento")
                             perf = gr.Radio(
-                                ["Quality", "Speed"],
-                                show_label=False, value="Speed"
+                                ["Quality", "Speed"], show_label=False, value="Speed"
                             )
-                            gr.Markdown("*Speed = sampler euler (CPU-safe, recomendado)*")
+                            gr.Markdown(
+                                "*Speed = sampler euler (CPU-safe, recomendado)*"
+                            )
 
                             gr.Markdown("### Relacion de aspecto")
-                            ar = gr.Dropdown([
-                                "832x1216 | 13:19 (Portrait SDXL)",
-                                "1024x1024 | 1:1 (Square)",
-                                "1216x832 | 19:13 (Landscape)",
-                                "1152x896 | 9:7",
-                                "896x1152 | 7:9",
-                                "1344x768 | 7:4",
-                                "768x1344 | 4:7",
-                            ], show_label=False, value="832x1216 | 13:19 (Portrait SDXL)")
+                            ar = gr.Dropdown(
+                                [
+                                    "832x1216 | 13:19 (Portrait SDXL)",
+                                    "1024x1024 | 1:1 (Square)",
+                                    "1216x832 | 19:13 (Landscape)",
+                                    "1152x896 | 9:7",
+                                    "896x1152 | 7:9",
+                                    "1344x768 | 7:4",
+                                    "768x1344 | 4:7",
+                                ],
+                                show_label=False,
+                                value="832x1216 | 13:19 (Portrait SDXL)",
+                            )
 
                         with gr.TabItem("Modelo"):
                             gr.Markdown(
@@ -238,7 +260,7 @@ with gr.Blocks(title="Gravity Vision Studio V16.3 PRO", css=custom_css) as demo:
                 columns=3,
                 height=600,
                 object_fit="cover",
-                value=get_all_images()[:20] if get_all_images() else []
+                value=get_all_images()[:20] if get_all_images() else [],
             )
             gallery_btn.click(fn=refresh_gallery, outputs=gallery)
 
@@ -246,7 +268,7 @@ with gr.Blocks(title="Gravity Vision Studio V16.3 PRO", css=custom_css) as demo:
     gen_btn.click(
         fn=on_open_fooocus_and_wait,
         inputs=[prompt_box, perf, ar],
-        outputs=[output_image, gen_status]
+        outputs=[output_image, gen_status],
     )
 
     # Refrescar estado del motor al cambiar de tab
@@ -257,10 +279,12 @@ with gr.Blocks(title="Gravity Vision Studio V16.3 PRO", css=custom_css) as demo:
 if __name__ == "__main__":
     _port = int(os.getenv("GRADIO_SERVER_PORT", "7862"))
     print(f"[Gravity Vision Studio V16.3 PRO] Iniciando en http://127.0.0.1:{_port}")
-    print(f"[Gravity Vision Studio V16.3 PRO] Motor Fooocus CPU en http://127.0.0.1:7861")
+    print(
+        "[Gravity Vision Studio V16.3 PRO] Motor Fooocus CPU en http://127.0.0.1:7861"
+    )
     print(f"[Gravity Vision Studio V16.3 PRO] Output dir: {OUTPUT_DIR}")
     demo.launch(
-        server_name="0.0.0.0",   # Accesible desde localhost:7862 y 127.0.0.1:7862
+        server_name="0.0.0.0",  # Accesible desde localhost:7862 y 127.0.0.1:7862
         server_port=_port,
         inbrowser=False,
         quiet=False,

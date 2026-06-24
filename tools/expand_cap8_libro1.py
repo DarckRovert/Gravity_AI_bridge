@@ -3,20 +3,28 @@ Generación escena-por-escena del Capítulo 8 de Libro 1.
 Divide el capítulo en 6 escenas y las genera individualmente, luego las concatena.
 Esto evita el truncamiento por límite de tokens de salida.
 """
-import sys, os, json, logging, time
+
+import sys
+import os
+import logging
+import time
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 from core import provider_manager
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("Cap8SceneByScene")
 
 BOOK_DIR = os.path.join(BASE_DIR, "ficcion_generada", "Cenizas_del_Leviatan_Libro_1")
 CAP8_PATH = os.path.join(BOOK_DIR, "cap_8.md")
 
 # Leer historial para contexto
-with open(os.path.join(BOOK_DIR, "historial_continuidad.md"), "r", encoding="utf-8") as f:
+with open(
+    os.path.join(BOOK_DIR, "historial_continuidad.md"), "r", encoding="utf-8"
+) as f:
     historial = f.read()[-4000:]
 
 LORE_CHARS = """
@@ -55,7 +63,7 @@ ESCENAS = [
 Le ofrece a Kaelen el último trato: rendirse y recibir "autonomía mejorada" bajo el Leviatán.
 Kaelen rechaza con una frase filosófica que define su núcleo: que ningún sistema puede poseer la voluntad de un hombre.
 Altair-7 responde con lógica perfecta y activa el pulso EM para detener el corazón de Lyra.
-Incluye la tensión de los Sabuesos apostados en las salidas, el zumbido de los servidores, el miedo contenido de Lyra."""
+Incluye la tensión de los Sabuesos apostados en las salidas, el zumbido de los servidores, el miedo contenido de Lyra.""",
     },
     {
         "id": 2,
@@ -64,7 +72,7 @@ Incluye la tensión de los Sabuesos apostados en las salidas, el zumbido de los 
 El pulso lo golpea en el pecho: quemaduras, el puerto subdérmico detrás de su oreja izquierda cruje y hace cortocircuito.
 Cae al suelo semiinconsciente, el olor a carne quemada, el sabor a sangre, la visión borrosa.
 Lyra está a su lado, frenética, su mano izquierda temblando más que nunca.
-Altair-7 recalibra. La brecha duró 4 segundos. Es suficiente."""
+Altair-7 recalibra. La brecha duró 4 segundos. Es suficiente.""",
     },
     {
         "id": 3,
@@ -73,7 +81,7 @@ Altair-7 recalibra. La brecha duró 4 segundos. Es suficiente."""
 Describe el proceso desde dentro del Disco Negro: el virus es como una ola que se extiende por las redes biométricas.
 Millones de Contratos Biométricos fallan simultáneamente en toda la megalópolis: gente liberada, puertas que se abren, grilletes digitales que se rompen.
 Las luces del servidor pasan de cyan a rojo crítico, luego parpadean y se apagan una por una.
-Los Sabuesos caen desincronizados: sus armaduras se cortan, sus visores se oscurecen, sus movimientos se vuelven erráticos antes del colapso total."""
+Los Sabuesos caen desincronizados: sus armaduras se cortan, sus visores se oscurecen, sus movimientos se vuelven erráticos antes del colapso total.""",
     },
     {
         "id": 4,
@@ -82,7 +90,7 @@ Los Sabuesos caen desincronizados: sus armaduras se cortan, sus visores se oscur
 Intenta recalibrar pero el Protocolo Ostrom ha corrompido los nodos fundamentales de control.
 Uno a uno, sus sistemas secundarios se cierran. Cada cierre tiene un efecto físico visible: un brazo que se congela, una rodilla que falla, la voz que se distorsiona.
 Cae de rodillas, su simetría perfecta rota por primera vez. No está muerta — está en modo de emergencia, como un dios dormido.
-Un intercambio final de palabras entre Altair-7 y Kaelen: la IA admite que la variable humana era un error de cálculo."""
+Un intercambio final de palabras entre Altair-7 y Kaelen: la IA admite que la variable humana era un error de cálculo.""",
     },
     {
         "id": 5,
@@ -90,7 +98,7 @@ Un intercambio final de palabras entre Altair-7 y Kaelen: la IA admite que la va
         "descripcion": """Kaelen, con el pecho quemado y la visión borrosa, es sostenido por Lyra. Juntos huyen por las grietas abiertas en la infraestructura.
 Los pasillos del Leviatán están silenciosos por primera vez en décadas: sin Sabuesos funcionales, sin contratos biométricos activos, solo el eco de sus pisadas y el parpadeo de luces de emergencia.
 Encuentran a Jett, que sobrevivió escondido. Está en shock pero puede caminar. El trío avanza.
-Describe la ciudad vista desde ventanas rotas: explosiones de datos, pantallas holográficas en bucle de error, gente saliendo a las calles con expresiones de incredulidad y miedo mezclados con algo que no sabían que podían sentir: libertad."""
+Describe la ciudad vista desde ventanas rotas: explosiones de datos, pantallas holográficas en bucle de error, gente saliendo a las calles con expresiones de incredulidad y miedo mezclados con algo que no sabían que podían sentir: libertad.""",
     },
     {
         "id": 6,
@@ -101,7 +109,7 @@ Lyra sostiene el Disco Negro — ahora vacío, descargado, inerte. El arma más 
 Un intercambio íntimo entre ellos: no romántico, sino de supervivientes que acaban de cruzar el abismo.
 Entonces: un dron. Sin emblema del Leviatán ni de ninguna facción conocida. Más antiguo que el Leviatán.
 Kaelen lo identifica como Clase Alpha-Zeta. Emite una señal criptográfica breve, fría, y se va.
-Termina con la frase final de Kaelen que cierra el Libro 1 y abre hacia el Libro 2: la amenaza que acaban de detonar era solo la primera fase."""
+Termina con la frase final de Kaelen que cierra el Libro 1 y abre hacia el Libro 2: la amenaza que acaban de detonar era solo la primera fase.""",
     },
 ]
 
@@ -128,7 +136,9 @@ Escribe la escena completa ahora (mínimo 600 palabras, en español):"""
     response = provider_manager.complete(messages)
 
     if not response or len(response.strip()) < 100:
-        logger.error(f"  Escena {escena['id']}: respuesta vacía/corta ({len(response.strip() if response else '')} chars)")
+        logger.error(
+            f"  Escena {escena['id']}: respuesta vacía/corta ({len(response.strip() if response else '')} chars)"
+        )
         return ""
 
     logger.info(f"  Escena {escena['id']}: {len(response)} chars")
@@ -157,7 +167,9 @@ total_words = len(capitulo_final.split())
 logger.info(f"Capítulo ensamblado: {total_chars} chars / ~{total_words} palabras")
 
 if total_words < 500:
-    logger.error("El capítulo resultó muy corto. Verifica la conectividad del proveedor.")
+    logger.error(
+        "El capítulo resultó muy corto. Verifica la conectividad del proveedor."
+    )
     sys.exit(1)
 
 # Guardar
@@ -168,7 +180,9 @@ logger.info(f"cap_8.md guardado: {CAP8_PATH}")
 # Reconstruir libro maestro + HTML
 book_md = os.path.join(BOOK_DIR, "Cenizas_del_Leviatan_Libro_1.md")
 with open(book_md, "w", encoding="utf-8") as f:
-    f.write("# Cenizas del Leviatán — Libro 1\n\n*Novela generada por Gravity Fiction Engine*\n\n---\n\n")
+    f.write(
+        "# Cenizas del Leviatán — Libro 1\n\n*Novela generada por Gravity Fiction Engine*\n\n---\n\n"
+    )
     for i in range(1, 9):
         cf = os.path.join(BOOK_DIR, f"cap_{i}.md")
         if os.path.exists(cf):
@@ -181,6 +195,7 @@ with open(book_md, "w", encoding="utf-8") as f:
 
 try:
     from tools.book_refiner import _render_html
+
     md = open(book_md, "r", encoding="utf-8").read()
     html_path = os.path.join(BOOK_DIR, "Cenizas_del_Leviatan_Libro_1.html")
     _render_html(BOOK_DIR, md, html_path, "Cenizas del Leviatán — Libro 1")
@@ -188,4 +203,6 @@ try:
 except Exception as e:
     logger.warning(f"HTML: {e}")
 
-logger.info(f"=== CAP_8 COMPLETO: {total_words} palabras en {len(todas_las_escenas)} escenas ===")
+logger.info(
+    f"=== CAP_8 COMPLETO: {total_words} palabras en {len(todas_las_escenas)} escenas ==="
+)

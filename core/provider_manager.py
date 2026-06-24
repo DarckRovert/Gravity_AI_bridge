@@ -12,13 +12,13 @@ import os as _os
 from typing import Generator, List, Dict, Tuple, Optional, Any
 
 from providers.registry import ProviderRegistry
-from providers.base     import ProviderPlugin, ProviderResult
+from providers.base import ProviderPlugin, ProviderResult
 
-_lock              = threading.RLock()
-_cached_results:   List[ProviderResult]  = []
-_cached_plugins:   Dict[str, ProviderPlugin] = {}  # name → plugin
-_last_scan_time:   float = 0.0
-_SCAN_TTL:         float = 60.0   # seconds before re-scanning
+_lock = threading.RLock()
+_cached_results: List[ProviderResult] = []
+_cached_plugins: Dict[str, ProviderPlugin] = {}  # name → plugin
+_last_scan_time: float = 0.0
+_SCAN_TTL: float = 60.0  # seconds before re-scanning
 
 
 def _load_settings() -> Dict[str, Any]:
@@ -61,7 +61,7 @@ def _score_model(result: ProviderResult, model_name: str, task: str) -> float:
 
     # Task-specific model bonuses
     active = model_name.lower()
-    
+
     if task == "vision":
         if "llava" in active:
             score += 150.0
@@ -71,7 +71,9 @@ def _score_model(result: ProviderResult, model_name: str, task: str) -> float:
     elif task == "code":
         if "qwen" in active and "coder" in active:
             score += 80.0
-        elif any(k in active for k in ("coder", "codestral", "starcoder", "deepseek-coder")):
+        elif any(
+            k in active for k in ("coder", "codestral", "starcoder", "deepseek-coder")
+        ):
             score += 40.0
         if result.name in ("Groq",) and "qwen" in active:
             score += 30.0
@@ -101,11 +103,20 @@ def _score_model(result: ProviderResult, model_name: str, task: str) -> float:
     if task != "embedding" and "nomic" in active:
         score -= 250.0  # nomic no es para chat
     if task != "vision" and "llava" in active:
-        score -= 60.0   # llava es para vision, no para chat estandar si hay mejores opciones
+        score -= (
+            60.0  # llava es para vision, no para chat estandar si hay mejores opciones
+        )
 
     # Model parameter size bonus
-    for size, bonus in [("70b", 25), ("72b", 25), ("32b", 20), ("26b", 18), ("14b", 10),
-                        ("8b", 5), ("7b", 5)]:
+    for size, bonus in [
+        ("70b", 25),
+        ("72b", 25),
+        ("32b", 20),
+        ("26b", 18),
+        ("14b", 10),
+        ("8b", 5),
+        ("7b", 5),
+    ]:
         if size in active:
             score += bonus
             break
@@ -114,6 +125,7 @@ def _score_model(result: ProviderResult, model_name: str, task: str) -> float:
 
 
 # ── Public API ─────────────────────────────────────────────────────────────────
+
 
 def scan_all(force: bool = False) -> List[ProviderResult]:
     """
@@ -143,13 +155,13 @@ def scan_all(force: bool = False) -> List[ProviderResult]:
                     name=plugin.name,
                     url=getattr(plugin, "base_url", ""),
                     protocol=getattr(plugin, "protocol", "unknown"),
-                    category=getattr(plugin, "category", "local")
+                    category=getattr(plugin, "category", "local"),
                 )
-                r.is_healthy=False
-                r.models=[]
-                r.active_model=None
-                r.response_ms=0
-                r.key_configured=False
+                r.is_healthy = False
+                r.models = []
+                r.active_model = None
+                r.response_ms = 0
+                r.key_configured = False
                 return r
 
         results: List[ProviderResult] = []
@@ -157,12 +169,13 @@ def scan_all(force: bool = False) -> List[ProviderResult]:
             max_workers=min(len(plugins), 8), thread_name_prefix="GravityScan"
         )
         futures = {ex.submit(_safe_check, p): p for p in plugins}
-        
+
         end_time = time.time() + 8.0  # 8 segundos de timeout global (20 era mucho)
         try:
             for fut, plug in futures.items():
                 remaining = end_time - time.time()
-                if remaining <= 0: remaining = 0.001
+                if remaining <= 0:
+                    remaining = 0.001
                 try:
                     results.append(fut.result(timeout=remaining))
                 except concurrent.futures.TimeoutError:
@@ -170,22 +183,22 @@ def scan_all(force: bool = False) -> List[ProviderResult]:
                         name=plug.name,
                         url=getattr(plug, "base_url", ""),
                         protocol=getattr(plug, "protocol", "unknown"),
-                        category=getattr(plug, "category", "local")
+                        category=getattr(plug, "category", "local"),
                     )
-                    r.is_healthy=False
-                    r.models=[]
-                    r.active_model=None
-                    r.response_ms=20000
-                    r.key_configured=False
+                    r.is_healthy = False
+                    r.models = []
+                    r.active_model = None
+                    r.response_ms = 20000
+                    r.key_configured = False
                     results.append(r)
                 except Exception:
                     pass
         finally:
             ex.shutdown(wait=False)
 
-        _cached_results  = results
-        _cached_plugins  = {p.name: p for p in plugins}
-        _last_scan_time  = time.time()
+        _cached_results = results
+        _cached_plugins = {p.name: p for p in plugins}
+        _last_scan_time = time.time()
 
     return _cached_results
 
@@ -219,10 +232,10 @@ def get_best(task: str = "any") -> Tuple[Optional[ProviderResult], Optional[str]
     cloud_healthy = [r for r in healthy if r.category != "local"]
 
     candidates = local_healthy if local_healthy else cloud_healthy
-    
+
     best_score = -9999.0
     best_pair = (candidates[0], candidates[0].models[0]["name"])
-    
+
     for r in candidates:
         for m in r.models:
             m_name = m["name"]
@@ -230,7 +243,7 @@ def get_best(task: str = "any") -> Tuple[Optional[ProviderResult], Optional[str]
             if score > best_score:
                 best_score = score
                 best_pair = (r, m_name)
-                
+
     return best_pair
 
 
@@ -273,10 +286,10 @@ def get_flat_model_list() -> List[str]:
 
 def stream(
     messages: List[Dict[str, Any]],
-    model:    Optional[str]  = None,
-    provider: Optional[str]  = None,
-    options:  Optional[Dict[str, Any]] = None,
-    task:     str            = "any",
+    model: Optional[str] = None,
+    provider: Optional[str] = None,
+    options: Optional[Dict[str, Any]] = None,
+    task: str = "any",
 ) -> Generator[str, None, None]:
     """
     Universal streaming interface.
@@ -318,23 +331,25 @@ def stream(
 
 def complete(
     messages: List[Dict[str, Any]],
-    model:    Optional[str]  = None,
-    provider: Optional[str]  = None,
-    options:  Optional[Dict[str, Any]] = None,
-    task:     str            = "any",
+    model: Optional[str] = None,
+    provider: Optional[str] = None,
+    options: Optional[Dict[str, Any]] = None,
+    task: str = "any",
 ) -> str:
     """Universal non-streaming chat completion."""
     chunks = list(stream(messages, model, provider, options, task))
     return "".join(chunks)
 
 
-def get_cost_estimate(provider_name: str, model: str, input_chars: int, output_chars: int = 0) -> float:
+def get_cost_estimate(
+    provider_name: str, model: str, input_chars: int, output_chars: int = 0
+) -> float:
     """Estimates cost in USD for a request."""
     plugin = get_plugin(provider_name)
     if not plugin:
         return 0.0
-    costs  = plugin.get_cost_per_million_tokens(model)
-    input_tokens  = input_chars  / 4.0   # rough estimate
+    costs = plugin.get_cost_per_million_tokens(model)
+    input_tokens = input_chars / 4.0  # rough estimate
     output_tokens = output_chars / 4.0
     return (input_tokens * costs["input"] + output_tokens * costs["output"]) / 1_000_000
 
@@ -345,9 +360,10 @@ if __name__ == "__main__":
     for r in results:
         tag = "✅" if r.is_healthy else "🔴"
         key = "🔑" if r.key_configured else ("🌐" if r.category == "cloud" else "")
-        print(f"  {tag} {key}  {r.name:<20} {r.url:<45} {r.model_count}M  {r.response_ms}ms")
+        print(
+            f"  {tag} {key}  {r.name:<20} {r.url:<45} {r.model_count}M  {r.response_ms}ms"
+        )
 
     best_r, best_m = get_best()
     if best_r:
         print(f"\n  Best: {best_r.name} / {best_m}")
-

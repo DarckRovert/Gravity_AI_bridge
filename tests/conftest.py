@@ -2,6 +2,7 @@
 tests/conftest.py — Fixtures compartidos para toda la suite de tests de Gravity AI Bridge.
 Resetea singletons globales y provee rutas temporales aisladas por test.
 """
+
 import json
 import os
 import sys
@@ -15,6 +16,7 @@ if ROOT not in sys.path:
 
 # ── Fixture: _settings.json temporal ─────────────────────────────────────────
 
+
 @pytest.fixture
 def mock_settings(tmp_path, monkeypatch):
     """
@@ -22,19 +24,26 @@ def mock_settings(tmp_path, monkeypatch):
     Parchea SETTINGS_FILE en engine_watchdog para aislamiento total.
     """
     settings_file = tmp_path / "_settings.json"
-    settings_file.write_text(json.dumps({
-        "bridge_port":    7860,
-        "provider":       "ollama",
-        "model_locked":   False,
-        "advanced_params": {"num_ctx": 4096}
-    }, indent=2))
+    settings_file.write_text(
+        json.dumps(
+            {
+                "bridge_port": 7860,
+                "provider": "ollama",
+                "model_locked": False,
+                "advanced_params": {"num_ctx": 4096},
+            },
+            indent=2,
+        )
+    )
 
     import core.engine_watchdog as ew
+
     monkeypatch.setattr(ew, "SETTINGS_FILE", str(settings_file))
     return settings_file
 
 
 # ── Fixture: audit log temporal ───────────────────────────────────────────────
+
 
 @pytest.fixture
 def mock_audit_log(tmp_path):
@@ -43,10 +52,12 @@ def mock_audit_log(tmp_path):
     No contamina el _audit_log.jsonl real del proyecto.
     """
     from core.audit_log import AuditLogger
+
     return AuditLogger(log_path=str(tmp_path / "test_audit.jsonl"))
 
 
 # ── Fixture: base de datos de imagen queue temporal ───────────────────────────
+
 
 @pytest.fixture
 def mock_image_queue_db(tmp_path, monkeypatch):
@@ -54,6 +65,7 @@ def mock_image_queue_db(tmp_path, monkeypatch):
     Redirige image_queue al SQLite temporal y resetea su estado global.
     """
     import core.image_queue as iq
+
     db_path = str(tmp_path / "test_image_queue.sqlite")
     monkeypatch.setattr(iq, "DB_PATH", db_path)
     monkeypatch.setattr(iq, "_started", False)
@@ -64,6 +76,7 @@ def mock_image_queue_db(tmp_path, monkeypatch):
 
 # ── Fixture: reset security monitor ──────────────────────────────────────────
 
+
 @pytest.fixture(autouse=False)
 def reset_security_monitor(monkeypatch):
     """
@@ -71,6 +84,7 @@ def reset_security_monitor(monkeypatch):
     No es autouse para no impactar tests que no lo necesitan.
     """
     from core import security_monitor as sm
+
     with sm._lock:
         sm._state["alerts"].clear()
         sm._baseline_hashes.clear()
@@ -82,10 +96,12 @@ def reset_security_monitor(monkeypatch):
 
 # ── Fixture: reset engine watchdog ────────────────────────────────────────────
 
+
 @pytest.fixture(autouse=False)
 def reset_watchdog(monkeypatch):
     """Reset completo del estado global del engine watchdog."""
     import core.engine_watchdog as ew
+
     monkeypatch.setattr(ew, "_current_provider_name", None)
     monkeypatch.setattr(ew, "_current_model", None)
     monkeypatch.setattr(ew, "_current_url", None)
@@ -97,6 +113,7 @@ def reset_watchdog(monkeypatch):
 
 
 # ── Fixture: mixin handler HTTP mock ─────────────────────────────────────────
+
 
 @pytest.fixture
 def make_post_handler():
@@ -114,8 +131,8 @@ def make_post_handler():
         raw_body = json.dumps(body or {}).encode("utf-8")
         handler.headers = {
             "Content-Length": str(len(raw_body)),
-            "Content-Type":   "application/json",
-            "Authorization":  "",
+            "Content-Type": "application/json",
+            "Authorization": "",
             **(headers or {}),
         }
         handler.rfile.read.return_value = raw_body
@@ -128,6 +145,7 @@ def make_post_handler():
 
 # ── Fixture: RAG retriever con índice vacío ───────────────────────────────────
 
+
 @pytest.fixture
 def empty_rag_index(tmp_path, monkeypatch):
     """
@@ -135,8 +153,10 @@ def empty_rag_index(tmp_path, monkeypatch):
     verificar el comportamiento cuando no hay documentos indexados.
     """
     from rag import vector_store
-    monkeypatch.setattr(vector_store, "INDEX_PATH",
-                        str(tmp_path / "test_rag_index.json"))
+
+    monkeypatch.setattr(
+        vector_store, "INDEX_PATH", str(tmp_path / "test_rag_index.json")
+    )
     # Resetear el store en memoria
     monkeypatch.setattr(vector_store, "_store", {"chunks": [], "embeddings": []})
     return tmp_path / "test_rag_index.json"

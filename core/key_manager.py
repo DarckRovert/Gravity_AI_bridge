@@ -30,24 +30,88 @@ _keystore_lock: threading.RLock = threading.RLock()
 
 # Proveedores cloud conocidos con sus metadatos de display
 KNOWN_CLOUD_PROVIDERS: Dict[str, Dict[str, str]] = {
-    "openai":       {"display": "OpenAI",           "key_prefix": "sk-",   "url": "https://api.openai.com/v1"},
-    "anthropic":    {"display": "Anthropic",         "key_prefix": "sk-ant","url": "https://api.anthropic.com"},
-    "gemini":       {"display": "Google Gemini",     "key_prefix": "AIza", "url": "https://generativelanguage.googleapis.com"},
-    "mistral":      {"display": "Mistral AI",        "key_prefix": "",     "url": "https://api.mistral.ai/v1"},
-    "groq":         {"display": "Groq",              "key_prefix": "gsk_", "url": "https://api.groq.com/openai/v1"},
-    "deepseek":     {"display": "DeepSeek Cloud",    "key_prefix": "sk-",  "url": "https://api.deepseek.com/v1"},
-    "together":     {"display": "Together AI",       "key_prefix": "",     "url": "https://api.together.xyz/v1"},
-    "fireworks":    {"display": "Fireworks AI",      "key_prefix": "fw_",  "url": "https://api.fireworks.ai/inference/v1"},
-    "cohere":       {"display": "Cohere",            "key_prefix": "",     "url": "https://api.cohere.com/v1"},
-    "xai":          {"display": "xAI (Grok)",        "key_prefix": "xai-", "url": "https://api.x.ai/v1"},
-    "azure":        {"display": "Azure OpenAI",      "key_prefix": "",     "url": "custom"},
-    "bedrock":      {"display": "AWS Bedrock",       "key_prefix": "",     "url": "custom"},
-    "huggingface":  {"display": "HuggingFace",       "key_prefix": "hf_",  "url": "https://api-inference.huggingface.co"},
-    "perplexity":   {"display": "Perplexity",        "key_prefix": "pplx-","url": "https://api.perplexity.ai"},
-    "openrouter":   {"display": "OpenRouter",        "key_prefix": "sk-or-","url": "https://openrouter.ai/api/v1"},
-    "deepinfra":    {"display": "DeepInfra",         "key_prefix": "",     "url": "https://api.deepinfra.com/v1/openai"},
-    "nvidia":       {"display": "Nvidia NIM",        "key_prefix": "nvapi-","url": "https://integrate.api.nvidia.com/v1"},
-    "youtube":      {"display": "YouTube Data API",  "key_prefix": "",     "url": "https://console.cloud.google.com"},
+    "openai": {
+        "display": "OpenAI",
+        "key_prefix": "sk-",
+        "url": "https://api.openai.com/v1",
+    },
+    "anthropic": {
+        "display": "Anthropic",
+        "key_prefix": "sk-ant",
+        "url": "https://api.anthropic.com",
+    },
+    "gemini": {
+        "display": "Google Gemini",
+        "key_prefix": "AIza",
+        "url": "https://generativelanguage.googleapis.com",
+    },
+    "mistral": {
+        "display": "Mistral AI",
+        "key_prefix": "",
+        "url": "https://api.mistral.ai/v1",
+    },
+    "groq": {
+        "display": "Groq",
+        "key_prefix": "gsk_",
+        "url": "https://api.groq.com/openai/v1",
+    },
+    "deepseek": {
+        "display": "DeepSeek Cloud",
+        "key_prefix": "sk-",
+        "url": "https://api.deepseek.com/v1",
+    },
+    "together": {
+        "display": "Together AI",
+        "key_prefix": "",
+        "url": "https://api.together.xyz/v1",
+    },
+    "fireworks": {
+        "display": "Fireworks AI",
+        "key_prefix": "fw_",
+        "url": "https://api.fireworks.ai/inference/v1",
+    },
+    "cohere": {
+        "display": "Cohere",
+        "key_prefix": "",
+        "url": "https://api.cohere.com/v1",
+    },
+    "xai": {
+        "display": "xAI (Grok)",
+        "key_prefix": "xai-",
+        "url": "https://api.x.ai/v1",
+    },
+    "azure": {"display": "Azure OpenAI", "key_prefix": "", "url": "custom"},
+    "bedrock": {"display": "AWS Bedrock", "key_prefix": "", "url": "custom"},
+    "huggingface": {
+        "display": "HuggingFace",
+        "key_prefix": "hf_",
+        "url": "https://api-inference.huggingface.co",
+    },
+    "perplexity": {
+        "display": "Perplexity",
+        "key_prefix": "pplx-",
+        "url": "https://api.perplexity.ai",
+    },
+    "openrouter": {
+        "display": "OpenRouter",
+        "key_prefix": "sk-or-",
+        "url": "https://openrouter.ai/api/v1",
+    },
+    "deepinfra": {
+        "display": "DeepInfra",
+        "key_prefix": "",
+        "url": "https://api.deepinfra.com/v1/openai",
+    },
+    "nvidia": {
+        "display": "Nvidia NIM",
+        "key_prefix": "nvapi-",
+        "url": "https://integrate.api.nvidia.com/v1",
+    },
+    "youtube": {
+        "display": "YouTube Data API",
+        "key_prefix": "",
+        "url": "https://console.cloud.google.com",
+    },
 }
 
 
@@ -77,12 +141,13 @@ def _encrypt(plaintext: str) -> bytes:
     if platform.system() == "Windows":
         try:
             import win32crypt  # type: ignore[import-not-found]
+
             return win32crypt.CryptProtectData(raw, None, None, None, None, 4)
         except Exception:
             pass
     # Fallback XOR
     salt = _get_machine_salt()
-    key  = hashlib.sha256(salt + b"GravityAI_V16.0 PRO").digest()
+    key = hashlib.sha256(salt + b"GravityAI_V16.0 PRO").digest()
     return b"XOR:" + _xor_cipher(raw, key)
 
 
@@ -90,12 +155,15 @@ def _decrypt(ciphertext: bytes) -> str:
     """Decrypt bytes back to string."""
     if ciphertext.startswith(b"XOR:"):
         salt = _get_machine_salt()
-        key  = hashlib.sha256(salt + b"GravityAI_V16.0 PRO").digest()
+        key = hashlib.sha256(salt + b"GravityAI_V16.0 PRO").digest()
         return _xor_cipher(ciphertext[4:], key).decode("utf-8")
     if platform.system() == "Windows":
         try:
             import win32crypt  # type: ignore[import-not-found]
-            _, decrypted = win32crypt.CryptUnprotectData(ciphertext, None, None, None, 0)
+
+            _, decrypted = win32crypt.CryptUnprotectData(
+                ciphertext, None, None, None, 0
+            )
             return decrypted.decode("utf-8")
         except Exception:
             pass
@@ -163,7 +231,7 @@ class KeyManager:
         """Deletes the API key for a provider. Returns True if it existed."""
         with _keystore_lock:
             store = _load_store()
-            key   = provider.lower().strip()
+            key = provider.lower().strip()
             if key in store:
                 del store[key]
                 _save_store(store)
@@ -206,7 +274,7 @@ class KeyManager:
             for pid, meta in KNOWN_CLOUD_PROVIDERS.items():
                 result[pid] = {
                     **meta,
-                    "has_key":   cls.has_key(pid),
+                    "has_key": cls.has_key(pid),
                     "key_masked": cls.mask(pid) if cls.has_key(pid) else None,
                 }
             return result

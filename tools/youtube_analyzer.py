@@ -1,7 +1,6 @@
 import yt_dlp
 import os
 import json
-import tempfile
 import sys
 
 # Asegurar path
@@ -13,6 +12,7 @@ if base_dir not in sys.path:
 from core import provider_manager
 from core.logger import log
 
+
 class YouTubeAnalyzer:
     def __init__(self):
         self.tmp_dir = os.path.join(base_dir, "scratch", "yt_downloads")
@@ -20,24 +20,25 @@ class YouTubeAnalyzer:
 
     def fetch_video_info(self, url: str) -> dict:
         ydl_opts = {
-            'quiet': True,
-            'skip_download': True,
-            'writeautomaticsub': True,
-            'subtitleslangs': ['es', 'en'],
-            'outtmpl': os.path.join(self.tmp_dir, '%(id)s.%(ext)s'),
+            "quiet": True,
+            "skip_download": True,
+            "writeautomaticsub": True,
+            "subtitleslangs": ["es", "en"],
+            "outtmpl": os.path.join(self.tmp_dir, "%(id)s.%(ext)s"),
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-            
+
             # Intentar extraer subtítulos directamente de los metadatos si es posible
             transcript = ""
-            subs = info.get('requested_subtitles')
-            if subs and ('es' in subs or 'en' in subs):
-                sub_lang = 'es' if 'es' in subs else 'en'
+            subs = info.get("requested_subtitles")
+            if subs and ("es" in subs or "en" in subs):
+                sub_lang = "es" if "es" in subs else "en"
                 # En este nivel yt-dlp solo da la url del vtt/json3
-                sub_url = subs[sub_lang].get('url')
+                sub_url = subs[sub_lang].get("url")
                 if sub_url:
                     import requests
+
                     try:
                         r = requests.get(sub_url)
                         if r.status_code == 200:
@@ -46,13 +47,15 @@ class YouTubeAnalyzer:
                         log.error(f"[YT Analyzer] Error bajando subtítulos: {e}")
 
             if not transcript:
-                log.info("[YT Analyzer] No hay subtítulos automáticos. Pasando a Fallback Whisper.")
-                transcript = self._fallback_whisper(url, info.get('id', 'temp'))
+                log.info(
+                    "[YT Analyzer] No hay subtítulos automáticos. Pasando a Fallback Whisper."
+                )
+                transcript = self._fallback_whisper(url, info.get("id", "temp"))
 
             likes = info.get("like_count") or 0
             comments = info.get("comment_count") or 0
             views = info.get("view_count") or 0
-            
+
             # Cálculo de engagement
             engagement_rate = 0
             if views and views > 0:
@@ -68,19 +71,25 @@ class YouTubeAnalyzer:
                 "upload_date": info.get("upload_date", ""),
                 "duration": info.get("duration", 0),
                 "thumbnail": info.get("thumbnail", ""),
-                "transcript": transcript
+                "transcript": transcript,
             }
 
     def _clean_vtt(self, vtt_text: str) -> str:
         import re
+
         lines = vtt_text.splitlines()
         clean_lines = []
         for line in lines:
             # Eliminar timestamps de VTT y etiquetas HTML/cues
-            if '-->' in line or line.startswith('WEBVTT') or line.startswith('Kind:') or line.startswith('Language:'):
+            if (
+                "-->" in line
+                or line.startswith("WEBVTT")
+                or line.startswith("Kind:")
+                or line.startswith("Language:")
+            ):
                 continue
-            line = re.sub(r'<[^>]+>', '', line).strip()
-            if line and line not in clean_lines[-5:]: # Evitar duplicados simples
+            line = re.sub(r"<[^>]+>", "", line).strip()
+            if line and line not in clean_lines[-5:]:  # Evitar duplicados simples
                 clean_lines.append(line)
         return " ".join(clean_lines)
 
@@ -88,36 +97,47 @@ class YouTubeAnalyzer:
         try:
             from faster_whisper import WhisperModel
         except ImportError:
-            log.warning("faster-whisper no está instalado. Instalándolo automáticamente...")
+            log.warning(
+                "faster-whisper no está instalado. Instalándolo automáticamente..."
+            )
             import subprocess
-            subprocess.run([sys.executable, "-m", "pip", "install", "faster-whisper"], check=True)
+
+            subprocess.run(
+                [sys.executable, "-m", "pip", "install", "faster-whisper"], check=True
+            )
             from faster_whisper import WhisperModel
 
         audio_file = os.path.join(self.tmp_dir, f"{video_id}.mp3")
         ydl_opts = {
-            'format': 'bestaudio/best',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }],
-            'outtmpl': os.path.join(self.tmp_dir, f"{video_id}.%(ext)s"),
-            'quiet': True,
+            "format": "bestaudio/best",
+            "postprocessors": [
+                {
+                    "key": "FFmpegExtractAudio",
+                    "preferredcodec": "mp3",
+                    "preferredquality": "192",
+                }
+            ],
+            "outtmpl": os.path.join(self.tmp_dir, f"{video_id}.%(ext)s"),
+            "quiet": True,
         }
-        
+
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
-                
-            log.info("[YT Analyzer] Audio descargado. Iniciando transcripción con Whisper...")
-            model = WhisperModel("tiny", device="cpu", compute_type="int8") # Usamos tiny por velocidad
+
+            log.info(
+                "[YT Analyzer] Audio descargado. Iniciando transcripción con Whisper..."
+            )
+            model = WhisperModel(
+                "tiny", device="cpu", compute_type="int8"
+            )  # Usamos tiny por velocidad
             segments, _ = model.transcribe(audio_file)
             transcript = " ".join([segment.text for segment in segments])
-            
+
             # Limpiar
             if os.path.exists(audio_file):
                 os.remove(audio_file)
-                
+
             return transcript
         except Exception as e:
             log.error(f"[YT Analyzer] Falló transcripción por audio: {e}")
@@ -145,7 +165,7 @@ CRÍTICO: Escapa correctamente las comillas dobles y usa \\n para saltos de lín
     ]
 }}
         """
-        
+
         try:
             log.info("[YT Analyzer] Consultando a la IA...")
             messages = [{"role": "user", "content": prompt}]
@@ -154,13 +174,13 @@ CRÍTICO: Escapa correctamente las comillas dobles y usa \\n para saltos de lín
                 result_text = response.text
             else:
                 result_text = str(response)
-                
+
             # Limpiar posible markdown
             if "```json" in result_text:
                 result_text = result_text.split("```json")[1].split("```")[0].strip()
             elif "```" in result_text:
                 result_text = result_text.split("```")[1].split("```")[0].strip()
-                
+
             try:
                 return json.loads(result_text)
             except json.JSONDecodeError as json_e:
@@ -172,7 +192,7 @@ CRÍTICO: Escapa correctamente las comillas dobles y usa \\n para saltos de lín
                     "monetization_strategy": ["Error al parsear el JSON."],
                     "hook_score": 0,
                     "tone": "Desconocido",
-                    "timestamps": []
+                    "timestamps": [],
                 }
         except Exception as e:
             log.error(f"[YT Analyzer] Error de IA: {e}")
@@ -182,25 +202,27 @@ CRÍTICO: Escapa correctamente las comillas dobles y usa \\n para saltos de lín
                 "monetization_strategy": [],
                 "hook_score": 0,
                 "tone": "Error",
-                "timestamps": []
+                "timestamps": [],
             }
 
     def process_url(self, url: str) -> dict:
         log.info(f"[YT Analyzer] Procesando {url}...")
         info = self.fetch_video_info(url)
-        
+
         # Si la transcripción es excesivamente corta (ej música) o falló
-        if len(info['transcript'].strip()) < 50:
+        if len(info["transcript"].strip()) < 50:
             analysis = {
                 "summary": "El video no contiene suficiente diálogo hablado para generar un resumen.",
                 "key_takeaways": [],
-                "monetization_strategy": ["Análisis de monetización no aplicable (falta de contenido verbal)."],
+                "monetization_strategy": [
+                    "Análisis de monetización no aplicable (falta de contenido verbal)."
+                ],
                 "hook_score": 0,
                 "tone": "N/A",
-                "timestamps": []
+                "timestamps": [],
             }
         else:
-            analysis = self.analyze_with_ai(info['transcript'], info['title'])
-            
+            analysis = self.analyze_with_ai(info["transcript"], info["title"])
+
         info["analysis"] = analysis
         return info

@@ -2,6 +2,7 @@
 Gravity AI — Capa de Herramientas: Buscador de Patrones Avanzado (GrepTool)
 Estándar: Diamond-Tier (Tipado estricto, evasión de CMD en Windows y algoritmos de resiliencia).
 """
+
 import os
 import re
 import sys
@@ -19,6 +20,7 @@ class GrepTool(Tool):
     Optimiza el consumo de tokens limitando la salida y realiza un fallback nativo en Python
     si el ejecutable 'rg' no está instalado en el sistema.
     """
+
     name: str = "grep_search"
     description: str = (
         "Busca patrones de texto en el sistema de archivos. "
@@ -26,14 +28,16 @@ class GrepTool(Tool):
     )
     requires_confirmation: bool = False
 
-    def execute(self, 
-                pattern: str, 
-                path: str = ".", 
-                glob: Optional[str] = None, 
-                case_insensitive: bool = True,
-                multiline: bool = False,
-                head_limit: int = 250,
-                **kwargs: Any) -> ToolResult:
+    def execute(
+        self,
+        pattern: str,
+        path: str = ".",
+        glob: Optional[str] = None,
+        case_insensitive: bool = True,
+        multiline: bool = False,
+        head_limit: int = 250,
+        **kwargs: Any,
+    ) -> ToolResult:
         """
         Ejecuta la búsqueda de patrones mediante ripgrep o fallback de Python.
 
@@ -58,9 +62,9 @@ class GrepTool(Tool):
                 cmd.append("-U")
             if glob:
                 cmd.extend(["-g", glob])
-            
+
             cmd.extend([pattern, path])
-            
+
             # Impedir el parpadeo y la apertura de ventanas cmd adicionales en entornos Windows
             creationflags: int = 0
             if sys.platform == "win32":
@@ -68,29 +72,39 @@ class GrepTool(Tool):
 
             # Ejecución asíncrona de Ripgrep
             process = subprocess.Popen(
-                cmd, 
-                stdout=subprocess.PIPE, 
-                stderr=subprocess.PIPE, 
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True,
                 encoding="utf-8",
-                creationflags=creationflags
+                creationflags=creationflags,
             )
             stdout, stderr = process.communicate(timeout=15)
-            
+
             # Código 0 representa éxito, código 1 representa cero coincidencias sin error fatal
             if process.returncode in (0, 1):
                 return self._parse_rg_json(stdout, head_limit)
-                
+
         except subprocess.TimeoutExpired:
             process.kill()
-            return ToolResult(success=False, stderr="Error: El proceso de búsqueda 'ripgrep' superó el timeout de 15 segundos.")
+            return ToolResult(
+                success=False,
+                stderr="Error: El proceso de búsqueda 'ripgrep' superó el timeout de 15 segundos.",
+            )
         except FileNotFoundError:
             # Fallback transparente y robusto en puro Python si 'rg' no está instalado en la terminal actual
-            return self._python_fallback_search(pattern, path, glob, case_insensitive, head_limit)
+            return self._python_fallback_search(
+                pattern, path, glob, case_insensitive, head_limit
+            )
         except Exception as e:
-            return ToolResult(success=False, stderr=f"Error inesperado al ejecutar grep_tool: {str(e)}")
+            return ToolResult(
+                success=False,
+                stderr=f"Error inesperado al ejecutar grep_tool: {str(e)}",
+            )
 
-        return self._python_fallback_search(pattern, path, glob, case_insensitive, head_limit)
+        return self._python_fallback_search(
+            pattern, path, glob, case_insensitive, head_limit
+        )
 
     def _parse_rg_json(self, json_output: str, limit: int) -> ToolResult:
         """
@@ -105,7 +119,7 @@ class GrepTool(Tool):
         """
         matches: List[str] = []
         count: int = 0
-        
+
         for line in json_output.splitlines():
             if not line:
                 continue
@@ -118,30 +132,32 @@ class GrepTool(Tool):
                 count += 1
                 if count > limit:
                     break
-                
+
                 match_data = data.get("data", {})
                 path_text: str = match_data.get("path", {}).get("text", "desconocido")
                 line_number: int = match_data.get("line_number", 0)
                 content: str = match_data.get("lines", {}).get("text", "").strip()
                 matches.append(f"{path_text}:{line_number}: {content}")
-        
+
         output: str = "\n".join(matches)
         if count > limit:
             output += f"\n\n[AVISO] Se alcanzó el límite de {limit} resultados. Refina la búsqueda."
-            
+
         return ToolResult(
-            success=True, 
+            success=True,
             stdout=output if matches else "No se encontraron coincidencias.",
-            data={"match_count": count}
+            data={"match_count": count},
         )
 
-    def _python_fallback_search(self, 
-                               pattern: str, 
-                               path: str, 
-                               glob_pat: Optional[str], 
-                               case_insensitive: bool, 
-                               limit: int,
-                               wall_timeout: float = 12.0) -> ToolResult:
+    def _python_fallback_search(
+        self,
+        pattern: str,
+        path: str,
+        glob_pat: Optional[str],
+        case_insensitive: bool,
+        limit: int,
+        wall_timeout: float = 12.0,
+    ) -> ToolResult:
         """
         Implementación pura en Python de recorrido y filtrado de expresiones regulares.
         Respeta un timeout de pared (`wall_timeout`) para evitar cuelgues en repos grandes.
@@ -162,30 +178,38 @@ class GrepTool(Tool):
         regex_flags: int = re.IGNORECASE if case_insensitive else 0
         deadline: float = time.monotonic() + wall_timeout
         timed_out: bool = False
-        
+
         try:
             regex = re.compile(pattern, regex_flags)
         except re.error as e:
-            return ToolResult(success=False, stderr=f"Expresión regular inválida en búsqueda fallback: {str(e)}")
+            return ToolResult(
+                success=False,
+                stderr=f"Expresión regular inválida en búsqueda fallback: {str(e)}",
+            )
 
         for root, dirs, files in os.walk(path):
             if time.monotonic() > deadline:
                 timed_out = True
                 break
             # Optimizar recorrido podando directorios innecesarios o del entorno virtual
-            dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ('node_modules', '__pycache__', 'vendor', '_integrations')]
-            
+            dirs[:] = [
+                d
+                for d in dirs
+                if not d.startswith(".")
+                and d not in ("node_modules", "__pycache__", "vendor", "_integrations")
+            ]
+
             for file in files:
                 if time.monotonic() > deadline:
                     timed_out = True
                     break
                 if glob_pat and not fnmatch.fnmatch(file, glob_pat):
                     continue
-                
+
                 file_path: str = os.path.join(root, file)
                 try:
                     # Usar errors='ignore' para evitar caídas en archivos binarios o encodings extraños
-                    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                         for i, line in enumerate(f, 1):
                             if regex.search(line):
                                 count += 1
@@ -196,7 +220,7 @@ class GrepTool(Tool):
                 except IOError:
                     # Saltar archivos sin permisos o bloqueados por el sistema operativo
                     continue
-                
+
                 if count > limit:
                     break
             if count > limit or timed_out:
@@ -207,10 +231,17 @@ class GrepTool(Tool):
             output += f"\n\n[AVISO] Búsqueda truncada: timeout de {wall_timeout:.0f}s alcanzado (Modo Fallback Python)."
         elif count > limit:
             output += f"\n\n[AVISO] Se alcanzó el límite de {limit} resultados (Modo Fallback Python)."
-            
-        return ToolResult(
-            success=True, 
-            stdout=output if matches else "No se encontraron coincidencias (Modo Fallback).",
-            data={"match_count": count, "mode": "python_fallback", "timed_out": timed_out}
-        )
 
+        return ToolResult(
+            success=True,
+            stdout=(
+                output
+                if matches
+                else "No se encontraron coincidencias (Modo Fallback)."
+            ),
+            data={
+                "match_count": count,
+                "mode": "python_fallback",
+                "timed_out": timed_out,
+            },
+        )

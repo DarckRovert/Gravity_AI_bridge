@@ -1,6 +1,5 @@
 import sqlite3
-import os
-from datetime import datetime
+
 
 class TinkaDB:
     def __init__(self, db_path="tinka_history.db"):
@@ -11,8 +10,8 @@ class TinkaDB:
         """Inicializa la base de datos y crea la tabla si no existe."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
-        cursor.execute('''
+
+        cursor.execute("""
         CREATE TABLE IF NOT EXISTS draws (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             draw_number INTEGER UNIQUE NOT NULL,
@@ -26,18 +25,21 @@ class TinkaDB:
             boliyapa INTEGER,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-        ''')
-        
+        """)
+
         conn.commit()
         conn.close()
 
-    def insert_draw(self, draw_number, draw_date, b1, b2, b3, b4, b5, b6, boliyapa=None):
+    def insert_draw(
+        self, draw_number, draw_date, b1, b2, b3, b4, b5, b6, boliyapa=None
+    ):
         """Inserta o actualiza un sorteo en la base de datos."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         try:
-            cursor.execute('''
+            cursor.execute(
+                """
             INSERT INTO draws (draw_number, draw_date, b1, b2, b3, b4, b5, b6, boliyapa)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(draw_number) DO UPDATE SET
@@ -49,7 +51,9 @@ class TinkaDB:
                 b5=excluded.b5,
                 b6=excluded.b6,
                 boliyapa=excluded.boliyapa
-            ''', (draw_number, draw_date, b1, b2, b3, b4, b5, b6, boliyapa))
+            """,
+                (draw_number, draw_date, b1, b2, b3, b4, b5, b6, boliyapa),
+            )
             conn.commit()
             return True
         except sqlite3.Error as e:
@@ -65,21 +69,28 @@ class TinkaDB:
         """
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         inserted_count = 0
         try:
             for draw in draws_list:
-                cursor.execute('''
+                cursor.execute(
+                    """
                 INSERT INTO draws (draw_number, draw_date, b1, b2, b3, b4, b5, b6, boliyapa)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(draw_number) DO NOTHING
-                ''', (
-                    draw.get('draw_number'), 
-                    draw.get('draw_date'),
-                    draw.get('b1'), draw.get('b2'), draw.get('b3'),
-                    draw.get('b4'), draw.get('b5'), draw.get('b6'),
-                    draw.get('boliyapa')
-                ))
+                """,
+                    (
+                        draw.get("draw_number"),
+                        draw.get("draw_date"),
+                        draw.get("b1"),
+                        draw.get("b2"),
+                        draw.get("b3"),
+                        draw.get("b4"),
+                        draw.get("b5"),
+                        draw.get("b6"),
+                        draw.get("boliyapa"),
+                    ),
+                )
                 if cursor.rowcount > 0:
                     inserted_count += 1
             conn.commit()
@@ -95,11 +106,11 @@ class TinkaDB:
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        
-        cursor.execute('SELECT * FROM draws ORDER BY draw_number ASC')
+
+        cursor.execute("SELECT * FROM draws ORDER BY draw_number ASC")
         rows = cursor.fetchall()
         conn.close()
-        
+
         return [dict(row) for row in rows]
 
     def get_latest_draw(self):
@@ -107,20 +118,20 @@ class TinkaDB:
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        
-        cursor.execute('SELECT * FROM draws ORDER BY draw_number DESC LIMIT 1')
+
+        cursor.execute("SELECT * FROM draws ORDER BY draw_number DESC LIMIT 1")
         row = cursor.fetchone()
         conn.close()
-        
+
         return dict(row) if row else None
 
     def get_total_draws_count(self):
         """Retorna la cantidad total de sorteos registrados."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
-        cursor.execute('SELECT COUNT(*) FROM draws')
+
+        cursor.execute("SELECT COUNT(*) FROM draws")
         count = cursor.fetchone()[0]
         conn.close()
-        
+
         return count

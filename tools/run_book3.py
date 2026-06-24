@@ -23,4 +23,6 @@ Debe ser un manual de entrenamiento ontológico profundo y analítico. Un tono s
 if __name__ == "__main__":
     author = GravityResearchAuthor()
     # Generaremos 5 capítulos.
-    author.write_research_book(prompt=prompt_maestro, title="El Cero Operativo", num_chapters=5)
+    author.write_research_book(
+        prompt=prompt_maestro, title="El Cero Operativo", num_chapters=5
+    )

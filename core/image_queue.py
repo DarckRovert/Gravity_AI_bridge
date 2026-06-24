@@ -25,10 +25,12 @@ from typing import Optional, List, Callable
 _on_update_callbacks: List[Callable[[], None]] = []
 _on_update_callbacks_lock = threading.RLock()
 
+
 def register_update_callback(cb: Callable[[], None]) -> None:
     """Registra una función callback thread-safe para notificar actualizaciones."""
     with _on_update_callbacks_lock:
         _on_update_callbacks.append(cb)
+
 
 def _notify_update() -> None:
     """Despacha notificaciones de manera segura a todos los callbacks registrados."""
@@ -40,8 +42,9 @@ def _notify_update() -> None:
         except Exception:
             pass
 
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH  = os.path.join(BASE_DIR, "_image_queue.sqlite")
+DB_PATH = os.path.join(BASE_DIR, "_image_queue.sqlite")
 
 # ── Schema ─────────────────────────────────────────────────────────────────────
 
@@ -69,6 +72,7 @@ _current_job: Optional[dict] = None
 
 # ── DB Helpers ─────────────────────────────────────────────────────────────────
 
+
 def _get_conn() -> sqlite3.Connection:
     """Retorna una conexión a la base de datos SQLite."""
     conn = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=15)
@@ -85,8 +89,10 @@ def _init_db() -> None:
 
 # ── API Pública ────────────────────────────────────────────────────────────────
 
-def add_job(prompt: str, performance: str = "Speed",
-            width: int = 1024, height: int = 1024) -> int:
+
+def add_job(
+    prompt: str, performance: str = "Speed", width: int = 1024, height: int = 1024
+) -> int:
     """
     Encola un trabajo de generación de imagen de manera thread-safe.
     Retorna el ID del trabajo asignado.
@@ -97,7 +103,7 @@ def add_job(prompt: str, performance: str = "Speed",
             cur = conn.execute(
                 "INSERT INTO image_jobs (created_at, status, prompt, performance, width, height) "
                 "VALUES (?, 'pending', ?, ?, ?, ?)",
-                (now, prompt, performance, width, height)
+                (now, prompt, performance, width, height),
             )
             job_id = cur.lastrowid
             _notify_update()
@@ -145,7 +151,7 @@ def cancel_job(job_id: int) -> bool:
             cur = conn.execute(
                 "UPDATE image_jobs SET status='cancelled', "
                 "finished_at=? WHERE id=? AND status='pending'",
-                (datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), job_id)
+                (datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), job_id),
             )
             changed = cur.rowcount > 0
             if changed:
@@ -154,6 +160,7 @@ def cancel_job(job_id: int) -> bool:
 
 
 # ── Worker ─────────────────────────────────────────────────────────────────────
+
 
 def _process_job(job: sqlite3.Row) -> None:
     """Procesa un trabajo individual usando fooocus_client.
@@ -165,37 +172,40 @@ def _process_job(job: sqlite3.Row) -> None:
     job_id = job["id"]
 
     # Ruta de outputs — igual que en fooocus_client.py
-    _OUTPUT_DIR = os.path.join(BASE_DIR, "_integrations", "Fooocus", "Fooocus", "outputs")
+    _OUTPUT_DIR = os.path.join(
+        BASE_DIR, "_integrations", "Fooocus", "Fooocus", "outputs"
+    )
 
     # Marcar como en progreso
     with _db_lock:
         with _get_conn() as conn:
             conn.execute(
                 "UPDATE image_jobs SET status='running', started_at=? WHERE id=?",
-                (datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), job_id)
+                (datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), job_id),
             )
 
     with _lock:
         _current_job = {
-            "id":      job_id,
-            "prompt":  job["prompt"],
-            "status":  "running",
+            "id": job_id,
+            "prompt": job["prompt"],
+            "status": "running",
             "started": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         }
 
     try:
         import sys
+
         tools_dir = os.path.join(BASE_DIR, "tools")
         if tools_dir not in sys.path:
             sys.path.insert(0, tools_dir)
         from fooocus_client import generate_image, ImageGenRequest
 
         req: ImageGenRequest = {
-            "prompt":      job["prompt"],
+            "prompt": job["prompt"],
             "performance": job["performance"],
-            "width":       job["width"],
-            "height":      job["height"],
-            "num_images":  1,
+            "width": job["width"],
+            "height": job["height"],
+            "num_images": 1,
         }
 
         # Lógica de retry con backoff exponencial (3 intentos: 5s, 10s, 20s)
@@ -209,8 +219,8 @@ def _process_job(job: sqlite3.Row) -> None:
             attempt += 1
             os.makedirs(_OUTPUT_DIR, exist_ok=True)
             before: set = set(
-                _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.png"), recursive=True) +
-                _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.webp"), recursive=True)
+                _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.png"), recursive=True)
+                + _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.webp"), recursive=True)
             )
 
             try:
@@ -219,21 +229,21 @@ def _process_job(job: sqlite3.Row) -> None:
                 result = {"success": False, "error": str(e)}
 
             after: set = set(
-                _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.png"), recursive=True) +
-                _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.webp"), recursive=True)
+                _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.png"), recursive=True)
+                + _glob.glob(os.path.join(_OUTPUT_DIR, "**", "*.webp"), recursive=True)
             )
             new_files = list(after - before)
 
             if result.get("success") and not new_files:
                 result["success"] = False
-                result["error"]   = (
+                result["error"] = (
                     "Fooocus reportó success pero no apareció ningún archivo nuevo en outputs/. "
                     "Falso positivo detectado."
                 )
 
             if result.get("success"):
                 break  # Éxito, salir del loop de retry
-            
+
             if attempt < max_attempts:
                 time.sleep(backoff)
                 backoff *= 2
@@ -242,14 +252,20 @@ def _process_job(job: sqlite3.Row) -> None:
             result["images"] = sorted(new_files, key=os.path.getmtime, reverse=True)
 
         result_str = json.dumps(result, ensure_ascii=False)
-        status     = "done" if result.get("success") else "failed"
-        error_msg  = result.get("error") if not result.get("success") else None
+        status = "done" if result.get("success") else "failed"
+        error_msg = result.get("error") if not result.get("success") else None
 
         with _db_lock:
             with _get_conn() as conn:
                 conn.execute(
                     "UPDATE image_jobs SET status=?, finished_at=?, result_json=?, error=? WHERE id=?",
-                    (status, datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), result_str, error_msg, job_id)
+                    (
+                        status,
+                        datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                        result_str,
+                        error_msg,
+                        job_id,
+                    ),
                 )
         _notify_update()
 
@@ -258,7 +274,11 @@ def _process_job(job: sqlite3.Row) -> None:
             with _get_conn() as conn:
                 conn.execute(
                     "UPDATE image_jobs SET status='failed', finished_at=?, error=? WHERE id=?",
-                    (datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), str(e), job_id)
+                    (
+                        datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                        str(e),
+                        job_id,
+                    ),
                 )
         _notify_update()
     finally:
@@ -286,6 +306,7 @@ def _worker_loop() -> None:
 
 
 # ── Arranque ───────────────────────────────────────────────────────────────────
+
 
 def start() -> None:
     """Inicializa la base de datos y arranca el worker daemon de forma thread-safe."""

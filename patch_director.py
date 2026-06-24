@@ -1,14 +1,18 @@
-import os
-import re
-
 filepath = r"f:\Gravity_AI_bridge\core\video\v13_ai_director.py"
 
 with open(filepath, "r", encoding="utf-8") as f:
     content = f.read()
 
 # 1. Update _query_llm definition and call
-if "def _query_llm(section_label: str, section_text: str, provider: str = None, model: str = None) -> dict:" not in content:
-    content = content.replace("def _query_llm(section_label: str, section_text: str) -> dict:", "def _query_llm(section_label: str, section_text: str, provider: str = None, model: str = None) -> dict:", 1)
+if (
+    "def _query_llm(section_label: str, section_text: str, provider: str = None, model: str = None) -> dict:"
+    not in content
+):
+    content = content.replace(
+        "def _query_llm(section_label: str, section_text: str) -> dict:",
+        "def _query_llm(section_label: str, section_text: str, provider: str = None, model: str = None) -> dict:",
+        1,
+    )
 
 old_complete = """    response_text = provider_manager.complete(
         messages,

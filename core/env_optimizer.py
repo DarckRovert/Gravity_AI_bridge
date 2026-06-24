@@ -24,53 +24,55 @@ _settings_lock = threading.RLock()
 
 # Cada engine_key tiene su propio nombre de parámetro para contexto y threads.
 _ENGINE_CTX_KEY: Dict[str, str] = {
-    "ollama":        "num_ctx",
-    "lm_studio":     "n_ctx",
-    "kobold":        "max_context_length",
-    "jan":           "n_ctx",
-    "lemonade":      "max_new_tokens",
+    "ollama": "num_ctx",
+    "lm_studio": "n_ctx",
+    "kobold": "max_context_length",
+    "jan": "n_ctx",
+    "lemonade": "max_new_tokens",
     "openai_compat": "max_tokens",
 }
 
 _ENGINE_THREAD_KEY: Dict[str, str] = {
-    "ollama":    "num_thread",
+    "ollama": "num_thread",
     "lm_studio": "threads",
-    "kobold":    "usemlock",   # kobold no tiene threads API — se omite
-    "jan":       "threads",
-    "lemonade":  "num_threads",
+    "kobold": "usemlock",  # kobold no tiene threads API — se omite
+    "jan": "threads",
+    "lemonade": "num_threads",
 }
 
 _ENGINE_GPU_KEY: Dict[str, str] = {
-    "ollama":    "num_gpu",
+    "ollama": "num_gpu",
     "lm_studio": "n_gpu_layers",
-    "kobold":    "gpulayers",
-    "jan":       "n_gpu_layers",
-    "lemonade":  "gpu_layers",
+    "kobold": "gpulayers",
+    "jan": "n_gpu_layers",
+    "lemonade": "gpu_layers",
 }
 
 
 # ── Lógica de cálculo ─────────────────────────────────────────────────────────
+
 
 def _compute_optimal_params(profile: dict) -> dict:
     """
     Calcula num_ctx, threads y gpu_layers óptimos dado un perfil de hardware.
     """
     total_ram_mb: int = profile.get("total_ram_mb", 16384)
-    vram_mb: int      = profile.get("vram_mb", 8192)
-    optimal_ctx: int  = profile.get("optimal_ctx", 0)
+    vram_mb: int = profile.get("vram_mb", 8192)
+    optimal_ctx: int = profile.get("optimal_ctx", 0)
 
     # ── num_ctx por RAM del sistema ────────────────────────────────────────────
     if optimal_ctx > 0:
         num_ctx = optimal_ctx
-    elif total_ram_mb >= 32768:   # >= 32 GB
+    elif total_ram_mb >= 32768:  # >= 32 GB
         num_ctx = 16384
-    elif total_ram_mb >= 16384:   # >= 16 GB
+    elif total_ram_mb >= 16384:  # >= 16 GB
         num_ctx = 8192
     else:
         num_ctx = 4096
 
     # ── CPU threads: núcleos físicos - 2, mínimo 2 ────────────────────────────
     import os as _os
+
     total_cores = _os.cpu_count() or 4
     # os.cpu_count() da hilos lógicos en Windows; dividir por 2 para físicos
     physical_cores = max(total_cores // 2, 2)
@@ -86,13 +88,14 @@ def _compute_optimal_params(profile: dict) -> dict:
         num_gpu = 0  # CPU puro
 
     return {
-        "num_ctx":    num_ctx,
+        "num_ctx": num_ctx,
         "num_thread": num_thread,
-        "num_gpu":    num_gpu,
+        "num_gpu": num_gpu,
     }
 
 
 # ── API Pública ────────────────────────────────────────────────────────────────
+
 
 def build_api_options(engine_key: str, profile: dict, user_opts: dict) -> dict:
     """
@@ -110,9 +113,9 @@ def build_api_options(engine_key: str, profile: dict, user_opts: dict) -> dict:
     computed = _compute_optimal_params(profile)
     opts: dict = {}
 
-    ctx_key    = _ENGINE_CTX_KEY.get(engine_key, "num_ctx")
+    ctx_key = _ENGINE_CTX_KEY.get(engine_key, "num_ctx")
     thread_key = _ENGINE_THREAD_KEY.get(engine_key)
-    gpu_key    = _ENGINE_GPU_KEY.get(engine_key)
+    gpu_key = _ENGINE_GPU_KEY.get(engine_key)
 
     opts[ctx_key] = computed["num_ctx"]
     if thread_key and engine_key != "kobold":
@@ -122,7 +125,7 @@ def build_api_options(engine_key: str, profile: dict, user_opts: dict) -> dict:
 
     # Ollama-specific extras
     if engine_key == "ollama":
-        opts["num_keep"]    = 24
+        opts["num_keep"] = 24
         opts["repeat_last_n"] = 64
 
     # user_opts sobreescribe todo (el usuario siempre gana)
@@ -143,20 +146,22 @@ def apply_all(persist: bool = True, verbose: bool = False) -> Tuple[dict, dict]:
     profile: dict = {}
     try:
         from core.hardware_profiler import get_full_profile
+
         profile = get_full_profile()
     except Exception as e:
         log.warning(f"[EnvOptimizer] hardware_profiler no disponible: {e}")
         profile = {
             "total_ram_mb": 16384,
-            "vram_mb":      8192,
-            "optimal_ctx":  8192,
-            "gpu_type":     "cpu",
+            "vram_mb": 8192,
+            "optimal_ctx": 8192,
+            "gpu_type": "cpu",
         }
 
     user_opts: dict = {}
     settings = {}
     try:
         import json as _json
+
         _BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         settings_path = os.path.join(_BASE, "_settings.json")
         with _settings_lock:
@@ -178,6 +183,7 @@ def apply_all(persist: bool = True, verbose: bool = False) -> Tuple[dict, dict]:
     if persist:
         try:
             import json as _json
+
             _BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             settings_path = os.path.join(_BASE, "_settings.json")
             with _settings_lock:

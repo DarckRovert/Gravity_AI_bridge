@@ -11,16 +11,17 @@ Thread-safe de alta concurrencia. Soporta múltiples fuentes por server_id.
 import threading
 import subprocess
 from collections import deque
-from typing import Optional, Dict, List, Any
+from typing import Dict, List
 
 # Cerrojo reentrante global para protección multihilo concurrente
 _lock: threading.RLock = threading.RLock()
-_buffers: Dict[str, deque[str]] = {}   # {server_id: deque(maxlen=500)}
+_buffers: Dict[str, deque[str]] = {}  # {server_id: deque(maxlen=500)}
 
 BUFFER_SIZE: int = 500  # líneas por servidor
 
 
 # ── Gestión de buffers ────────────────────────────────────────────────────────
+
 
 def get_buffer(server_id: str) -> deque[str]:
     """Obtiene (o crea) el buffer circular de un servidor de forma thread-safe."""
@@ -53,6 +54,7 @@ def has_buffer(server_id: str) -> bool:
 
 
 # ── Thread lector de stdout ───────────────────────────────────────────────────
+
 
 def start_reader(
     proc: subprocess.Popen,
@@ -100,4 +102,3 @@ def init_server_buffer(server_id: str) -> None:
     """Inicializa (o resetea) el buffer de un servidor antes de arrancar de forma thread-safe."""
     with _lock:
         _buffers[server_id] = deque(maxlen=BUFFER_SIZE)
-

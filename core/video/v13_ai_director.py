@@ -2,6 +2,7 @@ import json
 import re
 import numpy as np
 from core.logger import log
+from typing import Optional
 
 
 def _parse_color_any(c_val):
@@ -13,7 +14,7 @@ def _parse_color_any(c_val):
         if c_val.startswith("#"):
             h = c_val.lstrip("#")
             if len(h) == 6:
-                return [int(h[i:i+2], 16) / 255.0 for i in (0, 2, 4)]
+                return [int(h[i : i + 2], 16) / 255.0 for i in (0, 2, 4)]
         if "," in c_val:
             parts = c_val.split(",")
             if len(parts) >= 3:
@@ -21,7 +22,9 @@ def _parse_color_any(c_val):
     return None
 
 
-def _query_llm(section_label: str, section_text: str, provider: str = None, model: str = None) -> dict:
+def _query_llm(
+    section_label: str, section_text: str, provider: Optional[str] = None, model: Optional[str] = None
+) -> dict:
     """
     Consulta al modelo local para una sección específica de la letra.
     Devuelve dict con u_baseColor1, u_baseColor2, speed_multiplier, turbulence, engine y pose.
@@ -34,13 +37,13 @@ def _query_llm(section_label: str, section_text: str, provider: str = None, mode
         "Sin markdown, sin texto adicional, solo el JSON.\n\n"
         "Formato exacto:\n"
         "{\n"
-        "  \"engine\": \"space_odyssey\",\n"
-        "  \"custom_scene_prompt\": \"Descripción cinematográfica fotorrealista del entorno de fondo (ej: majestic ruins of Machu Picchu hidden in the clouds at golden hour, epic inca architecture, hyperrealistic)\",\n"
-        "  \"pose\": 1,\n"
-        "  \"u_baseColor1\": [R, G, B],\n"
-        "  \"u_baseColor2\": [R, G, B],\n"
-        "  \"speed_multiplier\": 1.0,\n"
-        "  \"turbulence\": 1.0\n"
+        '  "engine": "space_odyssey",\n'
+        '  "custom_scene_prompt": "Descripción cinematográfica fotorrealista del entorno de fondo (ej: majestic ruins of Machu Picchu hidden in the clouds at golden hour, epic inca architecture, hyperrealistic)",\n'
+        '  "pose": 1,\n'
+        '  "u_baseColor1": [R, G, B],\n'
+        '  "u_baseColor2": [R, G, B],\n'
+        '  "speed_multiplier": 1.0,\n'
+        '  "turbulence": 1.0\n'
         "}\n\n"
         "Notas sobre custom_scene_prompt:\n"
         "- Debe ser en inglés, descriptivo y enfocado a generar una imagen fotorealista espectacular (evita descripciones de personas, enfócate en el paisaje/entorno).\n"
@@ -60,7 +63,10 @@ def _query_llm(section_label: str, section_text: str, provider: str = None, mode
     )
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"Sección '{section_label}':\n{section_text[:800]}"}
+        {
+            "role": "user",
+            "content": f"Sección '{section_label}':\n{section_text[:800]}",
+        },
     ]
 
     response_text = provider_manager.complete(
@@ -68,16 +74,16 @@ def _query_llm(section_label: str, section_text: str, provider: str = None, mode
         model=model,
         provider=provider,
         task="reason",
-        options={"temperature": 0.3, "max_tokens": 200}
+        options={"temperature": 0.3, "max_tokens": 200},
     )
 
     # Remover bloques <think> de modelos de razonamiento (DeepSeek/Gemma R1)
-    clean_text = re.sub(r'<think>.*?</think>', '', response_text, flags=re.DOTALL)
+    clean_text = re.sub(r"<think>.*?</think>", "", response_text, flags=re.DOTALL)
 
-    start_idx = clean_text.find('{')
-    end_idx = clean_text.rfind('}')
+    start_idx = clean_text.find("{")
+    end_idx = clean_text.rfind("}")
     if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-        return json.loads(clean_text[start_idx:end_idx + 1])
+        return json.loads(clean_text[start_idx : end_idx + 1])
 
     return {}
 
@@ -114,7 +120,7 @@ def _split_lyrics_into_sections(lyrics: str) -> list[tuple[str, str]]:
     if len(sections) > 6:
         merged = []
         for i in range(0, len(sections), 2):
-            pair = sections[i:i+2]
+            pair = sections[i : i + 2]
             label = pair[0][0]
             text = "\n".join([p[1] for p in pair])
             merged.append((label, text))
@@ -164,7 +170,7 @@ def analyze_lyrics_sections(lyrics: str, total_frames: int, fps: int) -> dict:
     keyframes_spd = []
     keyframes_trb = []
     keyframe_frames = []
-    
+
     timeline = []
 
     n = len(sections)
@@ -173,16 +179,18 @@ def analyze_lyrics_sections(lyrics: str, total_frames: int, fps: int) -> dict:
 
     import concurrent.futures
     from core import provider_manager
-    
+
     # Get all healthy providers for Swarm Round-Robin
     all_results = provider_manager.scan_all()
     healthy_providers = []
     for r in all_results:
         if r.is_healthy and r.models:
             healthy_providers.append((r.name, r.active_model or r.models[0]["name"]))
-            
+
     if not healthy_providers:
-        log.warning("[V13 Director Swarm] No hay proveedores IA saludables. Se usaran defaults.")
+        log.warning(
+            "[V13 Director Swarm] No hay proveedores IA saludables. Se usaran defaults."
+        )
         healthy_providers = [(None, None)]
 
     def process_section(idx, label, text):
@@ -196,20 +204,24 @@ def analyze_lyrics_sections(lyrics: str, total_frames: int, fps: int) -> dict:
 
     results_unsorted = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(sections)) as executor:
-        futures = [executor.submit(process_section, i, label, text) for i, (label, text) in enumerate(sections)]
+        futures = [
+            executor.submit(process_section, i, label, text)
+            for i, (label, text) in enumerate(sections)
+        ]
         for fut in concurrent.futures.as_completed(futures):
             results_unsorted.append(fut.result())
-            
+
     results_sorted = sorted(results_unsorted, key=lambda x: x[0])
 
     # --- EXECUTIVE PRODUCER NODE ---
     if len(results_sorted) > 1:
         try:
             import json
+
             raw_scenes = []
             for idx, label, params, prov, mod in results_sorted:
                 raw_scenes.append({"label": label, "params": params, "brain": mod})
-                
+
             exec_prompt = (
                 "Eres el Productor Ejecutivo V14.\n"
                 "Abajo hay una lista de escenas JSON generadas por un enjambre de IAs creativas. "
@@ -219,34 +231,55 @@ def analyze_lyrics_sections(lyrics: str, total_frames: int, fps: int) -> dict:
                 f"Escenas:\n{json.dumps(raw_scenes, indent=2)}"
             )
             messages = [
-                {"role": "system", "content": "You are the Executive Producer. Output ONLY a valid JSON array of objects."},
-                {"role": "user", "content": exec_prompt}
+                {
+                    "role": "system",
+                    "content": "You are the Executive Producer. Output ONLY a valid JSON array of objects.",
+                },
+                {"role": "user", "content": exec_prompt},
             ]
-            log.info("[V13 Director Swarm] Evaluando consenso con el Productor Ejecutivo...")
-            
+            log.info(
+                "[V13 Director Swarm] Evaluando consenso con el Productor Ejecutivo..."
+            )
+
             # Usar el mejor modelo disponible para razonamiento
-            exec_response = provider_manager.complete(messages, task="reason", options={"temperature": 0.1, "max_tokens": 1500})
-            
+            exec_response = provider_manager.complete(
+                messages,
+                task="reason",
+                options={"temperature": 0.1, "max_tokens": 1500},
+            )
+
             # Limpieza
-            clean_text = re.sub(r'<think>.*?</think>', '', exec_response, flags=re.DOTALL)
-            start_idx = clean_text.find('[')
-            end_idx = clean_text.rfind(']')
-            
+            clean_text = re.sub(
+                r"<think>.*?</think>", "", exec_response, flags=re.DOTALL
+            )
+            start_idx = clean_text.find("[")
+            end_idx = clean_text.rfind("]")
+
             if start_idx != -1 and end_idx != -1:
-                harmonized_params = json.loads(clean_text[start_idx:end_idx + 1])
+                harmonized_params = json.loads(clean_text[start_idx : end_idx + 1])
                 if len(harmonized_params) == len(results_sorted):
                     for idx in range(len(results_sorted)):
                         orig = results_sorted[idx]
-                        results_sorted[idx] = (orig[0], orig[1], harmonized_params[idx], "ExecutiveProducer", "Consensus")
-                    log.info("[V13 Director Swarm] Productor Ejecutivo aplico armonizacion con exito.")
+                        results_sorted[idx] = (
+                            orig[0],
+                            orig[1],
+                            harmonized_params[idx],
+                            "ExecutiveProducer",
+                            "Consensus",
+                        )
+                    log.info(
+                        "[V13 Director Swarm] Productor Ejecutivo aplico armonizacion con exito."
+                    )
         except Exception as e:
-            log.warning(f"[V13 Director Swarm] Productor Ejecutivo fallo (usando cortes puros): {e}")
+            log.warning(
+                f"[V13 Director Swarm] Productor Ejecutivo fallo (usando cortes puros): {e}"
+            )
     # -------------------------------
 
     for i, label, params, prov, mod in results_sorted:
         start_frame = int(i * frames_per_section)
         end_frame = int((i + 1) * frames_per_section) if i < n - 1 else total_frames - 1
-        
+
         c1 = _parse_color_any(params.get("u_baseColor1")) or DEFAULT_C1
         c2 = _parse_color_any(params.get("u_baseColor2")) or DEFAULT_C2
         spd = float(params.get("speed_multiplier", DEFAULT_SPD))
@@ -255,7 +288,9 @@ def analyze_lyrics_sections(lyrics: str, total_frames: int, fps: int) -> dict:
         pose = int(params.get("pose", DEFAULT_POSE))
         custom_scene_prompt = params.get("custom_scene_prompt", "")
         prov_name = prov if prov else "Default"
-        log.info(f"[V13 Director Swarm] '{label}' [Brain: {prov_name} / {mod}]: {engine}(pose={pose}) C1={c1} spd={spd:.2f}")
+        log.info(
+            f"[V13 Director Swarm] '{label}' [Brain: {prov_name} / {mod}]: {engine}(pose={pose}) C1={c1} spd={spd:.2f}"
+        )
 
         # Añadir al timeline narrativo
         scene = {
@@ -263,14 +298,16 @@ def analyze_lyrics_sections(lyrics: str, total_frames: int, fps: int) -> dict:
             "end": end_frame,
             "engine": engine,
             "pose": pose,
-            "custom_scene_prompt": custom_scene_prompt
+            "custom_scene_prompt": custom_scene_prompt,
         }
-        
+
         # Calcular crossfades con la escena anterior
         if i > 0:
-            timeline[i-1]["transition_start"] = timeline[i-1]["end"] - crossfade_frames
+            timeline[i - 1]["transition_start"] = (
+                timeline[i - 1]["end"] - crossfade_frames
+            )
             scene["incoming_end"] = scene["start"] + crossfade_frames
-            
+
         timeline.append(scene)
 
         mid_frame = int(start_frame + (end_frame - start_frame) / 2)
@@ -284,14 +321,18 @@ def analyze_lyrics_sections(lyrics: str, total_frames: int, fps: int) -> dict:
     if len(timeline) == 1:
         # Si la canción es tan corta que solo tiene 1 sección, dividirla por la mitad
         half = timeline[0]["end"] // 2
-        
+
         scene2 = timeline[0].copy()
         scene2["start"] = half
-        scene2["engine"] = "space_odyssey" if timeline[0]["engine"] == "inca_math" else timeline[0]["engine"]
-        
+        scene2["engine"] = (
+            "space_odyssey"
+            if timeline[0]["engine"] == "inca_math"
+            else timeline[0]["engine"]
+        )
+
         timeline[0]["end"] = half
         timeline[0]["engine"] = "inca_math"
-        
+
         # Calcular transición
         timeline[0]["transition_start"] = half - crossfade_frames
         scene2["incoming_end"] = half + crossfade_frames

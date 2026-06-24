@@ -27,10 +27,10 @@ log = logging.getLogger("gravity.mcp_adapter")
 active_adapters: Dict[str, "MCPAdapter"] = {}
 
 # Backoff config
-_BACKOFF_INITIAL = 1.0   # segundos
-_BACKOFF_MAX     = 30.0  # segundos
-_READ_TIMEOUT    = 10.0  # segundos para readline()
-_HEALTH_INTERVAL = 60    # segundos entre health checks
+_BACKOFF_INITIAL = 1.0  # segundos
+_BACKOFF_MAX = 30.0  # segundos
+_READ_TIMEOUT = 10.0  # segundos para readline()
+_HEALTH_INTERVAL = 60  # segundos entre health checks
 
 
 class MCPAdapter:
@@ -52,16 +52,16 @@ class MCPAdapter:
         args: Optional[List[str]] = None,
         name: str = "default",
     ) -> None:
-        self.server_path  = server_path
-        self.args         = args if args is not None else []
-        self.name         = name
+        self.server_path = server_path
+        self.args = args if args is not None else []
+        self.name = name
         self.process: Optional[subprocess.Popen] = None
 
-        self._id_counter  = 1
+        self._id_counter = 1
         self._counter_lock = threading.Lock()
-        self._conn_lock    = threading.Lock()
-        self._io_lock      = threading.Lock()
-        self._backoff      = _BACKOFF_INITIAL
+        self._conn_lock = threading.Lock()
+        self._io_lock = threading.Lock()
+        self._backoff = _BACKOFF_INITIAL
         self._health_thread: Optional[threading.Thread] = None
 
         # Registrar globalmente
@@ -92,7 +92,9 @@ class MCPAdapter:
             )
             time.sleep(0.3)
             if self.process.poll() is not None:
-                log.warning(f"[MCP:{self.name}] Proceso terminó inmediatamente tras connect.")
+                log.warning(
+                    f"[MCP:{self.name}] Proceso terminó inmediatamente tras connect."
+                )
                 self.process = None
                 return False
             log.info(f"[MCP:{self.name}] Conectado (PID {self.process.pid})")
@@ -174,9 +176,9 @@ class MCPAdapter:
 
         request = {
             "jsonrpc": "2.0",
-            "id":      self._next_id(),
-            "method":  method,
-            "params":  params,
+            "id": self._next_id(),
+            "method": method,
+            "params": params,
         }
 
         # La secuencia completa de envío y lectura DEBE ser atómica
@@ -195,18 +197,24 @@ class MCPAdapter:
 
             line = self._read_line_timeout(_READ_TIMEOUT)
             if line is None:
-                return {"error": f"[MCP:{self.name}] Sin respuesta (timeout {_READ_TIMEOUT}s)"}
+                return {
+                    "error": f"[MCP:{self.name}] Sin respuesta (timeout {_READ_TIMEOUT}s)"
+                }
 
             try:
                 return json.loads(line)
             except json.JSONDecodeError as e:
-                return {"error": f"[MCP:{self.name}] JSON inválido: {e} | raw: {line[:200]}"}
+                return {
+                    "error": f"[MCP:{self.name}] JSON inválido: {e} | raw: {line[:200]}"
+                }
 
     # ── API Pública ───────────────────────────────────────────────────────────
 
     def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Realiza una llamada a una herramienta del servidor MCP."""
-        return self._send_request("tools/call", {"name": tool_name, "arguments": arguments})
+        return self._send_request(
+            "tools/call", {"name": tool_name, "arguments": arguments}
+        )
 
     def list_tools(self) -> List[Dict[str, Any]]:
         """Solicita la lista de herramientas disponibles."""
@@ -216,7 +224,9 @@ class MCPAdapter:
     def list_resources(self) -> List[Dict[str, Any]]:
         """Solicita la lista de recursos del servidor MCP."""
         resp = self._send_request("resources/list", {})
-        return resp.get("result", {}).get("resources", []) if "error" not in resp else []
+        return (
+            resp.get("result", {}).get("resources", []) if "error" not in resp else []
+        )
 
     def read_resource(self, uri: str) -> Dict[str, Any]:
         """Lee un recurso específico."""

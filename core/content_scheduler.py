@@ -22,31 +22,33 @@ from typing import Optional
 
 from core.logger import log
 
-BASE_DIR     = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-NICHES_PATH  = os.path.join(BASE_DIR, "inputs", "niches.json")
-CONFIG_PATH  = os.path.join(BASE_DIR, "config.yaml")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+NICHES_PATH = os.path.join(BASE_DIR, "inputs", "niches.json")
+CONFIG_PATH = os.path.join(BASE_DIR, "config.yaml")
 
 _started = False
-_lock    = threading.Lock()
+_lock = threading.Lock()
 _niches_lock = threading.RLock()
 
 # Estado observable desde el dashboard
 _state: dict = {
-    "enabled":        False,
-    "next_run_utc":   None,
-    "last_run_utc":   None,
-    "jobs_queued":    0,
-    "last_topic":     None,
-    "last_niche":     None,
+    "enabled": False,
+    "next_run_utc": None,
+    "last_run_utc": None,
+    "jobs_queued": 0,
+    "last_topic": None,
+    "last_niche": None,
 }
 
 
 # ── Config ─────────────────────────────────────────────────────────────────────
 
+
 def _load_config() -> dict:
     """Carga de forma segura la sección del scheduler del gestor de configuración."""
     try:
         from core.config_manager import config as config_manager
+
         return config_manager.get("scheduler", {})
     except Exception as e:
         log.error(f"[Scheduler] Error obteniendo config del gestor: {e}")
@@ -60,9 +62,11 @@ def _load_niches() -> dict:
     """
     with _niches_lock:
         if not os.path.isfile(NICHES_PATH):
-            log.warning(f"[Scheduler] niches.json no encontrado en {NICHES_PATH}. Creando banco inicial.")
+            log.warning(
+                f"[Scheduler] niches.json no encontrado en {NICHES_PATH}. Creando banco inicial."
+            )
             _create_default_niches()
-        
+
         backoff = 0.05
         for attempt in range(5):
             try:
@@ -70,9 +74,13 @@ def _load_niches() -> dict:
                     return json.load(f)
             except (PermissionError, json.JSONDecodeError) as e:
                 if attempt == 4:
-                    log.error(f"[Scheduler] Error crítico leyendo niches.json tras 5 intentos: {e}")
+                    log.error(
+                        f"[Scheduler] Error crítico leyendo niches.json tras 5 intentos: {e}"
+                    )
                     raise
-                log.warning(f"[Scheduler] Colisión en lectura de niches.json, reintentando en {backoff}s... (Intento {attempt+1}/5)")
+                log.warning(
+                    f"[Scheduler] Colisión en lectura de niches.json, reintentando en {backoff}s... (Intento {attempt+1}/5)"
+                )
                 time.sleep(backoff)
                 backoff *= 2
             except Exception as e:
@@ -94,15 +102,19 @@ def _save_niches(data: dict) -> None:
                 temp_path = NICHES_PATH + ".tmp"
                 with open(temp_path, "w", encoding="utf-8", newline="\n") as f:
                     json.dump(data, f, ensure_ascii=False, indent=2)
-                
+
                 # Reemplazo atómico — os.replace es seguro en Windows y Linux
                 os.replace(temp_path, NICHES_PATH)
                 return
             except PermissionError as e:
                 if attempt == 4:
-                    log.error(f"[Scheduler] No se pudo guardar niches.json tras 5 intentos (PermissionError): {e}")
+                    log.error(
+                        f"[Scheduler] No se pudo guardar niches.json tras 5 intentos (PermissionError): {e}"
+                    )
                     raise
-                log.warning(f"[Scheduler] Bloqueo de escritura en niches.json, reintentando en {backoff}s... (Intento {attempt+1}/5)")
+                log.warning(
+                    f"[Scheduler] Bloqueo de escritura en niches.json, reintentando en {backoff}s... (Intento {attempt+1}/5)"
+                )
                 time.sleep(backoff)
                 backoff *= 2
             except Exception as e:
@@ -125,7 +137,7 @@ def _create_default_niches() -> None:
                     "El verdadero origen de la Segunda Guerra Mundial",
                     "Alejandro Magno: el conquistador del mundo",
                     "La Inquisición española: mitos y realidades",
-                    "El Imperio Azteca antes de la conquista"
+                    "El Imperio Azteca antes de la conquista",
                 ],
                 "style": "historico",
                 "lang": "es",
@@ -133,7 +145,7 @@ def _create_default_niches() -> None:
                 "n_scenes": 65,
                 "estimated_cpm_usd": 3.5,
                 "times_used": 0,
-                "last_used": None
+                "last_used": None,
             },
             {
                 "id": "tecnologia_ia",
@@ -144,7 +156,7 @@ def _create_default_niches() -> None:
                     "Cómo ChatGPT genera texto que parece humano",
                     "La carrera espacial entre SpaceX y China",
                     "El chip cuántico de Google explicado fácil",
-                    "Cómo la IA está transformando la medicina"
+                    "Cómo la IA está transformando la medicina",
                 ],
                 "style": "cyberpunk",
                 "lang": "es",
@@ -152,7 +164,7 @@ def _create_default_niches() -> None:
                 "n_scenes": 62,
                 "estimated_cpm_usd": 8.0,
                 "times_used": 0,
-                "last_used": None
+                "last_used": None,
             },
             {
                 "id": "finanzas_personales",
@@ -162,7 +174,7 @@ def _create_default_niches() -> None:
                     "Bitcoin en 2026: invertir o no invertir",
                     "Cómo ahorrar el 30% de tu salario sin sufrimiento",
                     "Los 5 activos que generan ingresos pasivos de verdad",
-                    "Por qué los ricos no trabajan por dinero"
+                    "Por qué los ricos no trabajan por dinero",
                 ],
                 "style": "publicitario",
                 "lang": "es",
@@ -170,7 +182,7 @@ def _create_default_niches() -> None:
                 "n_scenes": 64,
                 "estimated_cpm_usd": 12.0,
                 "times_used": 0,
-                "last_used": None
+                "last_used": None,
             },
             {
                 "id": "misterios_conspiraciones",
@@ -180,7 +192,7 @@ def _create_default_niches() -> None:
                     "Área 51: lo que el gobierno no quiere que sepas",
                     "Los secretos de la Sociedad Illuminati",
                     "El misterio de las líneas de Nazca en Perú",
-                    "Civilizaciones extintas más antiguas que Egipto"
+                    "Civilizaciones extintas más antiguas que Egipto",
                 ],
                 "style": "noir",
                 "lang": "es",
@@ -188,7 +200,7 @@ def _create_default_niches() -> None:
                 "n_scenes": 62,
                 "estimated_cpm_usd": 4.0,
                 "times_used": 0,
-                "last_used": None
+                "last_used": None,
             },
             {
                 "id": "ciencia_naturaleza",
@@ -198,7 +210,7 @@ def _create_default_niches() -> None:
                     "Los 10 lugares más extremos de la Tierra",
                     "La vida en el fondo del océano",
                     "Cómo sobreviven los animales en el Ártico",
-                    "Los volcanes más activos del planeta"
+                    "Los volcanes más activos del planeta",
                 ],
                 "style": "naturaleza",
                 "lang": "es",
@@ -206,7 +218,7 @@ def _create_default_niches() -> None:
                 "n_scenes": 60,
                 "estimated_cpm_usd": 5.0,
                 "times_used": 0,
-                "last_used": None
+                "last_used": None,
             },
             {
                 "id": "motivacion_exito",
@@ -215,7 +227,7 @@ def _create_default_niches() -> None:
                     "Cómo reprogramar tu mente para el éxito",
                     "Por qué la mayoría de las personas nunca triunfan",
                     "El método que usan los millonarios para no perder el tiempo",
-                    "Cómo salir de la mediocridad en 90 días"
+                    "Cómo salir de la mediocridad en 90 días",
                 ],
                 "style": "epico",
                 "lang": "es",
@@ -223,8 +235,8 @@ def _create_default_niches() -> None:
                 "n_scenes": 60,
                 "estimated_cpm_usd": 7.0,
                 "times_used": 0,
-                "last_used": None
-            }
+                "last_used": None,
+            },
         ]
     }
     with open(NICHES_PATH, "w", encoding="utf-8", newline="\n") as f:
@@ -233,6 +245,7 @@ def _create_default_niches() -> None:
 
 
 # ── Selección de tema ───────────────────────────────────────────────────────────
+
 
 def _select_next_topic(data: dict) -> Optional[tuple[str, str, dict]]:
     """
@@ -257,7 +270,7 @@ def _select_next_topic(data: dict) -> Optional[tuple[str, str, dict]]:
     topics = niche.get("topics", [])
     # Evitar repetir el último topic del mismo niche
     last_topic = niche.get("last_topic_used", "")
-    available  = [t for t in topics if t != last_topic]
+    available = [t for t in topics if t != last_topic]
     if not available:
         available = topics  # Si solo hay uno, permitir repetición
 
@@ -269,13 +282,16 @@ def _mark_topic_used(data: dict, niche_id: str, topic: str) -> None:
     """Incrementa el contador de uso y registra el timestamp."""
     for niche in data.get("niches", []):
         if niche["id"] == niche_id:
-            niche["times_used"]      = niche.get("times_used", 0) + 1
-            niche["last_used"]       = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            niche["times_used"] = niche.get("times_used", 0) + 1
+            niche["last_used"] = (
+                datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            )
             niche["last_topic_used"] = topic
             break
 
 
 # ── Cálculo de próxima ejecución ────────────────────────────────────────────────
+
 
 def _next_run_utc(time_utc_str: str) -> datetime:
     """
@@ -295,6 +311,7 @@ def _next_run_utc(time_utc_str: str) -> datetime:
 
 
 # ── Loop principal ──────────────────────────────────────────────────────────────
+
 
 def _scheduler_loop() -> None:
     """Loop daemon del scheduler. Duerme hasta la hora configurada y encola jobs."""
@@ -324,7 +341,9 @@ def _scheduler_loop() -> None:
             now = datetime.now(timezone.utc)
             wait_secs = (next_run - now).total_seconds()
             if wait_secs > 0:
-                log.info(f"[Scheduler] Próxima ejecución en {wait_secs/3600:.1f}h ({next_run.strftime('%Y-%m-%d %H:%M UTC')})")
+                log.info(
+                    f"[Scheduler] Próxima ejecución en {wait_secs/3600:.1f}h ({next_run.strftime('%Y-%m-%d %H:%M UTC')})"
+                )
                 time.sleep(wait_secs)
 
             # ── Ejecución: encolar N videos ────────────────────────────────────
@@ -344,20 +363,20 @@ def _scheduler_loop() -> None:
                 from core import video_pipeline
 
                 job_id = video_pipeline.add_job(
-                    topic          = topic,
-                    n_scenes       = max(6, min(int(niche.get("n_scenes", 8)), 80)),
-                    style          = niche.get("style", "documental"),
-                    narration_lang = niche.get("lang", "es"),
-                    bgm_type       = niche.get("bgm_type", "ninguna"),
-                    bgm_volume     = 0.12,
-                    ken_burns      = True,
-                    intro_card     = True,
-                    use_lore       = True,
-                    quality        = "hd",
-                    niche_id       = niche_id,
-                    color_grade    = "auto",
-                    animation_effect = "auto",
-                    animation_level  = 1,
+                    topic=topic,
+                    n_scenes=max(6, min(int(niche.get("n_scenes", 8)), 80)),
+                    style=niche.get("style", "documental"),
+                    narration_lang=niche.get("lang", "es"),
+                    bgm_type=niche.get("bgm_type", "ninguna"),
+                    bgm_volume=0.12,
+                    ken_burns=True,
+                    intro_card=True,
+                    use_lore=True,
+                    quality="hd",
+                    niche_id=niche_id,
+                    color_grade="auto",
+                    animation_effect="auto",
+                    animation_level=1,
                 )
 
                 _mark_topic_used(data, niche_id, topic)
@@ -365,10 +384,12 @@ def _scheduler_loop() -> None:
 
                 with _lock:
                     _state["jobs_queued"] += 1
-                    _state["last_topic"]   = topic
-                    _state["last_niche"]   = niche_id
+                    _state["last_topic"] = topic
+                    _state["last_niche"] = niche_id
 
-                log.info(f"[Scheduler] Job #{job_id} encolado: '{topic}' (niche: {niche_id})")
+                log.info(
+                    f"[Scheduler] Job #{job_id} encolado: '{topic}' (niche: {niche_id})"
+                )
 
                 # Pequeña pausa entre encolas para no saturar
                 if _ < videos_per_day - 1:
@@ -377,7 +398,9 @@ def _scheduler_loop() -> None:
             _save_niches(data)
 
             with _lock:
-                _state["last_run_utc"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                _state["last_run_utc"] = (
+                    datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                )
 
             log.info(f"[Scheduler] Ciclo completado. {queued} video(s) encolados.")
 
@@ -391,13 +414,16 @@ def _scheduler_loop() -> None:
 
 # ── API Pública ─────────────────────────────────────────────────────────────────
 
+
 def start() -> None:
     """Inicia el daemon scheduler si no estaba corriendo."""
     global _started
     if _started:
         return
     _started = True
-    t = threading.Thread(target=_scheduler_loop, name="GravityContentScheduler", daemon=True)
+    t = threading.Thread(
+        target=_scheduler_loop, name="GravityContentScheduler", daemon=True
+    )
     t.start()
     log.info("[Scheduler] Content Scheduler daemon iniciado.")
 
@@ -409,10 +435,10 @@ def get_state() -> dict:
 
     cfg = _load_config()
     state["config"] = {
-        "enabled":        cfg.get("enabled", False),
-        "time_utc":       cfg.get("time_utc", "03:00"),
+        "enabled": cfg.get("enabled", False),
+        "time_utc": cfg.get("time_utc", "03:00"),
         "videos_per_day": cfg.get("videos_per_day", 2),
-        "niches_file":    NICHES_PATH,
+        "niches_file": NICHES_PATH,
     }
     return state
 
@@ -421,10 +447,10 @@ def get_niches() -> dict:
     """Retorna el banco de nichos completo."""
     data = _load_niches()
     return {
-        "ok":     True,
+        "ok": True,
         "niches": data.get("niches", []),
-        "count":  len(data.get("niches", [])),
-        "file":   NICHES_PATH,
+        "count": len(data.get("niches", [])),
+        "file": NICHES_PATH,
     }
 
 
@@ -462,20 +488,20 @@ def queue_now(niche_id: Optional[str] = None, topic: Optional[str] = None) -> di
         topic, niche_id, niche = selection
 
     job_id = video_pipeline.add_job(
-        topic          = topic,
-        n_scenes       = max(6, min(int(niche.get("n_scenes", 8)), 80)),
-        style          = niche.get("style", "documental"),
-        narration_lang = niche.get("lang", "es"),
-        bgm_type       = niche.get("bgm_type", "ninguna"),
-        bgm_volume     = 0.12,
-        ken_burns      = True,
-        intro_card     = True,
-        use_lore       = True,
-        quality        = "hd",
-        niche_id       = niche_id,
-        color_grade    = "auto",
-        animation_effect = "auto",
-        animation_level  = 1,
+        topic=topic,
+        n_scenes=max(6, min(int(niche.get("n_scenes", 8)), 80)),
+        style=niche.get("style", "documental"),
+        narration_lang=niche.get("lang", "es"),
+        bgm_type=niche.get("bgm_type", "ninguna"),
+        bgm_volume=0.12,
+        ken_burns=True,
+        intro_card=True,
+        use_lore=True,
+        quality="hd",
+        niche_id=niche_id,
+        color_grade="auto",
+        animation_effect="auto",
+        animation_level=1,
     )
 
     _mark_topic_used(data, niche_id, topic)
@@ -483,8 +509,8 @@ def queue_now(niche_id: Optional[str] = None, topic: Optional[str] = None) -> di
 
     with _lock:
         _state["jobs_queued"] += 1
-        _state["last_topic"]   = topic
-        _state["last_niche"]   = niche_id
+        _state["last_topic"] = topic
+        _state["last_niche"] = niche_id
 
     log.info(f"[Scheduler] Job #{job_id} encolado manualmente: '{topic}'")
     return {"ok": True, "job_id": job_id, "topic": topic, "niche_id": niche_id}
@@ -504,4 +530,3 @@ def save_niches(data: dict) -> None:
     Garantiza atomicidad y resiliencia en escrituras concurrentes.
     """
     _save_niches(data)
-

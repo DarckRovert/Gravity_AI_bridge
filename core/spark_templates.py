@@ -5,8 +5,7 @@
 """
 
 TEMPLATES = {
-
-"chat_cyberpunk": """<!DOCTYPE html>
+    "chat_cyberpunk": """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
@@ -74,8 +73,7 @@ TEMPLATES = {
     </script>
 </body>
 </html>""",
-
-"dashboard_hud": """<!DOCTYPE html>
+    "dashboard_hud": """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
@@ -165,8 +163,7 @@ TEMPLATES = {
     </script>
 </body>
 </html>""",
-
-"alerta_epica": """<!DOCTYPE html>
+    "alerta_epica": """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
@@ -237,8 +234,7 @@ TEMPLATES = {
     </script>
 </body>
 </html>""",
-
-"brb_synthwave": """<!DOCTYPE html>
+    "brb_synthwave": """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
@@ -313,8 +309,7 @@ TEMPLATES = {
     </script>
 </body>
 </html>""",
-
-"now_playing": """<!DOCTYPE html>
+    "now_playing": """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
@@ -380,8 +375,7 @@ TEMPLATES = {
     </script>
 </body>
 </html>""",
-
-"meta_subs": """<!DOCTYPE html>
+    "meta_subs": """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
@@ -481,8 +475,7 @@ TEMPLATES = {
     </script>
 </body>
 </html>""",
-
-"reloj_scifi": """<!DOCTYPE html>
+    "reloj_scifi": """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
@@ -563,8 +556,7 @@ TEMPLATES = {
     </script>
 </body>
 </html>""",
-
-"gravity_core": """<!DOCTYPE html>
+    "gravity_core": """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
@@ -647,8 +639,7 @@ TEMPLATES = {
     </script>
 </body>
 </html>""",
-
-"cinematic_start": """<!DOCTYPE html>
+    "cinematic_start": """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
@@ -722,8 +713,7 @@ TEMPLATES = {
     </script>
 </body>
 </html>""",
-
-"matrix_rain": """<!DOCTYPE html>
+    "matrix_rain": """<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8">
@@ -788,6 +778,5 @@ TEMPLATES = {
         setInterval(fetchSec, 4000);
     </script>
 </body>
-</html>"""
+</html>""",
 }
-

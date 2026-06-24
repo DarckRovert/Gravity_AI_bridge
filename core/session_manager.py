@@ -4,14 +4,14 @@
 ║                       Sesiones con Fork/Merge + Export                       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
+
 import os
 import json
 import time
-import shutil
 import copy
 import threading
 from datetime import datetime
-from typing import List, Dict, Optional, Any, Tuple
+from typing import List, Dict, Optional, Any
 
 try:
     from . import data_guardian as _guardian
@@ -42,7 +42,9 @@ class SessionManager:
             self._history = history_ref
             self._current_branch = "main"
             # Guardamos una copia aislada en _branches para evitar que clear() vacíe la referencia compartida
-            self._branches: Dict[str, List[Dict[str, Any]]] = {"main": copy.deepcopy(history_ref)}
+            self._branches: Dict[str, List[Dict[str, Any]]] = {
+                "main": copy.deepcopy(history_ref)
+            }
 
     # ── Save / Load ───────────────────────────────────────────────────────────
 
@@ -54,11 +56,11 @@ class SessionManager:
         with self._lock:
             path = os.path.join(SAVES_DIR, f"{name}.json")
             data = {
-                "name":        name,
-                "branch":      self._current_branch,
-                "saved_at":    datetime.now().isoformat(),
-                "metadata":    metadata or {},
-                "history":     copy.deepcopy(self._history),
+                "name": name,
+                "branch": self._current_branch,
+                "saved_at": datetime.now().isoformat(),
+                "metadata": metadata or {},
+                "history": copy.deepcopy(self._history),
             }
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
@@ -81,7 +83,9 @@ class SessionManager:
                     for w in warnings:
                         print(f"  [Guardian] {w}")
                 if not history and os.path.exists(path):
-                    print(f"  [Guardian] WARN: No se pudo recuperar la sesión '{name}'. Archivo posiblemente vacío o corrupto.")
+                    print(
+                        f"  [Guardian] WARN: No se pudo recuperar la sesión '{name}'. Archivo posiblemente vacío o corrupto."
+                    )
                     return False
                 self._history.clear()
                 self._history.extend(history)
@@ -108,10 +112,18 @@ class SessionManager:
             try:
                 for fname in sorted(os.listdir(SAVES_DIR)):
                     if fname.endswith(".json"):
-                        path  = os.path.join(SAVES_DIR, fname)
-                        size  = os.path.getsize(path)
-                        mtime = datetime.fromtimestamp(os.path.getmtime(path)).strftime("%Y-%m-%d %H:%M")
-                        saves.append({"name": fname[:-5], "size_kb": size // 1024, "modified": mtime})
+                        path = os.path.join(SAVES_DIR, fname)
+                        size = os.path.getsize(path)
+                        mtime = datetime.fromtimestamp(os.path.getmtime(path)).strftime(
+                            "%Y-%m-%d %H:%M"
+                        )
+                        saves.append(
+                            {
+                                "name": fname[:-5],
+                                "size_kb": size // 1024,
+                                "modified": mtime,
+                            }
+                        )
             except Exception as e:
                 print(f"  [SessionManager] Error listando guardados: {e}")
             return saves
@@ -153,7 +165,7 @@ class SessionManager:
                     self._branches[branch_name] = copy.deepcopy(self._history)
                 else:
                     return False
-            
+
             # 3. Hacer el switch atómico actualizando la referencia de historial
             self._current_branch = branch_name
             self._history.clear()
@@ -165,7 +177,11 @@ class SessionManager:
         with self._lock:
             disk = []
             try:
-                disk = [f[7:-5] for f in os.listdir(SAVES_DIR) if f.startswith("branch_") and f.endswith(".json")]
+                disk = [
+                    f[7:-5]
+                    for f in os.listdir(SAVES_DIR)
+                    if f.startswith("branch_") and f.endswith(".json")
+                ]
             except Exception:
                 pass
             return list(set(list(self._branches.keys()) + disk))
@@ -185,7 +201,7 @@ class SessionManager:
             return True
 
     # ── MemDir (V16.0 PRO) ────────────────────────────────────────────────────────
-    
+
     def inject_mem_dir(self, workspace_path: str) -> int:
         """
         Escanea el workspace_path buscando un directorio '.gravity_mem' o un archivo 'MEMORY.md'.
@@ -196,7 +212,7 @@ class SessionManager:
         with self._lock:
             mem_file = os.path.join(workspace_path, "MEMORY.md")
             mem_dir = os.path.join(workspace_path, ".gravity_mem")
-            
+
             mem_content: List[str] = []
             if os.path.exists(mem_file):
                 try:
@@ -204,33 +220,46 @@ class SessionManager:
                         mem_content.append(f"--- MEMORY.md ---\n{f.read()}\n")
                 except Exception:
                     pass
-                    
+
             if os.path.exists(mem_dir) and os.path.isdir(mem_dir):
                 try:
                     for root, _, files in os.walk(mem_dir):
                         for file in files:
                             if file.endswith(".md") or file.endswith(".txt"):
                                 try:
-                                    with open(os.path.join(root, file), "r", encoding="utf-8") as f:
-                                        mem_content.append(f"--- {file} ---\n{f.read()}\n")
+                                    with open(
+                                        os.path.join(root, file), "r", encoding="utf-8"
+                                    ) as f:
+                                        mem_content.append(
+                                            f"--- {file} ---\n{f.read()}\n"
+                                        )
                                 except Exception:
                                     pass
                 except Exception:
                     pass
-                                
+
             if not mem_content:
                 return 0
-                
+
             full_injection = "\n".join(mem_content)
-            
+
             # Inyectar en el system prompt (primer elemento del historial)
             if self._history and self._history[0].get("role") == "system":
                 # Evitar inyección duplicada
                 if "--- MEMORY.md ---" not in self._history[0].get("content", ""):
-                    self._history[0]["content"] = self._history[0].get("content", "") + f"\n\n[MEMDIR CONTEXT]\n{full_injection}"
+                    self._history[0]["content"] = (
+                        self._history[0].get("content", "")
+                        + f"\n\n[MEMDIR CONTEXT]\n{full_injection}"
+                    )
             else:
-                self._history.insert(0, {"role": "system", "content": f"[MEMDIR CONTEXT]\n{full_injection}"})
-                
+                self._history.insert(
+                    0,
+                    {
+                        "role": "system",
+                        "content": f"[MEMDIR CONTEXT]\n{full_injection}",
+                    },
+                )
+
             return len(full_injection) // 4
 
     # ── Token Optimization (V16.0 PRO) ─────────────────────────────────────────────
@@ -248,14 +277,16 @@ class SessionManager:
             removed_count = 0
             while len(self._history) > 1:
                 # Simple heuristic: chars / 4
-                total_tokens = sum(len(m.get("content", "")) // 4 for m in self._history)
+                total_tokens = sum(
+                    len(m.get("content", "")) // 4 for m in self._history
+                )
                 if total_tokens <= max_tokens:
                     break
-                
+
                 # Remove the second message (index 1), keeping index 0 (system)
                 self._history.pop(1)
                 removed_count += 1
-                
+
             return removed_count
 
     def cleanup_reasoning(self) -> int:
@@ -264,25 +295,26 @@ class SessionManager:
         Used before final save or session exit.
         """
         import re
+
         with self._lock:
             removed_chars = 0
             # Tags to strip: <think>...</think>, <|canal>pensamiento...<channel|>
             patterns = [
                 r"<think>.*?</think>",
                 r"<\|canal\|>pensamiento.*?<channel\|>",
-                r"<\|canal\|>pensamiento.*" # Greedy fallback if not closed
+                r"<\|canal\|>pensamiento.*",  # Greedy fallback if not closed
             ]
-            
+
             for msg in self._history:
                 original_len = len(msg.get("content", ""))
                 content = msg.get("content", "")
                 for pattern in patterns:
                     content = re.sub(pattern, "", content, flags=re.DOTALL)
-                
+
                 msg["content"] = content.strip()
-                removed_chars += (original_len - len(msg["content"]))
-                
-            return removed_chars // 4 # return approx tokens saved
+                removed_chars += original_len - len(msg["content"])
+
+            return removed_chars // 4  # return approx tokens saved
 
     # ── Export ────────────────────────────────────────────────────────────────
 
@@ -290,12 +322,12 @@ class SessionManager:
         """Exports current session as formatted HTML."""
         with self._lock:
             if not path:
-                ts   = datetime.now().strftime("%Y%m%d_%H%M%S")
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
                 path = os.path.join(BASE_DIR, f"session_{ts}.html")
 
             rows = ""
             for m in self._history:
-                role  = m.get("role", "user")
+                role = m.get("role", "user")
                 color = "#1e3a5f" if role == "user" else "#1e4f2e"
                 label = "👤 Tú" if role == "user" else "🤖 Auditor"
                 content = m.get("content", "").replace("<", "&lt;").replace(">", "&gt;")
@@ -320,11 +352,13 @@ class SessionManager:
         """Exports current session as markdown."""
         with self._lock:
             if not path:
-                ts   = datetime.now().strftime("%Y%m%d_%H%M%S")
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
                 path = os.path.join(BASE_DIR, f"session_{ts}.md")
-            lines = [f"# Gravity AI Session — {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"]
+            lines = [
+                f"# Gravity AI Session — {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
+            ]
             for m in self._history:
-                role  = m.get("role", "user")
+                role = m.get("role", "user")
                 label = "**👤 Usuario**" if role == "user" else "**🤖 Auditor**"
                 lines.append(f"\n---\n{label}\n\n{m.get('content','')}\n")
             with open(path, "w", encoding="utf-8") as f:

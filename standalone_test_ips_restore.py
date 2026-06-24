@@ -6,7 +6,9 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from core import security_monitor
 
-target_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ask_deepseek.py")
+target_file = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "ask_deepseek.py"
+)
 
 # 1. Asegurar estado limpio inicial y capturar baseline
 print("=> Limpiando archivo con git checkout previo...")
@@ -15,7 +17,7 @@ subprocess.run(["git", "checkout", "ask_deepseek.py"], check=True)
 print("=> Inicializando monitor (Baseline de Hashes)...")
 security_monitor._started = False
 security_monitor.start()
-time.sleep(1) # Dar tiempo al thread para calcular hashes
+time.sleep(1)  # Dar tiempo al thread para calcular hashes
 
 # 2. Inyectar código malicioso
 print("=> Inyectando código malicioso en ask_deepseek.py...")
@@ -42,4 +44,3 @@ with open(target_file, "r", encoding="utf-8") as f:
         print("[FALLO] El archivo sigue infectado!")
     else:
         print("[ÉXITO] Gravity purgo la infección y restauró el archivo con éxito.")
-

@@ -4,8 +4,6 @@ Internal — not auto-discovered by registry (filename starts with _).
 """
 
 import json
-import time
-import socket
 import urllib.request
 import urllib.error
 from typing import Generator, List, Dict, Any, Optional
@@ -24,10 +22,24 @@ def _http_get(url: str, timeout: float = 1.0) -> Optional[Dict[str, Any]]:
 # Patrones de nombre que identifican modelos NO aptos para chat.
 # Corresponden a modelos de embeddings, rerankers, clasificadores o moderación.
 _NON_CHAT_PATTERNS = (
-    "embed", "embedding", "rerank", "reranker", "classifier",
-    "moderation", "nomic-embed", "text-embedding", "bge-",
-    "e5-", "gte-", "instructor-", "sentence-", "all-minilm",
-    "clip", "whisper", "tts", "vision-encoder",
+    "embed",
+    "embedding",
+    "rerank",
+    "reranker",
+    "classifier",
+    "moderation",
+    "nomic-embed",
+    "text-embedding",
+    "bge-",
+    "e5-",
+    "gte-",
+    "instructor-",
+    "sentence-",
+    "all-minilm",
+    "clip",
+    "whisper",
+    "tts",
+    "vision-encoder",
 )
 
 
@@ -73,9 +85,10 @@ def _http_post_stream(
 ) -> Generator[bytes, None, None]:
     """POST JSON, yield raw response lines with safe execution timeouts."""
     data = json.dumps(payload).encode("utf-8")
-    req  = urllib.request.Request(
-        url, data=data,
-        headers={"Content-Type": "application/json", "User-Agent": "GravityAI/7.0"}
+    req = urllib.request.Request(
+        url,
+        data=data,
+        headers={"Content-Type": "application/json", "User-Agent": "GravityAI/7.0"},
     )
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
@@ -90,9 +103,10 @@ def _http_post_stream(
 def _http_post(url: str, payload: dict, timeout: float = 60.0) -> bytes:
     """POST JSON, return full response bytes with safety timeouts."""
     data = json.dumps(payload).encode("utf-8")
-    req  = urllib.request.Request(
-        url, data=data,
-        headers={"Content-Type": "application/json", "User-Agent": "GravityAI/7.0"}
+    req = urllib.request.Request(
+        url,
+        data=data,
+        headers={"Content-Type": "application/json", "User-Agent": "GravityAI/7.0"},
     )
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.read()
@@ -148,25 +162,26 @@ def _openai_compat_complete(
 ) -> str:
     """Non-streaming for OpenAI-compatible endpoints."""
     try:
-        url  = f"{base_url.rstrip('/')}{path}"
-        raw  = _http_post(url, payload)
+        url = f"{base_url.rstrip('/')}{path}"
+        raw = _http_post(url, payload)
         data = _safe_json(raw)
         if data and "choices" in data and data["choices"]:
             return data["choices"][0].get("message", {}).get("content", "")
     except Exception as e:
         import logging
+
         logging.getLogger("gravity").error(f"[BaseLocal] Error in completion: {e}")
     return ""
 
 
 def _build_openai_payload(
     messages: List[Dict[str, Any]],
-    model:    str,
-    options:  Dict[str, Any],
-    stream:   bool,
+    model: str,
+    options: Dict[str, Any],
+    stream: bool,
 ) -> Dict[str, Any]:
     payload: Dict[str, Any] = {"model": model, "messages": messages, "stream": stream}
-    
+
     # Surgical parameter injection for LM Studio / OpenAI compatibility
     if "temperature" in options:
         payload["temperature"] = float(options["temperature"])
@@ -174,10 +189,9 @@ def _build_openai_payload(
         payload["top_p"] = float(options["top_p"])
     if "max_tokens" in options and options["max_tokens"] > 0:
         payload["max_tokens"] = int(options["max_tokens"])
-    
+
     # NEVER send empty stop list (causes 400 in many providers)
     if "stop" in options and options["stop"]:
         payload["stop"] = options["stop"]
-        
-    return payload
 
+    return payload

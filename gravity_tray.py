@@ -11,21 +11,21 @@ import threading
 import webbrowser
 import time
 import os
-import sys
 
 DASHBOARD_URL = "http://127.0.0.1:7860"
-BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
-ICON_PATH     = os.path.join(BASE_DIR, "assets", "gravity_icon.ico")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ICON_PATH = os.path.join(BASE_DIR, "assets", "gravity_icon.ico")
 
 # ── Colores del icono dinámico cuando no hay .ico ─────────────────────────────
-_ACCENT  = (79,  70,  229)   # Quantum Violet
-_BG      = (9,   12,  16 )   # Deep Space
+_ACCENT = (79, 70, 229)  # Quantum Violet
+_BG = (9, 12, 16)  # Deep Space
 
 
 def _build_icon_image(size: int = 64, pulsing: bool = False) -> "PIL.Image.Image":
     """Genera el icono de bandeja en memoria si no existe el .ico."""
     from PIL import Image, ImageDraw
-    img  = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     cx, cy, r = size // 2, size // 2, size // 2 - 2
     # Fondo oscuro circular
@@ -35,10 +35,11 @@ def _build_icon_image(size: int = 64, pulsing: bool = False) -> "PIL.Image.Image
     draw.ellipse(
         [cx - r + ring_w, cy - r + ring_w, cx + r - ring_w, cy + r - ring_w],
         outline=(*_ACCENT, 230 if not pulsing else 160),
-        width=ring_w
+        width=ring_w,
     )
     # Letra "G" central
     from PIL import ImageFont
+
     try:
         font = ImageFont.truetype("arial.ttf", size // 3)
     except Exception:
@@ -54,18 +55,23 @@ def _load_icon():
     """Carga el .ico o genera el ícono dinámicamente."""
     try:
         from PIL import Image
+
         if os.path.exists(ICON_PATH):
             return Image.open(ICON_PATH)
         return _build_icon_image(64)
     except ImportError:
-        raise SystemExit("[GravityTray] Pillow no instalado. Ejecuta: pip install Pillow")
+        raise SystemExit(
+            "[GravityTray] Pillow no instalado. Ejecuta: pip install Pillow"
+        )
 
 
 # ── Bridge Status ──────────────────────────────────────────────────────────────
 
+
 def _bridge_online() -> bool:
     try:
         import urllib.request
+
         req = urllib.request.Request(f"{DASHBOARD_URL}/health")
         with urllib.request.urlopen(req, timeout=10) as conn:
             return conn.getcode() in (200, 204)
@@ -74,6 +80,7 @@ def _bridge_online() -> bool:
 
 
 # ── Tray Actions ──────────────────────────────────────────────────────────────
+
 
 def _open_dashboard(icon, item):
     webbrowser.open(DASHBOARD_URL)
@@ -106,6 +113,7 @@ def _build_menu(pystray):
 
 # ── Pulsing icon thread ────────────────────────────────────────────────────────
 
+
 def _pulse_loop(icon):
     """Hace pulsar el icono durante el arranque hasta que el bridge responda."""
     pulsing = True
@@ -122,25 +130,30 @@ def _pulse_loop(icon):
 
 # ── Entry Point ───────────────────────────────────────────────────────────────
 
+
 def run_tray():
     """Inicia el icono de bandeja del sistema. Bloqueante."""
     try:
         import pystray
     except ImportError:
-        raise SystemExit("[GravityTray] pystray no instalado. Ejecuta: pip install pystray")
+        raise SystemExit(
+            "[GravityTray] pystray no instalado. Ejecuta: pip install pystray"
+        )
 
-    img  = _build_icon_image(64, pulsing=True)  # Inicia pulsante
+    img = _build_icon_image(64, pulsing=True)  # Inicia pulsante
     menu = _build_menu(pystray)
 
     icon = pystray.Icon(
-        name    = "GravityAIBridge",
-        icon    = img,
-        title   = "Gravity AI Bridge V16.3 PRO — Iniciando...",
-        menu    = menu,
+        name="GravityAIBridge",
+        icon=img,
+        title="Gravity AI Bridge V16.3 PRO — Iniciando...",
+        menu=menu,
     )
 
     # Hilo de pulso durante arranque
-    threading.Thread(target=_pulse_loop, args=(icon,), daemon=True, name="GravityTrayPulse").start()
+    threading.Thread(
+        target=_pulse_loop, args=(icon,), daemon=True, name="GravityTrayPulse"
+    ).start()
 
     icon.run()
 

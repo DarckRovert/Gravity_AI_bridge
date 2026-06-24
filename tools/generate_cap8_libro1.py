@@ -2,6 +2,7 @@
 Script puntual para generar el Capítulo 8 (faltante) del Libro 1.
 Usa el historial de continuidad existente + la escaleta + lore_bible como contexto.
 """
+
 import os
 import sys
 import json
@@ -13,7 +14,9 @@ if BASE_DIR not in sys.path:
 
 from tools.fiction_writer import GravityFictionAuthor
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("GenerateCap8")
 
 BOOK_NAME = "Cenizas_del_Leviatan_Libro_1"
@@ -52,17 +55,23 @@ def main():
         logger.error("No se encontró el capítulo 8 en la escaleta.")
         return
 
-    logger.info(f"Cap 8: {cap8_data.get('titulo')} — {cap8_data.get('resumen_eventos', '')[:100]}...")
+    logger.info(
+        f"Cap 8: {cap8_data.get('titulo')} — {cap8_data.get('resumen_eventos', '')[:100]}..."
+    )
 
     with open(os.path.join(BOOK_DIR, "1_sinopsis_base.md"), "r", encoding="utf-8") as f:
         synopsis = f.read()
 
-    with open(os.path.join(BOOK_DIR, "historial_continuidad.md"), "r", encoding="utf-8") as f:
+    with open(
+        os.path.join(BOOK_DIR, "historial_continuidad.md"), "r", encoding="utf-8"
+    ) as f:
         history = f.read()
 
     full_outline_text = "\n".join(
-        [f"Cap {c.get('numero')}: {c.get('titulo')} — {c.get('resumen_eventos', '')[:150]}"
-         for c in escaleta]
+        [
+            f"Cap {c.get('numero')}: {c.get('titulo')} — {c.get('resumen_eventos', '')[:150]}"
+            for c in escaleta
+        ]
     )
 
     # Inicializar el motor con la lore_bible
@@ -74,21 +83,33 @@ def main():
         with open(lore_book_path, "r", encoding="utf-8") as f:
             lore_book = json.load(f)
         # Inyectar en el lore_bible del author como contexto adicional
-        char_context = "\n".join([
-            f"## {name}\n{desc}"
-            for name, desc in lore_book.get("characters", {}).items()
-        ])
-        author.lore_bible += f"\n\n## DESCRIPCIONES VISUALES FIJAS DE PERSONAJES\n{char_context}"
+        char_context = "\n".join(
+            [
+                f"## {name}\n{desc}"
+                for name, desc in lore_book.get("characters", {}).items()
+            ]
+        )
+        author.lore_bible += (
+            f"\n\n## DESCRIPCIONES VISUALES FIJAS DE PERSONAJES\n{char_context}"
+        )
 
     logger.info("Generando Capítulo 8...")
-    chapter_text = author._write_chapter(cap8_data, synopsis, full_outline_text, history)
+    chapter_text = author._write_chapter(
+        cap8_data, synopsis, full_outline_text, history
+    )
 
     if not chapter_text or len(chapter_text.strip()) < 100:
-        logger.error(f"Generación fallida: capítulo vacío ({len(chapter_text.strip() if chapter_text else '')} chars).")
+        logger.error(
+            f"Generación fallida: capítulo vacío ({len(chapter_text.strip() if chapter_text else '')} chars)."
+        )
         return
 
-    logger.info(f"Capítulo generado: {len(chapter_text)} chars. Aplicando auto-edición...")
-    chapter_text = author._review_and_revise_chapter(chapter_text, author.lore_bible, history)
+    logger.info(
+        f"Capítulo generado: {len(chapter_text)} chars. Aplicando auto-edición..."
+    )
+    chapter_text = author._review_and_revise_chapter(
+        chapter_text, author.lore_bible, history
+    )
 
     # Guardar cap_8.md
     with open(cap8_file, "w", encoding="utf-8") as f:
@@ -106,12 +127,17 @@ def main():
 
     logger.info("Reconstruyendo libro maestro .md...")
     with open(book_md_path, "w", encoding="utf-8") as f:
-        f.write(f"# {BOOK_NAME.replace('_', ' ')}\n\n*Novela generada por Gravity Fiction Engine*\n\n")
+        f.write(
+            f"# {BOOK_NAME.replace('_', ' ')}\n\n*Novela generada por Gravity Fiction Engine*\n\n"
+        )
         f.write("## Índice\n")
         for c in escaleta:
-            c_title = c.get('titulo', '')
+            c_title = c.get("titulo", "")
             import urllib.parse
-            anchor = "#" + urllib.parse.quote(c_title.lower().replace(" ", "-").replace(":", ""))
+
+            anchor = "#" + urllib.parse.quote(
+                c_title.lower().replace(" ", "-").replace(":", "")
+            )
             f.write(f"{c.get('numero')}. [{c_title}]({anchor})\n")
         f.write("\n---\n\n")
         for i in range(1, 9):
@@ -129,8 +155,8 @@ def main():
 
     # Re-renderizar HTML con CSS neo-noir
     try:
-        import markdown
         from tools.book_refiner import _render_html
+
         md_content = open(book_md_path, "r", encoding="utf-8").read()
         _render_html(BOOK_DIR, md_content, html_path, BOOK_NAME.replace("_", " "))
         logger.info(f"HTML neo-noir generado: {html_path}")

@@ -8,7 +8,6 @@
 import os
 import uuid
 import re
-import json
 import threading
 import time
 import random
@@ -28,6 +27,7 @@ def _get_overlays_dir() -> str:
     if _OVERLAYS_DIR is None:
         try:
             from core.config_manager import config
+
             rel = config.get("obs_spark.overlays_dir", "_integrations/obs_overlays")
         except Exception:
             rel = "_integrations/obs_overlays"
@@ -66,7 +66,7 @@ def _call_local_llm(prompt: str, temperature: float = 0.6) -> str:
 
     messages = [
         {"role": "system", "content": _SYSTEM_PROMPT},
-        {"role": "user",   "content": prompt}
+        {"role": "user", "content": prompt},
     ]
 
     provider = config.get("obs_spark.provider", "")
@@ -77,11 +77,15 @@ def _call_local_llm(prompt: str, temperature: float = 0.6) -> str:
     if not provider:
         try:
             results = provider_manager.scan_all()
-            nvidia = next((r for r in results if r.name == "Nvidia NIM" and r.is_healthy), None)
+            nvidia = next(
+                (r for r in results if r.name == "Nvidia NIM" and r.is_healthy), None
+            )
             if nvidia:
                 provider = "Nvidia NIM"
                 model = "meta/llama-3.3-70b-instruct"
-                log.info("[GravitySpark] Nvidia NIM detectado online. Usando Llama 3.3 70B de Nvidia para generación premium de alta velocidad.")
+                log.info(
+                    "[GravitySpark] Nvidia NIM detectado online. Usando Llama 3.3 70B de Nvidia para generación premium de alta velocidad."
+                )
         except Exception as e:
             log.warning(f"[GravitySpark] Error auto-detectando Nvidia NIM: {e}")
 
@@ -92,26 +96,30 @@ def _call_local_llm(prompt: str, temperature: float = 0.6) -> str:
                 provider=provider if provider else None,
                 model=model if model else None,
                 options=options,
-                task="code"
+                task="code",
             )
             if raw and raw.strip() != "":
                 return raw
             raise RuntimeError("El LLM retornó respuesta vacía")
         except Exception as e:
             if attempt < 2:
-                sleep_time = 1.0 * (2 ** attempt) + random.uniform(0.1, 0.3)
-                log.warning(f"[GravitySpark] Intento {attempt+1} fallido llamando a LLM: {e}. Reintentando en {sleep_time:.2f}s...")
+                sleep_time = 1.0 * (2**attempt) + random.uniform(0.1, 0.3)
+                log.warning(
+                    f"[GravitySpark] Intento {attempt+1} fallido llamando a LLM: {e}. Reintentando en {sleep_time:.2f}s..."
+                )
                 time.sleep(sleep_time)
                 continue
             log.error(f"[GravitySpark] Todos los intentos de LLM fallaron: {e}")
             raise
-    
+
     raise RuntimeError("Fallo irrecuperable llamando al LLM local.")
 
 
 def _extract_html(raw: str) -> str:
     """Extrae el bloque HTML de la respuesta del LLM."""
-    match = re.search(r"```(?:html)?\s*(<!DOCTYPE[\s\S]*?</html>)\s*```", raw, re.IGNORECASE)
+    match = re.search(
+        r"```(?:html)?\s*(<!DOCTYPE[\s\S]*?</html>)\s*```", raw, re.IGNORECASE
+    )
     if match:
         return match.group(1).strip()
 
@@ -126,14 +134,14 @@ def _extract_html(raw: str) -> str:
 
 
 def generate_overlay(
-    prompt     : str,
-    scene_name : str = "",
-    width      : int = 400,
-    height     : int = 300,
-    x          : int = 0,
-    y          : int = 0,
+    prompt: str,
+    scene_name: str = "",
+    width: int = 400,
+    height: int = 300,
+    x: int = 0,
+    y: int = 0,
     bridge_port: int = 7860,
-    use_cache  : bool = True,
+    use_cache: bool = True,
 ) -> Dict[str, Any]:
     """
     Genera un overlay HTML con IA local y lo inyecta en OBS como Browser Source de forma totalmente thread-safe.
@@ -143,21 +151,29 @@ def generate_overlay(
 
         obs = get_client()
         if not obs.is_connected():
-            return {"ok": False, "error": "OBS no conectado. Verifica que OBS esté abierto con WebSocket activo."}
+            return {
+                "ok": False,
+                "error": "OBS no conectado. Verifica que OBS esté abierto con WebSocket activo.",
+            }
 
         # Obtener escena activa si no se especifica
         if not scene_name:
             try:
                 scene_name = obs.get_current_scene()
             except Exception as e:
-                return {"ok": False, "error": f"No se pudo obtener la escena activa: {e}"}
+                return {
+                    "ok": False,
+                    "error": f"No se pudo obtener la escena activa: {e}",
+                }
 
-        overlay_id   = uuid.uuid4().hex[:16]
-        input_name   = f"Gravity_Spark_{overlay_id[:8]}"
+        overlay_id = uuid.uuid4().hex[:16]
+        input_name = f"Gravity_Spark_{overlay_id[:8]}"
         overlay_file = os.path.join(_get_overlays_dir(), f"{overlay_id}.html")
-        url          = f"http://127.0.0.1:{bridge_port}/obs-overlay/{overlay_id}"
+        url = f"http://127.0.0.1:{bridge_port}/obs-overlay/{overlay_id}"
 
-        log.info(f"[GravitySpark] Generando overlay '{input_name}' — prompt: {prompt[:80]}...")
+        log.info(
+            f"[GravitySpark] Generando overlay '{input_name}' — prompt: {prompt[:80]}..."
+        )
 
         # ── Instant Premium Template Routing ──────────────────────────────────────
         prompt_norm = prompt.lower().strip()
@@ -166,45 +182,55 @@ def generate_overlay(
         # Mapeo estricto a las plantillas solo si es el prompt exacto o el nombre clave
         TEMPLATE_PROMPTS = {
             "chat_cyberpunk": [
-                "chat cyberpunk", "chat_cyberpunk",
-                "widget de chat cyberpunk con glassmorphism oscuro. bordes neón cian pulsantes. incluye script js que simula recibir mensajes con avatares (imágenes placeholder) y nombres de colores variados cada 2-5 segundos. auto-scroll fluido y un pequeño destello visual en cada nuevo mensaje. tipografía monospace consola."
+                "chat cyberpunk",
+                "chat_cyberpunk",
+                "widget de chat cyberpunk con glassmorphism oscuro. bordes neón cian pulsantes. incluye script js que simula recibir mensajes con avatares (imágenes placeholder) y nombres de colores variados cada 2-5 segundos. auto-scroll fluido y un pequeño destello visual en cada nuevo mensaje. tipografía monospace consola.",
             ],
             "dashboard_hud": [
-                "dashboard hud", "dashboard_hud",
-                "panel lateral de estadísticas estilo sci-fi. muestra viewers, subs y bits. usa js para actualizar los números dinámicamente simulando tráfico real. incluye mini gráficos de barras animados con html5 canvas y anillos circulares de progreso. paleta de colores oscuro con acentos en violeta y verde neón."
+                "dashboard hud",
+                "dashboard_hud",
+                "panel lateral de estadísticas estilo sci-fi. muestra viewers, subs y bits. usa js para actualizar los números dinámicamente simulando tráfico real. incluye mini gráficos de barras animados con html5 canvas y anillos circulares de progreso. paleta de colores oscuro con acentos en violeta y verde neón.",
             ],
             "alerta_epica": [
-                "alerta épica", "alerta_epica",
-                "alerta de donación que se dispara cada 10 segundos (simulado por js). inicia con una explosión de partículas doradas 2d usando canvas, seguido de un texto central 3d con sombras pronunciadas que dice \"nueva donación\" y un nombre aleatorio rotando. efecto de entrada con zoom elástico."
+                "alerta épica",
+                "alerta_epica",
+                'alerta de donación que se dispara cada 10 segundos (simulado por js). inicia con una explosión de partículas doradas 2d usando canvas, seguido de un texto central 3d con sombras pronunciadas que dice "nueva donación" y un nombre aleatorio rotando. efecto de entrada con zoom elástico.',
             ],
             "brb_synthwave": [
-                "brb synthwave", "brb_synthwave",
-                "pantalla \"vuelvo enseguida\" estilo retrowave 80s. fondo animado con un sol de neón y una cuadrícula 3d moviéndose hacia adelante infinitamente (css animations). al centro, un temporizador funcional en js contando hacia atrás desde 5 minutos. si llega a 0, muestra \"¡estamos de vuelta!\"."
+                "brb synthwave",
+                "brb_synthwave",
+                'pantalla "vuelvo enseguida" estilo retrowave 80s. fondo animado con un sol de neón y una cuadrícula 3d moviéndose hacia adelante infinitamente (css animations). al centro, un temporizador funcional en js contando hacia atrás desde 5 minutos. si llega a 0, muestra "¡estamos de vuelta!".',
             ],
             "now_playing": [
-                "now playing", "now_playing",
-                "widget flotante de música actual. muestra la rotación de un vinilo con una carátula simulada, barras de ecualizador de audio que saltan aleatoriamente mediante js, y el texto de la canción desplazándose (marquee). diseño limpio, translúcido con bordes muy finos blancos, efecto blur de fondo."
+                "now playing",
+                "now_playing",
+                "widget flotante de música actual. muestra la rotación de un vinilo con una carátula simulada, barras de ecualizador de audio que saltan aleatoriamente mediante js, y el texto de la canción desplazándose (marquee). diseño limpio, translúcido con bordes muy finos blancos, efecto blur de fondo.",
             ],
             "meta_subs": [
-                "meta subs", "meta_subs",
-                "barra de meta de subs con hitos (25%, 50%, 100%). script js incrementa el progreso constantemente. al alcanzar un hito, la barra cambia de color vibrante y emite con fe ti css/canvas localmente. el texto muestra \"meta: x/100\" actualizándose fluidamente. estilo moderno, bordes redondeados (pill-shape)."
+                "meta subs",
+                "meta_subs",
+                'barra de meta de subs con hitos (25%, 50%, 100%). script js incrementa el progreso constantemente. al alcanzar un hito, la barra cambia de color vibrante y emite con fe ti css/canvas localmente. el texto muestra "meta: x/100" actualizándose fluidamente. estilo moderno, bordes redondeados (pill-shape).',
             ],
             "reloj_scifi": [
-                "reloj sci-fi", "reloj_scifi",
-                "widget hud que muestra la hora real local (hh:mm:ss) actualizándose cada segundo con js. incluye un falso monitor de sistema (cpu/ram en uso) con barras de progreso fluctuantes aleatoriamente, y un pequeño radar rotativo. estética de interfaz de nave espacial, colores verde terminal y negro."
+                "reloj sci-fi",
+                "reloj_scifi",
+                "widget hud que muestra la hora real local (hh:mm:ss) actualizándose cada segundo con js. incluye un falso monitor de sistema (cpu/ram en uso) con barras de progreso fluctuantes aleatoriamente, y un pequeño radar rotativo. estética de interfaz de nave espacial, colores verde terminal y negro.",
             ],
             "gravity_core": [
-                "cubo núcleo gravity", "gravity_core",
-                "un cubo wireframe 3d rotando constantemente en el centro de la pantalla, renderizado usando puras matemáticas de proyección de vértices sobre html5 canvas 2d (simulando un motor 3d desde cero). en su centro, un orbe brillante palpitante. hace fetch a la api local de gravity para ajustar su velocidad de rotación según la latencia."
+                "cubo núcleo gravity",
+                "gravity_core",
+                "un cubo wireframe 3d rotando constantemente en el centro de la pantalla, renderizado usando puras matemáticas de proyección de vértices sobre html5 canvas 2d (simulando un motor 3d desde cero). en su centro, un orbe brillante palpitante. hace fetch a la api local de gravity para ajustar su velocidad de rotación según la latencia.",
             ],
             "cinematic_start": [
-                "pantalla de inicio cinematográfica", "cinematic_start",
-                "pantalla de inicio cinematográfica starting soon con barras cinematográficas negras. el fondo es una simulación compleja de humo o niebla volumétrica generada procedimentalmente usando perlin noise o algoritmos de fluidos en canvas. cuenta regresiva que al llegar a cero disipa el humo revelando \"sistema online\"."
+                "pantalla de inicio cinematográfica",
+                "cinematic_start",
+                'pantalla de inicio cinematográfica starting soon con barras cinematográficas negras. el fondo es una simulación compleja de humo o niebla volumétrica generada procedimentalmente usando perlin noise o algoritmos de fluidos en canvas. cuenta regresiva que al llegar a cero disipa el humo revelando "sistema online".',
             ],
             "matrix_rain": [
-                "lluvia matrix de seguridad", "matrix_rain",
-                "clásica lluvia digital de caracteres verdes cayendo, construida para máximo rendimiento en canvas. se conecta al security monitor local y hace que las gotas formen esporádicamente palabras reales como secure, firewall o gravity cuando detecta monitoreo activo."
-            ]
+                "lluvia matrix de seguridad",
+                "matrix_rain",
+                "clásica lluvia digital de caracteres verdes cayendo, construida para máximo rendimiento en canvas. se conecta al security monitor local y hace que las gotas formen esporádicamente palabras reales como secure, firewall o gravity cuando detecta monitoreo activo.",
+            ],
         }
 
         selected_template = None
@@ -216,10 +242,15 @@ def generate_overlay(
 
             if selected_template:
                 from core.spark_templates import TEMPLATES
+
                 html_content = TEMPLATES.get(selected_template)
-                log.info(f"[GravitySpark] Ruta instantánea: Seleccionada plantilla ultra-premium {selected_template}")
+                log.info(
+                    f"[GravitySpark] Ruta instantánea: Seleccionada plantilla ultra-premium {selected_template}"
+                )
         else:
-            log.info(f"[GravitySpark] Caché desactivada por usuario. Omitiendo plantillas instantáneas para crear variación única.")
+            log.info(
+                "[GravitySpark] Caché desactivada por usuario. Omitiendo plantillas instantáneas para crear variación única."
+            )
 
         # 1. Llamar al LLM local (solo si no coincide con ninguna plantilla instantánea)
         if not html_content:
@@ -229,7 +260,10 @@ def generate_overlay(
                 html_content = _extract_html(raw_response)
             except Exception as e:
                 log.error(f"[GravitySpark] Error LLM: {e}")
-                return {"ok": False, "error": f"Error generando overlay con IA local: {e}"}
+                return {
+                    "ok": False,
+                    "error": f"Error generando overlay con IA local: {e}",
+                }
 
         # 2. Guardar HTML en disco
         try:
@@ -242,49 +276,54 @@ def generate_overlay(
         # 3. Crear Browser Source en OBS
         try:
             result = obs.create_browser_source(
-                scene_name = scene_name,
-                input_name = input_name,
-                url        = url,
-                width      = width,
-                height     = height,
-                x          = x,
-                y          = y,
+                scene_name=scene_name,
+                input_name=input_name,
+                url=url,
+                width=width,
+                height=height,
+                x=x,
+                y=y,
             )
         except Exception as e:
-            try: os.remove(overlay_file)
-            except Exception: pass
+            try:
+                os.remove(overlay_file)
+            except Exception:
+                pass
             return {"ok": False, "error": f"Error creando Browser Source en OBS: {e}"}
 
         # 4. Registrar overlay activo
         _active_overlays[overlay_id] = {
-            "overlay_id"   : overlay_id,
-            "input_name"   : input_name,
-            "scene_name"   : scene_name,
+            "overlay_id": overlay_id,
+            "input_name": input_name,
+            "scene_name": scene_name,
             "scene_item_id": result.get("scene_item_id"),
-            "created_at"   : time.time(),
-            "prompt"       : prompt,
-            "path"         : overlay_file,
-            "url"          : url,
-            "width"        : width,
-            "height"       : height,
+            "created_at": time.time(),
+            "prompt": prompt,
+            "path": overlay_file,
+            "url": url,
+            "width": width,
+            "height": height,
         }
 
         return {
-            "ok"           : True,
-            "overlay_id"   : overlay_id,
-            "input_name"   : input_name,
-            "scene_name"   : scene_name,
+            "ok": True,
+            "overlay_id": overlay_id,
+            "input_name": input_name,
+            "scene_name": scene_name,
             "scene_item_id": result.get("scene_item_id"),
-            "preview_url"  : url,
-            "html_path"    : overlay_file,
-            "prompt"       : prompt,
+            "preview_url": url,
+            "html_path": overlay_file,
+            "prompt": prompt,
         }
 
 
-def edit_overlay(overlay_id: str, new_prompt: str, bridge_port: int = 7860) -> Dict[str, Any]:
+def edit_overlay(
+    overlay_id: str, new_prompt: str, bridge_port: int = 7860
+) -> Dict[str, Any]:
     """Regenera un overlay existente de forma totalmente thread-safe y segura en disco y OBS."""
     with _overlays_lock:
         from core.obs_client import get_client
+
         obs = get_client()
 
         if overlay_id not in _active_overlays:
@@ -296,7 +335,7 @@ def edit_overlay(overlay_id: str, new_prompt: str, bridge_port: int = 7860) -> D
 
         log.info(f"[GravitySpark] Editando overlay {overlay_id}: {new_prompt[:60]}...")
         try:
-            raw  = _call_local_llm(combined_prompt)
+            raw = _call_local_llm(combined_prompt)
             html = _extract_html(raw)
         except Exception as e:
             return {"ok": False, "error": f"Error LLM: {e}"}
@@ -315,14 +354,19 @@ def edit_overlay(overlay_id: str, new_prompt: str, bridge_port: int = 7860) -> D
 
         _active_overlays[overlay_id]["prompt"] = new_prompt
 
-        return {"ok": True, "overlay_id": overlay_id, "input_name": info["input_name"],
-                "message": "Overlay actualizado y refrescado en OBS"}
+        return {
+            "ok": True,
+            "overlay_id": overlay_id,
+            "input_name": info["input_name"],
+            "message": "Overlay actualizado y refrescado en OBS",
+        }
 
 
 def remove_overlay(overlay_id: str) -> Dict[str, Any]:
     """Elimina un overlay de OBS y del disco de forma thread-safe y limpia."""
     with _overlays_lock:
         from core.obs_client import get_client
+
         obs = get_client()
 
         if overlay_id not in _active_overlays:
@@ -354,15 +398,15 @@ def get_overlays() -> List[Dict[str, Any]]:
     with _overlays_lock:
         return [
             {
-                "overlay_id"   : v["overlay_id"],
-                "input_name"   : v["input_name"],
-                "scene_name"   : v["scene_name"],
+                "overlay_id": v["overlay_id"],
+                "input_name": v["input_name"],
+                "scene_name": v["scene_name"],
                 "scene_item_id": v["scene_item_id"],
-                "created_at"   : v["created_at"],
-                "prompt"       : v["prompt"],
-                "url"          : v["url"],
-                "width"        : v["width"],
-                "height"       : v["height"],
+                "created_at": v["created_at"],
+                "prompt": v["prompt"],
+                "url": v["url"],
+                "width": v["width"],
+                "height": v["height"],
             }
             for v in _active_overlays.values()
         ]

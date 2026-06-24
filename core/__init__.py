@@ -27,7 +27,7 @@ from . import mcp_adapter
 from . import verification_agent
 from . import hitl_manager
 from . import tool_executor
-from . import turbo_kv       # Optimización KV-cache — conectado a engine_watchdog
+from . import turbo_kv  # Optimización KV-cache — conectado a engine_watchdog
 
 # ── Pipeline de Producción e Integraciones de Alta Gama ─────────────────────────
 from . import security_monitor
@@ -39,4 +39,3 @@ from . import ai_process_manager
 from . import animation_engine
 from . import gravity_brain
 from . import engine_watchdog
-

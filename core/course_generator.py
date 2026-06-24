@@ -4,7 +4,6 @@ Genera un syllabus utilizando LLMs de forma óptima e inyecta el nuevo nicho en 
 """
 
 import json
-import os
 from typing import List, Dict, Any
 from core.logger import log
 
@@ -13,7 +12,7 @@ def generate_course(course_title: str, n_videos: int = 10, lang: str = "es") -> 
     """
     Genera el syllabus estructurado de un curso de N videos e inyecta el nicho de forma sincronizada
     en el planificador autónomo del sistema.
-    
+
     Args:
         course_title: Título o concepto del info-producto / curso.
         n_videos: Cantidad de lecciones o videos a generar para el temario.
@@ -22,7 +21,9 @@ def generate_course(course_title: str, n_videos: int = 10, lang: str = "es") -> 
     Returns:
         True si el proceso de generación e inyección es exitoso, False en caso contrario.
     """
-    log.info(f"[CourseGenerator] Creando info-producto: '{course_title}' ({n_videos} videos, lang={lang})")
+    log.info(
+        f"[CourseGenerator] Creando info-producto: '{course_title}' ({n_videos} videos, lang={lang})"
+    )
 
     try:
         from core.provider_manager import get_best, complete
@@ -69,9 +70,11 @@ def generate_course(course_title: str, n_videos: int = 10, lang: str = "es") -> 
         content = content.strip()
 
         start = content.find("{")
-        end   = content.rfind("}") + 1
+        end = content.rfind("}") + 1
         if start == -1 or end <= start:
-            log.error(f"[CourseGenerator] No se encontró JSON válido en la respuesta: {content[:200]}")
+            log.error(
+                f"[CourseGenerator] No se encontró JSON válido en la respuesta: {content[:200]}"
+            )
             return False
 
         data: Dict[str, Any] = json.loads(content[start:end])
@@ -85,24 +88,30 @@ def generate_course(course_title: str, n_videos: int = 10, lang: str = "es") -> 
 
         # Leer, actualizar y guardar niches.json de forma 100% thread-safe mediante delegación
         niches_db = load_niches()
-        
-        # Prevenir duplicados por ID
-        niches_db["niches"] = [n for n in niches_db.get("niches", []) if n.get("id") != course_id]
 
-        niches_db["niches"].append({
-            "id": course_id,
-            "topics": topics,
-            "style": data.get("style", "documental"),
-            "lang": lang,
-            "bgm_type": data.get("bgm_type", "corporativo"),
-            "n_scenes": 45,
-            "estimated_cpm_usd": 15.0,
-            "times_used": 0,
-            "last_used": None,
-        })
+        # Prevenir duplicados por ID
+        niches_db["niches"] = [
+            n for n in niches_db.get("niches", []) if n.get("id") != course_id
+        ]
+
+        niches_db["niches"].append(
+            {
+                "id": course_id,
+                "topics": topics,
+                "style": data.get("style", "documental"),
+                "lang": lang,
+                "bgm_type": data.get("bgm_type", "corporativo"),
+                "n_scenes": 45,
+                "estimated_cpm_usd": 15.0,
+                "times_used": 0,
+                "last_used": None,
+            }
+        )
 
         save_niches(niches_db)
-        log.info(f"[CourseGenerator] Curso '{course_title}' ({len(topics)} lecciones) guardado como niche '{course_id}'.")
+        log.info(
+            f"[CourseGenerator] Curso '{course_title}' ({len(topics)} lecciones) guardado como niche '{course_id}'."
+        )
         return True
 
     except json.JSONDecodeError as e:
@@ -111,4 +120,3 @@ def generate_course(course_title: str, n_videos: int = 10, lang: str = "es") -> 
     except Exception as e:
         log.error(f"[CourseGenerator] Error inesperado: {e}")
         return False
-

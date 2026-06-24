@@ -1,4 +1,3 @@
-import os
 import re
 
 filepath = r"f:\Gravity_AI_bridge\core\video\glsl_renderer_v13.py"
@@ -8,7 +7,9 @@ with open(filepath, "r", encoding="utf-8") as f:
 
 # 1. Imports
 if "from PIL import Image" not in content:
-    content = content.replace("import moderngl", "import moderngl\nfrom PIL import Image\n", 1)
+    content = content.replace(
+        "import moderngl", "import moderngl\nfrom PIL import Image\n", 1
+    )
 
 # 2. Context & Texture
 engine_init_code = """    ctx = moderngl.create_context(standalone=True)
@@ -31,7 +32,9 @@ engine_init_code = """    ctx = moderngl.create_context(standalone=True)
         print(f"Error cargando textura V5: {e}")
 """
 if "# [V5] Cargar Textura PBR" not in content:
-    content = content.replace("    ctx = moderngl.create_context(standalone=True)", engine_init_code, 1)
+    content = content.replace(
+        "    ctx = moderngl.create_context(standalone=True)", engine_init_code, 1
+    )
 
 # 3. Bind Uniform
 bind_code = """        "inca_math":      ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=INCA_MATH_FS),
@@ -41,8 +44,12 @@ bind_code = """        "inca_math":      ctx.program(vertex_shader=VERTEX_SHADER
         engines["inca_math"]['tex_stone'].value = 0
 """
 if "if tex_stone and 'tex_stone' in engines[\"inca_math\"]" not in content:
-    content = content.replace("""        "inca_math":      ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=INCA_MATH_FS),
-    }""", bind_code, 1)
+    content = content.replace(
+        """        "inca_math":      ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=INCA_MATH_FS),
+    }""",
+        bind_code,
+        1,
+    )
 
 # 4. Sustituir el INCA_MATH_FS
 NEW_SHADER = """INCA_MATH_FS = '''#version 330

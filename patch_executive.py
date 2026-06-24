@@ -1,6 +1,3 @@
-import os
-import re
-
 filepath = r"f:\Gravity_AI_bridge\core\video\v13_ai_director.py"
 
 with open(filepath, "r", encoding="utf-8") as f:

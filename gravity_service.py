@@ -21,7 +21,7 @@ import time
 import subprocess
 import ctypes
 
-BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SERVICE_NAME = "GravityAI"
 SERVICE_DISPLAY = "Gravity AI Bridge Server"
 SERVICE_DESC = (
@@ -29,12 +29,12 @@ SERVICE_DESC = (
     "y motor de autonomía OODA."
 )
 # Cuando corre como servicio, sys.executable es pythonservice.exe. Forzamos a que use python.exe real.
-PYTHON_EXE   = os.path.join(os.path.dirname(sys.executable), "python.exe")
+PYTHON_EXE = os.path.join(os.path.dirname(sys.executable), "python.exe")
 if not os.path.exists(PYTHON_EXE):
     PYTHON_EXE = "python.exe"  # Fallback a PATH
 
 BRIDGE_SCRIPT = os.path.join(BASE_DIR, "bridge_server.py")
-LOG_DIR       = os.path.join(BASE_DIR, "logs")
+LOG_DIR = os.path.join(BASE_DIR, "logs")
 
 
 def _is_admin() -> bool:
@@ -66,14 +66,15 @@ try:
         Al iniciar, levanta bridge_server en un subproceso hijo.
         Si el subproceso muere inesperadamente, el servicio lo reinicia.
         """
-        _svc_name_        = SERVICE_NAME
+
+        _svc_name_ = SERVICE_NAME
         _svc_display_name_ = SERVICE_DISPLAY
-        _svc_description_  = SERVICE_DESC
+        _svc_description_ = SERVICE_DESC
 
         def __init__(self, args):
             win32serviceutil.ServiceFramework.__init__(self, args)
             self._stop_event = win32event.CreateEvent(None, 0, 0, None)
-            self._process    = None
+            self._process = None
             os.makedirs(LOG_DIR, exist_ok=True)
 
         def SvcStop(self):
@@ -102,11 +103,16 @@ try:
             restart_times = []
             MAX_RESTARTS_PER_HOUR = 10
 
-            log_out = open(os.path.join(LOG_DIR, "gravity_service.log"), "a", encoding="utf-8")
+            log_out = open(
+                os.path.join(LOG_DIR, "gravity_service.log"), "a", encoding="utf-8"
+            )
 
             while True:
                 # Verificar que no se ha solicitado stop
-                if win32event.WaitForSingleObject(self._stop_event, 0) == win32event.WAIT_OBJECT_0:
+                if (
+                    win32event.WaitForSingleObject(self._stop_event, 0)
+                    == win32event.WAIT_OBJECT_0
+                ):
                     break
 
                 # Limpiar reinicios viejos (> 1 hora)
@@ -155,7 +161,10 @@ try:
                         break
 
                 # Si se solicitó stop, salir del loop externo
-                if win32event.WaitForSingleObject(self._stop_event, 0) == win32event.WAIT_OBJECT_0:
+                if (
+                    win32event.WaitForSingleObject(self._stop_event, 0)
+                    == win32event.WAIT_OBJECT_0
+                ):
                     break
 
             log_out.close()
@@ -168,6 +177,7 @@ except ImportError:
 
 # ── CLI de gestión del servicio ────────────────────────────────────────────────
 
+
 def _run_sc(args: list, check=True) -> subprocess.CompletedProcess:
     return subprocess.run(["sc"] + args, capture_output=True, text=True, check=False)
 
@@ -178,9 +188,20 @@ def cmd_install():
         print("[!] pywin32 no está instalado. Ejecuta: pip install pywin32")
         sys.exit(1)
     print(f"[+] Instalando servicio '{SERVICE_NAME}'...")
-    win32serviceutil.HandleCommandLine(GravityWindowsService, argv=["gravity_service.py", "--startup=auto", "install"])
+    win32serviceutil.HandleCommandLine(
+        GravityWindowsService, argv=["gravity_service.py", "--startup=auto", "install"]
+    )
     # Configurar recuperación automática ante fallos (3 intentos de reinicio)
-    _run_sc(["failure", SERVICE_NAME, "reset=", "3600", "actions=", "restart/5000/restart/10000/restart/30000"])
+    _run_sc(
+        [
+            "failure",
+            SERVICE_NAME,
+            "reset=",
+            "3600",
+            "actions=",
+            "restart/5000/restart/10000/restart/30000",
+        ]
+    )
     print(f"[+] Servicio '{SERVICE_NAME}' instalado correctamente.")
     print("    Usa: python gravity_service.py start")
 
@@ -190,7 +211,7 @@ def cmd_start():
     print(f"[+] Iniciando servicio '{SERVICE_NAME}'...")
     r = _run_sc(["start", SERVICE_NAME])
     if r.returncode == 0 or "START_PENDING" in r.stdout or "RUNNING" in r.stdout:
-        print(f"[+] Servicio iniciado correctamente.")
+        print("[+] Servicio iniciado correctamente.")
     else:
         print(f"[!] {r.stdout.strip() or r.stderr.strip()}")
 
@@ -237,12 +258,12 @@ def cmd_debug():
 
 COMMANDS = {
     "install": cmd_install,
-    "start":   cmd_start,
-    "stop":    cmd_stop,
+    "start": cmd_start,
+    "stop": cmd_stop,
     "restart": cmd_restart,
-    "remove":  cmd_remove,
-    "status":  cmd_status,
-    "debug":   cmd_debug,
+    "remove": cmd_remove,
+    "status": cmd_status,
+    "debug": cmd_debug,
 }
 
 if __name__ == "__main__":

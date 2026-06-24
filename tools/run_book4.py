@@ -23,4 +23,6 @@ El tono debe ser el de un manual táctico avanzado, estructurado, frío y analí
 if __name__ == "__main__":
     author = GravityResearchAuthor()
     # Generaremos 5 capítulos.
-    author.write_research_book(prompt=prompt_maestro, title="La Arquitectura de la Fuga", num_chapters=5)
+    author.write_research_book(
+        prompt=prompt_maestro, title="La Arquitectura de la Fuga", num_chapters=5
+    )

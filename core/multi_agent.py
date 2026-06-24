@@ -5,17 +5,19 @@
 ║         V7.2: Retrocompatibilidad Python 3.7+ (typing module)                ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
+
 import time
 import threading
 from typing import Optional, List, Dict, Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from core.provider_manager import get_plugin, get_all_model_names
-import os
+
 
 def _inject_master_plan(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Inyecta el Plan Maestro activo como contexto de sistema al inicio si existe."""
     try:
         from core.gravity_brain import _get_active_plan
+
         plan = _get_active_plan()
         if plan:
             # Comprobar si ya está inyectado
@@ -32,12 +34,13 @@ def _inject_master_plan(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 # ── Parallel multi-model comparison ──────────────────────────────────────────
 
+
 def compare(
-    messages:  List[Dict[str, Any]],
-    providers: Optional[List[str]]     = None,
-    n_models:  int                     = 3,
-    options:   Optional[Dict[str, Any]] = None,
-    timeout:   float                   = 120.0,
+    messages: List[Dict[str, Any]],
+    providers: Optional[List[str]] = None,
+    n_models: int = 3,
+    options: Optional[Dict[str, Any]] = None,
+    timeout: float = 120.0,
 ) -> List[Dict[str, Any]]:
     """
     Sends the same messages to N providers/models in parallel.
@@ -49,7 +52,7 @@ def compare(
 
     if not providers:
         all_models = get_all_model_names()
-        providers  = list(all_models.keys())[:n_models]
+        providers = list(all_models.keys())[:n_models]
 
     if not providers:
         return []
@@ -62,30 +65,30 @@ def compare(
         if not plugin:
             return {
                 "provider": provider_name,
-                "model":    "N/A",
+                "model": "N/A",
                 "response": f"[{provider_name} not available]",
-                "elapsed":  0,
+                "elapsed": 0,
             }
         health = plugin.check_health()
         if not health.is_healthy or not health.models:
             return {
                 "provider": provider_name,
-                "model":    "N/A",
+                "model": "N/A",
                 "response": f"[{provider_name} offline]",
-                "elapsed":  0,
+                "elapsed": 0,
             }
         model = health.active_model or health.models[0]["name"]
         t0 = time.time()
         try:
-            chunks   = list(plugin.chat_stream(messages, model, options))
+            chunks = list(plugin.chat_stream(messages, model, options))
             response = "".join(chunks)
         except Exception as e:
             response = f"[Error: {e}]"
         return {
             "provider": provider_name,
-            "model":    model,
+            "model": model,
             "response": response,
-            "elapsed":  round(time.time() - t0, 2),
+            "elapsed": round(time.time() - t0, 2),
         }
 
     ex = ThreadPoolExecutor(max_workers=min(len(providers), 6))
@@ -97,7 +100,7 @@ def compare(
             except Exception:
                 pass
     except TimeoutError:
-        pass # Timeout alcanzado, retornamos los que hayan terminado
+        pass  # Timeout alcanzado, retornamos los que hayan terminado
     finally:
         ex.shutdown(wait=False)
 
@@ -106,26 +109,33 @@ def compare(
 
 # ── Vote: majority consensus ──────────────────────────────────────────────────
 
+
 def vote(
-    messages:  List[Dict[str, Any]],
+    messages: List[Dict[str, Any]],
     providers: Optional[List[str]] = None,
-    n_models:  int                 = 3,
-    mode:      str                 = "vote",  # "vote" | "synthesize"
+    n_models: int = 3,
+    mode: str = "vote",  # "vote" | "synthesize"
 ) -> Dict[str, Any]:
     """
     Runs parallel compare() and selects the best response.
-    
+
     mode="vote"      → Selecciona la respuesta con mayor similitud semántica (TF-IDF cosine).
     mode="synthesize"→ Envía todas las respuestas a un modelo árbitro para sintetizar.
     """
     results = compare(messages, providers=providers, n_models=n_models)
     if not results:
-        return {"provider": "N/A", "model": "N/A", "response": "[No results]", "elapsed": 0}
+        return {
+            "provider": "N/A",
+            "model": "N/A",
+            "response": "[No results]",
+            "elapsed": 0,
+        }
     if len(results) == 1:
         return results[0]
 
     if mode == "synthesize":
         from core.provider_manager import complete as pm_complete
+
         all_responses = "\n\n".join(
             f"[{r.get('provider')}/{r.get('model')}]:\n{r.get('response', '')[:1000]}"
             for r in results
@@ -140,7 +150,12 @@ def vote(
         try:
             synth = pm_complete([{"role": "user", "content": synth_prompt}])
             if synth:
-                return {"provider": "synthesized", "model": "multi", "response": synth, "elapsed": 0}
+                return {
+                    "provider": "synthesized",
+                    "model": "multi",
+                    "response": synth,
+                    "elapsed": 0,
+                }
         except Exception:
             pass  # fallback a vote estándar
 
@@ -148,8 +163,8 @@ def vote(
     def _tfidf_vector(text: str) -> dict:
         import re
         from collections import Counter
-        import math
-        words = re.findall(r'\w+', text.lower())
+
+        words = re.findall(r"\w+", text.lower())
         tf = Counter(words)
         total = sum(tf.values()) or 1
         return {w: c / total for w, c in tf.items()}
@@ -159,20 +174,21 @@ def vote(
         if not common:
             return 0.0
         dot = sum(v1[w] * v2[w] for w in common)
-        norm1 = sum(x ** 2 for x in v1.values()) ** 0.5
-        norm2 = sum(x ** 2 for x in v2.values()) ** 0.5
+        norm1 = sum(x**2 for x in v1.values()) ** 0.5
+        norm2 = sum(x**2 for x in v2.values()) ** 0.5
         return dot / (norm1 * norm2) if norm1 and norm2 else 0.0
 
     # Fallback a Jaccard para textos muy cortos (< 50 tokens)
     def _word_set(text: str) -> set:
         import re
-        return set(re.findall(r'\w+', text.lower()))
+
+        return set(re.findall(r"\w+", text.lower()))
 
     vectors = [_tfidf_vector(r["response"]) for r in results]
     use_cosine = all(len(r["response"].split()) >= 50 for r in results)
 
     best_score = -1.0
-    best       = results[0]
+    best = results[0]
     for i, r in enumerate(results):
         score = 0.0
         for j, other in enumerate(results):
@@ -186,27 +202,35 @@ def vote(
                 inter = len(ws_i & ws_j)
                 union = len(ws_i | ws_j) or 1
                 score += inter / union
-        score /= (len(results) - 1)
+        score /= len(results) - 1
         if score > best_score:
             best_score = score
-            best       = r
+            best = r
 
     method = "cosine" if use_cosine else "jaccard"
-    return {**best, "vote_score": round(best_score, 3), "candidates": len(results), "method": method}
-
+    return {
+        **best,
+        "vote_score": round(best_score, 3),
+        "candidates": len(results),
+        "method": method,
+    }
 
 
 # ── Sequential pipeline ───────────────────────────────────────────────────────
+
 
 class PipelineStep:
     """
     Representa un paso individual dentro de un pipeline de ejecución secuencial multi-modelo.
     """
+
     provider: str
     model: Optional[str]
     role: str
 
-    def __init__(self, provider: str, model: Optional[str] = None, role: str = "") -> None:
+    def __init__(
+        self, provider: str, model: Optional[str] = None, role: str = ""
+    ) -> None:
         """
         Inicializa un paso del pipeline secuencial.
 
@@ -216,21 +240,21 @@ class PipelineStep:
             role: Instrucción de rol o tarea asignada a este paso (ej. 'Refactoriza este código').
         """
         self.provider = provider
-        self.model    = model
-        self.role     = role
+        self.model = model
+        self.role = role
 
 
 def run_pipeline(
-    steps:            List[PipelineStep],
+    steps: List[PipelineStep],
     initial_messages: List[Dict[str, Any]],
-    options:          Optional[Dict[str, Any]] = None,
+    options: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Ejecuta un pipeline secuencial de agentes multi-modelo en el que la salida
     de cada paso se convierte en la entrada del paso subsiguiente.
     """
-    options  = options or {}
-    history  = _inject_master_plan(list(initial_messages))
+    options = options or {}
+    history = _inject_master_plan(list(initial_messages))
     last_out = ""
 
     for step in steps:
@@ -238,12 +262,12 @@ def run_pipeline(
         if not plugin:
             continue
         health = plugin.check_health()
-        model  = step.model or (health.active_model if health.is_healthy else None)
+        model = step.model or (health.active_model if health.is_healthy else None)
         if not model:
             continue
         if step.role and last_out:
             history.append({"role": "user", "content": f"{step.role}:\n\n{last_out}"})
-        chunks   = list(plugin.chat_stream(history, model, options))
+        chunks = list(plugin.chat_stream(history, model, options))
         last_out = "".join(chunks)
         history.append({"role": "assistant", "content": last_out})
 

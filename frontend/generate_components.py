@@ -1,30 +1,54 @@
 import os
 
-BASE_DIR = r'F:\Gravity_AI_bridge\frontend\src\components'
+BASE_DIR = r"F:\Gravity_AI_bridge\frontend\src\components"
 os.makedirs(BASE_DIR, exist_ok=True)
 
 components = {
-    'VisionStudio': ('Palette', 'Interfaz base para Fooocus. Genera prompts optimizados o testea variaciones rápidas.'),
-    'ImageQueue': ('Image', 'Cola de renderizado de Fooocus. Imágenes pendientes de generación.'),
-    'VideoStudio': ('Video', 'Pipeline de generación de video con FFMPEG y TTS.'),
-    'ImageLab': ('Palette', 'Laboratorio avanzado para Pruebas A/B y estilos paramétricos.'),
-    'DeployManager': ('Rocket', 'Pipeline de integración continua y despliegue a Netlify/VPS.'),
-    'GameServers': ('Gamepad2', 'Controlador de instancias locales de MaNGOS WoW 3.3.5a.'),
-    'MultiAgent': ('Bot', 'Comparativa paralela de inferencia entre N proveedores.'),
-    'HardwareMonitor': ('Cpu', 'Telemetría profunda de VRAM, CUDA/ROCm y carga NPU.'),
-    'CostCenter': ('DollarSign', 'Auditoría de tokens y facturación en USD por sesión.'),
-    'Watchdog': ('Activity', 'Guardián de auto-reconexión de proveedores caídos.'),
-    'Sessions': ('Save', 'Gestor de memoria, branching y estados guardados locales.'),
-    'RagIndex': ('BookOpen', 'Vectorización de documentos locales y embeddings.'),
-    'MCPServers': ('Plug', 'Integraciones nativas con Model Context Protocol.'),
-    'Tools': ('Wrench', 'Herramientas estándar: ejecución aislada, terminal básica.'),
-    'ToolsPro': ('Zap', 'Herramientas premium: manipulación GIT, Grep Regex nativo.'),
-    'Firecrawl': ('Bug', 'Scraping web profundo y bypass de cloudflare.'),
-    'HITLApproval': ('ShieldAlert', 'Autorización obligatoria para comandos destructivos.'),
-    'SystemStatus': ('Wifi', 'Vista de latencia e IPs enrutadas activas.'),
-    'Security': ('Shield', 'Log de detecciones del Zero-Trust y baneos automáticos.'),
-    'AuditLog': ('FileText', 'Registro inmutable de prompts y acciones del sistema.'),
-    'Settings': ('Settings', 'Configuraciones de entorno, claves DPAPI y variables locales.')
+    "VisionStudio": (
+        "Palette",
+        "Interfaz base para Fooocus. Genera prompts optimizados o testea variaciones rápidas.",
+    ),
+    "ImageQueue": (
+        "Image",
+        "Cola de renderizado de Fooocus. Imágenes pendientes de generación.",
+    ),
+    "VideoStudio": ("Video", "Pipeline de generación de video con FFMPEG y TTS."),
+    "ImageLab": (
+        "Palette",
+        "Laboratorio avanzado para Pruebas A/B y estilos paramétricos.",
+    ),
+    "DeployManager": (
+        "Rocket",
+        "Pipeline de integración continua y despliegue a Netlify/VPS.",
+    ),
+    "GameServers": (
+        "Gamepad2",
+        "Controlador de instancias locales de MaNGOS WoW 3.3.5a.",
+    ),
+    "MultiAgent": ("Bot", "Comparativa paralela de inferencia entre N proveedores."),
+    "HardwareMonitor": ("Cpu", "Telemetría profunda de VRAM, CUDA/ROCm y carga NPU."),
+    "CostCenter": (
+        "DollarSign",
+        "Auditoría de tokens y facturación en USD por sesión.",
+    ),
+    "Watchdog": ("Activity", "Guardián de auto-reconexión de proveedores caídos."),
+    "Sessions": ("Save", "Gestor de memoria, branching y estados guardados locales."),
+    "RagIndex": ("BookOpen", "Vectorización de documentos locales y embeddings."),
+    "MCPServers": ("Plug", "Integraciones nativas con Model Context Protocol."),
+    "Tools": ("Wrench", "Herramientas estándar: ejecución aislada, terminal básica."),
+    "ToolsPro": ("Zap", "Herramientas premium: manipulación GIT, Grep Regex nativo."),
+    "Firecrawl": ("Bug", "Scraping web profundo y bypass de cloudflare."),
+    "HITLApproval": (
+        "ShieldAlert",
+        "Autorización obligatoria para comandos destructivos.",
+    ),
+    "SystemStatus": ("Wifi", "Vista de latencia e IPs enrutadas activas."),
+    "Security": ("Shield", "Log de detecciones del Zero-Trust y baneos automáticos."),
+    "AuditLog": ("FileText", "Registro inmutable de prompts y acciones del sistema."),
+    "Settings": (
+        "Settings",
+        "Configuraciones de entorno, claves DPAPI y variables locales.",
+    ),
 }
 
 template = """import { {icon} } from 'lucide-react';
@@ -71,9 +95,11 @@ export const {name} = () => {
 """
 
 for name, (icon, desc) in components.items():
-    file_path = os.path.join(BASE_DIR, f'{name}.tsx')
-    content = template.replace('{name}', name).replace('{icon}', icon).replace('{desc}', desc)
-    with open(file_path, 'w', encoding='utf-8') as f:
+    file_path = os.path.join(BASE_DIR, f"{name}.tsx")
+    content = (
+        template.replace("{name}", name).replace("{icon}", icon).replace("{desc}", desc)
+    )
+    with open(file_path, "w", encoding="utf-8") as f:
         f.write(content)
 
-print(f'Generados {len(components)} componentes exitosamente.')
+print(f"Generados {len(components)} componentes exitosamente.")

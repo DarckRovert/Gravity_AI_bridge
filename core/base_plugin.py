@@ -8,18 +8,19 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any
 
+
 class GravityIntegration(ABC):
     """
     Abstract Base Class for all external modules, APIs, or integrations.
     All plugins moved to /integrations should inherit from this.
     """
-    
+
     @property
     @abstractmethod
     def name(self) -> str:
         """Returns the technical identifier name of the plugin."""
         pass
-        
+
     @property
     @abstractmethod
     def description(self) -> str:
@@ -49,4 +50,3 @@ class GravityIntegration(ABC):
         Example: {"status": "healthy", "details": {...}}
         """
         pass
-

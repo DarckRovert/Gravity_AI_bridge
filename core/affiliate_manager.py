@@ -184,7 +184,7 @@ def _atomic_write_json(file_path: str, data: Any) -> None:
     dir_name = os.path.dirname(file_path)
     if dir_name:
         os.makedirs(dir_name, exist_ok=True)
-        
+
     last_err: Optional[Exception] = None
     for i in range(5):
         try:
@@ -195,15 +195,17 @@ def _atomic_write_json(file_path: str, data: Any) -> None:
             return
         except PermissionError as e:
             last_err = e
-            wait = 0.05 * (2 ** i)
+            wait = 0.05 * (2**i)
             time.sleep(wait)
         except Exception as e:
             last_err = e
             # Errores graves (disco lleno, etc.) se lanzan
             raise e
-            
+
     if last_err:
-        log.error(f"[Affiliates] Atomic write failed to {file_path} after 5 attempts: {last_err}")
+        log.error(
+            f"[Affiliates] Atomic write failed to {file_path} after 5 attempts: {last_err}"
+        )
         raise last_err
 
 
@@ -219,8 +221,8 @@ def _load_affiliate_db() -> Dict[str, List[Dict[str, Any]]]:
                     for k, v in _DEFAULT_AFFILIATES.items():
                         data.setdefault(k, v)
                     return data
-                except (PermissionError, json.JSONDecodeError) as e:
-                    time.sleep(0.02 * (2 ** i))
+                except (PermissionError, json.JSONDecodeError):
+                    time.sleep(0.02 * (2**i))
                 except Exception as e:
                     log.warning(f"[Affiliates] Failed to load db: {e}")
                     break
@@ -249,8 +251,10 @@ def get_affiliate_links(niche_id: str, max_links: int = 3) -> List[Dict[str, Any
 
         result: List[Dict[str, Any]] = []
         # Ordenar por EPC descendente
-        sorted_progs = sorted(progs, key=lambda x: x.get("epc_usd", 0.0), reverse=True)[:max_links]
-        
+        sorted_progs = sorted(progs, key=lambda x: x.get("epc_usd", 0.0), reverse=True)[
+            :max_links
+        ]
+
         for prog in sorted_progs:
             aff_id = aff_ids.get(prog["name"], aff_ids.get("_default", "gravity_ai"))
             url = prog["url_template"].replace("{aff_id}", str(aff_id))
@@ -279,11 +283,15 @@ def build_affiliate_block(niche_id: str) -> str:
         lines.append(f"   {link['url']}")
         lines.append("")
 
-    lines.append("⚠️ Algunos links son de afiliados. Al usarlos apoyas el canal sin costo extra.")
+    lines.append(
+        "⚠️ Algunos links son de afiliados. Al usarlos apoyas el canal sin costo extra."
+    )
     return "\n".join(lines)
 
 
-def log_affiliate_injection(job_id: int, niche_id: str, links_used: List[Dict[str, Any]]) -> None:
+def log_affiliate_injection(
+    job_id: int, niche_id: str, links_used: List[Dict[str, Any]]
+) -> None:
     """
     Registra de forma sincronizada y atómica la inyección en affiliate_log.json.
     Proyecta de forma thread-safe los ingresos estimados en revenue_tracker.
@@ -298,14 +306,16 @@ def log_affiliate_injection(job_id: int, niche_id: str, links_used: List[Dict[st
                             records = json.load(f)
                         break
                     except (PermissionError, json.JSONDecodeError):
-                        time.sleep(0.02 * (2 ** i))
-                        
-            records.append({
-                "ts": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-                "job_id": job_id,
-                "niche_id": niche_id,
-                "links_used": [l["name"] for l in links_used],
-            })
+                        time.sleep(0.02 * (2**i))
+
+            records.append(
+                {
+                    "ts": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                    "job_id": job_id,
+                    "niche_id": niche_id,
+                    "links_used": [l["name"] for l in links_used],
+                }
+            )
             # Mantener histórico limitado a 500 registros
             records = records[-500:]
             _atomic_write_json(AFFILIATE_LOG, records)
@@ -315,31 +325,37 @@ def log_affiliate_injection(job_id: int, niche_id: str, links_used: List[Dict[st
     # Proyección conservadora de ingresos CPA: EPC × CTR 0.5% × 500 views iniciales
     try:
         from core.revenue_tracker import _load_log, _save_log
+
         n_links = max(len(links_used), 1)
         avg_epc = sum(l.get("epc_usd", 0.5) for l in links_used) / n_links
         estimated_clicks = 500 * 0.005  # 0.5% CTR sobre 500 views
         affiliate_rev = round(avg_epc * estimated_clicks, 4)
 
         aff_record_id = f"aff_{job_id}"
-        
+
         # Sincronizar el acceso y guardado en revenue_tracker
         from core.revenue_tracker import _revenue_io_lock
+
         with _revenue_io_lock:
             rev_records = _load_log()
             existing = [r for r in rev_records if r.get("video_id") == aff_record_id]
             if not existing:
-                rev_records.append({
-                    "ts": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-                    "job_id": job_id,
-                    "niche_id": niche_id,
-                    "is_short": False,
-                    "platform": "affiliate_projection",
-                    "lang": "es",
-                    "video_id": aff_record_id,
-                    "views": 0,
-                    "revenue_usd": affiliate_rev,
-                    "source": "affiliate_projection",
-                })
+                rev_records.append(
+                    {
+                        "ts": datetime.now(timezone.utc)
+                        .isoformat()
+                        .replace("+00:00", "Z"),
+                        "job_id": job_id,
+                        "niche_id": niche_id,
+                        "is_short": False,
+                        "platform": "affiliate_projection",
+                        "lang": "es",
+                        "video_id": aff_record_id,
+                        "views": 0,
+                        "revenue_usd": affiliate_rev,
+                        "source": "affiliate_projection",
+                    }
+                )
                 _save_log(rev_records)
     except Exception as _rev_e:
         log.debug(f"[Affiliates] Revenue projection skipped or failed: {_rev_e}")
@@ -369,8 +385,11 @@ def add_program(niche_id: str, program: Dict[str, Any]) -> Dict[str, Any]:
     """Agrega o actualiza un programa de afiliados de forma thread-safe."""
     required = {"name", "url_template", "cta", "epc_usd"}
     if not required.issubset(program.keys()):
-        return {"ok": False, "error": f"Faltan campos requeridos: {required - set(program.keys())}"}
-        
+        return {
+            "ok": False,
+            "error": f"Faltan campos requeridos: {required - set(program.keys())}",
+        }
+
     with _affiliate_io_lock:
         db = _load_affiliate_db()
         db.setdefault(niche_id, [])
@@ -379,4 +398,3 @@ def add_program(niche_id: str, program: Dict[str, Any]) -> Dict[str, Any]:
         db[niche_id].append(program)
         save_affiliate_db(db)
         return {"ok": True, "niche_id": niche_id, "program": program["name"]}
-

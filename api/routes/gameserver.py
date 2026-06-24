@@ -5,9 +5,12 @@ from core import game_server_manager
 
 # ── Endpoints GET ─────────────────────────────────────────────────────────────
 
+
 def serve_gameserver_status(handler):
     try:
-        body = json.dumps(game_server_manager.get_all_status(), indent=2).encode("utf-8")
+        body = json.dumps(game_server_manager.get_all_status(), indent=2).encode(
+            "utf-8"
+        )
         handler.send_response(200)
         handler.send_header("Content-Type", "application/json")
         handler._send_cors()
@@ -17,13 +20,16 @@ def serve_gameserver_status(handler):
         handler.send_response(500)
         handler.end_headers()
         handler.wfile.write(json.dumps({"error": str(e)}).encode())
+
 
 def serve_gameserver_log(handler):
     try:
         params = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(handler.path).query))
         server_id = params.get("server", "wow_vanilla")
         lines = int(params.get("lines", 100))
-        body = json.dumps(game_server_manager.get_log(server_id, lines), indent=2).encode("utf-8")
+        body = json.dumps(
+            game_server_manager.get_log(server_id, lines), indent=2
+        ).encode("utf-8")
         handler.send_response(200)
         handler.send_header("Content-Type", "application/json")
         handler._send_cors()
@@ -34,11 +40,14 @@ def serve_gameserver_log(handler):
         handler.end_headers()
         handler.wfile.write(json.dumps({"error": str(e)}).encode())
 
+
 def serve_gameserver_players(handler):
     try:
         params = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(handler.path).query))
         server_id = params.get("server", "wow_vanilla")
-        body = json.dumps(game_server_manager.get_players(server_id), indent=2).encode("utf-8")
+        body = json.dumps(game_server_manager.get_players(server_id), indent=2).encode(
+            "utf-8"
+        )
         handler.send_response(200)
         handler.send_header("Content-Type", "application/json")
         handler._send_cors()
@@ -48,6 +57,7 @@ def serve_gameserver_players(handler):
         handler.send_response(500)
         handler.end_headers()
         handler.wfile.write(json.dumps({"error": str(e)}).encode())
+
 
 def serve_registro(handler):
     HTML = """<!DOCTYPE html>
@@ -101,7 +111,9 @@ def serve_registro(handler):
     handler.end_headers()
     handler.wfile.write(HTML.encode("utf-8"))
 
+
 # ── Endpoints POST ────────────────────────────────────────────────────────────
+
 
 def handle_start(handler, data):
     server_id = data.get("server", "wow_vanilla")
@@ -114,6 +126,7 @@ def handle_start(handler, data):
     handler.end_headers()
     handler.wfile.write(body)
 
+
 def handle_stop(handler, data):
     server_id = data.get("server", "wow_vanilla")
     result = game_server_manager.stop(server_id)
@@ -123,14 +136,25 @@ def handle_stop(handler, data):
     handler.end_headers()
     handler.wfile.write(json.dumps(result).encode())
 
+
 def handle_restart(handler, data):
     server_id = data.get("server", "wow_vanilla")
-    threading.Thread(target=game_server_manager.restart, args=(server_id,), daemon=True, name=f"GravityGameRestart-{server_id}").start()
+    threading.Thread(
+        target=game_server_manager.restart,
+        args=(server_id,),
+        daemon=True,
+        name=f"GravityGameRestart-{server_id}",
+    ).start()
     handler.send_response(200)
     handler.send_header("Content-Type", "application/json")
     handler._send_cors()
     handler.end_headers()
-    handler.wfile.write(json.dumps({"ok": True, "note": "Reinicio en proceso...", "server": server_id}).encode())
+    handler.wfile.write(
+        json.dumps(
+            {"ok": True, "note": "Reinicio en proceso...", "server": server_id}
+        ).encode()
+    )
+
 
 def handle_command(handler, data):
     server_id = data.get("server", "wow_vanilla")
@@ -142,6 +166,7 @@ def handle_command(handler, data):
     handler.end_headers()
     handler.wfile.write(json.dumps(result).encode())
 
+
 def handle_register(handler, data):
     server_id = data.get("server", "wow_vanilla")
     usr = data.get("username", "")
@@ -152,6 +177,7 @@ def handle_register(handler, data):
     handler._send_cors()
     handler.end_headers()
     handler.wfile.write(json.dumps(result).encode("utf-8"))
+
 
 def handle_expose(handler, data):
     server_id = data.get("server", "wow_vanilla")

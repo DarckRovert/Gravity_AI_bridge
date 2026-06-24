@@ -11,14 +11,13 @@ Soporta actualmente:
 """
 
 import os
-import json
 import time
 import subprocess
 import threading
 import logging
 import hashlib
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any, List, Set, Tuple
+from typing import Optional, Dict, Any, List
 from collections import deque
 
 # Módulos del Core e Integraciones
@@ -34,42 +33,48 @@ BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DEFAULT_SERVERS: Dict[str, Any] = {
     "wow_vanilla": {
-        "enabled":              True,
-        "display_name":         "WoW Vanilla (MaNGOS)",
-        "type":                 "mangos",
-        "server_dir":           r"F:\Project_Anarchy_Core\MaNGOS",
-        "worldserver_exe":      "mangosd.exe",
-        "realmd_exe":           "realmd.exe",
-        "mysql_start_bat":      r"F:\Project_Anarchy_Core\MaNGOS\Start MySQL.bat",
-        "mysql_stop_bat":       r"F:\Project_Anarchy_Core\MaNGOS\Stop MySQL.bat",
-        "log_file":             r"F:\Project_Anarchy_Core\MaNGOS\logs\mangosd.log",
-        "auto_restart":         True,
+        "enabled": True,
+        "display_name": "WoW Vanilla (MaNGOS)",
+        "type": "mangos",
+        "server_dir": r"F:\Project_Anarchy_Core\MaNGOS",
+        "worldserver_exe": "mangosd.exe",
+        "realmd_exe": "realmd.exe",
+        "mysql_start_bat": r"F:\Project_Anarchy_Core\MaNGOS\Start MySQL.bat",
+        "mysql_stop_bat": r"F:\Project_Anarchy_Core\MaNGOS\Stop MySQL.bat",
+        "log_file": r"F:\Project_Anarchy_Core\MaNGOS\logs\mangosd.log",
+        "auto_restart": True,
         "restart_delay_seconds": 15,
-        "db_host":   "127.0.0.1",
-        "db_port":   3306,
-        "db_name":   "characters",
-        "db_user":   "mangos",
-        "db_pass":   "",
+        "db_host": "127.0.0.1",
+        "db_port": 3306,
+        "db_name": "characters",
+        "db_user": "mangos",
+        "db_pass": "",
     }
 }
 
 # pymysql opcional — si no está instalado, la función de jugadores retorna aviso
 try:
     import pymysql
+
     _PYMYSQL_OK = True
 except ImportError:
     _PYMYSQL_OK = False
 
 # ── Estado Global ──────────────────────────────────────────────────────────────
 
-_processes: Dict[str, Dict[str, Any]] = {}  # {server_id: {proc_world, proc_realm, status, ...}}
+_processes: Dict[str, Dict[str, Any]] = (
+    {}
+)  # {server_id: {proc_world, proc_realm, status, ...}}
 _lock = threading.RLock()  # Cerrojo reentrante para sincronización segura
 _watchdog_threads: Dict[str, threading.Thread] = {}
-_stdout_buffers: Dict[str, deque[str]] = {}  # BUG FIX: Declaración explícita del buffer de stdout circular
+_stdout_buffers: Dict[str, deque[str]] = (
+    {}
+)  # BUG FIX: Declaración explícita del buffer de stdout circular
 _started: bool = False
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -80,14 +85,18 @@ def _load_config() -> Dict[str, Any]:
     try:
         return config.get("game_servers", DEFAULT_SERVERS)
     except Exception as e:
-        log.warning(f"[GameServer] Error cargando config desde ConfigManager: {e}. Usando defaults.")
+        log.warning(
+            f"[GameServer] Error cargando config desde ConfigManager: {e}. Usando defaults."
+        )
         return DEFAULT_SERVERS
+
 
 def _get_db_pass(server_id: str, cfg: Dict[str, Any]) -> str:
     pwd = cfg.get("db_pass", "")
     if not pwd:
         try:
             from core.key_manager import KeyManager
+
             pwd = KeyManager.get_key(f"{server_id}_db_pass") or ""
         except Exception:
             pass
@@ -115,6 +124,7 @@ def _tail_log(log_path: str, lines: int = 100) -> List[str]:
 
 # ── Control de Procesos ────────────────────────────────────────────────────────
 
+
 def _check_mysql_ready(server_id: str, cfg: Dict[str, Any], max_wait: int = 30) -> bool:
     """Verifica que MySQL responde antes de arrancar el worldserver."""
     if not _PYMYSQL_OK:
@@ -125,12 +135,12 @@ def _check_mysql_ready(server_id: str, cfg: Dict[str, Any], max_wait: int = 30) 
     while time.time() < deadline:
         try:
             conn = pymysql.connect(
-                host            = cfg.get("db_host", "127.0.0.1"),
-                port            = int(cfg.get("db_port", 3306)),
-                user            = cfg.get("db_user", "mangos"),
-                password        = _get_db_pass(server_id, cfg),
-                database        = cfg.get("db_name", "characters"),
-                connect_timeout = 3,
+                host=cfg.get("db_host", "127.0.0.1"),
+                port=int(cfg.get("db_port", 3306)),
+                user=cfg.get("db_user", "mangos"),
+                password=_get_db_pass(server_id, cfg),
+                database=cfg.get("db_name", "characters"),
+                connect_timeout=3,
             )
             conn.close()
             log.info("[GameServer] MySQL listo.")
@@ -160,16 +170,19 @@ def _start_server(server_id: str, cfg: Dict[str, Any]) -> Dict[str, Any]:
     """Inicia los procesos de un servidor con STDOUT capturado y pre-flight MySQL."""
     server_dir: str = cfg.get("server_dir", "")
     world_exe: str = os.path.join(server_dir, cfg.get("worldserver_exe", "mangosd.exe"))
-    realm_exe: str = os.path.join(server_dir, cfg.get("realmd_exe",     "realmd.exe"))
+    realm_exe: str = os.path.join(server_dir, cfg.get("realmd_exe", "realmd.exe"))
     mysql_bat: str = cfg.get("mysql_start_bat", "")
 
     # Determinar creación de consolas y flags según SO
-    creation_flags_console: int = subprocess.CREATE_NEW_CONSOLE if os.name == "nt" else 0
+    creation_flags_console: int = (
+        subprocess.CREATE_NEW_CONSOLE if os.name == "nt" else 0
+    )
     creation_flags_nowin: int = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
 
     # 0. Arrancar MySQL primero si hay bat/script configurado
     if mysql_bat and os.path.exists(mysql_bat):
         import socket
+
         db_host: str = cfg.get("db_host", "127.0.0.1")
         db_port: int = int(cfg.get("db_port", 3306))
         mysql_running: bool = False
@@ -199,16 +212,20 @@ def _start_server(server_id: str, cfg: Dict[str, Any]) -> Dict[str, Any]:
             except Exception as e:
                 log.warning(f"[GameServer] No se pudo arrancar MySQL: {e}")
         else:
-            log.info(f"[GameServer] MySQL ya estaba corriendo en {db_host}:{db_port}. Se omitió el bat.")
+            log.info(
+                f"[GameServer] MySQL ya estaba corriendo en {db_host}:{db_port}. Se omitió el bat."
+            )
 
     # 1. Pre-flight: verificar que MySQL responde antes de arrancar worldserver
     if not _check_mysql_ready(server_id, cfg, max_wait=30):
         return {
-            "status":       "failed",
+            "status": "failed",
             "display_name": cfg.get("display_name", server_id),
-            "errors":       ["MySQL no respondió en el pre-flight check. Worldserver no iniciado."],
-            "world_pid":    None,
-            "realm_pid":    None,
+            "errors": [
+                "MySQL no respondió en el pre-flight check. Worldserver no iniciado."
+            ],
+            "world_pid": None,
+            "realm_pid": None,
         }
 
     # Inicializar buffer de logs via log_buffer module
@@ -253,14 +270,14 @@ def _start_server(server_id: str, cfg: Dict[str, Any]) -> Dict[str, Any]:
         errors.append(f"mangosd exe no encontrado en {world_exe}")
 
     state = {
-        "status":       "running" if not errors else "partial_error",
-        "started_at":   _now(),
-        "errors":       errors,
-        "world_pid":    procs["world"].pid if procs["world"] else None,
-        "realm_pid":    procs["realm"].pid if procs["realm"] else None,
-        "_world_proc":  procs["world"],
-        "_realm_proc":  procs["realm"],
-        "cfg":          cfg,
+        "status": "running" if not errors else "partial_error",
+        "started_at": _now(),
+        "errors": errors,
+        "world_pid": procs["world"].pid if procs["world"] else None,
+        "realm_pid": procs["realm"].pid if procs["realm"] else None,
+        "_world_proc": procs["world"],
+        "_realm_proc": procs["realm"],
+        "cfg": cfg,
         "display_name": cfg.get("display_name", server_id),
     }
 
@@ -279,7 +296,10 @@ def _stop_server(server_id: str) -> Dict[str, Any]:
         state = _processes.get(server_id)
 
     if not state:
-        return {"ok": False, "error": f"Servidor '{server_id}' no encontrado o no iniciado."}
+        return {
+            "ok": False,
+            "error": f"Servidor '{server_id}' no encontrado o no iniciado.",
+        }
 
     cfg: Dict[str, Any] = state.get("cfg", {})
 
@@ -305,7 +325,7 @@ def _stop_server(server_id: str) -> Dict[str, Any]:
             if os.name == "nt":
                 subprocess.Popen(
                     ["cmd.exe", "/c", mysql_bat],
-                    creationflags=subprocess.CREATE_NEW_CONSOLE
+                    creationflags=subprocess.CREATE_NEW_CONSOLE,
                 )
             else:
                 subprocess.Popen(
@@ -316,7 +336,7 @@ def _stop_server(server_id: str) -> Dict[str, Any]:
 
     with _lock:
         if server_id in _processes:
-            _processes[server_id]["status"]     = "stopped"
+            _processes[server_id]["status"] = "stopped"
             _processes[server_id]["stopped_at"] = _now()
             _processes[server_id]["_world_proc"] = None
             _processes[server_id]["_realm_proc"] = None
@@ -389,6 +409,7 @@ def _start_watchdog(server_id: str) -> None:
 
 # ── Consulta de Jugadores (MySQL) ──────────────────────────────────────────────
 
+
 def _get_players_online(server_id: str) -> List[Dict[str, Any]]:
     """Consulta la BD de characters para devolver jugadores online."""
     if not _PYMYSQL_OK:
@@ -400,11 +421,11 @@ def _get_players_online(server_id: str) -> List[Dict[str, Any]]:
 
     try:
         conn = pymysql.connect(
-            host    = cfg.get("db_host", "127.0.0.1"),
-            port    = int(cfg.get("db_port", 3306)),
-            user    = cfg.get("db_user", "mangos"),
-            password= _get_db_pass(server_id, cfg),
-            database= cfg.get("db_name", "characters"),
+            host=cfg.get("db_host", "127.0.0.1"),
+            port=int(cfg.get("db_port", 3306)),
+            user=cfg.get("db_user", "mangos"),
+            password=_get_db_pass(server_id, cfg),
+            database=cfg.get("db_name", "characters"),
             connect_timeout=3,
         )
         with conn.cursor(pymysql.cursors.DictCursor) as cur:
@@ -430,25 +451,27 @@ def _get_players_online(server_id: str) -> List[Dict[str, Any]]:
 
 # ── Estado Público (sin objetos de proceso) ────────────────────────────────────
 
+
 def _public_state(state: Dict[str, Any]) -> Dict[str, Any]:
     """Extrae la información serializable de un estado de servidor."""
     world_proc = state.get("_world_proc")
     realm_proc = state.get("_realm_proc")
     return {
-        "status":       state.get("status", "unknown"),
+        "status": state.get("status", "unknown"),
         "display_name": state.get("display_name", "?"),
-        "started_at":   state.get("started_at"),
-        "stopped_at":   state.get("stopped_at"),
-        "world_pid":    world_proc.pid if _is_running(world_proc) else None,
-        "realm_pid":    realm_proc.pid if _is_running(realm_proc) else None,
-        "world_alive":  _is_running(world_proc),
-        "realm_alive":  _is_running(realm_proc),
-        "errors":       state.get("errors", []),
+        "started_at": state.get("started_at"),
+        "stopped_at": state.get("stopped_at"),
+        "world_pid": world_proc.pid if _is_running(world_proc) else None,
+        "realm_pid": realm_proc.pid if _is_running(realm_proc) else None,
+        "world_alive": _is_running(world_proc),
+        "realm_alive": _is_running(realm_proc),
+        "errors": state.get("errors", []),
         "auto_restart": state.get("cfg", {}).get("auto_restart", True),
     }
 
 
 # ── API Pública ────────────────────────────────────────────────────────────────
+
 
 def get_all_status() -> Dict[str, Any]:
     """Devuelve el estado de todos los servidores configurados."""
@@ -462,20 +485,20 @@ def get_all_status() -> Dict[str, Any]:
             result[sid] = _public_state(state)
         else:
             result[sid] = {
-                "status":       "stopped",
+                "status": "stopped",
                 "display_name": cfg.get("display_name", sid),
-                "world_pid":    None,
-                "realm_pid":    None,
-                "world_alive":  False,
-                "realm_alive":  False,
-                "errors":       [],
+                "world_pid": None,
+                "realm_pid": None,
+                "world_alive": False,
+                "realm_alive": False,
+                "errors": [],
                 "auto_restart": cfg.get("auto_restart", True),
             }
 
     return {
-        "servers":      result,
+        "servers": result,
         "pymysql_available": _PYMYSQL_OK,
-        "timestamp":    _now(),
+        "timestamp": _now(),
     }
 
 
@@ -484,7 +507,10 @@ def start(server_id: str) -> Dict[str, Any]:
     servers_cfg: Dict[str, Any] = _load_config()
     cfg = servers_cfg.get(server_id)
     if not cfg:
-        return {"ok": False, "error": f"Servidor '{server_id}' no existe en la configuración."}
+        return {
+            "ok": False,
+            "error": f"Servidor '{server_id}' no existe en la configuración.",
+        }
 
     with _lock:
         state = _processes.get(server_id)
@@ -509,7 +535,10 @@ def restart(server_id: str) -> Dict[str, Any]:
     servers_cfg: Dict[str, Any] = _load_config()
     cfg = servers_cfg.get(server_id)
     if not cfg:
-        return {"ok": False, "error": f"Servidor '{server_id}' no existe en la configuración."}
+        return {
+            "ok": False,
+            "error": f"Servidor '{server_id}' no existe en la configuración.",
+        }
     return start(server_id)
 
 
@@ -518,20 +547,20 @@ def get_log(server_id: str, lines: int = 100) -> Dict[str, Any]:
     if has_buffer(server_id):
         buf_lines: List[str] = get_lines(server_id, lines)
         return {
-            "server":   server_id,
-            "source":   "memory_buffer",
+            "server": server_id,
+            "source": "memory_buffer",
             "log_file": None,
-            "lines":    buf_lines,
+            "lines": buf_lines,
         }
 
     servers_cfg: Dict[str, Any] = _load_config()
     cfg = servers_cfg.get(server_id, {})
     log_path: str = cfg.get("log_file", "")
     return {
-        "server":   server_id,
-        "source":   "file",
+        "server": server_id,
+        "source": "file",
         "log_file": log_path,
-        "lines":    _tail_log(log_path, lines),
+        "lines": _tail_log(log_path, lines),
     }
 
 
@@ -539,8 +568,8 @@ def get_players(server_id: str) -> Dict[str, Any]:
     """Devuelve la lista de jugadores online."""
     players = _get_players_online(server_id)
     return {
-        "server":  server_id,
-        "count":   len([p for p in players if "error" not in p]),
+        "server": server_id,
+        "count": len([p for p in players if "error" not in p]),
         "players": players,
     }
 
@@ -548,10 +577,10 @@ def get_players(server_id: str) -> Dict[str, Any]:
 def send_command(server_id: str, command: str) -> Dict[str, Any]:
     """Envía un comando al servidor."""
     return {
-        "ok":      False,
-        "server":  server_id,
+        "ok": False,
+        "server": server_id,
         "command": command,
-        "note":    (
+        "note": (
             "Ejecución directa de comandos GM requiere SOAP habilitado en mangosd.conf "
             "(SOAPEnabled=1, SOAPPort=7878). Activa esa opción y reinicia el servidor. "
             "Por ahora, ejecuta el comando directamente en la ventana de la consola del worldserver."
@@ -562,7 +591,10 @@ def send_command(server_id: str, command: str) -> Dict[str, Any]:
 def register_account(server_id: str, username: str, password: str) -> Dict[str, Any]:
     """Crea una nueva cuenta usando SRP-6a o SHA1 (MaNGOS clásico)."""
     if not _PYMYSQL_OK:
-        return {"ok": False, "error": "pymysql no instalado. Ejecuta: pip install pymysql"}
+        return {
+            "ok": False,
+            "error": "pymysql no instalado. Ejecuta: pip install pymysql",
+        }
 
     servers_cfg: Dict[str, Any] = _load_config()
     cfg = servers_cfg.get(server_id, {})
@@ -573,16 +605,19 @@ def register_account(server_id: str, username: str, password: str) -> Dict[str, 
 
     try:
         conn = pymysql.connect(
-            host            = cfg.get("db_host", "127.0.0.1"),
-            port            = int(cfg.get("db_port", 3306)),
-            user            = cfg.get("db_user", "mangos"),
-            password        = _get_db_pass(server_id, cfg),
-            database        = db_auth,
-            connect_timeout = 3,
+            host=cfg.get("db_host", "127.0.0.1"),
+            port=int(cfg.get("db_port", 3306)),
+            user=cfg.get("db_user", "mangos"),
+            password=_get_db_pass(server_id, cfg),
+            database=db_auth,
+            connect_timeout=3,
         )
         with conn.cursor() as cur:
             # 1. Verificar si ya existe
-            cur.execute("SELECT id FROM account WHERE username = %s LIMIT 1", (username.upper(),))
+            cur.execute(
+                "SELECT id FROM account WHERE username = %s LIMIT 1",
+                (username.upper(),),
+            )
             if cur.fetchone():
                 conn.close()
                 return {"ok": False, "error": "Ese nombre de usuario ya está tomado."}
@@ -592,10 +627,14 @@ def register_account(server_id: str, username: str, password: str) -> Dict[str, 
             is_srp: bool = cur.fetchone() is not None
 
             if is_srp:
-                N: int = 0x894B645E89E1535BBDAD5B8B290650530801B18EBFBF5E8FAB3C82872A3E9BB7
+                N: int = (
+                    0x894B645E89E1535BBDAD5B8B290650530801B18EBFBF5E8FAB3C82872A3E9BB7
+                )
                 g: int = 7
                 s_bytes: bytes = os.urandom(32)
-                h1: bytes = hashlib.sha1(f"{username.upper()}:{password.upper()}".encode("utf-8")).digest()
+                h1: bytes = hashlib.sha1(
+                    f"{username.upper()}:{password.upper()}".encode("utf-8")
+                ).digest()
                 x_bytes: bytes = hashlib.sha1(s_bytes + h1).digest()
                 x: int = int.from_bytes(x_bytes, "little")
                 v: int = pow(g, x, N)
@@ -603,22 +642,33 @@ def register_account(server_id: str, username: str, password: str) -> Dict[str, 
                 v_hex: str = v.to_bytes(32, "little").hex().upper()
                 s_hex: str = s_bytes.hex().upper()
 
-                cur.execute("""
+                cur.execute(
+                    """
                     INSERT INTO account (username, v, s, gmlevel, sessionkey, token_key, os, platform)
                     VALUES (%s, %s, %s, 0, '', '', '', '')
-                """, (username.upper(), v_hex, s_hex))
+                """,
+                    (username.upper(), v_hex, s_hex),
+                )
             else:
                 raw_str: str = f"{username.upper()}:{password.upper()}"
-                sha_pass_hash: str = hashlib.sha1(raw_str.encode("utf-8")).hexdigest().upper()
-                cur.execute("""
+                sha_pass_hash: str = (
+                    hashlib.sha1(raw_str.encode("utf-8")).hexdigest().upper()
+                )
+                cur.execute(
+                    """
                     INSERT INTO account (username, sha_pass_hash, v, s, sessionkey)
                     VALUES (%s, %s, '0', '0', '')
-                """, (username.upper(), sha_pass_hash))
+                """,
+                    (username.upper(), sha_pass_hash),
+                )
 
             conn.commit()
 
         conn.close()
-        return {"ok": True, "message": f"Cuenta '{username}' registrada correctamente en el servidor."}
+        return {
+            "ok": True,
+            "message": f"Cuenta '{username}' registrada correctamente en el servidor.",
+        }
     except Exception as e:
         log.error(f"Error registrando cuenta: {e}")
         return {"ok": False, "error": str(e)}
@@ -630,20 +680,35 @@ def expose_wan(server_id: str, public_address: str) -> Dict[str, Any]:
     cfg = servers_cfg.get(server_id, {})
 
     if public_address in ["127.0.0.1", "localhost", "0.0.0.0"]:
-        return {"ok": False, "error": "Debes especificar tu IP pública o dominio DDNS válido, no localhost."}
+        return {
+            "ok": False,
+            "error": "Debes especificar tu IP pública o dominio DDNS válido, no localhost.",
+        }
 
     try:
-        log.info(f"Aplicando reglas Firewall para WoW (8085, 3724)...")
+        log.info("Aplicando reglas Firewall para WoW (8085, 3724)...")
         if os.name == "nt":
             subprocess.run(
-                ["netsh", "advfirewall", "firewall", "add", "rule", 
-                 "name=Gravity_WoW_MANGOS", "dir=in", "action=allow", 
-                 "protocol=TCP", "localport=8085,3724"],
-                capture_output=True, check=False,
-                creationflags=subprocess.CREATE_NO_WINDOW
+                [
+                    "netsh",
+                    "advfirewall",
+                    "firewall",
+                    "add",
+                    "rule",
+                    "name=Gravity_WoW_MANGOS",
+                    "dir=in",
+                    "action=allow",
+                    "protocol=TCP",
+                    "localport=8085,3724",
+                ],
+                capture_output=True,
+                check=False,
+                creationflags=subprocess.CREATE_NO_WINDOW,
             )
         else:
-            log.info("[GameServer] Exposición WAN Firewall omitida en sistemas no-Windows (requiere iptables/ufw manual).")
+            log.info(
+                "[GameServer] Exposición WAN Firewall omitida en sistemas no-Windows (requiere iptables/ufw manual)."
+            )
     except Exception as e:
         return {"ok": False, "error": f"Fallo añadiendo reglas Firewall: {e}"}
 
@@ -651,24 +716,30 @@ def expose_wan(server_id: str, public_address: str) -> Dict[str, Any]:
         try:
             db_auth: str = cfg.get("db_name_auth", "realmd")
             conn = pymysql.connect(
-                host    = cfg.get("db_host", "127.0.0.1"),
-                port    = int(cfg.get("db_port", 3306)),
-                user    = cfg.get("db_user", "mangos"),
-                password= _get_db_pass(server_id, cfg),
-                database= db_auth,
+                host=cfg.get("db_host", "127.0.0.1"),
+                port=int(cfg.get("db_port", 3306)),
+                user=cfg.get("db_user", "mangos"),
+                password=_get_db_pass(server_id, cfg),
+                database=db_auth,
                 connect_timeout=3,
             )
             with conn.cursor() as cur:
-                cur.execute("UPDATE realmlist SET address = %s WHERE id = 1", (public_address,))
+                cur.execute(
+                    "UPDATE realmlist SET address = %s WHERE id = 1", (public_address,)
+                )
                 conn.commit()
             conn.close()
         except Exception as e:
-            return {"ok": False, "error": f"Firewall aplicado pero error actualizando 'realmlist' SQL: {e}"}
+            return {
+                "ok": False,
+                "error": f"Firewall aplicado pero error actualizando 'realmlist' SQL: {e}",
+            }
     else:
-        log.warning("pymysql no disponible. Firewall modificado pero no se alteró el MySQL.")
+        log.warning(
+            "pymysql no disponible. Firewall modificado pero no se alteró el MySQL."
+        )
 
     return {
-        "ok": True, 
-        "message": f"Servidor configurado. Realm apuntando hacia: {public_address} y puertos TCP abiertos en SO."
+        "ok": True,
+        "message": f"Servidor configurado. Realm apuntando hacia: {public_address} y puertos TCP abiertos en SO.",
     }
-

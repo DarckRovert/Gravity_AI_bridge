@@ -4,14 +4,13 @@ Cubre: add_job, get_queue_status, cancel_job, _process_job (con retry),
        start() idempotente, notificación SSE.
 Usa SQLite en memoria vía monkeypatch de DB_PATH.
 """
+
 import os
 import sys
-import json
 import sqlite3
 import threading
-import time
 import pytest
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch
 
 # Asegurar que el directorio de herramientas está disponible
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,6 +21,7 @@ if tools_dir not in sys.path:
 
 # ── Fixture: entorno aislado con SQLite en memoria ────────────────────────────
 
+
 @pytest.fixture(autouse=True)
 def isolated_queue(tmp_path, monkeypatch):
     """
@@ -31,16 +31,17 @@ def isolated_queue(tmp_path, monkeypatch):
     import core.image_queue as iq
 
     db_path = str(tmp_path / "_image_queue_test.sqlite")
-    monkeypatch.setattr(iq, "DB_PATH",      db_path)
-    monkeypatch.setattr(iq, "_started",     False)
+    monkeypatch.setattr(iq, "DB_PATH", db_path)
+    monkeypatch.setattr(iq, "_started", False)
     monkeypatch.setattr(iq, "_current_job", None)
-    monkeypatch.setattr(iq.time, "sleep",    lambda x: None)
+    monkeypatch.setattr(iq.time, "sleep", lambda x: None)
 
     iq._init_db()
     yield iq
 
 
 # ── Tests de add_job() ────────────────────────────────────────────────────────
+
 
 class TestAddJob:
 
@@ -58,7 +59,9 @@ class TestAddJob:
 
     def test_add_job_persists_prompt(self, isolated_queue):
         iq = isolated_queue
-        job_id = iq.add_job("Prompt especial", performance="Quality", width=512, height=512)
+        job_id = iq.add_job(
+            "Prompt especial", performance="Quality", width=512, height=512
+        )
         conn = sqlite3.connect(iq.DB_PATH)
         conn.row_factory = sqlite3.Row
         row = conn.execute("SELECT * FROM image_jobs WHERE id=?", (job_id,)).fetchone()
@@ -82,6 +85,7 @@ class TestAddJob:
 
 
 # ── Tests de get_queue_status() ───────────────────────────────────────────────
+
 
 class TestGetQueueStatus:
 
@@ -116,7 +120,7 @@ class TestGetQueueStatus:
             conn.execute(
                 "INSERT INTO image_jobs (created_at, status, prompt, performance, width, height, result_json) "
                 "VALUES ('2026-01-01T00:00:00Z', 'done', ?, 'Speed', 1024, 1024, '{\"success\":true}')",
-                (f"Prompt {i}",)
+                (f"Prompt {i}",),
             )
         conn.commit()
         conn.close()
@@ -131,7 +135,7 @@ class TestGetQueueStatus:
             conn.execute(
                 "INSERT INTO image_jobs (created_at, status, prompt, performance, width, height) "
                 "VALUES ('2026-01-01T00:00:00Z', 'done', ?, 'Speed', 1024, 1024)",
-                (f"Prompt {i}",)
+                (f"Prompt {i}",),
             )
         conn.commit()
         conn.close()
@@ -141,6 +145,7 @@ class TestGetQueueStatus:
 
 
 # ── Tests de cancel_job() ─────────────────────────────────────────────────────
+
 
 class TestCancelJob:
 
@@ -152,7 +157,9 @@ class TestCancelJob:
 
         conn = sqlite3.connect(iq.DB_PATH)
         conn.row_factory = sqlite3.Row
-        row = conn.execute("SELECT status FROM image_jobs WHERE id=?", (job_id,)).fetchone()
+        row = conn.execute(
+            "SELECT status FROM image_jobs WHERE id=?", (job_id,)
+        ).fetchone()
         conn.close()
         assert row["status"] == "cancelled"
 
@@ -176,6 +183,7 @@ class TestCancelJob:
 
 
 # ── Tests de _process_job() con retry ────────────────────────────────────────
+
 
 class TestProcessJob:
 
@@ -201,7 +209,9 @@ class TestProcessJob:
 
         conn = sqlite3.connect(iq.DB_PATH)
         conn.row_factory = sqlite3.Row
-        job_row = conn.execute("SELECT * FROM image_jobs WHERE id=?", (job_id,)).fetchone()
+        job_row = conn.execute(
+            "SELECT * FROM image_jobs WHERE id=?", (job_id,)
+        ).fetchone()
         conn.close()
 
         with patch("core.image_queue.BASE_DIR", str(tmp_path)):
@@ -219,10 +229,15 @@ class TestProcessJob:
 
         conn = sqlite3.connect(iq.DB_PATH)
         conn.row_factory = sqlite3.Row
-        job_row = conn.execute("SELECT * FROM image_jobs WHERE id=?", (job_id,)).fetchone()
+        job_row = conn.execute(
+            "SELECT * FROM image_jobs WHERE id=?", (job_id,)
+        ).fetchone()
         conn.close()
 
-        with patch("fooocus_client.generate_image", side_effect=Exception("Fooocus no disponible")):
+        with patch(
+            "fooocus_client.generate_image",
+            side_effect=Exception("Fooocus no disponible"),
+        ):
             with patch("fooocus_client.ImageGenRequest", dict):
                 iq._process_job(job_row)
 
@@ -240,7 +255,9 @@ class TestProcessJob:
 
         conn = sqlite3.connect(iq.DB_PATH)
         conn.row_factory = sqlite3.Row
-        job_row = conn.execute("SELECT * FROM image_jobs WHERE id=?", (job_id,)).fetchone()
+        job_row = conn.execute(
+            "SELECT * FROM image_jobs WHERE id=?", (job_id,)
+        ).fetchone()
         conn.close()
 
         # generate_image dice success pero no hay archivos nuevos en outputs/
@@ -264,7 +281,9 @@ class TestProcessJob:
 
         conn = sqlite3.connect(iq.DB_PATH)
         conn.row_factory = sqlite3.Row
-        job_row = conn.execute("SELECT * FROM image_jobs WHERE id=?", (job_id,)).fetchone()
+        job_row = conn.execute(
+            "SELECT * FROM image_jobs WHERE id=?", (job_id,)
+        ).fetchone()
         conn.close()
 
         with patch("fooocus_client.generate_image", side_effect=Exception("fallo")):
@@ -276,6 +295,7 @@ class TestProcessJob:
 
 
 # ── Tests de start() idempotente ─────────────────────────────────────────────
+
 
 class TestWorkerStart:
 

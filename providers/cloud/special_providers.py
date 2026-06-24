@@ -13,7 +13,7 @@ import urllib.request
 import urllib.error
 import os
 import logging
-from typing import Generator, List, Dict, Any, Optional, Tuple
+from typing import Generator, List, Dict, Any, Tuple
 from providers.base import ProviderPlugin, ProviderResult
 from core.key_manager import KeyManager
 from providers.cloud._openai_compat_cloud import OpenAICompatCloudProvider
@@ -23,21 +23,23 @@ logger = logging.getLogger("gravity")
 
 # ── Azure OpenAI ──────────────────────────────────────────────────────────────
 class AzureOpenAIProvider(ProviderPlugin):
-    name: str              = "Azure OpenAI"
-    protocol: str          = "openai"
-    category: str          = "cloud"
-    requires_key: bool      = True
-    supports_vision: bool   = True
+    name: str = "Azure OpenAI"
+    protocol: str = "openai"
+    category: str = "cloud"
+    requires_key: bool = True
+    supports_vision: bool = True
     supports_function_calling: bool = True
-    default_context: int   = 128000
-    _key_id: str           = "azure"
+    default_context: int = 128000
+    _key_id: str = "azure"
 
     def _get_endpoint_and_key(self) -> Tuple[str, str]:
-        key  = KeyManager.get_key("azure") or ""
+        key = KeyManager.get_key("azure") or ""
         if "|" in key:
             parts = key.split("|", 2)
             api_key, resource, deployment = (parts + ["", ""])[:3]
-            endpoint = f"https://{resource}.openai.azure.com/openai/deployments/{deployment}"
+            endpoint = (
+                f"https://{resource}.openai.azure.com/openai/deployments/{deployment}"
+            )
             return api_key, endpoint
         return key, os.environ.get("AZURE_OPENAI_ENDPOINT", "")
 
@@ -45,33 +47,36 @@ class AzureOpenAIProvider(ProviderPlugin):
         r = self._make_result("https://azure.openai.com")
         r.key_configured = KeyManager.has_key("azure")
         if r.key_configured:
-            r.is_healthy   = True
-            r.models       = [{"name": "azure-deployment", "size": 0}]
+            r.is_healthy = True
+            r.models = [{"name": "azure-deployment", "size": 0}]
             r.active_model = "azure-deployment"
         return r
 
     def chat_stream(
         self,
         messages: List[Dict[str, Any]],
-        model:    str,
-        options:  Dict[str, Any],
+        model: str,
+        options: Dict[str, Any],
     ) -> Generator[str, None, None]:
         api_key, endpoint = self._get_endpoint_and_key()
-        url     = f"{endpoint.rstrip('/')}/chat/completions?api-version=2024-02-01"
+        url = f"{endpoint.rstrip('/')}/chat/completions?api-version=2024-02-01"
         payload: Dict[str, Any] = {"messages": messages, "stream": True}
         for k in ("temperature", "top_p", "max_tokens"):
             if k in options:
                 payload[k] = options[k]
         headers = {"Content-Type": "application/json", "api-key": api_key}
-        data    = json.dumps(payload).encode()
-        req     = urllib.request.Request(url, data=data, headers=headers)
+        data = json.dumps(payload).encode()
+        req = urllib.request.Request(url, data=data, headers=headers)
         try:
             with urllib.request.urlopen(req, timeout=300) as r:
                 for raw in r:
                     line = raw.decode("utf-8", errors="ignore").strip()
-                    if line.startswith("data:") and line[5:].strip() not in ("", "[DONE]"):
+                    if line.startswith("data:") and line[5:].strip() not in (
+                        "",
+                        "[DONE]",
+                    ):
                         try:
-                            d     = json.loads(line[5:].strip())
+                            d = json.loads(line[5:].strip())
                             chunk = d["choices"][0]["delta"].get("content", "")
                             if chunk:
                                 yield chunk
@@ -83,15 +88,15 @@ class AzureOpenAIProvider(ProviderPlugin):
     def chat_complete(
         self,
         messages: List[Dict[str, Any]],
-        model:    str,
-        options:  Dict[str, Any],
+        model: str,
+        options: Dict[str, Any],
     ) -> str:
         api_key, endpoint = self._get_endpoint_and_key()
-        url     = f"{endpoint.rstrip('/')}/chat/completions?api-version=2024-02-01"
+        url = f"{endpoint.rstrip('/')}/chat/completions?api-version=2024-02-01"
         payload: Dict[str, Any] = {"messages": messages, "stream": False}
         headers = {"Content-Type": "application/json", "api-key": api_key}
-        data    = json.dumps(payload).encode()
-        req     = urllib.request.Request(url, data=data, headers=headers)
+        data = json.dumps(payload).encode()
+        req = urllib.request.Request(url, data=data, headers=headers)
         try:
             with urllib.request.urlopen(req, timeout=300) as r:
                 d = json.loads(r.read().decode())
@@ -106,31 +111,37 @@ class AzureOpenAIProvider(ProviderPlugin):
 
 # ── Cohere ────────────────────────────────────────────────────────────────────
 class CohereProvider(ProviderPlugin):
-    name: str              = "Cohere"
-    protocol: str          = "cohere"
-    category: str          = "cloud"
-    requires_key: bool      = True
+    name: str = "Cohere"
+    protocol: str = "cohere"
+    category: str = "cloud"
+    requires_key: bool = True
     supports_function_calling: bool = True
-    default_context: int   = 128000
-    _key_id: str           = "cohere"
-    _available_models: List[str] = ["command-r-plus-08-2024", "command-r-03-2024", "command-a-03-2025"]
+    default_context: int = 128000
+    _key_id: str = "cohere"
+    _available_models: List[str] = [
+        "command-r-plus-08-2024",
+        "command-r-03-2024",
+        "command-a-03-2025",
+    ]
 
     def _headers(self) -> Dict[str, str]:
         return {
             "Authorization": f"Bearer {KeyManager.get_key(self._key_id) or ''}",
-            "Content-Type":  "application/json",
+            "Content-Type": "application/json",
         }
 
     def check_health(self) -> ProviderResult:
         r = self._make_result("https://api.cohere.com/v1")
         r.key_configured = KeyManager.has_key(self._key_id)
         if r.key_configured:
-            r.is_healthy   = True
-            r.models       = [{"name": m, "size": 0} for m in self._available_models]
+            r.is_healthy = True
+            r.models = [{"name": m, "size": 0} for m in self._available_models]
             r.active_model = self._available_models[0]
         return r
 
-    def _convert_messages(self, messages: List[Dict[str, Any]]) -> Tuple[str, List[Dict[str, Any]], str]:
+    def _convert_messages(
+        self, messages: List[Dict[str, Any]]
+    ) -> Tuple[str, List[Dict[str, Any]], str]:
         """Converts OpenAI messages → Cohere chat_history + message."""
         system_prompt = ""
         history: List[Dict[str, Any]] = []
@@ -151,8 +162,8 @@ class CohereProvider(ProviderPlugin):
     def chat_stream(
         self,
         messages: List[Dict[str, Any]],
-        model:    str,
-        options:  Dict[str, Any],
+        model: str,
+        options: Dict[str, Any],
     ) -> Generator[str, None, None]:
         preamble, history, user_msg = self._convert_messages(messages)
         payload: Dict[str, Any] = {"model": model, "message": user_msg, "stream": True}
@@ -161,7 +172,7 @@ class CohereProvider(ProviderPlugin):
         if history:
             payload["chat_history"] = history
         data = json.dumps(payload).encode()
-        req  = urllib.request.Request(
+        req = urllib.request.Request(
             "https://api.cohere.com/v1/chat", data=data, headers=self._headers()
         )
         try:
@@ -182,8 +193,8 @@ class CohereProvider(ProviderPlugin):
     def chat_complete(
         self,
         messages: List[Dict[str, Any]],
-        model:    str,
-        options:  Dict[str, Any],
+        model: str,
+        options: Dict[str, Any],
     ) -> str:
         preamble, history, user_msg = self._convert_messages(messages)
         payload: Dict[str, Any] = {"model": model, "message": user_msg}
@@ -192,7 +203,7 @@ class CohereProvider(ProviderPlugin):
         if history:
             payload["chat_history"] = history
         data = json.dumps(payload).encode()
-        req  = urllib.request.Request(
+        req = urllib.request.Request(
             "https://api.cohere.com/v1/chat", data=data, headers=self._headers()
         )
         try:
@@ -206,7 +217,7 @@ class CohereProvider(ProviderPlugin):
     def get_cost_per_million_tokens(self, model: str) -> Dict[str, float]:
         costs = {
             "command-r-plus-08-2024": {"input": 2.50, "output": 10.00},
-            "command-r-03-2024":      {"input": 0.15, "output": 0.60},
+            "command-r-03-2024": {"input": 0.15, "output": 0.60},
         }
         return costs.get(model, {"input": 2.50, "output": 10.00})
 
@@ -217,10 +228,11 @@ class HuggingFaceProvider(OpenAICompatCloudProvider):
     HuggingFace Inference Router (new OpenAI-compat endpoint).
     Supports any model on HuggingFace Hub with Inference API enabled.
     """
-    name: str              = "HuggingFace"
-    _base_url: str         = "https://router.huggingface.co/v1"
-    _key_id: str           = "huggingface"
-    default_context: int   = 32768
+
+    name: str = "HuggingFace"
+    _base_url: str = "https://router.huggingface.co/v1"
+    _key_id: str = "huggingface"
+    default_context: int = 32768
     _available_models: List[str] = [
         "meta-llama/Meta-Llama-3.1-8B-Instruct",
         "mistralai/Mistral-7B-Instruct-v0.3",
@@ -240,14 +252,15 @@ class BedrockProvider(ProviderPlugin):
       KeyManager.set_key("bedrock", "ACCESS_KEY|SECRET_KEY|REGION")
     Uses boto3 if available, falls back to SigV4-signed urllib requests.
     """
-    name: str              = "AWS Bedrock"
-    protocol: str          = "bedrock"
-    category: str          = "cloud"
-    requires_key: bool      = True
-    supports_vision: bool   = True
+
+    name: str = "AWS Bedrock"
+    protocol: str = "bedrock"
+    category: str = "cloud"
+    requires_key: bool = True
+    supports_vision: bool = True
     supports_function_calling: bool = True
-    default_context: int   = 200000
-    _key_id: str           = "bedrock"
+    default_context: int = 200000
+    _key_id: str = "bedrock"
     _available_models: List[str] = [
         "anthropic.claude-3-5-sonnet-20241022-v2:0",
         "anthropic.claude-3-haiku-20240307-v1:0",
@@ -258,7 +271,7 @@ class BedrockProvider(ProviderPlugin):
     def _get_credentials(self) -> Tuple[str, str, str]:
         raw = KeyManager.get_key(self._key_id) or ""
         if "|" in raw:
-            parts  = raw.split("|", 2)
+            parts = raw.split("|", 2)
             ak, sk = (parts + ["", ""])[:2]
             region = parts[2] if len(parts) > 2 else "us-east-1"
             return ak, sk, region
@@ -268,23 +281,26 @@ class BedrockProvider(ProviderPlugin):
         r = self._make_result("https://bedrock.aws.amazon.com")
         r.key_configured = KeyManager.has_key(self._key_id)
         if r.key_configured:
-            r.is_healthy   = True
-            r.models       = [{"name": m, "size": 0} for m in self._available_models]
+            r.is_healthy = True
+            r.models = [{"name": m, "size": 0} for m in self._available_models]
             r.active_model = self._available_models[0]
         return r
 
     def chat_stream(
         self,
         messages: List[Dict[str, Any]],
-        model:    str,
-        options:  Dict[str, Any],
+        model: str,
+        options: Dict[str, Any],
     ) -> Generator[str, None, None]:
         try:
             import boto3
+
             ak, sk, region = self._get_credentials()
             client = boto3.client(
                 "bedrock-runtime",
-                aws_access_key_id=ak, aws_secret_access_key=sk, region_name=region
+                aws_access_key_id=ak,
+                aws_secret_access_key=sk,
+                region_name=region,
             )
             system_prompt = ""
             body_messages: List[Dict[str, Any]] = []
@@ -298,12 +314,12 @@ class BedrockProvider(ProviderPlugin):
             body: Dict[str, Any] = {
                 "anthropic_version": "bedrock-2023-05-31",
                 "max_tokens": options.get("max_tokens", 4096),
-                "messages":   body_messages,
+                "messages": body_messages,
             }
             if system_prompt:
                 body["system"] = system_prompt
 
-            resp   = client.invoke_model_with_response_stream(
+            resp = client.invoke_model_with_response_stream(
                 modelId=model, body=json.dumps(body)
             )
             for event in resp["body"]:
@@ -318,8 +334,8 @@ class BedrockProvider(ProviderPlugin):
     def chat_complete(
         self,
         messages: List[Dict[str, Any]],
-        model:    str,
-        options:  Dict[str, Any],
+        model: str,
+        options: Dict[str, Any],
     ) -> str:
         chunks: List[str] = []
         try:
@@ -332,8 +348,11 @@ class BedrockProvider(ProviderPlugin):
 
     def get_cost_per_million_tokens(self, model: str) -> Dict[str, float]:
         costs = {
-            "anthropic.claude-3-5-sonnet-20241022-v2:0": {"input": 3.00,  "output": 15.00},
-            "anthropic.claude-3-haiku-20240307-v1:0":    {"input": 0.25,  "output": 1.25},
-            "meta.llama3-70b-instruct-v1:0":             {"input": 1.00, "output": 1.00},
+            "anthropic.claude-3-5-sonnet-20241022-v2:0": {
+                "input": 3.00,
+                "output": 15.00,
+            },
+            "anthropic.claude-3-haiku-20240307-v1:0": {"input": 0.25, "output": 1.25},
+            "meta.llama3-70b-instruct-v1:0": {"input": 1.00, "output": 1.00},
         }
         return costs.get(model, {"input": 3.00, "output": 15.00})

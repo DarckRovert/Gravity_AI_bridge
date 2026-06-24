@@ -19,8 +19,8 @@ from typing import Dict, Any, List, Tuple
 log = logging.getLogger("gravity.tool_executor")
 
 from tools.code_runner import CodeRunner
-from tools.web_search  import WebSearch
-from tools.git_tool    import GitTool, FileOpsTool
+from tools.web_search import WebSearch
+from tools.git_tool import GitTool, FileOpsTool
 from tools.file_edit_v2 import FileEditV2
 
 # Cerrojo reentrante global para la exclusión mutua de ejecución concurrente de herramientas
@@ -31,13 +31,14 @@ class ToolExecutor:
     """
     Registry y orquestador de herramientas disponibles para la IA o el usuario.
     """
+
     def __init__(self) -> None:
         self.tools: Dict[str, Any] = {
             "code_runner": CodeRunner(),
-            "web_search":  WebSearch(),
-            "git_tool":    GitTool(),
-            "file_ops":    FileOpsTool(),
-            "file_edit":   FileEditV2(),
+            "web_search": WebSearch(),
+            "git_tool": GitTool(),
+            "file_ops": FileOpsTool(),
+            "file_edit": FileEditV2(),
         }
 
     def execute_tool(self, tool_name: str, **kwargs: Any) -> Tuple[bool, str]:
@@ -73,43 +74,73 @@ class ToolExecutor:
                 for pair in re.split(r"\|(?!\|)", args_str):  # split by pipe
                     if ":" in pair:
                         k, v = pair.split(":", 1)
-                        kwargs[k.strip()] = v.strip().strip('"\'')
+                        kwargs[k.strip()] = v.strip().strip("\"'")
 
                 succ, out = self.execute_tool(tname, **kwargs)
                 results.append((tname, succ, out))
 
         return results
 
-    def run_first_code_block(self, ai_response: str, language: str = "") -> Tuple[bool, str]:
+    def run_first_code_block(
+        self, ai_response: str, language: str = ""
+    ) -> Tuple[bool, str]:
         """Helper extraído del propio code runner para uso directo del comando !run de forma thread-safe."""
         with _executor_lock:
             # --- V16.5 PRO: Active Sandboxing ---
             try:
                 # Comprobar si docker está disponible en el host
-                subprocess.run(["docker", "--version"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                
+                subprocess.run(
+                    ["docker", "--version"],
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+
                 # Extraemos el código
-                match = re.search(r"```(?:python|py)?\s*(.*?)```", ai_response, re.DOTALL | re.IGNORECASE)
+                match = re.search(
+                    r"```(?:python|py)?\s*(.*?)```",
+                    ai_response,
+                    re.DOTALL | re.IGNORECASE,
+                )
                 code_to_run = match.group(1).strip() if match else ai_response.strip()
 
                 with tempfile.TemporaryDirectory() as tmpdir:
                     script_path = os.path.join(tmpdir, "sandbox.py")
                     with open(script_path, "w", encoding="utf-8") as f:
                         f.write(code_to_run)
-                    
-                    log.info("[ToolExecutor] Ejecutando código en Docker Sandbox seguro...")
-                    res = subprocess.run(
-                        ["docker", "run", "--rm", "--network", "none", "-m", "512m", "-v", f"{tmpdir}:/sandbox", "python:3.10-slim", "python", "/sandbox/sandbox.py"],
-                        capture_output=True, text=True, timeout=15
+
+                    log.info(
+                        "[ToolExecutor] Ejecutando código en Docker Sandbox seguro..."
                     )
-                    
+                    res = subprocess.run(
+                        [
+                            "docker",
+                            "run",
+                            "--rm",
+                            "--network",
+                            "none",
+                            "-m",
+                            "512m",
+                            "-v",
+                            f"{tmpdir}:/sandbox",
+                            "python:3.10-slim",
+                            "python",
+                            "/sandbox/sandbox.py",
+                        ],
+                        capture_output=True,
+                        text=True,
+                        timeout=15,
+                    )
+
                     if res.returncode == 0:
                         return True, f"[Docker Sandbox] {res.stdout}"
                     else:
                         return False, f"[Sandbox Error] {res.stderr or res.stdout}"
             except Exception as e:
-                log.debug(f"[ToolExecutor] Sandboxing falló o no disponible ({e}). Usando fallback local.")
-            
+                log.debug(
+                    f"[ToolExecutor] Sandboxing falló o no disponible ({e}). Usando fallback local."
+                )
+
             # --- Fallback Local ---
             res = self.tools["code_runner"].execute_from_text(ai_response, language)
             return res.success, res.stdout if res.success else res.stderr
@@ -123,4 +154,3 @@ class ToolExecutor:
 
 # Instancia singleton para uso general
 executor: ToolExecutor = ToolExecutor()
-

@@ -8,13 +8,13 @@ if os.path.exists(book_path):
         content = f.read()
 
     # Eliminar bloques <think>...</think>
-    cleaned_content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL)
+    cleaned_content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL)
     # Limpiar espacios o saltos de línea adicionales al inicio de los capítulos
-    cleaned_content = re.sub(r'\n{3,}', '\n\n', cleaned_content)
+    cleaned_content = re.sub(r"\n{3,}", "\n\n", cleaned_content)
 
     with open(book_path, "w", encoding="utf-8") as f:
         f.write(cleaned_content.strip())
-        
+
     print("Limpieza completada con éxito. Archivo purificado.")
 else:
     print("No se encontró el archivo del libro.")

@@ -8,6 +8,7 @@
 ║     rewrite() → reescritura profunda con LLM capítulo por capítulo        ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
+
 import os
 import sys
 import json
@@ -24,16 +25,22 @@ from tools import latex_cleaner
 from core import image_router
 from core import provider_manager
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("BookRefiner")
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _render_html(book_dir: str, md_content: str, html_path: str, title: str = "") -> None:
+
+def _render_html(
+    book_dir: str, md_content: str, html_path: str, title: str = ""
+) -> None:
     """Renderiza Markdown a HTML con soporte completo de tablas y ToC. Diseño neo-noir premium."""
     try:
         import markdown
+
         html_body = markdown.markdown(md_content, extensions=["toc", "tables"])
 
         cover_img = ""
@@ -43,7 +50,7 @@ def _render_html(book_dir: str, md_content: str, html_path: str, title: str = ""
                 cover_img = (
                     f'<div class="cover-wrapper">'
                     f'<img src="cover{ext}" class="cover" alt="Portada" />'
-                    f'</div>\n'
+                    f"</div>\n"
                 )
                 break
 
@@ -242,8 +249,11 @@ def _assemble_book(book_dir: str, title: str, caps: List[str]) -> str:
     toc_lines = []
     for c in escaleta:
         import urllib.parse
+
         c_title = c.get("titulo", "")
-        anchor = "#" + urllib.parse.quote(c_title.lower().replace(" ", "-").replace(":", ""))
+        anchor = "#" + urllib.parse.quote(
+            c_title.lower().replace(" ", "-").replace(":", "")
+        )
         toc_lines.append(f"{c.get('numero')}. [{c_title}]({anchor})")
 
     content = f"# {title}\n\n*Refinado por Gravity Book Refiner*\n\n"
@@ -264,6 +274,7 @@ def _assemble_book(book_dir: str, title: str, caps: List[str]) -> str:
 
 # ── Clase principal ───────────────────────────────────────────────────────────
 
+
 class BookRefiner:
     """
     Refinador de obras generadas por GravityAuthor (libros y ficción).
@@ -280,27 +291,35 @@ class BookRefiner:
     def _clean_response(self, text: str) -> str:
         """Limpia etiquetas <think> y marcadores conversacionales."""
         import re
+
         if not text:
             return ""
-        cleaned = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
-        if '<think>' in cleaned:
-            cleaned = re.sub(r'<think>.*', '', cleaned, flags=re.DOTALL).strip()
-            
+        cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+        if "<think>" in cleaned:
+            cleaned = re.sub(r"<think>.*", "", cleaned, flags=re.DOTALL).strip()
+
         if cleaned.startswith("```"):
-            cleaned = re.sub(r'^```[a-zA-Z0-9-]*\n', '', cleaned)
-            cleaned = re.sub(r'\n```$', '', cleaned)
-            
+            cleaned = re.sub(r"^```[a-zA-Z0-9-]*\n", "", cleaned)
+            cleaned = re.sub(r"\n```$", "", cleaned)
+
         prefixes_to_strip = [
-            "Aquí tienes", "Aquí está", "Claro, aquí", 
-            "Entendido.", "¡Por supuesto!", "A continuación"
+            "Aquí tienes",
+            "Aquí está",
+            "Claro, aquí",
+            "Entendido.",
+            "¡Por supuesto!",
+            "A continuación",
         ]
         for prefix in prefixes_to_strip:
             if cleaned.lower().startswith(prefix.lower()):
-                lines = cleaned.split('\n')
-                while lines and (lines[0].lower().startswith(prefix.lower()) or lines[0].strip() == ""):
+                lines = cleaned.split("\n")
+                while lines and (
+                    lines[0].lower().startswith(prefix.lower())
+                    or lines[0].strip() == ""
+                ):
                     lines.pop(0)
-                cleaned = '\n'.join(lines).strip()
-                
+                cleaned = "\n".join(lines).strip()
+
         return cleaned
 
     # ── MODO POLISH ───────────────────────────────────────────────────────────
@@ -368,7 +387,7 @@ class BookRefiner:
     def rewrite(
         self,
         book_dir: str,
-        depth: str = "full",           # "full" | "expand" | "enhance"
+        depth: str = "full",  # "full" | "expand" | "enhance"
         output_suffix: str = "_refinado",
         start_chapter: int = 1,
     ) -> str:
@@ -396,42 +415,56 @@ class BookRefiner:
         os.makedirs(out_dir, exist_ok=True)
 
         # Copiar archivos estructurales
-        for fname in ["2_escaleta.json", "1_contexto_base.md", "1_sinopsis_base.md",
-                      "historial_acumulado.md", "historial_continuidad.md"]:
+        for fname in [
+            "2_escaleta.json",
+            "1_contexto_base.md",
+            "1_sinopsis_base.md",
+            "historial_acumulado.md",
+            "historial_continuidad.md",
+        ]:
             src = os.path.join(book_dir, fname)
             if os.path.exists(src):
                 import shutil
+
                 shutil.copy2(src, os.path.join(out_dir, fname))
 
-        logger.info(f"[REWRITE/{depth.upper()}] '{title}' — {len(caps)} capítulos → {os.path.basename(out_dir)}")
+        logger.info(
+            f"[REWRITE/{depth.upper()}] '{title}' — {len(caps)} capítulos → {os.path.basename(out_dir)}"
+        )
 
         # Heredar lore_book.json del libro original al out_dir
         lore_src = os.path.join(book_dir, "lore_book.json")
         lore_dst = os.path.join(out_dir, "lore_book.json")
         if os.path.exists(lore_src) and not os.path.exists(lore_dst):
             import shutil as _shutil
+
             _shutil.copy2(lore_src, lore_dst)
             logger.info("  lore_book.json heredado del libro original.")
 
         # Cargar contexto
         synopsis = (
-            _load_file(os.path.join(book_dir, "1_contexto_base.md")) or
-            _load_file(os.path.join(book_dir, "1_sinopsis_base.md")) or ""
+            _load_file(os.path.join(book_dir, "1_contexto_base.md"))
+            or _load_file(os.path.join(book_dir, "1_sinopsis_base.md"))
+            or ""
         )
-        
+
         # Generar o cargar Biblia de Personajes
         from core.visual_lore import ensure_lore_book
+
         lore_data = ensure_lore_book(book_dir, synopsis)
         escaleta = _load_escaleta(book_dir)
         full_outline = "\n".join(
-            [f"Cap {c.get('numero')}: {c.get('titulo')} — {c.get('resumen_eventos','')[:200]}"
-             for c in escaleta]
+            [
+                f"Cap {c.get('numero')}: {c.get('titulo')} — {c.get('resumen_eventos','')[:200]}"
+                for c in escaleta
+            ]
         )
 
         # Cargar historial acumulado
         history_text = (
-            _load_file(os.path.join(book_dir, "historial_acumulado.md")) or
-            _load_file(os.path.join(book_dir, "historial_continuidad.md")) or ""
+            _load_file(os.path.join(book_dir, "historial_acumulado.md"))
+            or _load_file(os.path.join(book_dir, "historial_continuidad.md"))
+            or ""
         )
 
         new_caps = []
@@ -449,9 +482,13 @@ class BookRefiner:
                 new_caps.append(cap_path)
 
         for cap_path in caps:
-            cap_num = int(re.search(r"cap_(\d+)\.md", os.path.basename(cap_path)).group(1))
+            cap_num = int(
+                re.search(r"cap_(\d+)\.md", os.path.basename(cap_path)).group(1)
+            )
             if cap_num < start_chapter or cap_num <= completed_until:
-                logger.info(f"  Saltando cap_{cap_num} (ya completado o fuera de rango)")
+                logger.info(
+                    f"  Saltando cap_{cap_num} (ya completado o fuera de rango)"
+                )
                 continue
 
             original_text = _load_file(cap_path)
@@ -474,7 +511,7 @@ class BookRefiner:
                     accumulated_history=accumulated or history_text,
                     depth=depth,
                     lore_data=lore_data,
-                    book_dir=out_dir
+                    book_dir=out_dir,
                 )
 
             # Guardar capítulo reescrito
@@ -489,14 +526,23 @@ class BookRefiner:
 
             # Guardar progreso
             with open(progress_path, "w", encoding="utf-8") as f:
-                json.dump({"ultimo_capitulo_completado": cap_num, "total": len(caps)}, f)
+                json.dump(
+                    {"ultimo_capitulo_completado": cap_num, "total": len(caps)}, f
+                )
 
             logger.info(f"  cap_{cap_num} reescrito y guardado.")
             time.sleep(1)  # rate limiting cortés
 
         # Ensamblar resultado final
         new_title = f"{title} (Refinado)"
-        assembled = _assemble_book(out_dir, new_title, sorted(_detect_caps(out_dir), key=lambda p: int(re.search(r'cap_(\d+)', p).group(1))))
+        assembled = _assemble_book(
+            out_dir,
+            new_title,
+            sorted(
+                _detect_caps(out_dir),
+                key=lambda p: int(re.search(r"cap_(\d+)", p).group(1)),
+            ),
+        )
         book_md_path = os.path.join(out_dir, f"{title.replace(' ', '_')}_refinado.md")
         _save_file(book_md_path, assembled)
 
@@ -521,8 +567,8 @@ class BookRefiner:
         full_outline: str,
         accumulated_history: str,
         depth: str,
-        lore_data: dict = None,
-        book_dir: str = None,
+        lore_data: Optional[dict] = None,
+        book_dir: Optional[str] = None,
     ) -> str:
 
         depth_instructions = {
@@ -599,17 +645,22 @@ AHORA ESCRIBE EL CAPÍTULO REFINADO:"""
             if i < max_cont - 1:
                 logger.warning(f"  cap_{cap_num} posiblemente truncado. Continuando...")
                 messages.append({"role": "assistant", "content": response})
-                messages.append({"role": "user", "content": "Continúa exactamente desde donde te quedaste, sin repetir nada."})
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": "Continúa exactamente desde donde te quedaste, sin repetir nada.",
+                    }
+                )
                 time.sleep(2)
 
         cleaned_text = latex_cleaner.full_clean(full_text.strip())
-        
+
         # Procesamiento de imágenes en línea desactivado permanentemente para evitar glitches visuales.
-        if False: # lore_data and book_dir:
+        if False:  # lore_data and book_dir:
             # from core.visual_lore import inject_lore_to_prompt
             from tools.pollinations_generator import generate as poll_gen
             import uuid
-            
+
             # Archivo de recuperación de imágenes fallidas (genérico por libro)
             failed_log_path = os.path.join(book_dir, "failed_images.json")
             try:
@@ -636,10 +687,18 @@ AHORA ESCRIBE EL CAPÍTULO REFINADO:"""
                 # Anclar la semilla al primer personaje mencionado para coherencia facial entre escenas
                 char_seed = None
                 for char_name in lore_data.get("characters", {}).keys():
-                    search_names = [char_name] + [t for t in char_name.replace("(", "").replace(")", "").split() if len(t) > 3]
+                    search_names = [char_name] + [
+                        t
+                        for t in char_name.replace("(", "").replace(")", "").split()
+                        if len(t) > 3
+                    ]
                     if any(n.lower() in base_prompt.lower() for n in search_names):
                         import hashlib as _hl
-                        char_seed = int(_hl.md5(char_name.encode("utf-8")).hexdigest()[:8], 16) % 2147483647
+
+                        char_seed = (
+                            int(_hl.md5(char_name.encode("utf-8")).hexdigest()[:8], 16)
+                            % 2147483647
+                        )
                         break
 
                 logger.info(f"    Generando imagen para cap_{cap_num}: {img_filename}")
@@ -658,21 +717,28 @@ AHORA ESCRIBE EL CAPÍTULO REFINADO:"""
                 else:
                     logger.warning(f"    Fallo al generar {img_filename}.")
                     # Persiste el prompt fallido para el script de reintento
-                    _failed_log.append({
-                        "cap_num": cap_num,
-                        "img_filename": img_filename,
-                        "img_path": img_path,
-                        "base_prompt": base_prompt,
-                        "final_prompt": final_prompt,
-                        "char_seed": char_seed,
-                    })
+                    _failed_log.append(
+                        {
+                            "cap_num": cap_num,
+                            "img_filename": img_filename,
+                            "img_path": img_path,
+                            "base_prompt": base_prompt,
+                            "final_prompt": final_prompt,
+                            "char_seed": char_seed,
+                        }
+                    )
                     with open(failed_log_path, "w", encoding="utf-8") as _fw:
                         json.dump(_failed_log, _fw, indent=2, ensure_ascii=False)
                     # Retorna un placeholder en el MD para que retry_failed_images.py lo ubique
                     return f"\n\n<!-- FAILED_IMAGE:{img_filename} -->\n\n"
-                    
-            cleaned_text = re.sub(r"<IMAGE_PROMPT>(.*?)</IMAGE_PROMPT>", image_replacer, cleaned_text, flags=re.DOTALL)
-            
+
+            cleaned_text = re.sub(
+                r"<IMAGE_PROMPT>(.*?)</IMAGE_PROMPT>",
+                image_replacer,
+                cleaned_text,
+                flags=re.DOTALL,
+            )
+
         return cleaned_text
 
     def _summarize_chapter(self, chapter_text: str) -> str:
@@ -686,7 +752,9 @@ AHORA ESCRIBE EL CAPÍTULO REFINADO:"""
         resp = provider_manager.complete(messages)
         return self._clean_response(resp)
 
-    def _ensure_cover(self, book_dir: str, title: str, synopsis_excerpt: str) -> Optional[str]:
+    def _ensure_cover(
+        self, book_dir: str, title: str, synopsis_excerpt: str
+    ) -> Optional[str]:
         """Genera portada vía ImageRouter si no existe ninguna imagen de portada."""
         for ext in [".png", ".jpg", ".jpeg", ".svg"]:
             cover_path = os.path.join(book_dir, f"cover{ext}")
@@ -719,13 +787,19 @@ AHORA ESCRIBE EL CAPÍTULO REFINADO:"""
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
+
 def _cli():
     import argparse
+
     parser = argparse.ArgumentParser(description="Gravity Book Refiner")
     parser.add_argument("mode", choices=["polish", "rewrite"], help="Modo de refinado")
     parser.add_argument("path", help="Ruta a la carpeta de la obra")
-    parser.add_argument("--depth", default="full", choices=["full", "expand", "enhance"],
-                        help="Profundidad del rewrite (solo en modo rewrite)")
+    parser.add_argument(
+        "--depth",
+        default="full",
+        choices=["full", "expand", "enhance"],
+        help="Profundidad del rewrite (solo en modo rewrite)",
+    )
     parser.add_argument("--from-chapter", type=int, default=1, help="Capítulo inicial")
     args = parser.parse_args()
 

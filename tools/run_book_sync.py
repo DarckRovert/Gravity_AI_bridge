@@ -38,4 +38,6 @@ No hay límite de extensión. Desarrolla la cantidad de capítulos y la profundi
 if __name__ == "__main__":
     author = GravityResearchAuthor()
     # num_chapters=0 activa el modo de longitud libre (generación dinámica)
-    author.write_research_book(prompt=prompt_maestro, title="Convergencia Entropica", num_chapters=0)
+    author.write_research_book(
+        prompt=prompt_maestro, title="Convergencia Entropica", num_chapters=0
+    )

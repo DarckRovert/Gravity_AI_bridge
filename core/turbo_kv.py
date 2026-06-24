@@ -24,9 +24,13 @@ import os
 from typing import Dict, Any, Union
 
 # ── Feature Flags (automáticas cuando lleguen a los motores estables) ──────────
-_TURBO_QUANT_OLLAMA_AVAILABLE: bool = False    # Activar cuando Ollama lo soporte en stable
-_TURBO_QUANT_LEMONADE_AVAILABLE: bool = False  # Activar cuando Lemonade lo soporte en stable
-_TURBO_QUANT_LLAMACPP_ARG: str = "turbo4"       # CLI arg cuando esté disponible
+_TURBO_QUANT_OLLAMA_AVAILABLE: bool = (
+    False  # Activar cuando Ollama lo soporte en stable
+)
+_TURBO_QUANT_LEMONADE_AVAILABLE: bool = (
+    False  # Activar cuando Lemonade lo soporte en stable
+)
+_TURBO_QUANT_LLAMACPP_ARG: str = "turbo4"  # CLI arg cuando esté disponible
 
 
 def _sanitize_numeric(val: Any, default: Union[int, float]) -> Union[int, float]:
@@ -49,7 +53,7 @@ def get_ollama_kv_options(vram_mb: Any, model_size_b: Any = 32) -> Dict[str, str
       3. q8_0 (≥10GB VRAM): 2x reduction, near-zero quality loss
     """
     vram = _sanitize_numeric(vram_mb, 8192)
-    
+
     if _TURBO_QUANT_OLLAMA_AVAILABLE:
         kv_type = _TURBO_QUANT_LLAMACPP_ARG
         label = "TurboQuant (Google DeepMind) — 6x reduction"
@@ -73,7 +77,7 @@ def get_lemonade_llamacpp_args(vram_mb: Any) -> str:
     These args maximize prefill throughput and KV compression.
     """
     vram = _sanitize_numeric(vram_mb, 8192)
-    
+
     if _TURBO_QUANT_LEMONADE_AVAILABLE:
         kv_arg = f"--kv-cache-type {_TURBO_QUANT_LLAMACPP_ARG}"
     elif vram < 10000:

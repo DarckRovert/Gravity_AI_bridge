@@ -33,7 +33,7 @@ from core.video.pipeline import (
     DEFAULT_BGM_VOLUME,
     DB_CONNECT_TIMEOUT,
     EMOTIONAL_GRADES,
-    STYLE_COLOR_GRADES
+    STYLE_COLOR_GRADES,
 )
 
 from core.video.audio_processor import (
@@ -41,7 +41,7 @@ from core.video.audio_processor import (
     get_available_voices,
     _generate_audio,
     _ensure_bgm,
-    BGM_GENERATORS
+    BGM_GENERATORS,
 )
 
 from core.video.script_builder import (
@@ -51,7 +51,7 @@ from core.video.script_builder import (
     _get_lore_context,
     _generate_script,
     CINEMA_STYLES,
-    DEFAULT_STYLE
+    DEFAULT_STYLE,
 )
 
 from core.video.renderer import (
@@ -62,7 +62,7 @@ from core.video.renderer import (
     _create_title_card,
     _extract_thumbnail,
     _assemble_clip,
-    _concatenate_clips
+    _concatenate_clips,
 )
 
 __all__ = [
@@ -113,5 +113,5 @@ __all__ = [
     "_create_title_card",
     "_extract_thumbnail",
     "_assemble_clip",
-    "_concatenate_clips"
+    "_concatenate_clips",
 ]

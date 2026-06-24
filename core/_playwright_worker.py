@@ -20,24 +20,22 @@ import os
 import sys
 import json
 import subprocess
-import tempfile
-import time
-from typing import Any, Dict
+from typing import Optional, Any, Dict
 
-BASE_DIR   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PYTHON_EXE = sys.executable
 
 # Timeout por defecto por tarea (segundos)
 TASK_TIMEOUTS = {
-    "upload_tiktok":    300,   # 5 minutos
+    "upload_tiktok": 300,  # 5 minutos
     "upload_instagram": 300,
-    "login_tiktok":     600,   # 10 minutos (login manual)
-    "login_instagram":  600,
-    "default":          180,
+    "login_tiktok": 600,  # 10 minutos (login manual)
+    "login_instagram": 600,
+    "default": 180,
 }
 
 
-def run_isolated(task_name: str, timeout: int = None, **kwargs) -> Dict[str, Any]:
+def run_isolated(task_name: str, timeout: Optional[int] = None, **kwargs) -> Dict[str, Any]:
     """
     Ejecuta una tarea de Playwright en un subproceso hijo aislado.
 
@@ -101,9 +99,17 @@ def run_isolated(task_name: str, timeout: int = None, **kwargs) -> Dict[str, Any
                 line = line.strip()
                 if line.startswith("{"):
                     return json.loads(line)
-            return {"ok": False, "error": "Worker no retornó JSON válido", "raw": output[-200:]}
+            return {
+                "ok": False,
+                "error": "Worker no retornó JSON válido",
+                "raw": output[-200:],
+            }
         except json.JSONDecodeError as e:
-            return {"ok": False, "error": f"JSON parse error: {e}", "raw": stdout.decode(errors="replace")[-200:]}
+            return {
+                "ok": False,
+                "error": f"JSON parse error: {e}",
+                "raw": stdout.decode(errors="replace")[-200:],
+            }
 
     except FileNotFoundError:
         return {"ok": False, "error": "Python executable no encontrado"}
@@ -113,15 +119,17 @@ def run_isolated(task_name: str, timeout: int = None, **kwargs) -> Dict[str, Any
 
 # ── Implementación de tareas (corre en el subproceso hijo) ────────────────────
 
+
 def _task_upload_tiktok(args: Dict) -> Dict:
     """Sube un video a TikTok usando StealthUploader."""
     video_path = args.get("video_path", "")
-    caption    = args.get("caption", "")
+    caption = args.get("caption", "")
     if not video_path or not os.path.exists(video_path):
         return {"ok": False, "error": f"Archivo no encontrado: {video_path}"}
 
     sys.path.insert(0, BASE_DIR)
     from core.stealth_uploader import StealthUploader
+
     uploader = StealthUploader()
     return uploader.upload_to_tiktok(video_path, caption)
 
@@ -129,12 +137,13 @@ def _task_upload_tiktok(args: Dict) -> Dict:
 def _task_upload_instagram(args: Dict) -> Dict:
     """Sube un video a Instagram usando StealthUploader."""
     video_path = args.get("video_path", "")
-    caption    = args.get("caption", "")
+    caption = args.get("caption", "")
     if not video_path or not os.path.exists(video_path):
         return {"ok": False, "error": f"Archivo no encontrado: {video_path}"}
 
     sys.path.insert(0, BASE_DIR)
     from core.stealth_uploader import StealthUploader
+
     uploader = StealthUploader()
     return uploader.upload_to_instagram(video_path, caption)
 
@@ -143,14 +152,15 @@ def _task_login_tiktok(args: Dict) -> Dict:
     """Abre el navegador para login manual en TikTok/Instagram."""
     sys.path.insert(0, BASE_DIR)
     from core.stealth_uploader import start_login
+
     start_login()
     return {"ok": True, "message": "Sesión guardada correctamente"}
 
 
 TASK_HANDLERS = {
-    "upload_tiktok":    _task_upload_tiktok,
+    "upload_tiktok": _task_upload_tiktok,
     "upload_instagram": _task_upload_instagram,
-    "login_tiktok":     _task_login_tiktok,
+    "login_tiktok": _task_login_tiktok,
 }
 
 
@@ -161,9 +171,9 @@ def _worker_main():
     """
     try:
         payload_raw = sys.stdin.read()
-        payload     = json.loads(payload_raw)
-        task_name   = payload.get("task")
-        task_args   = payload.get("args", {})
+        payload = json.loads(payload_raw)
+        task_name = payload.get("task")
+        task_args = payload.get("args", {})
 
         handler = TASK_HANDLERS.get(task_name)
         if not handler:

@@ -1,7 +1,6 @@
 import os
 import subprocess
 import glob
-import json
 import logging
 import threading
 from typing import Dict, Any, List, Optional
@@ -9,12 +8,14 @@ from typing import Dict, Any, List, Optional
 log = logging.getLogger("gravity.tools_engine")
 _singleton_lock = threading.RLock()
 
+
 class ToolEngine:
     """
     Motor de Herramientas (Agentic Core V16.0)
     Proporciona capacidades autónomas al LLM de Gravity para interactuar con el sistema operativo,
     sistema de archivos y ejecución de código con exclusión mutua estricta y resiliencia en Windows.
     """
+
     def __init__(self, workspace_root: str) -> None:
         self.workspace_root = os.path.abspath(workspace_root)
         self._lock = threading.RLock()
@@ -23,7 +24,7 @@ class ToolEngine:
             "replace_file_content": self.replace_file_content,
             "list_dir": self.list_dir,
             "run_command": self.run_command,
-            "grep_search": self.grep_search
+            "grep_search": self.grep_search,
         }
 
     def _safe_path(self, path: str) -> str:
@@ -31,8 +32,11 @@ class ToolEngine:
         abs_path_orig = os.path.abspath(os.path.join(self.workspace_root, path))
         abs_path_check = os.path.normcase(abs_path_orig)
         root_path_check = os.path.normcase(os.path.abspath(self.workspace_root))
-        
-        if not abs_path_check.startswith(root_path_check + os.sep) and abs_path_check != root_path_check:
+
+        if (
+            not abs_path_check.startswith(root_path_check + os.sep)
+            and abs_path_check != root_path_check
+        ):
             raise PermissionError(f"Ruta denegada (fuera del workspace): {path}")
         return abs_path_orig
 
@@ -40,21 +44,33 @@ class ToolEngine:
         """Intenta leer un archivo con codificación utf-8, con fallback a cp1252 y latin-1."""
         for encoding in ("utf-8", "cp1252", "latin-1"):
             try:
-                with open(safe_path, 'r', encoding=encoding) as f:
+                with open(safe_path, "r", encoding=encoding) as f:
                     return f.read()
             except UnicodeDecodeError:
                 continue
-        raise UnicodeDecodeError("utf-8", b"", 0, 0, f"No se pudo decodificar {safe_path} con utf-8, cp1252 ni latin-1.")
+        raise UnicodeDecodeError(
+            "utf-8",
+            b"",
+            0,
+            0,
+            f"No se pudo decodificar {safe_path} con utf-8, cp1252 ni latin-1.",
+        )
 
     def _read_lines_with_fallback(self, safe_path: str) -> List[str]:
         """Intenta leer las líneas de un archivo con codificación utf-8, con fallback a cp1252 y latin-1."""
         for encoding in ("utf-8", "cp1252", "latin-1"):
             try:
-                with open(safe_path, 'r', encoding=encoding) as f:
+                with open(safe_path, "r", encoding=encoding) as f:
                     return f.readlines()
             except UnicodeDecodeError:
                 continue
-        raise UnicodeDecodeError("utf-8", b"", 0, 0, f"No se pudo decodificar {safe_path} con utf-8, cp1252 ni latin-1.")
+        raise UnicodeDecodeError(
+            "utf-8",
+            b"",
+            0,
+            0,
+            f"No se pudo decodificar {safe_path} con utf-8, cp1252 ni latin-1.",
+        )
 
     def get_tool_definitions(self) -> List[Dict[str, Any]]:
         """Retorna el esquema JSON de las herramientas para inyectar en el LLM prompt."""
@@ -67,13 +83,16 @@ class ToolEngine:
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "filepath": {"type": "string", "description": "Ruta relativa al archivo."},
+                            "filepath": {
+                                "type": "string",
+                                "description": "Ruta relativa al archivo.",
+                            },
                             "start_line": {"type": "integer"},
-                            "end_line": {"type": "integer"}
+                            "end_line": {"type": "integer"},
                         },
-                        "required": ["filepath"]
-                    }
-                }
+                        "required": ["filepath"],
+                    },
+                },
             },
             {
                 "type": "function",
@@ -84,12 +103,22 @@ class ToolEngine:
                         "type": "object",
                         "properties": {
                             "filepath": {"type": "string"},
-                            "target_content": {"type": "string", "description": "Texto exacto a buscar."},
-                            "replacement_content": {"type": "string", "description": "Nuevo texto."}
+                            "target_content": {
+                                "type": "string",
+                                "description": "Texto exacto a buscar.",
+                            },
+                            "replacement_content": {
+                                "type": "string",
+                                "description": "Nuevo texto.",
+                            },
                         },
-                        "required": ["filepath", "target_content", "replacement_content"]
-                    }
-                }
+                        "required": [
+                            "filepath",
+                            "target_content",
+                            "replacement_content",
+                        ],
+                    },
+                },
             },
             {
                 "type": "function",
@@ -99,11 +128,14 @@ class ToolEngine:
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "directory": {"type": "string", "description": "Directorio relativo a listar."}
+                            "directory": {
+                                "type": "string",
+                                "description": "Directorio relativo a listar.",
+                            }
                         },
-                        "required": ["directory"]
-                    }
-                }
+                        "required": ["directory"],
+                    },
+                },
             },
             {
                 "type": "function",
@@ -113,12 +145,18 @@ class ToolEngine:
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "command": {"type": "string", "description": "Comando bash/powershell a ejecutar."},
-                            "cwd": {"type": "string", "description": "Directorio de trabajo relativo."}
+                            "command": {
+                                "type": "string",
+                                "description": "Comando bash/powershell a ejecutar.",
+                            },
+                            "cwd": {
+                                "type": "string",
+                                "description": "Directorio de trabajo relativo.",
+                            },
                         },
-                        "required": ["command"]
-                    }
-                }
+                        "required": ["command"],
+                    },
+                },
             },
             {
                 "type": "function",
@@ -128,13 +166,19 @@ class ToolEngine:
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "query": {"type": "string", "description": "Texto exacto a buscar."},
-                            "filepath": {"type": "string", "description": "Ruta relativa del archivo o carpeta donde buscar."}
+                            "query": {
+                                "type": "string",
+                                "description": "Texto exacto a buscar.",
+                            },
+                            "filepath": {
+                                "type": "string",
+                                "description": "Ruta relativa del archivo o carpeta donde buscar.",
+                            },
                         },
-                        "required": ["query", "filepath"]
-                    }
-                }
-            }
+                        "required": ["query", "filepath"],
+                    },
+                },
+            },
         ]
 
     def execute_tool(self, name: str, args: Dict[str, Any]) -> str:
@@ -163,23 +207,27 @@ class ToolEngine:
             except Exception as e:
                 return f"Error al decodificar o leer el archivo: {e}"
 
-    def replace_file_content(self, filepath: str, target_content: str, replacement_content: str) -> str:
+    def replace_file_content(
+        self, filepath: str, target_content: str, replacement_content: str
+    ) -> str:
         safe_p = self._safe_path(filepath)
         if not os.path.isfile(safe_p):
             return f"Error: Archivo no encontrado {filepath}"
         with self._lock:
             try:
                 content = self._read_file_with_fallback(safe_p)
-                
+
                 if target_content not in content:
-                    return "Error: No se encontró 'target_content' exacto en el archivo."
-                
+                    return (
+                        "Error: No se encontró 'target_content' exacto en el archivo."
+                    )
+
                 count = content.count(target_content)
                 if count > 1:
                     return f"Error: Múltiples ({count}) ocurrencias de 'target_content' encontradas. Sé más específico."
-                    
+
                 new_content = content.replace(target_content, replacement_content)
-                with open(safe_p, 'w', encoding='utf-8') as f:
+                with open(safe_p, "w", encoding="utf-8") as f:
                     f.write(new_content)
                 return f"Éxito: Archivo {filepath} actualizado."
             except Exception as e:
@@ -207,13 +255,15 @@ class ToolEngine:
                 shell=True,
                 capture_output=True,
                 text=True,
-                timeout=60
+                timeout=60,
             )
             out = result.stdout.strip()
             err = result.stderr.strip()
             res = ""
-            if out: res += f"STDOUT:\n{out}\n"
-            if err: res += f"STDERR:\n{err}\n"
+            if out:
+                res += f"STDOUT:\n{out}\n"
+            if err:
+                res += f"STDERR:\n{err}\n"
             res += f"Exit Code: {result.returncode}"
             return res
         except subprocess.TimeoutExpired:
@@ -231,8 +281,10 @@ class ToolEngine:
             elif os.path.isdir(safe_p):
                 # Escaneo recursivo simple (.py, .ts, .tsx, .json)
                 files = []
-                for ext in ('*.py', '*.ts', '*.tsx', '*.js', '*.jsx', '*.json', '*.md'):
-                    files.extend(glob.glob(os.path.join(safe_p, '**', ext), recursive=True))
+                for ext in ("*.py", "*.ts", "*.tsx", "*.js", "*.jsx", "*.json", "*.md"):
+                    files.extend(
+                        glob.glob(os.path.join(safe_p, "**", ext), recursive=True)
+                    )
             else:
                 return "Error: Ruta no válida."
 
@@ -252,8 +304,10 @@ class ToolEngine:
                     pass
             return "\n".join(results) if results else "No se encontraron coincidencias."
 
+
 # Instancia Global
 tool_engine: Optional[ToolEngine] = None
+
 
 def get_tool_engine(workspace_root: str) -> ToolEngine:
     global tool_engine

@@ -8,6 +8,7 @@
 ║     rewrite() → reescritura profunda con LLM + OSINT (3 queries/cap)      ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
+
 import os
 import sys
 import json
@@ -26,17 +27,23 @@ from core import image_router
 from core import provider_manager
 from tools.web_search import WebSearch, fetch_page_text
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("ResearchRefiner")
 
 
 # ── Helpers (compartidos) ─────────────────────────────────────────────────────
 
-def _render_html(essay_dir: str, md_content: str, html_path: str, title: str = "") -> None:
+
+def _render_html(
+    essay_dir: str, md_content: str, html_path: str, title: str = ""
+) -> None:
     try:
         import markdown
+
         html_body = markdown.markdown(md_content, extensions=["toc", "tables"])
-        
+
         cover_img = ""
         for ext in [".png", ".jpg", ".jpeg", ".svg"]:
             if os.path.exists(os.path.join(essay_dir, f"cover{ext}")):
@@ -115,8 +122,11 @@ def _assemble_essay(essay_dir: str, title: str, caps: List[str]) -> str:
     toc_lines = []
     for c in escaleta:
         import urllib.parse
+
         c_title = c.get("titulo", "")
-        anchor = "#" + urllib.parse.quote(c_title.lower().replace(" ", "-").replace(":", ""))
+        anchor = "#" + urllib.parse.quote(
+            c_title.lower().replace(" ", "-").replace(":", "")
+        )
         toc_lines.append(f"{c.get('numero')}. [{c_title}]({anchor})")
 
     content = f"# {title}\n\n*Refinado por Gravity Research Refiner*\n\n"
@@ -136,6 +146,7 @@ def _assemble_essay(essay_dir: str, title: str, caps: List[str]) -> str:
 
 # ── Clase principal ───────────────────────────────────────────────────────────
 
+
 class ResearchRefiner:
     """
     Refinador de obras generadas por GravityResearchAuthor (ensayos OSINT).
@@ -152,27 +163,35 @@ class ResearchRefiner:
     def _clean_response(self, text: str) -> str:
         """Limpia etiquetas <think> y marcadores conversacionales."""
         import re
+
         if not text:
             return ""
-        cleaned = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
-        if '<think>' in cleaned:
-            cleaned = re.sub(r'<think>.*', '', cleaned, flags=re.DOTALL).strip()
-            
+        cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+        if "<think>" in cleaned:
+            cleaned = re.sub(r"<think>.*", "", cleaned, flags=re.DOTALL).strip()
+
         if cleaned.startswith("```"):
-            cleaned = re.sub(r'^```[a-zA-Z0-9-]*\n', '', cleaned)
-            cleaned = re.sub(r'\n```$', '', cleaned)
-            
+            cleaned = re.sub(r"^```[a-zA-Z0-9-]*\n", "", cleaned)
+            cleaned = re.sub(r"\n```$", "", cleaned)
+
         prefixes_to_strip = [
-            "Aquí tienes", "Aquí está", "Claro, aquí", 
-            "Entendido.", "¡Por supuesto!", "A continuación"
+            "Aquí tienes",
+            "Aquí está",
+            "Claro, aquí",
+            "Entendido.",
+            "¡Por supuesto!",
+            "A continuación",
         ]
         for prefix in prefixes_to_strip:
             if cleaned.lower().startswith(prefix.lower()):
-                lines = cleaned.split('\n')
-                while lines and (lines[0].lower().startswith(prefix.lower()) or lines[0].strip() == ""):
+                lines = cleaned.split("\n")
+                while lines and (
+                    lines[0].lower().startswith(prefix.lower())
+                    or lines[0].strip() == ""
+                ):
                     lines.pop(0)
-                cleaned = '\n'.join(lines).strip()
-                
+                cleaned = "\n".join(lines).strip()
+
         return cleaned
 
     # ── MODO POLISH ───────────────────────────────────────────────────────────
@@ -270,13 +289,17 @@ class ResearchRefiner:
             if os.path.exists(src):
                 shutil.copy2(src, os.path.join(out_dir, fname))
 
-        logger.info(f"[REWRITE ENSAYO/{depth.upper()}] '{title}' → {os.path.basename(out_dir)}")
+        logger.info(
+            f"[REWRITE ENSAYO/{depth.upper()}] '{title}' → {os.path.basename(out_dir)}"
+        )
 
         synopsis = _load_file(os.path.join(essay_dir, "1_sinopsis.md"))
         escaleta = _load_escaleta(essay_dir)
         full_outline = "\n".join(
-            [f"Cap {c.get('numero')}: {c.get('titulo')} — {c.get('resumen_eventos','')[:200]}"
-             for c in escaleta]
+            [
+                f"Cap {c.get('numero')}: {c.get('titulo')} — {c.get('resumen_eventos','')[:200]}"
+                for c in escaleta
+            ]
         )
         history_text = _load_file(os.path.join(essay_dir, "historial.md"))
 
@@ -291,7 +314,9 @@ class ResearchRefiner:
         new_caps_paths = []
 
         for cap_path in caps:
-            cap_num = int(re.search(r"cap_(\d+)\.md", os.path.basename(cap_path)).group(1))
+            cap_num = int(
+                re.search(r"cap_(\d+)\.md", os.path.basename(cap_path)).group(1)
+            )
             if cap_num < start_chapter or cap_num <= completed_until:
                 logger.info(f"  Saltando cap_{cap_num} (ya completado)")
                 new_cap_path = os.path.join(out_dir, f"cap_{cap_num}.md")
@@ -341,7 +366,9 @@ class ResearchRefiner:
 
         # Ensamblar
         new_title = f"{title} (Refinado)"
-        sorted_caps = sorted(new_caps_paths, key=lambda p: int(re.search(r"cap_(\d+)", p).group(1)))
+        sorted_caps = sorted(
+            new_caps_paths, key=lambda p: int(re.search(r"cap_(\d+)", p).group(1))
+        )
         assembled = _assemble_essay(out_dir, new_title, sorted_caps)
         essay_safe = title.replace(" ", "_")
         essay_md_path = os.path.join(out_dir, f"{essay_safe}_refinado.md")
@@ -368,7 +395,9 @@ class ResearchRefiner:
         try:
             q_raw = provider_manager.complete([{"role": "user", "content": sys_prompt}])
             q_raw = self._clean_response(q_raw)
-            queries = [q.strip().strip('"\'') for q in q_raw.split("\n") if q.strip()][:3]
+            queries = [q.strip().strip("\"'") for q in q_raw.split("\n") if q.strip()][
+                :3
+            ]
         except Exception:
             queries = [chap_title]
 
@@ -385,7 +414,9 @@ class ResearchRefiner:
                             seen_urls.add(url)
                             page = fetch_page_text(url, max_chars=1500)
                             if not page.startswith("[fetch"):
-                                results.append(f"  [Contenido: {url[:60]}]\n  {page[:1200]}")
+                                results.append(
+                                    f"  [Contenido: {url[:60]}]\n  {page[:1200]}"
+                                )
             except Exception as e:
                 logger.warning(f"  OSINT query falló: {e}")
 
@@ -396,8 +427,16 @@ class ResearchRefiner:
     # ── LLM helpers ───────────────────────────────────────────────────────────
 
     def _rewrite_chapter(
-        self, cap_num, chap_title, chap_events, original_text,
-        synopsis, full_outline, accumulated_history, search_context, depth
+        self,
+        cap_num,
+        chap_title,
+        chap_events,
+        original_text,
+        synopsis,
+        full_outline,
+        accumulated_history,
+        search_context,
+        depth,
     ) -> str:
 
         depth_instructions = {
@@ -461,7 +500,12 @@ ESCRIBE EL CAPÍTULO REFINADO AHORA:"""
                 break
             if i < 2:
                 messages.append({"role": "assistant", "content": response})
-                messages.append({"role": "user", "content": "Continúa exactamente donde te quedaste."})
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": "Continúa exactamente donde te quedaste.",
+                    }
+                )
                 time.sleep(2)
 
         return latex_cleaner.full_clean(full_text.strip())
@@ -475,7 +519,9 @@ ESCRIBE EL CAPÍTULO REFINADO AHORA:"""
         resp = provider_manager.complete([{"role": "user", "content": sys_prompt}])
         return self._clean_response(resp)
 
-    def _ensure_cover(self, essay_dir: str, title: str, synopsis_excerpt: str) -> Optional[str]:
+    def _ensure_cover(
+        self, essay_dir: str, title: str, synopsis_excerpt: str
+    ) -> Optional[str]:
         for ext in [".png", ".jpg", ".jpeg", ".svg"]:
             cover = os.path.join(essay_dir, f"cover{ext}")
             if os.path.exists(cover):
@@ -505,13 +551,19 @@ ESCRIBE EL CAPÍTULO REFINADO AHORA:"""
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
+
 def _cli():
     import argparse
+
     parser = argparse.ArgumentParser(description="Gravity Research Refiner")
     parser.add_argument("mode", choices=["polish", "rewrite"])
     parser.add_argument("path", help="Ruta a la carpeta del ensayo")
-    parser.add_argument("--depth", default="full", choices=["full", "expand", "enhance"])
-    parser.add_argument("--no-osint", action="store_true", help="Desactivar búsqueda OSINT")
+    parser.add_argument(
+        "--depth", default="full", choices=["full", "expand", "enhance"]
+    )
+    parser.add_argument(
+        "--no-osint", action="store_true", help="Desactivar búsqueda OSINT"
+    )
     parser.add_argument("--from-chapter", type=int, default=1)
     args = parser.parse_args()
 

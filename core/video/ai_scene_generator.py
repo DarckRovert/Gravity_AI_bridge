@@ -17,7 +17,7 @@ import urllib.request
 import urllib.parse
 import numpy as np
 from core.logger import log
-
+from typing import Optional
 
 # ── Directorios ─────────────────────────────────────────────────────────────
 
@@ -54,20 +54,26 @@ ENGINE_VISUAL_CONTEXT = {
 
 # ── Constructores de prompt ──────────────────────────────────────────────────
 
-def _build_prompt(engine: str, section_label: str, section_text: str,
-                  color_hint: list = None, custom_scene_prompt: str = "") -> str:
+
+def _build_prompt(
+    engine: str,
+    section_label: str,
+    section_text: str,
+    color_hint: Optional[list] = None,
+    custom_scene_prompt: str = "",
+) -> str:
     """
     Construye un prompt cinematográfico denso a partir del engine elegido
     o el custom_scene_prompt generado por el AI Director.
     """
     ctx = ENGINE_VISUAL_CONTEXT.get(engine, ENGINE_VISUAL_CONTEXT["space_odyssey"])
-    
+
     # Si el director proveyó un prompt específico, lo usamos. Si no, usamos el por defecto del engine.
     if custom_scene_prompt and len(custom_scene_prompt.strip()) > 5:
         scene = custom_scene_prompt.strip()
     else:
         scene = ctx["scene"]
-        
+
     style = ctx["style"]
 
     # Color hint: si el AI Director devolvió colores, los traducimos a mood
@@ -84,11 +90,14 @@ def _build_prompt(engine: str, section_label: str, section_text: str,
             color_mood = "golden hour warm light, amber atmosphere,"
 
     prompt = f"{scene}, {color_mood} {style}, masterpiece, award-winning photography, ultra-detailed, no text, no watermark, no logo"
-    log.info(f"[AISceneGen] '{section_label}' ({engine}): prompt generado ({len(prompt)} chars)")
+    log.info(
+        f"[AISceneGen] '{section_label}' ({engine}): prompt generado ({len(prompt)} chars)"
+    )
     return prompt
 
 
 # ── Backends de generación ───────────────────────────────────────────────────
+
 
 def _fooocus_online() -> bool:
     """Verifica si Fooocus está activo en :7865."""
@@ -107,10 +116,11 @@ def _generate_via_fooocus(prompt: str, w: int, h: int, out_path: str) -> bool:
     """
     try:
         import sys
+
         tools_dir = os.path.join(_BASE, "tools")
         if tools_dir not in sys.path:
             sys.path.insert(0, tools_dir)
-        from fooocus_client import generate_image, ImageGenRequest
+        from fooocus_client import generate_image
 
         req = {
             "prompt": prompt,
@@ -122,6 +132,7 @@ def _generate_via_fooocus(prompt: str, w: int, h: int, out_path: str) -> bool:
         result = generate_image(req)
         if result.get("success") and result.get("images"):
             import shutil
+
             shutil.copy2(result["images"][0], out_path)
             return True
     except Exception as e:
@@ -129,8 +140,9 @@ def _generate_via_fooocus(prompt: str, w: int, h: int, out_path: str) -> bool:
     return False
 
 
-def _generate_via_pollinations(prompt: str, w: int, h: int, out_path: str,
-                                seed: int = None, retries: int = 3) -> bool:
+def _generate_via_pollinations(
+    prompt: str, w: int, h: int, out_path: str, seed: Optional[int] = None, retries: int = 3
+) -> bool:
     """
     Genera una imagen usando la API pública de Pollinations (modelo Flux).
     """
@@ -157,6 +169,7 @@ def _generate_via_pollinations(prompt: str, w: int, h: int, out_path: str,
                     try:
                         from PIL import Image
                         import io
+
                         img = Image.open(io.BytesIO(data))
                         if img.size != (w, h):
                             img = img.resize((w, h), Image.LANCZOS)
@@ -164,26 +177,33 @@ def _generate_via_pollinations(prompt: str, w: int, h: int, out_path: str,
                     except ImportError:
                         with open(out_path, "wb") as f:
                             f.write(data)
-                    log.info(f"[AISceneGen] Pollinations OK ({model}): {len(data)//1024}KB → {os.path.basename(out_path)} ({w}x{h})")
+                    log.info(
+                        f"[AISceneGen] Pollinations OK ({model}): {len(data)//1024}KB → {os.path.basename(out_path)} ({w}x{h})"
+                    )
                     return True
                 else:
-                    log.warning(f"[AISceneGen] Pollinations respuesta pequeña ({len(data)}b) con modelo={model}, reintento {attempt+1}/{retries}")
+                    log.warning(
+                        f"[AISceneGen] Pollinations respuesta pequeña ({len(data)}b) con modelo={model}, reintento {attempt+1}/{retries}"
+                    )
         except Exception as e:
-            log.warning(f"[AISceneGen] Pollinations intento {attempt+1}/{retries} (model={model}) error: {type(e).__name__}: {e}")
+            log.warning(
+                f"[AISceneGen] Pollinations intento {attempt+1}/{retries} (model={model}) error: {type(e).__name__}: {e}"
+            )
         if attempt < retries - 1:
             time.sleep(3 + attempt * 3)
     return False
 
 
-
-def _generate_procedural_fallback(color1: list, color2: list, w: int, h: int,
-                                   out_path: str) -> bool:
+def _generate_procedural_fallback(
+    color1: list, color2: list, w: int, h: int, out_path: str
+) -> bool:
     """
     Fallback: genera una nebulosa cósmica procedural con ruido fractal.
     Sin dependencias de red. Siempre funciona y produce resultados hermosos.
     """
     try:
         from PIL import Image
+
         c1 = np.array(color1, dtype=np.float32)
         c2 = np.array(color2, dtype=np.float32)
         rng = np.random.RandomState(hash(out_path) % (2**32))
@@ -193,14 +213,16 @@ def _generate_procedural_fallback(color1: list, color2: list, w: int, h: int,
             result = np.zeros((h_res, w_res), dtype=np.float32)
             amp = 0.5
             for o in range(octaves):
-                freq = 2 ** o
+                freq = 2**o
                 scale_h = max(1, h_res // freq)
                 scale_w = max(1, w_res // freq)
                 noise_small = rng.rand(scale_h, scale_w).astype(np.float32)
                 # Resize nearest neighbour rápido
-                noise_up = np.repeat(np.repeat(noise_small,
-                    (h_res + scale_h - 1) // scale_h, axis=0),
-                    (w_res + scale_w - 1) // scale_w, axis=1)[:h_res, :w_res]
+                noise_up = np.repeat(
+                    np.repeat(noise_small, (h_res + scale_h - 1) // scale_h, axis=0),
+                    (w_res + scale_w - 1) // scale_w,
+                    axis=1,
+                )[:h_res, :w_res]
                 result += noise_up * amp
                 amp *= 0.5
             return result / result.max()
@@ -214,7 +236,9 @@ def _generate_procedural_fallback(color1: list, color2: list, w: int, h: int,
 
         # --- Segundo manto de nebulosa desplazado para profundidad ---
         nebula2 = fbm_noise(h, w, octaves=4)
-        c_accent = np.clip(c1 * 0.3 + np.array([0.05, 0.02, 0.15], dtype=np.float32), 0, 1)
+        c_accent = np.clip(
+            c1 * 0.3 + np.array([0.05, 0.02, 0.15], dtype=np.float32), 0, 1
+        )
         for i in range(3):
             img[:, :, i] += c_accent[i] * nebula2 * 0.4
 
@@ -236,19 +260,25 @@ def _generate_procedural_fallback(color1: list, color2: list, w: int, h: int,
 
         img = np.clip(img * 255, 0, 255).astype(np.uint8)
         Image.fromarray(img).save(out_path, quality=95)
-        log.info(f"[AISceneGen] Fallback procedural (nebulosa cosmica) guardado: {os.path.basename(out_path)}")
+        log.info(
+            f"[AISceneGen] Fallback procedural (nebulosa cosmica) guardado: {os.path.basename(out_path)}"
+        )
         return True
     except Exception as e:
         log.error(f"[AISceneGen] Fallback procedural error: {e}")
         return False
 
 
-
 # ── API Pública ──────────────────────────────────────────────────────────────
 
-def generate_scene_images(timeline: list, w: int = 1280, h: int = 720,
-                           colorsA: np.ndarray = None,
-                           force_pollinations: bool = False) -> list:
+
+def generate_scene_images(
+    timeline: list,
+    w: int = 1280,
+    h: int = 720,
+    colorsA: Optional[np.ndarray] = None,
+    force_pollinations: bool = False,
+) -> list:
     """
     Genera una imagen de fondo cinematográfica por cada escena del timeline.
 
@@ -314,10 +344,14 @@ def generate_scene_images(timeline: list, w: int = 1280, h: int = 720,
             scene_images.append(out_path)
             last_valid_path = out_path
         elif last_valid_path:
-            log.warning(f"[AISceneGen] Escena {i+1} fallida, reutilizando imagen anterior")
+            log.warning(
+                f"[AISceneGen] Escena {i+1} fallida, reutilizando imagen anterior"
+            )
             scene_images.append(last_valid_path)
         else:
             scene_images.append(None)
 
-    log.info(f"[AISceneGen] {sum(1 for p in scene_images if p)} / {len(timeline)} imágenes generadas")
+    log.info(
+        f"[AISceneGen] {sum(1 for p in scene_images if p)} / {len(timeline)} imágenes generadas"
+    )
     return scene_images

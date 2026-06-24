@@ -5,9 +5,9 @@ import threading
 from datetime import datetime, timezone
 from collections import deque
 
-BASE_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MAX_BYTES = 5 * 1024 * 1024   # 5 MB
-MAX_LINES = 10_000             # 10k líneas — umbral de rotación por volumen
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MAX_BYTES = 5 * 1024 * 1024  # 5 MB
+MAX_LINES = 10_000  # 10k líneas — umbral de rotación por volumen
 
 
 class AuditLogger:
@@ -62,29 +62,40 @@ class AuditLogger:
                 os.rename(self.log_path, bak)
                 self._line_count = 0
                 # Mantener máximo 3 backups — eliminar los más viejos
-                base_dir  = os.path.dirname(self.log_path)
+                base_dir = os.path.dirname(self.log_path)
                 base_name = os.path.basename(self.log_path).replace(".jsonl", "")
-                baks = sorted([
-                    f for f in os.listdir(base_dir)
-                    if f.startswith(base_name + ".bak.")
-                ])
+                baks = sorted(
+                    [
+                        f
+                        for f in os.listdir(base_dir)
+                        if f.startswith(base_name + ".bak.")
+                    ]
+                )
                 while len(baks) > 3:
                     os.remove(os.path.join(base_dir, baks.pop(0)))
         except Exception:
             pass
 
-    def record(self, session_id: str, provider: str, model: str,
-               input_tokens: int, output_tokens: int, cost_usd: float, latency_ms: float):
+    def record(
+        self,
+        session_id: str,
+        provider: str,
+        model: str,
+        input_tokens: int,
+        output_tokens: int,
+        cost_usd: float,
+        latency_ms: float,
+    ):
         entry = {
-            "timestamp":     datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "session_id":    session_id,
-            "provider":      provider,
-            "model":         model,
-            "input_tokens":  input_tokens,
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "session_id": session_id,
+            "provider": provider,
+            "model": model,
+            "input_tokens": input_tokens,
             "output_tokens": output_tokens,
-            "total_tokens":  input_tokens + output_tokens,
-            "latency_ms":    latency_ms,
-            "cost_usd":      cost_usd,
+            "total_tokens": input_tokens + output_tokens,
+            "latency_ms": latency_ms,
+            "cost_usd": cost_usd,
         }
 
         with self._lock:
@@ -113,6 +124,7 @@ class AuditLogger:
                 return [json.loads(line) for line in tail if line.strip()]
             except Exception:
                 return []
+
 
 # Singleton instance
 audit_logger = AuditLogger()

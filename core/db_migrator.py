@@ -23,17 +23,17 @@ import threading
 from typing import Dict, List, Tuple
 from core.logger import log
 
-BASE_DIR       = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MIGRATIONS_DIR = os.path.join(BASE_DIR, "_migrations")
-_lock          = threading.RLock()
+_lock = threading.RLock()
 
 # ── Registro de bases de datos gestionadas ────────────────────────────────────
 # alias → ruta relativa al BASE_DIR
 # NOTA: _cache.sqlite es ephémera y gestionada por WAL checkpoint — no incluir aquí.
 MANAGED_DBS: Dict[str, str] = {
-    "gravity_brain":  "gravity_brain.db",
-    "video_queue":    "_video_queue.sqlite",
-    "image_queue":    "_image_queue.sqlite",
+    "gravity_brain": "gravity_brain.db",
+    "video_queue": "_video_queue.sqlite",
+    "image_queue": "_image_queue.sqlite",
 }
 
 
@@ -73,7 +73,9 @@ def _set_version(conn: sqlite3.Connection, version: int, migration_name: str) ->
     conn.commit()
 
 
-def _load_pending_migrations(alias: str, current_version: int) -> List[Tuple[int, str, str]]:
+def _load_pending_migrations(
+    alias: str, current_version: int
+) -> List[Tuple[int, str, str]]:
     """
     Retorna lista de (version_num, filename, sql_content) para scripts
     con número > current_version, ordenados ascendentemente.
@@ -88,7 +90,9 @@ def _load_pending_migrations(alias: str, current_version: int) -> List[Tuple[int
         try:
             num = int(filename.split("_")[0])
         except (ValueError, IndexError):
-            log.warning(f"[DBMigrator] Archivo de migración con nombre inválido: {filename}")
+            log.warning(
+                f"[DBMigrator] Archivo de migración con nombre inválido: {filename}"
+            )
             continue
         if num > current_version:
             with open(path, "r", encoding="utf-8") as f:
@@ -120,7 +124,9 @@ def migrate_db(alias: str) -> int:
 
             applied = 0
             for version_num, filename, sql in pending:
-                log.info(f"[DBMigrator] Aplicando migración [{alias}] v{version_num}: {filename}")
+                log.info(
+                    f"[DBMigrator] Aplicando migración [{alias}] v{version_num}: {filename}"
+                )
                 try:
                     # Ejecutar cada sentencia SQL del script
                     for statement in sql.split(";"):
@@ -133,7 +139,9 @@ def migrate_db(alias: str) -> int:
                     log.info(f"[DBMigrator] [{alias}] v{version_num} aplicada OK")
                 except Exception as e:
                     conn.rollback()
-                    log.error(f"[DBMigrator] FALLO en [{alias}] v{version_num} ({filename}): {e}")
+                    log.error(
+                        f"[DBMigrator] FALLO en [{alias}] v{version_num} ({filename}): {e}"
+                    )
                     # Detener aquí — no aplicar migraciones posteriores si una falla
                     break
 

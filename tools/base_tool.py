@@ -2,6 +2,7 @@
 Gravity AI — Tool Base Classes V16.0 PRO
 All tools implement Tool and return ToolResult.
 """
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Dict, Any
@@ -12,12 +13,13 @@ class ToolResult:
     """
     Representa el resultado estandarizado de la ejecución de cualquier herramienta.
     """
-    success:   bool
-    stdout:    str   = ""
-    stderr:    str   = ""
-    exit_code: int   = 0
-    data:      Dict[str, Any] = field(default_factory=dict)
-    language:  str   = ""
+
+    success: bool
+    stdout: str = ""
+    stderr: str = ""
+    exit_code: int = 0
+    data: Dict[str, Any] = field(default_factory=dict)
+    language: str = ""
 
     def __str__(self) -> str:
         if self.success:
@@ -29,8 +31,9 @@ class Tool(ABC):
     """
     Clase base abstracta para todas las herramientas del ecosistema Gravity AI.
     """
-    name:                  str  = ""
-    description:           str  = ""
+
+    name: str = ""
+    description: str = ""
     requires_confirmation: bool = False
 
     @abstractmethod
@@ -38,4 +41,3 @@ class Tool(ABC):
         """
         Ejecuta la herramienta con los argumentos provistos y devuelve un ToolResult.
         """
-

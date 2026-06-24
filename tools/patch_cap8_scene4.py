@@ -1,13 +1,18 @@
 """
 Parche para generar e insertar la Escena 4 del Cap 8 que falló por timeout de red.
 """
-import sys, os, logging
+
+import sys
+import os
+import logging
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 from core import provider_manager
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("PatchScene4")
 
 BOOK_DIR = os.path.join(BASE_DIR, "ficcion_generada", "Cenizas_del_Leviatan_Libro_1")
@@ -46,6 +51,7 @@ Uno a uno, sus sistemas secundarios se cierran. Cada cierre tiene un efecto fís
 Cae de rodillas, su simetría perfecta rota por primera vez. No está muerta — está en modo de emergencia, como un dios dormido.
 Un intercambio final de palabras entre Altair-7 y Kaelen: la IA admite que la variable humana era un error de cálculo."""
 
+
 def main():
     if not os.path.exists(CAP8_PATH):
         logger.error("No existe el cap_8.md")
@@ -62,9 +68,11 @@ def main():
 
     # Escenas 1, 2, 3 están bien. La 4 es la actual 4 (que en realidad es la 5 "La Fuga" porque la 4 se saltó).
     # Necesito generar la verdadera escena 4 y meterla entre la 3 y la actual 4 (Fuga).
-    
+
     # Contexto previo: las escenas 1 a 3
-    contexto_previo = "\n\n---\n\n".join(scenes[:4])  # scenes[0] tiene el título + escena 1
+    contexto_previo = "\n\n---\n\n".join(
+        scenes[:4]
+    )  # scenes[0] tiene el título + escena 1
 
     prompt = f"""Eres un novelista de ciencia ficción de primer nivel. Escribe SOLO la siguiente escena del Capítulo 8 "Cenizas del Leviatán" (capítulo final del Libro 1).
 
@@ -91,26 +99,28 @@ Escribe la escena completa ahora (mínimo 600 palabras, en español):"""
         return
 
     logger.info(f"Escena 4 generada: {len(response)} chars")
-    
+
     # Insertar en la lista
     # scenes[0] = Título + Escena 1
     # scenes[1] = Escena 2
     # scenes[2] = Escena 3
     # scenes[3] = (Originalmente Escena 5: La Fuga, ahora que se saltó la 4)
     # scenes[4] = (Originalmente Escena 6)
-    
+
     new_scenes = scenes[:3] + [response.strip()] + scenes[3:]
     nuevo_capitulo = "\n\n---\n\n".join(new_scenes)
 
     with open(CAP8_PATH, "w", encoding="utf-8") as f:
         f.write(nuevo_capitulo)
-    
+
     logger.info("Escena 4 parcheada e insertada correctamente.")
 
     # Reconstruir master md y HTML
     book_md = os.path.join(BOOK_DIR, "Cenizas_del_Leviatan_Libro_1.md")
     with open(book_md, "w", encoding="utf-8") as f:
-        f.write("# Cenizas del Leviatán — Libro 1\n\n*Novela generada por Gravity Fiction Engine*\n\n---\n\n")
+        f.write(
+            "# Cenizas del Leviatán — Libro 1\n\n*Novela generada por Gravity Fiction Engine*\n\n---\n\n"
+        )
         for i in range(1, 9):
             cf = os.path.join(BOOK_DIR, f"cap_{i}.md")
             if os.path.exists(cf):
@@ -123,12 +133,14 @@ Escribe la escena completa ahora (mínimo 600 palabras, en español):"""
 
     try:
         from tools.book_refiner import _render_html
+
         md = open(book_md, "r", encoding="utf-8").read()
         html_path = os.path.join(BOOK_DIR, "Cenizas_del_Leviatan_Libro_1.html")
         _render_html(BOOK_DIR, md, html_path, "Cenizas del Leviatán — Libro 1")
-        logger.info(f"HTML renderizado tras parcheo.")
+        logger.info("HTML renderizado tras parcheo.")
     except Exception as e:
         logger.warning(f"Error HTML: {e}")
+
 
 if __name__ == "__main__":
     main()
