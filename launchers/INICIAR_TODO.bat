@@ -1,13 +1,13 @@
 @echo off
 chcp 65001 >nul
-title Gravity AI Bridge V16.0 PRO -- Arranque Completo
+title Gravity AI Bridge V16.3 PRO -- Arranque Completo
 setlocal enabledelayedexpansion
 color 0B
 cls
 
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|          GRAVITY AI BRIDGE V16.0 PRO [Ecosistema Total]                 ^|
+echo  ^|          GRAVITY AI BRIDGE V16.3 PRO [Ecosistema Total]                 ^|
 echo  ^|          Motor de Animacion (MAI) L0/L1/L2 habilitado                   ^|
 echo  +--------------------------------------------------------------------------+
 echo.
@@ -99,7 +99,7 @@ echo  [OK] Agente Periodistico iniciado en background.
 :launch_done
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|          GRAVITY AI BRIDGE V16.0 PRO — Ecosistema Completo               ^|
+echo  ^|          GRAVITY AI BRIDGE V16.3 PRO — Ecosistema Completo               ^|
 echo  +--------------------------------------------------------------------------+
 echo  ^|   Dashboard Web:    http://localhost:7860  (Chat, V2V, Video Studio)    ^|
 echo  ^|   Fooocus Motor:    http://127.0.0.1:7861  (API generacion imagenes)    ^|
@@ -128,5 +128,5 @@ if "!_BRIDGE_OK!"=="1" (
     echo  [!] Dashboard no se abrira porque el servicio GravityAI esta detenido.
 )
 echo.
-echo  [LISTO] Ecosistema Gravity AI V16.0 PRO iniciado. Esta ventana puede cerrarse.
+echo  [LISTO] Ecosistema Gravity AI V16.3 PRO iniciado. Esta ventana puede cerrarse.
 pause

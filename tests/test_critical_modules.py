@@ -611,7 +611,7 @@ class TestMixinPost:
         from api.routes.mixin_post import PostRoutesMixin
         handler = self._make_handler(path="/v1/security/scan", body={})
 
-        with patch("api.routes.mixin_post.security_monitor") as mock_sm:
+        with patch("api.routes.mixin_post_system.security_monitor") as mock_sm:
             mock_sm.force_scan.return_value = {"status": "ok", "last_scan": "2026-04-20T00:00:00Z"}
             PostRoutesMixin.do_POST(handler)
 
@@ -655,9 +655,9 @@ class TestMixinPost:
             headers={"Authorization": ""}
         )
 
-        with patch("api.routes.mixin_post.check_access", return_value=(True, "ok")), \
-             patch("api.routes.mixin_post.provider_manager") as mock_pm, \
-             patch("api.routes.mixin_post.record_error"):
+        with patch("api.routes.mixin_post_chat.check_access", return_value=(True, "ok")), \
+             patch("api.routes.mixin_post_chat.provider_manager") as mock_pm, \
+             patch("api.routes.mixin_post_chat.record_error"):
             mock_pm.get_best.return_value = (None, None)
             mock_pm.scan_all.return_value = []
             PostRoutesMixin.do_POST(handler)
@@ -672,9 +672,9 @@ class TestMixinPost:
             body={"messages": [{"role": "user", "content": "hola"}]},
         )
 
-        with patch("api.routes.mixin_post.check_access",
+        with patch("api.routes.mixin_post_chat.check_access",
                    return_value=(False, "rate limit exceeded")), \
-             patch("api.routes.mixin_post.record_error"):
+             patch("api.routes.mixin_post_chat.record_error"):
             PostRoutesMixin.do_POST(handler)
 
         handler.send_response.assert_called_with(429)

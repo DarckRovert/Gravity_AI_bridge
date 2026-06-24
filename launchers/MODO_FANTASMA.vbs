@@ -18,4 +18,4 @@ ts.Close
 ' Captura de STDOUT/STDERR en el nivel del bridge (append, no sobrescribir)
 WshShell.Run "cmd /c ""python bridge_server.py >> bridge.log 2>&1""", 0, False
 
-MsgBox "Gravity Bridge Server V16.0 PRO iniciado en modo fantasma." & vbCrLf & "Logs en: " & strLog, 64, "Gravity AI"
+MsgBox "Gravity Bridge Server V16.3 PRO iniciado en modo fantasma." & vbCrLf & "Logs en: " & strLog, 64, "Gravity AI"

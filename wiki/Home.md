@@ -1,4 +1,4 @@
-# 📖 Gravity AI Bridge V16.2 PRO — Wiki Corporativa
+# 📖 Gravity AI Bridge V16.3 PRO — Wiki Corporativa
 
 Bienvenido a la Wiki Oficial del ecosistema **Gravity AI Bridge Omniscient-Tier**.
 
@@ -12,4 +12,4 @@ Bienvenido a la Wiki Oficial del ecosistema **Gravity AI Bridge Omniscient-Tier*
 ## 🌌 Filosofía Zero-Cloud
 Gravity AI Bridge opera primariamente bajo la modalidad **Local-First**, delegando cargas masivas a APIs externas únicamente por mandato expreso del usuario o en arquitecturas de fallback (ej. `Pollinations` para Video Studio o `Firecrawl` para Scraping extremo).
 
-*La versión V16.2 introduce el Router Autónomo Inteligente con aceleración Vulkan directa en APUs/GPUs compartidas, llevando la concurrencia a un estado de Zero-Defect.*
+*La versión V16.3 introduce el **Memory Guard** para gestión inteligente de RAM/VRAM en tiempo real (evitando OOMs mediante monitoreo con `psutil` y desalojos progresivos LRU) junto con un sistema de enrutamiento multicapa especializado para tareas de Visión y Embeddings locales.*

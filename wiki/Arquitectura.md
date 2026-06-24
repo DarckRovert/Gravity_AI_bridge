@@ -179,8 +179,8 @@ bridge_server.py (Entry Point)
        ├─► core/hitl_manager.py     ◄── Cola de aprobación humana (120s timeout)
        │       └── Tools interceptados: code_runner, shell_exec, file_write...
        │
-       ├─► core/engine_watchdog.py  ◄── Monitor de backends + Turbo KV-Cache
-       │       └── OLLAMA_KV_CACHE_TYPE=q4_0 + OLLAMA_FLASH_ATTENTION=1
+       ├─► core/engine_watchdog.py  ◄── Monitor de backends, Turbo KV-Cache & Memory Guard
+       │       └── OLLAMA_KV-Cache, watchdog dinámico RAM (psutil), y desalojo LRU
        │
        ├─► core/security_monitor.py ◄── Whitelist dinámica + Anti-DDoS + GeoIP
        │

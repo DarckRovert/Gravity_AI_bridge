@@ -6,7 +6,7 @@ color 0D
 
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|          GRAVITY AI BRIDGE V16.0 PRO                                     ^|
+echo  ^|          GRAVITY AI BRIDGE V16.3 PRO                                     ^|
 echo  ^|          Motor L2 - ComfyUI Optimizado para AMD Radeon (DirectML)        ^|
 echo  +--------------------------------------------------------------------------+
 echo.
