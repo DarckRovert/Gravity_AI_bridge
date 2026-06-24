@@ -1,163 +1,110 @@
 import React, { useState } from 'react';
-import { Database, Search, Plus, Trash2, Edit2, Share2, BrainCircuit } from 'lucide-react';
-import { showToast } from './Toast';
+import { BrainCircuit, Database, Network, Search, Archive, GitMerge, FileText, Zap } from 'lucide-react';
 
-interface MemoryNode {
-  id: string;
-  entity: string;
-  relation: string;
-  target: string;
-  source: string;
-  confidence: number;
-}
-
-const mockMemories: MemoryNode[] = [
-  { id: 'mem-1', entity: 'Usuario', relation: 'PREFIERE_MODELO', target: 'Llama 3 8B', source: 'Conversacion_V16_3', confidence: 0.98 },
-  { id: 'mem-2', entity: 'GravityAI', relation: 'CORRE_EN_PUERTO', target: '7860', source: 'System_Init', confidence: 1.00 },
-  { id: 'mem-3', entity: 'Fooocus CPU', relation: 'TIENE_FALLBACK', target: 'Pollinations.ai', source: 'Fallback_Engine', confidence: 0.95 },
-  { id: 'mem-4', entity: 'Memory Guard', relation: 'MONITOREA_RAM', target: 'psutil', source: 'Core_Guard', confidence: 0.99 },
-  { id: 'mem-5', entity: 'Agente Periodístico', relation: 'REDACTA_CON', target: 'JournalistPanel', source: 'News_Daemon', confidence: 0.92 }
+const DUMMY_MEMORIES = [
+  { id: 1, type: 'Fact', content: 'El usuario prefiere la paleta de colores oscura.', weight: 0.95, source: 'Chat Auditor', time: 'hace 2 min' },
+  { id: 2, type: 'Entity', content: 'Proyecto "Gravity V16"', weight: 1.0, source: 'System', time: 'hace 1 día' },
+  { id: 3, type: 'Relation', content: 'Gravity V16 -> depende_de -> Python 3.10+', weight: 0.88, source: 'RAG Index', time: 'hace 5 hrs' },
+  { id: 4, type: 'Skill', content: 'El usuario sabe programar en React y Python.', weight: 0.92, source: 'Infiltrator', time: 'hace 3 días' },
 ];
 
 export const MemoryStudio: React.FC = () => {
-  const [memories, setMemories] = useState<MemoryNode[]>(mockMemories);
   const [searchTerm, setSearchTerm] = useState('');
-  const [newEntity, setNewEntity] = useState('');
-  const [newRelation, setNewRelation] = useState('');
-  const [newTarget, setNewTarget] = useState('');
-
-  const handleAddMemory = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newEntity || !newRelation || !newTarget) {
-      showToast('error', 'Por favor, rellena todos los campos de la relación.');
-      return;
-    }
-    const newMem: MemoryNode = {
-      id: `mem-${Date.now()}`,
-      entity: newEntity,
-      relation: newRelation.toUpperCase(),
-      target: newTarget,
-      source: 'Manual_Insertion',
-      confidence: 1.00
-    };
-    setMemories([newMem, ...memories]);
-    setNewEntity('');
-    setNewRelation('');
-    setNewTarget('');
-    showToast('success', 'Nueva relación consolidada en el grafo de memoria.');
-  };
-
-  const handleDelete = (id: string) => {
-    if (window.confirm('¿Deseas purgar esta relación de la memoria de largo plazo?')) {
-      setMemories(memories.filter(m => m.id !== id));
-      showToast('success', 'Relación de memoria purgada.');
-    }
-  };
-
-  const filteredMemories = memories.filter(m => 
-    m.entity.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.relation.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.target.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [activeTab, setActiveTab] = useState<'graph' | 'list'>('list');
 
   return (
-    <div className="h-full flex flex-col p-6 animate-fade-in bg-base-900 text-text-muted overflow-hidden">
-      <div className="flex items-center justify-between mb-6">
+    <div className="flex flex-col h-full overflow-hidden p-6 space-y-6">
+      <div className="flex justify-between items-center shrink-0">
         <div>
-          <h2 className="text-2xl font-bold text-text-base flex items-center gap-2">
-            <BrainCircuit className="w-6 h-6 text-accent-400" />
+          <h1 className="text-3xl font-black tracking-tight text-white flex items-center gap-3">
+            <BrainCircuit className="text-accent-primary" size={32} />
             Memory Studio
-          </h2>
-          <p className="text-sm opacity-70">Visualizador y editor del Knowledge Graph de largo plazo</p>
+          </h1>
+          <p className="text-text-muted mt-1">Explora, edita y visualiza el Knowledge Graph y la memoria a largo plazo de los agentes.</p>
         </div>
-        <div className="relative w-64">
-          <Search className="w-5 h-5 absolute left-3 top-2.5 opacity-50" />
+        <div className="flex gap-2">
+          <button className="flex items-center gap-2 px-4 py-2 bg-card border border-border-subtle rounded-xl hover:border-accent-primary transition-colors text-sm font-medium">
+            <Database size={16} /> Respaldar Grafo
+          </button>
+        </div>
+      </div>
+
+      <div className="flex gap-4 shrink-0">
+        <div className="flex bg-surface p-1 rounded-xl">
+          <button 
+            onClick={() => setActiveTab('list')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-colors ${activeTab === 'list' ? 'bg-card text-accent-primary shadow-sm' : 'text-text-muted hover:text-white'}`}
+          >
+            <Archive size={16} /> Nodos de Memoria
+          </button>
+          <button 
+            onClick={() => setActiveTab('graph')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-colors ${activeTab === 'graph' ? 'bg-card text-accent-primary shadow-sm' : 'text-text-muted hover:text-white'}`}
+          >
+            <Network size={16} /> Grafo Visual
+          </button>
+        </div>
+
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
           <input 
             type="text" 
-            placeholder="Buscar relaciones..." 
+            placeholder="Buscar en los recuerdos y entidades..." 
+            className="w-full bg-card border border-border-subtle rounded-xl pl-10 pr-4 py-2 text-white focus:outline-none focus:border-accent-primary transition-colors"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-base-800 border border-base-700 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-accent-500 text-text-base"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
-        {/* Formulario de Inyección de Memoria */}
-        <div className="lg:col-span-1 bg-base-800 border border-base-700 rounded-xl p-5 h-fit">
-          <h3 className="text-lg font-semibold text-text-base mb-4 flex items-center gap-2">
-            <Plus className="w-5 h-5 text-accent-400" />
-            Consolidar Nueva Relación
-          </h3>
-          <form onSubmit={handleAddMemory} className="space-y-4">
-            <div>
-              <label className="text-xs uppercase tracking-wider block mb-1">Entidad Origen</label>
-              <input 
-                type="text" 
-                placeholder="Ej. Usuario, Gravity, ComfyUI" 
-                value={newEntity}
-                onChange={(e) => setNewEntity(e.target.value)}
-                className="w-full bg-base-900 border border-base-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-accent-500 text-text-base"
-              />
-            </div>
-            <div>
-              <label className="text-xs uppercase tracking-wider block mb-1">Relación (Predicado)</label>
-              <input 
-                type="text" 
-                placeholder="Ej. PREFIERE, CONTIENE, USA" 
-                value={newRelation}
-                onChange={(e) => setNewRelation(e.target.value)}
-                className="w-full bg-base-900 border border-base-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-accent-500 text-text-base"
-              />
-            </div>
-            <div>
-              <label className="text-xs uppercase tracking-wider block mb-1">Entidad Destino</label>
-              <input 
-                type="text" 
-                placeholder="Ej. AMD GPU, Puerto 8188" 
-                value={newTarget}
-                onChange={(e) => setNewTarget(e.target.value)}
-                className="w-full bg-base-900 border border-base-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-accent-500 text-text-base"
-              />
-            </div>
-            <button type="submit" className="w-full py-2.5 rounded-lg bg-accent-600 hover:bg-accent-500 text-white font-medium transition-colors flex items-center justify-center gap-2">
-              <Database className="w-4 h-4" />
-              Consolidar en Grafo
-            </button>
-          </form>
-        </div>
-
-        {/* Listado de Relaciones */}
-        <div className="lg:col-span-2 bg-base-800 border border-base-700 rounded-xl p-5 flex flex-col min-h-0">
-          <h3 className="text-lg font-semibold text-text-base mb-4 flex items-center justify-between">
-            <span>Explorador de Tripletas RAG</span>
-            <span className="text-xs opacity-50">{filteredMemories.length} registradas</span>
-          </h3>
-
-          <div className="flex-1 overflow-y-auto pr-1 space-y-3">
-            {filteredMemories.map(mem => (
-              <div key={mem.id} className="bg-base-900 border border-base-700 rounded-lg p-4 flex items-center justify-between hover:border-accent-500/30 transition-all">
-                <div className="flex flex-col gap-1.5 flex-1 pr-4">
-                  <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className="font-semibold text-text-base bg-base-800 px-2 py-0.5 rounded border border-base-700">{mem.entity}</span>
-                    <span className="text-xs text-accent-400 font-mono font-bold">---({mem.relation})---&gt;</span>
-                    <span className="font-semibold text-text-base bg-base-800 px-2 py-0.5 rounded border border-base-700">{mem.target}</span>
+      <div className="flex-1 min-h-0 relative">
+        {activeTab === 'list' ? (
+          <div className="h-full overflow-y-auto space-y-4 pr-2">
+            {DUMMY_MEMORIES.map(memory => (
+              <div key={memory.id} className="glass-panel p-5 rounded-2xl border-l-4 border-l-accent-primary hover:bg-surface/50 transition-colors">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-3">
+                    {memory.type === 'Fact' && <FileText className="text-status-info" size={18} />}
+                    {memory.type === 'Entity' && <Box className="text-accent-secondary" size={18} />}
+                    {memory.type === 'Relation' && <GitMerge className="text-status-warning" size={18} />}
+                    {memory.type === 'Skill' && <Zap className="text-status-success" size={18} />}
+                    <span className="font-bold text-white text-lg">{memory.content}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs opacity-60">
-                    <span>Origen: <span className="font-mono">{mem.source}</span></span>
-                    <span>Confianza: <span className="text-green-400 font-bold">{Math.round(mem.confidence * 100)}%</span></span>
-                  </div>
+                  <span className="text-xs text-text-muted">{memory.time}</span>
                 </div>
-
-                <div className="flex gap-2">
-                  <button onClick={() => handleDelete(mem.id)} className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors" title="Borrar de la memoria">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                <div className="flex items-center gap-4 text-sm mt-4">
+                  <div className="flex items-center gap-1 text-text-muted">
+                    <Database size={14} /> <span className="font-mono text-xs">{memory.source}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-text-muted">Fuerza:</span>
+                    <div className="w-24 h-2 bg-surface rounded-full overflow-hidden">
+                      <div className="h-full bg-accent-primary" style={{ width: `${memory.weight * 100}%` }}></div>
+                    </div>
+                    <span className="text-xs font-mono text-accent-primary">{(memory.weight * 100).toFixed(0)}%</span>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        ) : (
+          <div className="h-full w-full glass-panel rounded-2xl flex items-center justify-center flex-col relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-accent-primary/5 via-bg to-bg pointer-events-none"></div>
+            <Network size={64} className="text-accent-primary/40 mb-4 animate-pulse" />
+            <h3 className="text-xl font-bold text-white z-10">Knowledge Graph Viewer</h3>
+            <p className="text-text-muted z-10">Conectando 1,420 nodos y 3,890 relaciones...</p>
+            <div className="mt-8 flex gap-4 z-10">
+              <div className="px-4 py-2 bg-surface rounded-lg border border-border-subtle flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-status-info"></div>
+                <span className="text-sm font-medium">Hechos (Facts)</span>
+              </div>
+              <div className="px-4 py-2 bg-surface rounded-lg border border-border-subtle flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-accent-secondary"></div>
+                <span className="text-sm font-medium">Entidades (Entities)</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

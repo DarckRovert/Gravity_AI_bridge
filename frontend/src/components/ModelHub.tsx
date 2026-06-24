@@ -1,120 +1,100 @@
 import React, { useState } from 'react';
-import { Download, Search, Trash2, Cpu, HardDrive, ShieldCheck, Box, RefreshCw } from 'lucide-react';
-import { showToast } from './Toast';
+import { Box, Search, Download, Star, Zap, Cpu, Server, CheckCircle2 } from 'lucide-react';
 
-interface ModelInfo {
-  id: string;
-  name: string;
-  size: string;
-  type: string;
-  status: 'installed' | 'not_installed' | 'downloading';
-  progress?: number;
-}
-
-const mockModels: ModelInfo[] = [
-  { id: 'llama-3-8b', name: 'Llama 3 8B Instruct', size: '4.7 GB', type: 'LLM', status: 'installed' },
-  { id: 'mistral-7b', name: 'Mistral 7B v0.3', size: '4.1 GB', type: 'LLM', status: 'not_installed' },
-  { id: 'nomic-embed-text', name: 'Nomic Embed Text v1.5', size: '250 MB', type: 'Embedding', status: 'installed' },
-  { id: 'llava-1.5', name: 'LLaVA 1.5 Vision', size: '4.5 GB', type: 'Vision', status: 'not_installed' },
-  { id: 'deepseek-coder', name: 'DeepSeek Coder 6.7B', size: '3.9 GB', type: 'Coder', status: 'not_installed' }
+const DUMMY_MODELS = [
+  { id: 'llama-3-8b', name: 'Llama 3 (8B)', provider: 'Meta', size: '4.7 GB', type: 'LLM', downloads: '1.2M', status: 'installed' },
+  { id: 'mistral-7b', name: 'Mistral 7B Instruct', provider: 'Mistral AI', size: '4.1 GB', type: 'LLM', downloads: '890K', status: 'available' },
+  { id: 'phi-3-mini', name: 'Phi-3 Mini', provider: 'Microsoft', size: '2.3 GB', type: 'LLM', downloads: '500K', status: 'available' },
+  { id: 'stable-diffusion-xl', name: 'SDXL 1.0', provider: 'Stability AI', size: '6.5 GB', type: 'Vision', downloads: '2.1M', status: 'downloading' },
+  { id: 'nomic-embed-text', name: 'Nomic Embed', provider: 'Nomic', size: '1.2 GB', type: 'Embedding', downloads: '340K', status: 'installed' },
 ];
 
 export const ModelHub: React.FC = () => {
-  const [models, setModels] = useState<ModelInfo[]>(mockModels);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState('All');
 
-  const handleDownload = (id: string) => {
-    setModels(models.map(m => m.id === id ? { ...m, status: 'downloading', progress: 0 } : m));
-    showToast('info', `Iniciando descarga de ${id}...`);
-    
-    // Simulate download
-    let prog = 0;
-    const interval = setInterval(() => {
-      prog += 10;
-      setModels(prev => prev.map(m => m.id === id ? { ...m, progress: prog } : m));
-      if (prog >= 100) {
-        clearInterval(interval);
-        setModels(prev => prev.map(m => m.id === id ? { ...m, status: 'installed', progress: undefined } : m));
-        showToast('success', `Modelo ${id} instalado con éxito.`);
-      }
-    }, 1000);
-  };
-
-  const handleDelete = (id: string) => {
-    if (window.confirm(`¿Estás seguro de eliminar el modelo ${id} del almacenamiento local?`)) {
-      setModels(models.map(m => m.id === id ? { ...m, status: 'not_installed' } : m));
-      showToast('success', `Modelo ${id} eliminado.`);
-    }
-  };
-
-  const filteredModels = models.filter(m => m.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredModels = DUMMY_MODELS.filter(m => 
+    (filter === 'All' || m.type === filter) &&
+    m.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="h-full flex flex-col p-6 animate-fade-in bg-base-900 text-text-muted overflow-hidden">
-      <div className="flex items-center justify-between mb-6">
+    <div className="flex flex-col h-full overflow-y-auto p-6 space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-text-base flex items-center gap-2">
-            <Box className="w-6 h-6 text-primary-400" />
-            Local Model Hub
-          </h2>
-          <p className="text-sm opacity-70">App Store interna para la descarga de IAs locales</p>
+          <h1 className="text-3xl font-black tracking-tight text-white flex items-center gap-3">
+            <Box className="text-accent-primary" size={32} />
+            Model Hub
+          </h1>
+          <p className="text-text-muted mt-1">Descubre, descarga y gestiona modelos de Inteligencia Artificial locales.</p>
         </div>
-        <div className="relative w-64">
-          <Search className="w-5 h-5 absolute left-3 top-2.5 opacity-50" />
-          <input 
-            type="text" 
-            placeholder="Buscar modelos..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-base-800 border border-base-700 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-primary-500 text-text-base"
-          />
+        <div className="flex gap-2">
+          <button className="flex items-center gap-2 px-4 py-2 bg-card border border-border-subtle rounded-xl hover:border-accent-primary transition-colors text-sm font-medium">
+            <Server size={16} /> Configurar Almacenamiento
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 overflow-y-auto pr-2 pb-20">
+      <div className="flex gap-4 items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
+          <input 
+            type="text" 
+            placeholder="Buscar modelos por nombre, proveedor o tipo..." 
+            className="w-full bg-card border border-border-subtle rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:border-accent-primary transition-colors"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <select 
+          className="bg-card border border-border-subtle rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent-primary"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <option value="All">Todos los Tipos</option>
+          <option value="LLM">LLM (Texto)</option>
+          <option value="Vision">Visión / Imagen</option>
+          <option value="Embedding">Embeddings</option>
+        </select>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredModels.map(model => (
-          <div key={model.id} className="bg-base-800 border border-base-700 rounded-xl p-5 hover:border-primary-500/50 transition-all duration-300">
+          <div key={model.id} className="glass-panel p-5 rounded-2xl flex flex-col hover:border-accent-primary/50 transition-colors group">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-text-base">{model.name}</h3>
-                <span className="text-xs bg-base-900 px-2 py-1 rounded-md mt-1 inline-block text-primary-400 font-mono">
-                  {model.type}
-                </span>
+                <h3 className="text-lg font-bold text-white group-hover:text-accent-primary transition-colors">{model.name}</h3>
+                <p className="text-sm text-text-muted">{model.provider}</p>
               </div>
-              {model.status === 'installed' ? (
-                <span className="flex items-center gap-1 text-green-400 text-xs font-bold bg-green-400/10 px-2 py-1 rounded">
-                  <ShieldCheck className="w-3 h-3" /> LISTO
-                </span>
-              ) : model.status === 'downloading' ? (
-                <span className="flex items-center gap-1 text-accent-400 text-xs font-bold bg-accent-400/10 px-2 py-1 rounded animate-pulse">
-                  <RefreshCw className="w-3 h-3 animate-spin" /> {model.progress}%
-                </span>
-              ) : (
-                <span className="text-xs text-base-500 font-bold bg-base-900 px-2 py-1 rounded border border-base-700">
-                  NUBE
-                </span>
+              <div className="px-2 py-1 bg-surface rounded-md text-xs font-semibold text-text-muted border border-border-subtle">
+                {model.type}
+              </div>
+            </div>
+            
+            <div className="flex gap-4 text-sm mb-6 text-text-muted">
+              <span className="flex items-center gap-1"><Cpu size={14} /> {model.size}</span>
+              <span className="flex items-center gap-1"><Download size={14} /> {model.downloads}</span>
+              <span className="flex items-center gap-1 text-status-warning"><Star size={14} /> Destacado</span>
+            </div>
+
+            <div className="mt-auto">
+              {model.status === 'installed' && (
+                <button className="w-full py-2 bg-status-success/10 text-status-success rounded-xl font-bold flex justify-center items-center gap-2 border border-status-success/20">
+                  <CheckCircle2 size={18} /> Instalado
+                </button>
               )}
-            </div>
-
-            <div className="flex items-center gap-4 text-sm mb-6 opacity-80">
-              <span className="flex items-center gap-1"><HardDrive className="w-4 h-4" /> {model.size}</span>
-              <span className="flex items-center gap-1"><Cpu className="w-4 h-4" /> GGUF</span>
-            </div>
-
-            <div className="flex justify-end gap-2">
-              {model.status === 'installed' ? (
-                <button onClick={() => handleDelete(model.id)} className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors" title="Eliminar modelo local">
-                  <Trash2 className="w-4 h-4" />
+              {model.status === 'available' && (
+                <button className="w-full py-2 bg-accent-primary hover:bg-accent-secondary text-white rounded-xl font-bold flex justify-center items-center gap-2 transition-colors">
+                  <Download size={18} /> Descargar
                 </button>
-              ) : model.status === 'downloading' ? (
-                <div className="w-full bg-base-900 rounded-full h-2 mt-2">
-                  <div className="bg-accent-500 h-2 rounded-full transition-all duration-500" style={{ width: `${model.progress}%` }}></div>
+              )}
+              {model.status === 'downloading' && (
+                <div className="w-full bg-card rounded-xl p-2 border border-accent-primary/30 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-accent-primary/20 w-3/4 animate-pulse"></div>
+                  <div className="relative text-center text-accent-primary font-bold text-sm flex justify-center items-center gap-2">
+                    <Zap size={14} className="animate-bounce" /> Descargando... 75%
+                  </div>
                 </div>
-              ) : (
-                <button onClick={() => handleDownload(model.id)} className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-primary-600 hover:bg-primary-500 text-white font-medium transition-colors">
-                  <Download className="w-4 h-4" />
-                  Descargar Local
-                </button>
               )}
             </div>
           </div>
