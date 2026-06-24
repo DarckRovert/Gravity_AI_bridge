@@ -41,3 +41,4 @@ corrector_estado.json
 inputs/.bounty_seen_ids.json
 inputs/.bounty_actions.json
 inputs/niches.json
+bandit_results.json
