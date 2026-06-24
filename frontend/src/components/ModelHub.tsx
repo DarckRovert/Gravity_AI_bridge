@@ -25,7 +25,7 @@ export const ModelHub: React.FC = () => {
 
   const handleDownload = (id: string) => {
     setModels(models.map(m => m.id === id ? { ...m, status: 'downloading', progress: 0 } : m));
-    showToast(`Iniciando descarga de ${id}...`, 'info');
+    showToast('info', `Iniciando descarga de ${id}...`);
     
     // Simulate download
     let prog = 0;
@@ -35,7 +35,7 @@ export const ModelHub: React.FC = () => {
       if (prog >= 100) {
         clearInterval(interval);
         setModels(prev => prev.map(m => m.id === id ? { ...m, status: 'installed', progress: undefined } : m));
-        showToast(`Modelo ${id} instalado con éxito.`, 'success');
+        showToast('success', `Modelo ${id} instalado con éxito.`);
       }
     }, 1000);
   };
@@ -43,7 +43,7 @@ export const ModelHub: React.FC = () => {
   const handleDelete = (id: string) => {
     if (window.confirm(`¿Estás seguro de eliminar el modelo ${id} del almacenamiento local?`)) {
       setModels(models.map(m => m.id === id ? { ...m, status: 'not_installed' } : m));
-      showToast(`Modelo ${id} eliminado.`, 'success');
+      showToast('success', `Modelo ${id} eliminado.`);
     }
   };
 

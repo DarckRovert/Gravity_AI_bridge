@@ -29,7 +29,7 @@ export const MemoryStudio: React.FC = () => {
   const handleAddMemory = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newEntity || !newRelation || !newTarget) {
-      showToast('Por favor, rellena todos los campos de la relación.', 'error');
+      showToast('error', 'Por favor, rellena todos los campos de la relación.');
       return;
     }
     const newMem: MemoryNode = {
@@ -44,13 +44,13 @@ export const MemoryStudio: React.FC = () => {
     setNewEntity('');
     setNewRelation('');
     setNewTarget('');
-    showToast('Nueva relación consolidada en el grafo de memoria.', 'success');
+    showToast('success', 'Nueva relación consolidada en el grafo de memoria.');
   };
 
   const handleDelete = (id: string) => {
     if (window.confirm('¿Deseas purgar esta relación de la memoria de largo plazo?')) {
       setMemories(memories.filter(m => m.id !== id));
-      showToast('Relación de memoria purgada.', 'success');
+      showToast('success', 'Relación de memoria purgada.');
     }
   };
 

@@ -77,7 +77,7 @@ export const MissionControl: React.FC = () => {
               Live Telemetry
             </div>
             <h1 className="text-4xl font-black text-white tracking-tighter mb-2 drop-shadow-lg">Mission Control</h1>
-            <p className="text-text-muted text-sm font-medium">Core systems monitoring powered by Gravity Brain V16.0</p>
+            <p className="text-text-muted text-sm font-medium">Core systems monitoring powered by Gravity Brain V16.3</p>
           </div>
           <div className="flex gap-3">
             <button 
@@ -233,7 +233,7 @@ export const MissionControl: React.FC = () => {
             {[1,2,3].map(i => (
               <div key={i} className="flex items-center gap-4 p-4 rounded-xl glass-card">
                 <div className="text-xs text-text-muted font-mono w-24">10:42:{10+i} AM</div>
-                <div className="flex-1 text-sm text-text-primary font-medium">Sincronización neural completada con Gravity Brain V16.0 PRO.</div>
+                <div className="flex-1 text-sm text-text-primary font-medium">Sincronización neural completada con Gravity Brain V16.3 PRO.</div>
                 <div className="px-3 py-1 rounded-md bg-status-success/15 border border-status-success/30 text-status-success text-[10px] font-black uppercase tracking-widest shadow-[0_0_10px_rgba(16,185,129,0.1)]">OK</div>
               </div>
             ))}
