@@ -83,6 +83,16 @@ Panel de control unificado con 35 componentes orquestados en tiempo real:
 | 🔒 Security | Monitor de procesos, puertos, integridad de archivos |
 | 📋 Audit Log | Historial de peticiones con rotación automática |
 | ⚙️ Configuración | API keys, modelo activo, links rápidos |
+| 🤖 Autonomy Panel | Panel maestro de automatización general |
+| 📰 Journalist Panel | Redacción y orquestación de artículos SEO |
+| 🔲 Layout | Motor SPA de navegación sin recarga |
+| 🎥 OBS Studio | Control de streaming, escenas y overlays IA en vivo |
+| 🏭 Software Factory | Creación automatizada de código y repositorios |
+| 🎰 Tinka Dashboard | Motor de análisis y predicciones estadísticas |
+| 🔔 Notificaciones | Alertas Toast globales y logger de estado |
+| 🎬 V2V Studio | Pipeline de transformación de Video-a-Video |
+| 📺 YouTube Analyzer | Scraper, transcripción y análisis de canales |
+| 🕵️ Infiltrator Core | Proxy stealth y scraper sigiloso |
 
 ### 🔄 Multi-Session Bridge V16.2 PRO (`core/session_runner.py`)
 - `CapacityWake` + `SessionSpawner`: hasta 32 subprocesos de agente aislados simultáneos.
