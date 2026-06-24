@@ -31,13 +31,13 @@ export const JournalistPanel = () => {
       const res = await fetch('/v1/journalist/portal/start', { method: "POST" });
       if (res.ok) {
         setTimeout(() => {
-          window.open("http://localhost:5173", "_blank");
+          window.open(`http://${window.location.hostname}:5173`, "_blank");
         }, 2000);
       } else {
-        window.open("http://localhost:5173", "_blank"); // Fallback
+        window.open(`http://${window.location.hostname}:5173`, "_blank"); // Fallback
       }
     } catch (e) {
-      window.open("http://localhost:5173", "_blank"); // Fallback
+      window.open(`http://${window.location.hostname}:5173`, "_blank"); // Fallback
     }
   };
 

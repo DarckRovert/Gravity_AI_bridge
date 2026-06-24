@@ -69,7 +69,7 @@ export function V2VStudio() {
     // ── WebSocket connection ───────────────────────────────────────────────
     useEffect(() => {
         if (status?.online && !wsRef.current) {
-            const socket = new WebSocket('ws://127.0.0.1:7863');
+            const socket = new WebSocket(`ws://${window.location.hostname}:7863`);
             socket.onopen = () => {
                 setWsConnected(true);
                 socket.send(JSON.stringify({ command: "get_status" }));
