@@ -1,10 +1,15 @@
 # 🧠 Plan de Evolución Agéntica — Gravity AI Bridge V16.0 Roadmap
 
-Estado: **V16.0 PRO Activo** | Próximo hito: **V16.0 Autonomous Studio**
+Estado: **V16.3 PRO Activo** | Próximo hito: **V17.0 Autonomous Studio**
 
 ---
 
 ## ✅ Hitos Completados
+
+### V16.3 PRO — Intelligent Resource Guard (Junio 2026)
+- [x] Memory Guard nativo con `psutil` para monitoreo de RAM física y VRAM.
+- [x] Desalojo LRU proactivo de IAs locales bajo presión de memoria.
+- [x] Enrutamiento de tareas multicapa para Visión (LLaVA) y Embeddings (Nomic) con penalización estricta de cruce.
 
 ### V16.0 PRO — Motor Cinematic God-Tier (Junio 2026)
 - [x] Motor GLSL PBR V13 con IBL, Lens Flares, Mandelbulb Raymarching
