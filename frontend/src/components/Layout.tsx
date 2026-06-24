@@ -5,7 +5,7 @@ import {
   Gamepad2, Bot, Cpu, DollarSign, Activity, Save, BookOpen, 
   Plug, Wrench, Zap, Bug, ShieldAlert, Wifi, Shield, FileText, Settings, Menu, Bell,
   TrendingUp, Video as VideoIcon, Radio, Target, Code2, Ghost,
-  Dices, PlayCircle, Brain, Newspaper
+  Dices, PlayCircle, Brain, Newspaper, Box, BrainCircuit
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -60,7 +60,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
             <Bot size={18} className="text-white" />
           </div>
           <div className="text-xl font-black tracking-tighter bg-gradient-to-r from-white via-accent-primary to-accent-secondary bg-clip-text text-transparent drop-shadow-sm">
-            GRAVITY <span className="font-light opacity-80">V16.0 PRO</span>
+            GRAVITY <span className="font-light opacity-80">V16.3 PRO</span>
           </div>
         </div>
         
@@ -122,11 +122,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
             <NavItem id="hardware" icon={Cpu} label="Hardware" />
             <NavItem id="cost" icon={DollarSign} label="Cost Center" />
             <NavItem id="watchdog" icon={Activity} label="Watchdog" />
+            <NavItem id="modelhub" icon={Box} label="Model Hub" />
             <NavItem id="autonomy" icon={Brain} label="Autonomy Engine" badge={(ctx as any)?.autonomy_patches} />
 
             <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted mt-6 mb-2 px-2">Herramientas</div>
             <NavItem id="sessions" icon={Save} label="Sessions" />
             <NavItem id="rag" icon={BookOpen} label="RAG" />
+            <NavItem id="memorystudio" icon={BrainCircuit} label="Memory Studio" />
             <NavItem id="mcp" icon={Plug} label="MCP Servers" />
             <NavItem id="tools" icon={Wrench} label="Tools" />
             <NavItem id="tools-pro" icon={Zap} label="Tools Pro" />

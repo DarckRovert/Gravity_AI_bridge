@@ -85,16 +85,16 @@ Panel de control unificado con 35 componentes orquestados en tiempo real:
 | ⚙️ Configuración | API keys, modelo activo, links rápidos |
 | 🤖 Autonomy Panel | Panel maestro de automatización general |
 | 📰 Journalist Panel | Redacción y orquestación de artículos SEO |
-| 🔲 Layout | Motor SPA de navegación sin recarga |
+| 📥 Model Hub | Gestor visual y descarga de modelos locales (GGUF, embeddings) |
 | 🎥 OBS Studio | Control de streaming, escenas y overlays IA en vivo |
 | 🏭 Software Factory | Creación automatizada de código y repositorios |
 | 🎰 Tinka Dashboard | Motor de análisis y predicciones estadísticas |
-| 🔔 Notificaciones | Alertas Toast globales y logger de estado |
+| 🧠 Memory Studio | Visualizador y editor del Knowledge Graph de largo plazo |
 | 🎬 V2V Studio | Pipeline de transformación de Video-a-Video |
 | 📺 YouTube Analyzer | Scraper, transcripción y análisis de canales |
 | 🕵️ Infiltrator Core | Proxy stealth y scraper sigiloso |
 
-### 🔄 Multi-Session Bridge V16.2 PRO (`core/session_runner.py`)
+### 🔄 Multi-Session Bridge V16.3 PRO (`core/session_runner.py`)
 - `CapacityWake` + `SessionSpawner`: hasta 32 subprocesos de agente aislados simultáneos.
 - Spawn vía UI con selector de **rol** (auditor/planner/coder/researcher/executor).
 - Kill de workers activos con estado PID en tiempo real.

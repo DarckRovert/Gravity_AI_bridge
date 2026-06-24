@@ -34,6 +34,8 @@ import { TinkaDashboard } from './components/TinkaDashboard';
 import { YouTubeAnalyzer } from './components/YouTubeAnalyzer';
 import { AutonomyPanel } from './components/AutonomyPanel';
 import { JournalistPanel } from './components/JournalistPanel';
+import { ModelHub } from './components/ModelHub';
+import { MemoryStudio } from './components/MemoryStudio';
 
 import type { PanelId } from './types';
 
@@ -83,6 +85,8 @@ function App() {
       case 'youtubeanalyzer': return <YouTubeAnalyzer />;
       case 'autonomy': return <AutonomyPanel />;
       case 'journalist': return <JournalistPanel />;
+      case 'modelhub': return <ModelHub />;
+      case 'memorystudio': return <MemoryStudio />;
       default:
         return (
           <div className="flex items-center justify-center h-full text-text-muted text-lg font-medium">

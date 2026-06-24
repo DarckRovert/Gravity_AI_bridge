@@ -71,4 +71,6 @@ export type PanelId =
   | 'tinka'
   | 'youtubeanalyzer'
   | 'autonomy'
+  | 'modelhub'
+  | 'memorystudio'
   | 'journalist';
