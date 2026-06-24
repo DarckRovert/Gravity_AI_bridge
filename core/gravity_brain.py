@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║   GRAVITY AI — BRAIN V16.0 PRO [Sistema de Conciencia Total]                    ║
+║   GRAVITY AI — BRAIN V16.3 PRO [Sistema de Conciencia Total]                    ║
 ║                                                                              ║
 ║   Módulo central que otorga a Gravity consciencia del estado completo del    ║
 ║   sistema en tiempo real. Se inyecta como contexto en cada request de chat.  ║
@@ -29,7 +29,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KNOWLEDGE_FILE = os.path.join(BASE_DIR, "_knowledge.json")
 SETTINGS_FILE = os.path.join(BASE_DIR, "_settings.json")
 
-APP_VERSION = "16.0"
+APP_VERSION = "16.3"
 
 # ── Comandos disponibles del sistema (chat slash commands) ────────────────────
 
