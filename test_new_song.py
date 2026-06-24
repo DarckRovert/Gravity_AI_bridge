@@ -8,11 +8,11 @@ import logging
 
 log.setLevel(logging.INFO)
 
-from core.video.audio_analyzer import extract_multiband_energy
-from core.video.timeline_director import generate_timeline, generate_color_sequence
-from core.video.v13_ai_director import analyze_lyrics_sections
-from core.video.glsl_compute_renderer_v14 import render_v14_compute_video
-from core.video.subtitle_engine import generate_ass_subtitles
+from core.video.audio_analyzer import extract_multiband_energy  # noqa: E402
+from core.video.timeline_director import generate_timeline, generate_color_sequence  # noqa: E402
+from core.video.v13_ai_director import analyze_lyrics_sections  # noqa: E402
+from core.video.glsl_compute_renderer_v14 import render_v14_compute_video  # noqa: E402
+from core.video.subtitle_engine import generate_ass_subtitles  # noqa: E402
 
 
 def main():

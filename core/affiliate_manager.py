@@ -313,7 +313,7 @@ def log_affiliate_injection(
                     "ts": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
                     "job_id": job_id,
                     "niche_id": niche_id,
-                    "links_used": [l["name"] for l in links_used],
+                    "links_used": [l["name"] for l in links_used],  # noqa: E741
                 }
             )
             # Mantener histórico limitado a 500 registros
@@ -327,7 +327,7 @@ def log_affiliate_injection(
         from core.revenue_tracker import _load_log, _save_log
 
         n_links = max(len(links_used), 1)
-        avg_epc = sum(l.get("epc_usd", 0.5) for l in links_used) / n_links
+        avg_epc = sum(l.get("epc_usd", 0.5) for l in links_used) / n_links  # noqa: E741
         estimated_clicks = 500 * 0.005  # 0.5% CTR sobre 500 views
         affiliate_rev = round(avg_epc * estimated_clicks, 4)
 

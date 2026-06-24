@@ -88,7 +88,6 @@ def run_exhaustive_tests():
         from providers.local.native_provider import NativeLlamaProvider
 
         # Verificar que the class has the attributes correctly mapped
-        lock = NativeLlamaProvider._inference_lock
         wd = NativeLlamaProvider._watchdog_started
         print("    [OK] NativeLlamaProvider has RLock at class level.")
         print(f"    [OK] Watchdog is started: {wd}")

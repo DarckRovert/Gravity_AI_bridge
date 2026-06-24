@@ -610,7 +610,6 @@ def _generate_script(
         try:
             from core.ai_process_manager import stop_engine
 
-            killed_any = False
             for prov in ["LM Studio", "Ollama", "Jan AI"]:
                 res = stop_engine(prov)
                 # Omitir errores de que el proceso no existía

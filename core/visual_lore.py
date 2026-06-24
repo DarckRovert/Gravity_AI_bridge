@@ -96,7 +96,6 @@ def inject_lore_to_prompt(lore_data: dict, base_image_prompt: str) -> str:
     - Búsqueda flexible: detecta "Kaelen" aunque el lore diga "Kaelen Vance (Ego)".
     - Solo se inyecta si el nombre del personaje aparece en la escena.
     """
-    MAX_CHAR_WORDS = 80  # límite de atención efectivo de Flux ~77 tokens
 
     character_blocks = []
     import re

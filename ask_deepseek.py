@@ -48,7 +48,7 @@ from core.verification_agent import VerificationAgent
 from core import data_guardian as guardian
 
 try:
-    import pyreadline3
+    import pyreadline3  # noqa: F401
 except ImportError:
     pass
 
@@ -282,7 +282,7 @@ class AuditorCLI:
         auto_p, auto_m = provider_manager.get_best()
         locked = self.sm.data.get("model_locked", False)
         hw = hardware_profiler.get_full_profile()
-        cs = CacheEngine.stats()
+        CacheEngine.stats()
 
         if locked and self.sm.data.get("locked_model"):
             curr_prov = self.sm.data.get("locked_provider", "locked")
@@ -394,7 +394,7 @@ class AuditorCLI:
         subcmd = parts[0].lower() if parts else "list"
 
         if subcmd == "list":
-            configured = KeyManager.list_configured()
+            configured = KeyManager.list_configured()  # noqa: F821
             if not configured:
                 console.print("[yellow]Sin claves API configuradas.[/]")
                 return
@@ -402,14 +402,14 @@ class AuditorCLI:
             t.add_column("Proveedor", style="cyan")
             t.add_column("Clave (enmascarada)", style="dim")
             for p in configured:
-                t.add_row(p, KeyManager.mask(p))
+                t.add_row(p, KeyManager.mask(p))  # noqa: F821
             console.print(t)
 
         elif subcmd == "set":
             target = parts[1].strip().lower() if len(parts) > 1 else None
             if not target:
                 # Mostrar proveedores conocidos
-                all_known = KeyManager.list_all_known()
+                all_known = KeyManager.list_all_known()  # noqa: F821
                 t = Table(title="Proveedores Cloud Conocidos", box=box.SIMPLE_HEAD)
                 t.add_column("#", justify="right", style="dim")
                 t.add_column("ID", style="cyan")
@@ -422,7 +422,7 @@ class AuditorCLI:
                 target = Prompt.ask("Proveedor (id exacto)").strip().lower()
             new_key = Prompt.ask(f"API Key para [cyan]{target}[/]", password=True)
             if new_key:
-                KeyManager.set_key(target, new_key)
+                KeyManager.set_key(target, new_key)  # noqa: F821
                 console.print(f"[green]✓ Clave guardada para {target} (cifrada).[/]")
             else:
                 console.print("[red]Operación cancelada.[/]")
@@ -433,7 +433,7 @@ class AuditorCLI:
                 if len(parts) > 1
                 else Prompt.ask("Proveedor a eliminar")
             )
-            if KeyManager.delete_key(target):
+            if KeyManager.delete_key(target):  # noqa: F821
                 console.print(f"[green]✓ Clave de {target} eliminada.[/]")
             else:
                 console.print(f"[yellow]No había clave configurada para {target}.[/]")

@@ -198,7 +198,7 @@ class CodeRunner(Tool):
                 stderr="No se encontró ningún bloque de código en la respuesta.",
             )
         if lang_filter:
-            blocks = [(l, c) for l, c in blocks if l == lang_filter.lower()]
+            blocks = [(l, c) for l, c in blocks if l == lang_filter.lower()]  # noqa: E741
             if not blocks:
                 return ToolResult(
                     success=False,

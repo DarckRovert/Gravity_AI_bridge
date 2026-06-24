@@ -24,8 +24,8 @@ _TOOLS_DIR: str = os.path.join(_BASE_DIR, "tools")
 if _TOOLS_DIR not in sys.path:
     sys.path.insert(0, _TOOLS_DIR)
 
-import gradio as gr
-from fooocus_client import (
+import gradio as gr  # noqa: E402
+from fooocus_client import (  # noqa: E402
     health_check,
     get_latest_outputs,
     OUTPUT_DIR,

@@ -18,7 +18,7 @@ def send_post(path, payload):
     except urllib.error.HTTPError as e:
         try:
             err_body = json.loads(e.read().decode("utf-8"))
-        except:
+        except:  # noqa: E722
             err_body = str(e)
         return e.code, err_body
     except Exception as e:
@@ -73,7 +73,7 @@ def run_tests():
     server_process.terminate()
     try:
         server_process.wait(timeout=5)
-    except:
+    except:  # noqa: E722
         server_process.kill()
 
     print("\n\n=== REPORTE DE INTEGRACIÓN END-TO-END ===")

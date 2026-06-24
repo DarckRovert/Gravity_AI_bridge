@@ -803,7 +803,7 @@ def _monitor_loop() -> None:
             # Nuevos escaneos EDR
             killed_tools = _scan_anti_tampering()
             _scan_process_behavior()
-            banned_ips = _scan_network_threats()
+            _scan_network_threats()
             _scan_io_anomalies()
 
             # Calcular score real: 100 - penalizaciones por alertas
@@ -886,7 +886,7 @@ def force_scan() -> Dict[str, Any]:
 
     killed_tools = _scan_anti_tampering()
     _scan_process_behavior()
-    banned_ips = _scan_network_threats()
+    _scan_network_threats()
     _scan_io_anomalies()
 
     with _lock:

@@ -336,7 +336,7 @@ def _decide(snapshot: Dict[str, Any], level: str, alerts: List[str]) -> str:
         cl = cl_status()
         active_langs = cl.get("config", {}).get("languages", [])
         all_langs = cl.get("supported_languages", [])
-        inactive = [l for l in all_langs if l not in active_langs]
+        inactive = [l for l in all_langs if l not in active_langs]  # noqa: E741
         cloner_text = f"Activos: {active_langs} | Inactivos disponibles: {inactive}"
     except Exception:
         cloner_text = "No disponible"

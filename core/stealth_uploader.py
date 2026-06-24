@@ -178,7 +178,7 @@ class StealthUploader:
         from playwright.sync_api import sync_playwright
 
         # Verificar que existe sesión guardada antes de intentar
-        session_state = os.path.join(
+        os.path.join(
             USER_DATA_DIR, "Default", "Network Persistent State"
         )
         cookies_file = os.path.join(USER_DATA_DIR, "Default", "Cookies")

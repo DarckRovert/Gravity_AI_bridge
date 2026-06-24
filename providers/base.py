@@ -17,7 +17,7 @@ from typing import Generator, Optional
 All providers (local and cloud) implement ProviderPlugin.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List  # noqa: E402
 
 # ── Unified scan result ───────────────────────────────────────────────────────
 

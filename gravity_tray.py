@@ -21,7 +21,7 @@ _ACCENT = (79, 70, 229)  # Quantum Violet
 _BG = (9, 12, 16)  # Deep Space
 
 
-def _build_icon_image(size: int = 64, pulsing: bool = False) -> "PIL.Image.Image":
+def _build_icon_image(size: int = 64, pulsing: bool = False) -> "PIL.Image.Image":  # noqa: F821
     """Genera el icono de bandeja en memoria si no existe el .ico."""
     from PIL import Image, ImageDraw
 

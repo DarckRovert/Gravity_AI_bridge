@@ -1952,7 +1952,7 @@ class GetRoutesMixin:
                     with open(actions_path, "r", encoding="utf-8") as f:
                         actions = json.load(f)
                         seen_urls = set(actions.keys())
-                except:
+                except:  # noqa: E722
                     pass
 
             bounty_profile = "Eres un desarrollador experto buscando trabajo freelance."
@@ -1962,7 +1962,7 @@ class GetRoutesMixin:
                         bounty_profile = json.load(f).get(
                             "bounty_profile", bounty_profile
                         )
-                except:
+                except:  # noqa: E722
                     pass
 
             bounties = []

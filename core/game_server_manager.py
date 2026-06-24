@@ -117,7 +117,7 @@ def _tail_log(log_path: str, lines: int = 100) -> List[str]:
     try:
         with open(log_path, "r", encoding="utf-8", errors="replace") as f:
             all_lines = f.readlines()
-        return [l.rstrip() for l in all_lines[-lines:]]
+        return [l.rstrip() for l in all_lines[-lines:]]  # noqa: E741
     except Exception as e:
         return [f"[Error leyendo log: {e}]"]
 
@@ -177,7 +177,6 @@ def _start_server(server_id: str, cfg: Dict[str, Any]) -> Dict[str, Any]:
     creation_flags_console: int = (
         subprocess.CREATE_NEW_CONSOLE if os.name == "nt" else 0
     )
-    creation_flags_nowin: int = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
 
     # 0. Arrancar MySQL primero si hay bat/script configurado
     if mysql_bat and os.path.exists(mysql_bat):
@@ -244,7 +243,7 @@ def _start_server(server_id: str, cfg: Dict[str, Any]) -> Dict[str, Any]:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
             )
-            t_realm = start_reader(procs["realm"], server_id, "REALM")
+            start_reader(procs["realm"], server_id, "REALM")
             log.info(f"[GameServer] realmd iniciado (PID {procs['realm'].pid})")
             time.sleep(2)
         except Exception as e:
@@ -262,7 +261,7 @@ def _start_server(server_id: str, cfg: Dict[str, Any]) -> Dict[str, Any]:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
             )
-            t_world = start_reader(procs["world"], server_id, "WORLD")
+            start_reader(procs["world"], server_id, "WORLD")
             log.info(f"[GameServer] mangosd iniciado (PID {procs['world'].pid})")
         except Exception as e:
             errors.append(f"mangosd: {e}")

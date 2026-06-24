@@ -94,7 +94,7 @@ class NativeLlamaProvider(ProviderPlugin):
     def check_health(self) -> ProviderResult:
         r = self._make_result("native://llama")
         try:
-            import llama_cpp
+            import llama_cpp  # noqa: F401
 
             r.is_healthy = True
         except ImportError:
@@ -187,7 +187,7 @@ class NativeLlamaProvider(ProviderPlugin):
         options: Dict[str, Any],
     ) -> Generator[str, None, None]:
         try:
-            import llama_cpp
+            import llama_cpp  # noqa: F401
         except ImportError:
             yield "[Native Llama] Error: llama-cpp-python no está instalado. Ejecuta install_native_llm.bat"
             return

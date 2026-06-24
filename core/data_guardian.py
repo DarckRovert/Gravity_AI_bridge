@@ -370,7 +370,7 @@ def _audit_log_has_corruption(path: str) -> bool:
                 f.seek(max(0, os.path.getsize(path) - 4096))
                 tail = f.read().decode("utf-8", errors="replace")
 
-            lines = [l.strip() for l in tail.splitlines() if l.strip()]
+            lines = [l.strip() for l in tail.splitlines() if l.strip()]  # noqa: E741
             if not lines:
                 return False  # Vacío = OK
 

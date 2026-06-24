@@ -23,7 +23,7 @@ LAST_SCAN_FILE: str = os.path.join(BASE_DIR, "_last_scan.json")
 _scan_lock: threading.RLock = threading.RLock()
 
 # Re-export ProviderResult from the canonical location for backwards compat
-from providers.base import ProviderResult  # noqa: F401
+from providers.base import ProviderResult  # noqa: E402, F401
 
 # ── Public API (unchanged from V6) ────────────────────────────────────────────
 

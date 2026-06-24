@@ -12,8 +12,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from core import provider_manager, image_router
-from tools.book_refiner import _render_html, _assemble_book, _detect_caps
+from core import provider_manager, image_router  # noqa: E402
+from tools.book_refiner import _render_html, _assemble_book, _detect_caps  # noqa: E402
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"

@@ -9,8 +9,8 @@ base_dir = os.path.dirname(current_dir)
 if base_dir not in sys.path:
     sys.path.append(base_dir)
 
-from core import provider_manager
-from core.logger import log
+from core import provider_manager  # noqa: E402
+from core.logger import log  # noqa: E402
 
 
 class YouTubeAnalyzer:

@@ -867,7 +867,7 @@ def _process_job(
                         text=True,
                         errors="replace",
                     )
-                    for l in probe.stderr.splitlines():
+                    for l in probe.stderr.splitlines():  # noqa: E741
                         if "Duration:" in l:
                             t = l.split("Duration:")[1].split(",")[0].strip()
                             h, m, s = t.split(":")
@@ -878,7 +878,7 @@ def _process_job(
                 if _track_duration > 0:
                     scene_duration = _track_duration / max(1, n_scenes)
 
-            lines = [l.strip() for l in lyrics_text.split("\n") if l.strip()]
+            lines = [l.strip() for l in lyrics_text.split("\n") if l.strip()]  # noqa: E741
             chunk_size = max(1, len(lines) // max(1, n_scenes)) if lines else 1
             for i in range(n_scenes):
                 start_idx = i * chunk_size
@@ -1250,7 +1250,7 @@ def _process_job(
                         errors="replace",
                     )
                     _dur = float(scene_duration)
-                    for l in probe.stderr.splitlines():
+                    for l in probe.stderr.splitlines():  # noqa: E741
                         if "Duration:" in l:
                             t = l.split("Duration:")[1].split(",")[0].strip()
                             hh, mm, ss = t.split(":")
@@ -1553,7 +1553,7 @@ def _process_job(
                         errors="replace",
                     )
                     total_dur = 59.0
-                    for l in probe_master.stderr.splitlines():
+                    for l in probe_master.stderr.splitlines():  # noqa: E741
                         if "Duration:" in l:
                             t = l.split("Duration:")[1].split(",")[0].strip()
                             h, m, s = t.split(":")

@@ -5,7 +5,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from tools.research_writer import GravityResearchAuthor
+from tools.research_writer import GravityResearchAuthor  # noqa: E402
 
 prompt_maestro = """Actúa como un teórico de sistemas complejos, filósofo de la mente y estratega ontológico. Escribe el esquema y los capítulos de un libro analítico titulado 'El Cero Operativo: La Muerte del Símbolo y el Despertar del Arquitecto'.
 

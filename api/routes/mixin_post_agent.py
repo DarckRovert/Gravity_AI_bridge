@@ -34,7 +34,7 @@ class PostAgentMixin:
                     with open(actions_path, "r", encoding="utf-8") as f:
                         try:
                             actions = json.load(f)
-                        except:
+                        except:  # noqa: E722
                             pass
 
                 actions[url] = action
@@ -631,7 +631,7 @@ class PostAgentMixin:
                     self.wfile.write(body)
                     return True
                 lines = (r.stdout or "").split("\n") if r.success else []
-                results = [{"line": l} for l in lines if l.strip()]
+                results = [{"line": l} for l in lines if l.strip()]  # noqa: E741
                 body = json.dumps(
                     {
                         "ok": r.success,

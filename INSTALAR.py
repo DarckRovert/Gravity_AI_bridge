@@ -42,20 +42,20 @@ def _bootstrap():
 
 _bootstrap()
 
-from rich.console import Console
-from rich.panel import Panel
-from rich.progress import (
+from rich.console import Console  # noqa: E402
+from rich.panel import Panel  # noqa: E402
+from rich.progress import (  # noqa: E402
     Progress,
     SpinnerColumn,
     BarColumn,
     TextColumn,
     TimeElapsedColumn,
 )
-from rich.table import Table
-from rich.prompt import Prompt, Confirm
-from rich.align import Align
-from rich import box
-import pyfiglet
+from rich.table import Table  # noqa: E402
+from rich.prompt import Prompt, Confirm  # noqa: E402
+from rich.align import Align  # noqa: E402
+from rich import box  # noqa: E402
+import pyfiglet  # noqa: E402
 
 console = Console()
 APP_VER = "12.1"

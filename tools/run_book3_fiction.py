@@ -5,7 +5,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from tools.fiction_writer import GravityFictionAuthor
+from tools.fiction_writer import GravityFictionAuthor  # noqa: E402
 
 # Prompt temático para la conclusión de la Trilogía (Libro 3)
 prompt_maestro = """

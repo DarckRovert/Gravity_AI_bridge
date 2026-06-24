@@ -58,7 +58,7 @@ MAX_SESSIONS = 32
 def bridge_poll_loop():
     """Loop continuo de polling asíncrono para orquestar sub-sesiones en paralelo."""
     log.info("[V16.0 PRO] Multi-Session Poll Loop activado. Capacidad máxima: 32.")
-    spawner = SessionSpawner(sys.executable, os.path.join(_BASE, "ask_deepseek.py"))
+    SessionSpawner(sys.executable, os.path.join(_BASE, "ask_deepseek.py"))
 
     while True:
         # Simular poll checking. La capacidad se controla con BoundedSemaphore internamente en SessionSpawner.
@@ -87,8 +87,8 @@ def background_scanner():
 
 
 # ── HTTP Handler ──────────────────────────────────────────────────────────────
-from api.routes.mixin_get import GetRoutesMixin
-from api.routes.mixin_post import PostRoutesMixin
+from api.routes.mixin_get import GetRoutesMixin  # noqa: E402
+from api.routes.mixin_post import PostRoutesMixin  # noqa: E402
 
 
 class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMixin):

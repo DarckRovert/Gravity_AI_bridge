@@ -42,7 +42,7 @@ class TinkaScraper:
             if not urls:
                 return False
 
-            latest_url = urls[
+            urls[
                 0
             ]  # El sitemap usualmente pone el último primero (o podemos buscar el ID más alto)
             # Para estar seguros, extraer IDs y buscar el mayor

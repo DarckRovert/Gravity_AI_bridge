@@ -183,7 +183,7 @@ def handle_gameserver_expose(handler):
 def handle_gameserver_backup(handler):
     try:
         length = int(handler.headers.get("Content-Length", 0))
-        data = json.loads(handler.rfile.read(length)) if length else {}
+        json.loads(handler.rfile.read(length)) if length else {}
         BASE = os.path.dirname(
             os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         )

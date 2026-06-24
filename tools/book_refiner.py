@@ -21,9 +21,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from tools import latex_cleaner
-from core import image_router
-from core import provider_manager
+from tools import latex_cleaner  # noqa: E402
+from core import image_router  # noqa: E402
+from core import provider_manager  # noqa: E402
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -678,7 +678,7 @@ AHORA ESCRIBE EL CAPÍTULO REFINADO:"""
 
             def image_replacer(match):
                 base_prompt = match.group(1).strip()
-                final_prompt = inject_lore_to_prompt(lore_data, base_prompt)
+                final_prompt = inject_lore_to_prompt(lore_data, base_prompt)  # noqa: F821
 
                 img_id = uuid.uuid4().hex[:8]
                 img_filename = f"img_cap_{cap_num}_{img_id}.png"

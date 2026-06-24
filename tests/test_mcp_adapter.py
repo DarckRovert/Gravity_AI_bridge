@@ -168,10 +168,10 @@ class TestSendRequest:
         """Si el proceso está muerto, debe intentar reconectar."""
         adapter.process = None
 
-        with patch.object(adapter, "connect", return_value=False) as mock_connect:
+        with patch.object(adapter, "connect", return_value=False):
             with patch.object(
                 adapter, "_reconnect_with_backoff", return_value=False
-            ) as mock_reconnect:
+            ):
                 result = adapter.call_tool("tool", {})
 
         assert "error" in result

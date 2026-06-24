@@ -75,7 +75,7 @@ def _load_config() -> Dict[str, Any]:
 def get_enabled_languages() -> List[str]:
     """Retorna la lista de idiomas habilitados para clonación en la configuración."""
     cfg = _load_config()
-    return [l for l in cfg.get("languages", ["en"]) if l in LANG_CONFIG]
+    return [l for l in cfg.get("languages", ["en"]) if l in LANG_CONFIG]  # noqa: E741
 
 
 # ── LLM translation ───────────────────────────────────────────────────────────
@@ -600,7 +600,7 @@ def clone_job(
                     creationflags=CREATION_FLAGS,
                 )
                 dur = 59
-                for l in probe.stderr.splitlines():
+                for l in probe.stderr.splitlines():  # noqa: E741
                     if "Duration:" in l:
                         t = l.split("Duration:")[1].split(",")[0].strip()
                         h, m, s = t.strip().split(":")

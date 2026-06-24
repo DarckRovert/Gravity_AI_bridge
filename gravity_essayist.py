@@ -28,7 +28,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)
 
-from core import provider_manager
+from core import provider_manager  # noqa: E402
 
 PORTAL_DIR = "f:\\gravity-news-portal"
 ESSAYS_JSON_PATH = os.path.join(PORTAL_DIR, "src", "data", "essays.json")

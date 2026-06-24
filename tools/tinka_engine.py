@@ -6,10 +6,10 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
-from tinka.tinka_db import TinkaDB
-from tinka.tinka_scraper import TinkaScraper
-from tinka.tinka_analyzer import TinkaAnalyzer
-from tinka.tinka_predictor import TinkaPredictor
+from tinka.tinka_db import TinkaDB  # noqa: E402
+from tinka.tinka_scraper import TinkaScraper  # noqa: E402
+from tinka.tinka_analyzer import TinkaAnalyzer  # noqa: E402
+from tinka.tinka_predictor import TinkaPredictor  # noqa: E402
 
 
 class TinkaEngine:
@@ -47,7 +47,7 @@ class TinkaEngine:
     def analyze_patterns(self):
         """Retorna un resumen de los patrones encontrados en la base de datos."""
         latest = self.db.get_latest_draw()
-        current_draw = latest["draw_number"] if latest else 0
+        latest["draw_number"] if latest else 0
 
         hot_cold = self.analyzer.get_hot_and_cold_numbers()
         even_odd = self.analyzer.get_even_odd_distribution()

@@ -7,7 +7,7 @@ import threading
 RATE_LIMIT_MAX = 120
 RATE_LIMIT_WINDOW = 60
 
-from core.rate_limiter import ip_limiter
+from core.rate_limiter import ip_limiter  # noqa: E402
 
 
 def check_rate_limit(ip: str) -> bool:

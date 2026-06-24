@@ -198,7 +198,7 @@ def send_get(path):
     except urllib.error.HTTPError as e:
         try:
             body = json.loads(e.read().decode("utf-8", errors="replace"))
-        except:
+        except:  # noqa: E722
             body = {}
         return e.code, body
     except Exception as ex:
@@ -221,7 +221,7 @@ def send_post(path, payload):
     except urllib.error.HTTPError as e:
         try:
             body = json.loads(e.read().decode("utf-8", errors="replace"))
-        except:
+        except:  # noqa: E722
             body = {}
         return e.code, body
     except Exception as ex:
@@ -322,7 +322,7 @@ def run():
     proc.terminate()
     try:
         proc.wait(timeout=5)
-    except:
+    except:  # noqa: E722
         proc.kill()
 
     print("\n" + "=" * 60)

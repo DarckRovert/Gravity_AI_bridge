@@ -155,7 +155,7 @@ class PostChatMixin:
                                     api_key = yaml.safe_load(f).get(
                                         "firecrawl_api_key", ""
                                     )
-                            except:
+                            except:  # noqa: E722
                                 pass
 
                             for url in urls[:1]:

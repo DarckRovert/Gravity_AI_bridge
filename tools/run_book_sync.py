@@ -5,7 +5,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from tools.research_writer import GravityResearchAuthor
+from tools.research_writer import GravityResearchAuthor  # noqa: E402
 
 prompt_maestro = """Actúa como un sociólogo, investigador de inteligencia de código abierto (OSINT) y teórico del caos especializado en la 'física de la información' y la psique de masas. Escribe una investigación exhaustiva titulada 'Convergencia Entrópica: Sincronías y Desgarros en el Sustrato'.
 

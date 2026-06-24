@@ -58,7 +58,7 @@ def compare(
         return []
 
     results: List[Dict[str, Any]] = []
-    lock = threading.Lock()
+    threading.Lock()
 
     def _query(provider_name: str) -> Dict[str, Any]:
         plugin = get_plugin(provider_name)

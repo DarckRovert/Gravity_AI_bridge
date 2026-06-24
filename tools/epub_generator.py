@@ -64,14 +64,12 @@ def generate_epub(target_dir: str) -> str:
     book.add_author("Gravity AI Engine")
 
     # Intentar inyectar portada
-    cover_found = False
     for ext in [".png", ".jpg", ".jpeg", ".svg"]:
         cover_path = os.path.join(target_dir, f"cover{ext}")
         if os.path.exists(cover_path):
             with open(cover_path, "rb") as cf:
                 book.set_cover(f"cover{ext}", cf.read())
             logger.info(f"Portada inyectada desde {cover_path}")
-            cover_found = True
             break
 
     # CSS por defecto para KDP y E-readers

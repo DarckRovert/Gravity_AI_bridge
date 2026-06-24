@@ -1,5 +1,5 @@
 import subprocess
-import os
+import os  # noqa: F401
 
 # Asegurar compatibilidad multiplataforma en subprocesos Unix (Linux/macOS)
 if not hasattr(subprocess, "CREATE_NO_WINDOW"):

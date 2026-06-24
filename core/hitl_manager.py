@@ -72,7 +72,7 @@ def wait_for_decision(approval_id: str, timeout: int = TIMEOUT_SECONDS) -> str:
         return "rejected"
 
     # Esperar de forma síncrona suspendido en el kernel sin gastar CPU
-    signaled: bool = event.wait(timeout=float(timeout))
+    event.wait(timeout=float(timeout))
 
     with _lock:
         _events.pop(approval_id, None)

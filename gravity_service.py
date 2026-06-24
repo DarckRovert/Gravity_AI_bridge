@@ -58,7 +58,7 @@ try:
     import win32serviceutil
     import win32event
     import servicemanager
-    import socket
+    import socket  # noqa: F401
 
     class GravityWindowsService(win32serviceutil.ServiceFramework):
         """

@@ -742,13 +742,13 @@ def handle_video_preview_voice(handler):
         try:
             if os.path.isfile(tmp):
                 os.remove(tmp)
-        except:
+        except:  # noqa: E722
             pass
     except Exception as e:
         try:
             if "tmp" in locals() and os.path.isfile(tmp):
                 os.remove(tmp)
-        except:
+        except:  # noqa: E722
             pass
         handler.send_response(500)
         handler._send_cors()

@@ -481,7 +481,6 @@ def animate_with_variations(
 
     input_args: list[str] = []
     filter_parts: list[str] = []
-    last_label = "[v0]"
 
     for idx, vpath in enumerate(variation_paths):
         input_args += ["-loop", "1", "-t", f"{seg_dur:.3f}", "-i", vpath]

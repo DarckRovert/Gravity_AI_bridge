@@ -19,7 +19,7 @@ _BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BOUNTIES_FILE = os.path.join(_BASE_DIR, "BOUNTIES_ENCONTRADOS.md")
 POLL_INTERVAL_SEC = 1800  # 30 minutos
 
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # noqa: E402
 
 
 def fetch_freelancer_rss():

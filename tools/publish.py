@@ -22,14 +22,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from tools.book_refiner import (
+from tools.book_refiner import (  # noqa: E402
     BookRefiner,
     _render_html,
     _detect_caps,
     _load_file,
     _assemble_book,
 )
-from core import image_router, provider_manager
+from core import image_router, provider_manager  # noqa: E402
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -123,7 +123,7 @@ def run_rewrite_publish(book_dir_path: str, force: bool = False) -> str:
     logger.info(f"PUBLICANDO: {os.path.basename(book_dir_path)}")
     logger.info(f"{'='*60}")
 
-    out_dir = book_dir_path.rstrip("/\\") + "_refinado"
+    book_dir_path.rstrip("/\\") + "_refinado"
 
     # Si no hay force y el html ya existe y es reciente, podríamos saltarlo,
     # pero el refiner maneja el progreso interno.

@@ -18,10 +18,10 @@ from typing import Dict, Any, List, Tuple
 
 log = logging.getLogger("gravity.tool_executor")
 
-from tools.code_runner import CodeRunner
-from tools.web_search import WebSearch
-from tools.git_tool import GitTool, FileOpsTool
-from tools.file_edit_v2 import FileEditV2
+from tools.code_runner import CodeRunner  # noqa: E402
+from tools.web_search import WebSearch  # noqa: E402
+from tools.git_tool import GitTool, FileOpsTool  # noqa: E402
+from tools.file_edit_v2 import FileEditV2  # noqa: E402
 
 # Cerrojo reentrante global para la exclusión mutua de ejecución concurrente de herramientas
 _executor_lock: threading.RLock = threading.RLock()

@@ -491,7 +491,7 @@ def auto_connect_if_configured():
             port=int(cfg.get("port", _DEFAULT_PORT)),
             password=password,
         )
-        result = _obs.connect()
+        _obs.connect()
         # Logging handled internally by connect() to prevent spam
     except Exception as e:
         log.warning(f"[OBSClient] auto_connect error: {e}")

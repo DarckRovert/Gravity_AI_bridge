@@ -22,7 +22,7 @@ if not logger.handlers:
 # Locks de nivel de módulo y cachés estáticas
 _whisper_init_lock = threading.Lock()
 _whisper_transcribe_lock = threading.Lock()
-_model_cache: Dict[tuple, WhisperModel] = {}
+_model_cache: Dict[tuple, WhisperModel] = {}  # noqa: F821
 
 
 class WhisperEngine:

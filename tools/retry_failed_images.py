@@ -21,8 +21,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from core.visual_lore import inject_lore_to_prompt
-from tools.pollinations_generator import generate as poll_gen
+from core.visual_lore import inject_lore_to_prompt  # noqa: E402
+from tools.pollinations_generator import generate as poll_gen  # noqa: E402
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"

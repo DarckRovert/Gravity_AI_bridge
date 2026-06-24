@@ -34,7 +34,7 @@ def test_autonomous_router():
     print("\n[+] Solicitando Tarea 1: 'bounty'")
     messages = [{"role": "user", "content": "Escribe una frase corta."}]
 
-    start_time = time.time()
+    time.time()
     res1 = "".join(list(stream(messages, task="bounty")))
     print(f"    Respuesta: {res1.strip()}")
     res2 = "".join(list(stream(messages, task="semantic")))
