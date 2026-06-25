@@ -73,6 +73,7 @@ class InfiltratorManager:
             return False, "El infiltrador ya está en ejecución."
 
         _infiltrator_state["running"] = True
+        _infiltrator_state["last_screenshot"] = None
         _infiltrator_state["status_msg"] = (
             f"Iniciando infiltración hacia {target_url}..."
         )
@@ -86,8 +87,12 @@ class InfiltratorManager:
     def stop_infiltration(self):
         global _infiltrator_state
         _infiltrator_state["running"] = False
-        _infiltrator_state["status_msg"] = "Deteniendo..."
-        return True, "Infiltrador deteniéndose (espera un par de segundos)."
+        if self.thread and self.thread.is_alive():
+            _infiltrator_state["status_msg"] = "Deteniendo..."
+            return True, "Infiltrador deteniéndose (espera un par de segundos)."
+        else:
+            _infiltrator_state["status_msg"] = "Apagado"
+            return True, "Infiltrador detenido."
 
     def _infiltration_loop(self, target_url):
         global _infiltrator_state
@@ -178,6 +183,10 @@ class InfiltratorManager:
                     self.playwright.stop()
             except Exception:
                 pass
+            
+            if _infiltrator_state["status_msg"] == "Deteniendo..." or not _infiltrator_state["status_msg"].startswith("Error"):
+                _infiltrator_state["status_msg"] = "Apagado"
+                
             log.info("[Infiltrator] Rutina terminada.")
 
     def _execute_task(self, task):

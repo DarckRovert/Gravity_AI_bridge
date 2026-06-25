@@ -394,6 +394,7 @@ Seguridad: score {snapshot.get('security', {}).get('score', 100)}/100
   - [knowledge_base] Persistir regla o aprendizaje: learn("texto de la regla")
   - [strategic_memory] Registrar observación o patrón
   - [affiliate] Registrar observación de rendimiento por niche
+  - [workflow_engine] Lanzar fábrica de contenido asíncrona: run_workflow("workflow_id", {"topic": "..."})
 
 ═══ ACCIONES QUE REQUIEREN APROBACIÓN HUMANA (ALTO RIESGO) ═══
   - Modificar config.yaml o proveedores de IA
@@ -612,7 +613,27 @@ def _execute_low_risk_action(action: Dict[str, str]) -> Tuple[bool, str]:
                     return False, f"Error persistiendo regla: {e}"
             return True, f"Observacion registrada: {desc[:100]}"
 
-        # ── 6. Fallback: documentar en strategic_memory ──────────────────────
+        # ── 6. Lanzar Workflow Asíncrono ──────────────────────────────────────
+        if "workflow" in module or "pipeline" in module:
+            wf_match = re.search(r'run_workflow\(\s*["\']([^"\']+)["\'](?:\s*,\s*(\{.*?\}))?\s*\)', desc)
+            if wf_match:
+                wf_id = wf_match.group(1)
+                params_str = wf_match.group(2)
+                params = {}
+                if params_str:
+                    try:
+                        import ast
+                        params = ast.literal_eval(params_str)
+                    except Exception:
+                        params = {}
+                from core.workflow_engine import run_workflow
+                try:
+                    job = run_workflow(workflow_id=wf_id, params=params, blocking=False)
+                    return True, f"Workflow '{wf_id}' encolado exitosamente (Job {job.job_id})"
+                except Exception as e:
+                    return False, f"Error encolando workflow '{wf_id}': {e}"
+
+        # ── 7. Fallback: documentar en strategic_memory ──────────────────────
         from core.strategic_memory import (
             record_decision,
             CAT_SYSTEM,

@@ -1,0 +1,50 @@
+{
+  "workflow_id": "noticia_portal",
+  "description": "Investiga un tema en la web, redacta un artículo periodístico con el LLM, genera imagen de portada y opcionalmente sube el contenido al portal.",
+  "nodes": [
+    {
+      "id": "search",
+      "type": "WebSearch",
+      "config": { "max_results": 3 },
+      "inputs": {
+        "query": "{{topic}} noticias"
+      }
+    },
+    {
+      "id": "rag",
+      "type": "RAGQuery",
+      "config": { "top_k": 3 },
+      "inputs": {
+        "query": "{{topic}}"
+      }
+    },
+    {
+      "id": "article",
+      "type": "LLMQuery",
+      "config": {
+        "system": "Eres un periodista de investigación profesional. Redacta un artículo en español, estructurado con titular, bajada, cuerpo (3-5 párrafos) y fuentes. Usa los datos de búsqueda y contexto RAG como base factual.",
+        "temperature": 0.7,
+        "max_tokens": 2000
+      },
+      "inputs": {
+        "prompt": "Contexto web:\n{{search.text}}\n\nContexto RAG:\n{{rag.context}}\n\nRedacta un artículo periodístico completo sobre: {{topic}}"
+      }
+    },
+    {
+      "id": "headline_image",
+      "type": "ImageGenerator",
+      "config": {
+        "width": 1216,
+        "height": 832
+      },
+      "inputs": {
+        "prompt": "Photorealistic news header image, professional journalism, {{topic}}, dramatic lighting, 16:9 landscape",
+        "title": "{{topic}}"
+      }
+    }
+  ],
+  "outputs": {
+    "article": "article.text",
+    "image": "headline_image.image_path"
+  }
+}

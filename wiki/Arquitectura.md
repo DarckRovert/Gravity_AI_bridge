@@ -222,3 +222,20 @@ bridge_server.py (Entry Point)
 
 > [!NOTE]
 > El Motor GLSL PBR V13 está optimizado para GPUs integradas. Todos los shaders mantienen presupuesto de 16ms/frame (60fps) incluso en Intel UHD 620, evitando bucles anidados pesados y usando `smoothstep` en lugar de `pow` cuando es posible.
+
+---
+
+## 🏭 Motor de Workflows y Autonomía (V16.3 PRO)
+
+Gravity incorpora un **Workflow Engine** (`core/workflow_engine.py`) estructurado como un Grafo Acíclico Dirigido (DAG).
+Este sistema transforma scripts en "Líneas de Ensamblaje" (Archivos JSON en `/workflows/`) donde cada paso es un **Nodo Atómico**.
+
+### 🧩 Nodos Atómicos Soportados
+1. **RAGQueryNode**: Recupera contexto desde ChromaDB.
+2. **WebSearchNode**: Scraping y DuckDuckGo en tiempo real.
+3. **LLMQueryNode**: Orquesta Native Llama o APIs cloud (`provider_manager.complete`).
+
+### ⚙️ Integración con Autonomy Engine
+El `autonomy_engine.py` (OODA Loop) cuenta con un bypass de "Bajo Riesgo". Durante la fase DECIDE, el LLM puede invocar la ejecución nativa y asíncrona de cualquier Workflow de la carpeta `workflows/` utilizando `run_workflow("id")`. 
+- **Topological Sort**: Kahn's algorithm resuelve el orden de ejecución basado en las dependencias declaradas en el JSON.
+- **Background Threads**: Los workflows corren de manera no bloqueante permitiendo que el sistema de seguridad y métricas siga operando en paralelo.

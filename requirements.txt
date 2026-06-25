@@ -49,3 +49,7 @@ pytest-mock
 # Motor de Inferencia Nativo
 llama-cpp-python>=0.2.79
 huggingface-hub>=0.23.0
+
+# Motor Infiltrador (Playwright Stealth)
+playwright>=1.40.0
+playwright-stealth>=1.0.6

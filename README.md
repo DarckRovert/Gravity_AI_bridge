@@ -53,6 +53,11 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 - **Reasoning Stripper**: Filtra tokens `<think>` de modelos como DeepSeek-R1 via Regex antes de mostrarlos.
 - **Agent Routing**: Selección dinámica de modelo/proveedor según `--role` (auditor, planner, coder, researcher, executor).
 
+### 🏭 Workflow Engine & Autonomy Core (`core/workflow_engine.py` & `core/autonomy_engine.py`)
+- **Fábrica de Contenido**: Motor de grafos acíclicos dirigidos (DAG) impulsado por algoritmos de ordenamiento topológico (Kahn) que orquesta Nodos Atómicos.
+- **Recetas JSON**: Permite definir flujos completos (ej. RAG → Búsqueda → Generación LLM) en archivos JSON estáticos e inyectar dependencias y estados (ej. `{{node1.text}}`).
+- **Autonomía Nivel 4**: El OODA Loop de Gravity analiza el entorno de hardware/business y despacha Workflows asíncronos directamente sin intervención humana (ej. generar noticias u operar agentes RAG en background) usando `run_workflow("id")`.
+
 ### 🖥️ Dashboard V16.3 PRO React SPA (`frontend/dist`)
 Panel de control unificado con 35 componentes orquestados en tiempo real:
 

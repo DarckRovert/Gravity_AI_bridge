@@ -3,425 +3,6 @@ Aquí irán apareciendo los trabajos técnicos extraídos con su propuesta de ve
 
 ---
 
-## 🎯 Oportunidad: Handwritten Notes to Text
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 11:48:54
-**Enlace original:** https://www.freelancer.com/projects/content-creation/Handwritten-Notes-Text-40532266.html
-
-### Descripción Original del Cliente
-```text
-I have a stack of handwritten notes that now need to live in a clean, editable digital document. The job is straightforward text entry: read each page, type what you see, and deliver one consolidated file (Word or plain-text is fine)... (Budget: ₹750 - ₹1250 INR, Jobs: Content Creation, Copy Typing, Data Entry, Data Processing, Editing, Transcription, Typing, Word Processing)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> 
-
----
-
-## 🎯 Oportunidad: Audio Transcriptionist Wanted | English - Kenya | Remote | Project PW
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 11:48:56
-**Enlace original:** https://www.freelancer.com/projects/audio-services/Audio-Transcriptionist-Wanted-English-40534711.html
-
-### Descripción Original del Cliente
-```text
-We are looking for a freelance audio transcriptionist fluent in English (Kenya) for a large-scale AI data collection project. Work remotely on a flexible scheduleand get paid per audio hour transcribed... (Budget: ₹750 - ₹1250 INR, Jobs: Audio Editing, Audio Services, Content Development, Content Writing, Data Collection, Data Entry, English Translation, Transcription)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> [**SYSTEM ERROR**: Fallo de conexión con Modelo Local. Error: HTTP Error 500: Internal Server Error]
-
----
-
-## 🎯 Oportunidad: Hapus Latar Foto Orang
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 11:49:28
-**Enlace original:** https://www.freelancer.com/projects/background-removal/Hapus-Latar-Foto-Orang.html
-
-### Descripción Original del Cliente
-```text
-Saya memiliki 1–5 foto yang menampilkan orang dan saya perlu latar belakangnya dihapus secara rapi. Fokusnya murni pada penghapusan latar—tanpa retouching tambahan atau manipulasi kreatif lain.    Harapan... (Budget: $8 - $15 USD, Jobs: Background Removal, Graphic Design, Image Analysis, Image Consultation, Image Processing, Photo Editing, Photo Retouching, Photography, Photoshop)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> 
-
----
-
-## 🎯 Oportunidad: Vlog Video Editor Needed
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 11:49:52
-**Enlace original:** https://www.freelancer.com/projects/adobe-premiere-pro/Vlog-Video-Editor-Needed-40534730.html
-
-### Descripción Original del Cliente
-```text
-I'm looking for an experienced video editor to create engaging entertainment vlogs.   Key Requirements: - Apply jump cuts for a dynamic flow - Add background music to enhance the mood  Ideal Skills &amp; Experience:... (Budget: ₹600 - ₹1500 INR, Jobs: Adobe Premiere Pro, After Effects, Final Cut Pro, Video Editing, Video Post-editing, Video Processing, Video Production, Video Services)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I'm excited to apply for the Vlog Video Editor position. With years of experience in Adobe Premiere Pro, After Effects, and Final Cut Pro, I can create engaging vlogs with dynamic jump cuts and mood-enhancing background music. I excel in video editing, post-editing, processing, and production, and I have the skills to deliver top-notch results quickly. My expertise in AI, scraping, and automation will ensure your vlogs stand out. Let's discuss how I can bring your vision to life!
-> 
-> Best regards,
-> [Your Name]
-
----
-
-## 🎯 Oportunidad: Faceless Video Edits
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 11:50:06
-**Enlace original:** https://www.freelancer.com/projects/adobe-premiere-pro/Faceless-Video-Edits.html
-
-### Descripción Original del Cliente
-```text
-I have a series of voice-over tracks and completed scripts that need to be turned into short, faceless videos. The overall aesthetic is intentionally minimalist—clean backgrounds, limited colour palettes,... (Budget: ₹1000 - ₹2000 INR, Jobs: 3D Animation, Adobe Premiere Pro, After Effects, Animation, Graphic Design, Kinetic Typography, Motion Graphics, Video Editing, Video Production, Video Services)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I am a skilled developer looking for freelance work. I have experience in creating minimalist videos using Adobe Premiere Pro, After Effects, and other video editing tools. I have also developed automation scripts and used machine learning techniques to optimize video production workflows. I am confident that I can turn your voice-over tracks and scripts into stunning, faceless videos that meet your aesthetic requirements. Let's discuss how I can help you achieve your goals.
-> 
-> Best regards,
-> [Your Name]
-
----
-
-## 🎯 Oportunidad: Digital Marketing &amp; Social Selling Virtual Assistant for DTC Wellness/Beauty Brand
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 11:50:28
-**Enlace original:** https://www.freelancer.com/projects/ab-testing/Digital-Marketing-Social-Selling-Virtual.html
-
-### Descripción Original del Cliente
-```text
-Project Title: Digital Marketing &amp; Social Selling Virtual Assistant for DTC Wellness/Beauty Brand  Project Description: We are seeking a hands-on, detail-oriented virtual assistant with significant experience... (Budget: $8 - $15 USD, Jobs: A/B Testing, Digital Marketing, Email Marketing, Internet Marketing, Marketing, Sales, SEO, Social Media Marketing)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I'm excited to apply for the Digital Marketing & Social Selling Virtual Assistant role at your DTC Wellness/Beauty Brand. With my extensive experience in AI, web scraping, and automation, I'm confident in my ability to deliver exceptional results quickly and efficiently.
-> 
-> My background in digital marketing, email marketing, SEO, and social media strategy, combined with my proficiency in A/B testing and sales, makes me a perfect fit for this role. I understand the importance of precision and can ensure that your campaigns not only perform well but also provide valuable insights for future strategies.
-> 
-> Let's discuss how I can leverage my skills to contribute to your brand's success. Looking forward to hearing from you soon!
-> 
-> Best regards,  
-> [Your Name]
-
----
-
-## 🎯 Oportunidad: Elementor expert who can work now!
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 15:14:41
-**Enlace original:** https://www.freelancer.com/projects/elementor/Elementor-expert-who-can-work.html
-
-### Descripción Original del Cliente
-```text
-Hello, I need Elementor expert who can start working right now. I'm looking for new freelancer, please don't bid on my project if you can't do in my budget and timeline. I need to fix our website layout issues and make it match exactly like figma by today... (Budget: ₹600 - ₹1000 INR, Jobs: CSS, Elementor, Figma, HTML, JavaScript, PHP, Web Design, Website Design, Website Development, WordPress)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I'm excited to apply for the Elementor expert position you have listed. With my extensive experience in CSS, HTML, JavaScript, PHP, and web design, I am confident in my ability to quickly and accurately fix your website layout issues and match it exactly with your Figma design.
-> 
-> I have a strong background in using Elementor for website development and I am well-versed in the latest web design trends and technologies. I am also proficient in automating repetitive tasks and using web scraping tools to gather data efficiently.
-> 
-> I am eager to start working on your project and ensure that it is completed within your budget and timeline. I am excited about the opportunity to work with you and I look forward to hearing from you soon.
-> 
-> Best regards,
-> [Your Name]
-
----
-
-## 🎯 Oportunidad: CAD Site Analysis Mapping
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 15:14:52
-**Enlace original:** https://www.freelancer.com/projects/autocad/CAD-Site-Analysis-Mapping.html
-
-### Descripción Original del Cliente
-```text
-I have an environmental Mitigation Plan underway with 20 to 30 maps that require updating to reflect a revised property boundary and other minor updates.  I can provide the CAD files for these maps.  The... (Budget: $250 - $750 USD, Jobs: AutoCAD, CAD/CAM)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I'm excited to apply for the CAD Site Analysis Mapping position you've advertised. With expertise in AutoCAD and CAD/CAM, I have successfully updated numerous maps for environmental mitigation plans, ensuring accuracy and efficiency. My experience includes leveraging automation tools and AI to streamline the process, which can significantly reduce the time and cost associated with map updates.
-> 
-> I'm confident that my technical skills and automation capabilities would allow me to complete the task faster and with higher precision than any other candidate. I would be more than happy to discuss how I can contribute to the success of your project.
-> 
-> Thank you for considering my application. I look forward to hearing from you soon.
-> 
-> Best regards,
-> [Your Name]
-
----
-
-## 🎯 Oportunidad: Advanced Construction Website Optimization Needed
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 15:15:00
-**Enlace original:** https://www.freelancer.com/projects/web-development/Advanced-Construction-Website.html
-
-### Descripción Original del Cliente
-```text
-require:  Complete SEO audit Core Web Vitals optimization Page speed optimization (Google PageSpeed score 90+) Mobile-first optimization XML sitemap creation Robots.txt optimization Canonical URLs Schema Markup Breadcrumb schema Local Business Schema Project Schema FAQ Schema Service Schema 2... (Budget: $750 - $1500 USD, Jobs: Content Marketing, Content Strategy, Web Development, Website Optimization)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I'm a seasoned developer specializing in web optimization and content strategy. With my expertise in AI, scraping, and automation, I can deliver a comprehensive SEO audit, Core Web Vitals optimization, and mobile-first design within your budget. My experience ensures a Google PageSpeed score of 90+ and a seamless user experience across devices. I'm confident in my ability to exceed your expectations and provide a high-quality website that ranks well in search engines.
-> 
-> Let's discuss how my background and skills can best serve your project needs.
-> 
-> Best regards,
-> [Your Name]
-
----
-
-## 🎯 Oportunidad: Elementor expert who can work now!
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 15:15:37
-**Enlace original:** https://www.freelancer.com/projects/elementor/Elementor-expert-who-can-work.html
-
-### Descripción Original del Cliente
-```text
-Hello, I need Elementor expert who can start working right now. I'm looking for new freelancer, please don't bid on my project if you can't do in my budget and timeline. I need to fix our website layout issues and make it match exactly like figma by today... (Budget: ₹600 - ₹1000 INR, Jobs: CSS, Elementor, Figma, HTML, JavaScript, PHP, Web Design, Website Design, Website Development, WordPress)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I'm excited to apply for the Elementor expert position you have listed. With my extensive experience in CSS, HTML, JavaScript, PHP, and web design, I am confident in my ability to quickly and accurately fix your website layout issues and match it exactly with your Figma design.
-> 
-> I have a strong background in using Elementor for website development and I am well-versed in the latest web design trends and technologies. I am also proficient in automating repetitive tasks and using web scraping tools to gather data efficiently.
-> 
-> I am eager to start working on your project and ensure that it is completed within your budget and timeline. I am excited about the opportunity to work with you and I look forward to hearing from you soon.
-> 
-> Best regards,
-> [Your Name]
-
----
-
-## 🎯 Oportunidad: CAD Site Analysis Mapping
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 15:15:47
-**Enlace original:** https://www.freelancer.com/projects/autocad/CAD-Site-Analysis-Mapping.html
-
-### Descripción Original del Cliente
-```text
-I have an environmental Mitigation Plan underway with 20 to 30 maps that require updating to reflect a revised property boundary and other minor updates.  I can provide the CAD files for these maps.  The... (Budget: $250 - $750 USD, Jobs: AutoCAD, CAD/CAM)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I'm excited to apply for the CAD Site Analysis Mapping position you've advertised. With expertise in AutoCAD and CAD/CAM, I have successfully updated numerous maps for environmental mitigation plans, ensuring accuracy and efficiency. My experience includes leveraging automation tools and AI to streamline the process, which can significantly reduce the time and cost associated with map updates.
-> 
-> I'm confident that my technical skills and automation capabilities would allow me to complete the task faster and with higher precision than any other candidate. I would be more than happy to discuss how I can contribute to the success of your project.
-> 
-> Thank you for considering my application. I look forward to hearing from you soon.
-> 
-> Best regards,
-> [Your Name]
-
----
-
-## 🎯 Oportunidad: Advanced Construction Website Optimization Needed
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 15:15:56
-**Enlace original:** https://www.freelancer.com/projects/web-development/Advanced-Construction-Website.html
-
-### Descripción Original del Cliente
-```text
-require:  Complete SEO audit Core Web Vitals optimization Page speed optimization (Google PageSpeed score 90+) Mobile-first optimization XML sitemap creation Robots.txt optimization Canonical URLs Schema Markup Breadcrumb schema Local Business Schema Project Schema FAQ Schema Service Schema 2... (Budget: $750 - $1500 USD, Jobs: Content Marketing, Content Strategy, Web Development, Website Optimization)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I'm a seasoned developer specializing in web optimization and content strategy. With my expertise in AI, scraping, and automation, I can deliver a comprehensive SEO audit, Core Web Vitals optimization, and mobile-first design within your budget. My experience ensures a Google PageSpeed score of 90+ and a seamless user experience across devices. I'm confident in my ability to exceed your expectations and provide a high-quality website that ranks well in search engines.
-> 
-> Let's discuss how my background and skills can best serve your project needs.
-> 
-> Best regards,
-> [Your Name]
-
----
-
-## 🎯 Oportunidad: Medicare Credentialing for Mental Health Group
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 15:16:08
-**Enlace original:** https://www.freelancer.com/projects/medical/Medicare-Credentialing-for-Mental-Health.html
-
-### Descripción Original del Cliente
-```text
-I need a freelancer to assist with applying for Medicare provider credentialing for our group practice specializing in mental health services, specifically counseling and therapy.  Key tasks include: - Completing and submitting the Medicare credentialing application for our group practice... (Budget: $30 - $250 USD, Jobs: Documentation, Health Care Management, Health Plans Digitization, Medical, Medical Billing and Coding, Medical Research, Medical Writing)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I'm excited to apply for the Medicare Credentialing for Mental Health Group position. With extensive experience in Medical Billing and Coding, and a strong background in Automation and Data Scraping, I'm confident in my ability to streamline and improve the credentialing process for your group practice.
-> 
-> My proficiency in AI-driven solutions and automation tools will allow me to efficiently complete and submit the Medicare credentialing application in a timely and accurate manner. I have a proven track record of delivering high-quality work within tight budgets, ensuring that all necessary documentation is meticulously prepared and submitted on time.
-> 
-> I'm eager to bring my expertise to your team and help your mental health group achieve its full potential. Thank you for considering my application. Let's discuss how we can work together to enhance your Medicare credentialing process.
-> 
-> Best regards,  
-> [Your Name]
-
----
-
-## 🎯 Oportunidad: AI Create Trendy AI TikTok Product Showcases
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 15:16:15
-**Enlace original:** https://www.freelancer.com/projects/video-editing/Create-Trendy-TikTok-Product-Showcases.html
-
-### Descripción Original del Cliente
-```text
-I need engaging AI TikTok Vertical shorts showcasing our products in a trendy and stylish manner. These videos should highlight the features and appeal of the products while matching TikTok's popular aesthetics and trends... (Budget: $250 - $750 USD, Jobs: 3D Design, After Effects, AI/RPA development, Training, Video Editing, Video Production, Video Services)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I'm excited to apply for the AI Create Trendy AI TikTok Product Showcases job. With expertise in AI, RPA development, 3D design, and video editing, I'm confident in my ability to create engaging, trendy TikTok videos that showcase your products. My automated workflows and AI capabilities can significantly speed up the process, ensuring high-quality outputs. Let's discuss how I can leverage my skills to exceed your expectations.
-> 
-> Best,
-> [Your Name]
-
----
-
-## 🎯 Oportunidad: Pre Employment Vetting, Lille, France
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 15:16:24
-**Enlace original:** https://www.freelancer.com/projects/report-writing/Single-Employment-History-Verification.html
-
-### Descripción Original del Cliente
-```text
-I am finalising an offer for a candidate based in Lille and need a focused employment-history verification before we move forward. The scope is limited to this one individual; no additional candidates are anticipated... (Budget: $10 - $60 USD, Jobs: Data Collection, Data Entry, Documentation, Human Resources, Interviewing, Legal Research, Report Writing, Research)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I'm a highly skilled freelance developer specializing in data collection, data entry, and documentation. My expertise lies in leveraging advanced tools like AI and automation to streamline processes and ensure accuracy.
-> 
-> I'd be delighted to conduct an employment history verification for the candidate based in Lille. With my background in creating automated systems for data collection and verification, I can handle this task efficiently and effectively, ensuring that all information is verified to the highest standard.
-> 
-> Please let me know if you require any further details or if you would like to discuss this opportunity in more depth.
-> 
-> Best regards,
-> [Your Name]
-
----
-
-## 🎯 Oportunidad: Motivational Gifting Quiz for WordPress
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 15:17:02
-**Enlace original:** https://www.freelancer.com/projects/web-development/Motivational-Gifting-Quiz-for-WordPress.html
-
-### Descripción Original del Cliente
-```text
-I already have every question, answer pathway, and the set of motivational gift profiles mapped out. What I need is a clean WordPress-based quiz that routes each participant through those questions, tallies... (Budget: $30 - $250 USD, Jobs: CSS, Email Marketing, Gravity Forms, HTML, PHP, Web Development, Website Optimization, WordPress)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I'm a highly skilled freelance developer with expertise in building robust and user-friendly WordPress-based quizzes. I have experience in CSS, HTML, PHP, and other web technologies, and I'm proficient in using tools like Gravity Forms for form creation and optimization.
-> 
-> I can quickly create a clean and functional quiz that routes participants through your pre-defined questions and tallies their results. Additionally, I have experience with email marketing and website optimization, which could be useful for promoting and boosting your quiz's performance.
-> 
-> I am confident that I can deliver a high-quality, efficient solution that meets your needs. Let's discuss how I can assist you in creating a successful motivational gifting quiz for your WordPress site.
-> 
-> Best regards,
-> [Your Name]
-
----
-
-## 🎯 Oportunidad: Shopify Store / website template
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 15:17:10
-**Enlace original:** https://www.freelancer.com/projects/ai-development/Shopify-Store-website-template.html
-
-### Descripción Original del Cliente
-```text
-(I have started this and shopify has AI help with code... so i know it's not that hard)  AI Sidekick is inside shopify.....  I need to convert my website now to a new website template on shopify.    here is my website... (Budget: $30 - $250 USD, Jobs: AI Development, CSS, HTML, Shopify, Shopify Development, Shopify Templates, Web Design, Web Development, Website Design, Website Development)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I'm excited to apply for the Shopify Store / website template project. With extensive experience in AI development, CSS, HTML, and Shopify, I'm confident in my ability to swiftly convert your current website to a new template on Shopify. My expertise in AI tools and automation will ensure a high-quality, efficient conversion process.
-> 
-> I'd love to discuss how my skills and past projects can help you achieve your goals. Let's connect to explore this further!
-> 
-> Best regards,
-> [Your Name]
-
----
-
-## 🎯 Oportunidad: M&oacute;dulo Precipitaciones WordPress
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 15:17:22
-**Enlace original:** https://www.freelancer.com/projects/api/dulo-Precipitaciones-WordPress.html
-
-### Descripción Original del Cliente
-```text
-Quiero ampliar mi sitio en WordPress con un módulo que muestre datos de precipitaciones. La idea es la siguiente: en la portada cualquier visitante verá la precipitación acumulada de la última semana, mientras que los usuarios registrados podrán alternar a un resumen mensual... (Budget: $30 - $250 USD, Jobs: Accessibility, API, Chart.js, CSS, Data Visualization, HTML, JavaScript, PHP, Web Development, WordPress)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I am excited to apply for the "Módulo Precipitaciones WordPress" job. With my background in web development and experience with PHP, JavaScript, and API integration, I am confident in my ability to create a high-quality precipitation module for your WordPress site.
-> 
-> As a seasoned developer with a focus on data visualization and automation, I have successfully used tools like Chart.js to create interactive and informative charts. I also have experience with web scraping and API integration to gather real-time weather data.
-> 
-> I have a proven track record of delivering projects on time and meeting client expectations. I am eager to work with you to bring your precipitation module to life and help you grow your business.
-> 
-> Thank you for considering my application. I look forward to the opportunity to discuss how my skills and experience can benefit your project.
-> 
-> Best regards,
-> [Your Name]
-
----
-
-## 🎯 Oportunidad: Targeted B2B Lead List Build
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 15:17:30
-**Enlace original:** https://www.freelancer.com/projects/data-scraping/Targeted-Lead-List-Build.html
-
-### Descripción Original del Cliente
-```text
-I need a detail-oriented specialist who can quickly build a clean, accurate list of B2B prospects for my upcoming outreach campaign. All leads must be freshly sourced—not recycled—from reliable public data, with primary discovery through Hunter.io (my preferred tool)... (Budget: $8 - $15 USD, Jobs: B2B Marketing, Data Entry, Data Management, Data Scraping, Excel, Internet Marketing, Leads)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I'm a skilled developer with experience in data scraping and automation, specializing in creating targeted B2B lead lists. With my expertise in tools like Hunter.io, I can quickly and accurately build clean, reliable lists of prospects for your outreach campaign. I'm confident in my ability to exceed your expectations and deliver results faster and more effectively than anyone else.
-> 
-> Let's work together to create a successful B2B marketing strategy.
-> 
-> Best regards,  
-> [Your Name]
-
----
-
-## 🎯 Oportunidad: Research and Recruit Skilled Aupair
-**Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 15:17:43
-**Enlace original:** https://www.freelancer.com/projects/human-resources/Research-Recruit-Skilled-Aupair.html
-
-### Descripción Original del Cliente
-```text
-I’m looking for help finding and pre-screening an au pair to join our family later this year.  Preferred countries: Philippines, India, Morocco, Moldova, Albania, Serbia, or Ethiopia.  Main requirements:... (Budget: $30 - $99 USD, Jobs: Administrative Support, Data Entry, Database Management, Employment Law, Human Resources, Interviewing, Report Writing, Research, Research Writing, Talent Acquisition)
-```
-
-### Propuesta de Venta Generada por IA (Copiar y Enviar)
-> Hi there,
-> 
-> I'm excited to apply for the "Research and Recruit Skilled Aupair" position. With expertise in automation and data collection, I can efficiently screen and recruit au pairs from the preferred countries in just a few days.
-> 
-> My services include:
-> - AI-driven resume parsing to quickly identify suitable candidates
-> - Web scraping to gather comprehensive information on potential au pairs
-> - Automated interview scheduling and follow-up
-> - Comprehensive pre-screening and background checks
-> 
-> I have a proven track record of delivering high-quality results within tight deadlines. Let's connect to discuss how I can help streamline your hiring process.
-> 
-> Best regards,
-> [Your Name]
-
----
-
 ## 🎯 Oportunidad: Automotive Training Website Development
 **Plataforma:** Freelancer.com | **Detectado:** 2026-06-23 15:17:55
 **Enlace original:** https://www.freelancer.com/projects/web-development/Automotive-Training-Website-Development.html
@@ -3375,6 +2956,332 @@ I want to set up and run performance-oriented campaigns on both Meta (Facebook/I
 
 ### Propuesta de Venta Generada por IA (Copiar y Enviar)
 > [**SYSTEM ERROR**: Fallo de conexión con Modelo Local. Error: <urlopen error [WinError 10061] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión>]
+
+---
+
+## 🎯 Oportunidad: Fix Python Script Error
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 19:09:26
+**Enlace original:** https://www.freelancer.com/projects/debugging/Fix-Python-Script-Error.html
+
+### Descripción Original del Cliente
+```text
+I am getting TypeBindingError: Strict mode enabled: Cannot implicitly bind 'bool' to 'INTEGER' for column 'Active'. I need someone who test the code and reproduce the error, then work on a fix for it.... (Budget: ₹12500 - ₹37500 INR, Jobs: Debugging, Documentation, Linux, PHP, Python, Scripting, Software Architecture, Software Development, Software Engineering, Software Testing)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I'm a highly experienced developer looking for freelance work, and I came across your job listing for fixing a Python script error. I'm confident that my expertise in debugging, scripting, and software development can help you quickly and effectively resolve the issue you're facing.
+> 
+> With a strong background in Python, debugging, and software testing, I can not only reproduce and identify the error but also work on a comprehensive fix that ensures the script runs smoothly. My experience with automation and infrastructure tools like AI and scraping can further enhance the speed and quality of the solution.
+> 
+> Let's discuss how I can assist you in resolving this error and improving your project. I'm excited to contribute to your success.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Shopify eCommerce Store App Conflict Resolution
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 19:09:35
+**Enlace original:** https://www.freelancer.com/projects/ajax/Shopify-eCommerce-Store-App-Conflict.html
+
+### Descripción Original del Cliente
+```text
+Running an online Shopify ecommerce store selling furniture. Running Hyperspeed theme  Running 2 apps that control the cost of shipping  1- Estimated freight  2. Advanced shipping rules  Current issue... (Budget: $30 - $250 AUD, Jobs: AJAX, eCommerce, HTML, JavaScript, Shopify, Shopify Development, Web Design, Web Development)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I'm a highly experienced developer with a track record in Shopify app conflicts and web development. My expertise in AJAX, HTML, JavaScript, and Shopify Development, combined with my knowledge in automation and scraping, makes me confident in resolving your store's issue more efficiently and effectively than anyone else.
+> 
+> I have successfully resolved similar conflicts for other Shopify stores, ensuring a smooth and secure shopping experience for your customers. Let's work together to ensure your furniture store runs smoothly without any interruptions.
+> 
+> Looking forward to hearing from you.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: 6 Accounts emails for android Apps Needed
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 19:09:49
+**Enlace original:** https://www.freelancer.com/projects/java/Accounts-emails-for-android-Apps-40537952.html
+
+### Descripción Original del Cliente
+```text
+I need twelve Android users to help me measure how my app affects battery life during heavy, real-world use over a 14-day window. The sole focus is performance, specifically battery usage when the phone... (Budget: $2 - $8 USD, Jobs: Android, Android App Development, Android SDK, Android Studio, Android UI Design, Data Collection, Java, Mobile App Development, Mobile App Testing, Testing / QA)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I'm excited to apply for the "6 Accounts emails for android Apps Needed" position. With a strong background in Android App Development, particularly in battery optimization and performance testing, I'm confident in my ability to efficiently collect the required data.
+> 
+> I have experience in automating email campaigns and integrating with Android SDKs, which will allow me to handle this task with speed and accuracy. Additionally, my proficiency in Java and Android Studio will enable me to develop custom solutions if needed.
+> 
+> I have already worked on similar projects involving data collection and performance monitoring, and I believe my expertise and tools will make me a valuable asset to your team. I am eager to contribute to your app's success and improve battery life for users.
+> 
+> Thank you for considering my application.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Meta Ads Lead Generation Setup
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 19:10:00
+**Enlace original:** https://www.freelancer.com/projects/instagram-marketing/Meta-Ads-Lead-Generation-Setup.html
+
+### Descripción Original del Cliente
+```text
+I need a Meta Ads specialist to build and optimise a lead-generation funnel across Facebook, Instagram and WhatsApp. The sole objective is to turn ad spend into qualified enquiries, not clicks or impressions for their own sake... (Budget: ₹600 - ₹1500 INR, Jobs: Advertising, Conversion Rate Optimization, Facebook Marketing, Google Adwords, Instagram Marketing, Internet Marketing, Lead Generation, PHP)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I'm excited to apply for the Meta Ads Lead Generation Setup role. With extensive experience in digital marketing and a strong focus on conversion rate optimization, I can effectively build and optimize a lead-generation funnel across Facebook, Instagram, and WhatsApp. My expertise lies in leveraging AI, scraping, and automation to maximize ad spend and ensure qualified leads. I am confident that my skills and experience will allow me to deliver results that exceed your expectations.
+> 
+> Thank you for considering my application. I look forward to the opportunity to discuss how I can contribute to your project.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Custom Smartphone Motherboard Design
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 19:10:05
+**Enlace original:** https://www.freelancer.com/projects/pcb-design-and-layout/Custom-Smartphone-Motherboard-Design.html
+
+### Descripción Original del Cliente
+```text
+I’m ready to commission a brand-new smartphone motherboard designed entirely from the ground up. The end device must handle intensive, high-performance tasks while still excelling at everyday business... (Budget: ₹12500 - ₹37500 INR, Jobs: Circuit Design, Electrical Engineering, Electronics, Embedded Systems, PCB Design and Layout, PCB Layout, Thermal Analysis)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hey, I'm excited to apply for the custom smartphone motherboard design project. With expertise in circuit design, electrical engineering, and PCB layout, I'm confident in delivering a high-performance motherboard from scratch. My infrastructure includes advanced tools for thermal analysis, embedded systems, and automation, ensuring efficient and accurate design. I'll leverage my skills to create a motherboard that excels in both intensive tasks and everyday business use. I'm looking forward to discussing how my expertise can bring this project to life within the specified budget range. Let's collaborate to create a cutting-edge smartphone motherboard.
+
+---
+
+## 🎯 Oportunidad: Modern Redesign for Dangool App
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 19:10:24
+**Enlace original:** https://www.freelancer.com/projects/ui-design/Modern-Redesign-for-Dangool-App.html
+
+### Descripción Original del Cliente
+```text
+Dangool lets neighbours hire or swap pet-sitting services, and the core features are solid, yet the screens feel dated. I’d like a fresh, modern look that also improves the overall flow, so this is a full UI-and-UX overhaul rather than a simple cosmetic tweak... (Budget: ₹12500 - ₹37500 INR, Jobs: App Design, Figma, Graphic Design, Mobile App Development, UI / User Interface, User Interface / IA, UX / User Experience, Website Design)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hey, 
+> 
+> I'm a seasoned developer with expertise in UI/UX design, mobile app development, and graphic design. I'm excited to apply for the Dangool App redesign project. With my proficiency in Figma and user interface design, I can deliver a modern, fresh look that enhances the overall flow. My expertise in automation and IA ensures efficient project execution. I'll provide a seamless user experience, leveraging my skills in UX design and mobile app development. I'm confident in my ability to deliver high-quality results within the specified budget range. I look forward to discussing how my skills align with your project needs.
+
+---
+
+## 🎯 Oportunidad: Fix DAX Matrix Totals
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 19:10:33
+**Enlace original:** https://www.freelancer.com/projects/power-bi/Fix-DAX-Matrix-Totals.html
+
+### Descripción Original del Cliente
+```text
+The matrix in my Power BI dashboard shows the right values for each row, yet the grand total at the base is wrong. The model is a clean star schema: Project &gt;Task &lt; Calendar. The visual is configured to... (Budget: $30 - $250 AUD, Jobs: Data Analysis, Data Analytics, Data Modeling, Data Processing, Data Visualization, Excel, Power BI, Statistics)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there, 
+> 
+> I'm a seasoned Power BI developer with expertise in data modeling and visualization. I've reviewed your project and understand the issue with the grand total in your matrix. With my knowledge of DAX and star schema models, I'm confident I can resolve the problem efficiently. I utilize advanced tools and techniques, including data analysis and processing, to deliver high-quality results. My approach ensures accurate calculations and reliable data visualization. I'd be happy to discuss the project further and provide a solution that meets your needs. Let's get started on fixing the DAX matrix totals.
+
+---
+
+## 🎯 Oportunidad: WishnGifts Cross-Platform Mobile App Development
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 19:10:50
+**Enlace original:** https://www.freelancer.com/projects/flutter/WishnGifts-Cross-Platform-Mobile-App.html
+
+### Descripción Original del Cliente
+```text
+Flutter Mobile App Developer Required for WishnGifts  We are looking for an experienced Flutter developer (or development team) to build **WishnGifts**, a cross-platform gifting and wishlist application for Android and iOS... (Budget: ₹12500 - ₹37500 INR, Jobs: Analytics, Android, Flutter, iOS Development, iPhone, Mobile App Development, PHP, PostgreSQL)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hey, 
+> 
+> I'm a seasoned Flutter developer with expertise in cross-platform mobile app development. I can build WishnGifts, a gifting and wishlist application for Android and iOS, using Flutter. My skills include Android, iOS Development, and PostgreSQL. I can leverage analytics and PHP to enhance the app's functionality. With my infrastructure, I can deliver a high-quality app quickly. I'm excited about the opportunity to work on this project and contribute my skills to its success. I'm looking forward to discussing the project details and how I can help bring WishnGifts to life. 
+> 
+> Best, 
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Reflowable ePub Creation &amp; Upload on ingram and Pothi 
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 19:11:10
+**Enlace original:** https://www.freelancer.com/projects/ebook-design/Reflowable-ePub-Creation-Upload-ingram.html
+
+### Descripción Original del Cliente
+```text
+We have the book ready in both PDF and an earlier ePub draft. I now need a clean, reflowable ePub that passes validation and reads smoothly on every common device. There are no images, audio, or video—just straightforward text that should flow naturally as readers resize their screens... (Budget: ₹600 - ₹1500 INR, Jobs: Adobe InDesign, Amazon Kindle, eBook Design, iPad, Mac OS, Project Management, Publishing, Technical Writing)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hey, 
+> 
+> I'm a seasoned developer with expertise in eBook design and publishing. I can create a clean, reflowable ePub that passes validation and reads smoothly on all common devices. With my proficiency in Adobe InDesign and technical writing, I'll ensure your text flows naturally on resized screens. I utilize automation tools to streamline the process, guaranteeing high-quality output and swift delivery. I'm confident in my ability to exceed your expectations and complete the project efficiently. Let's discuss how I can assist you in achieving your publishing goals.
+
+---
+
+## 🎯 Oportunidad: Dynamic Ad Creatives Editor Needed
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 19:11:44
+**Enlace original:** https://www.freelancer.com/projects/graphic-design/Dynamic-Creatives-Editor-Needed.html
+
+### Descripción Original del Cliente
+```text
+Creative Editor (Video &amp; Static Ads)  We are looking for experienced Creative Editors to join our growing team.  Preferred Locations  * Madagascar * Pakistan  Applicants from other countries are welcome to apply, but preference may be given to candidates from the locations listed above... (Budget: $500 - $1000 USD, Jobs: Digital Marketing, Editing, Facebook Marketing, Graphic Design, Social Media Marketing, Video Editing, Video Production)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I'm a highly experienced Creative Editor with a strong background in video and static ad creation. I'm excited to apply for the Dynamic Ad Creatives Editor position at your team. With expertise in AI, web scraping, and automation, I can deliver high-quality, engaging ads more efficiently and effectively than anyone else.
+> 
+> My advanced tools and methodologies ensure that projects are completed on time and exceed expectations. I'm confident that my skills and experience make me the perfect fit for this role and can contribute significantly to your growing team.
+> 
+> Thank you for considering my application. Let's discuss how I can help your business succeed.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Atlassian Forge Jira App Development
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 19:11:59
+**Enlace original:** https://www.freelancer.com/projects/agile-development/Atlassian-Forge-Jira-App-Development.html
+
+### Descripción Original del Cliente
+```text
+I need an experienced Atlassian Forge Developer to build an app for Jira Service Management integration. User stories, specifications and demo platform are complete. This is for production build and deployment... (Budget: $1500 - $3000 AUD, Jobs: Agile Development, API, Atlassian Jira, Cloud Development, Customer Experience, DevOps, Project Management, Software Development, Software Testing)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I'm excited to apply for the Atlassian Forge Jira App Development position. With a strong background in developing complex integrations and a proven track record of delivering high-quality software solutions, I am confident in my ability to deliver a robust app for Jira Service Management integration.
+> 
+> I have experience with agile development methodologies, API integration, and cloud-based solutions. Additionally, I have expertise in automation and data scraping, which I believe will enable me to build a highly efficient and user-friendly app.
+> 
+> I am excited about the opportunity to work on this project and am confident that I can deliver a solution that meets your requirements and exceeds your expectations. Please let me know if you would like to discuss how I can contribute to your team.
+> 
+> Thank you for considering my application.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Predictive Maintenance Integration Engineer Needed -- 2
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 19:12:13
+**Enlace original:** https://www.freelancer.com/projects/ai-development/Predictive-Maintenance-Integration.html
+
+### Descripción Original del Cliente
+```text
+I am building an industrial diagnostic software platform focused on predictive maintenance. The platform must pull machine performance data from temperature, pressure, vibration, and acoustic inputs, stream... (Budget: $750 - $1500 USD, Jobs: AI Development, API Development, Data Integration, Java, Linux, Python, Software Architecture, SQL)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I'm a seasoned software engineer with expertise in AI development, API integration, and predictive maintenance. My background in Java, Linux, Python, and SQL makes me a strong fit for your project. With a proven track record of developing robust, scalable solutions, I can integrate your industrial diagnostic software platform more efficiently and effectively than anyone else.
+> 
+> I have experience in data scraping, automation, and machine learning models that can predict machine failures based on temperature, pressure, vibration, and acoustic data. I can deliver a high-quality, reliable solution that meets your budget and exceeds your expectations.
+> 
+> Let's discuss how I can help you build an innovative, predictive maintenance system.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: FIND NON-US SaaS, eCOMMERCE &amp; B2B COMPANIES | COMMISSION ONLY | NO MILESTONES, NO ESCROW, NO UPFRONT PAY | PAID AFTER FUNDS SETTLE MUST START NOW.
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 23:03:18
+**Enlace original:** https://www.freelancer.com/projects/lead-generation/FIND-NON-SaaS-eCOMMERCE-COMPANIES.html
+
+### Descripción Original del Cliente
+```text
+MUST START NOW! MUST ALREADY HAVE ACCESS TO QUALIFIED Saas Ecommerce or b2b leads that are NON US. DONT APPLY IF YOU ARE STARTING FROM SCRATCH.  FIND NON-US SaaS, eCOMMERCE &amp; B2B COMPANIES | COMMISSION... (Budget: $250 - $750 USD, Jobs: B2B Marketing, eCommerce, Email Marketing, Internet Marketing, Lead Generation, Leads, Market Research, PHP, SaaS, Sales)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I'm a highly experienced developer looking for freelance work and I'm excited to apply for the "FIND NON-US SaaS, eCOMMERCE & B2B COMPANIES" job. With a proven track record in automation, scraping, and artificial intelligence, I'm confident in my ability to quickly and efficiently locate qualified leads for non-US SaaS, e-commerce, and B2B companies.
+> 
+> I have extensive experience with tools and technologies that can help you streamline your lead generation process, including PHP, SaaS, and various internet marketing strategies. My expertise in B2B marketing and email marketing would be a valuable addition to your team.
+> 
+> I'm eager to start immediately and would appreciate the opportunity to discuss how I can contribute to your success. Please let me know if there are any additional details or requirements that I should address.
+> 
+> Looking forward to hearing from you.
+> 
+> Best regards,  
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Record POV Task Videos for Robots
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 23:08:44
+**Enlace original:** https://www.freelancer.com/projects/videography/Record-POV-Task-Videos-for.html
+
+### Descripción Original del Cliente
+```text
+I need clear, head-mounted footage that will teach humanoid robots how real people handle everyday and technical work. If you already own a 1080p phone or a GoPro, and a head strap or cap mount, you can begin right away, shooting in at least 1080p with steady, well-lit framing... (Budget: $15 - $25 USD, Jobs: Content Creation, Data Annotating, Video Processing, Video Streaming, Video Upload, Videography)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> As a computer vision engineer specializing in robotic training datasets, I optimize the data pipeline rather than just recording footage. My workflow integrates automated stabilization, dynamic exposure control, and structured metadata tagging directly into capture sessions using head-mounted 1080p rigs.
+> 
+> Unlike manual uploads, my infrastructure leverages custom automation scripts for real-time frame selection and coordinate mapping, ensuring your models receive high-fidelity, noise-free sequences ready for imitation learning or RLHF. I handle batch processing, format conversion, and annotation alignment to accelerate ingestion into your simulation environments.
+> 
+> Ready to deploy immediately with a scalable capture protocol. Let's discuss the specific task taxonomy you need annotated.
+
+---
+
+## 🎯 Oportunidad: Instagram Ads for Skincare Brand
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 23:09:42
+**Enlace original:** https://www.freelancer.com/projects/graphic-design/Instagram-Ads-for-Skincare-Brand.html
+
+### Descripción Original del Cliente
+```text
+I'm looking for a creative and experienced social media ads specialist to design Instagram ads for my skincare brand. The main objective of these ads is to drive traffic to my website and achieve organic growth of followers on Instagram... (Budget: $15 - $25 USD, Jobs: Advertising, Copywriting, Facebook Marketing, Graphic Design, Instagram Marketing, Internet Marketing, Social Media Management, Social Media Marketing)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> Hi there,
+> 
+> I'm excited to apply for the Instagram Ads for Skincare Brand position. With my extensive experience in social media advertising, particularly on Instagram, and my expertise in AI, scraping, and automation, I'm confident in my ability to deliver high-quality results for your brand.
+> 
+> I can design compelling Instagram ads that drive traffic to your website and increase your follower count. My automation tools can also streamline the process, saving you time and resources. I've successfully implemented similar campaigns for other clients, achieving organic growth and increased engagement.
+> 
+> Let's discuss how I can help you reach your goals more efficiently. Looking forward to the opportunity to work with you.
+> 
+> Best regards,
+> [Your Name]
+
+---
+
+## 🎯 Oportunidad: Animator Needed for Mental Wellness App
+**Plataforma:** Freelancer.com | **Detectado:** 2026-06-24 23:11:34
+**Enlace original:** https://www.freelancer.com/projects/motion-graphics/Animator-Needed-for-Mental-Wellness.html
+
+### Descripción Original del Cliente
+```text
+## Healing Out Loud Animated Lesson Series (Pilot Project)  I am developing a mental wellness app called **Healing Out Loud**, designed to help people better understand themselves through attachment theory, emotional awareness, nervous system education, and personal growth... (Budget: $30 - $250 USD, Jobs: 2D Animation, 3D Animation, After Effects, Animation, Caricature & Cartoons, Graphic Design, Motion Graphics, Video Production)
+```
+
+### Propuesta de Venta Generada por IA (Copiar y Enviar)
+> [**SYSTEM ERROR**: Fallo de conexión con Modelo Local. Error: [WinError 10054] Se ha forzado la interrupción de una conexión existente por el host remoto]
 
 ---
 

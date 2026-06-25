@@ -1,8 +1,8 @@
 {
-    "provider": "Nvidia NIM",
-    "provider_protocol": "openai",
-    "api_url": "https://integrate.api.nvidia.com/v1",
-    "last_model": "meta/llama-3.3-70b-instruct",
+    "provider": "Native Llama",
+    "provider_protocol": "llama.cpp",
+    "api_url": "native://llama",
+    "last_model": "Hermes-3-Llama-3.1-8B-Q5_K_M.gguf",
     "model_locked": false,
     "advanced_params": {
         "num_ctx": 8192

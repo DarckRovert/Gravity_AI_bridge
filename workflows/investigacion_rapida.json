@@ -1,0 +1,34 @@
+{
+  "workflow_id": "investigacion_rapida",
+  "description": "Búsqueda web + RAG + LLM para generar un resumen de investigación sobre cualquier tema.",
+  "nodes": [
+    {
+      "id": "search",
+      "type": "WebSearch",
+      "config": { "max_results": 3 },
+      "inputs": {
+        "query": "{{topic}}"
+      }
+    },
+    {
+      "id": "rag",
+      "type": "RAGQuery",
+      "config": { "top_k": 5 },
+      "inputs": {
+        "query": "{{topic}}"
+      }
+    },
+    {
+      "id": "summary",
+      "type": "LLMQuery",
+      "config": {
+        "system": "Eres un asistente de investigación. Sintetiza información de múltiples fuentes de forma estructurada, precisa y en español.",
+        "temperature": 0.5,
+        "max_tokens": 1500
+      },
+      "inputs": {
+        "prompt": "Fuentes web:\n{{search.text}}\n\nContexto de base de conocimiento:\n{{rag.context}}\n\nAnaliza y sintetiza la información sobre: {{topic}}\n\nIncluye: resumen ejecutivo, puntos clave y conclusiones."
+      }
+    }
+  ]
+}

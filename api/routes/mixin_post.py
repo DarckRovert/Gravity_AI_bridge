@@ -5,10 +5,12 @@ from api.routes.mixin_post_media import PostMediaMixin
 from api.routes.mixin_post_gameserver import PostGameserverMixin
 from api.routes.mixin_post_agent import PostAgentMixin
 from api.routes.mixin_post_system import PostSystemMixin
+from api.routes.mixin_workflow import WorkflowMixin
 
 
 class PostRoutesMixin(
-    PostChatMixin, PostMediaMixin, PostGameserverMixin, PostAgentMixin, PostSystemMixin
+    PostChatMixin, PostMediaMixin, PostGameserverMixin, PostAgentMixin, PostSystemMixin,
+    WorkflowMixin
 ):
     """
     Master Router para peticiones POST.
@@ -31,6 +33,8 @@ class PostRoutesMixin(
         if self._handle_post_agent():
             return
         if self._handle_post_system():
+            return
+        if self._handle_post_workflow():
             return
 
         # Fallback si no hay ruta registrada

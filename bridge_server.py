@@ -89,9 +89,10 @@ def background_scanner():
 # ── HTTP Handler ──────────────────────────────────────────────────────────────
 from api.routes.mixin_get import GetRoutesMixin  # noqa: E402
 from api.routes.mixin_post import PostRoutesMixin  # noqa: E402
+from api.routes.mixin_workflow import WorkflowMixin  # noqa: E402
 
 
-class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMixin):
+class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMixin, WorkflowMixin):
     def handle_one_request(self):
         try:
             super().handle_one_request()
@@ -223,12 +224,18 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             "/v1/journalist/status": self._serve_journalist_status,
             "/v1/journalist/log": self._serve_journalist_log,
             "/v1/journalist/news": self._serve_journalist_news,
+            # ── Gravity Workflow Engine ────────────────────────────────────────
+            "/v1/workflow/list": self._serve_workflow_list,
+            "/v1/workflow/nodes": self._serve_workflow_nodes,
+            "/v1/workflow/jobs": self._serve_workflow_jobs,
         }
 
         # Rutas con query string (?server=&lines=)
         path_clean = self.path.split("?")[0]
         if path_clean in routes:
             routes[path_clean]()
+        elif self.path.startswith("/v1/workflow/status/"):
+            self._serve_workflow_status()
         elif self.path.startswith("/static/output/"):
             self._serve_static_output()
         elif self.path.startswith("/static/imagelab/"):

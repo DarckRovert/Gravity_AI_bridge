@@ -1,0 +1,20 @@
+{
+  "workflow_id": "video_cinema",
+  "description": "Pipeline completo de video cinematográfico: guión → imágenes → audio → video final. Equivalente al _process_job() del Video Studio.",
+  "nodes": [
+    {
+      "id": "script",
+      "type": "ScriptBuilder",
+      "config": {},
+      "inputs": {
+        "topic": "{{topic}}",
+        "n_scenes": "{{n_scenes}}",
+        "style": "{{style}}",
+        "lang": "{{lang}}",
+        "use_lore": "{{use_lore}}"
+      }
+    }
+  ],
+  "_note": "Este workflow define el esquema. La ejecución completa (imagen por escena, TTS por escena, render, concat) requiere soporte de nodos 'foreach' — disponible en WorkflowEngine v2. Por ahora, el VideoStudio usa su pipeline propio y este workflow sirve como definición de referencia y prueba del motor.",
+  "_status": "reference"
+}
