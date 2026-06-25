@@ -4,6 +4,19 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
+## [V16.3 PRO] Autonomy & Workflow Engine Integration · 25/06/2026
+
+**[FÁBRICA DE CONTENIDO Y CEREBRO AUTÓNOMO EN LAZOS ASÍNCRONOS]**
+
+### Workflow Engine (`core/workflow_engine.py`)
+- **Topological DAG Runner**: Nuevo motor basado en nodos atómicos y recetas JSON (`/workflows/`) para crear fábricas de contenido estandarizado, resolviendo dependencias con el Algoritmo de Kahn.
+- **Node Registry Dinámico**: Nodos modulares (RAG, WebSearch, LLMQuery, etc) con interpolación de variables `{{node.output}}`.
+
+### Autonomy Engine (`core/autonomy_engine.py`)
+- **Autonomía Nivel 4**: Integración nativa del Cerebro (OODA Loop) con la fábrica de contenido. Ahora el núcleo puede ejecutar comandos `run_workflow` directamente sin intervención humana y de manera totalmente asíncrona usando threads en background.
+- **Robustez de Parseo**: Blindaje de los parámetros generados por el LLM mediante `ast.literal_eval` soportando tanto comillas simples como parámetros opcionales.
+
+---
 ## [V16.3 PRO] Intelligent Resource Guard & Specialized Task Routing · 23/06/2026
 
 **[MONITOREO DINÁMICO DE RAM EN TIEMPO REAL Y ENRUTAMIENTO DE VISIÓN/EMBEDDINGS NATIVOS]**
