@@ -62,8 +62,8 @@ export const ToolsPro = () => {
       }
 
       const res = await fetch(`${BRIDGE_BASE}${cfg.endpoint}`, options);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error del servidor');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Error de conexión con el backend de herramientas');
       
       if (mode === 'process') {
         setProcesses(data.processes || []);
@@ -101,12 +101,12 @@ export const ToolsPro = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pid })
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
         showToast('success', data.message || `Proceso ${name} terminado.`);
         execute(); // Refresh list
       } else {
-        showToast('error', `Error: ${data.error}`);
+        showToast('error', `Error: ${data.error || 'Operación denegada por el sistema'}`);
       }
     } catch (e: any) {
       showToast('error', `Error de conexión: ${e.message}`);
