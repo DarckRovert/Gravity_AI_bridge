@@ -8,7 +8,10 @@ export const CostCenter = () => {
     const fetchCost = async () => {
       try {
         const res = await fetch('/v1/cost');
-        if (res.ok) setCost(await res.json());
+        if (res.ok) {
+          const data = await res.json().catch(() => null);
+          if (data) setCost(data);
+        }
       } catch (e) {}
     };
     fetchCost();
@@ -117,7 +120,13 @@ export const CostCenter = () => {
                 </div>
               </div>
               <p className="text-xs text-text-muted text-center max-w-[240px] leading-relaxed">
-                Basado en el uso actual, se estima que no superarás el límite diario de <span className="text-text-primary font-bold">${cost?.daily_limit}</span>.
+                {Number(cost?.daily_limit) > 0 && Number(cost?.daily_cost) >= Number(cost?.daily_limit) ? (
+                  <span className="text-status-error font-bold">¡Límite Excedido! Has sobrepasado el presupuesto diario de ${cost?.daily_limit}.</span>
+                ) : (
+                  <>
+                    Basado en tu consumo, mantienes un margen seguro frente al límite de <span className="text-text-primary font-bold">${cost?.daily_limit || '0.00'}</span>.
+                  </>
+                )}
               </p>
             </div>
           </div>
