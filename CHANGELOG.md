@@ -4,6 +4,18 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
+## [V16.3.1 PRO] Zero-Crash Frontend & Async Resilience · 27/06/2026
+
+**[BLINDAJE TOTAL DE INTERFAZ REACT CONTRA FALLOS ASÍNCRONOS Y FALSOS POSITIVOS]**
+
+### Frontend UI/UX Refactoring (`frontend/src/components/`)
+- **Blindaje Asíncrono Global**: Auditoría y refactorización completa de los 35 submódulos del Dashboard (React + TypeScript). 
+- **Prevención de JSON Truncado**: Inyección de una red de seguridad estricta `.catch(() => ({}))` en todas las llamadas `res.json()`. Garantiza que si el backend de Python o un modelo IA local colapsa interrumpiendo el socket HTTP, la UI no crasheará (Unhandled Promise Rejection).
+- **Sellado de Falsos Positivos**: Implementación de validación estricta `if (!res.ok)` en mutaciones de estado y triggers de UI. Módulos críticos (como *Monetization Hub*, *System Settings*, *Bounty Hunter*, *Infiltrator*, *Software Factory*, *HITL Approval*, etc.) verifican el éxito HTTP antes de inyectar variables en memoria, evitando desincronizaciones de estado local vs backend.
+- **Graceful Error Handling**: Fallbacks dinámicos en promesas múltiples concurrentes (`Promise.allSettled` / `Promise.all`), extracción segura de mensajes de error desde APIs externas, y notificaciones de interfaz precisas vía `showToast`.
+
+---
+
 ## [V16.3 PRO] Autonomy & Workflow Engine Integration · 25/06/2026
 
 **[FÁBRICA DE CONTENIDO Y CEREBRO AUTÓNOMO EN LAZOS ASÍNCRONOS]**
