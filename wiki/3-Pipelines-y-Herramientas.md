@@ -37,7 +37,14 @@ En la carpeta `core/video/` reside el motor de renderizado asíncrono. Gravity n
   1. Versión `16:9` (Máster HD de alta transferencia) para consumo web o YouTube.
   2. Versión `9:16` para TikTok/Reels, inyectando subtítulos dinámicos `.ASS` que calculan matemáticamente los márgenes seguros, garantizando que los textos no se tapen con el botón de "Me Gusta".
 
-## 3. Extracción de Datos y Forense Web
+## 3. Generación Visual y Colas (Fooocus Studio)
+
+Gravity no solo produce texto o videos matemáticos. Posee un conector interno altamente acoplado con **Fooocus** (Stable Diffusion XL) para la generación de fotorealismo corporativo, *concept art* y miniaturas (thumbnails) de video.
+
+- **Colas Asíncronas en SQLite:** Todo pedido de imagen se encola en `_image_queue.sqlite`. Si el usuario o el motor de Autonomía pide 500 imágenes para un libro entero, Gravity no crashea; despacha los fotogramas uno por uno mientras vigila que la VRAM no colapse, registrando eventos en `fooocus_trigger_debug.log`.
+- **Inyección de Prompts Automatizada:** A través de herramientas como `image_generator_node`, el Cerebro deduce de qué trata un artículo de noticias e inventa el Prompt positivo y negativo perfecto, inyectándolo en Fooocus sin intervención.
+
+## 4. Extracción de Datos y Forense Web
 
 Gravity cuenta con múltiples formas de extraer sangre (datos) de la red, incluso si las APIs oficiales caen.
 
@@ -45,7 +52,7 @@ Gravity cuenta con múltiples formas de extraer sangre (datos) de la red, inclus
 - **`youtube_analyzer.py`:** Herramienta brutal. No solo descarga transcripciones enteras de videos (burlando protecciones), sino que pasa esos textos masivos por modelos locales para extraer insights corporativos, espiando estrategias de competidores.
 - **`grep_tool.py`:** Herramienta de escaneo profundo Regex local. Invocado por los agentes (mediante `/grep`) para auditar de forma autónoma vulnerabilidades dentro de su propio repositorio.
 
-## 4. El Orquestador de Flujos Topológicos (DAG)
+## 5. El Orquestador de Flujos Topológicos (DAG)
 
 ```mermaid
 graph LR
