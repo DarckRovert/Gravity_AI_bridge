@@ -33,11 +33,18 @@ Gravity trasciende la categoría de "script". Es un sistema operativo cibernéti
 ```mermaid
 graph TD
     User([Usuario / Interfaz Web]) -->|HTTP REST / SSE| Bridge[bridge_server.py]
+    Radar([Radar HF (Sub-minuto)]) -.->|Dispara| Bridge
     
     subgraph Gravity Core [Núcleo Operacional - 32 Cores]
         Bridge -->|Spawn| Worker1[Session 1: LLM]
         Bridge -->|Spawn| Worker2[Session 2: LLM]
         Bridge -->|Spawn| WorkerN[Session 32: LLM]
+        
+        subgraph Swarm Intelligence
+            Worker1 -.->|Debate Oficial| Editor
+            Worker2 -.->|Debate Subversivo| Editor
+            Editor[Síntesis Periodística] --> Lore[Lore Expander]
+        end
     end
     
     subgraph Hot-Reload Registry
@@ -106,6 +113,7 @@ mindmap
       Workflow Visualizer DAG
       Chat Multi-Agente
       RAG Indexer
+      Swarm Lore Engine
 ```
 
 - **Forja Literaria y Multimedia:** Herramientas como `book_refiner.py` orquestan libros enteros, mientras el **Motor V17 Shaders** genera videos usando pura matemática GPU (SDF, Turing Patterns) evadiendo descargas de assets masivos, con Auto-Uploader a redes y renderizado dual (16:9 y 9:16).

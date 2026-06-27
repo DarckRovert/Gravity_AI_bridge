@@ -10,6 +10,16 @@ El corazón del ecosistema. Ejecuta grafos dirigidos acíclicos (DAGs) definidos
 
 ## 2. Optimizaciones de Hardware (AMD APU)
 Para proteger la RAM unificada compartida entre CPU y GPU, Gravity implementa:
+
+```mermaid
+graph LR
+    RAM[(Unified RAM 32GB)] -.->|Llama 3 Loading| LLM[NativeLlamaProvider]
+    RAM -.->|H.264 Encoder| AMF[h264_amf Hardware Encoder]
+    
+    LLM -->|force_unload| Drop[Purga de Memoria]
+    Drop -->|Libera espacio| AMF
+```
+
 - **Kill-Switch de LLMs (`NativeLlamaProvider.force_unload()`)**: Inyectado directamente en `video_job_node.py`. Justo antes de que FFmpeg o ComfyUI asalten la VRAM, este interruptor oblitera el modelo de lenguaje de la memoria, garantizando que el pipeline visual tenga todo el espacio necesario.
 - **Aceleración H.264 AMF**: Se purgó `libx264` del ecosistema. Todos los motores, desde `video_slicer` hasta el renderizado GLSL, inyectan `-c:v h264_amf` nativamente, logrando velocidades de codificación de 4x en hardware AMD Radeon sin estresar la CPU.
 
