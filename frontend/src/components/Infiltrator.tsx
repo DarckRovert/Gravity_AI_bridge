@@ -21,8 +21,10 @@ export const Infiltrator: React.FC = () => {
     try {
       const res = await fetch('/v1/infiltrator/status');
       if (res.ok) {
-        const data = await res.json();
-        setStatus(data);
+        const data = await res.json().catch(() => ({}));
+        if (data && typeof data.running === 'boolean') {
+          setStatus(data);
+        }
       }
     } catch (e) {
       console.error(e);
@@ -37,11 +39,12 @@ export const Infiltrator: React.FC = () => {
 
   const handleStart = async () => {
     try {
-      await fetch('/v1/infiltrator/start', {
+      const res = await fetch('/v1/infiltrator/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: targetUrl })
       });
+      if (!res.ok) console.error('Error starting infiltrator');
       fetchStatus();
     } catch (e) {
       console.error(e);
@@ -50,7 +53,8 @@ export const Infiltrator: React.FC = () => {
 
   const handleStop = async () => {
     try {
-      await fetch('/v1/infiltrator/stop', { method: 'POST' });
+      const res = await fetch('/v1/infiltrator/stop', { method: 'POST' });
+      if (!res.ok) console.error('Error stopping infiltrator');
       fetchStatus();
     } catch (e) {
       console.error(e);
