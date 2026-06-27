@@ -16,7 +16,10 @@ export const MemoryStudio: React.FC = () => {
     const fetchRag = async () => {
       try {
         const res = await fetch('/v1/rag/status');
-        if (res.ok) setRagStatus(await res.json());
+        if (res.ok) {
+          const data = await res.json().catch(() => null);
+          if (data) setRagStatus(data);
+        }
       } catch (e) {
         console.error("Failed to fetch RAG status", e);
       }
