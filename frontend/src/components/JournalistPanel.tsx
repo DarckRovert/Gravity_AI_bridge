@@ -45,9 +45,11 @@ export const JournalistPanel = () => {
     try {
       const res = await fetch('/v1/journalist/status');
       if (res.ok) {
-        const data = await res.json();
-        setStatus(data);
-        setIsOffline(false);
+        const data = await res.json().catch(() => ({}));
+        if (data) {
+          setStatus(data);
+          setIsOffline(false);
+        }
       } else {
         setIsOffline(true);
       }
@@ -60,7 +62,7 @@ export const JournalistPanel = () => {
     try {
       const res = await fetch('/v1/journalist/log');
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (data.ok) {
           setLogs(data.logs);
         }
@@ -74,7 +76,7 @@ export const JournalistPanel = () => {
     try {
       const res = await fetch('/v1/journalist/news');
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (data.ok) {
           setNews(data.news || []);
         }
@@ -111,7 +113,8 @@ export const JournalistPanel = () => {
   const handleStart = async () => {
     setProcessing(true);
     try {
-      await fetch('/v1/journalist/start', { method: 'POST' });
+      const res = await fetch('/v1/journalist/start', { method: 'POST' });
+      if (!res.ok) console.error('Error starting Journalist');
       await fetchStatus();
     } finally {
       setProcessing(false);
@@ -121,7 +124,8 @@ export const JournalistPanel = () => {
   const handleStop = async () => {
     setProcessing(true);
     try {
-      await fetch('/v1/journalist/stop', { method: 'POST' });
+      const res = await fetch('/v1/journalist/stop', { method: 'POST' });
+      if (!res.ok) console.error('Error stopping Journalist');
       await fetchStatus();
     } finally {
       setProcessing(false);
