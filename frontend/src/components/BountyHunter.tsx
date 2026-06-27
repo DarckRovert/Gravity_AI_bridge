@@ -44,8 +44,8 @@ export const BountyHunter: React.FC = () => {
     try {
       setLoading(true);
       const res = await fetch('/v1/bounties');
-      if (!res.ok) throw new Error('Error al obtener micro-trabajos');
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Error al obtener micro-trabajos');
       const newBounties = data.bounties || [];
       
       if (newBounties.length > previousCountRef.current && previousCountRef.current !== 0) {
@@ -82,26 +82,38 @@ export const BountyHunter: React.FC = () => {
     setBounties(prev => prev.filter(b => b.url !== url));
     previousCountRef.current -= 1;
     try {
-      await fetch('/v1/bounties/action', {
+      const res = await fetch('/v1/bounties/action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url, action })
       });
-    } catch(e) {
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        showToast('error', errData.error || 'Error al actualizar estado del contrato');
+      }
+    } catch(e: any) {
       console.error(e);
+      showToast('error', 'Error de red al actualizar estado');
     }
   };
 
   const saveProfile = async () => {
     try {
-      await fetch('/v1/bounties/profile', {
+      const res = await fetch('/v1/bounties/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ profile: bountyProfile })
       });
-      setIsEditingProfile(false);
-    } catch(e) {
+      if (res.ok) {
+        setIsEditingProfile(false);
+        showToast('success', 'Perfil guardado con éxito');
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        showToast('error', errData.error || 'Error al guardar perfil');
+      }
+    } catch(e: any) {
       console.error(e);
+      showToast('error', 'Error de conexión');
     }
   };
 
@@ -112,13 +124,14 @@ export const BountyHunter: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url, proposal })
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error('Error al encolar auto-apply');
+        throw new Error(data.error || 'Error al encolar auto-apply');
       }
       showToast('info', 'Oferta enviada al Infiltrador. Revisa el Dashboard del Infiltrador para ver el progreso.');
-    } catch(e) {
+    } catch(e: any) {
       console.error(e);
-      showToast('error', 'Error: Asegúrate de que el backend esté ejecutándose.');
+      showToast('error', e.message || 'Error: Asegúrate de que el backend esté ejecutándose.');
     }
   };
 
