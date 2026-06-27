@@ -11,7 +11,7 @@ export const HITLApproval = () => {
     try {
       const res = await fetch('/v1/hitl/pending');
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         setPending(data.pending || []);
       }
     } catch (e) {} finally {
@@ -33,10 +33,13 @@ export const HITLApproval = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ request_id: id })
       });
-      if (!res.ok) throw new Error('Fallo en la operación');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Fallo en la operación');
+      }
       fetchPending();
-    } catch (e) {
-      showToast('error', `Error al ${action === 'approve' ? 'aprobar' : 'rechazar'} la solicitud`);
+    } catch (e: any) {
+      showToast('error', `Error al ${action === 'approve' ? 'aprobar' : 'rechazar'} la solicitud: ${e.message}`);
     } finally {
       setProcessing(null);
     }
