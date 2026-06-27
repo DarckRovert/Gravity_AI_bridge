@@ -35,6 +35,7 @@ export const VideoStudio = () => {
   const [jobType, setJobType] = useState('tts');
   const [audioTrackPath, setAudioTrackPath] = useState('');
   const [lyricsText, setLyricsText] = useState('');
+  const [isPreviewing, setIsPreviewing] = useState(false);
   
   const applyPreset = (preset: string) => {
     if (preset === 'documentary') {
@@ -177,7 +178,7 @@ export const VideoStudio = () => {
     if (!topic.trim()) return;
     setCreating(true);
     try {
-      await fetch('/v1/video/create', {
+      const res = await fetch('/v1/video/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -209,12 +210,14 @@ export const VideoStudio = () => {
           lyrics_text: lyricsText,
         })
       });
+      if (!res.ok) throw new Error('El servidor rechazó la solicitud (Posible error interno)');
       setTopic('');
       setTitle('');
       setActiveTab('queue');
       fetchStatus();
-    } catch (e) {
-      showToast('error', 'Error al encolar video');
+      showToast('success', 'Masterización iniciada: Producción encolada correctamente');
+    } catch (e: any) {
+      showToast('error', `Error al encolar video: ${e.message}`);
     } finally {
       setCreating(false);
     }
@@ -224,15 +227,17 @@ export const VideoStudio = () => {
     e.stopPropagation();
     if (!confirm(`⚠️ ALERTA DE SISTEMA\n\n¿Estás seguro de que deseas eliminar de raíz la producción #${id}?\n\nEsta acción purgará la base de datos y borrará permanentemente todos los archivos físicos (clips, audios, video final) del disco.`)) return;
     try {
-      await fetch('/v1/video/delete', {
+      const res = await fetch('/v1/video/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ job_id: id })
       });
+      if (!res.ok) throw new Error('Error al borrar la producción');
       if (selectedVideo?.id === id) setSelectedVideo(null);
       fetchStatus();
-    } catch (e) {
-      showToast('error', 'Error crítico al borrar la producción');
+      showToast('success', `Producción #${id} purgada completamente del sistema`);
+    } catch (e: any) {
+      showToast('error', `Fallo crítico al borrar: ${e.message}`);
     }
   };
 
@@ -240,14 +245,16 @@ export const VideoStudio = () => {
     e.stopPropagation();
     if (!confirm(`¿Deseas cancelar el procesamiento del job #${id}?`)) return;
     try {
-      await fetch('/v1/video/cancel', {
+      const res = await fetch('/v1/video/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
       });
+      if (!res.ok) throw new Error('Error al cancelar el renderizado');
       fetchStatus();
-    } catch (e) {
-      showToast('error', 'Error al cancelar el job');
+      showToast('success', `El Job #${id} ha sido abortado con éxito`);
+    } catch (e: any) {
+      showToast('error', `Fallo de cancelación: ${e.message}`);
     }
   };
 
@@ -463,25 +470,30 @@ export const VideoStudio = () => {
                               <button
                                 id="btn-preview-voice"
                                 onClick={async () => {
-                                  if (!voiceId) return;
+                                  if (!voiceId || isPreviewing) return;
+                                  setIsPreviewing(true);
+                                  showToast('info', 'Generando síntesis de voz...');
                                   try {
                                     const r = await fetch('/v1/video/preview_voice', {
                                       method: 'POST',
                                       headers: { 'Content-Type': 'application/json' },
                                       body: JSON.stringify({ voice_id: voiceId, text: 'Hola, esta es una prueba de la voz seleccionada en Gravity Studio. Sistema operativo al máximo nivel.' })
                                     });
-                                    if (r.ok) {
-                                      const blob = await r.blob();
-                                      const url = URL.createObjectURL(blob);
-                                      const audio = new Audio(url);
-                                      audio.play();
-                                    }
-                                  } catch (e) { console.error('preview_voice:', e); }
+                                    if (!r.ok) throw new Error('El motor TTS no respondió');
+                                    const blob = await r.blob();
+                                    const url = URL.createObjectURL(blob);
+                                    const audio = new Audio(url);
+                                    audio.play();
+                                  } catch (e: any) { 
+                                    showToast('error', `Fallo en TTS: ${e.message}`);
+                                  } finally {
+                                    setIsPreviewing(false);
+                                  }
                                 }}
-                                disabled={!voiceId || useGeminiTts}
+                                disabled={!voiceId || useGeminiTts || isPreviewing}
                                 className="mt-1.5 w-full px-3 py-1.5 bg-surface/50 border border-border-subtle rounded-md text-[10px] font-bold uppercase tracking-wider text-text-muted hover:text-accent-primary hover:border-accent-primary/60 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                               >
-                                ▶ Preview de Voz
+                                {isPreviewing ? <RefreshCw size={12} className="animate-spin" /> : '▶'} {isPreviewing ? 'Cargando...' : 'Preview de Voz'}
                               </button>
                             </div>
                             <div className="space-y-1.5">
