@@ -17,7 +17,7 @@ class VideoConcatNode(GravityNode):
         "clips": "VIDEO_LIST",   # lista de rutas absolutas
         "output_path": "TEXT",   # opcional
         "fps": "INT",            # default 24
-        "codec": "TEXT",         # default "libx264"
+        "codec": "TEXT",         # default "h264_amf"
         "fade": "BOOL",          # default True — fade entre clips
     }
     OUTPUT_SCHEMA = {
@@ -32,7 +32,7 @@ class VideoConcatNode(GravityNode):
         clips: list = inputs.get("clips") or []
         output_path: str = inputs.get("output_path") or self.config.get("output_path") or ""
         fps: int = int(inputs.get("fps") or self.config.get("fps") or 24)
-        codec: str = inputs.get("codec") or self.config.get("codec") or "libx264"
+        codec: str = inputs.get("codec") or self.config.get("codec") or "h264_amf"
         fade: bool = bool(inputs.get("fade") if "fade" in inputs else True)
 
         # Filtrar clips válidos

@@ -77,7 +77,7 @@ def extract_clips_from_video(
             "-vf",
             f"scale={target_w}:{target_h}:force_original_aspect_ratio=increase,crop={target_w}:{target_h},fps={fps}",
             "-c:v",
-            "libx264",
+            "h264_amf",
             "-preset",
             "fast",
             "-crf",

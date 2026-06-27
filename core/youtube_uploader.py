@@ -554,7 +554,7 @@ def generate_shorts_clip(video_path: str, output_path: str, duration: int = 58) 
             "-vf",
             "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
             "-c:v",
-            "libx264",
+            "h264_amf",
             "-preset",
             "fast",
             "-c:a",

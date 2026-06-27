@@ -20,7 +20,7 @@ export const VideoStudio = () => {
   const [fps, setFps] = useState(24);
   const [sceneDuration, setSceneDuration] = useState(8);
   const [bgmVolume, setBgmVolume] = useState(0.1);
-  const [codec, setCodec] = useState('libx264');
+  const [codec, setCodec] = useState('h264_amf');
   const [kenBurns, setKenBurns] = useState(true);
   const [introCard, setIntroCard] = useState(false);
   const [colorGrade, setColorGrade] = useState('auto');
@@ -609,7 +609,8 @@ export const VideoStudio = () => {
                         <div className="space-y-1.5">
                           <label className="text-[10px] text-text-muted uppercase font-bold">Video Codec</label>
                           <select value={codec} onChange={(e) => setCodec(e.target.value)} className="w-full bg-surface border border-border-subtle rounded-md p-2 text-xs outline-none">
-                            <option value="libx264">H.264 (Universal)</option>
+                            <option value="h264_amf">H.264 (AMD AMF)</option>
+                            <option value="libx264">H.264 (CPU Clásico)</option>
                             <option value="libx265">H.265 (Eficiente)</option>
                           </select>
                         </div>

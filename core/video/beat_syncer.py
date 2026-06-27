@@ -87,7 +87,7 @@ def apply_beat_synced_fx(
     try:
         processed_clip.write_videofile(
             output_path,
-            codec="libx264",
+            codec="h264_amf",
             audio_codec="aac",
             temp_audiofile="temp-audio.m4a",
             remove_temp=True,

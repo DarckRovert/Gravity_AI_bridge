@@ -4,6 +4,21 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
+## [V16.4 PRO] OODA Loop & Executive Packaging · 27/06/2026
+
+**[CONSOLIDACIÓN AUTÓNOMA Y DESPLIEGUE COMO EJECUTABLE ÚNICO]**
+
+### OODA Loop & Resource Management (`core/resource_watchdog.py`)
+- **Resource Watchdog**: Daemon que corre en paralelo al ciclo OODA, vigilando la memoria compartida (VRAM/RAM) en sistemas APU como la Radeon 780M. Al detectar inactividad >120s y carga >65%, termina dinámicamente procesos huérfanos de IAs pesadas (`comfyui`, `lm studio`, `ollama`).
+- **Autonomy Engine & Scraping (Orient)**: Inyección nativa del output de `bounty_hunter.py` dentro de la etapa *Orient* del Bucle OODA. Al encontrar nuevos contratos en el RSS de Freelancer o Reddit, la IA lo procesa inmediatamente como una *Oportunidad de Negocio*, trazando el flujo de ejecución (Act).
+
+### Empaquetado Ejecutivo y Compilación (`build_exe.bat` & `build_installer.iss`)
+- **Unificación Inmaculada PyInstaller**: Refactorización del flujo de compilación. `gravity_launcher.pyw` y `bridge_server.py` ahora se comprimen nativamente en un único binario **Gravity AI Launcher.exe**, evitando crasheos fatales por dependencias cruzadas.
+- **Frontend SPA Integrado**: Todo el React UI es compilado (`npm run build`) y servido directamente desde `/frontend/dist` sin dependencias externas.
+- **Instalador InnoSetup**: Script configurado para ensamblar el motor unificado de PyInstaller en un instalador Windows robusto y de mínima huella.
+
+---
+
 ## [V16.3.1 PRO] Zero-Crash Frontend & Async Resilience · 27/06/2026
 
 **[BLINDAJE TOTAL DE INTERFAZ REACT CONTRA FALLOS ASÍNCRONOS Y FALSOS POSITIVOS]**

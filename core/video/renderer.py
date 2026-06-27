@@ -464,7 +464,7 @@ def _assemble_clip(
     fps: int = DEFAULT_FPS,
     scene_duration: int = SECONDS_PER_SCENE,
     duration_mode: str = "auto",
-    codec: str = "libx264",
+    codec: str = "h264_amf",
     ken_burns: bool = True,
     color_grade: str = "",
     scene_idx: int = 0,
@@ -776,7 +776,7 @@ def _concatenate_clips(
     output_mp4: str,
     bgm_type: str = "ninguna",
     bgm_volume: float = 0.1,
-    codec: str = "libx264",
+    codec: str = "h264_amf",
     resolution: str = "1024x1024",
 ) -> bool:
     """

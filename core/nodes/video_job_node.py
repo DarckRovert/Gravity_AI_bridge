@@ -13,7 +13,8 @@ class VideoJobNode(GravityNode):
         "excerpt": "TEXT"
     }
     OUTPUT_SCHEMA = {
-        "status": "TEXT"
+        "status": "TEXT",
+        "job_id": "INT"
     }
 
     def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
@@ -32,7 +33,7 @@ class VideoJobNode(GravityNode):
 
         if not title:
             log.warning(f"[{self.__class__.__name__}] Título vacío, saltando encolado de video.")
-            return {"status": "skipped"}
+            return {"status": "skipped", "job_id": 0}
 
         try:
             # Import dinámico para no romper el motor si el módulo de video no está instalado
@@ -41,7 +42,14 @@ class VideoJobNode(GravityNode):
             topic_text = f"Resumen de Noticia: {title}. {excerpt}"
             video_title = f"TikTok: {title}"[:60]
 
-            add_job(
+            # RAM Kill-Switch: Descargar LLM de la memoria para que el APU tenga espacio.
+            try:
+                from providers.local.native_provider import NativeLlamaProvider
+                NativeLlamaProvider.force_unload()
+            except Exception as _unload_err:
+                log.warning(f"[{self.__class__.__name__}] Falló el kill-switch de RAM: {_unload_err}")
+
+            job_id = add_job(
                 topic=topic_text,
                 title=video_title,
                 n_scenes=5,
@@ -56,12 +64,12 @@ class VideoJobNode(GravityNode):
                 transitions=True,
                 job_type="tts",
             )
-            log.info(f"[{self.__class__.__name__}] Video Vertical (TikTok) encolado: {video_title}")
-            return {"status": "queued"}
+            log.info(f"[{self.__class__.__name__}] Video Vertical (TikTok) encolado con ID {job_id}: {video_title}")
+            return {"status": "queued", "job_id": job_id}
             
         except ImportError:
             log.warning(f"[{self.__class__.__name__}] Módulo 'core.video.pipeline' no encontrado. Video ignorado.")
-            return {"status": "import_error"}
+            return {"status": "error", "job_id": 0}
         except Exception as e:
-            log.error(f"[{self.__class__.__name__}] Error al encolar video: {e}")
-            raise
+            log.error(f"[{self.__class__.__name__}] Falló al encolar video: {e}")
+            return {"status": "error", "job_id": 0}

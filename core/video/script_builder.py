@@ -175,63 +175,17 @@ def _extract_visual_anchor(topic: str) -> str:
 def _get_scene_visual_context(image_path: str) -> str:
     """
     Analiza una imagen estática y genera los prompts visuales descriptivos
-    utilizando WD14 Tagger via ComfyUI.
-    Copia la imagen al directorio /input de ComfyUI antes de ejecutar el workflow.
+    utilizando VisionTagger.
     """
     if not image_path or image_path.endswith(".mp4"):
         return ""
 
-    import time
-    import shutil
-
     try:
-        from _integrations.comfy_client import ComfyUIClient
-
-        client = ComfyUIClient()
-        if not client.is_online():
-            return ""
-
-        input_dir = os.path.join(
-            BASE_DIR, "_integrations", "ComfyUI_windows_portable", "ComfyUI", "input"
-        )
-        os.makedirs(input_dir, exist_ok=True)
-        img_name = f"img2prompt_{os.path.basename(image_path)}"
-        shutil.copy2(image_path, os.path.join(input_dir, img_name))
-
-        # Intentar cargar el workflow desde archivo JSON; si no existe, construirlo
-        workflow_path = os.path.join(
-            BASE_DIR, "_integrations", "workflow_img2prompt.json"
-        )
-        if os.path.exists(workflow_path):
-            with open(workflow_path, "r", encoding="utf-8") as f:
-                import json as _json
-
-                workflow = _json.load(f)
-            workflow["1"]["inputs"]["image"] = img_name
-        else:
-            workflow = client.build_img2prompt_workflow(image_name=img_name)
-
-        prompt_id = client.queue_prompt(workflow)
-
-        elapsed = 0
-        while elapsed < 30:
-            tags = client.extract_tags(prompt_id)
-            if tags:
-                try:
-                    os.remove(os.path.join(input_dir, img_name))
-                except Exception:
-                    pass
-                if len(tags) == 1 and isinstance(tags[0], str):
-                    return tags[0]
-                return ", ".join(tags)
-            time.sleep(2)
-            elapsed += 2
-
+        from core.vision_tagger import vision_tagger
+        return vision_tagger.generate_visual_anchor(image_path)
     except Exception as e:
-        log.debug(
-            f"[VideoStudio] Error en img2prompt (ComfyUI offline/Tagger fail): {e}"
-        )
-    return ""
+        log.debug(f"[VideoStudio] Error en VisionTagger: {e}")
+        return ""
 
 
 def _normalize_topic_for_lore(topic: str) -> str:

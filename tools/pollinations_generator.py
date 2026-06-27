@@ -27,7 +27,7 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 POLLINATIONS_BASE: str = "https://image.pollinations.ai/prompt/{prompt}"
 DEFAULT_MODEL: str = "flux"  # Motores válidos: flux | turbo | dreamshaper
 DEFAULT_TIMEOUT: int = (
-    30  # Subido a 30s: Flux puede tardar 20-25s en imágenes complejas
+    120  # Subido a 120s para compensar latencia de RAM compartida (Ryzen 8700G)
 )
 MAX_RETRIES: int = 2
 RETRY_DELAY: float = 3.0  # Segundos entre reintentos

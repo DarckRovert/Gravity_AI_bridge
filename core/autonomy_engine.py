@@ -286,6 +286,13 @@ def _orient(snapshot: Dict[str, Any]) -> Tuple[str, List[str]]:
             f"MONETIZACIÓN: Proyección mensual ${monthly:.2f} — analizar expansión de nichos"
         )
 
+    # Bounty Hunter (Orient)
+    bounties = snapshot.get("bounties", {})
+    bounty_size = bounties.get("file_size_kb", 0)
+    if bounty_size > 1.0 and level == "NORMAL":
+        level = "OPORTUNIDAD"
+        alerts.append(f"MERCENARIO: Se encontraron {bounty_size}KB de nuevas ofertas de trabajo freelance. Sugerir aplicar.")
+
     return level, alerts
 
 

@@ -446,7 +446,7 @@ def generate_procedural_video(
         cmd.extend(
             [
                 "-c:v",
-                "libx264",
+                "h264_amf",
                 "-pix_fmt",
                 "yuv420p",
                 "-preset",
@@ -462,7 +462,7 @@ def generate_procedural_video(
         )
     else:
         cmd.extend(
-            ["-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "fast", "-crf", "23"]
+            ["-c:v", "h264_amf", "-pix_fmt", "yuv420p", "-preset", "fast", "-crf", "23"]
         )
 
     cmd.append(out_mp4)

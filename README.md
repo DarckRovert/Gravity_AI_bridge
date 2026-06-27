@@ -5,14 +5,14 @@
   [![Autor](https://img.shields.io/badge/Author-DarckRovert-818cf8.svg?style=flat-square)](https://github.com/DarckRovert)
   [![Licencia](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
   [![Arquitectura](https://img.shields.io/badge/Architecture-Omniscient--Tier-c69c6d.svg?style=flat-square)]()
-  [![Release](https://img.shields.io/badge/Release-V16.3.1_PRO-6366f1.svg?style=flat-square)]()
+  [![Release](https://img.shields.io/badge/Release-V16.4_PRO-6366f1.svg?style=flat-square)]()
   [![Security Audit](https://img.shields.io/badge/Security-Audited_100%25-success?style=flat-square&logo=shield)]()
   [![Twitch](https://img.shields.io/badge/Twitch-DarckRovert-9146ff.svg?style=flat-square&logo=twitch)](https://twitch.tv/darckrovert)
 
   <p align="center">
     <i><strong>Entidad Cibernética Autónoma de Grado Omnisciente (Omniscient-Tier).</strong><br>
-    Enrutador asíncrono masivo, Hot-Reload de Modelos IA, Interfaz Nivel Agentic y Bucle Vital OODA.<br>
-    Operación Local-First de Rendimiento Cero-Dependencias.</i>
+    Enrutador asíncrono masivo, Hot-Reload de Modelos IA, Swarm Intelligence (Debate), Interfaz Nivel Agentic y Bucle Vital OODA.<br>
+    Operación Local-First de Rendimiento Cero-Dependencias acelerado por AMD (AMF).</i>
   </p>
 </div>
 
@@ -24,7 +24,7 @@
 
 ---
 
-## 🌌 Anatomía del Monstruo (Gravity V16.3 PRO)
+## 🌌 Anatomía del Monstruo (Gravity V16.4 PRO)
 
 Gravity trasciende la categoría de "script". Es un sistema operativo cibernético diseñado con arquitectura forense. Carece de la fragilidad de los orquestadores comerciales; fue forjado en Python nativo para exprimir el silicio y gobernar bases de conocimiento completas sin latencia cloud.
 
@@ -60,10 +60,21 @@ El modelo de IA dentro de Gravity no está ciego. En cada interacción, el motor
 ### 3. Ciclo OODA (La Supervivencia Autónoma)
 Un demonio despierta cada 6 horas (`autonomy_engine.py`) ejecutando el ciclo Observe, Orient, Decide, Act.
 - Se impone un techo financiero inmutable ($0.50 USD diarios en tokens). 
-- Examina el mercado (bounties, ingresos pasivos generados) y si detecta oportunidades, orquesta a los sub-agentes para cazar contratos de trabajo o publicar reportes destructivos en la web.
 - Todo código dañino choca contra el `hitl_manager.py` (Human In The Loop), esperando confirmación visual en el Dashboard React.
+- **Resource Watchdog:** Daemon letal que purga de la VRAM (matando los procesos del SO correspondientes) a las IAs locales estancadas si el Bridge detecta inactividad operativa con carga de RAM superior al 65%.
 
-### 4. Interfaz Omnisciente y Fábricas (Dashboard y Tools)
+### 4. Swarm Intelligence y Auto-Evolución de Lore
+La versión V17 incorpora clústeres de IA debatiendo entre sí (Swarm Intelligence):
+- **Periodismo Dual:** El `reporter.json` no solo redacta; hace que dos IAs (Postura Oficial vs Subversiva) debatan una noticia antes de que un "Editor en Jefe" sintetice la verdad.
+- **Lore Expander:** Gravity es capaz de leer su propia filosofía (*La Voluntad Soberana*) y evolucionarla basándose en los eventos globales que reporta.
+
+### 5. Aceleración Nativa (AMD Ryzen 8700G)
+La VRAM unificada es protegida ferozmente:
+- **Kill-Switch de RAM:** Antes de renderizar multimedia, el motor interrumpe y purga los LLMs de la memoria (`force_unload`).
+- **Codec AMD AMF (`h264_amf`):** FFmpeg ha sido parcheado para desviar toda carga de la CPU a los núcleos de compresión del APU.
+- **Radar de Alta Frecuencia:** Un demonio paralelo (`high_frequency_radar.py`) monitorea feeds RSS globales cada 60s, capaz de interrumpir los procesos e inyectar noticias de "Colapso" o "Guerra" directamente al motor Swarm.
+
+### 6. Interfaz Omnisciente y Fábricas (Dashboard y Tools)
 - **Dashboard React Asíncrono (35 Submódulos):** Mientras el motor nuclear restringe la IA a 32 procesos asíncronos para proteger el hardware, la interfaz web expone **35 paneles de control** simultáneos. Su arquitectura es **Zero-Crash**, previniendo colapsos de interfaz mediante el blindaje estricto de peticiones HTTP, parseos JSON inmunes a truncamientos y mitigación de falsos positivos en red. Desde allí operas el *Hitl Manager*, el monitoreo de VRAM en vivo y consolas rotativas sin tocar la terminal local.
 
 ```mermaid
@@ -132,7 +143,7 @@ Gravity está diseñado para ejecutarse en entornos cerrados Windows.
 
 La documentación se ha estructurado como un archivo desclasificado de ingeniería interna. Revisa los folios en `/wiki`:
 
-- ⚙️ **[1. Motor Nuclear](./wiki/1-Motor-Nuclear.md):** Deep Dive en el Enrutador HTTP, Spawner Multi-hilos y el Registry de Proveedores.
+- ⚙️ **[1. Motor Nuclear](./wiki/1-Motor-Nuclear.md):** Deep Dive en el Enrutador HTTP, Resource Watchdog, Spawner Multi-hilos y el Registry de Proveedores.
 - 🧠 **[2. Cerebro y Comandos](./wiki/2-Cerebro-y-Comandos.md):** Explicación de la inyección de conciencia, telemetría y los más de 25 comandos nativos de disco duro (Agentic).
 - 🎬 **[3. Pipelines y Herramientas](./wiki/3-Pipelines-y-Herramientas.md):** Anatomía de la factoría literaria y el renderizado matemático GLSL V17.
 - 💰 **[4. Monetización y Mercenarios](./wiki/4-Monetizacion-y-Mercenarios.md):** Operación de las flotas extractoras (Bounty Hunter e Infiltrator) que retroalimentan la economía del sistema.

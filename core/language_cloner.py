@@ -275,7 +275,7 @@ def _recompose_clip(
     duration: float,
     text: str = "",
     scene_idx: int = 0,
-    codec: str = "libx264",
+    codec: str = "h264_amf",
 ) -> bool:
     """Recompone un clip heredando el motor visual de video_pipeline (animación y subtítulos)."""
     try:

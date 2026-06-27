@@ -281,6 +281,13 @@ def _watchdog_loop(interval_seconds=30, verbose=False):
     global _current_provider_name, _current_model, _current_url, _current_protocol
     global _current_api_opts, _hardware_profile
 
+    # Iniciar watchdog de recursos locales (RAM/VRAM)
+    try:
+        from core.resource_watchdog import resource_watchdog
+        resource_watchdog.start()
+    except Exception as e:
+        log.warning(f"[Watchdog] Error iniciando resource_watchdog: {e}")
+
     while True:
         # ── 1. Monitor de daemons críticos ────────────────────────────────
         try:

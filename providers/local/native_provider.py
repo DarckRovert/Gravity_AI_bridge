@@ -81,6 +81,28 @@ class NativeLlamaProvider(ProviderPlugin):
         )
         t.start()
 
+    @classmethod
+    def force_unload(cls):
+        """Descarga inmediatamente todos los modelos Llama de la memoria RAM."""
+        with cls._inference_lock:
+            if not cls._instances:
+                return
+            log_msg = f"[Native Llama Watchdog] ⚠️ KILL-SWITCH ACTIVADO: Purgando {len(cls._instances)} modelo(s) de la RAM."
+            print(log_msg)
+            # Intentar usar el logger principal si es posible
+            try:
+                from core.logger import log
+                log.warning(log_msg)
+            except Exception:
+                pass
+            
+            for m_name in list(cls._instances.keys()):
+                del cls._instances[m_name]["instance"]
+                del cls._instances[m_name]
+            
+            import gc
+            gc.collect()
+
     def _get_gguf_models(self) -> List[Dict[str, Any]]:
         models = []
         if os.path.exists(MODELS_DIR):

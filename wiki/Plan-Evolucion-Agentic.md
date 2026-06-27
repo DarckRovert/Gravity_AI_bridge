@@ -1,10 +1,16 @@
 # 🧠 Plan de Evolución Agéntica — Gravity AI Bridge V16.0 Roadmap
 
-Estado: **V16.3 PRO Activo** | Próximo hito: **V17.0 Autonomous Studio**
+Estado: **V16.4 PRO Activo** | Próximo hito: **V17.0 Autonomous Studio**
 
 ---
 
 ## ✅ Hitos Completados
+
+### V16.4 PRO — OODA Loop & Executive Packaging (Junio 2026)
+- [x] Consolidación del Bucle OODA con *Scraping de Bounties* integrado (Orient & Decide).
+- [x] *Resource Watchdog* para purgar procesos de IA inactivos de la VRAM bajo carga (>65%).
+- [x] Scripts de compilación unificados para PyInstaller (Launcher + Bridge Server encapsulado).
+- [x] Empaquetado Ejecutivo InnoSetup con Frontend React embebido.
 
 ### V16.3 PRO — Intelligent Resource Guard (Junio 2026)
 - [x] Memory Guard nativo con `psutil` para monitoreo de RAM física y VRAM.

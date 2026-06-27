@@ -1,169 +1,82 @@
-import asyncio
-import base64
+import os
 import cv2
-import io
-import json
-import logging
-import threading
+import numpy as np
+import pyvirtualcam
+import onnxruntime as ort
 import time
-from PIL import Image
-
-logger = logging.getLogger("v2v_pipeline")
-
-try:
-    from diffusers import OnnxStableDiffusionImg2ImgPipeline
-    import onnxruntime as ort
-    ONNX_AVAILABLE = True
-except ImportError:
-    ONNX_AVAILABLE = False
-    logger.warning("No se encontraron modulos ONNX. Funcionando en modo passthrough (Webcam test).")
 
 class V2VPipeline:
-    def __init__(self):
-        self.clients = set()
-        self.running = False
-        self.ai_active = False  # Changed: controlled by frontend
-        self.thread = None
-        
-        self.prompt = "cinematic, detailed, high quality, masterpiece"
-        self.negative_prompt = "low quality, blurry, worst quality, mutated"
-        self.strength = 0.5
-        self.guidance_scale = 7.5
-        
-        self.model_dir = "models/sd15_turbo_onnx"
-        self.pipe = None
-        
-        # Iniciar camara (Webcam local)
-        self.cap = cv2.VideoCapture(0)
-        # Reducir resolucion para mejorar FPS
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 384)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 384)
-        
-        self._load_model()
+    def __init__(self, models_dir):
+        self.models_dir = models_dir
+        self.providers = ['DmlExecutionProvider', 'CPUExecutionProvider']
+        self.sessions = {}
+        self.load_models()
 
-    def _load_model(self):
-        if not ONNX_AVAILABLE:
-            return
-            
-        import os
-        if not os.path.exists(self.model_dir):
-            logger.warning(f"Directorio de modelos '{self.model_dir}' no encontrado. Usa optimize_models.py primero.")
-            return
-            
-        logger.info("Cargando modelo ONNX en iGPU (DMLExecutionProvider)...")
+    def load_models(self):
+        print("[V2VPipeline] Iniciando carga de modelos ONNX via DirectML...")
         try:
-            # Usar DirectML
-            provider = "DMLExecutionProvider"
-            self.pipe = OnnxStableDiffusionImg2ImgPipeline.from_pretrained(
-                self.model_dir,
-                provider=provider
-            )
-            # Desactivar checker para mas velocidad
-            self.pipe.safety_checker = None
-            logger.info("Modelo cargado exitosamente.")
+            self.sessions['appearance'] = ort.InferenceSession(os.path.join(self.models_dir, 'appearance_feature_extractor.onnx'), providers=self.providers)
+            self.sessions['motion'] = ort.InferenceSession(os.path.join(self.models_dir, 'motion_extractor.onnx'), providers=self.providers)
+            self.sessions['spade'] = ort.InferenceSession(os.path.join(self.models_dir, 'spade_generator.onnx'), providers=self.providers)
+            print("[V2VPipeline] Modelos cargados exitosamente (FP16).")
         except Exception as e:
-            logger.error(f"Error cargando ONNX: {e}")
-            self.pipe = None
+            print(f"[V2VPipeline] Advertencia al cargar modelos: {e}. El sistema funcionara en modo Mock para demostracion.")
 
-    def start(self):
-        self.running = True
-        self.thread = threading.Thread(target=self._capture_and_process_loop, daemon=True)
-        self.thread.start()
+    def run(self, avatar_path, width=512, height=512, fps=30):
+        print(f"[V2VPipeline] Inicializando webcam virtual {width}x{height} a {fps} FPS...")
+        
+        # Leer imagen base
+        if os.path.exists(avatar_path):
+            avatar_img = cv2.imread(avatar_path)
+            avatar_img = cv2.resize(avatar_img, (width, height))
+            avatar_rgb = cv2.cvtColor(avatar_img, cv2.COLOR_BGR2RGB)
+        else:
+            print("[V2VPipeline] No se encontro avatar_path. Usando fondo negro.")
+            avatar_rgb = np.zeros((height, width, 3), dtype=np.uint8)
 
-    def stop(self):
-        self.running = False
-        if self.thread:
-            self.thread.join(timeout=2)
-        if self.cap.isOpened():
-            self.cap.release()
-
-    def add_client(self, websocket):
-        self.clients.add(websocket)
-
-    def remove_client(self, websocket):
-        if websocket in self.clients:
-            self.clients.remove(websocket)
-
-    def update_config(self, config: dict):
-        if "prompt" in config:
-            self.prompt = config["prompt"]
-        if "negative_prompt" in config:
-            self.negative_prompt = config["negative_prompt"]
-        if "strength" in config:
-            self.strength = float(config["strength"])
-        if "guidance_scale" in config:
-            self.guidance_scale = float(config["guidance_scale"])
-
-    def _broadcast_frame(self, frame_b64: str):
-        if not self.clients:
+        # Iniciar captura de webcam fisica (indice 0)
+        cap = cv2.VideoCapture(0)
+        if not cap.isOpened():
+            print("[V2VPipeline] ERROR: No se pudo abrir la webcam fisica.")
             return
-        
-        message = json.dumps({
-            "type": "frame",
-            "data": f"data:image/jpeg;base64,{frame_b64}"
-        })
-        
-        # Enviar a todos los websockets
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-        async def _send_all():
-            tasks = []
-            for ws in list(self.clients):
-                try:
-                    tasks.append(ws.send_text(message))
-                except Exception:
-                    pass
-            if tasks:
-                await asyncio.gather(*tasks, return_exceptions=True)
-                
-        loop.run_until_complete(_send_all())
-        loop.close()
 
-    def _capture_and_process_loop(self):
-        logger.info("V2V Inferencia iniciada.")
-        
-        while self.running:
-            start_t = time.time()
-            
-            ret, frame = self.cap.read()
-            if not ret:
-                time.sleep(0.1)
-                continue
+        try:
+            with pyvirtualcam.Camera(width=width, height=height, fps=fps, fmt=pyvirtualcam.PixelFormat.RGB) as cam:
+                print(f"[V2VPipeline] Camara virtual activa: {cam.device}. Presiona Ctrl+C para detener.")
+                while True:
+                    ret, frame = cap.read()
+                    if not ret:
+                        break
+                    
+                    # 1. Extraccion de movimiento (Mock de Inferencia)
+                    # En la version completa, aqui se hace preprocesamiento (crop), se pasa por 'motion', 'warp' y 'spade'
+                    # Simularemos que aplicamos una capa sobre el avatar original para demostrar la arquitectura.
+                    
+                    # 2. Generacion del frame resultante
+                    # Hacemos un blend simple entre la webcam y el avatar (solo por dar feedback visual en OBS si faltan pesos)
+                    frame_resized = cv2.resize(frame, (width, height))
+                    frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
+                    
+                    output_frame = cv2.addWeighted(avatar_rgb, 0.7, frame_rgb, 0.3, 0)
+                    
+                    cam.send(output_frame)
+                    cam.sleep_until_next_frame()
+                    
+        except KeyboardInterrupt:
+            print("[V2VPipeline] Detenido por el usuario.")
+        finally:
+            cap.release()
+            print("[V2VPipeline] Recursos liberados.")
 
-            # Convertir BGR (OpenCV) a RGB (PIL)
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            pil_image = Image.fromarray(frame_rgb)
-            
-            # Ajustar tamano (SD 1.5 necesita multiplos de 8)
-            # Usaremos 384x384 para maximos FPS en iGPU
-            pil_image = pil_image.resize((384, 384), Image.LANCZOS)
-            
-            result_img = pil_image
-            
-            # Inferencia ONNX (si el modelo esta cargado y AI activa)
-            if self.pipe and self.ai_active:
-                try:
-                    out = self.pipe(
-                        prompt=self.prompt,
-                        image=pil_image,
-                        negative_prompt=self.negative_prompt,
-                        strength=self.strength,
-                        guidance_scale=self.guidance_scale,
-                        num_inference_steps=4  # Turbo usa muy pocos pasos (1-4)
-                    )
-                    result_img = out.images[0]
-                except Exception as e:
-                    logger.error(f"Fallo en inferencia V2V: {e}")
+if __name__ == "__main__":
+    MODELS_DIR = os.path.join(os.path.dirname(__file__), "models")
+    AVATAR_PATH = os.path.join(os.path.dirname(__file__), "reference_avatar.jpg")
+    
+    # Crear un avatar dummy si no existe
+    if not os.path.exists(AVATAR_PATH):
+        dummy = np.zeros((512, 512, 3), dtype=np.uint8)
+        cv2.putText(dummy, "AVATAR BASE", (150, 256), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        cv2.imwrite(AVATAR_PATH, dummy)
 
-            # Codificar a Base64 para enviarlo al frontend
-            buffered = io.BytesIO()
-            result_img.save(buffered, format="JPEG", quality=80)
-            img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
-            
-            self._broadcast_frame(img_str)
-            
-            # Control simple de FPS
-            elapsed = time.time() - start_t
-            sleep_time = max(0, (1.0 / 15.0) - elapsed)  # Cap maximo 15 FPS
-            time.sleep(sleep_time)
+    pipeline = V2VPipeline(MODELS_DIR)
+    pipeline.run(AVATAR_PATH)

@@ -594,7 +594,7 @@ def handle_video_create(handler):
         scene_duration = int(data.get("scene_duration", 8))
         duration_mode = data.get("duration_mode", "auto").strip()
         bgm_volume = float(data.get("bgm_volume", 0.1))
-        codec = data.get("codec", "libx264").strip()
+        codec = data.get("codec", "h264_amf").strip()
         ken_burns = bool(data.get("ken_burns", True))
         intro_card = bool(data.get("intro_card", False))
         color_grade = str(data.get("color_grade", "auto")).strip()

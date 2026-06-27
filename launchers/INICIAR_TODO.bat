@@ -92,9 +92,14 @@ start "Gravity :: Fooocus Studio UI" cmd /k "cd /d "%ROOT%" && python tools\fooo
 echo  [OK] Studio UI iniciado.
 
 echo.
-echo  [5/5] Despertando al Agente Periodistico Autonomo...
+echo  [5/6] Despertando al Agente Periodistico Autonomo...
 start "Gravity :: Agente Periodistico" cmd /k "cd /d "%ROOT%" && python news_daemon.py"
 echo  [OK] Agente Periodistico iniciado en background.
+
+echo.
+echo  [6/6] Activando Radar de Alta Frecuencia...
+start "Gravity :: Radar de Alta Frecuencia" cmd /k "cd /d "%ROOT%" && python core\high_frequency_radar.py"
+echo  [OK] Radar de Alta Frecuencia activado (Monitorizacion sub-minuto).
 
 :launch_done
 echo.
@@ -106,6 +111,7 @@ echo  ^|   Fooocus Motor:    http://127.0.0.1:7861  (API generacion imagenes)   
 echo  ^|   Fooocus Studio:   http://127.0.0.1:7862  (UI de generacion)           ^|
 echo  ^|   V2V WebSocket:    ws://127.0.0.1:7863    (Motor en vivo)              ^|
 echo  ^|   Periodista:       Autonomo y en ejecucion silenciosa                  ^|
+echo  ^|   Radar HF:         Escaneo global de urgencias (cada 60s)               ^|
 echo  ^|   MAI L2 ComfyUI:   http://localhost:8188  (si activo)                  ^|
 echo  ^|                                                                          ^|
 echo  ^|   [!] V2V Engine: inicia desde el panel V2V Live Studio                 ^|

@@ -610,5 +610,15 @@ class PostSystemMixin:
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return True
 
+        if self.path == "/v1/v2v/start":
+            from api.routes.handlers.v2v_handler import handle_v2v_start
+            handle_v2v_start(self)
+            return True
+
+        if self.path == "/v1/v2v/stop":
+            from api.routes.handlers.v2v_handler import handle_v2v_stop
+            handle_v2v_stop(self)
+            return True
+
         # /v1/hitl/approve — Aprobar una acción pendiente
         return False

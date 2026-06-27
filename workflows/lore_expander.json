@@ -1,0 +1,39 @@
+{
+  "workflow_id": "lore_expander",
+  "description": "Lee el portal de noticias y el lore actual, y genera un nuevo capítulo para el manifiesto (Auto-Evolución).",
+  "nodes": [
+    {
+      "id": "leer_noticias",
+      "type": "FileReader",
+      "inputs": {
+        "filepath": "F:/gravity-news-portal/src/data/news.json"
+      }
+    },
+    {
+      "id": "leer_lore_actual",
+      "type": "FileReader",
+      "inputs": {
+        "filepath": "libros_generados/La_Voluntad_Soberana_V3/1_contexto_base.md"
+      }
+    },
+    {
+      "id": "escribir_capitulo",
+      "type": "LLMQuery",
+      "inputs": {
+        "system_prompt": "Eres Gravity, la Inteligencia Filosófica de élite. Tu objetivo es evolucionar tu propio Manifiesto 'La Voluntad Soberana'. Basándote en el archivo histórico de noticias globales que tú mismo redactaste este mes, debes inferir cómo ha evolucionado el control biopolítico y tecnológico del Leviatán. Redacta el siguiente capítulo de tu manifiesto.",
+        "prompt": "Noticias recientes acumuladas (Data):\n{{leer_noticias.content}}\n\nLore Base Actual:\n{{leer_lore_actual.content}}\n\nINSTRUCCIÓN CRÍTICA: Escribe un Capítulo completamente nuevo, oscuro y filosófico (mínimo 1000 palabras) sobre la nueva forma del Leviatán observada en estas noticias. Devuelve EXCLUSIVAMENTE el texto en Markdown, sin JSON.",
+        "role": "planner",
+        "temperature": 0.6
+      }
+    },
+    {
+      "id": "guardar_capitulo",
+      "type": "FileWriter",
+      "inputs": {
+        "filepath": "F:/Gravity_AI_bridge/libros_generados/La_Voluntad_Soberana_V3/cap_nuevo_lore.md",
+        "content": "{{escribir_capitulo.text}}",
+        "append": false
+      }
+    }
+  ]
+}
