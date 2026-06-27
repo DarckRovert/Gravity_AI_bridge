@@ -30,6 +30,7 @@ export const VisionStudio = () => {
   const [seed, setSeed]           = useState('');
   const [enhance, setEnhance]     = useState(true);
   const [loading, setLoading]     = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [imageUrl, setImageUrl]   = useState<string | null>(null);
   const [error, setError]         = useState<string | null>(null);
 
@@ -52,8 +53,13 @@ export const VisionStudio = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          prompt: prompt.trim(), model, width, height, negative_prompt: negPrompt, 
-          enhance: enhance, provider, seed: seed.trim() || undefined
+          prompt: prompt.trim(), 
+          model: provider === 'Fooocus' ? undefined : model, 
+          width, height, 
+          negative_prompt: negPrompt, 
+          enhance: enhance, 
+          provider, 
+          seed: seed.trim() || undefined
         }),
       });
       const data = await res.json();
@@ -66,16 +72,27 @@ export const VisionStudio = () => {
     }
   };
 
-  const handleDownload = () => {
-    if (!imageUrl) return;
-    const a = document.createElement('a');
-    a.href = imageUrl;
-    a.download = `gravity_vision_${Date.now()}.png`;
-    a.target = '_blank';
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  const handleDownload = async () => {
+    if (!imageUrl || isDownloading) return;
+    setIsDownloading(true);
+    try {
+      const response = await fetch(imageUrl);
+      if (!response.ok) throw new Error('Servidor denegó el acceso al archivo');
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `gravity_vision_${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch (e: any) {
+      setError("Fallo crítico al descargar la imagen (Posible error CORS): " + e.message);
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -224,10 +241,11 @@ export const VisionStudio = () => {
                   <div className="flex gap-2">
                     <button
                       onClick={handleDownload}
-                      className="p-2 rounded-lg bg-surface border border-border-subtle text-text-muted hover:text-accent-primary transition-all"
+                      disabled={isDownloading}
+                      className="p-2 rounded-lg bg-surface border border-border-subtle text-text-muted hover:text-accent-primary transition-all disabled:opacity-50"
                       title="Descargar imagen"
                     >
-                      <Download size={16} />
+                      {isDownloading ? <RefreshCw size={16} className="animate-spin" /> : <Download size={16} />}
                     </button>
                   </div>
                 </div>
