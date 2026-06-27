@@ -1,9 +1,9 @@
 """
 GRAVITY AI — DAEMON ORQUESTADOR V2.0
-Orquesta los tres agentes de manera autónoma según rotación programada:
-  - gravity_reporter.py   → Noticias de coyuntura (cada ciclo)
-  - gravity_essayist.py   → Ensayos filosóficos (cada 2 ciclos)
-  - gravity_scientist.py  → Artículos científicos (cada 3 ciclos)
+Orquesta los tres agentes de manera autónoma según rotación programada (via Workflow Engine V16.3 PRO):
+  - workflows/reporter.json  → Noticias de coyuntura (cada ciclo)
+  - workflows/essayist.json  → Ensayos filosóficos (cada 2 ciclos)
+  - workflows/scientist.json → Artículos científicos (cada 3 ciclos)
 """
 
 import time
@@ -23,9 +23,9 @@ if sys.stdout.encoding != "utf-8":
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-REPORTER_SCRIPT = os.path.join(BASE_DIR, "gravity_reporter.py")
-ESSAYIST_SCRIPT = os.path.join(BASE_DIR, "gravity_essayist.py")
-SCIENTIST_SCRIPT = os.path.join(BASE_DIR, "gravity_scientist.py")
+WORKFLOW_REPORTER = "reporter"
+WORKFLOW_ESSAYIST = "essayist"
+WORKFLOW_SCIENTIST = "scientist"
 
 
 def banner():
@@ -37,14 +37,22 @@ def banner():
     print("[*] Noticias: cada ciclo | Ensayos: cada 2 ciclos | Ciencia: cada 3 ciclos")
 
 
-def run_agent(script_path: str, agent_name: str):
-    """Lanza un agente como subproceso y registra su resultado."""
+def run_workflow_agent(workflow_name: str, agent_name: str):
+    """Lanza un workflow como subproceso usando el motor autónomo V16.3 PRO."""
     print(
-        f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [{agent_name}] Iniciando..."
+        f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [{agent_name}] Iniciando Workflow: {workflow_name}..."
     )
     try:
+        # Reemplaza la ejecución de scripts legacy por el motor de workflows
+        cmd = [
+            "python", "-c",
+            f"import sys; sys.path.insert(0, r'{BASE_DIR}'); "
+            f"from core.workflow_engine import run_workflow; "
+            f"job = run_workflow('{workflow_name}', blocking=True); "
+            f"sys.exit(0 if job.status == 'done' else 1)"
+        ]
         result = subprocess.run(
-            ["python", script_path],
+            cmd,
             cwd=BASE_DIR,
             timeout=2700,  # 45 min máximo por agente (para tolerar la cascada completa de LLMs)
         )
@@ -83,11 +91,11 @@ while True:
     print(f"{'='*50}")
 
     # Reporter: siempre
-    run_agent(REPORTER_SCRIPT, "REPORTER")
+    run_workflow_agent(WORKFLOW_REPORTER, "REPORTER")
 
     # Essayist: cada 2 ciclos
     if cycle_count % 2 == 0:
-        run_agent(ESSAYIST_SCRIPT, "ESSAYIST")
+        run_workflow_agent(WORKFLOW_ESSAYIST, "ESSAYIST")
     else:
         print(
             f"[*] [ESSAYIST] Saltado en este ciclo (próxima vez en ciclo #{cycle_count + 1})"
@@ -95,7 +103,7 @@ while True:
 
     # Scientist: cada 3 ciclos
     if cycle_count % 3 == 0:
-        run_agent(SCIENTIST_SCRIPT, "SCIENTIST")
+        run_workflow_agent(WORKFLOW_SCIENTIST, "SCIENTIST")
     else:
         print(
             f"[*] [SCIENTIST] Saltado en este ciclo (próxima vez en ciclo #{(cycle_count // 3 + 1) * 3})"

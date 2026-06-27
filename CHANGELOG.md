@@ -12,6 +12,17 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 - **Topological DAG Runner**: Nuevo motor basado en nodos atómicos y recetas JSON (`/workflows/`) para crear fábricas de contenido estandarizado, resolviendo dependencias con el Algoritmo de Kahn.
 - **Node Registry Dinámico**: Nodos modulares (RAG, WebSearch, LLMQuery, etc) con interpolación de variables `{{node.output}}`.
 
+### Migración del Reportero Autónomo a Workflow Engine
+- **Eliminados monolitos**: `gravity_reporter.py` (26KB), `gravity_essayist.py` (18KB), `gravity_scientist.py` (16KB) archivados en `_archivo/`.
+- **Nuevo workflow**: `workflows/reporter.json` — 7 nodos topológicos que replican y superan la funcionalidad del monolito.
+- **Nuevos nodos atómicos**:
+  - `core/nodes/rss_feed_node.py` — Parser RSS/Atom
+  - `core/nodes/news_normalizer_node.py` — Slugify, imagen Pollinations, reparador JSON truncado, filtro `<think>`
+  - `core/nodes/json_appender_node.py` — Escritura atómica, dedup por ID, límite configurable
+  - `core/nodes/video_job_node.py` — Encola TikTok/Shorts en `core.video.pipeline`
+- **Dependencias actualizadas**: `news_daemon.py`, `core/gravity_brain.py` (cmd `publish_news` + system prompt) migrados al motor de workflows.
+- **Robustez**: 4 capas de fallback para parseo de JSON del LLM (directo, markdown block, regex brace, repair truncated).
+
 ### Autonomy Engine (`core/autonomy_engine.py`)
 - **Autonomía Nivel 4**: Integración nativa del Cerebro (OODA Loop) con la fábrica de contenido. Ahora el núcleo puede ejecutar comandos `run_workflow` directamente sin intervención humana y de manera totalmente asíncrona usando threads en background.
 - **Robustez de Parseo**: Blindaje de los parámetros generados por el LLM mediante `ast.literal_eval` soportando tanto comillas simples como parámetros opcionales.

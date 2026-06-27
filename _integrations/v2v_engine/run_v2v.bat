@@ -1,14 +1,16 @@
 @echo off
-title Gravity AI - V2V Engine (AMD DirectML)
-cd /d "%~dp0"
+set ENGINE_DIR=%~dp0
+cd /d "%ENGINE_DIR%"
 
-echo ---------------------------------------------------
-echo Inicializando Entorno Virtual Aislado para DirectML
-echo ---------------------------------------------------
+if not exist "env\Scripts\activate.bat" (
+    echo [ERROR] El entorno virtual no existe. Ejecuta setup_v2v_env.bat primero.
+    pause
+    exit /b
+)
 
+echo Activando entorno aislado DirectML...
 call env\Scripts\activate.bat
 
-echo Ejecutando Pipeline V2V...
-python v2v_pipeline.py
-
+echo Iniciando Servidor V2V (FastAPI + WebSockets) en puerto 7861...
+python v2v_server.py
 pause

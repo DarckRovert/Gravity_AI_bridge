@@ -50,7 +50,7 @@ ai_engines:
   LM Studio: C:\Users\darck\AppData\Local\Programs\LM Studio\LM Studio.exe
   Ollama: C:\Users\darck\AppData\Local\Programs\Ollama\ollama app.exe
   Fooocus: F:\Gravity_AI_bridge\_integrations\Fooocus\run_amd.bat
-  ComfyUI: F:\Gravity_AI_bridge\_integrations\ComfyUI_windows_portable\run_amd_gpu.bat
+  ComfyUI: F:\Gravity_AI_bridge\_integrations\ComfyUI_windows_portable\run_amd_cpu.bat
   V2V Engine: F:\Gravity_AI_bridge\_integrations\v2v_engine\run_v2v.bat
 agent_routing:
   auditor:
@@ -124,10 +124,12 @@ comfyui:
   enabled: true
   url: http://127.0.0.1:8188
   animation_level: 2
+  visual_consistency: true
 obs_websocket:
   enabled: true
-  host: 127.0.0.1
+  host: 192.168.1.111
   port: 4455
+  password: IPaMHSVcl6goie6T
   auto_connect: true
   reconnect_interval_s: 10
 obs_spark:

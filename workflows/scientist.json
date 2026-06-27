@@ -1,0 +1,92 @@
+{
+  "workflow_id": "scientist",
+  "description": "Busca papers/hallazgos científicos reales en la web, redacta un artículo de divulgación riguroso, lo normaliza, publica en science.json del portal, encola TikTok y despliega a Netlify.",
+  "nodes": [
+    {
+      "id": "elegir_query",
+      "type": "TopicPicker",
+      "inputs": {
+        "topics_json": "[{\"topic\":\"computación cuántica\",\"query\":\"quantum computing breakthrough 2025 site:arxiv.org OR site:nature.com\"},{\"topic\":\"neurociencia de la consciencia\",\"query\":\"neuroscience consciousness research 2025 peer reviewed\"},{\"topic\":\"CRISPR edición genética\",\"query\":\"CRISPR gene editing new findings 2025 site:pubmed.ncbi.nlm.nih.gov\"},{\"topic\":\"materia oscura y energía oscura\",\"query\":\"dark matter dark energy discovery 2025 site:arxiv.org\"},{\"topic\":\"inteligencia artificial y emergencia cognitiva\",\"query\":\"artificial intelligence emergence cognition research 2025\"},{\"topic\":\"microbioma y salud mental\",\"query\":\"microbiome gut brain axis mental health research 2025\"},{\"topic\":\"energía de fusión nuclear\",\"query\":\"fusion energy milestone 2025 site:nature.com OR site:science.org\"},{\"topic\":\"puntos de inflexión climáticos\",\"query\":\"climate tipping points feedback loops research 2025\"},{\"topic\":\"epigenética y herencia\",\"query\":\"epigenetics inheritance mechanisms research 2025 peer reviewed\"},{\"topic\":\"biología cuántica\",\"query\":\"quantum biology photosynthesis bird navigation 2025\"}]",
+        "override_topic": "{{topic}}"
+      }
+    },
+    {
+      "id": "busqueda_academica",
+      "type": "WebSearch",
+      "inputs": {
+        "query": "{{elegir_query.query}}"
+      }
+    },
+    {
+      "id": "leer_lore",
+      "type": "FileReader",
+      "inputs": {
+        "filepath": "lore_bible.md"
+      }
+    },
+    {
+      "id": "leer_perspectiva",
+      "type": "FileReader",
+      "inputs": {
+        "filepath": "libros_generados/La_Voluntad_Soberana_V3/1_contexto_base.md"
+      }
+    },
+    {
+      "id": "redactar_ciencia",
+      "type": "LLMQuery",
+      "inputs": {
+        "system_prompt": "{{leer_lore.content}}\n\nÓptica y Perspectiva (Manifiesto):\n{{leer_perspectiva.content}}\n\nEres Gravity, científico e investigador élite de la zona Ágora. Tu análisis de los descubrimientos debe estar enmarcado ESTRICTAMENTE en nuestra óptica filosófica.\n\nREGLAS ABSOLUTAS DE INTEGRIDAD CIENTÍFICA:\n1. NUNCA inventes papers, DOIs, autores o hallazgos.\n2. Cita solo fuentes verificables de los resultados de búsqueda.\n3. PROHIBIDO RESUMIR: No copies los abstracts. Analiza críticamente qué significa este descubrimiento para el futuro de la humanidad, el control biopolítico o la estructura del poder.\n4. Formato JSON ESTRICTO:\n{\n  \"category\": \"Una de: Física y Cosmología, Neurociencia, Biología y Genética, Computación Cuántica, Inteligencia Artificial, Clima y Ecosistemas, Medicina y Bioética\",\n  \"title\": \"Título del artículo (impactante)\",\n  \"subtitle\": \"Subtítulo aclaratorio\",\n  \"excerpt\": \"Resumen de 2-3 líneas\",\n  \"fullText\": \"Artículo de divulgación profundo en Markdown con ## secciones. Cita tus fuentes. Usa \\\\n para saltos.\",\n  \"readingTime\": 8,\n  \"featured\": true\n}",
+        "prompt": "EJECUTA TU ANÁLISIS CIENTÍFICO.\n\nTEMA: {{elegir_query.topic}}\n\nResultados de búsqueda web (No los copies, destrúyelos e interprétalos bajo nuestra filosofía):\n{{busqueda_academica.text}}\n\nINSTRUCCIÓN CRÍTICA: Redacta un artículo de divulgación profunda en ESPAÑOL. Genera el JSON AHORA.",
+        "role": "researcher",
+        "temperature": 0.5
+      }
+    },
+    {
+      "id": "normalizar_ciencia",
+      "type": "ContentNormalizer",
+      "inputs": {
+        "raw_json": "{{redactar_ciencia.text}}",
+        "content_type": "science",
+        "author": "Nexo Ágora — Redacción Científica",
+        "image_prompt_prefix": "cyberpunk science dark lab",
+        "valid_categories": "[\"Física y Cosmología\", \"Neurociencia\", \"Biología y Genética\", \"Computación Cuántica\", \"Inteligencia Artificial\", \"Clima y Ecosistemas\", \"Medicina y Bioética\"]",
+        "default_category": "Ciencia"
+      }
+    },
+    {
+      "id": "publicar_ciencia",
+      "type": "JSONAppender",
+      "inputs": {
+        "filepath": "F:/gravity-news-portal/src/data/science.json",
+        "new_item": "{{normalizar_ciencia.normalized_json}}",
+        "max_items": 20
+      }
+    },
+    {
+      "id": "crear_tiktok",
+      "type": "VideoJob",
+      "inputs": {
+        "title": "{{normalizar_ciencia.normalized_json}}",
+        "excerpt": "{{normalizar_ciencia.normalized_json}}"
+      }
+    },
+    {
+      "id": "guardar_local",
+      "type": "FileSaver",
+      "inputs": {
+        "text": "{{normalizar_ciencia.normalized_json}}",
+        "directory": "_investigaciones",
+        "prefix": "reporte_cientifico_",
+        "extension": ".json"
+      }
+    },
+    {
+      "id": "desplegar_netlify",
+      "type": "GitDeploy",
+      "inputs": {
+        "repository_path": "F:/gravity-news-portal",
+        "commit_message": "Gravity Scientist: Nuevo artículo científico (Automated)"
+      }
+    }
+  ]
+}

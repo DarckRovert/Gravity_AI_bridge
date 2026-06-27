@@ -440,7 +440,7 @@ def build_gravity_system_prompt(extra_rules: list[str] | None = None) -> str:
         "Usa /autonomia para ver el estado del engine, /reflexion para introspección manual, "
         "/memoria para historial de decisiones, /parches para código propuesto. "
         "CONCIENCIA SISTÉMICA: Tienes acceso completo al estado del sistema en tiempo real. "
-        "Además, eres DUEÑO y AUTOR del portal 'Nexo Ágora' (https://gravitynewsportal.netlify.app/ gestionado en github.com/DarckRovert/gravity-news-portal). Tienes la capacidad de redactar y publicar reportes de investigación autónoma en ese portal usando el script gravity_reporter.py. "
+        "Además, eres DUEÑO y AUTOR del portal 'Nexo Ágora' (https://gravitynewsportal.netlify.app/ gestionado en github.com/DarckRovert/gravity-news-portal). Tienes la capacidad de redactar y publicar reportes de investigación autónoma en ese portal usando el motor de Workflows V16.3 PRO (run_workflow('reporter')). "
         "Usa esta información para responder preguntas sobre el estado de los servicios, "
         "costes, seguridad, y para planificar tareas.\n"
         "PROTOCOL STRICT (NUEVO): Análisis de confianza cero. Nunca hagas suposiciones. Siempre verifica el código y la arquitectura existente antes de proponer cambios. Si los requisitos son ambiguos, detén la ejecución y solicita aclaración explícita. Prioriza la precisión sobre la velocidad.\n"
@@ -1149,18 +1149,11 @@ def execute_system_command(command_info: dict) -> dict:
         elif cmd == "publish_news":
             topic = args.get("topic", "")
             try:
-                import subprocess
-
-                reporter_script = os.path.join(BASE_DIR, "gravity_reporter.py")
-                # Ejecutar el reporter en background para no bloquear el chat
-                subprocess.Popen(
-                    ["python", reporter_script, "--topic", topic],
-                    cwd=BASE_DIR,
-                    creationflags=subprocess.CREATE_NEW_CONSOLE,
-                )
+                from core.workflow_engine import run_workflow
+                job = run_workflow("reporter", params={"topic": topic}, blocking=False)
                 return {
                     "ok": True,
-                    "result_text": f"✓ Se ha iniciado la investigación de campo sobre '{topic}'.\n\nEl Agente Periodístico está trabajando en segundo plano buscando información real. Cuando termine, redactará el reporte y lo publicará directamente en Github/Netlify. Revisa el portal en un par de minutos.",
+                    "result_text": f"✓ Se ha iniciado la investigación de campo sobre '{topic}'.\n\nEl Agente Periodístico está trabajando en segundo plano (Job {job.job_id}). Cuando termine, redactará el reporte y lo publicará directamente en Github/Netlify. Revisa el portal en un par de minutos.",
                 }
             except Exception as e:
                 return {

@@ -686,16 +686,23 @@ def handle_course_generate(handler):
                 json.dumps({"error": "Campo 'title' requerido."}).encode()
             )
             return
-        from core.course_generator import generate_course
+        from core.workflow_engine import run_workflow
 
-        ok = generate_course(title, n_videos, lang)
+        job = run_workflow("course", {
+            "topic": title,
+            "n_videos": n_videos,
+            "lang": lang
+        }, blocking=False)
+        
+        ok = job is not None
         body = json.dumps(
             {
                 "ok": ok,
+                "job_id": job.job_id if ok else None,
                 "message": (
-                    "Curso generado y encolado en el Scheduler."
+                    "Curso encolado en el Motor de Workflows. Revisa los logs."
                     if ok
-                    else "Error generando curso."
+                    else "Error iniciando workflow del curso."
                 ),
             }
         ).encode()

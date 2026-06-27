@@ -13,9 +13,11 @@ class LLMQueryNode(GravityNode):
     DESCRIPTION = "Envía un prompt al LLM activo y retorna texto generado."
     INPUT_SCHEMA = {
         "prompt": "TEXT",
-        "system": "TEXT",       # opcional
-        "temperature": "FLOAT", # opcional, default 0.7
-        "max_tokens": "INT",    # opcional
+        "system": "TEXT",        # alias: system_prompt — ambos aceptados
+        "system_prompt": "TEXT", # alias explícito para workflows editoriales
+        "role": "TEXT",          # ignorado en runtime (solo documentación)
+        "temperature": "FLOAT",  # opcional, default 0.7
+        "max_tokens": "INT",     # opcional
     }
     OUTPUT_SCHEMA = {
         "text": "TEXT",
@@ -25,9 +27,14 @@ class LLMQueryNode(GravityNode):
         from core import provider_manager
 
         prompt: str = inputs.get("prompt", "")
-        system: str = inputs.get("system", "")
+        # Aceptar 'system' o 'system_prompt' — prioridad a system_prompt si ambos presentes
+        system: str = inputs.get("system_prompt") or inputs.get("system") or ""
+        system = system or self.config.get("system", "")
         temperature: float = float(inputs.get("temperature") or self.config.get("temperature") or 0.7)
         max_tokens: int = int(inputs.get("max_tokens") or self.config.get("max_tokens") or 2048)
+
+        if not prompt:
+            raise ValueError(f"[{self.node_id}] El campo 'prompt' es obligatorio.")
 
         messages = []
         if system:
@@ -42,9 +49,8 @@ class LLMQueryNode(GravityNode):
             best_provider, best_model = provider_manager.get_best()
             provider_name = best_provider.name if hasattr(best_provider, 'name') else best_provider
 
-            log.info(f"[LLMQueryNode] Usando {provider_name}/{best_model} | temp={temperature}")
+            log.info(f"[LLMQueryNode] Usando {provider_name}/{best_model} | temp={temperature} | sys={len(system)}c")
 
-            # Generar texto
             full_text = provider_manager.complete(
                 messages=messages,
                 model=best_model,

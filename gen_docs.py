@@ -49,7 +49,7 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 ### 📰 Reportero Autónomo (Agente Periodístico)
 - **Operación Continua (Daemon):** Un agente persistente que despierta aleatoriamente cada 4-8 horas (`news_daemon.py`).
 - **Investigación Web Profunda:** Analiza temáticas complejas de geopolítica y ciberseguridad a través de Web Search.
-- **Redacción y Publicación End-to-End:** Redacta artículos nativos con Lore propio y los despliega automáticamente vía Git Push al portal de Netlify (`gravity_reporter.py`). Cuenta con control de idempotencia para evitar fallos si no hay cambios nuevos, garantizando un ciclo continuo.
+- **Redacción y Publicación End-to-End:** 7 Nodos Atómicos en `workflows/reporter.json` orquestan RSS → WebSearch → LLM → Normalización → news.json → VideoJob → GitDeploy. Cuenta con deduplicación por slug, escritura atómica y pre-calentamiento de imágenes en Pollinations.ai.
 - **Auto-Mantenimiento:** Sincroniza bibliotecas e imágenes eliminando duplicados mediante un sistema de slugs.
 
 ### 🧠 Multi-Agent Orchestrator (`core/multi_agent.py`)
@@ -400,7 +400,7 @@ Gravity es un puente de software que vincula sistemas de inteligencia artificial
 
 ## Reportero Autónomo
 Un proceso demonio continuo (`news_daemon.py`) que:
-1. Utiliza `gravity_reporter.py`.
+1. Ejecuta `workflows/reporter.json` via `run_workflow("reporter")`.
 2. Busca temáticas usando herramientas de WebSearch.
 3. Inyecta respuestas LLM en `news.json` en un repositorio independiente (`gravity-news-portal`).
 4. Realiza sincronizaciones automáticas a través de `git commit` y `git push` a Netlify. Cuenta con control de idempotencia para evitar fallos si no hay cambios nuevos, garantizando un ciclo de ejecución continuo.

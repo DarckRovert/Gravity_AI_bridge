@@ -40,6 +40,7 @@ export function V2VStudio() {
     const [isActive, setIsActive] = useState(false);
     const [fps, setFps] = useState(0);
     const [bgReady, setBgReady] = useState(false);
+    const [frameData, setFrameData] = useState<string | null>(null);
 
     // Controles de configuración
     const [preset, setPreset] = useState("cyberpunk_commander");
@@ -56,7 +57,7 @@ export function V2VStudio() {
     // ── Polling del proceso externo (cada 5s) ──────────────────────────────
     useEffect(() => {
         const fetchStatus = () => {
-            fetch('/v1/v2v/status')
+            fetch('http://localhost:7861/status')
                 .then(r => r.json())
                 .then(data => setStatus(data))
                 .catch(() => {});
@@ -72,7 +73,8 @@ export function V2VStudio() {
     useEffect(() => {
         if (status?.online && !wsRef.current) {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const socket = new WebSocket(`${protocol}//${window.location.hostname}:7863`);
+            // Nos conectamos al servidor V2V en el puerto 7861 (v2v_server.py)
+            const socket = new WebSocket(`${protocol}//${window.location.hostname}:7861/ws/v2v`);
             socket.onopen = () => {
                 setWsConnected(true);
                 socket.send(JSON.stringify({ command: "get_status" }));
@@ -81,10 +83,10 @@ export function V2VStudio() {
                 try {
                     const msg = JSON.parse(event.data);
                     if (msg.type === "status") {
-                        // Sólo actualizar métricas — NO actualizar isActive desde el servidor
-                        // para evitar el race condition del toggle
                         setFps(msg.data.fps ?? 0);
                         setBgReady(msg.data.bg_ready ?? false);
+                    } else if (msg.type === "frame") {
+                        setFrameData(msg.data);
                     }
                 } catch {}
             };
@@ -139,11 +141,13 @@ export function V2VStudio() {
 
     const applyStyle = () => {
         sendWs({
-            command: "set_prompt",
-            preset,
-            prompt: customPrompt.trim(),   // string vacío si no hay prompt
-            negative_prompt: negativePrompt,
-            strength,
+            action: "update_config",
+            config: {
+                preset,
+                prompt: `${customPrompt.trim()}, ${preset}`,
+                negative_prompt: negativePrompt,
+                strength: strength,
+            }
         });
         setBgReady(false);
     };
@@ -212,6 +216,13 @@ export function V2VStudio() {
                     </span>
                 </div>
             </div>
+            
+            {/* Preview de Video V2V */}
+            {frameData && (
+                <div className="mb-6 rounded-xl overflow-hidden border border-zinc-800 shadow-lg bg-black flex items-center justify-center min-h-[300px]">
+                    <img src={frameData} alt="V2V Preview" className="max-w-full max-h-[60vh] object-contain" />
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 

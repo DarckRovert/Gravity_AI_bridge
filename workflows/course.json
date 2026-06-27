@@ -1,0 +1,48 @@
+{
+  "workflow_id": "course",
+  "description": "Genera el syllabus completo de un curso y lo estructura en lecciones.",
+  "nodes": [
+    {
+      "id": "crear_syllabus",
+      "type": "LLMQuery",
+      "inputs": {
+        "system_prompt": "Eres un instructor académico experto. Tu tarea es estructurar cursos intensivos con máxima retención. Devuelve un índice de lecciones estructuradas.",
+        "prompt": "Diseña un curso completo sobre: {{topic}} en idioma {{lang}}.\n\nIncluye: \n- Título del Curso\n- Exactamente {{n_videos}} módulos/lecciones con descripciones detalladas.",
+        "role": "planner"
+      }
+    },
+    {
+      "id": "guardar_curso",
+      "type": "FileSaver",
+      "inputs": {
+        "text": "{{crear_syllabus.text}}",
+        "directory": "_entregables/cursos",
+        "prefix": "syllabus_",
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "extraer_topics",
+      "type": "LLMQuery",
+      "inputs": {
+        "system_prompt": "Extrae los módulos del temario provisto. Devuelve ÚNICAMENTE un JSON válido (sin formato markdown ```json) con esta estructura exacta: {\"id\": \"nombre_corto_sin_espacios_ni_tildes\", \"topics\": [\"Lección 1: Título\", \"Lección 2: Título\"], \"style\": \"documental\", \"lang\": \"{{lang}}\", \"bgm_type\": \"corporativo\", \"n_scenes\": 45, \"estimated_cpm_usd\": 15.0, \"times_used\": 0, \"last_used\": null}",
+        "prompt": "Temario:\n{{crear_syllabus.text}}",
+        "role": "planner"
+      }
+    },
+    {
+      "id": "inyectar_nicho",
+      "type": "JSONAppender",
+      "inputs": {
+        "filepath": "inputs/niches.json",
+        "root_key": "niches",
+        "new_item": "{{extraer_topics.text}}",
+        "max_items": 100
+      }
+    }
+  ],
+  "outputs": {
+    "status": "inyectar_nicho.status",
+    "course_id": "{{topic}}"
+  }
+}

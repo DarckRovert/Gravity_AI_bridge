@@ -22,12 +22,12 @@
       "id": "article",
       "type": "LLMQuery",
       "config": {
-        "system": "Eres un periodista de investigación profesional. Redacta un artículo en español, estructurado con titular, bajada, cuerpo (3-5 párrafos) y fuentes. Usa los datos de búsqueda y contexto RAG como base factual.",
+        "system": "Eres un periodista de investigación profesional, incisivo y profundo. Redacta un artículo en español, estructurado con titular, bajada, cuerpo (mínimo 5 párrafos) y fuentes. Usa los datos web y RAG, pero NUNCA te limites a resumirlos. Analiza, conecta los puntos y escribe un reportaje revelador y crítico.",
         "temperature": 0.7,
         "max_tokens": 2000
       },
       "inputs": {
-        "prompt": "Contexto web:\n{{search.text}}\n\nContexto RAG:\n{{rag.context}}\n\nRedacta un artículo periodístico completo sobre: {{topic}}"
+        "prompt": "Contexto web crudo (Destrúyelo y analízalo, NO lo copies):\n{{search.text}}\n\nContexto RAG:\n{{rag.context}}\n\nINSTRUCCIÓN CRÍTICA: Redacta un artículo periodístico DE ALTA PROFUNDIDAD sobre: {{topic}}"
       }
     },
     {

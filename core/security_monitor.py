@@ -143,6 +143,13 @@ LEGITIMATE_PROCESS_NAMES: Set[str] = {
     "koboldcpp.exe",
     "obs64.exe",
     "obs32.exe",
+    "antigrav",
+    "antigrav.exe",
+    "antigravity.exe",
+    "antigravity-ide.exe",
+    "language",
+    "language.exe",
+    "language-server.exe",
     # Adicionales: Adobe, Office, VM, IDEs, Media
     "creative cloud.exe",
     "adobe desktop service.exe",

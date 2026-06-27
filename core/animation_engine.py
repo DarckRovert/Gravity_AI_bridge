@@ -586,10 +586,6 @@ def animate_with_comfyui(
     if not image_path or not os.path.isfile(image_path):
         return None
 
-    # [Nativo para Ryzen sin dGPU] ComfyUI deshabilitado permanentemente para evitar OOM
-    # y caídas del servidor de Fooocus. Forzando el fallback a L1 (Ken Burns) siempre.
-    return None
-
     try:
         import sys as _sys
 

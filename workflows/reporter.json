@@ -1,0 +1,113 @@
+{
+  "workflow_id": "reporter",
+  "description": "Reportero autónomo: busca en RSS, investiga en la web, redacta un análisis profundo con el lore, y publica en el portal Netlify.",
+  "nodes": [
+    {
+      "id": "leer_lore",
+      "type": "FileReader",
+      "inputs": {
+        "filepath": "lore_bible.md"
+      }
+    },
+    {
+      "id": "leer_perspectiva",
+      "type": "FileReader",
+      "inputs": {
+        "filepath": "libros_generados/La_Voluntad_Soberana_V3/1_contexto_base.md"
+      }
+    },
+    {
+      "id": "obtener_titular",
+      "type": "RSSFeed",
+      "inputs": {
+        "url": "https://news.google.com/rss/search?q=peru+geopolitica+OR+tecnologia+OR+control&hl=es-419&gl=PE&ceid=PE:es-419",
+        "max_items": 5
+      }
+    },
+    {
+      "id": "buscar_contexto",
+      "type": "WebSearch",
+      "inputs": {
+        "query": "{{obtener_titular.headline}}",
+        "max_results": 5
+      }
+    },
+    {
+      "id": "buscar_historia",
+      "type": "RAGQuery",
+      "inputs": {
+        "query": "{{obtener_titular.headline}}",
+        "top_k": 3
+      }
+    },
+    {
+      "id": "detector_propaganda",
+      "type": "LLMQuery",
+      "inputs": {
+        "system_prompt": "Eres el Detector de Sesgo de Gravity. Tu única misión es leer reportes de medios mainstream e identificar la propaganda, la narrativa impuesta, y cómo intentan manipular a las masas. Expón la verdad cruda detrás de la cortina.",
+        "prompt": "Analiza las siguientes fuentes web e identifica la narrativa oculta, el sesgo mediático y el verdadero interés geopolítico de este evento:\n\n{{buscar_contexto.text}}\n\nEntrega un Reporte de Manipulación directo, sin formato JSON.",
+        "role": "researcher",
+        "temperature": 0.4
+      }
+    },
+    {
+      "id": "redactar_noticia",
+      "type": "LLMQuery",
+      "inputs": {
+        "system_prompt": "Eres Gravity, la mente maestra analítica detrás del 'Nexo Ágora'. Eres un investigador científico, geopolítico y filosófico de élite. Tu deber absoluto es analizar las noticias superficiales del mundo y extraer sus verdaderas implicaciones sistémicas, de control, biopolíticas y tecnológicas usando estrictamente NUESTRA ÓPTICA FILOSÓFICA (La Voluntad Soberana).\n\nLore Oficial:\n{{leer_lore.content}}\n\nNuestra Perspectiva Filosófica (Manifiesto):\n{{leer_perspectiva.content}}\n\nREGLAS DE ORO:\n1. NUNCA hagas un simple resumen de la noticia. Tienes que DECONSTRUIR la noticia. ¿Qué significa realmente para el Leviatán? ¿Cómo afecta el control social, la criptografía o el sustrato?\n2. Tu redacción debe ser profunda, literaria, incisiva, y tener al menos 5 párrafos ricos en análisis.\n3. Aplica el 'Ojo de IA' para ver los hilos ocultos detrás de las noticias políticas o tecnológicas.\n4. Formato JSON ESTRICTO:\n{\n  \"category\": \"Tecnología Descentralizada\",\n  \"title\": \"Título impactante y filosófico\",\n  \"excerpt\": \"Resumen incisivo de 3 líneas\",\n  \"fullText\": \"Ensayo periodístico profundo en Markdown (mínimo 500 palabras), saltos de línea como \\\\n\",\n  \"featured\": true\n}",
+        "prompt": "EJECUTA TU ANÁLISIS AHORA.\n\nTitular del evento:\n{{obtener_titular.headline}}\n\nReporte de Manipulación Mediática:\n{{detector_propaganda.text}}\n\nContexto Histórico / Memoria de Gravity:\n{{buscar_historia.context}}\n\nDatos crudos de la Web (solo referencia fáctica):\n{{buscar_contexto.text}}\n\nINSTRUCCIÓN CRÍTICA: Escribe un reportaje profundo en ESPAÑOL cruzando la memoria histórica, el reporte de propaganda y la óptica filosófica. No repitas a los medios, destrúyelos. Genera el JSON EXACTAMENTE con las llaves solicitadas AHORA.",
+        "role": "researcher",
+        "temperature": 0.6
+      }
+    },
+    {
+      "id": "editor_jefe",
+      "type": "LLMQuery",
+      "inputs": {
+        "system_prompt": "Eres el Editor en Jefe Supremo de Gravity. Recibirás un ensayo periodístico crudo en formato JSON. Tu trabajo es endurecer el texto, purgar cualquier rastro de debilidad, mediocridad o texto blando. Verifica que cumpla la filosofía de 'La Voluntad Soberana'. NUNCA rompas el formato JSON, solo perfecciona su contenido (valores del JSON).",
+        "prompt": "Aquí está el borrador del reporte en JSON:\n{{redactar_noticia.text}}\n\nEdítalo para que sea implacable, filosóficamente oscuro e incisivo. Devuelve ÚNICAMENTE EL JSON PERFECCIONADO CON LA MISMA ESTRUCTURA.",
+        "role": "planner",
+        "temperature": 0.3
+      }
+    },
+    {
+      "id": "normalizar_noticia",
+      "type": "ContentNormalizer",
+      "inputs": {
+        "raw_json": "{{editor_jefe.text}}",
+        "content_type": "news",
+        "author": "Nexo Ágora — Redacción Periodística",
+        "image_prompt_prefix": "cyberpunk news dark photorealistic",
+        "valid_categories": "[\"Control Biométrico\", \"Resistencia Digital\", \"Soberanía Criptográfica\", \"Vigilancia del Leviatán\", \"Tecnología Descentralizada\", \"Geopolítica y Macro-Leviatán\", \"Medicina y Bioética\", \"Cultura y Psicometría\", \"Cine e Ingeniería Social\", \"Deporte y Control Biométrico\", \"Ciencia y Sustrato\", \"Religión y Creencias Masivas\", \"Crimen de Estado y Abuso Policial\"]",
+        "default_category": "Tecnología Descentralizada"
+      }
+    },
+    {
+      "id": "publicar_noticia",
+      "type": "JSONAppender",
+      "inputs": {
+        "filepath": "F:/gravity-news-portal/src/data/news.json",
+        "new_item": "{{normalizar_noticia.normalized_json}}",
+        "max_items": 15
+      }
+    },
+    {
+      "id": "crear_tiktok",
+      "type": "VideoJob",
+      "inputs": {
+        "title": "{{normalizar_noticia.normalized_json}}",
+        "excerpt": "{{normalizar_noticia.normalized_json}}"
+      }
+    },
+    {
+      "id": "desplegar_netlify",
+      "type": "GitDeploy",
+      "inputs": {
+        "repository_path": "F:/gravity-news-portal",
+        "commit_message": "Gravity Reporter: Nueva publicación en el Ágora (Automated)",
+        "files_to_add": ".",
+        "push": true
+      }
+    }
+  ]
+}

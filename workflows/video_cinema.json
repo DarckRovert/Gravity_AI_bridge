@@ -1,20 +1,50 @@
 {
   "workflow_id": "video_cinema",
-  "description": "Pipeline completo de video cinematográfico: guión → imágenes → audio → video final. Equivalente al _process_job() del Video Studio.",
+  "description": "Pipeline completo de video cinematográfico: guión → imágenes por escena → TTS → render GLSL → concat. Delega la ejecución al Video Studio de Gravity. Parámetros opcionales con defaults razonables.",
   "nodes": [
     {
-      "id": "script",
-      "type": "ScriptBuilder",
-      "config": {},
+      "id": "topic_picker",
+      "type": "TopicPicker",
       "inputs": {
-        "topic": "{{topic}}",
-        "n_scenes": "{{n_scenes}}",
+        "topics_json": "[{\"topic\":\"La batalla final por la privacidad digital\",\"query\":\"privacy surveillance state 2025\"},{\"topic\":\"El despertar de la conciencia artificial\",\"query\":\"AI consciousness emergence 2025\"},{\"topic\":\"Criptomonedas contra el Estado\",\"query\":\"crypto decentralization freedom 2025\"},{\"topic\":\"La revolución de la biología sintética\",\"query\":\"synthetic biology CRISPR breakthrough 2025\"},{\"topic\":\"El colapso del sistema financiero global\",\"query\":\"financial system collapse 2025\"}]",
+        "override_topic": "{{topic}}"
+      }
+    },
+    {
+      "id": "video",
+      "type": "CinematicVideo",
+      "config": {
+        "style": "cyberpunk",
+        "n_scenes": 6,
+        "lang": "es",
+        "resolution": "832x1216",
+        "fps": 30,
+        "job_type": "tts",
+        "bgm_type": "ninguna",
+        "use_lore": true,
+        "transitions": true,
+        "ken_burns": true,
+        "subtitles": true,
+        "intro_card": false,
+        "color_grade": "auto",
+        "animation_effect": "pulse",
+        "animation_level": 1,
+        "quality": "hd"
+      },
+      "inputs": {
+        "topic": "{{topic_picker.topic}}",
+        "title": "{{topic_picker.topic}}",
         "style": "{{style}}",
+        "n_scenes": "{{n_scenes}}",
         "lang": "{{lang}}",
-        "use_lore": "{{use_lore}}"
+        "resolution": "{{resolution}}",
+        "fps": "{{fps}}",
+        "job_type": "{{job_type}}"
       }
     }
   ],
-  "_note": "Este workflow define el esquema. La ejecución completa (imagen por escena, TTS por escena, render, concat) requiere soporte de nodos 'foreach' — disponible en WorkflowEngine v2. Por ahora, el VideoStudio usa su pipeline propio y este workflow sirve como definición de referencia y prueba del motor.",
-  "_status": "reference"
+  "outputs": {
+    "job_id": "video.job_id",
+    "status": "video.status"
+  }
 }

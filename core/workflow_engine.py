@@ -236,9 +236,9 @@ class WorkflowGraph:
             dep_graph[nid]  # ensure entry
             for val in (nd.get("inputs") or {}).values():
                 if isinstance(val, str):
-                    parts = val.split(".")
-                    if len(parts) >= 2 and parts[0] in all_ids:
-                        dep_graph[nid].add(parts[0])
+                    for src_id in all_ids:
+                        if f"{src_id}." in val:
+                            dep_graph[nid].add(src_id)
 
         # Kahn's algorithm
         in_degree = {nid: 0 for nid in all_ids}
@@ -282,42 +282,82 @@ class WorkflowGraph:
     ) -> Any:
         """
         Resuelve el valor de un input:
-          - "{{param}}"   → params["param"]
-          - "n1.text"     → node_outputs["n1"]["text"]
-          - "n1.items[0]" → node_outputs["n1"]["items"][0]
+          - "n1.text"     → node_outputs["n1"]["text"] (si es valor exacto)
+          - "{{param}}"   → interpolación de params o node_outputs
           - cualquier otro valor → literal
         """
         if not isinstance(val, str):
             return val
 
-        # Template param: {{nombre}}
-        if val.startswith("{{") and val.endswith("}}"):
-            key = val[2:-2].strip()
-            if key not in params:
-                raise KeyError(f"[WorkflowGraph] Parámetro '{{{{key}}}}' no encontrado en params.")
-            return params[key]
-
-        # Node output reference: "nX.campo" o "nX.campo[idx]"
+        # 1. Resolver valor exacto de output de nodo (ej. "n1.text")
         parts = val.split(".", 1)
         if len(parts) == 2 and parts[0] in node_outputs:
             src_node_id, field_expr = parts
             src_out = node_outputs[src_node_id]
-            if not isinstance(src_out, dict):
-                return src_out
-            # Simple field
-            if "[" not in field_expr:
-                return src_out.get(field_expr)
-            # Array access: campo[idx]
-            bracket_idx = field_expr.index("[")
-            field_name = field_expr[:bracket_idx]
-            idx_str = field_expr[bracket_idx + 1 : field_expr.index("]")]
-            arr = src_out.get(field_name, [])
-            try:
-                return arr[int(idx_str)]
-            except (IndexError, ValueError):
-                return None
+            if isinstance(src_out, dict):
+                if "[" not in field_expr:
+                    return src_out.get(field_expr)
+                bracket_idx = field_expr.index("[")
+                field_name = field_expr[:bracket_idx]
+                idx_str = field_expr[bracket_idx + 1 : field_expr.index("]")]
+                arr = src_out.get(field_name, [])
+                try:
+                    return arr[int(idx_str)]
+                except (IndexError, ValueError):
+                    pass
 
-        return val
+        # 2. Resolver interpolación inline (ej. "Hola {{topic}} o {{n1.text}}")
+        import re
+        
+        # Si es exactamente "{{algo}}", queremos preservar el tipo (puede no ser string)
+        exact_match = re.fullmatch(r"\{\{\s*(.*?)\s*\}\}", val)
+        if exact_match:
+            key = exact_match.group(1)
+            # Primero buscar en params
+            if key in params:
+                return params[key]
+            # Si no, buscar como output de nodo
+            parts = key.split(".", 1)
+            if len(parts) == 2 and parts[0] in node_outputs:
+                src_node_id, field_expr = parts
+                src_out = node_outputs[src_node_id]
+                if isinstance(src_out, dict):
+                    if "[" not in field_expr:
+                        return src_out.get(field_expr)
+                    bracket_idx = field_expr.index("[")
+                    field_name = field_expr[:bracket_idx]
+                    idx_str = field_expr[bracket_idx + 1 : field_expr.index("]")]
+                    arr = src_out.get(field_name, [])
+                    try:
+                        return arr[int(idx_str)]
+                    except (IndexError, ValueError):
+                        pass
+            # Si es exacto pero no se encontró, retorna el texto original o falla
+            raise KeyError(f"[WorkflowGraph] Parámetro '{key}' no encontrado en params ni outputs.")
+
+        # Si hay multiples {{}} dentro de un string, reemplazar
+        def _replace_match(match):
+            key = match.group(1).strip()
+            if key in params:
+                return str(params[key])
+            parts = key.split(".", 1)
+            if len(parts) == 2 and parts[0] in node_outputs:
+                src_node_id, field_expr = parts
+                src_out = node_outputs[src_node_id]
+                if isinstance(src_out, dict):
+                    if "[" not in field_expr:
+                        return str(src_out.get(field_expr, ""))
+                    bracket_idx = field_expr.index("[")
+                    field_name = field_expr[:bracket_idx]
+                    idx_str = field_expr[bracket_idx + 1 : field_expr.index("]")]
+                    arr = src_out.get(field_name, [])
+                    try:
+                        return str(arr[int(idx_str)])
+                    except (IndexError, ValueError):
+                        pass
+            return match.group(0) # dejar igual si no resuelve
+
+        return re.sub(r"\{\{(.*?)\}\}", _replace_match, val)
 
     def _build_node_inputs(
         self,

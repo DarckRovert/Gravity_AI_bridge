@@ -968,6 +968,15 @@ def _process_job(
                 fps,
             )
 
+        visual_consistency = False
+        try:
+            import yaml
+            with open(os.path.join(BASE_DIR, "config.yaml"), "r", encoding="utf-8") as _fc:
+                _cfg = yaml.safe_load(_fc) or {}
+                visual_consistency = _cfg.get("comfyui", {}).get("visual_consistency", True)
+        except Exception:
+            pass
+
         for i, scene in enumerate(scenes):
             if v14_bypass:
                 break
@@ -976,12 +985,14 @@ def _process_job(
             narration = scene.get("narration", "")
 
             scene_visual_context = ""
-            if previous_scene_image:
+            if previous_scene_image and visual_consistency:
                 scene_visual_context = _get_scene_visual_context(previous_scene_image)
+                if scene_visual_context:
+                    log.info(f"[VideoStudio] Scene {scene_num} extracted visual anchor: {scene_visual_context[:100]}...")
 
             raw_prompt = scene.get("image_prompt", topic)
             if scene_visual_context:
-                raw_prompt = f"{scene_visual_context}, {raw_prompt}"
+                raw_prompt = f"[Visual Continuity: {scene_visual_context}] {raw_prompt}"
 
             anchored_prompt = (
                 f"{raw_prompt}, {visual_anchor}, {style_info['prefix']}"

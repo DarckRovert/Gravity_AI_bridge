@@ -394,7 +394,7 @@ Seguridad: score {snapshot.get('security', {}).get('score', 100)}/100
   - [knowledge_base] Persistir regla o aprendizaje: learn("texto de la regla")
   - [strategic_memory] Registrar observación o patrón
   - [affiliate] Registrar observación de rendimiento por niche
-  - [workflow_engine] Lanzar fábrica de contenido asíncrona: run_workflow("workflow_id", {"topic": "..."})
+  - [workflow_engine] Lanzar fábrica de contenido asíncrona: run_workflow("workflow_id", {{"topic": "..."}})
 
 ═══ ACCIONES QUE REQUIEREN APROBACIÓN HUMANA (ALTO RIESGO) ═══
   - Modificar config.yaml o proveedores de IA
