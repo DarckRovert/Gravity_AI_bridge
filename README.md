@@ -63,9 +63,9 @@ Un demonio despierta cada 6 horas (`autonomy_engine.py`) ejecutando el ciclo Obs
 - Examina el mercado (bounties, ingresos pasivos generados) y si detecta oportunidades, orquesta a los sub-agentes para cazar contratos de trabajo o publicar reportes destructivos en la web.
 - Todo código dañino choca contra el `hitl_manager.py` (Human In The Loop), esperando confirmación visual en el Dashboard React.
 
-### 4. Forja Literaria y Audiovisual (`tools/` & `core/video/`)
-- **Producción Masiva de Textos:** Herramientas como `book_refiner.py` y `fiction_writer.py` están orquestadas para escribir, revisar y estructurar libros enteros.
-- **Motor V17 Shaders:** Generación de videos usando pura matemática en la GPU (SDF, Turing Patterns, Kerr Black Holes) evadiendo la necesidad de descargar inmensos assets de video. Posee Auto-Uploader a redes sociales con un renderizado dual (16:9 y 9:16).
+### 4. Interfaz Omnisciente y Fábricas (Dashboard y Tools)
+- **Dashboard React (35 Submódulos):** Mientras el motor nuclear restringe la IA a 32 procesos asíncronos para proteger el hardware, la interfaz de usuario web expone **35 paneles de control** simultáneos. Desde allí operas el *Hitl Manager*, el monitoreo de VRAM en vivo, y las consolas rotativas sin tocar la terminal local.
+- **Forja Literaria y Multimedia:** Herramientas como `book_refiner.py` orquestan libros enteros, mientras el **Motor V17 Shaders** genera videos usando pura matemática GPU (SDF, Turing Patterns) evadiendo descargas de assets masivos, con Auto-Uploader a redes y renderizado dual (16:9 y 9:16).
 
 ---
 
