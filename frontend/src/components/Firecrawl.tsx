@@ -17,15 +17,18 @@ export const Firecrawl = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: url.trim() })
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || 'Servidor remoto rechazó la operación de scraping');
+      }
       if (data.ok) {
         showToast('success', `Extracción completada para: ${url}\n\nContenido enviado a memoria semántica.\nTokens aprox: ${Math.round((data.content?.length || 0) / 4)}`);
       } else {
         showToast('error', `Error en crawl: ${data.error || 'Sin contenido extraído'}`);
       }
       setUrl('');
-    } catch (e) {
-      showToast('error', 'Error de conexión con el backend de Firecrawl');
+    } catch (e: any) {
+      showToast('error', `Fallo de conexión o extracción: ${e.message}`);
     } finally {
       setCrawling(false);
     }
@@ -34,7 +37,10 @@ export const Firecrawl = () => {
   const fetchHealth = async () => {
     try {
       const res = await fetch('/v1/tools/firecrawl/health');
-      if (res.ok) setHealth(await res.json());
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data) setHealth(data);
+      }
     } catch (e) {} finally {
       setLoading(false);
     }
