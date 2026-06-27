@@ -25,26 +25,43 @@ export const MissionControl: React.FC = () => {
   const releaseRam = async () => {
     if (!confirm("¿Deseas detener los motores pesados (Fooocus, Ollama, LM Studio, ComfyUI) para ahorrar RAM?")) return;
     setLoading(true);
-    let successCount = 0;
     const enginesToKill = ['Fooocus', 'Ollama', 'LM Studio', 'ComfyUI'];
     
     try {
-      for (const engine of enginesToKill) {
-        const res = await fetch('/v1/ai/stop', {
+      const promises = enginesToKill.map(engine => 
+        fetch('/v1/ai/stop', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ provider: engine })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success) successCount++;
-        }
-      }
+        }).then(res => res.json()).catch(() => ({ success: false }))
+      );
       
-      showToast('success', `Operación completada. Se liberaron ${successCount} motores.`);
+      const results = await Promise.all(promises);
+      const successCount = results.filter((r: any) => r && r.success).length;
+      
+      showToast('success', `Operación completada. Se enviaron señales de apagado a ${enginesToKill.length} motores (${successCount} confirmados).`);
       await fetchCtx();
     } catch (e) {
-      showToast('error', "Error de conexión con el bridge al intentar liberar RAM");
+      showToast('error', "Error general de red al intentar liberar RAM");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleServiceAction = async (providerId: string, providerName: string, action: 'start' | 'stop') => {
+    if (!confirm(`¿${action.toUpperCase()} ${providerName}?`)) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/v1/ai/${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider: providerId })
+      });
+      if (!res.ok) throw new Error('Error en respuesta del puente');
+      showToast('success', `Orden de ${action.toUpperCase()} enviada a ${providerName}`);
+      await fetchCtx();
+    } catch (e) {
+      showToast('error', `Falló la orden de ${action.toUpperCase()} para ${providerName}`);
     } finally {
       setLoading(false);
     }
@@ -171,24 +188,18 @@ export const MissionControl: React.FC = () => {
                     </div>
                     {srv.canStop && isHealthy && (
                       <button 
-                        onClick={() => {
-                           if(confirm(`¿Detener ${srv.name}?`)) {
-                             fetch('/v1/ai/stop', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({provider: srv.id}) }).then(() => fetchCtx());
-                           }
-                        }}
-                        className="px-3 py-1.5 text-[10px] uppercase font-black tracking-widest text-status-error bg-status-error/10 hover:bg-status-error hover:text-white hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                        disabled={loading}
+                        onClick={() => handleServiceAction(srv.id, srv.name, 'stop')}
+                        className="px-3 py-1.5 text-[10px] uppercase font-black tracking-widest text-status-error bg-status-error/10 hover:bg-status-error hover:text-white hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] disabled:opacity-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                       >
                         Kill
                       </button>
                     )}
                     {srv.canStop && !isHealthy && ctx && (
                       <button 
-                        onClick={() => {
-                           if(confirm(`¿RUN ${srv.name}?`)) {
-                             fetch('/v1/ai/start', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({provider: srv.id}) }).then(() => fetchCtx());
-                           }
-                        }}
-                        className="px-3 py-1.5 text-[10px] uppercase font-black tracking-widest text-status-success bg-status-success/10 hover:bg-status-success hover:text-white hover:shadow-[0_0_15px_rgba(16,185,129,0.4)] rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                        disabled={loading}
+                        onClick={() => handleServiceAction(srv.id, srv.name, 'start')}
+                        className="px-3 py-1.5 text-[10px] uppercase font-black tracking-widest text-status-success bg-status-success/10 hover:bg-status-success hover:text-white hover:shadow-[0_0_15px_rgba(16,185,129,0.4)] disabled:opacity-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                       >
                         Start
                       </button>
@@ -230,13 +241,18 @@ export const MissionControl: React.FC = () => {
             <h2 className="text-xl font-black text-white tracking-tight">System Events</h2>
           </div>
           <div className="flex flex-col gap-3 relative z-10">
-            {[1,2,3].map(i => (
-              <div key={i} className="flex items-center gap-4 p-4 rounded-xl glass-card">
-                <div className="text-xs text-text-muted font-mono w-24">10:42:{10+i} AM</div>
-                <div className="flex-1 text-sm text-text-primary font-medium">Sincronización neural completada con Gravity Brain V16.3 PRO.</div>
-                <div className="px-3 py-1 rounded-md bg-status-success/15 border border-status-success/30 text-status-success text-[10px] font-black uppercase tracking-widest shadow-[0_0_10px_rgba(16,185,129,0.1)]">OK</div>
+            {ctx ? (
+              <div className="flex items-center gap-4 p-4 rounded-xl glass-card border border-status-success/20 transition-all">
+                <div className="text-xs text-text-muted font-mono w-24">{new Date().toLocaleTimeString()}</div>
+                <div className="flex-1 text-sm text-text-primary font-medium">Enlace de telemetría estable con Gravity Brain V16.3.</div>
+                <div className="px-3 py-1 rounded-md bg-status-success/15 border border-status-success/30 text-status-success text-[10px] font-black uppercase tracking-widest shadow-[0_0_10px_rgba(16,185,129,0.1)]">ONLINE</div>
               </div>
-            ))}
+            ) : (
+              <div className="flex items-center gap-4 p-4 rounded-xl glass-card opacity-50 transition-all">
+                <div className="flex-1 text-sm text-text-primary font-medium">Esperando conexión de telemetría...</div>
+                <div className="w-4 h-4 rounded-full border-2 border-accent-primary border-t-transparent animate-spin"></div>
+              </div>
+            )}
           </div>
         </div>
 
