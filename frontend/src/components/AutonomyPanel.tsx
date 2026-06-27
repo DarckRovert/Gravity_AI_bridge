@@ -4,6 +4,7 @@ import {
   XCircle, Clock, RefreshCw, Activity, Eye, Code2, Target, Lock,
   BarChart3, ChevronRight, Cpu
 } from 'lucide-react';
+import { showToast } from './Toast';
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -111,22 +112,26 @@ export const AutonomyPanel = () => {
       ]);
 
       if (statusRes.status === 'fulfilled' && statusRes.value.ok) {
-        const d = await statusRes.value.json();
-        setAutonomyState(d.autonomy_engine);
-        setReflectionState(d.self_reflection);
+        const d = await statusRes.value.json().catch(() => null);
+        if (d) {
+          setAutonomyState(d.autonomy_engine);
+          setReflectionState(d.self_reflection);
+        }
       }
       if (decisionsRes.status === 'fulfilled' && decisionsRes.value.ok) {
-        const d = await decisionsRes.value.json();
-        setDecisions(d.decisions || []);
-        setSummary(d.summary || null);
+        const d = await decisionsRes.value.json().catch(() => null);
+        if (d) {
+          setDecisions(d.decisions || []);
+          setSummary(d.summary || null);
+        }
       }
       if (patchesRes.status === 'fulfilled' && patchesRes.value.ok) {
-        const d = await patchesRes.value.json();
-        setPatches(d.patches || []);
+        const d = await patchesRes.value.json().catch(() => null);
+        if (d) setPatches(d.patches || []);
       }
       if (rulesRes.status === 'fulfilled' && rulesRes.value.ok) {
-        const d = await rulesRes.value.json();
-        setRules(d.invariant_rules || []);
+        const d = await rulesRes.value.json().catch(() => null);
+        if (d) setRules(d.invariant_rules || []);
       }
     } catch (_) {}
     finally { setLoading(false); }
@@ -141,31 +146,52 @@ export const AutonomyPanel = () => {
   const triggerOODA = async () => {
     setTriggeringOODA(true);
     try {
-      await fetch('/v1/autonomy/trigger', { method: 'POST' });
+      const res = await fetch('/v1/autonomy/trigger', { method: 'POST' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'El orquestador rechazó la operación OODA');
+      }
+      showToast('success', 'Ciclo OODA forzado exitosamente');
       setTimeout(fetchAll, 3000);
-    } catch (_) {}
+    } catch (e: any) {
+      showToast('error', `Error OODA: ${e.message}`);
+    }
     finally { setTimeout(() => setTriggeringOODA(false), 2000); }
   };
 
   const triggerReflection = async () => {
     setTriggeringReflection(true);
     try {
-      await fetch('/v1/reflection/trigger', { method: 'POST' });
+      const res = await fetch('/v1/reflection/trigger', { method: 'POST' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'El orquestador rechazó la operación de Reflexión');
+      }
+      showToast('success', 'Auto-Reflexión iniciada exitosamente');
       setTimeout(fetchAll, 5000);
-    } catch (_) {}
+    } catch (e: any) {
+      showToast('error', `Error Reflexión: ${e.message}`);
+    }
     finally { setTimeout(() => setTriggeringReflection(false), 3000); }
   };
 
   const handlePatch = async (patchId: string, action: 'approve' | 'reject') => {
     setProcessing(patchId);
     try {
-      await fetch(`/v1/reflection/patches/${patchId}/${action}`, {
+      const res = await fetch(`/v1/reflection/patches/${patchId}/${action}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: action === 'reject' ? JSON.stringify({ reason: 'Rechazado desde dashboard' }) : undefined,
       });
+      if (!res.ok) {
+         const data = await res.json().catch(() => ({}));
+         throw new Error(data.error || `El sistema rechazó la acción de ${action}`);
+      }
+      showToast('success', `Parche ${action === 'approve' ? 'aprobado' : 'rechazado'} correctamente`);
       fetchAll();
-    } catch (_) {}
+    } catch (e: any) {
+      showToast('error', `Fallo al procesar parche: ${e.message}`);
+    }
     finally { setProcessing(null); }
   };
 
