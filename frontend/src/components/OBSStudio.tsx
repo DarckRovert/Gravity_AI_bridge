@@ -193,38 +193,35 @@ export const OBSStudio: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ input_name: inputName })
       });
-      if (res.ok) {
-        const data = await res.json();
-        setInputs(inputs.map(i => i.input_name === inputName ? { ...i, muted: data.muted } : i));
-      }
-    } catch (e) {
-      showToast('error', 'Error al mutear');
+      if (!res.ok) throw new Error('El servidor rechazó silenciar el canal');
+      const data = await res.json();
+      setInputs(inputs.map(i => i.input_name === inputName ? { ...i, muted: data.muted } : i));
+    } catch (e: any) {
+      showToast('error', `Error al mutear: ${e.message}`);
     }
   };
 
   const handleToggleStream = async () => {
     try {
       const res = await fetch('/v1/obs/stream/toggle', { method: 'POST' });
-      if (res.ok) {
-        const data = await res.json();
-        setStreamRecord(prev => ({ ...prev, streaming: data.streaming }));
-        showToast('success', data.streaming ? 'Stream Iniciado' : 'Stream Detenido');
-      }
-    } catch (e) {
-      showToast('error', 'Error de conexión');
+      if (!res.ok) throw new Error('El servidor OBS rechazó la acción de Stream');
+      const data = await res.json();
+      setStreamRecord(prev => ({ ...prev, streaming: data.streaming }));
+      showToast('success', data.streaming ? 'Stream Iniciado' : 'Stream Detenido');
+    } catch (e: any) {
+      showToast('error', `Error crítico en Stream: ${e.message}`);
     }
   };
 
   const handleToggleRecord = async () => {
     try {
       const res = await fetch('/v1/obs/record/toggle', { method: 'POST' });
-      if (res.ok) {
-        const data = await res.json();
-        setStreamRecord(prev => ({ ...prev, recording: data.recording }));
-        showToast('success', data.recording ? 'Grabación Iniciada' : 'Grabación Detenida');
-      }
-    } catch (e) {
-      showToast('error', 'Error de conexión');
+      if (!res.ok) throw new Error('El servidor OBS rechazó la acción de Grabación');
+      const data = await res.json();
+      setStreamRecord(prev => ({ ...prev, recording: data.recording }));
+      showToast('success', data.recording ? 'Grabación Iniciada' : 'Grabación Detenida');
+    } catch (e: any) {
+      showToast('error', `Error crítico en Grabación: ${e.message}`);
     }
   };
 
@@ -310,15 +307,14 @@ export const OBSStudio: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ overlay_id: id })
       });
-      if (res.ok) {
-        showToast('success', 'Overlay eliminado');
-        setOverlays(overlays.filter(o => o.overlay_id !== id));
-        if (selectedOverlay?.overlay_id === id) {
-          setSelectedOverlay(null);
-        }
+      if (!res.ok) throw new Error('Error purgando overlay del sistema');
+      showToast('success', 'Overlay purgado permanentemente de OBS');
+      setOverlays(overlays.filter(o => o.overlay_id !== id));
+      if (selectedOverlay?.overlay_id === id) {
+        setSelectedOverlay(null);
       }
-    } catch (e) {
-      showToast('error', 'Error al eliminar');
+    } catch (e: any) {
+      showToast('error', `Fallo al eliminar: ${e.message}`);
     }
   };
 
@@ -570,7 +566,7 @@ export const OBSStudio: React.FC = () => {
                 {/* Visual IFrame Container */}
                 <div className="flex-1 bg-black/40 border border-border-subtle rounded-lg overflow-hidden relative min-h-[300px] flex items-center justify-center">
                   <iframe 
-                    src={`/obs-overlay/${selectedOverlay.overlay_id}?t=${Date.now()}`}
+                    src={`/obs-overlay/${selectedOverlay.overlay_id}`}
                     title={`Preview ${selectedOverlay.overlay_id}`}
                     className="w-full h-full border-none bg-transparent"
                     style={{
