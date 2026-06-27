@@ -81,7 +81,10 @@ class HighFrequencyRadar:
     def run_forever(self):
         log.info(f"[RADAR] Iniciando escaneo de alta frecuencia cada {self.interval}s...")
         while True:
-            self.check_for_breaking_news()
+            try:
+                self.check_for_breaking_news()
+            except BaseException as e:
+                log.error(f"[RADAR] Error crítico en el bucle principal: {e}")
             time.sleep(self.interval)
 
 if __name__ == "__main__":

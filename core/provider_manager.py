@@ -201,9 +201,13 @@ def scan_all(force: bool = False) -> List[ProviderResult]:
                     pass
         except RuntimeError as e:
             from core.logger import log
-            log.error(f"[ProviderManager] ThreadPoolExecutor RuntimeError: {e}. Manteniendo caché.")
-            if _cached_results:
-                return _cached_results
+            log.warning(f"[ProviderManager] ThreadPoolExecutor falló ({e}). Usando escaneo secuencial (Fallback).")
+            # Fallback secuencial si no se pueden crear hilos (ej. memoria agotada o interpreter shutdown)
+            for p in plugins:
+                try:
+                    results.append(_safe_check(p))
+                except Exception:
+                    pass
         finally:
             if 'ex' in locals():
                 ex.shutdown(wait=False)

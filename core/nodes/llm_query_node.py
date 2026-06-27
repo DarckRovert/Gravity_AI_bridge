@@ -49,6 +49,9 @@ class LLMQueryNode(GravityNode):
             best_provider, best_model = provider_manager.get_best()
             provider_name = best_provider.name if hasattr(best_provider, 'name') else best_provider
 
+            if not provider_name:
+                raise ValueError("No hay proveedores de IA disponibles o saludables. Revisa tu memoria RAM, inicia un motor local o configura una API Key.")
+
             log.info(f"[LLMQueryNode] Usando {provider_name}/{best_model} | temp={temperature} | sys={len(system)}c")
 
             full_text = provider_manager.complete(
