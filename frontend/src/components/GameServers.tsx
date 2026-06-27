@@ -42,22 +42,24 @@ export const GameServers = () => {
         body: JSON.stringify({ server: id })
       });
       if (!res.ok) {
-        const data = await res.json();
-        showToast('error', data.error || `Error al ${action} el servidor`);
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `El servidor rechazó la orden de ${action}`);
       }
+      showToast('success', `Comando ${action} ejecutado con éxito en ${id}`);
       fetchStatus();
-    } catch (e) {
-      showToast('error', `Fallo de conexión con el puente`);
+    } catch (e: any) {
+      showToast('error', `Error en comando: ${e.message}`);
     }
   };
 
   const handleBackup = async () => {
     try {
       const res = await fetch('/v1/gameserver/backup', { method: 'POST' });
-      const data = await res.json();
-      showToast('error', data.msg || data.error || 'Backup iniciado');
-    } catch(e) {
-      showToast('error', 'Error ejecutando backup');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'El backend rechazó el backup');
+      showToast('success', data.msg || 'Backup ejecutado exitosamente');
+    } catch(e: any) {
+      showToast('error', `Fallo de Auto-Backup: ${e.message}`);
     }
   };
 
@@ -69,11 +71,12 @@ export const GameServers = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ server: 'wow_vanilla', username: regUser, password: regPass })
       });
-      const data = await res.json();
-      showToast('error', data.note || data.error || 'Proceso finalizado');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'El backend rechazó el registro');
+      showToast('success', data.note || 'Cuenta creada exitosamente en la DB local');
       setRegUser(''); setRegPass('');
-    } catch(e) {
-      showToast('error', 'Error registrando cuenta');
+    } catch(e: any) {
+      showToast('error', `Error de Registro: ${e.message}`);
     }
   };
 
@@ -86,10 +89,11 @@ export const GameServers = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ server: id, command: cmd })
       });
-      const data = await res.json();
-      showToast('error', data.result || data.error || 'Comando enviado');
-    } catch(e) {
-      showToast('error', 'Error enviando comando');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'El núcleo del servidor rechazó el comando');
+      showToast('success', data.result || 'Comando inyectado con éxito');
+    } catch(e: any) {
+      showToast('error', `Error de Consola: ${e.message}`);
     }
   };
 
