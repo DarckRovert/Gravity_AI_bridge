@@ -12,9 +12,12 @@ export const Security = () => {
         fetch('/v1/security'),
         fetch('/v1/security/geoip')
       ]);
-      if (sRes.ok) setSec(await sRes.json());
+      if (sRes.ok) {
+        const sData = await sRes.json().catch(() => null);
+        if (sData) setSec(sData);
+      }
       if (gRes.ok) {
-        const gData = await gRes.json();
+        const gData = await gRes.json().catch(() => ({}));
         setGeo(gData.tracker || []);
       }
     } catch (e) {}
@@ -29,14 +32,19 @@ export const Security = () => {
   const killProcess = async (pid: number) => {
     if (!confirm(`¿Seguro que deseas terminar el proceso con PID ${pid}?`)) return;
     try {
-      await fetch('/v1/security/kill', {
+      const res = await fetch('/v1/security/kill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pid })
       });
-      fetchSecurity();
-    } catch (e) {
-      showToast('error', 'Error al terminar proceso');
+      if (res.ok) {
+        fetchSecurity();
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        showToast('error', errData.error || 'Error al terminar proceso (Operación denegada)');
+      }
+    } catch (e: any) {
+      showToast('error', `Fallo de conexión al terminar proceso: ${e.message}`);
     }
   };
 
@@ -131,7 +139,19 @@ export const Security = () => {
               </div>
               <div className="pt-4 border-t border-border-subtle">
                 <button 
-                  onClick={() => fetch('/v1/security/scan', { method: 'POST' }).then(() => { showToast('success', 'Escaneo forzado iniciado'); fetchSecurity(); })}
+                  onClick={async () => {
+                    try {
+                      const res = await fetch('/v1/security/scan', { method: 'POST' });
+                      if (res.ok) {
+                        showToast('success', 'Escaneo forzado iniciado');
+                        fetchSecurity();
+                      } else {
+                        showToast('error', 'Fallo al iniciar escaneo de seguridad');
+                      }
+                    } catch (e) {
+                      showToast('error', 'Error de red al iniciar escaneo');
+                    }
+                  }}
                   className="w-full py-3 rounded-xl bg-accent-primary text-white text-xs font-black uppercase tracking-widest hover:scale-105 transition-all"
                 >
                   Ejecutar Escaneo Total
