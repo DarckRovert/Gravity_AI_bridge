@@ -17,11 +17,11 @@ export const Settings = () => {
        const res = await fetch('/v1/status'); // some settings come from status
        const cRes = await fetch('/v1/cost');
        if (res.ok && cRes.ok) {
-         const sData = await res.json();
-         const cData = await cRes.json();
+         const sData = await res.json().catch(() => ({}));
+         const cData = await cRes.json().catch(() => ({}));
          setSettings((prev: any) => ({
            ...prev,
-           cost_limit_usd: cData.daily_limit,
+           cost_limit_usd: cData.daily_limit || 10,
            rag_enabled: sData.rag_enabled || false,
            model_locked: sData.model_locked || false,
            universal_base_url: sData.universal_base_url || 'https://openrouter.ai/api/v1',
@@ -37,13 +37,18 @@ export const Settings = () => {
 
   const handleSaveKey = async (provider: string, key: string) => {
     try {
-      await fetch('/v1/keys', {
+      const res = await fetch('/v1/keys', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider, api_key: key })
       });
-      showToast('info', `Key para ${provider} actualizada`);
-    } catch (e) { showToast('error', 'Error al guardar key'); }
+      if (res.ok) {
+        showToast('info', `Key para ${provider} actualizada`);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        showToast('error', errData.error || `Error al actualizar key de ${provider}`);
+      }
+    } catch (e: any) { showToast('error', `Error de red al guardar key: ${e.message}`); }
   };
 
   const handleSaveUniversalConfig = async (baseUrl: string, model: string) => {
@@ -56,10 +61,11 @@ export const Settings = () => {
       if (res.ok) {
         showToast('success', 'Configuración de Universal AI guardada con éxito.');
       } else {
-        showToast('error', 'Error al guardar configuración de Universal AI.');
+        const errData = await res.json().catch(() => ({}));
+        showToast('error', errData.error || 'Error al guardar configuración de Universal AI.');
       }
-    } catch (e) {
-      showToast('error', 'Error de conexión con el Bridge.');
+    } catch (e: any) {
+      showToast('error', `Error de conexión con el Bridge: ${e.message}`);
     }
   };
 
@@ -67,10 +73,15 @@ export const Settings = () => {
     try {
       const res = await fetch('/v1/rag/toggle', { method: 'POST' });
       if (res.ok) {
-        const data = await res.json();
-        setSettings({ ...settings, rag_enabled: data.rag_enabled });
+        const data = await res.json().catch(() => ({}));
+        if (data.rag_enabled !== undefined) {
+          setSettings({ ...settings, rag_enabled: data.rag_enabled });
+        }
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        showToast('error', errData.error || 'Error al alternar RAG');
       }
-    } catch (e) {}
+    } catch (e: any) { showToast('error', `Error de red al alternar RAG: ${e.message}`); }
   };
 
   return (
@@ -149,9 +160,14 @@ export const Settings = () => {
                     <button
                       onClick={async () => {
                         try {
-                          await fetch('/v1/cost/limit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ limit_usd: settings.cost_limit_usd }) });
-                          showToast('info', 'Limite guardado: $' + settings.cost_limit_usd);
-                        } catch(e) { showToast('error', 'Error de conexion'); }
+                          const res = await fetch('/v1/cost/limit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ limit_usd: settings.cost_limit_usd }) });
+                          if (res.ok) {
+                            showToast('info', 'Límite guardado: $' + settings.cost_limit_usd);
+                          } else {
+                            const errData = await res.json().catch(() => ({}));
+                            showToast('error', errData.error || 'Error al guardar límite financiero');
+                          }
+                        } catch(e: any) { showToast('error', `Error de conexión: ${e.message}`); }
                       }}
                       className="w-full py-2 bg-status-success/10 text-status-success border border-status-success/20 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-status-success hover:text-white transition-all"
                     >Guardar Limite</button>
