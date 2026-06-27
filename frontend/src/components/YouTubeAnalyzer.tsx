@@ -64,12 +64,12 @@ ${data.analysis?.timestamps?.map ? data.analysis.timestamps.map((t: any) => `- *
         body: JSON.stringify({ url })
       });
       
-      const result = await res.json();
+      const result = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(result.error || 'Error al analizar el video');
       
       setData(result);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Error de conexión');
     } finally {
       setLoading(false);
     }
