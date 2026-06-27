@@ -53,14 +53,18 @@ class NativeLlamaProvider(ProviderPlugin):
                     current_timeout = IDLE_TIMEOUT_SEC
                     if has_psutil:
                         vm = psutil.virtual_memory()
+                        swap = psutil.swap_memory()
                         available_gb = vm.available / (1024**3)
                         percent_used = vm.percent
-                        # Si la memoria libre es crítica (< 2.5 GB o > 88% usada), bajamos el timeout de inactividad a 15 segundos
-                        if percent_used > 88.0 or available_gb < 2.5:
-                            current_timeout = 15.0
-                            print(
-                                f"\n[Native Llama Watchdog] ¡Presión de RAM detectada! (Uso: {percent_used}%, Disponible: {available_gb:.2f} GB). Reduciendo timeout a {current_timeout}s."
-                            )
+                        # Si la memoria libre es crítica y también el swap, bajamos el timeout
+                        if percent_used > 95.0 and swap.percent > 90.0:
+                            current_timeout = 300.0
+                            # Solo loguear si no estábamos ya en este estado para evitar spam
+                            if not hasattr(self, '_last_mem_warn') or (now - self._last_mem_warn > 300):
+                                print(
+                                    f"\n[Native Llama Watchdog] ¡Presión de RAM detectada! (Uso: {percent_used}%, Disponible: {available_gb:.2f} GB). Reduciendo timeout a {current_timeout}s."
+                                )
+                                self._last_mem_warn = now
 
                     for m_name, data in self._instances.items():
                         if now - data["last_used"] > current_timeout:
@@ -131,13 +135,15 @@ class NativeLlamaProvider(ProviderPlugin):
 
         r.models = ggufs
         r.is_healthy = True
-        with self._inference_lock:
-            if self._instances:
-                # Retornar el más reciente como active
+        if self._instances:
+            # Retornar el más reciente como active sin bloquear el thread
+            try:
                 latest = max(self._instances.items(), key=lambda x: x[1]["last_used"])
                 r.active_model = latest[0]
-            else:
+            except Exception:
                 r.active_model = ggufs[0]["name"] if ggufs else None
+        else:
+            r.active_model = ggufs[0]["name"] if ggufs else None
         r.response_ms = 1
         return r
 

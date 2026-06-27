@@ -165,36 +165,48 @@ def scan_all(force: bool = False) -> List[ProviderResult]:
                 return r
 
         results: List[ProviderResult] = []
-        ex = concurrent.futures.ThreadPoolExecutor(
-            max_workers=min(len(plugins), 8), thread_name_prefix="GravityScan"
-        )
-        futures = {ex.submit(_safe_check, p): p for p in plugins}
-
-        end_time = time.time() + 8.0  # 8 segundos de timeout global (20 era mucho)
         try:
+            ex = concurrent.futures.ThreadPoolExecutor(
+                max_workers=min(len(plugins), 8), thread_name_prefix="GravityScan"
+            )
+            futures = {ex.submit(_safe_check, p): p for p in plugins}
+            
+            end_time = time.time() + 8.0  # 8 segundos de timeout global
             for fut, plug in futures.items():
                 remaining = end_time - time.time()
                 if remaining <= 0:
                     remaining = 0.001
                 try:
-                    results.append(fut.result(timeout=remaining))
+                    res = fut.result(timeout=remaining)
+                    results.append(res)
                 except concurrent.futures.TimeoutError:
-                    r = ProviderResult(
-                        name=plug.name,
-                        url=getattr(plug, "base_url", ""),
-                        protocol=getattr(plug, "protocol", "unknown"),
-                        category=getattr(plug, "category", "local"),
-                    )
-                    r.is_healthy = False
-                    r.models = []
-                    r.active_model = None
-                    r.response_ms = 20000
-                    r.key_configured = False
-                    results.append(r)
+                    # Si hay un timeout por swapping o lentitud, intentamos usar el estado anterior
+                    cached_r = next((r for r in _cached_results if r.name == plug.name), None)
+                    if cached_r:
+                        results.append(cached_r)
+                    else:
+                        r = ProviderResult(
+                            name=plug.name,
+                            url=getattr(plug, "base_url", ""),
+                            protocol=getattr(plug, "protocol", "unknown"),
+                            category=getattr(plug, "category", "local"),
+                        )
+                        r.is_healthy = False
+                        r.models = []
+                        r.active_model = None
+                        r.response_ms = 20000
+                        r.key_configured = False
+                        results.append(r)
                 except Exception:
                     pass
+        except RuntimeError as e:
+            from core.logger import log
+            log.error(f"[ProviderManager] ThreadPoolExecutor RuntimeError: {e}. Manteniendo caché.")
+            if _cached_results:
+                return _cached_results
         finally:
-            ex.shutdown(wait=False)
+            if 'ex' in locals():
+                ex.shutdown(wait=False)
 
         _cached_results = results
         _cached_plugins = {p.name: p for p in plugins}

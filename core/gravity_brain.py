@@ -894,7 +894,8 @@ def execute_system_command(command_info: dict) -> dict:
                 lines.append("📹 **VTuber (V2V):**\n  🔴 Módulo no disponible.")
 
             mem = psutil.virtual_memory()
-            lines.append(f"\n💻 **RAM Usada:** {mem.percent}%")
+            swap = psutil.swap_memory()
+            lines.append(f"\n💻 **RAM:** {mem.percent}% | **NVMe (Swap):** {swap.percent}%")
             return {"ok": True, "result_text": "\n".join(lines)}
 
         elif cmd == "create_plan":

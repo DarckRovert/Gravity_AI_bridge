@@ -141,6 +141,7 @@ def _observe() -> Dict[str, Any]:
         snapshot["hardware"] = {
             "cpu_pct": psutil.cpu_percent(interval=None),
             "ram_pct": psutil.virtual_memory().percent,
+            "swap_pct": psutil.swap_memory().percent,
             "disk_free_gb": round(psutil.disk_usage(BASE_DIR).free / (1024**3), 1),
         }
     except Exception as e:

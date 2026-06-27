@@ -13,16 +13,27 @@ class ResourceWatchdog:
     def __init__(self):
         self.running = False
         self._thread = None
-        self.idle_timeout_seconds = 120  # Tiempo de gracia tras terminar jobs antes de matar procesos
+        self.idle_timeout_seconds = 600  # 10 minutos de gracia
         self._last_active_time = time.time()
         
     def _is_gravity_active(self):
         try:
             from core.video.pipeline import get_queue_status
             status = get_queue_status()
-            return status.get("current_job") is not None
+            if status.get("current_job") is not None:
+                return True
         except Exception:
-            return False
+            pass
+            
+        try:
+            from core.workflow_engine import list_jobs
+            for job in list_jobs():
+                if job.get("status") == "running":
+                    return True
+        except Exception:
+            pass
+
+        return False
 
     def _kill_stray_ai_processes(self):
         """Busca y mata procesos pesados de IA (Python corriendo ComfyUI, Ollama, LM Studio)."""
@@ -67,8 +78,11 @@ class ResourceWatchdog:
                 # Chequeamos si la RAM está alta (>70%)
                 try:
                     mem = psutil.virtual_memory()
-                    if mem.percent > 65.0:
-                        log.warning(f"[ResourceWatchdog] Memoria alta ({mem.percent}%). Sistema inactivo. Activando protocolo de limpieza.")
+                    swap = psutil.swap_memory()
+                    # Limpieza de rutina: Si la RAM física pasa del 75% tras 10 min de inactividad, limpiamos para ahorrar recursos.
+                    # Limpieza crítica: Si el Swap pasa del 90%, limpiamos por emergencia.
+                    if mem.percent > 75.0 or swap.percent > 90.0:
+                        log.warning(f"[ResourceWatchdog] Limpieza autónoma activada (RAM: {mem.percent}%, Swap: {swap.percent}%). Sistema inactivo por {int(idle_duration)}s.")
                         self._kill_stray_ai_processes()
                         # Reset timeout so we don't spam kills
                         self._last_active_time = time.time() 
