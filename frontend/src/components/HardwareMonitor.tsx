@@ -36,15 +36,14 @@ export const HardwareMonitor = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pid })
       });
-      if (res.ok) {
-        showToast('success', `Proceso ${name} (PID: ${pid}) finalizado.`);
-        await fetchData();
-      } else {
-        const err = await res.json();
-        showToast('error', `Error al finalizar proceso: ${err.error}`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Acceso denegado o proceso protegido por el sistema');
       }
-    } catch (e) {
-      showToast('error', "Error de conexión con el backend");
+      showToast('success', `Proceso ${name} aniquilado con éxito (PID: ${pid})`);
+      await fetchData();
+    } catch (e: any) {
+      showToast('error', `Error al finalizar proceso: ${e.message}`);
     } finally {
       setLoading(false);
     }
