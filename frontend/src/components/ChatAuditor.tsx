@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Search, Shield, Brain, DollarSign, Trash2 } from 'lucide-react';
+import { Send, Search, Shield, Brain, DollarSign, Trash2, Square } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import type { Message } from '../types';
 
 export const ChatAuditor: React.FC = () => {
@@ -43,6 +45,7 @@ Sistema de orquestación unificada con capacidades de Agente Autónomo de Sistem
   const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -72,10 +75,12 @@ Sistema de orquestación unificada con capacidades de Agente Autónomo de Sistem
     setIsStreaming(true);
 
     try {
+      abortControllerRef.current = new AbortController();
       // Usamos el endpoint V11 que procesa contexto y comandos
       const res = await fetch('/v1/gravity/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: abortControllerRef.current.signal,
         body: JSON.stringify({
           model: 'gravity-brain-v16',
           messages: [...messages, { role: 'user', content: userMsg }].filter(m => m.role !== 'system'),
@@ -123,14 +128,25 @@ Sistema de orquestación unificada con capacidades de Agente Autónomo de Sistem
           }
         }
       }
-    } catch (e) {
-      setMessages(prev => {
-        const newMsgs = [...prev];
-        newMsgs[newMsgs.length - 1].content = `❌ Error de conexión: ${e}`;
-        return newMsgs;
-      });
+    } catch (e: any) {
+      if (e.name === 'AbortError') {
+        // Cancelado por el usuario
+      } else {
+        setMessages(prev => {
+          const newMsgs = [...prev];
+          newMsgs[newMsgs.length - 1].content = `❌ Error de conexión: ${e}`;
+          return newMsgs;
+        });
+      }
     } finally {
       setIsStreaming(false);
+      abortControllerRef.current = null;
+    }
+  };
+
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
   };
 
@@ -152,58 +168,43 @@ Sistema de orquestación unificada con capacidades de Agente Autónomo de Sistem
     textareaRef.current?.focus();
   };
 
-  // Función simple para formatear markdown básico a HTML
-  const formatContent = (content: string) => {
-    // Escapar HTML básico
-    let html = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    
-    // 1. Extraer bloques de código para evitar procesar su interior
-    const codeBlocks: string[] = [];
-    html = html.replace(/```([\s\S]*?)```/g, (_, code) => {
-      const placeholder = `__CODE_BLOCK_${codeBlocks.length}__`;
-      codeBlocks.push(code);
-      return placeholder;
-    });
-
-    // 2. Extraer código en línea
-    const inlineCodes: string[] = [];
-    html = html.replace(/`(.*?)`/g, (_, code) => {
-      const placeholder = `__INLINE_CODE_${inlineCodes.length}__`;
-      inlineCodes.push(code);
-      return placeholder;
-    });
-
-    // 3. Negritas en texto plano
-    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    
-    // 4. Convertir saltos de línea a <br/>
-    html = html.replace(/\n/g, '<br/>');
-
-    // 5. Reinsertar código en línea escapado
-    inlineCodes.forEach((code, idx) => {
-      html = html.replace(`__INLINE_CODE_${idx}__`, `<code class="bg-black/40 text-accent-secondary px-1.5 py-0.5 rounded text-sm">${code}</code>`);
-    });
-
-    // 6. Reinsertar bloques de código intactos (con fuentes mono)
-    codeBlocks.forEach((code, idx) => {
-      html = html.replace(`__CODE_BLOCK_${idx}__`, `<pre class="bg-[#0d1117] border border-border-subtle p-4 rounded-xl my-3 overflow-x-auto text-sm text-text-muted font-mono">${code}</pre>`);
-    });
-
-    return html;
-  };
-
   return (
     <div className="flex flex-col h-full bg-bg relative">
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-6 scrollbar-hide">
         {messages.map((msg, i) => (
           <div key={i} className={`flex flex-col gap-2 max-w-[85%] animate-in fade-in slide-in-from-bottom-2 duration-300 ${msg.role === 'user' ? 'self-end' : 'self-start'}`}>
-            <div className={`p-5 rounded-2xl leading-relaxed text-[15px] shadow-lg border backdrop-blur-md
+            <div className={`p-5 rounded-2xl leading-relaxed text-[15px] shadow-lg border backdrop-blur-md relative
               ${msg.role === 'user' 
                 ? 'bg-user-bubble border-accent-primary/20 rounded-br-sm' 
                 : 'bg-ai-bubble border-border-subtle rounded-bl-sm'}`}
-              dangerouslySetInnerHTML={{ __html: formatContent(msg.content) + (isStreaming && i === messages.length - 1 ? '<span class="inline-block w-2 h-4 ml-1 bg-accent-primary animate-pulse align-middle"></span>' : '') }}
-            />
+            >
+              <ReactMarkdown 
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  ul: ({node, ...props}: any) => <ul className="list-disc pl-5 my-2 space-y-1" {...props} />,
+                  ol: ({node, ...props}: any) => <ol className="list-decimal pl-5 my-2 space-y-1" {...props} />,
+                  a: ({node, ...props}: any) => <a className="text-accent-primary hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
+                  p: ({node, ...props}: any) => <p className="mb-2 last:mb-0" {...props} />,
+                  code({node, inline, className, children, ...props}: any) {
+                    return !inline ? (
+                      <pre className="bg-[#0d1117] border border-border-subtle p-4 rounded-xl my-3 overflow-x-auto text-sm text-text-muted font-mono" {...props}>
+                        <code>{children}</code>
+                      </pre>
+                    ) : (
+                      <code className="bg-black/40 text-accent-secondary px-1.5 py-0.5 rounded text-sm" {...props}>
+                        {children}
+                      </code>
+                    )
+                  }
+                }}
+              >
+                {msg.content}
+              </ReactMarkdown>
+              {isStreaming && i === messages.length - 1 && (
+                <span className="inline-block w-2 h-4 ml-1 bg-accent-primary animate-pulse align-middle absolute bottom-5 right-5"></span>
+              )}
+            </div>
             <span className={`text-xs text-text-muted font-medium ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
               {msg.role === 'user' ? 'Tú' : 'System Auditor'}
             </span>
@@ -226,16 +227,16 @@ Sistema de orquestación unificada con capacidades de Agente Autónomo de Sistem
               rows={1}
             />
             <button
-              onClick={handleSend}
-              disabled={!input.trim() || isStreaming}
-              className="bg-gradient-to-br from-accent-primary to-accent-secondary text-white w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-[0_0_15px_var(--color-glow)] disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-none disabled:cursor-not-allowed"
+              onClick={isStreaming ? handleStop : handleSend}
+              disabled={(!input.trim() && !isStreaming)}
+              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${isStreaming ? 'bg-status-error/80 hover:bg-status-error text-white' : 'bg-gradient-to-br from-accent-primary to-accent-secondary text-white hover:scale-105 hover:shadow-[0_0_15px_var(--color-glow)]'} disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-none disabled:cursor-not-allowed`}
             >
-              <Send size={18} />
+              {isStreaming ? <Square size={18} fill="currentColor" /> : <Send size={18} />}
             </button>
           </div>
 
           <div className="flex gap-3 mt-4 flex-wrap">
-            <button onClick={() => injectHint('/search ')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border-subtle text-xs text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"><Search size={14} /> Buscar web</button>
+            <button onClick={() => injectHint('/fs_buscar ')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border-subtle text-xs text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"><Search size={14} /> Buscar código</button>
             <button onClick={() => injectHint('/fs_ver ')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border-subtle text-xs text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"><Shield size={14} /> Verificar archivo</button>
             <button onClick={() => injectHint('/fs_listar .')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border-subtle text-xs text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"><Brain size={14} /> Listar proyecto</button>
             <button onClick={() => injectHint('/terminal ')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border-subtle text-xs text-text-muted hover:text-text-primary hover:border-accent-primary transition-colors"><DollarSign size={14} /> Terminal</button>
