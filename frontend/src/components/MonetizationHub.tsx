@@ -107,14 +107,14 @@ export const MonetizationHub = () => {
 
   const fetchAll = useCallback(async () => {
     const [r1, r2, r3, r4, r5, r6, r7, r8] = await Promise.allSettled([
-      fetch(`${API}/v1/revenue/summary?days=30`).then(r => r.ok ? r.json() : null),
-      fetch(`${API}/v1/youtube/status`).then(r => r.ok ? r.json() : null),
-      fetch(`${API}/v1/scheduler/status`).then(r => r.ok ? r.json() : null),
-      fetch(`${API}/v1/social/status`).then(r => r.ok ? r.json() : null),
-      fetch(`${API}/v1/affiliates/status`).then(r => r.ok ? r.json() : null),
-      fetch(`${API}/v1/language/status`).then(r => r.ok ? r.json() : null),
-      fetch(`${API}/v1/revenue/timeline?days=14`).then(r => r.ok ? r.json() : []),
-      fetch(`${API}/v1/revenue/top`).then(r => r.ok ? r.json() : []),
+      fetch(`${API}/v1/revenue/summary?days=30`).then(r => r.ok ? r.json().catch(() => null) : null),
+      fetch(`${API}/v1/youtube/status`).then(r => r.ok ? r.json().catch(() => null) : null),
+      fetch(`${API}/v1/scheduler/status`).then(r => r.ok ? r.json().catch(() => null) : null),
+      fetch(`${API}/v1/social/status`).then(r => r.ok ? r.json().catch(() => null) : null),
+      fetch(`${API}/v1/affiliates/status`).then(r => r.ok ? r.json().catch(() => null) : null),
+      fetch(`${API}/v1/language/status`).then(r => r.ok ? r.json().catch(() => null) : null),
+      fetch(`${API}/v1/revenue/timeline?days=14`).then(r => r.ok ? r.json().catch(() => []) : []),
+      fetch(`${API}/v1/revenue/top`).then(r => r.ok ? r.json().catch(() => []) : []),
     ]);
     if (r1.status === 'fulfilled' && r1.value) setRevenue(r1.value);
     if (r2.status === 'fulfilled' && r2.value) setYt(r2.value);
@@ -132,8 +132,9 @@ export const MonetizationHub = () => {
   const post = async (url: string, body: object) => {
     try {
       const r = await fetch(`${API}${url}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      return await r.json();
-    } catch { return { ok: false, error: 'Error de conexión' }; }
+      const data = await r.json().catch(() => ({}));
+      return r.ok ? { ok: true, ...data } : { ok: false, error: data.error || 'Fallo de operación' };
+    } catch (e: any) { return { ok: false, error: e.message || 'Error de conexión' }; }
   };
 
   const triggerScheduler = async () => {
@@ -145,7 +146,13 @@ export const MonetizationHub = () => {
 
   const getAuthUrl = async () => {
     const d = await post('/v1/youtube/auth/exchange', {});
-    if (!d.ok) { const r = await fetch(`${API}/v1/youtube/auth/url`); const j = await r.json(); if (j.ok) setAuthUrl(j.auth_url); }
+    if (!d.ok) {
+      try {
+        const r = await fetch(`${API}/v1/youtube/auth/url`);
+        const j = await r.json().catch(() => ({}));
+        if (j.ok) setAuthUrl(j.auth_url);
+      } catch (e) {}
+    }
   };
 
   const triggerClone = async () => {
