@@ -1,19 +1,32 @@
 import { useEffect, useState } from 'react';
 import { Shield, Eye, AlertTriangle, CheckCircle2, Terminal, Zap, RefreshCw, Cpu } from 'lucide-react';
+import { showToast } from './Toast';
 
 export const Watchdog = () => {
   const [data, setData] = useState<any>(null);
 
-  const fetchWatchdog = async () => {
+  const fetchWatchdog = async (isManual = false) => {
     try {
       const res = await fetch('/v1/watchdog');
-      if (res.ok) setData(await res.json());
-    } catch (e) {}
+      if (!res.ok) {
+        if (isManual) throw new Error('El orquestador del Watchdog rechazó la conexión');
+        return;
+      }
+      const json = await res.json().catch(() => null);
+      if (json) {
+        setData(json);
+        if (isManual) showToast('success', 'Diagnóstico de Watchdog actualizado exitosamente');
+      } else if (isManual) {
+        throw new Error('Respuesta corrupta del sistema');
+      }
+    } catch (e: any) {
+      if (isManual) showToast('error', `Fallo de Telemetría: ${e.message}`);
+    }
   };
 
   useEffect(() => {
     fetchWatchdog();
-    const iv = setInterval(fetchWatchdog, 5000);
+    const iv = setInterval(() => fetchWatchdog(false), 5000);
     return () => clearInterval(iv);
   }, []);
 
@@ -96,7 +109,7 @@ export const Watchdog = () => {
                       </div>
                     )}
                     <button 
-                      onClick={fetchWatchdog}
+                      onClick={() => fetchWatchdog(true)}
                       className="w-full py-3 rounded-xl bg-surface border border-border-subtle text-xs font-black text-text-muted hover:text-text-primary transition-all flex items-center justify-center gap-2"
                     >
                        <RefreshCw size={14} /> Forzar Re-escaneo
