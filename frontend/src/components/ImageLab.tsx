@@ -22,6 +22,7 @@ export const ImageLab = () => {
   const [enhance, setEnhance] = useState(true);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const fetchHistory = async () => {
     try {
@@ -39,6 +40,30 @@ export const ImageLab = () => {
     return () => clearInterval(iv);
   }, []);
 
+  const handleDownload = async () => {
+    if (!selected || isDownloading) return;
+    setIsDownloading(true);
+    showToast('info', 'Preparando descarga segura...');
+    try {
+      const response = await fetch(selected);
+      if (!response.ok) throw new Error("El archivo no está disponible");
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `gravity-lab-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      showToast('success', 'Imagen descargada localmente');
+    } catch (e: any) {
+      showToast('error', `Error al descargar: ${e.message}`);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const generate = async () => {
     if (!prompt.trim()) return;
     setLoading(true);
@@ -47,14 +72,23 @@ export const ImageLab = () => {
       const res = await fetch('/v1/image/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, width, height, model, enhance: enhance, provider, seed: seed.trim() || undefined })
+        body: JSON.stringify({ 
+          prompt, 
+          width, 
+          height, 
+          model: provider === 'Fooocus' ? undefined : model, 
+          enhance, 
+          provider, 
+          seed: seed.trim() || undefined 
+        })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al generar');
       await fetchHistory();
       if (data.url) setSelected(`${BRIDGE_BASE}${data.url}`);
+      showToast('success', 'Generación completada');
     } catch (e: any) {
-      showToast('info', e.message);
+      showToast('error', e.message);
     } finally {
       setLoading(false);
     }
@@ -164,9 +198,13 @@ export const ImageLab = () => {
               <div className="glass-panel rounded-2xl border border-border-subtle overflow-hidden">
                 <div className="p-4 border-b border-border-subtle bg-surface/30 flex justify-between items-center">
                   <span className="text-xs font-black text-text-primary uppercase tracking-widest">Vista Previa</span>
-                  <a href={selected} download className="p-2 rounded-lg bg-surface border border-border-subtle text-text-muted hover:text-accent-primary transition-all">
-                    <Download size={16} />
-                  </a>
+                  <button 
+                    onClick={handleDownload}
+                    disabled={isDownloading}
+                    className="p-2 rounded-lg bg-surface border border-border-subtle text-text-muted hover:text-accent-primary transition-all disabled:opacity-50"
+                  >
+                    {isDownloading ? <RefreshCw className="animate-spin" size={16} /> : <Download size={16} />}
+                  </button>
                 </div>
                 <img src={selected} alt="Generado" className="w-full object-contain max-h-80" />
               </div>
