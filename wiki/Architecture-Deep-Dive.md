@@ -13,8 +13,8 @@ Para proteger la RAM unificada compartida entre CPU y GPU, Gravity implementa:
 
 ```mermaid
 graph LR
-    RAM[(Unified RAM 32GB)] -.->|Llama 3 Loading| LLM[NativeLlamaProvider]
-    RAM -.->|H.264 Encoder| AMF[h264_amf Hardware Encoder]
+    RAM[("Unified RAM 32GB")] -.->|Llama 3 Loading| LLM["NativeLlamaProvider"]
+    RAM -.->|H.264 Encoder| AMF["h264_amf Hardware Encoder"]
     
     LLM -->|force_unload| Drop[Purga de Memoria]
     Drop -->|Libera espacio| AMF

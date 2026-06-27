@@ -32,8 +32,8 @@ Gravity trasciende la categoría de "script". Es un sistema operativo cibernéti
 
 ```mermaid
 graph TD
-    User([Usuario / Interfaz Web]) -->|HTTP REST / SSE| Bridge[bridge_server.py]
-    Radar([Radar HF (Sub-minuto)]) -.->|Dispara| Bridge
+    User(["Usuario / Interfaz Web"]) -->|HTTP REST / SSE| Bridge["bridge_server.py"]
+    Radar(["Radar HF (Sub-minuto)"]) -.->|Dispara| Bridge
     
     subgraph Gravity Core [Núcleo Operacional - 32 Cores]
         Bridge -->|Spawn| Worker1[Session 1: LLM]
@@ -48,8 +48,8 @@ graph TD
     end
     
     subgraph Hot-Reload Registry
-        Registry[ProviderRegistry] -->|Local| Ollama[(Ollama / LM Studio)]
-        Registry -->|Cloud| Cloud[(OpenAI / Anthropic)]
+        Registry["ProviderRegistry"] -->|Local| Ollama[("Ollama / LM Studio")]
+        Registry -->|Cloud| Cloud[("OpenAI / Anthropic")]
     end
     
     Worker1 --> Registry

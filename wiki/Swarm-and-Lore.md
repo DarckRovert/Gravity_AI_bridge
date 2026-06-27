@@ -8,11 +8,11 @@ graph TD
     RSS[Radar de Alta Frecuencia] -->|Noticia Cruda| Oficial
     RSS -->|Noticia Cruda| Subversivo
     
-    Oficial[Periodista Oficial] -.->|Perspectiva Mainstream| Debate
-    Subversivo[Periodista Analítico] -.->|Visión Soberana| Debate
+    Oficial["Periodista Oficial"] -.->|Perspectiva Mainstream| Debate
+    Subversivo["Periodista Analítico"] -.->|Visión Soberana| Debate
     
-    Debate((Colisión de Datos)) --> Editor[Editor en Jefe]
-    Editor --> Output[Social Media Kit]
+    Debate(("Colisión de Datos")) --> Editor["Editor en Jefe"]
+    Editor --> Output["Social Media Kit"]
 ```
 
 - **Nodo 1 (Postura Oficial):** Genera la visión mainstream de la noticia.
