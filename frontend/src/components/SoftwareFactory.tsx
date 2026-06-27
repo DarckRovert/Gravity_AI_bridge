@@ -20,7 +20,7 @@ export const SoftwareFactory: React.FC = () => {
       setListLoading(true);
       const res = await fetch('/v1/factory/list');
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         setDeliverables(data.deliverables || []);
       }
     } catch (e) {
@@ -47,14 +47,14 @@ export const SoftwareFactory: React.FC = () => {
         body: JSON.stringify({ prompt })
       });
       
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Error al generar código');
       
       setSuccess(`¡Entregable generado con éxito! Nombre: ${data.filename}`);
       setPrompt('');
       fetchDeliverables();
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Error de conexión');
     } finally {
       setLoading(false);
     }
