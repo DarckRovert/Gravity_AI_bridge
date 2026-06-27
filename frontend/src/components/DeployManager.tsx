@@ -23,14 +23,15 @@ export const DeployManager = () => {
   const runDeploy = async () => {
     setLoading(true);
     try {
-      await fetch('/v1/fabricaweb/deploy', { 
+      const res = await fetch('/v1/fabricaweb/deploy', { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ project_path: projectPath || undefined })
       });
-      showToast('success', 'Pipeline de Deploy iniciado para FabricaWeb');
-    } catch (e) {
-      showToast('error', 'Error al iniciar deploy');
+      if (!res.ok) throw new Error('El orquestador de CI/CD rechazó la ejecución');
+      showToast('success', 'Pipeline de Deploy iniciado exitosamente');
+    } catch (e: any) {
+      showToast('error', `Error crítico en Deploy: ${e.message}`);
     } finally {
       setLoading(false);
     }
