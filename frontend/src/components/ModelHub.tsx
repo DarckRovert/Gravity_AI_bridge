@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Search, Star, Cpu, Server, CheckCircle2 } from 'lucide-react';
+import { showToast } from './Toast';
 
 interface RealModel {
   id: string;
@@ -17,14 +18,18 @@ export const ModelHub: React.FC = () => {
     const fetchModels = async () => {
       try {
         const res = await fetch('/v1/models');
-        if (res.ok) {
-          const json = await res.json();
-          if (json.data) {
-            setModels(json.data);
-          }
+        if (!res.ok) {
+           const errData = await res.json().catch(() => ({}));
+           throw new Error(errData.error || 'Fallo de conexión con el repositorio de modelos');
         }
-      } catch (e) {
-        console.error("Failed to fetch models", e);
+        const json = await res.json().catch(() => null);
+        if (json?.data) {
+          setModels(json.data);
+        } else {
+          throw new Error('El servidor devolvió un payload corrupto');
+        }
+      } catch (e: any) {
+        showToast('error', `Error en Model Hub: ${e.message}`);
       } finally {
         setLoading(false);
       }
@@ -48,7 +53,10 @@ export const ModelHub: React.FC = () => {
           <p className="text-text-muted mt-1">Descubre, descarga y gestiona modelos de Inteligencia Artificial locales.</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-4 py-2 bg-card border border-border-subtle rounded-xl hover:border-accent-primary transition-colors text-sm font-medium">
+          <button 
+            onClick={() => showToast('info', 'Configuración de almacenamiento bloqueada temporalmente por el orquestador')}
+            className="flex items-center gap-2 px-4 py-2 bg-card border border-border-subtle rounded-xl hover:border-accent-primary transition-colors text-sm font-medium"
+          >
             <Server size={16} /> Configurar Almacenamiento
           </button>
         </div>
