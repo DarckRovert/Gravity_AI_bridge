@@ -11,7 +11,10 @@ export const RagIndex = () => {
   const fetchStatus = async () => {
     try {
       const res = await fetch('/v1/rag/status');
-      if (res.ok) setStatus(await res.json());
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data) setStatus(data);
+      }
     } catch (e) {}
   };
 
@@ -24,12 +27,18 @@ export const RagIndex = () => {
     setSearching(true);
     try {
       const res = await fetch(`/v1/rag/search?query=${encodeURIComponent(query)}`);
-      if (res.ok) {
-        const data = await res.json();
-        setResults(data.results || []);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'El backend RAG rechazó la consulta');
       }
-    } catch (e) {
-      showToast('error', 'Error en búsqueda RAG');
+      const data = await res.json().catch(() => null);
+      if (data) {
+        setResults(data.results || []);
+      } else {
+        throw new Error('Respuesta corrupta de la base vectorial');
+      }
+    } catch (e: any) {
+      showToast('error', `Fallo de RAG: ${e.message}`);
     } finally {
       setSearching(false);
     }
@@ -64,10 +73,19 @@ export const RagIndex = () => {
                   files.forEach(f => fd.append('files', f));
                   try {
                     const res = await fetch('/v1/rag/ingest', { method: 'POST', body: fd });
-                    const data = await res.json();
-                    if (data.ok) { showToast('success', `✅ ${data.indexed || files.length} documento(s) indexados correctamente.`); fetchStatus(); }
-                    else showToast('error', `❌ Error: ${data.error || 'Fallo al indexar'}`);
-                  } catch { showToast('error', '❌ Error de conexión con el backend RAG'); }
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                      throw new Error(data.error || 'Fallo en vectorización del documento');
+                    }
+                    if (data.ok || data.indexed) { 
+                      showToast('success', `✅ ${data.indexed || files.length} documento(s) indexados correctamente.`); 
+                      fetchStatus(); 
+                    } else {
+                      throw new Error(data.error || 'Respuesta inválida del servidor RAG');
+                    }
+                  } catch (err: any) { 
+                    showToast('error', `❌ Error de Indexación: ${err.message}`); 
+                  }
                   e.target.value = '';
                 }}
               />
