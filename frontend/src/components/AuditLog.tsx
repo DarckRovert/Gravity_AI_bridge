@@ -11,7 +11,7 @@ export const AuditLog = () => {
     try {
       const res = await fetch('/v1/audit');
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         setLogs(data.data || []);
       }
     } catch (e) {} finally {
@@ -28,10 +28,16 @@ export const AuditLog = () => {
   const rotateLogs = async () => {
     if (!confirm('¿Seguro que deseas rotar (archivar) los logs actuales?')) return;
     try {
-      await fetch('/v1/audit/rotate', { method: 'POST' });
-      fetchLogs();
-    } catch (e) {
-      showToast('error', 'Error al rotar logs');
+      const res = await fetch('/v1/audit/rotate', { method: 'POST' });
+      if (res.ok) {
+        fetchLogs();
+        showToast('success', 'Logs rotados exitosamente');
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        showToast('error', errData.error || 'Error del servidor al rotar logs');
+      }
+    } catch (e: any) {
+      showToast('error', `Error de red al rotar logs: ${e.message}`);
     }
   };
 
