@@ -13,11 +13,11 @@ export const Sessions = () => {
         fetch('/v1/sessions/active')
       ]);
       if (sRes.ok) {
-        const data = await sRes.json();
+        const data = await sRes.json().catch(() => ({}));
         setSessions(data.sessions || []);
       }
       if (aRes.ok) {
-        const data = await aRes.json();
+        const data = await aRes.json().catch(() => ({}));
         setActive(data.active_sessions || []);
       }
     } catch (e) {}
@@ -31,26 +31,38 @@ export const Sessions = () => {
 
   const spawnSession = async (id: string) => {
      try {
-       await fetch('/v1/sessions/spawn', {
+       const res = await fetch('/v1/sessions/spawn', {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
          body: JSON.stringify({ session_id: id })
        });
+       if (!res.ok) {
+         const data = await res.json().catch(() => ({}));
+         throw new Error(data.error || 'El orquestador denegó la activación del worker');
+       }
+       showToast('success', `Sesión ${id} instanciada correctamente`);
        fetchData();
-     } catch (e) { showToast('error', 'Error al levantar worker'); }
+     } catch (e: any) { 
+       showToast('error', `Error al levantar worker: ${e.message}`); 
+     }
   };
 
   const deleteSession = async (id: string) => {
     if (!confirm(`¿Eliminar la sesión ${id} permanentemente?`)) return;
     try {
-      await fetch('/v1/sessions/kill', {
+      const res = await fetch('/v1/sessions/kill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session_id: id })
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'El sistema rechazó la eliminación');
+      }
+      showToast('success', `Sesión ${id} eliminada permanentemente`);
       fetchData();
-    } catch (e) {
-      showToast('error', 'Error al matar sesión');
+    } catch (e: any) {
+      showToast('error', `Error al borrar sesión: ${e.message}`);
     }
   };
 
