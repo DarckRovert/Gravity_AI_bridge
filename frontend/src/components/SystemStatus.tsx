@@ -8,7 +8,10 @@ export const SystemStatus = () => {
   const fetchStatus = async () => {
     try {
       const res = await fetch('/v1/status');
-      if (res.ok) setStatus(await res.json());
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data) setStatus(data);
+      }
     } catch (e) {
       console.error('Error fetching system status:', e);
     }
@@ -34,10 +37,11 @@ export const SystemStatus = () => {
       if (res.ok) {
         await fetchStatus();
       } else {
-        showToast('error', 'Error al actualizar el bloqueo del modelo');
+        const errData = await res.json().catch(() => ({}));
+        showToast('error', errData.error || 'Error al actualizar el bloqueo del modelo');
       }
-    } catch (e) {
-      showToast('error', 'Error de red al bloquear modelo');
+    } catch (e: any) {
+      showToast('error', `Error de red al bloquear modelo: ${e.message}`);
     }
   };
 
