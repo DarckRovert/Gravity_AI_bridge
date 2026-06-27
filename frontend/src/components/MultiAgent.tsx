@@ -19,12 +19,15 @@ export const MultiAgent = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: query, n_models: nModels, mode: mode })
       });
-      if (res.ok) {
-        const data = await res.json();
-        setResponses(data.results || []);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'El orquestador de agentes rechazó la consulta');
       }
-    } catch (e) {
-      showToast('error', 'Error en consulta multi-agente');
+      const data = await res.json();
+      setResponses(data.results || []);
+      showToast('success', 'Inferencia paralela completada exitosamente');
+    } catch (e: any) {
+      showToast('error', `Fallo de Inferencia: ${e.message}`);
     } finally {
       setLoading(false);
     }
@@ -131,7 +134,7 @@ export const MultiAgent = () => {
               <button 
                 onClick={() => {
                   navigator.clipboard.writeText(resp.response);
-                  showToast('info', 'Respuesta copiada al portapapeles');
+                  showToast('success', 'Respuesta copiada al portapapeles');
                 }}
                 className="w-full py-2 text-[10px] font-black uppercase tracking-widest text-accent-primary hover:bg-accent-primary/5 rounded-lg transition-colors flex items-center justify-center gap-2"
               >
