@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Camera, Activity, Sliders, RefreshCw, Zap } from 'lucide-react';
-
+import { showToast } from './Toast';
 const PRESETS = [
     // Humanos / Estilos
     { key: "cyberpunk_commander", label: "Comandante Cyberpunk" },
@@ -57,8 +57,11 @@ export function V2VStudio() {
     // ── Polling del proceso externo (cada 5s) ──────────────────────────────
     useEffect(() => {
         const fetchStatus = () => {
-            fetch('http://localhost:7861/status')
-                .then(r => r.json())
+            fetch(`${window.location.protocol}//${window.location.hostname}:7861/status`)
+                .then(r => {
+                    if (!r.ok) throw new Error('Status fallback');
+                    return r.json();
+                })
                 .then(data => setStatus(data))
                 .catch(() => {});
         };
@@ -126,6 +129,8 @@ export function V2VStudio() {
     const sendWs = (payload: object) => {
         if (wsRef.current?.readyState === WebSocket.OPEN) {
             wsRef.current.send(JSON.stringify(payload));
+        } else {
+            showToast('error', 'El servidor V2V está desconectado.');
         }
     };
 
@@ -159,22 +164,32 @@ export function V2VStudio() {
 
     const startEngine = async () => {
         try {
-            await fetch('/v1/v2v/start', {
+            showToast('info', 'Iniciando Motor V2V (SD-Turbo + LivePortrait)...');
+            const res = await fetch('/v1/v2v/start', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ provider: 'V2V Engine' })
             });
-        } catch {}
+            if (!res.ok) throw new Error('El servidor rechazó el inicio de los modelos');
+            showToast('success', 'Motor V2V iniciado correctamente. Esperando puente WS...');
+        } catch (e: any) {
+            showToast('error', `Fallo al iniciar V2V: ${e.message}`);
+        }
     };
 
     const stopEngine = async () => {
         try {
-            await fetch('/v1/v2v/stop', {
+            showToast('info', 'Deteniendo motores V2V y liberando VRAM...');
+            const res = await fetch('/v1/v2v/stop', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ provider: 'V2V Engine' })
             });
-        } catch {}
+            if (!res.ok) throw new Error('El servidor rechazó la detención');
+            showToast('success', 'Motor V2V detenido. VRAM liberada.');
+        } catch (e: any) {
+            showToast('error', `Fallo al detener V2V: ${e.message}`);
+        }
     };
 
     return (
