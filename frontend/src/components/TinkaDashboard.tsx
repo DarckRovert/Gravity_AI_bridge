@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { RefreshCw, Database, Dices, Flame, Snowflake, Activity, History, ShieldCheck, Zap } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { showToast } from './Toast';
 
 export const TinkaDashboard: React.FC = () => {
   const [status, setStatus] = useState<any>(null);
@@ -28,12 +29,15 @@ export const TinkaDashboard: React.FC = () => {
     setPrediction(null);
     try {
       const res = await fetch('/v1/tinka/predict');
-      if (res.ok) {
-        const data = await res.json();
-        setPrediction(data.prediction);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'El motor predictivo devolvió un error (¿Faltan datos?)');
       }
-    } catch (e) {
-      console.error(e);
+      const data = await res.json();
+      setPrediction(data.prediction);
+      showToast('success', 'Algoritmo predictivo completado con éxito');
+    } catch (e: any) {
+      showToast('error', `Fallo al generar predicción: ${e.message}`);
     } finally {
       setIsGenerating(false);
     }
@@ -42,12 +46,18 @@ export const TinkaDashboard: React.FC = () => {
   const syncRealData = async () => {
     if (!confirm('Esto conectará el Scraper Inteligente para descargar y poblar ~500 sorteos reales. ¿Deseas continuar?')) return;
     setLoading(true);
+    showToast('info', 'Iniciando Web Scraper...');
     try {
-      await fetch('/v1/tinka/update?full=true'); // Usa scraper real para extraer historial entero
+      const res = await fetch('/v1/tinka/update?full=true'); // Usa scraper real para extraer historial entero
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'El servidor rechazó la ejecución del Scraper');
+      }
       await fetchStatus();
       await fetchAnalysis();
-    } catch (e) {
-      console.error(e);
+      showToast('success', 'Historial sincronizado y analizado exitosamente');
+    } catch (e: any) {
+      showToast('error', `Error crítico en Sincronización: ${e.message}`);
     } finally {
       setLoading(false);
     }
