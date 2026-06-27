@@ -27,9 +27,17 @@ export const ImageQueue = () => {
                 const resJson = JSON.parse(j.result_json);
                 if (resJson.success && resJson.images && resJson.images.length > 0) {
                   const pathStr = resJson.images[0].replace(/\\/g, '/');
-                  const parts = pathStr.split('/outputs/');
-                  if (parts.length > 1) {
-                    url = '/static/output/' + parts[1];
+                  if (pathStr.startsWith('http://') || pathStr.startsWith('https://')) {
+                    url = pathStr; // Enlace web directo (ej. Pollinations)
+                  } else {
+                    const parts = pathStr.split('/outputs/');
+                    if (parts.length > 1) {
+                      url = `${BRIDGE_BASE}/static/output/${parts[1]}`;
+                    } else if (pathStr.startsWith('/static/')) {
+                      url = `${BRIDGE_BASE}${pathStr}`;
+                    } else {
+                      url = `${BRIDGE_BASE}/${pathStr}`;
+                    }
                   }
                 }
               } catch(e) {}
@@ -56,23 +64,36 @@ export const ImageQueue = () => {
 
   const cancelJob = async (id: string) => {
     try {
-      await fetch(`/v1/queue/cancel?id=${id}`, { method: 'POST' });
+      const res = await fetch(`/v1/queue/cancel?id=${id}`, { method: 'POST' });
+      if (!res.ok) throw new Error('Error al cancelar');
+      showToast('success', `Tarea ${id.substring(0, 8)} cancelada`);
       fetchQueue();
-    } catch (e) {}
+    } catch (e: any) {
+      showToast('error', e.message);
+    }
   };
 
   const deleteJob = async (id: string) => {
     try {
-      await fetch(`/v1/queue/delete?id=${id}`, { method: 'POST' });
+      const res = await fetch(`/v1/queue/delete?id=${id}`, { method: 'POST' });
+      if (!res.ok) throw new Error('Error al eliminar');
+      showToast('success', `Tarea ${id.substring(0, 8)} eliminada`);
       fetchQueue();
-    } catch (e) {}
+    } catch (e: any) {
+      showToast('error', e.message);
+    }
   };
 
   const clearHistory = async () => {
+    if (!confirm("¿Deseas limpiar todo el historial de renderizado?")) return;
     try {
-      await fetch('/v1/queue/clear_history', { method: 'POST' });
+      const res = await fetch('/v1/queue/clear_history', { method: 'POST' });
+      if (!res.ok) throw new Error('Error al limpiar historial');
+      showToast('success', 'Historial borrado exitosamente');
       fetchQueue();
-    } catch (e) {}
+    } catch (e: any) {
+      showToast('error', e.message);
+    }
   };
 
   const activeJobs = queue.filter(
@@ -103,7 +124,7 @@ export const ImageQueue = () => {
        </div>
        <div className="flex gap-2">
           <button 
-            onClick={() => job.status === 'completed' && job.url ? window.open(`${BRIDGE_BASE}${job.url}`, '_blank') : showToast('info', 'Vista previa no disponible o job en proceso')}
+            onClick={() => job.status === 'completed' && job.url ? window.open(job.url, '_blank') : showToast('info', 'Vista previa no disponible o job en proceso')}
             className="p-2 rounded-lg bg-surface border border-border-subtle text-text-muted hover:text-text-primary transition-all"
           >
              <Eye size={16} />
