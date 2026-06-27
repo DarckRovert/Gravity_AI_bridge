@@ -9,7 +9,7 @@ export const MCPServers = () => {
     try {
       const res = await fetch('/v1/mcp/status');
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         setServers(data.mcp_servers || []);
       }
     } catch (e) {} finally {
