@@ -101,6 +101,33 @@ mindmap
 
 ---
 
+## ⚡ Instalación y Despliegue (Local-First)
+
+Gravity está diseñado para ejecutarse en entornos cerrados Windows. 
+
+1. **Clonar y Preparar:**
+   ```bash
+   git clone https://github.com/DarckRovert/Gravity_AI_bridge.git
+   cd Gravity_AI_bridge
+   ```
+2. **Configuración de Telemetría y APIs:**
+   Duplica el archivo de configuración base y añade tus llaves maestras:
+   ```bash
+   cp config.yaml.example config.yaml
+   ```
+3. **Instalación Asistida:**
+   Gravity posee su propio motor de setup que aislará el entorno virtual (`venv`), compilará las dependencias de `requirements.txt` y verificará el hardware.
+   ```bash
+   python INSTALAR.py
+   ```
+4. **Despertar al Motor:**
+   Simplemente ejecuta el script maestro. Esto levantará el `bridge_server.py`, el motor OODA, y lanzará el Dashboard React en tu navegador por defecto.
+   ```bash
+   gravity.bat
+   ```
+
+---
+
 ## 📚 Documentación Técnica (La Wiki Forense)
 
 La documentación se ha estructurado como un archivo desclasificado de ingeniería interna. Revisa los folios en `/wiki`:
