@@ -65,6 +65,38 @@ Un demonio despierta cada 6 horas (`autonomy_engine.py`) ejecutando el ciclo Obs
 
 ### 4. Interfaz Omnisciente y Fábricas (Dashboard y Tools)
 - **Dashboard React (35 Submódulos):** Mientras el motor nuclear restringe la IA a 32 procesos asíncronos para proteger el hardware, la interfaz de usuario web expone **35 paneles de control** simultáneos. Desde allí operas el *Hitl Manager*, el monitoreo de VRAM en vivo, y las consolas rotativas sin tocar la terminal local.
+
+```mermaid
+mindmap
+  root((Dashboard React
+  35 Submódulos))
+    Mission Control
+      Métricas Hardware RAM/VRAM
+      Temperaturas CPU
+      Consola SSE en Vivo
+      Estado de Red Local
+    Finanzas y Mercenarios
+      Bounty Hunter Tracker
+      Revenue Tracker
+      Infiltrator Core
+      Presupuesto Diario OODA
+    Seguridad y Aprobación
+      HITL Queue Manager
+      Watchdog Override
+      Bloqueador de Nodos
+      Audit Log Viewer
+    Forja Multimedia
+      V17 Video Renderer
+      Fooocus Studio UI
+      FFMPEG Assembler
+      Extractor de Subtítulos
+    Conocimiento y Agentes
+      Knowledge Base Editor
+      Workflow Visualizer DAG
+      Chat Multi-Agente
+      RAG Indexer
+```
+
 - **Forja Literaria y Multimedia:** Herramientas como `book_refiner.py` orquestan libros enteros, mientras el **Motor V17 Shaders** genera videos usando pura matemática GPU (SDF, Turing Patterns) evadiendo descargas de assets masivos, con Auto-Uploader a redes y renderizado dual (16:9 y 9:16).
 
 ---
