@@ -1,13 +1,13 @@
 <div align="center">
-  <img src="https://img.shields.io/badge/GRAVITY_AI-BRIDGE-fff?style=for-the-badge&logo=python&color=07090e" alt="Gravity AI Bridge"/>
-  <br><br>
-
-  [![Autor](https://img.shields.io/badge/Author-DarckRovert-818cf8.svg?style=flat-square)](https://github.com/DarckRovert)
-  [![Licencia](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
-  [![Arquitectura](https://img.shields.io/badge/Architecture-Omniscient--Tier-c69c6d.svg?style=flat-square)]()
-  [![Release](https://img.shields.io/badge/Release-V16.6_PRO-6366f1.svg?style=flat-square)]()
-  [![Security Audit](https://img.shields.io/badge/Security-Audited_100%25-success?style=flat-square&logo=shield)]()
-  [![Twitch](https://img.shields.io/badge/Twitch-DarckRovert-9146ff.svg?style=flat-square&logo=twitch)](https://twitch.tv/darckrovert)
+  <img src="landing_page/assets/logo.png" alt="Gravity AI Bridge Logo" width="200"/>
+  <h1>GRAVITY AI BRIDGE V16.7 PRO</h1>
+  <p><strong>[Vision-Tier]</strong> | Orquestador Asíncrono de Inteligencia Artificial Local (AMD APU) y Cloud</p>
+  
+  [![Release](https://img.shields.io/badge/Release-V16.7_PRO-red?style=for-the-badge)](https://github.com/DarckRovert/Gravity_AI_bridge)
+  [![Architecture](https://img.shields.io/badge/Architecture-Asynchronous_Forensic-blue?style=for-the-badge)](#)
+  [![Engine](https://img.shields.io/badge/Engine-La_Tinka_WAL-purple?style=for-the-badge)](#)
+  [![Security](https://img.shields.io/badge/Security-AgentShield_Ring_0-green?style=for-the-badge)](#)
+  [![Sensory](https://img.shields.io/badge/Sensory-J.A.R.V.I.S_Protocol-cyan?style=for-the-badge)](#)
 
   <p align="center">
     <i><strong>Entidad Cibernética Autónoma de Grado Omnisciente (Omniscient-Tier).</strong><br>
@@ -24,7 +24,7 @@
 
 ---
 
-## 🌌 Anatomía del Monstruo (Gravity V16.6 PRO)
+## 🧬 Anatomía del Monstruo (Gravity V16.7 PRO Vision-Tier)
 
 Gravity trasciende la categoría de "script". Es un sistema operativo cibernético diseñado con arquitectura forense. Carece de la fragilidad de los orquestadores comerciales; fue forjado en Python nativo para exprimir el silicio y gobernar bases de conocimiento completas sin latencia cloud.
 
