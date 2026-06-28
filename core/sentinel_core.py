@@ -7,32 +7,30 @@ import json
 import time
 import threading
 import websocket
-import requests
 from datetime import datetime
 from core.logger import log
+from core import provider_manager
 
 class SentinelCore:
     def __init__(self):
         self.ws = None
         self.context_memory = []
+        self.memory_lock = threading.Lock()
         self.last_spoken_time = 0
         self.cooldown_seconds = 300  # No hablar autónomamente más de una vez cada 5 minutos para no molestar
-        
-        # URL de Ollama local (ajustar si se usa otro proveedor)
-        self.llm_url = "http://localhost:11434/api/generate"
-        self.llm_model = "llama3"
 
     def _analyze_context_with_llm(self):
         """Llama a Ollama para decidir si la situación amerita que JARVIS hable."""
         if time.time() - self.last_spoken_time < self.cooldown_seconds:
             return
 
-        # Si no hay memoria suficiente, no hacer nada
-        if not self.context_memory:
-            return
+        with self.memory_lock:
+            # Si no hay memoria suficiente, no hacer nada
+            if not self.context_memory:
+                return
+            context_str = "\n".join(self.context_memory)
 
         current_time = datetime.now().strftime("%H:%M")
-        context_str = "\n".join(self.context_memory)
         
         prompt = f"""Eres J.A.R.V.I.S., el asistente de IA avanzado. 
 Tu directiva es ser proactivo pero no molesto.
@@ -50,24 +48,24 @@ REGLAS:
 Respuesta:"""
 
         try:
-            payload = {
-                "model": self.llm_model,
-                "prompt": prompt,
-                "stream": False,
-                "options": {"temperature": 0.3}
-            }
-            response = requests.post(self.llm_url, json=payload, timeout=10)
-            if response.status_code == 200:
-                answer = response.json().get("response", "").strip()
-                if answer and answer.upper() != "SILENCE" and "SILENCE" not in answer.upper():
-                    log.info(f"[SENTINEL] Decisión Proactiva tomada: {answer}")
-                    self._speak(answer)
-                    self.last_spoken_time = time.time()
+            bp, bm = provider_manager.get_best()
+            if not bp:
+                return
+                
+            messages = [{"role": "user", "content": prompt}]
+            raw_text = provider_manager.complete(messages, model=bm, provider=bp.name, options={"temperature": 0.3})
+            answer = raw_text.strip()
+            
+            if answer and answer.upper() != "SILENCE" and "SILENCE" not in answer.upper():
+                log.info(f"[SENTINEL] Decisión Proactiva tomada: {answer}")
+                self._speak(answer)
+                self.last_spoken_time = time.time()
         except Exception as e:
             log.warning(f"[SENTINEL] Error contactando LLM: {e}")
             
         # Limpiar contexto analizado
-        self.context_memory.clear()
+        with self.memory_lock:
+            self.context_memory.clear()
 
     def _speak(self, text):
         """Envía el comando de voz al bus."""
@@ -82,20 +80,23 @@ Respuesta:"""
             
             # El Sentinel solo actúa sobre telemetría, no sobre lo que el usuario habla directamente 
             # (eso lo maneja el bridge_server).
-            if msg_type == "overwatch_vision":
-                desc = data.get("description", "")
-                self.context_memory.append(f"[Visión] {desc}")
+            with self.memory_lock:
+                if msg_type == "overwatch_vision":
+                    desc = data.get("description", "")
+                    self.context_memory.append(f"[Visión] {desc}")
+                    
+                elif msg_type == "thermal_alert":
+                    temp = data.get("temp", 0)
+                    self.context_memory.append(f"[Hardware] Advertencia Térmica: {temp}°C")
                 
-            elif msg_type == "thermal_alert":
-                temp = data.get("temp", 0)
-                self.context_memory.append(f"[Hardware] Advertencia Térmica: {temp}°C")
-            
-            # Mantener la memoria corta (últimos 10 eventos)
-            if len(self.context_memory) > 10:
-                self.context_memory.pop(0)
+                # Mantener la memoria corta (últimos 10 eventos)
+                if len(self.context_memory) > 10:
+                    self.context_memory.pop(0)
+                    
+                memory_len = len(self.context_memory)
                 
             # Si acumulamos 3 eventos visuales o hay alerta térmica, evaluar si hablamos
-            if len(self.context_memory) >= 3 or msg_type == "thermal_alert":
+            if memory_len >= 3 or msg_type == "thermal_alert":
                 threading.Thread(target=self._analyze_context_with_llm, daemon=True).start()
 
         except Exception as e:
@@ -105,22 +106,26 @@ Respuesta:"""
         log.error(f"[SENTINEL] WS Error: {error}")
         
     def on_close(self, ws, close_status_code, close_msg):
-        log.warning("[SENTINEL] Desconectado del Sensory Bus. Reconectando en 5s...")
-        time.sleep(5)
-        self.start()
+        pass
 
     def on_open(self, ws):
         log.info("[SENTINEL] Conectado exitosamente al Sensory Bus (ws://localhost:9999). Consciencia activa.")
 
     def start(self):
-        self.ws = websocket.WebSocketApp("ws://localhost:9999",
-                                        on_open=self.on_open,
-                                        on_message=self.on_message,
-                                        on_error=self.on_error,
-                                        on_close=self.on_close)
-        
-        # Hilo infinito
-        self.ws.run_forever()
+        while True:
+            try:
+                self.ws = websocket.WebSocketApp("ws://localhost:9999",
+                                                on_open=self.on_open,
+                                                on_message=self.on_message,
+                                                on_error=self.on_error,
+                                                on_close=self.on_close)
+                # Hilo infinito hasta desconexión
+                self.ws.run_forever()
+            except Exception:
+                pass
+            
+            log.warning("[SENTINEL] WS desconectado. Reconectando en 5s...")
+            time.sleep(5)
 
 if __name__ == "__main__":
     sentinel = SentinelCore()

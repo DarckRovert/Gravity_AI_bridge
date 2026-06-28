@@ -13,6 +13,7 @@ import websocket
 import speech_recognition as sr
 import edge_tts
 import pygame
+import uuid
 from core.logger import log
 
 class VoiceDaemonV2:
@@ -47,11 +48,15 @@ class VoiceDaemonV2:
         """Genera el TTS neural y lo reproduce."""
         self.is_speaking = True
         log.info(f"[JARVIS-VOICE] Diciendo: {text}")
-        output_file = "temp_response.mp3"
-        communicate = edge_tts.Communicate(text, self.tts_voice)
-        await communicate.save(output_file)
-        self.play_audio(output_file)
-        self.is_speaking = False
+        output_file = f"temp_response_{uuid.uuid4().hex}.mp3"
+        try:
+            communicate = edge_tts.Communicate(text, self.tts_voice)
+            await communicate.save(output_file)
+            self.play_audio(output_file)
+        except Exception as e:
+            log.error(f"[JARVIS-VOICE] Error en TTS neural: {e}")
+        finally:
+            self.is_speaking = False
 
     def speak(self, text: str):
         """Wrapper síncrono para llamar al TTS asíncrono."""
@@ -120,22 +125,27 @@ class VoiceDaemonV2:
             log.error(f"[JARVIS-VOICE] WS Error: {error}")
             
         def on_close(ws, close_status_code, close_msg):
-            log.warning("[JARVIS-VOICE] Desconectado del Sensory Bus. Reconectando en 5s...")
-            time.sleep(5)
-            self.start_ws()
+            pass
 
         def on_open(ws):
             log.info("[JARVIS-VOICE] Conectado exitosamente al Sensory Bus (ws://localhost:9999)")
 
-        self.ws = websocket.WebSocketApp("ws://localhost:9999",
-                                        on_open=on_open,
-                                        on_message=on_message,
-                                        on_error=on_error,
-                                        on_close=on_close)
-        self.ws.run_forever()
+        while True:
+            try:
+                self.ws = websocket.WebSocketApp("ws://localhost:9999",
+                                                on_open=on_open,
+                                                on_message=on_message,
+                                                on_error=on_error,
+                                                on_close=on_close)
+                self.ws.run_forever()
+            except Exception:
+                pass
+            
+            log.warning("[JARVIS-VOICE] WS desconectado. Reconectando en 5s...")
+            time.sleep(5)
 
     def start_ws(self):
-        threading.Thread(target=self.ws_listener, daemon=True).start()
+        threading.Thread(target=self.ws_listener, daemon=True, name="JarvisVoiceWS").start()
 
     def run(self):
         """Punto de entrada principal."""

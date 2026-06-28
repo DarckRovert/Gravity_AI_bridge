@@ -27,10 +27,12 @@ class SensoryBus:
                 # Broadcast the message to all OTHER clients
                 # For instance, Voice Daemon sends "voice_input", the Brain receives it.
                 await self.broadcast(message, sender=websocket)
-        except websockets.exceptions.ConnectionClosed:
+        except Exception as e:
+            # Captura ConnectionClosed, OSError, etc., para que no tire el loop entero
             pass
         finally:
-            self.connected_clients.remove(websocket)
+            if websocket in self.connected_clients:
+                self.connected_clients.remove(websocket)
             print(f"[SENSORY-BUS] Cliente desconectado. Total: {len(self.connected_clients)}")
 
     async def broadcast(self, message, sender=None):
