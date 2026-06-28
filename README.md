@@ -47,13 +47,20 @@ graph TD
         end
     end
     
+    subgraph Data & Security Layer
+        Worker1 -.->|I/O Async| Tinka[("La Tinka Engine (WAL)")]
+        WorkerN -.->|I/O Async| Tinka
+        Worker1 -.->|OS Command| Shield{"AgentShield (Ring 0)"}
+        Shield -->|Bloquea| OS["Host OS"]
+    end
+    
     subgraph Hot-Reload Registry
         Registry["ProviderRegistry"] -->|Local| Ollama[("Ollama / LM Studio")]
         Registry -->|Cloud| Cloud[("Z.ai Extension / OpenAI / Anthropic")]
     end
     
     Worker1 --> Registry
-    Worker2 --> Registry
+    WorkerN --> Registry
 ```
 
 Gravity opera su propio `ThreadingHTTPServer` a prueba de balas.
@@ -89,7 +96,7 @@ La VRAM unificada es protegida ferozmente:
 ```mermaid
 mindmap
   root((Dashboard React
-  35 Submódulos))
+  36 Submódulos))
     Mission Control
       Métricas Hardware RAM/VRAM
       Temperaturas CPU
@@ -105,6 +112,7 @@ mindmap
       Watchdog Override
       Bloqueador de Nodos
       Audit Log Viewer
+      AgentShield Monitor
     Forja Multimedia
       V17 Video Renderer
       Fooocus Studio UI
