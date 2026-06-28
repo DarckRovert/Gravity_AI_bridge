@@ -326,8 +326,12 @@ def run_server():
             import os
             
             _base_dir_brain = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            
+            # Memoria conversacional de voz persistente durante la sesión
+            voice_history = []
 
             def _process_voice_task(ws, user_text):
+                nonlocal voice_history
                 try:
                     # 1. Cargar contexto real de Gravity
                     kb_data_brain = {}
@@ -353,10 +357,9 @@ def run_server():
                     )
                     system_prompt = base_system_prompt + voice_directive
                     
-                    messages = [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_text}
-                    ]
+                    messages = [{"role": "system", "content": system_prompt}]
+                    messages.extend(voice_history)
+                    messages.append({"role": "user", "content": user_text})
                     
                     bp, bm = provider_manager.get_best()
                     if not bp:
@@ -366,8 +369,14 @@ def run_server():
                     raw_text = provider_manager.complete(messages, model=bm, provider=bp.name, options={"temperature": 0.5})
                     clean_text = ReasoningStripper().process_chunk(raw_text).strip()
                     
-                    # 2. Interceptar comandos si el LLM emitió uno
-                    cmd_info = parse_chat_commands(clean_text)
+                    # 2. Interceptar comandos si el LLM emitió uno (Robusto a ruido)
+                    cmd_info = None
+                    if "/" in clean_text:
+                        cmd_candidate = clean_text[clean_text.find("/"):]
+                        cmd_info = parse_chat_commands(cmd_candidate)
+                    else:
+                        cmd_info = parse_chat_commands(clean_text)
+                        
                     if cmd_info:
                         log.info(f"[COGNITIVE-LOOP] Ejecutando comando por voz: {cmd_info}")
                         cmd_result = execute_system_command(cmd_info)
@@ -381,6 +390,13 @@ def run_server():
                     
                     log.info(f"[COGNITIVE-LOOP] Respuesta generada: {clean_text}")
                     ws.send(json.dumps({"type": "voice_output", "text": clean_text}))
+                    
+                    # 3. Guardar en historial (máx 10 intercambios para no saturar tokens)
+                    voice_history.append({"role": "user", "content": user_text})
+                    voice_history.append({"role": "assistant", "content": clean_text})
+                    if len(voice_history) > 20:
+                        voice_history = voice_history[-20:]
+                        
                 except Exception as e:
                     log.error(f"[COGNITIVE-LOOP] Error en procesamiento LLM: {e}")
 
