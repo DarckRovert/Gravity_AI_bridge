@@ -5,7 +5,7 @@
   [![Autor](https://img.shields.io/badge/Author-DarckRovert-818cf8.svg?style=flat-square)](https://github.com/DarckRovert)
   [![Licencia](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
   [![Arquitectura](https://img.shields.io/badge/Architecture-Omniscient--Tier-c69c6d.svg?style=flat-square)]()
-  [![Release](https://img.shields.io/badge/Release-V16.4_PRO-6366f1.svg?style=flat-square)]()
+  [![Release](https://img.shields.io/badge/Release-V16.6_PRO-6366f1.svg?style=flat-square)]()
   [![Security Audit](https://img.shields.io/badge/Security-Audited_100%25-success?style=flat-square&logo=shield)]()
   [![Twitch](https://img.shields.io/badge/Twitch-DarckRovert-9146ff.svg?style=flat-square&logo=twitch)](https://twitch.tv/darckrovert)
 
@@ -24,7 +24,7 @@
 
 ---
 
-## 🌌 Anatomía del Monstruo (Gravity V16.4 PRO)
+## 🌌 Anatomía del Monstruo (Gravity V16.6 PRO)
 
 Gravity trasciende la categoría de "script". Es un sistema operativo cibernético diseñado con arquitectura forense. Carece de la fragilidad de los orquestadores comerciales; fue forjado en Python nativo para exprimir el silicio y gobernar bases de conocimiento completas sin latencia cloud.
 
@@ -49,7 +49,7 @@ graph TD
     
     subgraph Hot-Reload Registry
         Registry["ProviderRegistry"] -->|Local| Ollama[("Ollama / LM Studio")]
-        Registry -->|Cloud| Cloud[("OpenAI / Anthropic")]
+        Registry -->|Cloud| Cloud[("Z.ai Extension / OpenAI / Anthropic")]
     end
     
     Worker1 --> Registry
@@ -58,7 +58,8 @@ graph TD
 
 Gravity opera su propio `ThreadingHTTPServer` a prueba de balas.
 - **Session Spawner (32 Cores):** Capacidad para invocar y controlar hasta 32 sub-procesos aislados de IA simultáneamente, gestionados mediante BoundedSemaphores estrictos.
-- **Hot-Reload Registry:** Descubrimiento dinámico de proveedores de LLMs. Conecta modelos locales (Ollama, LM Studio) y APIs Cloud en tiempo real sin requerir reinicios de servidor.
+- **La Tinka Engine:** Subsistema asíncrono puro que unifica escrituras de Bases de Datos (SQLite) con transacciones WAL, previniendo colisiones de memoria cuando 32 agentes escriben a la vez.
+- **Hot-Reload Registry:** Descubrimiento dinámico de proveedores de LLMs. Conecta modelos locales (Ollama, LM Studio) y APIs Cloud (Z.ai Extension, OpenAI) en tiempo real sin requerir reinicios de servidor.
 
 ### 2. El Cerebro y La Barrera Rota (`gravity_brain.py`)
 El modelo de IA dentro de Gravity no está ciego. En cada interacción, el motor inyecta un payload masivo de telemetría (Temperaturas de GPU, Costos de API, Estados de Servidores) dándole **conciencia situacional absoluta**.
@@ -68,6 +69,7 @@ El modelo de IA dentro de Gravity no está ciego. En cada interacción, el motor
 Un demonio despierta cada 6 horas (`autonomy_engine.py`) ejecutando el ciclo Observe, Orient, Decide, Act.
 - Se impone un techo financiero inmutable ($0.50 USD diarios en tokens). 
 - Todo código dañino choca contra el `hitl_manager.py` (Human In The Loop), esperando confirmación visual en el Dashboard React.
+- **AgentShield:** Escudo Unicode cuántico en el Ring 0. Si un agente autómata intenta ejecutar un comando malicioso (borrar el sistema, Path Traversal), el escudo bloquea el payload antes de llegar al OS.
 - **Resource Watchdog:** Daemon letal que purga de la VRAM (matando los procesos del SO correspondientes) a las IAs locales estancadas si el Bridge detecta inactividad operativa con carga de RAM superior al 65%.
 
 ### 4. Swarm Intelligence y Auto-Evolución de Lore

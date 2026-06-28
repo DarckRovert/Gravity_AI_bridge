@@ -1,9 +1,9 @@
 # Política de Seguridad y Blindaje
 
-Este repositorio implementa salvaguardas avanzadas para el control de IA autónoma, conocidas como **AgentShield V16.5 Diamond-Tier**, desarrolladas tras auditorías profundas cruzadas con vulnerabilidades conocidas (incluyendo el framework ECC y reportes de Anthropic/Check Point).
+Este repositorio implementa salvaguardas avanzadas para el control de IA autónoma, conocidas como **AgentShield V16.6 Diamond-Tier**, desarrolladas tras auditorías profundas cruzadas con vulnerabilidades conocidas (incluyendo el framework ECC y reportes de Anthropic/Check Point).
 
 ## Versiones Soportadas
-Actualmente solo se brinda soporte de seguridad a la rama principal (Gravity V16.5 PRO).
+Actualmente solo se brinda soporte de seguridad a la rama principal (Gravity V16.6 PRO).
 
 ## Arquitectura de Seguridad
 - **AgentShield Ring 0:** Previene RCE y Directory Traversal en el motor autónomo. El LLM tiene bloqueada la escritura y lectura en archivos de configuración (`.env`, `_settings.json`, `_knowledge.json`) y carpetas del núcleo (`core/`, `.agents/`).

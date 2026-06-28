@@ -1,10 +1,12 @@
-# Architecture Deep Dive (V17 Omniscient-Tier)
+# Architecture Deep Dive (V16.6 PRO Omniscient-Tier)
 
 Gravity AI Bridge opera mediante una arquitectura altamente modular y resistente a fallos diseñada específicamente para entornos de recursos compartidos (como el Ryzen 7 8700G).
 
 ## 1. El Workflow Engine (`core/workflow_engine.py`)
 El corazón del ecosistema. Ejecuta grafos dirigidos acíclicos (DAGs) definidos en JSON.
 - **Auto-cargado de Nodos:** Dinámicamente escanea `core/nodes/` e inyecta las clases heredadas de `GravityNode`.
+- **Z.ai Cloud Fallback:** Integración nativa de alta disponibilidad. Si el hardware local colapsa (OOM), el motor desvía la petición matemática o de inferencia a los clusters remotos de Z.ai de forma transparente.
+- **AgentShield Ring 0:** Todo comando de sistema disparado por el Workflow pasa por un interceptor Regex que bloquea manipulaciones de rutas absolutas o borrados en el disco primario.
 - **Persistencia Zombie:** Si el servidor se apaga abruptamente, la cola SQLite (`_video_queue.sqlite`) mantiene los trabajos "running" para poder ser reseteados.
 - **Inyección Dinámica de Variables:** Utiliza sintaxis Jinja-like (`{{nodo.variable}}`) para encadenar las salidas de un modelo IA como entrada del siguiente nodo en tiempo de ejecución.
 

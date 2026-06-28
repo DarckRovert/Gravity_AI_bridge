@@ -61,6 +61,7 @@ export type PanelId =
   | 'status'
   | 'security'
   | 'audit'
+  | 'agentshield'
   | 'config'
   | 'monetization'
   | 'v2v'

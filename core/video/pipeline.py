@@ -879,6 +879,17 @@ def _process_job(
             if not scenes:
                 raise RuntimeError("El LLM no devolvió escenas válidas.")
             v14_bypass = False
+            
+            # RAM Kill-Switch: Descargar LLM de la memoria justo antes de iniciar procesos visuales pesados.
+            try:
+                from core.ai_process_manager import get_config, stop_engine
+                _cfg = get_config()
+                _def_prov = _cfg.get("model", {}).get("default_provider", "LM Studio")
+                if _def_prov in _cfg.get("ai_engines", {}):
+                    log.info(f"[VideoStudio] APU Memory Protection: Descargando LLM ({_def_prov}) antes del render visual...")
+                    stop_engine(_def_prov)
+            except Exception as _unload_err:
+                log.warning(f"[VideoStudio] Falló el kill-switch de RAM post-script: {_unload_err}")
 
         if not title and generated_title:
             title = generated_title

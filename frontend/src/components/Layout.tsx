@@ -5,7 +5,7 @@ import {
   Gamepad2, Bot, Cpu, DollarSign, Activity, Save, BookOpen, 
   Plug, Wrench, Zap, Bug, ShieldAlert, Wifi, Shield, FileText, Settings, Menu, Bell,
   TrendingUp, Video as VideoIcon, Radio, Target, Code2, Ghost,
-  Dices, PlayCircle, Brain, Newspaper, Box, BrainCircuit
+  Dices, PlayCircle, Brain, Newspaper, Box, BrainCircuit, Lock
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -138,6 +138,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
             <NavItem id="hitl" icon={ShieldAlert} label="HITL Approval" badge={ctx?.security_alerts} />
             <NavItem id="status" icon={Wifi} label="System Status" />
             <NavItem id="security" icon={Shield} label="Security" />
+            <NavItem id="agentshield" icon={Lock} label="AgentShield" />
             <NavItem id="audit" icon={FileText} label="Audit Log" />
             <NavItem id="config" icon={Settings} label="Configuración" />
 

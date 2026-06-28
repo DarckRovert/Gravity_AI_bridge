@@ -97,7 +97,10 @@ class GravityNode(ABC):
         base_abs = os.path.abspath(BASE_DIR)
         absolute_target = os.path.abspath(os.path.join(base_abs, target_path))
         # 1. Asegurar que termina en sep para evitar bypass de hermanos (Path Traversal)
-        if not absolute_target.startswith(base_abs + os.sep) and absolute_target != base_abs:
+        # Excepción para el despliegue del portal de noticias
+        is_news_portal = absolute_target.startswith(os.path.abspath("F:/gravity-news-portal") + os.sep) or absolute_target == os.path.abspath("F:/gravity-news-portal")
+        
+        if not absolute_target.startswith(base_abs + os.sep) and absolute_target != base_abs and not is_news_portal:
             log.warning(f"[{self.NODE_TYPE}] Path traversal bloqueado: {target_path} -> {absolute_target}")
             raise ValueError("Path traversal attempt blocked by AgentShield.")
             

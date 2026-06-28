@@ -46,6 +46,14 @@ class VideoJobNode(GravityNode):
             try:
                 from providers.local.native_provider import NativeLlamaProvider
                 NativeLlamaProvider.force_unload()
+                
+                # Cerrar motor configurado por defecto (ej. LM Studio, Ollama)
+                from core.ai_process_manager import get_config, stop_engine
+                cfg = get_config()
+                def_prov = cfg.get("model", {}).get("default_provider", "LM Studio")
+                if def_prov in cfg.get("ai_engines", {}):
+                    log.info(f"[{self.__class__.__name__}] Ejecutando Kill-Switch para el motor local: {def_prov}")
+                    stop_engine(def_prov)
             except Exception as _unload_err:
                 log.warning(f"[{self.__class__.__name__}] Falló el kill-switch de RAM: {_unload_err}")
 

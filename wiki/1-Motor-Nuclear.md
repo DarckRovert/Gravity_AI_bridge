@@ -1,4 +1,4 @@
-# Folio 1: Motor Nuclear y Enrutamiento (Gravity V16.4 PRO)
+# Folio 1: Motor Nuclear y Enrutamiento (Gravity V16.6 PRO)
 
 Este documento desglosa la capa fundacional del sistema operativo Gravity. El "Backend" no es un framework monolítico como Django o FastAPI; es un motor enrutador asíncrono puro forjado en la biblioteca estándar de Python, diseñado para evadir el sobrecosto de latencia y exprimir los hilos del procesador al máximo.
 
@@ -25,6 +25,9 @@ La clase `SessionSpawner` es la responsable de crear procesos hijos de IA.
 
 ### Mitigación de Desconexiones Fantasma
 El servidor sobrescribe `handle_one_request()` para capturar silenciosamente los `BrokenPipeError` y `ConnectionResetError`. En entornos locales donde las GUIs React (SPA) envían cientos de abortos de conexión HTTP al cerrar pestañas o desmontar componentes, Gravity simplemente deshecha las peticiones truncadas sin ensuciar los logs de error críticos de consola.
+
+### La Tinka Engine (Gestión de Estado Asíncrono)
+Para prevenir colisiones de escritura (Database Locked) cuando 32 agentes intentan escribir historiales y transacciones simultáneamente en SQLite, Gravity implementa **La Tinka Engine**. Un subsistema optimizado que habilita pragma WAL (Write-Ahead Logging) e inyecta semáforos exclusivos. Permite cientos de lecturas/escrituras masivas sin comprometer la latencia ni corromper el hilo principal del Bridge.
 
 ## 2. Auto-Discovery y Hot-Reload (`providers/registry.py`)
 

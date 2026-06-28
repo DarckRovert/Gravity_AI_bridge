@@ -36,6 +36,7 @@ import { AutonomyPanel } from './components/AutonomyPanel';
 import { JournalistPanel } from './components/JournalistPanel';
 import { ModelHub } from './components/ModelHub';
 import { MemoryStudio } from './components/MemoryStudio';
+import { AgentShieldMonitor } from './components/AgentShieldMonitor';
 
 import type { PanelId } from './types';
 
@@ -75,6 +76,7 @@ function App() {
       case 'hitl': return <HITLApproval />;
       case 'status': return <SystemStatus />;
       case 'security': return <Security />;
+      case 'agentshield': return <AgentShieldMonitor />;
       case 'audit': return <AuditLog />;
       case 'config': return <Settings />;
       case 'monetization': return <MonetizationHub />;

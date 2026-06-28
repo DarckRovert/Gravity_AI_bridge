@@ -35,9 +35,14 @@ class ToolEngine:
         abs_path_check = os.path.normcase(abs_path_orig)
         root_path_check = os.path.normcase(os.path.abspath(self.workspace_root))
 
+        # Excepción para el despliegue del portal de noticias
+        news_portal_check = os.path.normcase(os.path.abspath("F:/gravity-news-portal"))
+        is_news_portal = abs_path_check.startswith(news_portal_check + os.sep) or abs_path_check == news_portal_check
+
         if (
             not abs_path_check.startswith(root_path_check + os.sep)
             and abs_path_check != root_path_check
+            and not is_news_portal
         ):
             raise PermissionError(f"Ruta denegada (fuera del workspace): {path}")
             
