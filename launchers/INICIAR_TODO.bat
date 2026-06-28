@@ -1,14 +1,14 @@
 @echo off
 chcp 65001 >nul
-title Gravity AI Bridge V16.3 PRO -- Arranque Completo
+title Gravity AI Bridge V16.7 PRO -- Arranque Completo
 setlocal enabledelayedexpansion
 color 0B
 cls
 
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|          GRAVITY AI BRIDGE V16.3 PRO [Ecosistema Total]                 ^|
-echo  ^|          Motor de Animacion (MAI) L0/L1/L2 habilitado                   ^|
+echo  ^|          GRAVITY AI BRIDGE V16.7 PRO [Vision-Tier]                      ^|
+echo  ^|          J.A.R.V.I.S Sensory Net ^& Motor MAI L0/1/2 habilitados         ^|
 echo  +--------------------------------------------------------------------------+
 echo.
 
@@ -92,19 +92,27 @@ start "Gravity :: Fooocus Studio UI" cmd /k "cd /d "%ROOT%" && python tools\fooo
 echo  [OK] Studio UI iniciado.
 
 echo.
-echo  [5/6] Despertando al Agente Periodistico Autonomo...
+echo  [5/7] Despertando al Agente Periodistico Autonomo...
 start "Gravity :: Agente Periodistico" cmd /k "cd /d "%ROOT%" && python news_daemon.py"
 echo  [OK] Agente Periodistico iniciado en background.
 
 echo.
-echo  [6/6] Activando Radar de Alta Frecuencia...
+echo  [6/7] Activando Radar de Alta Frecuencia...
 start "Gravity :: Radar de Alta Frecuencia" cmd /k "cd /d "%ROOT%" && python core\high_frequency_radar.py"
 echo  [OK] Radar de Alta Frecuencia activado (Monitorizacion sub-minuto).
+
+echo.
+echo  [7/7] Inicializando J.A.R.V.I.S. Sensory Net (Visión, Oído, Térmico, HUD)...
+start "Gravity :: Voice Daemon (Ears)" cmd /k "cd /d "%ROOT%" && python core\voice_daemon.py"
+start "Gravity :: Overwatch (Eyes)" cmd /k "cd /d "%ROOT%" && python core\overwatch_daemon.py"
+start "Gravity :: Thermal Watchdog (Nervous System)" cmd /k "cd /d "%ROOT%" && python core\thermal_watchdog.py"
+start "Gravity :: Spatial HUD" cmd /k "cd /d "%ROOT%" && python core\ui\hud_overlay.py"
+echo  [OK] Todos los sentidos periféricos de J.A.R.V.I.S enlazados al Bus Principal.
 
 :launch_done
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|          GRAVITY AI BRIDGE V16.3 PRO — Ecosistema Completo               ^|
+echo  ^|          GRAVITY AI BRIDGE V16.7 PRO — Vision-Tier Ecosistema            ^|
 echo  +--------------------------------------------------------------------------+
 echo  ^|   Dashboard Web:    http://localhost:7860  (Chat, V2V, Video Studio)    ^|
 echo  ^|   Fooocus Motor:    http://127.0.0.1:7861  (API generacion imagenes)    ^|
@@ -112,7 +120,7 @@ echo  ^|   Fooocus Studio:   http://127.0.0.1:7862  (UI de generacion)          
 echo  ^|   V2V WebSocket:    ws://127.0.0.1:7863    (Motor en vivo)              ^|
 echo  ^|   Periodista:       Autonomo y en ejecucion silenciosa                  ^|
 echo  ^|   Radar HF:         Escaneo global de urgencias (cada 60s)               ^|
-echo  ^|   MAI L2 ComfyUI:   http://localhost:8188  (si activo)                  ^|
+echo  ^|   J.A.R.V.I.S:      Sensory Net 9999 + HUD Espacial + Voice + Overwatch  ^|
 echo  ^|                                                                          ^|
 echo  ^|   [!] V2V Engine: inicia desde el panel V2V Live Studio                 ^|
 echo  ^|   [!] Fooocus CPU tarda ~60-120s en cargar. Imagen: 3-8 min             ^|
@@ -134,5 +142,5 @@ if "!_BRIDGE_OK!"=="1" (
     echo  [!] Dashboard no se abrira porque el servicio GravityAI esta detenido.
 )
 echo.
-echo  [LISTO] Ecosistema Gravity AI V16.3 PRO iniciado. Esta ventana puede cerrarse.
+echo  [LISTO] Ecosistema Gravity AI V16.7 PRO (J.A.R.V.I.S) iniciado. Esta ventana puede cerrarse.
 pause
