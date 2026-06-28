@@ -41,7 +41,7 @@
         "prompt": "Analiza las siguientes fuentes web e identifica la narrativa oculta, el sesgo mediático y el verdadero interés geopolítico de este evento:\n\n{{buscar_contexto.text}}\n\nEntrega un Reporte de Manipulación directo, sin formato JSON.",
         "role": "researcher",
         "temperature": 0.4,
-        "provider": "openai"
+        "provider": "nvidia"
       }
     },
     {
@@ -121,7 +121,7 @@
         "prompt": "Genera el Social Media Kit para este artículo:\n{{editor_jefe.text}}\n\nIncluye:\n1. Título para TikTok/Reels.\n2. Descripción (Copy) penetrante y subversivo (max 4 líneas).\n3. Hashtags relevantes (incluye #GravityAI y #LaVoluntadSoberana).\n\nENTREGA SOLO EL TEXTO DEL KIT, SIN JSON.",
         "role": "planner",
         "temperature": 0.5,
-        "provider": "openai"
+        "provider": "nvidia"
       }
     },
     {
