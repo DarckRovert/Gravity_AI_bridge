@@ -331,7 +331,6 @@ def run_server():
             voice_history = []
 
             def _process_voice_task(ws, user_text):
-                nonlocal voice_history
                 try:
                     # 1. Cargar contexto real de Gravity
                     kb_data_brain = {}
@@ -395,10 +394,14 @@ def run_server():
                     voice_history.append({"role": "user", "content": user_text})
                     voice_history.append({"role": "assistant", "content": clean_text})
                     if len(voice_history) > 20:
-                        voice_history = voice_history[-20:]
+                        del voice_history[:-20]  # Operación in-place segura para hilos
                         
                 except Exception as e:
                     log.error(f"[COGNITIVE-LOOP] Error en procesamiento LLM: {e}")
+                    try:
+                        ws.send(json.dumps({"type": "voice_output", "text": "Señor, he sufrido un error crítico en mi red neuronal central."}))
+                    except Exception:
+                        pass
 
             def on_message(ws, message):
                 try:
