@@ -1,6 +1,6 @@
 # Referencia de API (Gravity AI Bridge)
 
-Esta referencia técnica está orientada a desarrolladores que desean integrar extensiones u otras aplicaciones con la arquitectura **Gravity V16.5**.
+Esta referencia técnica está orientada a desarrolladores que desean integrar extensiones u otras aplicaciones con la arquitectura **Gravity V16.6**.
 
 ## Endpoints Nativos
 

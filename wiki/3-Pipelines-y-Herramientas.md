@@ -1,4 +1,4 @@
-# Folio 3: Pipelines Multi-Agente y Herramientas (Gravity V16.4 PRO)
+# Folio 3: Pipelines Multi-Agente y Herramientas (Gravity V16.6 PRO)
 
 Gravity no está confinado a una simple ventana de chat. Dispone de un arsenal de más de 25 herramientas forenses, de producción y de raspado de datos ubicadas en el directorio `tools/`. Estas herramientas son invocadas dinámicamente por los sub-agentes según requiera el ciclo OODA o el usuario.
 

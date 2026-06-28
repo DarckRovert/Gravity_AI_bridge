@@ -1,6 +1,6 @@
 # Troubleshooting y Preguntas Frecuentes (FAQ)
 
-Esta guía te ayudará a resolver los problemas más comunes al operar Gravity AI (AgentShield V16.5).
+Esta guía te ayudará a resolver los problemas más comunes al operar Gravity AI (AgentShield V16.6).
 
 ## Preguntas Frecuentes (FAQ)
 
