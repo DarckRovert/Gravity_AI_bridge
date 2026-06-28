@@ -17,6 +17,7 @@ flowchart LR
     Popen --> Aislado[Memoria Aislada RAM]
     Aislado -->|Crash OOM| Clean[Muere sin afectar al Bridge]
     Aislado -->|Éxito| Response[Devuelve Payload]
+    Response -.->|Guarda en DB| Tinka[(La Tinka Engine WAL)]
 ```
 
 La clase `SessionSpawner` es la responsable de crear procesos hijos de IA.

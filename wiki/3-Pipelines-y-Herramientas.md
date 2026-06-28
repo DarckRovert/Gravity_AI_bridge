@@ -14,7 +14,7 @@ Gravity tiene la capacidad de producir libros enteros, estructurados, refactados
 
 ```mermaid
 graph TD
-    Job[VideoJobNode] --> Engine[glsl_renderer_v13.py]
+    Job[VideoJobNode] --> Engine[glsl_renderer_v17.py]
     
     subgraph Renderizado Matemático Puro
         Engine -->|SDF & Raymarching| FrameBuffer
