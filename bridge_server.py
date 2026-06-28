@@ -319,9 +319,52 @@ def run_server():
             import websocket
             import json
             import time
-            from core import provider_manager
+            import threading
+            from core import provider_manager, data_guardian
             from core.reasoning_stripper import ReasoningStripper
+            from core.gravity_brain import build_gravity_system_prompt
+            import os
             
+            _base_dir_brain = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+            def _process_voice_task(ws, user_text):
+                try:
+                    # 1. Cargar contexto real de Gravity
+                    kb_data_brain = {}
+                    try:
+                        kb_data_brain, _ = data_guardian.load_knowledge(
+                            os.path.join(_base_dir_brain, "_knowledge.json")
+                        )
+                    except Exception:
+                        pass
+                    
+                    extra_rules = kb_data_brain.get("persistent_rules", [])
+                    base_system_prompt = build_gravity_system_prompt(
+                        extra_rules=extra_rules if extra_rules else None
+                    )
+                    
+                    # Añadir directiva de voz
+                    voice_directive = "\n\nDIRECTIVA DE VOZ: Tu respuesta será dictada por un motor TTS. Responde de forma natural, conversacional y al grano. NO uses markdown, ni bloques de código, ni listas complejas. Habla como J.A.R.V.I.S."
+                    system_prompt = base_system_prompt + voice_directive
+                    
+                    messages = [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_text}
+                    ]
+                    
+                    bp, bm = provider_manager.get_best()
+                    if not bp:
+                        ws.send(json.dumps({"type": "voice_output", "text": "Error. Sistemas cognitivos desconectados."}))
+                        return
+                        
+                    raw_text = provider_manager.complete(messages, model=bm, provider=bp.name, options={"temperature": 0.5})
+                    clean_text = ReasoningStripper().process_chunk(raw_text)
+                    
+                    log.info(f"[COGNITIVE-LOOP] Respuesta generada: {clean_text}")
+                    ws.send(json.dumps({"type": "voice_output", "text": clean_text}))
+                except Exception as e:
+                    log.error(f"[COGNITIVE-LOOP] Error en procesamiento LLM: {e}")
+
             def on_message(ws, message):
                 try:
                     data = json.loads(message)
@@ -331,21 +374,8 @@ def run_server():
                             return
                         
                         log.info(f"[COGNITIVE-LOOP] Procesando comando de voz: {user_text}")
-                        # Formatear como si fuera un chat
-                        messages = [{"role": "system", "content": "Eres J.A.R.V.I.S. Responde de forma clara, directa y hablada. Sin markdown complejo ni código porque tu respuesta será dictada por voz."},
-                                    {"role": "user", "content": user_text}]
-                        
-                        bp, bm = provider_manager.get_best()
-                        if not bp:
-                            ws.send(json.dumps({"type": "voice_output", "text": "Error. Sistemas cognitivos desconectados."}))
-                            return
-                            
-                        raw_text = provider_manager.complete(messages, model=bm, provider=bp.name, options={"temperature": 0.5})
-                        clean_text = ReasoningStripper().process_chunk(raw_text)
-                        
-                        log.info(f"[COGNITIVE-LOOP] Respuesta generada: {clean_text}")
-                        # Enviar devuelta al Bus para que el Voice Daemon la hable
-                        ws.send(json.dumps({"type": "voice_output", "text": clean_text}))
+                        # Lanzar en hilo para no bloquear el websocket (evita timeouts)
+                        threading.Thread(target=_process_voice_task, args=(ws, user_text), daemon=True).start()
                         
                 except Exception as e:
                     log.error(f"[COGNITIVE-LOOP] Error: {e}")
@@ -354,16 +384,17 @@ def run_server():
                 pass
                 
             def on_close(ws, close_status_code, close_msg):
+                pass
+                
+            # Loop de reconexión seguro sin recursión
+            while True:
+                try:
+                    time.sleep(2)
+                    ws = websocket.WebSocketApp("ws://localhost:9999", on_message=on_message, on_error=on_error, on_close=on_close)
+                    ws.run_forever()
+                except Exception:
+                    pass
                 time.sleep(3)
-                _start_loop()
-                
-            def _start_loop():
-                ws = websocket.WebSocketApp("ws://localhost:9999", on_message=on_message, on_error=on_error, on_close=on_close)
-                ws.run_forever()
-                
-            # Pequeño delay para dejar que el bus inicie antes de conectar el cliente
-            time.sleep(2)
-            _start_loop()
 
         import threading
         threading.Thread(target=_cognitive_ws_thread, daemon=True, name="JarvisCognitiveLoop").start()
