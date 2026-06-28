@@ -322,7 +322,7 @@ def run_server():
             import threading
             from core import provider_manager, data_guardian
             from core.reasoning_stripper import ReasoningStripper
-            from core.gravity_brain import build_gravity_system_prompt
+            from core.gravity_brain import build_gravity_system_prompt, parse_chat_commands, execute_system_command
             import os
             
             _base_dir_brain = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -344,7 +344,13 @@ def run_server():
                     )
                     
                     # Añadir directiva de voz
-                    voice_directive = "\n\nDIRECTIVA DE VOZ: Tu respuesta será dictada por un motor TTS. Responde de forma natural, conversacional y al grano. NO uses markdown, ni bloques de código, ni listas complejas. Habla como J.A.R.V.I.S."
+                    voice_directive = (
+                        "\n\nDIRECTIVA DE VOZ (JARVIS): El usuario se está comunicando por micrófono. "
+                        "Responde de forma natural, conversacional y corta. "
+                        "ATENCIÓN: Tienes capacidades ejecutivas. Si el usuario te pide crear un video, generar una imagen, "
+                        "ver el estado del sistema u otra acción de sistema, PUEDES y DEBES responder ÚNICAMENTE con el comando barra (/) correspondiente (e.g. '/video crear <tema>', '/status', '/imagen <prompt>'). "
+                        "El sistema interceptará tu comando, lo ejecutará y le informará al usuario."
+                    )
                     system_prompt = base_system_prompt + voice_directive
                     
                     messages = [
@@ -358,7 +364,20 @@ def run_server():
                         return
                         
                     raw_text = provider_manager.complete(messages, model=bm, provider=bp.name, options={"temperature": 0.5})
-                    clean_text = ReasoningStripper().process_chunk(raw_text)
+                    clean_text = ReasoningStripper().process_chunk(raw_text).strip()
+                    
+                    # 2. Interceptar comandos si el LLM emitió uno
+                    cmd_info = parse_chat_commands(clean_text)
+                    if cmd_info:
+                        log.info(f"[COGNITIVE-LOOP] Ejecutando comando por voz: {cmd_info}")
+                        cmd_result = execute_system_command(cmd_info)
+                        feedback = cmd_info.get("user_feedback", "Ejecutando orden.")
+                        ok = cmd_result.get("ok", False)
+                        res = cmd_result.get('result_text', '')
+                        if ok:
+                            clean_text = f"{feedback} Acción completada exitosamente."
+                        else:
+                            clean_text = f"Hubo un problema al ejecutar la orden. {res}"
                     
                     log.info(f"[COGNITIVE-LOOP] Respuesta generada: {clean_text}")
                     ws.send(json.dumps({"type": "voice_output", "text": clean_text}))
