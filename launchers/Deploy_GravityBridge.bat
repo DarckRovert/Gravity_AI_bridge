@@ -1,5 +1,5 @@
 @echo off
-title Gravity AI Bridge V16.6 PRO -- Deploy a GitHub
+title Gravity AI Bridge V16.7 PRO -- Deploy a GitHub
 color 0B
 setlocal enabledelayedexpansion
 
@@ -9,7 +9,7 @@ cd /d "%ROOT%"
 
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|        GRAVITY AI BRIDGE V16.6 PRO -- DEPLOY A GITHUB                   ^|
+echo  ^|        GRAVITY AI BRIDGE V16.7 PRO -- DEPLOY A GITHUB                   ^|
 echo  +--------------------------------------------------------------------------+
 echo.
 
@@ -28,7 +28,7 @@ for /f "tokens=1-3 delims=/" %%a in ("%DATE%") do (
 for /f "tokens=1-2 delims=:" %%a in ("%TIME%") do (
     set "HORA=%%a:%%b"
 )
-set "COMMIT_MSG=chore: Gravity AI Bridge V16.6 PRO [Diamond-Tier] - estabilizado %FECHA% %HORA%"
+set "COMMIT_MSG=chore: Gravity AI Bridge V16.7 PRO [Vision-Tier] - estabilizado %FECHA% %HORA%"
 
 echo  [INFO] Raiz del proyecto: %ROOT%
 echo  [INFO] Commit: %COMMIT_MSG%
