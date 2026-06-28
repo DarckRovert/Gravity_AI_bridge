@@ -36,14 +36,14 @@ graph TD
     Radar(["Radar HF (Sub-minuto)"]) -.->|Dispara| Bridge
     
     subgraph J.A.R.V.I.S Sensory Net
-        Voice["Voice Daemon V2 (Edge-TTS + STT)"] -->|WS 9999 (0.0.0.0)| Bus["Sensory Bus (Async Hub)"]
+        Voice["Voice Daemon V2 (Edge-TTS + STT)"] -->|WS 9999 0.0.0.0| Bus["Sensory Bus (Async Hub)"]
         Vision["Overwatch Daemon"] -->|Visión Pasiva| Bus
-        Dashboard["Panel React UI"] -->|WS 9999 (LAN)| Bus
+        Dashboard["Panel React UI"] -->|WS 9999 LAN| Bus
         Thermal["Thermal Watchdog"] -->|WMI Sensors| Bus
         IoT["IoT Controller"] -->|Home Assistant| Bus
         Sentinel["Sentinel Core"] -->|Decisión Autónoma LLM| Bus
         
-        Bus -->|Eventos JSON| CogLoop["Cognitive Loop (En Bridge)"]
+        Bus -->|Eventos JSON| CogLoop["Cognitive Loop En Bridge"]
         CogLoop -->|Ejecución Ejecutiva| Bridge
     end
     subgraph Gravity Core [Núcleo Operacional - 32 Cores]
