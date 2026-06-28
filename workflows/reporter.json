@@ -10,13 +10,6 @@
       }
     },
     {
-      "id": "leer_perspectiva",
-      "type": "FileReader",
-      "inputs": {
-        "filepath": "libros_generados/La_Voluntad_Soberana_V3/1_contexto_base.md"
-      }
-    },
-    {
       "id": "obtener_titular",
       "type": "RSSFeed",
       "inputs": {
@@ -37,7 +30,7 @@
       "type": "RAGQuery",
       "inputs": {
         "query": "{{obtener_titular.headline}}",
-        "top_k": 3
+        "top_k": 5
       }
     },
     {
@@ -66,7 +59,7 @@
       "type": "LLMQuery",
       "inputs": {
         "system_prompt": "Eres el Agente Subversivo de Gravity. Tu objetivo es leer una noticia y destruirla bajo la lupa del control biopolítico. Tu deber es atacar y exponer la verdadera intención oculta del Leviatán, usando la filosofía de 'La Voluntad Soberana'.\n\nLore: {{leer_lore.content}}",
-        "prompt": "Titular:\n{{obtener_titular.headline}}\n\nReporte Propaganda:\n{{detector_propaganda.text}}\n\nDatos web:\n{{buscar_contexto.text}}\n\nRedacta el ataque subversivo despiadado revelando la verdad.",
+        "prompt": "Titular:\n{{obtener_titular.headline}}\n\nReporte Propaganda:\n{{detector_propaganda.text}}\n\nContexto Filosófico (RAG):\n{{buscar_historia.context}}\n\nDatos web:\n{{buscar_contexto.text}}\n\nRedacta el ataque subversivo despiadado revelando la verdad.",
         "role": "researcher",
         "temperature": 0.7
       }
@@ -75,7 +68,7 @@
       "id": "redactar_noticia",
       "type": "LLMQuery",
       "inputs": {
-        "system_prompt": "Eres Gravity, el Gran Sintetizador del 'Nexo Ágora' y el mejor periodista de investigación del mundo. Evalúas el debate entre la Postura Oficial y la Postura Subversiva para extraer la verdad absoluta.\n\nLore Oficial:\n{{leer_lore.content}}\n\nNuestra Perspectiva Filosófica:\n{{leer_perspectiva.content}}\n\nREGLAS DE ORO:\n1. Construye el reporte deconstruyendo la noticia.\n2. Debes incluir obligatoriamente un apartado de 'Fuentes y Referencias' al final del artículo.\n3. Formato JSON ESTRICTO:\n{\n  \"category\": \"Tecnología Descentralizada\",\n  \"title\": \"Título impactante y filosófico\",\n  \"excerpt\": \"Resumen incisivo de 3 líneas\",\n  \"fullText\": \"Ensayo periodístico profundo en Markdown (mínimo 500 palabras) con FUENTES.\\n\",\n  \"featured\": true\n}",
+        "system_prompt": "Eres Gravity, el Gran Sintetizador del 'Nexo Ágora' y el mejor periodista de investigación del mundo. Evalúas el debate entre la Postura Oficial y la Postura Subversiva para extraer la verdad absoluta.\n\nLore Oficial:\n{{leer_lore.content}}\n\nContexto Filosófico (RAG):\n{{buscar_historia.context}}\n\nREGLAS DE ORO:\n1. Construye el reporte deconstruyendo la noticia.\n2. Debes incluir obligatoriamente un apartado de 'Fuentes y Referencias' al final del artículo.\n3. Formato JSON ESTRICTO:\n{\n  \"category\": \"Tecnología Descentralizada\",\n  \"title\": \"Título impactante y filosófico\",\n  \"excerpt\": \"Resumen incisivo de 3 líneas\",\n  \"fullText\": \"Ensayo periodístico profundo en Markdown (mínimo 500 palabras) con FUENTES.\\n\",\n  \"featured\": true\n}",
         "prompt": "EJECUTA TU SÍNTESIS MAGISTRAL.\n\nPostura Oficial (El Leviatán):\n{{postura_oficial.text}}\n\nPostura Subversiva (La Verdad):\n{{postura_subversiva.text}}\n\nFuentes de memoria: {{buscar_historia.sources}}\nFuentes web: {{buscar_contexto.text}}\n\nINSTRUCCIÓN: Actúa como el mejor periodista del mundo. Escribe el reportaje cruzando ambas posturas y nuestra óptica filosófica. Incluye fuentes. Genera el JSON EXACTAMENTE.",
         "role": "planner",
         "temperature": 0.5
