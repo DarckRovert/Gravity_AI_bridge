@@ -24,7 +24,7 @@
 
 ---
 
-## 🧬 Anatomía del Monstruo (Gravity V16.7 PRO Vision-Tier)
+## 🧠 Anatomía del Monstruo (Gravity V16.14 PRO Omniscient-Tier)
 
 Gravity trasciende la categoría de "script". Es un sistema operativo cibernético diseñado con arquitectura forense. Carece de la fragilidad de los orquestadores comerciales; fue forjado en Python nativo para exprimir el silicio y gobernar bases de conocimiento completas sin latencia cloud.
 
@@ -36,8 +36,9 @@ graph TD
     Radar(["Radar HF (Sub-minuto)"]) -.->|Dispara| Bridge
     
     subgraph J.A.R.V.I.S Sensory Net
-        Voice["Voice Daemon V2 (Edge-TTS + STT)"] <-->|WS 9999| Bus["Sensory Bus (Async Hub)"]
+        Voice["Voice Daemon V2 (Edge-TTS + STT)"] <-->|WS 9999 (0.0.0.0)| Bus["Sensory Bus (Async Hub)"]
         Vision["Overwatch Daemon"] -->|Visión Pasiva| Bus
+        Dashboard["Panel React UI"] <-->|WS 9999 (LAN)| Bus
         Thermal["Thermal Watchdog"] -->|WMI Sensors| Bus
         IoT["IoT Controller"] -->|Home Assistant| Bus
         Sentinel["Sentinel Core"] <-->|Decisión Autónoma LLM| Bus

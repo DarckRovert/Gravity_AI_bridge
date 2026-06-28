@@ -38,6 +38,7 @@ El ecosistema periférico se coordina mediante un bus asíncrono y capacidades d
 graph TD
     Mic[Micrófono USB] -->|Audio| Voice[Voice Daemon V2]
     Voice -->|Transcribe 'crea video'| Bus((Sensory Bus ws:9999))
+    Dashboard[React UI Dashboard] <-->|WS 9999 LAN| Bus
     Bus -->|voice_input| CogLoop[Cognitive Loop Thread]
     
     subgraph Gravity Engine
@@ -52,6 +53,6 @@ graph TD
     Voice -->|Edge-TTS| Speaker[Altavoces]
 ```
 
-- **Sensory Bus**: Hub asíncrono puro tolerante a caídas de red. Si un módulo muere, se desconecta sin tirar el servidor central.
+- **Sensory Bus**: Hub asíncrono puro (Port 9999, Host 0.0.0.0) tolerante a caídas de red que permite conexión LAN desde múltiples dispositivos. Si un módulo muere, se desconecta sin tirar el servidor central. Se suprimen silenciosamente las peticiones HTTP fantasma (port scanners) para evitar tracebacks masivos.
 - **Voice Daemon V2**: Opera un bucle seguro con SpeechRecognition (True VAD). Emplea bloqueos lógicos (`is_speaking = False` en un bloque `finally`) y archivos temporales únicos UUID para evitar la corrupción de disco por hilos concurrentes.
 - **Cognitive Loop (En el Bridge)**: Posee **Memoria a Corto Plazo** (20 turnos de historial) y **Capacidades Ejecutivas**. Si detecta una orden, el LLM emite un Comando Slash (`/`) que el Bucle extrae ignorando charla de relleno, disparando la acción física en el servidor.

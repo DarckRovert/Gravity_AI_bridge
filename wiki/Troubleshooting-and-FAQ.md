@@ -1,8 +1,12 @@
 # Troubleshooting y Preguntas Frecuentes (FAQ)
 
-Esta guía te ayudará a resolver los problemas más comunes al operar Gravity AI (AgentShield V16.7).
+Esta guía te ayudará a resolver los problemas más comunes al operar Gravity AI (AgentShield V16.14).
 
 ## Preguntas Frecuentes (FAQ)
+
+### Error: `ModuleNotFoundError: No module named 'core'`
+Este error ocurre cuando inicias un demonio secundario (como `voice_daemon.py` o `sentinel_core.py`) navegando directamente a la carpeta `core/` y ejecutando python desde ahí. Python asume que el directorio raíz es `core/` y no el directorio del proyecto, por lo que no puede encontrar el propio módulo `core`. 
+**Solución:** Inicia siempre los demonios usando los archivos batch `.bat` ubicados en la raíz o en `launchers/` (ej: `Launch_JARVIS.bat` o `INICIAR_TODO.bat`). Estos archivos inyectan automáticamente `set "PYTHONPATH=%ROOT%"` en la memoria de Windows para que Python resuelva la ruta completa sin importar desde dónde se lance.
 
 ### ¿Por qué mi script/hook es bloqueado por AgentShield?
 Si ves un error `PermissionError: AgentShield Core Protection blocked write attempt`, significa que el script intentó escribir en un área crítica protegida (ej: `core/`, `.agents/`, `.env`, `_settings.json`). Esta es una medida de seguridad (Ring 0) para evitar que el LLM modifique la arquitectura base o fugue secretos. Si necesitas escribir, asegúrate de que el script apunte a un directorio de trabajo válido como `scratch/` o un directorio de salidas específico.

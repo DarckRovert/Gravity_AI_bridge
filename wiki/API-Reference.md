@@ -1,10 +1,18 @@
 # Referencia de API (Gravity AI Bridge)
 
-Esta referencia técnica está orientada a desarrolladores que desean integrar extensiones u otras aplicaciones con la arquitectura **Gravity V16.7**.
+Esta referencia técnica está orientada a desarrolladores que desean integrar extensiones u otras aplicaciones con la arquitectura **Gravity V16.14 PRO**.
 
 ## Endpoints Nativos
 
 El `bridge_server.py` expone un micro-servidor local que procesa interacciones asíncronas con agentes, subagentes y la base de datos de historial (`gravity_brain.db`).
+
+### J.A.R.V.I.S Sensory Bus (Nuevo en V16.14)
+**`ws://0.0.0.0:9999`**
+Un hub de WebSockets asíncrono puro que permite a los módulos periféricos y a la interfaz UI (Dashboard) comunicarse con el núcleo cognitivo de Gravity a través de la red local (LAN).
+- **Formatos JSON soportados:**
+  - `{"type": "voice_input", "text": "string"}`: Enviado por el Voice Daemon cuando el usuario habla.
+  - `{"type": "voice_output", "text": "string"}`: Enviado por el Cognitive Loop para que el Voice Daemon hable por los altavoces.
+  - `{"type": "system_status", "payload": "string"}`: Notificaciones de sistema o cambios de estado para la UI del Dashboard.
 
 ### 1. `POST /api/chat`
 Envía un prompt a la inteligencia principal (o sub-enjambre) para su ejecución autónoma.
