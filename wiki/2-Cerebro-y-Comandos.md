@@ -1,4 +1,4 @@
-# Folio 2: Cerebro y Comandos (Gravity V16.7 PRO)
+# Folio 2: Cerebro y Comandos (Gravity V16.14 PRO)
 
 El archivo `core/gravity_brain.py` es el pilar central cognitivo de Gravity. A diferencia de las UIs convencionales que simplemente envían prompts de texto crudo a una API, Gravity **inyecta un meta-contexto inmenso** en cada una de las interacciones.
 
@@ -45,4 +45,8 @@ Gravity posee funciones *Agentic* nativas, permitiendo interactuar con el entorn
 - **`/aprende <regla>`**: Fuerza una inyección persistente en `_knowledge.json`. El LLM jamás volverá a olvidar esta instrucción.
 - **`/rewrite <ruta>`** y **`/polish <ruta>`**: Pasan archivos de texto completos por el `book_refiner.py`. Ideal para formatear textos masivos, pasar a LaTeX, o estructurar HTML sin perder semántica.
 
-Esta abstracción rompe las fronteras de un simple "Chatbot" y convierte al panel web en una terminal de comandos (CLI) vitaminada con inferencia neuronal.
+### J.A.R.V.I.S Executive Execution (Nuevo en V16.14)
+Todos los comandos mencionados anteriormente ahora son **ejecutables mediante voz**. 
+Si le hablas a JARVIS por el micrófono diciendo: *"Oye Jarvis, ejecuta el comando para listar la carpeta core"*, el motor de *Cognitive Loop* instruye al LLM a emitir `/fs_listar core/`. El sistema Regex del Bridge extrae el comando de la respuesta de texto, lo ejecuta a nivel SO, y le devuelve los resultados al LLM para que te los lea por voz.
+
+Esta abstracción rompe las fronteras de un simple "Chatbot" y convierte al panel web (y al entorno físico local de tu habitación) en una terminal de comandos (CLI) vitaminada con inferencia neuronal.

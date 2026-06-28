@@ -1,4 +1,4 @@
-# Architecture Deep Dive (V16.7 PRO Omniscient-Tier)
+# Architecture Deep Dive (V16.14 PRO Cognitive-Tier)
 
 Gravity AI Bridge opera mediante una arquitectura altamente modular y resistente a fallos diseñada específicamente para entornos de recursos compartidos (como el Ryzen 7 8700G).
 
@@ -30,3 +30,28 @@ Demonio independiente (`core/high_frequency_radar.py`) que:
 - Escanea RSS globales (ej: Google News) cada 60 segundos.
 - Busca keywords de emergencia (*"colapso"*, *"guerra"*, *"alerta"*).
 - Interrumpe pacíficamente el flujo e inyecta la crisis directamente en el motor principal invocando `run_workflow('reporter')` de forma no bloqueante.
+
+## 4. J.A.R.V.I.S Cognitive Architecture (V16.14 PRO)
+El ecosistema periférico se coordina mediante un bus asíncrono y capacidades de ejecución de comandos por voz:
+
+```mermaid
+graph TD
+    Mic[Micrófono USB] -->|Audio| Voice[Voice Daemon V2]
+    Voice -->|Transcribe 'crea video'| Bus((Sensory Bus ws:9999))
+    Bus -->|voice_input| CogLoop[Cognitive Loop Thread]
+    
+    subgraph Gravity Engine
+        CogLoop -->|Inyecta Reglas + Prompt| LLM((Provider Manager))
+        LLM -->|Genera Comando '/video crear'| Extractor[Regex Command Extractor]
+        Extractor -->|Ejecuta a nivel kernel| Bridge[execute_system_command]
+    end
+    
+    Bridge -->|Resultado OK| CogLoop
+    CogLoop -->|voice_output| Bus
+    Bus -->|JSON| Voice
+    Voice -->|Edge-TTS| Speaker[Altavoces]
+```
+
+- **Sensory Bus**: Hub asíncrono puro tolerante a caídas de red. Si un módulo muere, se desconecta sin tirar el servidor central.
+- **Voice Daemon V2**: Opera un bucle seguro con SpeechRecognition (True VAD). Emplea bloqueos lógicos (`is_speaking = False` en un bloque `finally`) y archivos temporales únicos UUID para evitar la corrupción de disco por hilos concurrentes.
+- **Cognitive Loop (En el Bridge)**: Posee **Memoria a Corto Plazo** (20 turnos de historial) y **Capacidades Ejecutivas**. Si detecta una orden, el LLM emite un Comando Slash (`/`) que el Bucle extrae ignorando charla de relleno, disparando la acción física en el servidor.

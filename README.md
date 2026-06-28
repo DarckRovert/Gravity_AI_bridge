@@ -1,9 +1,9 @@
 <div align="center">
   <img src="landing_page/assets/logo.png" alt="Gravity AI Bridge Logo" width="200"/>
-  <h1>GRAVITY AI BRIDGE V16.7 PRO</h1>
-  <p><strong>[Vision-Tier]</strong> | Orquestador Asíncrono de Inteligencia Artificial Local (AMD APU) y Cloud</p>
+  <h1>GRAVITY AI BRIDGE V16.14 PRO</h1>
+  <p><strong>[Cognitive-Tier]</strong> | Orquestador Asíncrono de Inteligencia Artificial Local (AMD APU) y Cloud</p>
   
-  [![Release](https://img.shields.io/badge/Release-V16.7_PRO-red?style=for-the-badge)](https://github.com/DarckRovert/Gravity_AI_bridge)
+  [![Release](https://img.shields.io/badge/Release-V16.14_PRO-red?style=for-the-badge)](https://github.com/DarckRovert/Gravity_AI_bridge)
   [![Architecture](https://img.shields.io/badge/Architecture-Asynchronous_Forensic-blue?style=for-the-badge)](#)
   [![Engine](https://img.shields.io/badge/Engine-La_Tinka_WAL-purple?style=for-the-badge)](#)
   [![Security](https://img.shields.io/badge/Security-AgentShield_Ring_0-green?style=for-the-badge)](#)
@@ -36,12 +36,13 @@ graph TD
     Radar(["Radar HF (Sub-minuto)"]) -.->|Dispara| Bridge
     
     subgraph J.A.R.V.I.S Sensory Net
-        Voice["Voice Daemon V2 (Edge-TTS)"] <-->|WS 9999| Bus["Sensory Bus"]
+        Voice["Voice Daemon V2 (Edge-TTS + STT)"] <-->|WS 9999| Bus["Sensory Bus (Async Hub)"]
         Vision["Overwatch Daemon"] -->|Visión Pasiva| Bus
         Thermal["Thermal Watchdog"] -->|WMI Sensors| Bus
         IoT["IoT Controller"] -->|Home Assistant| Bus
-        Sentinel["Sentinel Core"] <-->|Lóbulo Proactivo| Bus
-        Bus <--> Bridge
+        Sentinel["Sentinel Core"] <-->|Decisión Autónoma LLM| Bus
+        Bus <-->|Eventos JSON| CogLoop["Cognitive Loop (En Bridge)"]
+        CogLoop <-->|Ejecución Ejecutiva| Bridge
     end
     subgraph Gravity Core [Núcleo Operacional - 32 Cores]
         Bridge -->|Spawn| Worker1[Session 1: LLM]
