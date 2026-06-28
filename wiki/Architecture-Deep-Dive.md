@@ -38,7 +38,7 @@ El ecosistema periférico se coordina mediante un bus asíncrono y capacidades d
 graph TD
     Mic[Micrófono USB] -->|Audio| Voice[Voice Daemon V2]
     Voice -->|Transcribe 'crea video'| Bus((Sensory Bus ws:9999))
-    Dashboard[React UI Dashboard] <-->|WS 9999 LAN| Bus
+    Dashboard[React UI Dashboard] -->|WS 9999 LAN| Bus
     Bus -->|voice_input| CogLoop[Cognitive Loop Thread]
     
     subgraph Gravity Engine
