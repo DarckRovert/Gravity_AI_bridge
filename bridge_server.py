@@ -306,6 +306,15 @@ def run_server():
     service_loader.start_service("core.self_reflection")
     service_loader.start_service("core.autonomy_engine")
     log.info("[V16.0 PRO] Self-Reflection + Autonomy Engine daemons iniciados.")
+    
+    # ── J.A.R.V.I.S Sensory Bus (V16.7 Vision-Tier) ──
+    try:
+        from core.sensory_bus import SensoryBus
+        bus = SensoryBus()
+        bus.start_server_thread()
+        log.info("[V16.7 PRO] J.A.R.V.I.S Sensory Bus iniciado en el puerto 9999.")
+    except Exception as e:
+        log.error(f"Error iniciando Sensory Bus: {e}")
 
     # ── Registrar daemons críticos en el watchdog para auto-restart ───────────
     try:

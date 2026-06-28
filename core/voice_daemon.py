@@ -9,6 +9,8 @@ import pyttsx3
 import queue
 import time
 import threading
+import json
+import websocket
 
 class VoiceDaemon:
     def __init__(self):
@@ -83,19 +85,56 @@ class VoiceDaemon:
         print(f"[JARVIS-VOICE] Texto detectado: {text.strip()}")
         return text.strip()
 
+    def ws_listener(self):
+        """Hilo para escuchar respuestas del Sensory Bus y hablar."""
+        def on_message(ws, message):
+            try:
+                data = json.loads(message)
+                if data.get("type") == "voice_output":
+                    self.speak(data.get("text", ""))
+            except Exception as e:
+                print(f"[JARVIS-VOICE] Error procesando WS: {e}")
+                
+        def on_error(ws, error):
+            print(f"[JARVIS-VOICE] WS Error: {error}")
+            
+        def on_close(ws, close_status_code, close_msg):
+            print("[JARVIS-VOICE] Desconectado del Sensory Bus. Reconectando en 5s...")
+            time.sleep(5)
+            self.start_ws()
+
+        def on_open(ws):
+            print("[JARVIS-VOICE] Conectado exitosamente al Sensory Bus (ws://localhost:9999)")
+
+        self.ws = websocket.WebSocketApp("ws://localhost:9999",
+                                        on_open=on_open,
+                                        on_message=on_message,
+                                        on_error=on_error,
+                                        on_close=on_close)
+        self.ws.run_forever()
+
+    def start_ws(self):
+        threading.Thread(target=self.ws_listener, daemon=True).start()
+
     def run_demo(self):
-        """Demo funcional del ciclo Oído -> Cerebro -> Voz."""
-        self.speak("Iniciando subsistema vocal. Sistemas en línea.")
-        time.sleep(1)
+        """Ciclo continuo J.A.R.V.I.S."""
+        self.start_ws()
+        self.speak("Subsistema vocal en línea. Esperando bus neuronal.")
+        time.sleep(2)
         
-        # Simular que escuchó la wake word
-        audio = self.record_audio(duration=4)
-        texto = self.transcribe(audio)
-        
-        if texto:
-            self.speak("He procesado tu comando: " + texto)
-        else:
-            self.speak("No he detectado entrada de voz.")
+        while True:
+            # Grabar audio en bloques de 5 segundos (esto se refinará con VAD después)
+            audio = self.record_audio(duration=5)
+            texto = self.transcribe(audio)
+            
+            if texto and len(texto) > 5:
+                print(f"[JARVIS-VOICE] Enviando al bus: {texto}")
+                if hasattr(self, 'ws') and self.ws.sock and self.ws.sock.connected:
+                    payload = json.dumps({"type": "voice_input", "text": texto})
+                    self.ws.send(payload)
+                else:
+                    print("[JARVIS-VOICE] Bus desconectado. Texto descartado.")
+            time.sleep(0.1)
 
 if __name__ == "__main__":
     daemon = VoiceDaemon()

@@ -1,118 +1,111 @@
 """
-Módulo 2: HUD Overlay Transparente (Protocolo J.A.R.V.I.S)
-Renderiza una interfaz gráfica transparente y 'click-through' en la esquina de la pantalla.
-Muestra la telemetría vital del sistema de forma flotante.
+Módulo J.A.R.V.I.S: HUD Espacial (Pilar 5)
+Capa de visualización 2D/3D superpuesta sobre Windows (Click-through).
+Utiliza PySide6 (Qt) acelerado por hardware para efectos visuales sin consumir CPU.
 """
 
-import tkinter as tk
-import ctypes
-import psutil
-import time
-import os
 import sys
+import threading
+import time
+from core.logger import log
 
-def set_clickthrough(hwnd):
-    # Windows API constants
-    GWL_EXSTYLE = -20
-    WS_EX_LAYERED = 0x00080000
-    WS_EX_TRANSPARENT = 0x00000020
-    
-    GetWindowLong = ctypes.windll.user32.GetWindowLongW
-    SetWindowLong = ctypes.windll.user32.SetWindowLongW
-    
-    ex_style = GetWindowLong(hwnd, GWL_EXSTYLE)
-    SetWindowLong(hwnd, GWL_EXSTYLE, ex_style | WS_EX_LAYERED | WS_EX_TRANSPARENT)
+try:
+    from PySide6.QtCore import Qt, QTimer, QPoint
+    from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout
+    from PySide6.QtGui import QColor, QPalette, QFont
+    PYSIDE_AVAILABLE = True
+except ImportError:
+    PYSIDE_AVAILABLE = False
+    log.warning("[JARVIS-HUD] PySide6 no detectado. El HUD Espacial está desactivado.")
 
-class JarvisHUD:
-    def __init__(self, root):
-        self.root = root
-        self.root.overrideredirect(True) # Frameless
-        self.root.wm_attributes("-topmost", True) # Always on top
-        
-        bg_color = '#050505'
-        self.root.configure(bg=bg_color)
-        self.root.wm_attributes("-transparentcolor", bg_color)
-        
-        # Dimensions
-        self.hud_width = 350
-        self.hud_height = 250
-        
-        # Position: Top Right corner
-        screen_w = self.root.winfo_screenwidth()
-        x_pos = screen_w - self.hud_width - 20
-        y_pos = 40
-        self.root.geometry(f'{self.hud_width}x{self.hud_height}+{x_pos}+{y_pos}')
-        
-        # Style Configuration
-        title_font = ("Consolas", 11, "bold")
-        data_font = ("Consolas", 10)
-        self.color_normal = "#00ffff" # Cyan
-        self.color_warn = "#ffcc00"   # Yellow
-        self.color_crit = "#ff3333"   # Red
-        self.bg_color = bg_color
-        
+class SpatialHUD(QWidget if PYSIDE_AVAILABLE else object):
+    def __init__(self):
+        if not PYSIDE_AVAILABLE:
+            return
+            
+        super().__init__()
+        # Configurar ventana: Sin bordes, siempre arriba, transparente y click-through
+        self.setWindowFlags(
+            Qt.WindowType.FramelessWindowHint |
+            Qt.WindowType.WindowStaysOnTopHint |
+            Qt.WindowType.Tool |
+            Qt.WindowType.WindowTransparentForInput
+        )
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+
+        # Ubicación y tamaño inicial (Arriba a la derecha)
+        self.setGeometry(100, 100, 400, 200)
+
         # Layout
-        self.title_label = tk.Label(root, text="GRAVITY V16.7 [OVERWATCH]", font=title_font, fg=self.color_normal, bg=bg_color)
-        self.title_label.pack(anchor="ne", pady=(10, 5), padx=10)
-        
-        # Hardware Frame
-        self.hw_frame = tk.Frame(root, bg=bg_color)
-        self.hw_frame.pack(anchor="ne", padx=10)
-        
-        self.cpu_label = tk.Label(self.hw_frame, text="APU_CPU: CALIBRATING...", font=data_font, fg="#ffffff", bg=bg_color)
-        self.cpu_label.pack(anchor="e")
-        
-        self.ram_label = tk.Label(self.hw_frame, text="APU_RAM: CALIBRATING...", font=data_font, fg="#ffffff", bg=bg_color)
-        self.ram_label.pack(anchor="e")
-        
-        # OODA/Network Frame
-        self.net_frame = tk.Frame(root, bg=bg_color)
-        self.net_frame.pack(anchor="ne", padx=10, pady=(10,0))
-        
-        self.ooda_label = tk.Label(self.net_frame, text="OODA LOOP: LISTENING", font=data_font, fg="#ffffff", bg=bg_color)
-        self.ooda_label.pack(anchor="e")
-        
-        self.status_label = tk.Label(root, text="SHIELD: ACTIVE", font=data_font, fg="#00ff00", bg=bg_color)
-        self.status_label.pack(anchor="ne", padx=10, pady=(10,0))
-        
-        # Start Updates
-        self.update_telemetry()
-        
-    def apply_clickthrough(self):
-        self.root.update_idletasks()
-        hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
-        if not hwnd:
-            hwnd = self.root.winfo_id()
-        set_clickthrough(hwnd)
+        self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(10, 10, 10, 10)
 
-    def update_telemetry(self):
-        try:
-            # CPU and RAM
-            cpu = psutil.cpu_percent(interval=None)
-            ram = psutil.virtual_memory().percent
-            
-            cpu_color = self.color_normal if cpu < 60 else (self.color_warn if cpu < 85 else self.color_crit)
-            ram_color = self.color_normal if ram < 70 else (self.color_warn if ram < 90 else self.color_crit)
-            
-            self.cpu_label.config(text=f"APU_CPU: {cpu:04.1f}%", fg=cpu_color)
-            self.ram_label.config(text=f"APU_RAM: {ram:04.1f}%", fg=ram_color)
-            
-            # Animate OODA text slightly to show it's alive
-            t = int(time.time())
-            dots = "." * (t % 4)
-            self.ooda_label.config(text=f"OODA LOOP: ACTIVE{dots:<3}")
-            
-        except Exception as e:
-            self.status_label.config(text="ERROR", fg=self.color_crit)
-            
-        self.root.after(1000, self.update_telemetry)
+        # Label principal con estilo "Holograma Stark"
+        self.text_label = QLabel("GRAVITY V16.7\nSISTEMAS EN LÍNEA")
+        self.text_label.setStyleSheet("""
+            QLabel {
+                color: #00F0FF;
+                font-family: 'Consolas';
+                font-size: 16px;
+                font-weight: bold;
+                background-color: rgba(0, 20, 40, 120);
+                border: 1px solid #00F0FF;
+                border-radius: 5px;
+                padding: 10px;
+            }
+        """)
+        self.text_label.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
+        self.layout.addWidget(self.text_label)
 
-def start_hud():
-    root = tk.Tk()
-    app = JarvisHUD(root)
-    # Give Tkinter time to render before making click-through
-    root.after(150, app.apply_clickthrough)
-    root.mainloop()
+        self.move_to_top_right()
+
+    def move_to_top_right(self):
+        if not PYSIDE_AVAILABLE: return
+        screen = QApplication.primaryScreen().geometry()
+        x = screen.width() - self.width() - 20
+        y = 40
+        self.move(x, y)
+
+    def update_text(self, text: str):
+        if not PYSIDE_AVAILABLE: return
+        self.text_label.setText(text)
+        self.text_label.adjustSize()
+        self.adjustSize()
+        self.move_to_top_right()
+
+def _run_hud():
+    if not PYSIDE_AVAILABLE:
+        return
+        
+    app = QApplication.instance()
+    if not app:
+        app = QApplication(sys.argv)
+        
+    hud = SpatialHUD()
+    hud.show()
+    
+    # Simular actualizaciones de telemetría desde el Sensory Bus
+    def simulate_telemetry():
+        import random
+        cpu = random.randint(30, 80)
+        hud.update_text(f"GRAVITY V16.7\nSISTEMAS EN LÍNEA\nAPU LOAD: {cpu}%")
+        
+    timer = QTimer()
+    timer.timeout.connect(simulate_telemetry)
+    timer.start(2000)
+
+    app.exec()
+
+def start_hud_daemon():
+    """Lanza el HUD Espacial en un hilo separado para no bloquear."""
+    t = threading.Thread(target=_run_hud, daemon=True, name="SpatialHUD")
+    t.start()
+    return t
 
 if __name__ == "__main__":
-    start_hud()
+    start_hud_daemon()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        pass
