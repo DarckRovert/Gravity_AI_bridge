@@ -14,12 +14,14 @@ export const JarvisPanel = () => {
   const [status, setStatus] = useState<'idle' | 'listening' | 'thinking' | 'speaking'>('idle');
   const wsRef = useRef<WebSocket | null>(null);
   const logsEndRef = useRef<HTMLDivElement>(null);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const addLog = (type: LogEntry['type'], content: string) => {
     setLogs(prev => [...prev, { id: Math.random().toString(36).substr(2, 9), type, content, timestamp: new Date() }]);
   };
 
   useEffect(() => {
+
     const connectWS = () => {
       // Connect directly to the Sensory Bus on port 9999
       const ws = new WebSocket(`ws://${window.location.hostname}:9999`);
@@ -28,6 +30,7 @@ export const JarvisPanel = () => {
         setConnected(true);
         setStatus('listening');
         addLog('system', 'Neural Link established. Sensory Bus connected (Port 9999).');
+        if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
         
         // Announce dashboard presence
         ws.send(JSON.stringify({
@@ -62,7 +65,7 @@ export const JarvisPanel = () => {
         setConnected(false);
         setStatus('idle');
         addLog('error', 'Sensory Net disconnected. Attempting to reconnect in 5s...');
-        setTimeout(connectWS, 5000);
+        reconnectTimeoutRef.current = setTimeout(connectWS, 5000);
       };
 
       ws.onerror = () => {
@@ -76,7 +79,11 @@ export const JarvisPanel = () => {
 
     return () => {
       if (wsRef.current) {
+        wsRef.current.onclose = null; // Evitar reconexión zombie
         wsRef.current.close();
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
       }
     };
   }, []);
