@@ -28,6 +28,7 @@ import { Settings } from './components/Settings';
 import { MonetizationHub } from './components/MonetizationHub';
 import { BountyHunter } from './components/BountyHunter';
 import { SoftwareFactory } from './components/SoftwareFactory';
+import { JarvisPanel } from './components/JarvisPanel';
 import { Infiltrator } from './components/Infiltrator';
 import { ToastContainer } from './components/Toast';
 import { TinkaDashboard } from './components/TinkaDashboard';
@@ -89,6 +90,7 @@ function App() {
       case 'journalist': return <JournalistPanel />;
       case 'modelhub': return <ModelHub />;
       case 'memorystudio': return <MemoryStudio />;
+      case 'jarvis': return <JarvisPanel />;
       default:
         return (
           <div className="flex items-center justify-center h-full text-text-muted text-lg font-medium">

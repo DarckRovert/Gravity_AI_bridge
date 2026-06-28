@@ -310,9 +310,9 @@ def run_server():
     # ── J.A.R.V.I.S Sensory Bus (V16.14 PRO Sentinel-Tier) ──
     try:
         from core.sensory_bus import SensoryBus
-        bus = SensoryBus()
+        bus = SensoryBus(host="0.0.0.0", port=9999)
         bus.start_server_thread()
-        log.info("[V16.14 PRO] J.A.R.V.I.S Sensory Bus iniciado en el puerto 9999.")
+        log.info("[V16.14 PRO] J.A.R.V.I.S Sensory Bus iniciado en 0.0.0.0:9999.")
         
         # ── Fase 5: Cognitive Loop (Voice-to-LLM Engine) ──
         def _cognitive_ws_thread():
@@ -434,7 +434,7 @@ def run_server():
                     pass
                 time.sleep(3)
 
-        import threading
+
         threading.Thread(target=_cognitive_ws_thread, daemon=True, name="JarvisCognitiveLoop").start()
         log.info("[V16.14 PRO] Cognitive Loop enlazado al Sensory Bus. Comandos de voz habilitados.")
         
@@ -480,12 +480,14 @@ def run_server():
         log.warning(f"[Watchdog] No se pudo registrar daemons para monitoreo: {_wd_e}")
 
     # ── Gravity OBS Control — Auto-conexion con OBS Studio ────────────────────
+    log.info("[DEBUG] Iniciando OBS Auto-connect...")
     obs_module = service_loader.load_module("core.obs_client")
     if obs_module:
         try:
             obs_module.auto_connect_if_configured()
         except Exception as _obs_e:
             log.warning(f"[OBS] Auto-connect no disponible: {_obs_e}")
+    log.info("[DEBUG] OBS Auto-connect finalizado.")
 
     # ── WAL Checkpoint: truncar el Write-Ahead Log de SQLite antes de arrancar ──
     # Evita que _cache.sqlite-wal crezca indefinidamente entre sesiones.
@@ -494,8 +496,10 @@ def run_server():
 
         _wal_path = os.path.join(_BASE, "_cache.sqlite")
         if os.path.exists(_wal_path):
+            log.info("[DEBUG] Conectando a _cache.sqlite para WAL...")
             _wal_conn = _sqlite3.connect(_wal_path)
-            _wal_conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            log.info("[DEBUG] Ejecutando PRAGMA wal_checkpoint...")
+            _wal_conn.execute("PRAGMA wal_checkpoint(PASSIVE)")
             _wal_conn.close()
             log.info("[V16.14 PRO] WAL checkpoint completado en _cache.sqlite.")
     except Exception as _e:

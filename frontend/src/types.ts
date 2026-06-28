@@ -39,6 +39,7 @@ export interface GravityContext {
 }
 
 export type PanelId = 
+  | 'jarvis'
   | 'chat'
   | 'home'
   | 'vision'

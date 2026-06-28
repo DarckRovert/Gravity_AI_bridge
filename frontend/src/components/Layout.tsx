@@ -5,7 +5,7 @@ import {
   Gamepad2, Bot, Cpu, DollarSign, Activity, Save, BookOpen, 
   Plug, Wrench, Zap, Bug, ShieldAlert, Wifi, Shield, FileText, Settings, Menu, Bell,
   TrendingUp, Video as VideoIcon, Radio, Target, Code2, Ghost,
-  Dices, PlayCircle, Brain, Newspaper, Box, BrainCircuit, Lock
+  Dices, PlayCircle, Brain, Newspaper, Box, BrainCircuit, Lock, Mic
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -117,6 +117,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
             <NavItem id="gameserver" icon={Gamepad2} label="Game Servers" />
 
             <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted mt-6 mb-2 px-2">IA & Sistema</div>
+            <NavItem id="jarvis" icon={Mic} label="J.A.R.V.I.S Sensory Net" />
             <NavItem id="tinka" icon={Dices} label="La Tinka Engine" />
             <NavItem id="multiagent" icon={Bot} label="Multi-Agent" />
             <NavItem id="hardware" icon={Cpu} label="Hardware" />

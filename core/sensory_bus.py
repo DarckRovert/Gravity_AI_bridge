@@ -16,7 +16,7 @@ class SensoryBus:
         self.loop = None
         self._thread = None
 
-    async def handler(self, websocket, path):
+    async def handler(self, websocket, *args, **kwargs):
         # Register client
         self.connected_clients.add(websocket)
         print(f"[SENSORY-BUS] Nuevo cliente conectado. Total: {len(self.connected_clients)}")
