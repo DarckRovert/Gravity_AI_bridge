@@ -273,7 +273,7 @@ def _refresh_access_token(oauth: Dict[str, Any]) -> Optional[str]:
                 time.sleep(2**attempt)
 
         log.error(
-            "[YouTube-Shield] 🚨 Agotados los reintentos para refrescar el token."
+            "[YouTube-Shield] [!] Agotados los reintentos para refrescar el token."
         )
         return None
 

@@ -5,7 +5,7 @@ Inspirado en el algoritmo de Claude Code (FileEditTool).
 """
 
 import os
-from .base_tool import Tool, ToolResult
+from .base_tool import Tool, ToolResult, safe_path_resolve
 
 
 from typing import Any, Tuple
@@ -35,7 +35,13 @@ class FileEditV2(Tool):
         """
         Ejecuta un reemplazo exacto del bloque provisto en el archivo especificado.
         """
-        # 1. Validación de existencia
+        # 1. Validación de existencia y Seguridad Ring 0
+        try:
+            # Protege contra Path Traversal y evita que LLMs alteren archivos críticos del núcleo
+            target_file = safe_path_resolve(os.getcwd(), target_file, is_write=True)
+        except Exception as e:
+            return ToolResult(success=False, stderr=f"AgentShield Blocked: {str(e)}")
+
         if not os.path.exists(target_file):
             return ToolResult(
                 success=False, stderr=f"Archivo no encontrado: {target_file}"

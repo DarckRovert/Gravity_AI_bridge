@@ -35,8 +35,9 @@ class FileWriterNode(GravityNode):
         else:
             content = str(content)
 
-        # Asegurar que el directorio exista
-        abs_dir = os.path.dirname(os.path.abspath(filepath))
+        # Asegurar que el directorio exista usando safe_path_resolve con Core Protection
+        filepath = self.safe_path_resolve(filepath, is_write=True)
+        abs_dir = os.path.dirname(filepath)
         if abs_dir:
             os.makedirs(abs_dir, exist_ok=True)
         

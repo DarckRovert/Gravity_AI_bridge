@@ -28,6 +28,8 @@ class JSONAppenderNode(GravityNode):
 
         if not filepath:
             raise ValueError(f"[{self.node_id}] Ruta del JSON no especificada.")
+        
+        filepath = self.safe_path_resolve(filepath, is_write=True)
 
         import re
         # Intentar parsear el new_item para asegurar que es un dict

@@ -41,12 +41,42 @@ class ToolExecutor:
             "file_edit": FileEditV2(),
         }
 
-    def execute_tool(self, tool_name: str, **kwargs: Any) -> Tuple[bool, str]:
+    def execute_tool(self, tool_name: str, bg_mode: bool = False, **kwargs: Any) -> Tuple[bool, str]:
         """Ejecuta una herramienta y devuelve (éxito, output) de forma thread-safe."""
         with _executor_lock:
             tool = self.tools.get(tool_name)
             if not tool:
                 return False, f"Herramienta '{tool_name}' no encontrada."
+
+            # -- Fase 12: HITL Bypass Mitigation --
+            # Si la herramienta de la IA es peligrosa (ej. code_runner), forzamos la intercepción.
+            if getattr(tool, "requires_confirmation", False):
+                from core.hitl_manager import intercept
+                hitl_res = intercept(
+                    tool_name=tool_name, 
+                    arguments=kwargs, 
+                    session_id="tool_executor",
+                    bg_mode=bg_mode
+                )
+                if not hitl_res.get("proceed", False):
+                    # Fase 13: AST Sandbox Bypass para Daemons
+                    if bg_mode and tool_name == "code_runner":
+                        code = kwargs.get("code", "")
+                        lang = kwargs.get("language", "python").lower()
+                        if lang not in ["python", "py", "python3"]:
+                            return False, f"AST Sandbox solo soporta Python en background mode. Rechazado."
+                        
+                        from core.ast_sandbox import is_code_safe
+                        is_safe, reason = is_code_safe(code)
+                        if is_safe:
+                            log.info("[ToolExecutor] HITL Auto-aprobado por AST Sandbox: Código de Python Seguro.")
+                        else:
+                            log.warning(f"[ToolExecutor] AST Sandbox Bloqueó ejecución: {reason}")
+                            return False, f"Error: AST Sandbox rechazó el código ({reason})"
+                    else:
+                        reason = hitl_res.get("decision", "rejected")
+                        log.warning(f"[ToolExecutor] Ejecución de '{tool_name}' RECHAZADA por HITL ({reason})")
+                        return False, f"Error: Ejecución rechazada por el administrador ({reason})."
 
             res = tool.execute(**kwargs)
             if res.success:

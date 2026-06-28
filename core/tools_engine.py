@@ -3,6 +3,8 @@ import subprocess
 import glob
 import logging
 import threading
+import shlex
+import re
 from typing import Dict, Any, List, Optional
 
 log = logging.getLogger("gravity.tools_engine")
@@ -27,7 +29,7 @@ class ToolEngine:
             "grep_search": self.grep_search,
         }
 
-    def _safe_path(self, path: str) -> str:
+    def _safe_path(self, path: str, is_write: bool = False) -> str:
         """Verifica que la ruta esté dentro del workspace para evitar directory traversal."""
         abs_path_orig = os.path.abspath(os.path.join(self.workspace_root, path))
         abs_path_check = os.path.normcase(abs_path_orig)
@@ -38,14 +40,47 @@ class ToolEngine:
             and abs_path_check != root_path_check
         ):
             raise PermissionError(f"Ruta denegada (fuera del workspace): {path}")
+            
+        # AgentShield V16.5 Ring 0 Protection - Bloqueo de Lectura (Secretos)
+        blocked_reads = [
+            os.path.join(self.workspace_root, ".env"),
+        ]
+        for prot in blocked_reads:
+            prot_check = os.path.normcase(os.path.abspath(prot))
+            if abs_path_check == prot_check:
+                raise PermissionError(f"AgentShield Core Protection blocked read attempt to secret-bearing path: {path}")
+                
+        # AgentShield V16.5 Ring 0 Protection - Bloqueo de Escritura
+        if is_write:
+            protected_paths = [
+                os.path.join(self.workspace_root, "core"),
+                os.path.join(self.workspace_root, ".agents"),
+                os.path.join(self.workspace_root, "bridge_server.py"),
+                os.path.join(self.workspace_root, "mcp_server.py"),
+                os.path.join(self.workspace_root, "_settings.json"),
+                os.path.join(self.workspace_root, "_knowledge.json"),
+                os.path.join(self.workspace_root, "config.yaml"),
+                os.path.join(self.workspace_root, ".env"),
+            ]
+            for prot in protected_paths:
+                prot_check = os.path.normcase(os.path.abspath(prot))
+                if abs_path_check.startswith(prot_check) or abs_path_check == prot_check:
+                    raise PermissionError(f"AgentShield Core Protection blocked write attempt to system critical path: {path}")
+
         return abs_path_orig
+
+    def _sanitize_unicode(self, text: str) -> str:
+        """[AgentShield V16.0] Anti-Prompt Injection: Strip hidden unicode chars, zero-width spaces, and bidi overrides."""
+        # Strips: \u200B-\u200D (zero-width), \u2060 (word joiner), \uFEFF (BOM), \u202A-\u202E (Bidi)
+        pattern = re.compile(r'[\u200B\u200C\u200D\u2060\uFEFF\u202A-\u202E]')
+        return pattern.sub('', text)
 
     def _read_file_with_fallback(self, safe_path: str) -> str:
         """Intenta leer un archivo con codificación utf-8, con fallback a cp1252 y latin-1."""
         for encoding in ("utf-8", "cp1252", "latin-1"):
             try:
                 with open(safe_path, "r", encoding=encoding) as f:
-                    return f.read()
+                    return self._sanitize_unicode(f.read())
             except UnicodeDecodeError:
                 continue
         raise UnicodeDecodeError(
@@ -61,7 +96,7 @@ class ToolEngine:
         for encoding in ("utf-8", "cp1252", "latin-1"):
             try:
                 with open(safe_path, "r", encoding=encoding) as f:
-                    return f.readlines()
+                    return [self._sanitize_unicode(line) for line in f.readlines()]
             except UnicodeDecodeError:
                 continue
         raise UnicodeDecodeError(
@@ -184,6 +219,26 @@ class ToolEngine:
     def execute_tool(self, name: str, args: Dict[str, Any]) -> str:
         if name not in self.tools:
             return f"Error: Tool '{name}' not found."
+            
+        # Fase 15: Dual-Engine Sandbox Bypass Mitigation
+        if name in ["run_command", "replace_file_content"]:
+            from core.hitl_manager import intercept
+            # Mapeamos a los nombres ya registrados en HIGH_RISK_TOOLS del hitl_manager
+            hitl_name = "shell_exec" if name == "run_command" else "file_edit"
+            
+            # Asumimos bg_mode=False (interactivo) ya que ToolEngine es llamado por GravityBrain (sesión de chat)
+            hitl_res = intercept(
+                tool_name=hitl_name,
+                arguments=args,
+                session_id="ToolEngine",
+                bg_mode=False
+            )
+            
+            if not hitl_res.get("proceed", False):
+                reason = hitl_res.get("decision", "rejected")
+                log.warning(f"[ToolEngine] Ejecución de '{name}' RECHAZADA por HITL ({reason})")
+                return f"Error: Ejecución rechazada por el administrador ({reason})."
+                
         try:
             log.info(f"[ToolEngine] Ejecutando {name} con {args}")
             return self.tools[name](**args)
@@ -210,7 +265,10 @@ class ToolEngine:
     def replace_file_content(
         self, filepath: str, target_content: str, replacement_content: str
     ) -> str:
-        safe_p = self._safe_path(filepath)
+        try:
+            safe_p = self._safe_path(filepath, is_write=True)
+        except PermissionError as e:
+            return f"Error de Permisos: {str(e)}"
         if not os.path.isfile(safe_p):
             return f"Error: Archivo no encontrado {filepath}"
         with self._lock:
@@ -249,10 +307,12 @@ class ToolEngine:
     def run_command(self, command: str, cwd: str = ".") -> str:
         safe_cwd = self._safe_path(cwd)
         try:
+            # Dividir comando usando shlex para desactivar operadores de shell y prevenir Command Injection
+            args = shlex.split(command, posix=(os.name != "nt"))
             result = subprocess.run(
-                command,
+                args,
                 cwd=safe_cwd,
-                shell=True,
+                shell=False,
                 capture_output=True,
                 text=True,
                 timeout=60,

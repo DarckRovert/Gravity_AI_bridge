@@ -379,6 +379,7 @@ def animate_with_variations(
     ffmpeg_exe: str = "ffmpeg",
     target_w: int = 0,
     target_h: int = 0,
+    codec: str = "libx264",
 ) -> Optional[str]:
     """
     Motor L1.5 — Genera N variaciones de la imagen via Pollinations y las interpola
@@ -520,7 +521,7 @@ def animate_with_variations(
             "-map",
             "[vout]",
             "-c:v",
-            "h264_amf",
+            codec,
             "-preset",
             "fast",
             "-crf",
@@ -565,8 +566,9 @@ def animate_with_comfyui(
     job_id: int,
     scene_idx: int,
     fps: int = 8,
-    frames: int = 8,
+    frames: int = 32,
     output_dir: str = "",
+    codec: str = "libx264",
 ) -> Optional[str]:
     """
     Genera un clip MP4 animado a partir de una imagen estática usando ComfyUI (Image-to-Video).
@@ -785,7 +787,7 @@ def animate_with_comfyui(
                         "-i",
                         os.path.join(temp_dir, "frame_%05d.png"),
                         "-c:v",
-                        "h264_amf",
+                        codec,
                         "-preset",
                         "fast",
                         "-pix_fmt",

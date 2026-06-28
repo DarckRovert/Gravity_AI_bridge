@@ -84,7 +84,13 @@ def setup_logger(
 
         def format(self, record):
             msg = super().format(record)
-            return self.sanitizer.sanitize(msg)
+            msg = self.sanitizer.sanitize(msg)
+            # Filtro de seguridad anti-crasheos (evita UnicodeEncodeError en cp1252/charmap)
+            try:
+                enc = sys.stderr.encoding or "utf-8"
+                return msg.encode(enc, errors="replace").decode(enc)
+            except Exception:
+                return msg.encode("ascii", errors="ignore").decode("ascii")
 
     console_handler.setFormatter(
         SanitizeConsoleFormatter("%(asctime)s - %(levelname)s - %(message)s")

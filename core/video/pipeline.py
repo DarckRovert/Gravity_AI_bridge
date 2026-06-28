@@ -154,30 +154,8 @@ def _init_db() -> None:
                         f"ALTER TABLE video_jobs ADD COLUMN {col_name} {col_def}"
                     )
             conn.commit()
-
-            try:
-                stuck = conn.execute(
-                    "SELECT COUNT(*) FROM video_jobs WHERE status='running'"
-                ).fetchone()[0]
-                if stuck > 0:
-                    now_iso = (
-                        datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-                    )
-                    conn.execute(
-                        "UPDATE video_jobs SET status='failed', "
-                        "error='Proceso interrumpido por reinicio del servidor', "
-                        "finished_at=? WHERE status='running'",
-                        (now_iso,),
-                    )
-                    conn.commit()
-                    log.warning(
-                        f"[VideoStudio] Crash recovery: {stuck} job(s) en 'running' reseteados a 'failed'."
-                    )
-            except Exception as _cr_e:
-                log.debug(f"[VideoStudio] Crash recovery skip: {_cr_e}")
         finally:
             conn.close()
-
 
 def add_job(
     topic: str,
@@ -210,7 +188,6 @@ def add_job(
     input_video_path: str = "",
 ) -> int:
     """Encola un nuevo trabajo de video. Retorna el ID generado."""
-    _init_db()
 
     if animation_level == 1:
         try:
@@ -457,7 +434,10 @@ def delete_job(job_id: int) -> dict:
 
 
 def _update_job(job_id: int, **kwargs) -> None:
-    """Actualiza el estado de un trabajo de video de forma thread-safe."""
+    """Actualiza campos de un trabajo específico."""
+    if not kwargs:
+        return
+    
     valid = {
         "status",
         "progress",
@@ -1119,6 +1099,7 @@ def _process_job(
                         ffmpeg_exe=FFMPEG_EXE,
                         target_w=_tgt_w,
                         target_h=_tgt_h,
+                        codec=codec,
                     )
                     if _anim_l15:
                         _animated_src = _anim_l15
@@ -1144,6 +1125,7 @@ def _process_job(
                         fps=min(fps, 8),
                         frames=int(_ai_dur * min(fps, 8)),
                         output_dir=job_dir,
+                        codec=codec,
                     )
                     if _anim_mp4:
                         _animated_src = _anim_mp4
@@ -1193,7 +1175,7 @@ def _process_job(
                                 "-i",
                                 _animated_src,
                                 "-c:v",
-                                "h264_amf",
+                                codec,
                                 "-preset",
                                 "fast",
                                 "-crf",
@@ -1224,7 +1206,7 @@ def _process_job(
                             "-map",
                             "[v]",
                             "-c:v",
-                            "h264_amf",
+                            codec,
                             "-preset",
                             "fast",
                             "-crf",
@@ -1795,6 +1777,24 @@ def _process_job(
 def _worker_loop() -> None:
     """Loop continuo del worker que consulta y procesa trabajos de video de forma secuencial."""
     _init_db()
+    
+    # Crash recovery en el worker (solo 1 proceso debería ejecutar esto)
+    try:
+        with _db_lock:
+            conn = sqlite3.connect(DB_PATH, timeout=DB_CONNECT_TIMEOUT)
+            stuck = conn.execute("SELECT COUNT(*) FROM video_jobs WHERE status='running'").fetchone()[0]
+            if stuck > 0:
+                now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                conn.execute(
+                    "UPDATE video_jobs SET status='failed', error='Proceso interrumpido por reinicio del servidor', finished_at=? WHERE status='running'",
+                    (now_iso,)
+                )
+                conn.commit()
+                log.warning(f"[VideoStudio] Crash recovery worker: {stuck} job(s) en 'running' reseteados a 'failed'.")
+            conn.close()
+    except Exception as e:
+        log.debug(f"[VideoStudio] Worker crash recovery skip: {e}")
+
     while True:
         try:
             with _db_lock:
@@ -1809,62 +1809,66 @@ def _worker_loop() -> None:
 
             if row:
                 keys = row.keys()
-                _process_job(
-                    job_id=row["id"],
-                    topic=row["topic"],
-                    n_scenes=row["n_scenes"],
-                    voice_speed=row["voice_speed"],
-                    voice_id=row["voice_id"] if "voice_id" in keys else "",
-                    style=row["style"] if "style" in keys else DEFAULT_STYLE,
-                    narration_lang=(
-                        row["narration_lang"] if "narration_lang" in keys else "es"
-                    ),
-                    transitions=bool(
-                        row["transitions"] if "transitions" in keys else 1
-                    ),
-                    resolution=(
-                        row["resolution"] if "resolution" in keys else "1024x1024"
-                    ),
-                    subtitles=bool(row["subtitles"] if "subtitles" in keys else 1),
-                    title=row["title"] if "title" in keys else "",
-                    bgm_type=row["bgm_type"] if "bgm_type" in keys else "ninguna",
-                    quality=row["quality"] if "quality" in keys else "hd",
-                    use_lore=bool(row["use_lore"] if "use_lore" in keys else 1),
-                    fps=int(row["fps"]) if "fps" in keys else DEFAULT_FPS,
-                    scene_duration=(
-                        int(row["scene_duration"])
-                        if "scene_duration" in keys
-                        else SECONDS_PER_SCENE
-                    ),
-                    duration_mode=(
-                        row["duration_mode"] if "duration_mode" in keys else "auto"
-                    ),
-                    bgm_volume=(
-                        float(row["bgm_volume"])
-                        if "bgm_volume" in keys
-                        else DEFAULT_BGM_VOLUME
-                    ),
-                    codec=row["codec"] if "codec" in keys else "h264_amf",
-                    ken_burns=bool(row["ken_burns"] if "ken_burns" in keys else 1),
-                    intro_card=bool(row["intro_card"] if "intro_card" in keys else 0),
-                    color_grade=row["color_grade"] if "color_grade" in keys else "auto",
-                    animation_effect=(
-                        row["animation_effect"]
-                        if "animation_effect" in keys
-                        else "auto"
-                    ),
-                    animation_level=(
-                        int(row["animation_level"]) if "animation_level" in keys else 1
-                    ),
-                    job_type=row["job_type"] if "job_type" in keys else "tts",
-                    audio_track_path=(
-                        row["audio_track_path"] if "audio_track_path" in keys else ""
-                    ),
-                    lyrics_text=row["lyrics_text"] if "lyrics_text" in keys else "",
-                    input_video_path=(
-                        row["input_video_path"] if "input_video_path" in keys else ""
-                    ),
-                )
+                try:
+                    _process_job(
+                        job_id=row["id"],
+                        topic=row["topic"],
+                        n_scenes=row["n_scenes"],
+                        voice_speed=row["voice_speed"],
+                        voice_id=row["voice_id"] if "voice_id" in keys else "",
+                        style=row["style"] if "style" in keys else DEFAULT_STYLE,
+                        narration_lang=(
+                            row["narration_lang"] if "narration_lang" in keys else "es"
+                        ),
+                        transitions=bool(
+                            row["transitions"] if "transitions" in keys else 1
+                        ),
+                        resolution=(
+                            row["resolution"] if "resolution" in keys else "1024x1024"
+                        ),
+                        subtitles=bool(row["subtitles"] if "subtitles" in keys else 1),
+                        title=row["title"] if "title" in keys else "",
+                        bgm_type=row["bgm_type"] if "bgm_type" in keys else "ninguna",
+                        quality=row["quality"] if "quality" in keys else "hd",
+                        use_lore=bool(row["use_lore"] if "use_lore" in keys else 1),
+                        fps=int(row["fps"]) if "fps" in keys else DEFAULT_FPS,
+                        scene_duration=(
+                            int(row["scene_duration"])
+                            if "scene_duration" in keys
+                            else SECONDS_PER_SCENE
+                        ),
+                        duration_mode=(
+                            row["duration_mode"] if "duration_mode" in keys else "auto"
+                        ),
+                        bgm_volume=(
+                            float(row["bgm_volume"])
+                            if "bgm_volume" in keys
+                            else DEFAULT_BGM_VOLUME
+                        ),
+                        codec=row["codec"] if "codec" in keys else "libx264",
+                        ken_burns=bool(row["ken_burns"] if "ken_burns" in keys else 1),
+                        intro_card=bool(row["intro_card"] if "intro_card" in keys else 0),
+                        color_grade=row["color_grade"] if "color_grade" in keys else "auto",
+                        animation_effect=(
+                            row["animation_effect"]
+                            if "animation_effect" in keys
+                            else "auto"
+                        ),
+                        animation_level=(
+                            int(row["animation_level"]) if "animation_level" in keys else 1
+                        ),
+                        job_type=row["job_type"] if "job_type" in keys else "tts",
+                        audio_track_path=(
+                            row["audio_track_path"] if "audio_track_path" in keys else ""
+                        ),
+                        lyrics_text=row["lyrics_text"] if "lyrics_text" in keys else "",
+                        input_video_path=(
+                            row["input_video_path"] if "input_video_path" in keys else ""
+                        ),
+                    )
+                except Exception as p_err:
+                    log.error(f"[VideoStudio] Job #{row['id']} falló catastróficamente: {p_err}")
+                    _update_job(row["id"], status="failed", current_step=f"Error fatal: {p_err}")
             else:
                 time.sleep(5)
 

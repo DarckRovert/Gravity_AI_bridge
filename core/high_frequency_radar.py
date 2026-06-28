@@ -54,7 +54,7 @@ class HighFrequencyRadar:
                 title_lower = title.lower()
                 for keyword in KEYWORDS:
                     if keyword in title_lower:
-                        log.info(f"🚨 [RADAR] Evento Crítico Detectado: {title} (Keyword: {keyword})")
+                        log.info(f"[RADAR] Evento Crítico Detectado: {title} (Keyword: {keyword})")
                         self.trigger_emergency_report(title)
                         self.seen_titles.add(title)
                         return  # Solo un reporte por ciclo para evitar spam

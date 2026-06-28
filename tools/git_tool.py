@@ -10,7 +10,7 @@ import subprocess
 import sys
 import difflib
 from typing import Dict, List, Any, Optional
-from tools.base_tool import Tool, ToolResult
+from tools.base_tool import Tool, ToolResult, safe_path_resolve
 
 
 class GitTool(Tool):
@@ -178,6 +178,15 @@ class FileOpsTool(Tool):
         if match:
             path: str = match.group(1).strip()
             code: str = match.group(2)
+            
+            # AgentShield Ring 0 protection
+            try:
+                path = safe_path_resolve(os.getcwd(), path, is_write=True)
+            except Exception as e:
+                return ToolResult(
+                    success=False,
+                    stderr=f"Cancelando parche: AgentShield bloqueó acceso a {path}: {str(e)}",
+                )
 
             # Crear respaldo por resiliencia y seguridad
             backup_res: ToolResult = self.backup(path)

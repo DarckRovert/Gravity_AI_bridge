@@ -49,15 +49,15 @@ class FileSaverNode(GravityNode):
         if not extension.startswith("."):
             extension = f".{extension}"
 
-        # Resolve directory
-        target_dir = os.path.join(BASE_DIR, directory)
-        os.makedirs(target_dir, exist_ok=True)
-
         if not filename:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"{prefix}{timestamp}{extension}"
 
-        filepath = os.path.join(target_dir, filename)
+        # Resolve directory using safe_path_resolve con Core Protection
+        filepath = self.safe_path_resolve(os.path.join(directory, filename), is_write=True)
+        target_dir = os.path.dirname(filepath)
+        
+        os.makedirs(target_dir, exist_ok=True)
 
         try:
             with open(filepath, "w", encoding="utf-8") as f:

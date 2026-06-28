@@ -16,10 +16,12 @@ from typing import Dict, Any, List, Optional
 
 # ── Riesgo de tools ──────────────────────────────────────────────────────────
 HIGH_RISK_TOOLS: List[str] = [
-    "code_runner",
+    # "code_runner",  # [V16.0] Exento de HITL porque ya está fuertemente aislado por el AST Sandbox
     "shell_exec",
     "file_write",
     "file_delete",
+    "file_edit",
+    "file_ops",
     "deploy",
     "git_push",
     "git_commit",
@@ -137,11 +139,28 @@ def intercept(
     """
     Punto de entrada principal desde el agente.
     """
-    if bg_mode or not is_high_risk(tool_name):
+    if not is_high_risk(tool_name):
         return {"proceed": True, "decision": "auto", "approval_id": None}
+    
+    if bg_mode:
+        import logging
+        logging.getLogger("gravity.hitl").warning(f"[HITL] Auto-rechazo por bg_mode=True para tool de alto riesgo: {tool_name}")
+        return {"proceed": False, "decision": "rejected_by_bg_policy", "approval_id": None}
 
     approval_id: str = request_approval(tool_name, arguments, session_id)
     decision: str = wait_for_decision(approval_id)
+
+    # [AgentShield V16.0] Structured Security Logging
+    import json
+    import logging
+    log_entry = {
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "session_id": session_id,
+        "tool": tool_name,
+        "approval": decision,
+        "approval_id": approval_id
+    }
+    logging.getLogger("gravity.hitl").info(f"[HITL_AUDIT] {json.dumps(log_entry)}")
 
     return {
         "proceed": decision == "approved",

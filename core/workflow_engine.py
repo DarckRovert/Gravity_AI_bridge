@@ -28,6 +28,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Callable, Dict, List, Optional, Set
 
 from core.logger import log
+from core.hook_engine import hook_manager
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WORKFLOWS_DIR = os.path.join(BASE_DIR, "workflows")
@@ -90,6 +91,31 @@ class GravityNode(ABC):
                 raise ValueError(
                     f"[{self.NODE_TYPE}/{self.node_id}] Input requerido '{field}' no encontrado."
                 )
+
+    def safe_path_resolve(self, target_path: str, is_write: bool = False) -> str:
+        """AgentShield: Previene Path Traversal y protege el Core de sobreescrituras (Ring 0)."""
+        base_abs = os.path.abspath(BASE_DIR)
+        absolute_target = os.path.abspath(os.path.join(base_abs, target_path))
+        # 1. Asegurar que termina en sep para evitar bypass de hermanos (Path Traversal)
+        if not absolute_target.startswith(base_abs + os.sep) and absolute_target != base_abs:
+            log.warning(f"[{self.NODE_TYPE}] Path traversal bloqueado: {target_path} -> {absolute_target}")
+            raise ValueError("Path traversal attempt blocked by AgentShield.")
+            
+        # 2. AgentShield Core Protection (Evitar sobrescritura del propio puente)
+        if is_write:
+            protected_items = {
+                "core", "api", "tools", "rag", ".agents", "frontend", "launchers", "tests",
+                "bridge_server.py", "ask_deepseek.py", "INSTALAR.py", "gravity_service.py",
+                "gravity_launcher.pyw", ".env", "config.yaml", "_knowledge.json", "_settings.json"
+            }
+            import pathlib
+            rel_path = os.path.relpath(absolute_target, base_abs)
+            parts = pathlib.Path(rel_path).parts
+            if parts and parts[0] in protected_items:
+                log.error(f"[{self.NODE_TYPE}] Core Protection bloqueó intento de escritura en zona protegida: {absolute_target}")
+                raise ValueError(f"AgentShield Core Protection blocked write attempt to system critical path: {parts[0]}")
+                
+        return absolute_target
 
     def __repr__(self) -> str:
         return f"<{self.NODE_TYPE} id={self.node_id}>"
@@ -423,6 +449,14 @@ class WorkflowGraph:
 
             node_inputs = self._build_node_inputs(nd, params, node_outputs)
 
+            # --- PRE-EXECUTION HOOKS ---
+            try:
+                node_inputs = hook_manager.run_pre_hooks(nid, node_type, node_inputs)
+            except Exception as exc:
+                err_msg = f"[{node_type}/{nid}] Pre-Hook Error: {exc}"
+                log.error(f"[WorkflowEngine] {err_msg}")
+                raise RuntimeError(err_msg) from exc
+
             # Instanciar y ejecutar el nodo
             node_instance = node_cls(node_id=nid, config=nd.get("config") or {})
 
@@ -437,6 +471,14 @@ class WorkflowGraph:
                 raise TypeError(
                     f"[WorkflowGraph] Nodo {node_type}/{nid} retornó {type(result).__name__}, se esperaba dict."
                 )
+
+            # --- POST-EXECUTION HOOKS ---
+            try:
+                result = hook_manager.run_post_hooks(nid, node_type, result)
+            except Exception as exc:
+                err_msg = f"[{node_type}/{nid}] Post-Hook Error: {exc}"
+                log.error(f"[WorkflowEngine] {err_msg}")
+                raise RuntimeError(err_msg) from exc
 
             node_outputs[nid] = result
             log.info(f"[WorkflowEngine] [{node_type}/{nid}] OK — outputs: {list(result.keys())}")

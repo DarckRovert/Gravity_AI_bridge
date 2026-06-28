@@ -45,7 +45,7 @@
     "npu_target": "AMD Ryzen AI (XDNA Architecture)",
     "rag_embedder": "ONNX Runtime (onnx_cpu / onnx_directml)",
     "optimal_ctx_calc": "45% of total VRAM allocated to KV-cache",
-    "mcp_support": "Habilitado de forma nativa v\u00eda core/mcp_adapter.py y expuesto en /v1/mcp"
+    "mcp_support": "Habilitado de forma nativa vía core/mcp_adapter.py y expuesto en /v1/mcp"
   },
   "core_protection": {
     "active": true,
@@ -78,12 +78,19 @@
     "api_url": "http://127.0.0.1:7861",
     "backend": "CPU-Safe Computation (fp32 euler)",
     "launch_script": "F:\\Gravity_AI_bridge\\_integrations\\Fooocus\\run_amd.bat",
-    "gravity_tool": "tools/fooocus_client.py (Monitorea el status v\u00eda health check)",
+    "gravity_tool": "tools/fooocus_client.py (Monitorea el status vía health check)",
     "dashboard_ui": "tools/fooocus_studio_ui.py (Arquitectura de polling de disco local)",
     "output_dir": "_integrations/Fooocus/Fooocus/outputs",
-    "notes": "Fooocus se corre estrictamente bajo flags --always-cpu. El API HTTP Rest no est\u00e1 activo, la comunicaci\u00f3n entre Bridge y Fooocus es a trav\u00e9s del sistema de archivos local para im\u00e1genes generadas."
+    "notes": "Fooocus se corre estrictamente bajo flags --always-cpu. El API HTTP Rest no está activo, la comunicación entre Bridge y Fooocus es a través del sistema de archivos local para imágenes generadas."
   },
   "last_audit": "2026-05-21",
   "author": "DarckRovert",
-  "persistent_rules": []
+  "persistent_rules": [
+    "[2026-06-28] Immutability Principle: Always create new objects, never mutate existing ones. Return new copies with changes applied to prevent side-effects in state management.",
+    "[2026-06-28] Agent-First Workflow: Delegate domain tasks to specialized agents (e.g., planner, code-reviewer, loop-operator) instead of using monolithic execution flows.",
+    "[2026-06-28] Security-First Input Validation: Validate all user inputs at system boundaries using schemas. Fail fast with clear messages and never implicitly trust external data.",
+    "[2026-06-28] Secret Management: Never hardcode secrets, API keys, or tokens in source code. Load them dynamically from environment variables and validate their existence at startup.",
+    "[2026-06-28] Fail-Fast Error Handling: Handle errors explicitly at every boundary. Log detailed context server-side. Never silently swallow or ignore exceptions.",
+    "[2026-06-28] Code Organization: Organize code by feature/domain, not by type. Keep functions small (under 50 lines) and files focused (under 800 lines). Avoid nesting beyond 4 levels."
+  ]
 }
