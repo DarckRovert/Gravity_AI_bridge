@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="landing_page/assets/logo.png" alt="Gravity AI Bridge Logo" width="200"/>
+
   <h1>GRAVITY AI BRIDGE V16.14 PRO</h1>
   <p><strong>[Cognitive-Tier]</strong> | Orquestador Asíncrono de Inteligencia Artificial Local (AMD APU) y Cloud</p>
   
