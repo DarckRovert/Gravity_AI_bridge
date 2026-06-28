@@ -96,8 +96,9 @@ Respuesta:"""
                 memory_len = len(self.context_memory)
                 
             # Si acumulamos 3 eventos visuales o hay alerta térmica, evaluar si hablamos
-            if memory_len >= 3 or msg_type == "thermal_alert":
-                threading.Thread(target=self._analyze_context_with_llm, daemon=True).start()
+            if msg_type in ["overwatch_vision", "thermal_alert"]:
+                if memory_len >= 3 or msg_type == "thermal_alert":
+                    threading.Thread(target=self._analyze_context_with_llm, daemon=True).start()
 
         except Exception as e:
             log.error(f"[SENTINEL] Error procesando WS: {e}")

@@ -6,7 +6,6 @@ Actúa como la médula espinal de Gravity.
 
 import asyncio
 import websockets
-import json
 import threading
 
 class SensoryBus:
@@ -27,7 +26,7 @@ class SensoryBus:
                 # Broadcast the message to all OTHER clients
                 # For instance, Voice Daemon sends "voice_input", the Brain receives it.
                 await self.broadcast(message, sender=websocket)
-        except Exception as e:
+        except Exception:
             # Captura ConnectionClosed, OSError, etc., para que no tire el loop entero
             pass
         finally:
@@ -42,7 +41,12 @@ class SensoryBus:
         # Enviar a todos excepto al emisor original
         targets = [client for client in self.connected_clients if client != sender]
         if targets:
-            await asyncio.wait([asyncio.create_task(client.send(message)) for client in targets])
+            for client in targets:
+                try:
+                    await client.send(message)
+                except Exception:
+                    # El handler principal de websocket se encargará de removerlo si se desconectó
+                    pass
 
     async def main(self):
         print(f"[SENSORY-BUS] Iniciando servidor en ws://{self.host}:{self.port}")
