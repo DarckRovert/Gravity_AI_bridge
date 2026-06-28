@@ -18,6 +18,8 @@ class LLMQueryNode(GravityNode):
         "role": "TEXT",          # ignorado en runtime (solo documentación)
         "temperature": "FLOAT",  # opcional, default 0.7
         "max_tokens": "INT",     # opcional
+        "provider": "TEXT",      # opcional, fuerza un proveedor (ej: openai, nvidia)
+        "model": "TEXT",         # opcional, fuerza un modelo específico
     }
     OUTPUT_SCHEMA = {
         "text": "TEXT",
@@ -46,8 +48,16 @@ class LLMQueryNode(GravityNode):
             options["max_tokens"] = max_tokens
 
         try:
-            best_provider, best_model = provider_manager.get_best()
-            provider_name = best_provider.name if hasattr(best_provider, 'name') else best_provider
+            forced_provider = inputs.get("provider") or self.config.get("provider")
+            forced_model = inputs.get("model") or self.config.get("model")
+
+            if forced_provider:
+                provider_name = forced_provider
+                best_model = forced_model
+                log.info(f"[LLMQueryNode] Forzando proveedor: {provider_name} (modelo: {best_model or 'auto'})")
+            else:
+                best_provider, best_model = provider_manager.get_best()
+                provider_name = best_provider.name if hasattr(best_provider, 'name') else best_provider
 
             if not provider_name:
                 raise ValueError("No hay proveedores de IA disponibles o saludables. Revisa tu memoria RAM, inicia un motor local o configura una API Key.")

@@ -172,7 +172,13 @@ class NativeLlamaProvider(ProviderPlugin):
         if has_psutil:
             # Requerimos el tamaño del modelo + 1 GB de buffer
             required_free_bytes = model_size_bytes + 1_024_000_000
+            # Incluir Swap/NVMe en el cálculo de memoria libre real
             available_bytes = psutil.virtual_memory().available
+            if hasattr(psutil, 'swap_memory'):
+                try:
+                    available_bytes += psutil.swap_memory().free
+                except Exception:
+                    pass
 
             while available_bytes < required_free_bytes and self._instances:
                 # Evict el más antiguo cargado (LRU)
@@ -187,6 +193,11 @@ class NativeLlamaProvider(ProviderPlugin):
 
                 gc.collect()
                 available_bytes = psutil.virtual_memory().available
+                if hasattr(psutil, 'swap_memory'):
+                    try:
+                        available_bytes += psutil.swap_memory().free
+                    except Exception:
+                        pass
 
         # Si aún supera MAX_CONCURRENT_MODELS, aplicar el límite por LRU como salvaguarda
         if len(self._instances) >= MAX_CONCURRENT_MODELS:

@@ -2,7 +2,7 @@
     "provider": "Native Llama",
     "provider_protocol": "llama.cpp",
     "api_url": "native://llama",
-    "last_model": "Qwen2.5-Coder-7B-Instruct-Q5_K_M.gguf",
+    "last_model": "Hermes-3-Llama-3.1-8B-Q5_K_M.gguf",
     "model_locked": false,
     "advanced_params": {
         "num_ctx": 8192
