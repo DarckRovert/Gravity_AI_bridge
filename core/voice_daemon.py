@@ -1,110 +1,131 @@
 """
-Módulo 1: Subsistema Vocal (Oídos y Voz)
-Demonio que escucha pasivamente, transcribe audio usando faster-whisper y responde usando pyttsx3.
+Módulo 1: Subsistema Vocal (Oídos y Voz Neural) - V16.7 PRO
+Demonio que escucha pasivamente usando SpeechRecognition (True VAD)
+y responde con voces neurales usando edge-tts.
 """
 
-import sounddevice as sd
-import numpy as np
-import pyttsx3
-import queue
-import time
-import threading
+import os
 import json
+import time
+import asyncio
+import threading
 import websocket
+import speech_recognition as sr
+import edge_tts
+import pygame
+from core.logger import log
 
-class VoiceDaemon:
+class VoiceDaemonV2:
     def __init__(self):
-        # Configurar TTS (Voz)
-        self.engine = pyttsx3.init()
-        voices = self.engine.getProperty('voices')
-        # Intentar buscar una voz en español
-        for voice in voices:
-            if "spanish" in voice.name.lower() or "es-es" in voice.id.lower() or "es-mx" in voice.id.lower():
-                self.engine.setProperty('voice', voice.id)
-                break
-                
-        self.engine.setProperty('rate', 160)  # Velocidad de habla
+        # Configurar pygame mixer para reproducción fluida de TTS MP3
+        pygame.mixer.init()
         
-        # Audio config
-        self.sample_rate = 16000
-        self.audio_queue = queue.Queue()
-        self.is_listening = False
+        # Voz hiperrealista de Microsoft Edge (Español de España o México)
+        self.tts_voice = "es-MX-JorgeNeural" 
         
-        # Whisper STT se cargará bajo demanda para ahorrar RAM
+        self.recognizer = sr.Recognizer()
+        self.recognizer.energy_threshold = 300  # Nivel de ruido mínimo
+        self.recognizer.dynamic_energy_threshold = True
+
         self.whisper_model = None
+        self.is_speaking = False
+        self.ws = None
+
+    def play_audio(self, file_path):
+        """Reproduce un archivo MP3 usando pygame."""
+        pygame.mixer.music.load(file_path)
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
+        pygame.mixer.music.unload()
+        try:
+            os.remove(file_path)
+        except:
+            pass
+
+    async def _async_speak(self, text: str):
+        """Genera el TTS neural y lo reproduce."""
+        self.is_speaking = True
+        log.info(f"[JARVIS-VOICE] Diciendo: {text}")
+        output_file = "temp_response.mp3"
+        communicate = edge_tts.Communicate(text, self.tts_voice)
+        await communicate.save(output_file)
+        self.play_audio(output_file)
+        self.is_speaking = False
 
     def speak(self, text: str):
-        """Reproduce texto a voz (TTS)."""
-        print(f"[JARVIS-VOICE] Diciendo: {text}")
-        self.engine.say(text)
-        self.engine.runAndWait()
+        """Wrapper síncrono para llamar al TTS asíncrono."""
+        asyncio.run(self._async_speak(text))
 
-    def _audio_callback(self, indata, frames, time_info, status):
-        """Callback llamado por sounddevice para cada bloque de audio."""
-        if status:
-            print(status)
-        if self.is_listening:
-            self.audio_queue.put(indata.copy())
-
-    def record_audio(self, duration=5):
-        """Graba audio del micrófono durante 'duration' segundos."""
-        print(f"[JARVIS-VOICE] Escuchando por {duration} segundos...")
-        self.is_listening = True
-        
-        # Limpiar cola
-        while not self.audio_queue.empty():
-            self.audio_queue.get()
-            
-        with sd.InputStream(samplerate=self.sample_rate, channels=1, dtype='float32', callback=self._audio_callback):
-            time.sleep(duration)
-            
-        self.is_listening = False
-        
-        # Concatenar todos los fragmentos
-        audio_data = []
-        while not self.audio_queue.empty():
-            audio_data.append(self.audio_queue.get())
-            
-        if audio_data:
-            return np.concatenate(audio_data, axis=0).flatten()
-        return np.array([])
-
-    def transcribe(self, audio_array):
-        """Usa faster-whisper para transcribir el audio grabado."""
+    def _load_whisper(self):
         if self.whisper_model is None:
-            print("[JARVIS-VOICE] Cargando modelo Whisper (tiny)...")
+            log.info("[JARVIS-VOICE] Cargando modelo Whisper (tiny)...")
             from faster_whisper import WhisperModel
-            # Usamos tiny para que sea rápido en la CPU local
             self.whisper_model = WhisperModel("tiny", device="cpu", compute_type="int8")
+
+    def listen_and_transcribe(self):
+        """Escucha usando el micrófono con VAD dinámico (SpeechRecognition)."""
+        with sr.Microphone(sample_rate=16000) as source:
+            log.info("[JARVIS-VOICE] Calibrando ruido de fondo...")
+            self.recognizer.adjust_for_ambient_noise(source, duration=1)
+            log.info("[JARVIS-VOICE] Escuchando (VAD Activo)...")
             
-        print("[JARVIS-VOICE] Transcribiendo...")
-        # faster-whisper acepta audio en float32
-        segments, info = self.whisper_model.transcribe(audio_array, beam_size=5, language="es")
-        
-        text = " ".join([segment.text for segment in segments])
-        print(f"[JARVIS-VOICE] Texto detectado: {text.strip()}")
-        return text.strip()
+            while True:
+                if self.is_speaking:
+                    time.sleep(0.5)
+                    continue
+                    
+                try:
+                    # phrase_time_limit evita que se quede colgado en ruidos muy largos
+                    audio = self.recognizer.listen(source, timeout=1, phrase_time_limit=15)
+                    log.info("[JARVIS-VOICE] Procesando frase...")
+                    
+                    self._load_whisper()
+                    
+                    # Guardar temporalmente a wav para faster-whisper
+                    with open("temp_record.wav", "wb") as f:
+                        f.write(audio.get_wav_data())
+                        
+                    segments, info = self.whisper_model.transcribe("temp_record.wav", beam_size=5, language="es")
+                    text = " ".join([segment.text for segment in segments]).strip()
+                    
+                    if text and len(text) > 5:
+                        log.info(f"[JARVIS-VOICE] Escuché: {text}")
+                        self._send_to_bus(text)
+                        
+                except sr.WaitTimeoutError:
+                    pass # Timeout normal, no hablaron
+                except Exception as e:
+                    log.error(f"[JARVIS-VOICE] Error en escucha: {e}")
+
+    def _send_to_bus(self, text):
+        if self.ws and self.ws.sock and self.ws.sock.connected:
+            payload = json.dumps({"type": "voice_input", "text": text})
+            self.ws.send(payload)
+        else:
+            log.warning("[JARVIS-VOICE] Bus desconectado. Audio descartado.")
 
     def ws_listener(self):
-        """Hilo para escuchar respuestas del Sensory Bus y hablar."""
+        """Hilo para escuchar respuestas del Sensory Bus."""
         def on_message(ws, message):
             try:
                 data = json.loads(message)
                 if data.get("type") == "voice_output":
-                    self.speak(data.get("text", ""))
+                    # Hablar en un hilo para no bloquear el websocket
+                    threading.Thread(target=self.speak, args=(data.get("text", ""),)).start()
             except Exception as e:
-                print(f"[JARVIS-VOICE] Error procesando WS: {e}")
-                
+                log.error(f"[JARVIS-VOICE] Error procesando WS: {e}")
+
         def on_error(ws, error):
-            print(f"[JARVIS-VOICE] WS Error: {error}")
+            log.error(f"[JARVIS-VOICE] WS Error: {error}")
             
         def on_close(ws, close_status_code, close_msg):
-            print("[JARVIS-VOICE] Desconectado del Sensory Bus. Reconectando en 5s...")
+            log.warning("[JARVIS-VOICE] Desconectado del Sensory Bus. Reconectando en 5s...")
             time.sleep(5)
             self.start_ws()
 
         def on_open(ws):
-            print("[JARVIS-VOICE] Conectado exitosamente al Sensory Bus (ws://localhost:9999)")
+            log.info("[JARVIS-VOICE] Conectado exitosamente al Sensory Bus (ws://localhost:9999)")
 
         self.ws = websocket.WebSocketApp("ws://localhost:9999",
                                         on_open=on_open,
@@ -116,26 +137,17 @@ class VoiceDaemon:
     def start_ws(self):
         threading.Thread(target=self.ws_listener, daemon=True).start()
 
-    def run_demo(self):
-        """Ciclo continuo J.A.R.V.I.S."""
+    def run(self):
+        """Punto de entrada principal."""
         self.start_ws()
-        self.speak("Subsistema vocal en línea. Esperando bus neuronal.")
-        time.sleep(2)
+        # Dar tiempo al bus para conectar
+        time.sleep(1) 
+        self.speak("Sistemas vocales recalibrados. Operando en Nivel Neural.")
         
-        while True:
-            # Grabar audio en bloques de 5 segundos (esto se refinará con VAD después)
-            audio = self.record_audio(duration=5)
-            texto = self.transcribe(audio)
-            
-            if texto and len(texto) > 5:
-                print(f"[JARVIS-VOICE] Enviando al bus: {texto}")
-                if hasattr(self, 'ws') and self.ws.sock and self.ws.sock.connected:
-                    payload = json.dumps({"type": "voice_input", "text": texto})
-                    self.ws.send(payload)
-                else:
-                    print("[JARVIS-VOICE] Bus desconectado. Texto descartado.")
-            time.sleep(0.1)
+        # Bloquea el hilo principal con el bucle de escucha
+        self.listen_and_transcribe()
+
 
 if __name__ == "__main__":
-    daemon = VoiceDaemon()
-    daemon.run_demo()
+    daemon = VoiceDaemonV2()
+    daemon.run()

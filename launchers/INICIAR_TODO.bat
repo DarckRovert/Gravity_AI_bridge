@@ -107,7 +107,8 @@ start "Gravity :: Voice Daemon (Ears)" cmd /k "cd /d "%ROOT%" && python core\voi
 start "Gravity :: Overwatch (Eyes)" cmd /k "cd /d "%ROOT%" && python core\overwatch_daemon.py"
 start "Gravity :: Thermal Watchdog (Nervous System)" cmd /k "cd /d "%ROOT%" && python core\thermal_watchdog.py"
 start "Gravity :: Spatial HUD" cmd /k "cd /d "%ROOT%" && python core\ui\hud_overlay.py"
-echo  [OK] Todos los sentidos periféricos de J.A.R.V.I.S enlazados al Bus Principal.
+start "Gravity :: Sentinel Core (Proactive Brain)" cmd /k "cd /d "%ROOT%" && python core\sentinel_core.py"
+echo  [OK] Todos los sentidos periféricos y el Núcleo Centinela enlazados al Bus Principal.
 
 :launch_done
 echo.
