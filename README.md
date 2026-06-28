@@ -35,6 +35,13 @@ graph TD
     User(["Usuario / Interfaz Web"]) -->|HTTP REST / SSE| Bridge["bridge_server.py"]
     Radar(["Radar HF (Sub-minuto)"]) -.->|Dispara| Bridge
     
+    subgraph J.A.R.V.I.S Sensory Net
+        Voice["Voice Daemon"] <-->|WS 9999| Bus["Sensory Bus"]
+        Vision["Overwatch Daemon"] -->|Visión Pasiva| Bus
+        Thermal["Thermal Watchdog"] -->|WMI Sensors| Bus
+        IoT["IoT Controller"] -->|Home Assistant| Bus
+        Bus <--> Bridge
+    end
     subgraph Gravity Core [Núcleo Operacional - 32 Cores]
         Bridge -->|Spawn| Worker1[Session 1: LLM]
         Bridge -->|Spawn| Worker2[Session 2: LLM]
