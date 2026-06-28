@@ -7,6 +7,10 @@ Actúa como la médula espinal de Gravity.
 import asyncio
 import websockets
 import threading
+import logging
+
+# Silenciar el spam de 'opening handshake failed' (generalmente causado por escaneos de puertos o firewalls locales)
+logging.getLogger("websockets.server").setLevel(logging.CRITICAL)
 
 class SensoryBus:
     def __init__(self, host="127.0.0.1", port=9999):

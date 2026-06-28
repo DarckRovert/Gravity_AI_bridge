@@ -56,11 +56,21 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
           <Menu size={22} className="text-accent-primary" />
         </button>
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-primary to-accent-secondary flex items-center justify-center shadow-[0_0_20px_rgba(192,132,252,0.4)]">
-            <Bot size={18} className="text-white" />
+          <div className="w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-br from-accent-primary to-accent-secondary flex items-center justify-center shadow-[0_0_20px_rgba(192,132,252,0.4)]">
+            <img 
+              src="/gravity_logo.png" 
+              alt="Gravity Logo" 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback si la imagen no existe
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.parentElement?.classList.add('fallback-icon');
+              }}
+            />
+            <Bot size={18} className="text-white hidden [.fallback-icon_&]:block" />
           </div>
           <div className="text-xl font-black tracking-tighter bg-gradient-to-r from-white via-accent-primary to-accent-secondary bg-clip-text text-transparent drop-shadow-sm">
-            GRAVITY <span className="font-light opacity-80">V16.3 PRO</span>
+            GRAVITY <span className="font-light opacity-80">V16.14 PRO</span>
           </div>
         </div>
         

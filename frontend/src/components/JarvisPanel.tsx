@@ -15,6 +15,7 @@ export const JarvisPanel = () => {
   const wsRef = useRef<WebSocket | null>(null);
   const logsEndRef = useRef<HTMLDivElement>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const speakTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const addLog = (type: LogEntry['type'], content: string) => {
     setLogs(prev => [...prev, { id: Math.random().toString(36).substr(2, 9), type, content, timestamp: new Date() }]);
@@ -49,7 +50,9 @@ export const JarvisPanel = () => {
           } else if (data.type === 'voice_output') {
             setStatus('speaking');
             addLog('tts', data.payload || data.text || JSON.stringify(data));
-            setTimeout(() => setStatus('listening'), 3000); // Vuelve a escuchar después de hablar
+            
+            if (speakTimeoutRef.current) clearTimeout(speakTimeoutRef.current);
+            speakTimeoutRef.current = setTimeout(() => setStatus('listening'), 3000); // Vuelve a escuchar después de hablar
           } else if (data.type === 'system_status') {
             addLog('system', data.payload || JSON.stringify(data));
             if (String(data.payload).includes('Escuchando')) setStatus('listening');
@@ -84,6 +87,9 @@ export const JarvisPanel = () => {
       }
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (speakTimeoutRef.current) {
+        clearTimeout(speakTimeoutRef.current);
       }
     };
   }, []);

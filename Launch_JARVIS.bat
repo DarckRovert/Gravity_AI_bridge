@@ -7,5 +7,6 @@ echo.
 echo Iniciando enlace neuronal con Gravity Bridge...
 echo Asegurate de que bridge_server.py este corriendo!
 echo.
+set "PYTHONPATH=%cd%"
 python core\voice_daemon.py
 pause

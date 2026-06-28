@@ -27,6 +27,10 @@ if not exist "%ROOT%\bridge_server.py" (
     exit /b 1
 )
 
+REM ── Configurar PYTHONPATH para que los módulos 'core' se encuentren ───────
+set "PYTHONPATH=%ROOT%"
+
+
 REM ── 1. Liberar puertos secundarios previos (7861, 7862, 7863) ──────────────
 echo  [1/4] Omitiendo liberación de puertos para no cerrar al agente local...
 REM for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":7861 " ^| findstr LISTENING') do ( taskkill /F /PID %%p >nul 2>&1 )
