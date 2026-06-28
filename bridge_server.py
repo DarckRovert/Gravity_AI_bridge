@@ -307,12 +307,68 @@ def run_server():
     service_loader.start_service("core.autonomy_engine")
     log.info("[V16.7 PRO] Self-Reflection + Autonomy Engine daemons iniciados.")
     
-    # ── J.A.R.V.I.S Sensory Bus (V16.7 Vision-Tier) ──
+    # ── J.A.R.V.I.S Sensory Bus (V16.8 PRO Sentinel-Tier) ──
     try:
         from core.sensory_bus import SensoryBus
         bus = SensoryBus()
         bus.start_server_thread()
-        log.info("[V16.7 PRO] J.A.R.V.I.S Sensory Bus iniciado en el puerto 9999.")
+        log.info("[V16.8 PRO] J.A.R.V.I.S Sensory Bus iniciado en el puerto 9999.")
+        
+        # ── Fase 5: Cognitive Loop (Voice-to-LLM Engine) ──
+        def _cognitive_ws_thread():
+            import websocket
+            import json
+            import time
+            from core import provider_manager
+            from core.reasoning_stripper import ReasoningStripper
+            
+            def on_message(ws, message):
+                try:
+                    data = json.loads(message)
+                    if data.get("type") == "voice_input":
+                        user_text = data.get("text", "").strip()
+                        if not user_text:
+                            return
+                        
+                        log.info(f"[COGNITIVE-LOOP] Procesando comando de voz: {user_text}")
+                        # Formatear como si fuera un chat
+                        messages = [{"role": "system", "content": "Eres J.A.R.V.I.S. Responde de forma clara, directa y hablada. Sin markdown complejo ni código porque tu respuesta será dictada por voz."},
+                                    {"role": "user", "content": user_text}]
+                        
+                        bp, bm = provider_manager.get_best()
+                        if not bp:
+                            ws.send(json.dumps({"type": "voice_output", "text": "Error. Sistemas cognitivos desconectados."}))
+                            return
+                            
+                        raw_text = provider_manager.complete(messages, model=bm, provider=bp.name, options={"temperature": 0.5})
+                        clean_text = ReasoningStripper().process_chunk(raw_text)
+                        
+                        log.info(f"[COGNITIVE-LOOP] Respuesta generada: {clean_text}")
+                        # Enviar devuelta al Bus para que el Voice Daemon la hable
+                        ws.send(json.dumps({"type": "voice_output", "text": clean_text}))
+                        
+                except Exception as e:
+                    log.error(f"[COGNITIVE-LOOP] Error: {e}")
+
+            def on_error(ws, error):
+                pass
+                
+            def on_close(ws, close_status_code, close_msg):
+                time.sleep(3)
+                _start_loop()
+                
+            def _start_loop():
+                ws = websocket.WebSocketApp("ws://localhost:9999", on_message=on_message, on_error=on_error, on_close=on_close)
+                ws.run_forever()
+                
+            # Pequeño delay para dejar que el bus inicie antes de conectar el cliente
+            time.sleep(2)
+            _start_loop()
+
+        import threading
+        threading.Thread(target=_cognitive_ws_thread, daemon=True, name="JarvisCognitiveLoop").start()
+        log.info("[V16.9 PRO] Cognitive Loop enlazado al Sensory Bus. Comandos de voz habilitados.")
+        
     except Exception as e:
         log.error(f"Error iniciando Sensory Bus: {e}")
 
