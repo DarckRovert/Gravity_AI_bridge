@@ -36,10 +36,11 @@ graph TD
     Radar(["Radar HF (Sub-minuto)"]) -.->|Dispara| Bridge
     
     subgraph J.A.R.V.I.S Sensory Net
-        Voice["Voice Daemon"] <-->|WS 9999| Bus["Sensory Bus"]
+        Voice["Voice Daemon V2 (Edge-TTS)"] <-->|WS 9999| Bus["Sensory Bus"]
         Vision["Overwatch Daemon"] -->|Visión Pasiva| Bus
         Thermal["Thermal Watchdog"] -->|WMI Sensors| Bus
         IoT["IoT Controller"] -->|Home Assistant| Bus
+        Sentinel["Sentinel Core"] <-->|Lóbulo Proactivo| Bus
         Bus <--> Bridge
     end
     subgraph Gravity Core [Núcleo Operacional - 32 Cores]

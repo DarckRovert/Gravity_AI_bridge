@@ -30,17 +30,19 @@ El servidor sobrescribe `handle_one_request()` para capturar silenciosamente los
 ### La Tinka Engine (Gestión de Estado Asíncrono)
 Para prevenir colisiones de escritura (Database Locked) cuando 32 agentes intentan escribir historiales y transacciones simultáneamente en SQLite, Gravity implementa **La Tinka Engine**. Un subsistema optimizado que habilita pragma WAL (Write-Ahead Logging) e inyecta semáforos exclusivos. Permite cientos de lecturas/escrituras masivas sin comprometer la latencia ni corromper el hilo principal del Bridge.
 
-### J.A.R.V.I.S Sensory Net (Fase 2)
-Implementado en la V16.7 Vision-Tier, este es el bus de alta frecuencia que dota a Gravity de consciencia espacial.
+### J.A.R.V.I.S Sensory Net (Fase 4: Sentinel)
+Implementado en la V16.8 Sentinel-Tier, este es el bus de alta frecuencia que dota a Gravity de consciencia espacial y proactividad.
 ```mermaid
 flowchart TD
-    Bus[Sensory Bus - Puerto 9999] <--> Voice[Voice Daemon - Whisper]
+    Bus[Sensory Bus - Puerto 9999] <--> Voice[Voice Daemon V2 - Edge TTS / VAD]
     Bus <--> Vision[Overwatch Daemon - MSS]
     Bus <--> Thermal[Thermal Watchdog - WMI]
     Bus <--> IoT[IoT Controller - Home Assistant]
+    Bus <--> Sentinel[Sentinel Core - Cerebro Proactivo]
     Bus <--> Bridge[Bridge Server - Main Loop]
 ```
 - **Sensory Bus (`core/sensory_bus.py`):** Un servidor WebSocket asíncrono puro lanzado en un hilo en segundo plano que actúa como una médula espinal. Transporta telemetría y comandos en JSON sin bloquear el hilo principal HTTP.
+- **Sentinel Core (`core/sentinel_core.py`):** Un observador autónomo que evalúa los datos del bus y toma la iniciativa de hablar si detecta anomalías térmicas o cambios de contexto bruscos, invocando directamente al modelo local (LLaMA3).
 
 ## 2. Auto-Discovery y Hot-Reload (`providers/registry.py`)
 
