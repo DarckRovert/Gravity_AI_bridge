@@ -448,7 +448,7 @@ class WorkflowGraph:
             if on_progress:
                 on_progress(progress_pct, nid, step_msg)
 
-            log.info(f"[WorkflowEngine] {self.workflow_id} → {step_msg}")
+            log.info(f"[WorkflowEngine] {self.workflow_id} -> {step_msg}")
 
             node_inputs = self._build_node_inputs(nd, params, node_outputs)
 
