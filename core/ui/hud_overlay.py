@@ -103,15 +103,8 @@ def _run_hud():
     app.exec()
 
 def start_hud_daemon():
-    """Lanza el HUD Espacial en un hilo separado para no bloquear."""
-    t = threading.Thread(target=_run_hud, daemon=True, name="SpatialHUD")
-    t.start()
-    return t
+    """Lanza el HUD Espacial en el hilo principal (Qt lo requiere)."""
+    _run_hud()
 
 if __name__ == "__main__":
     start_hud_daemon()
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        pass
