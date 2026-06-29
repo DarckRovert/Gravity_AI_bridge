@@ -80,5 +80,8 @@ class ThermalWatchdog:
 if __name__ == "__main__":
     dog = ThermalWatchdog(check_interval=2)
     dog.start()
-    time.sleep(10)
-    dog.stop()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        dog.stop()

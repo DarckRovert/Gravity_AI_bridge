@@ -54,7 +54,7 @@ class SensoryBus:
 
     async def main(self):
         print(f"[SENSORY-BUS] Iniciando servidor en ws://{self.host}:{self.port}")
-        async with websockets.serve(self.handler, self.host, self.port):
+        async with websockets.serve(self.handler, self.host, self.port, ping_interval=None, ping_timeout=None):
             await asyncio.Future()  # Corre para siempre
 
     def start_server_thread(self):

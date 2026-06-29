@@ -30,7 +30,7 @@ class OverwatchDaemon:
 
     def capture_frame(self) -> str:
         """Captura el monitor primario y retorna la imagen en Base64."""
-        with mss.mss() as sct:
+        with mss.MSS() as sct:
             # Tomamos el primer monitor
             monitor = sct.monitors[1]
             sct_img = sct.grab(monitor)

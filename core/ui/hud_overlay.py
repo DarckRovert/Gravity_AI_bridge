@@ -17,6 +17,12 @@ try:
 except ImportError:
     PYSIDE_AVAILABLE = False
     log.warning("[JARVIS-HUD] PySide6 no detectado. El HUD Espacial está desactivado.")
+    print("\n" + "="*50)
+    print(" HUD ESPACIAL DESACTIVADO (FALTA LIBRERIA)")
+    print(" Para activar el HUD holográfico transparente,")
+    print(" instala las dependencias gráficas de Qt:")
+    print(" -> pip install PySide6")
+    print("="*50 + "\n")
 
 class SpatialHUD(QWidget if PYSIDE_AVAILABLE else object):
     def __init__(self):
