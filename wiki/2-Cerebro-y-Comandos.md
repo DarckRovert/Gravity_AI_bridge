@@ -21,8 +21,9 @@ graph TD
 Antes de que un mensaje tuyo llegue al LLM de turno (sea Local o Cloud), el Brain envuelve tu texto en un `System Prompt` de conciencia en tiempo real, compuesto por:
 - **Telemetría Térmica:** El modelo conoce el porcentaje exacto de CPU, RAM y VRAM utilizada en ese instante. Sabe si el host está bajo estrés crítico.
 - **Rendimiento Financiero:** Conoce su saldo diario en USD (`$0.50`), cuánto se ha gastado y cuánto presupuesto le queda para responderte o accionar.
-- **Queue State:** Sabe cuántas imágenes están renderizándose en Pollinations y cuántos videos matemáticos se están calculando por FFMPEG de fondo.
+- **Queue State:** Sabe cuántas imágenes están renderizándose en Pollinations y cuántos videos matemáticos se están calculando por FFMPEG de fondo. (Nota técnica: `Fooocus` **no** arranca automáticamente en background al chatear; el procesamiento de imágenes es un evento deliberado. Si experimentas colapsos de memoria al enviar un chat, se debe al pico de KV Cache local, no a una carga accidental de Fooocus).
 - **Lore Base (RAG):** Carga las reglas persistentes desde el archivo inviolable `_knowledge.json`.
+- **Overhead de Inferencia:** Todo este mega-contexto inyectado y el historial en "Sliding Window" requieren gigabytes de RAM/VRAM extra para el KV Cache de los modelos locales.
 
 Si un LLM es consciente de que le quedan $0.05 de presupuesto en el día, tenderá a darte respuestas concisas en vez de generar bloques enormes y costosos, mostrando un comportamiento biológico de conservación de energía.
 
