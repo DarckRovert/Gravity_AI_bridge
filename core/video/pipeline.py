@@ -541,7 +541,7 @@ def _process_job(
     os.makedirs(job_dir, exist_ok=True)
 
     job_seed = (
-        int(hashlib.md5(f"{job_id}:{topic}".encode()).hexdigest()[:8], 16) % 2147483647
+        int(hashlib.sha256(f"{job_id}:{topic}".encode()).hexdigest()[:8], 16) % 2147483647
     )
 
     try:

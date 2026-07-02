@@ -86,6 +86,36 @@ class PostAgentMixin:
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return True
 
+        if self.path == "/v1/bounties/start":
+            try:
+                from core import bounty_hunter
+                ok = bounty_hunter.start()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": ok}).encode())
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return True
+
+        if self.path == "/v1/bounties/stop":
+            try:
+                from core import bounty_hunter
+                ok = bounty_hunter.stop()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": ok}).encode())
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return True
+
         # /v1/infiltrator/start — Iniciar motor de infiltración (Playwright Stealth)
         if self.path == "/v1/infiltrator/start":
             try:

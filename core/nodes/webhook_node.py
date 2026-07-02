@@ -54,22 +54,40 @@ class WebhookNode(GravityNode):
 
         req = urllib.request.Request(url, data=data, headers=headers, method=method)
 
-        try:
-            with urllib.request.urlopen(req, timeout=30) as response:
-                resp_text = response.read().decode("utf-8", errors="ignore")
-                status = response.getcode()
-                
-                # Attempt to parse json response
-                try:
-                    resp_json = json.loads(resp_text)
-                except Exception:
-                    resp_json = {}
+        import time
+        max_retries = 3
+        base_delay = 2
 
-                return {
-                    "status_code": status,
-                    "response_text": resp_text,
-                    "response_json": resp_json
-                }
-        except urllib.error.URLError as e:
-            log.error(f"[{self.__class__.__name__}] Error en Webhook: {e}")
-            raise RuntimeError(f"Error HTTP en WebhookNode: {e}")
+        for attempt in range(max_retries):
+            try:
+                with urllib.request.urlopen(req, timeout=30) as response:
+                    resp_text = response.read().decode("utf-8", errors="ignore")
+                    status = response.getcode()
+                    
+                    try:
+                        resp_json = json.loads(resp_text)
+                    except Exception:
+                        resp_json = {}
+
+                    return {
+                        "status_code": status,
+                        "response_text": resp_text,
+                        "response_json": resp_json
+                    }
+            except urllib.error.HTTPError as e:
+                # Reintentar solo si es Rate Limit o Error de Servidor
+                if e.code in [429, 500, 502, 503, 504] and attempt < max_retries - 1:
+                    wait_time = base_delay ** (attempt + 1)
+                    log.warning(f"[{self.__class__.__name__}] Webhook error {e.code}. Reintentando en {wait_time}s...")
+                    time.sleep(wait_time)
+                else:
+                    log.error(f"[{self.__class__.__name__}] Error en Webhook HTTP: {e}")
+                    raise RuntimeError(f"Error HTTP en WebhookNode: {e}")
+            except urllib.error.URLError as e:
+                if attempt < max_retries - 1:
+                    wait_time = base_delay ** (attempt + 1)
+                    log.warning(f"[{self.__class__.__name__}] Webhook red inalcanzable. Reintentando en {wait_time}s...")
+                    time.sleep(wait_time)
+                else:
+                    log.error(f"[{self.__class__.__name__}] Error en Webhook Red: {e}")
+                    raise RuntimeError(f"Error de Red en WebhookNode: {e}")

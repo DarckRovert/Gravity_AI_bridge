@@ -5,14 +5,14 @@ Expone capacidades de control de GUI (Mouse/Keyboard) al entorno de Gravity.
 
 import pyautogui
 import subprocess
-import os
-import time
 import json
 
+import os
+
 def open_application(app_name: str) -> str:
-    """Abre una aplicación usando el comando de Windows start."""
+    """Abre una aplicación usando os.startfile de forma segura en Windows."""
     try:
-        subprocess.Popen(f'start "" "{app_name}"', shell=True)
+        os.startfile(app_name)
         return f"Aplicación o archivo '{app_name}' lanzado con éxito."
     except Exception as e:
         return f"Error abriendo la aplicación: {str(e)}"

@@ -40,7 +40,7 @@ class YouTubeAnalyzer:
                     import requests
 
                     try:
-                        r = requests.get(sub_url)
+                        r = requests.get(sub_url, timeout=15)
                         if r.status_code == 200:
                             transcript = self._clean_vtt(r.text)
                     except Exception as e:

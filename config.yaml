@@ -63,13 +63,13 @@ agent_routing:
     provider: LM Studio
     model: auto
   researcher:
-    provider: LM Studio
+    provider: Nvidia NIM
     model: auto
   executor:
-    provider: LM Studio
+    provider: Native Llama
     model: auto
   default:
-    provider: LM Studio
+    provider: Native Llama
     model: auto
 youtube:
   enabled: true

@@ -715,13 +715,14 @@ def _scan_network_threats() -> List[str]:
             if count > MAX_CONCURRENT_CONNECTIONS and ACTIVE_DEFENSE:
                 with _lock:
                     if r_ip not in _state.get("banned_ips", []):
-                        cmd = f'netsh advfirewall firewall add rule name="GravityBan_DoS_{r_ip}" dir=in action=block remoteip={r_ip}'
-                        subprocess.run(
-                            cmd,
-                            shell=True,
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL,
-                        )
+                        cmd = [
+                            "netsh", "advfirewall", "firewall", "add", "rule",
+                            f"name=GravityBan_DoS_{r_ip}", "dir=in", "action=block", f"remoteip={r_ip}"
+                        ]
+                        kwargs = {"stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
+                        if os.name == "nt":
+                            kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
+                        subprocess.run(cmd, **kwargs)
                         _state.setdefault("banned_ips", []).append(r_ip)
                         banned.append(r_ip)
                         _record_alert(

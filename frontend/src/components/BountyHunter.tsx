@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Target, ExternalLink, Copy, CheckCircle2, AlertCircle, RefreshCw, Trash2, Settings, Save, X, Play } from 'lucide-react';
+import { Target, ExternalLink, Copy, CheckCircle2, AlertCircle, RefreshCw, Trash2, Settings, Save, X, Play, Square } from 'lucide-react';
 import { showToast } from './Toast';
 
 interface Bounty {
@@ -20,6 +20,8 @@ export const BountyHunter: React.FC = () => {
   
   const [bountyProfile, setBountyProfile] = useState<string>("");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [daemonRunning, setDaemonRunning] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const previousCountRef = useRef<number>(0);
 
   const playDing = () => {
@@ -59,6 +61,12 @@ export const BountyHunter: React.FC = () => {
       }
       setError(null);
       setLastUpdate(new Date());
+
+      const statRes = await fetch('/v1/bounties/status');
+      if (statRes.ok) {
+        const statData = await statRes.json();
+        setDaemonRunning(statData.running);
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -117,6 +125,24 @@ export const BountyHunter: React.FC = () => {
     }
   };
 
+  const toggleDaemon = async () => {
+    setActionLoading(true);
+    try {
+      const endpoint = daemonRunning ? '/v1/bounties/stop' : '/v1/bounties/start';
+      const res = await fetch(endpoint, { method: 'POST' });
+      if (res.ok) {
+        setDaemonRunning(!daemonRunning);
+        showToast('success', `Daemon ${daemonRunning ? 'detenido' : 'iniciado'} exitosamente`);
+      } else {
+        throw new Error("Error en servidor");
+      }
+    } catch(e) {
+      showToast('error', 'Error al cambiar estado del daemon');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleAutoApply = async (url: string, proposal: string) => {
     try {
       const res = await fetch('/v1/infiltrator/queue_bid', {
@@ -151,10 +177,21 @@ export const BountyHunter: React.FC = () => {
         
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2 text-text-muted">
-            <span className="text-xs mr-2">Última rev: {lastUpdate.toLocaleTimeString()}</span>
-            <div className="w-2 h-2 rounded-full bg-status-success animate-pulse"></div>
-            <span>Daemon Activo</span>
+            <span className="text-xs mr-2 hidden sm:inline">Última rev: {lastUpdate.toLocaleTimeString()}</span>
+            <div className={`w-2 h-2 rounded-full ${daemonRunning ? 'bg-status-success animate-pulse' : 'bg-text-muted'}`}></div>
+            <span>{daemonRunning ? 'Daemon Activo' : 'Apagado'}</span>
           </div>
+          <button 
+            onClick={toggleDaemon}
+            disabled={actionLoading}
+            className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg transition-colors font-bold ${
+              daemonRunning 
+              ? 'bg-status-error/10 text-status-error border-status-error/30 hover:bg-status-error/20'
+              : 'bg-accent-primary/10 text-accent-primary border-accent-primary/30 hover:bg-accent-primary/20'
+            }`}
+          >
+            {daemonRunning ? <><Square size={14} fill="currentColor" /> Detener Motor</> : <><Play size={14} fill="currentColor" /> Iniciar Escaneo</>}
+          </button>
           <button 
             onClick={() => setIsEditingProfile(!isEditingProfile)}
             className="flex items-center gap-2 px-3 py-1.5 bg-card hover:bg-surface border border-border-subtle rounded-lg text-text-primary transition-colors"

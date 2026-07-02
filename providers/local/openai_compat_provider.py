@@ -394,3 +394,63 @@ class LemonadeProvider(_OpenAICompatLocalProvider):
                 self._last_working_url = url
                 return url
         return f"http://localhost:{self.default_port}"
+
+
+class FastFlowLMProvider(_OpenAICompatLocalProvider):
+    """
+    FastFlowLM — Motor de inferencia nativo para NPUs AMD Ryzen AI (XDNA).
+    Expone la API OpenAI-compatible en el puerto 52625.
+    Optimizado para Hawk Point (Ryzen 8700G) con DEV_1502.
+    Inspirado en el patrón de health-check paralelo de Project N.O.M.A.D.
+    """
+
+    name: str = "FastFlowLM (NPU)"
+    default_port: int = 52625
+    supports_vision: bool = True
+    supports_function_calling: bool = True
+    default_context: int = 256000  # Soporta hasta 256k tokens
+    _alt_ports: List[int] = [52625]
+
+    def check_health(self) -> ProviderResult:
+        t0 = time.time()
+        url = f"http://localhost:{self.default_port}"
+        r = self._make_result(url)
+        # FLM puede tardar hasta 10 minutos cargando el modelo en la NPU la primera vez.
+        # Usamos timeout extendido para no reportarlo como DOWN mientras carga.
+        data = _http_get(f"{url}/v1/models", timeout=15.0)
+        r.response_ms = int((time.time() - t0) * 1000)
+        if data and "data" in data:
+            r.is_healthy = True
+            all_models = [
+                {"name": m.get("id", ""), "size": 0}
+                for m in data["data"]
+                if m.get("id")
+            ]
+            r.models = all_models if all_models else [{"name": "llama3.2:1b", "size": 0}]
+            r.active_model = r.models[0]["name"] if r.models else "llama3.2:1b"
+            r.max_context = self.default_context
+            self._last_working_url = url
+        else:
+            # Verificar si el proceso FLM está corriendo aunque el puerto no responda aún
+            # (estado: cargando modelo en NPU)
+            import socket as _sock
+            try:
+                _s = _sock.socket(_sock.AF_INET, _sock.SOCK_STREAM)
+                _s.settimeout(1.0)
+                _conn = _s.connect_ex(("127.0.0.1", self.default_port))
+                _s.close()
+                if _conn == 0:
+                    # Puerto abierto pero /v1/models no respondió — FLM arrancando
+                    r.is_healthy = True
+                    r.models = [{"name": "llama3.2:1b", "size": 0}]
+                    r.active_model = "llama3.2:1b (cargando NPU...)"
+                    r.max_context = self.default_context
+                    self._last_working_url = url
+            except Exception:
+                pass
+        return r
+
+    def _base_url(self) -> str:
+        if self._last_working_url:
+            return self._last_working_url
+        return f"http://localhost:{self.default_port}"

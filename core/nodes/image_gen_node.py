@@ -34,7 +34,8 @@ class ImageGeneratorNode(GravityNode):
         title: str = inputs.get("title") or self.config.get("title") or ""
 
         if not output_path:
-            import os, tempfile
+            import os
+            import tempfile
             output_path = os.path.join(tempfile.gettempdir(), f"gravity_img_{id(self)}.png")
 
         log.info(f"[ImageGeneratorNode] Generando imagen: {prompt[:60]}...")

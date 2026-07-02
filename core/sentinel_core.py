@@ -69,9 +69,16 @@ Respuesta:"""
 
     def _speak(self, text):
         """Envía el comando de voz al bus."""
-        if self.ws and self.ws.sock and self.ws.sock.connected:
-            payload = json.dumps({"type": "voice_output", "text": text})
-            self.ws.send(payload)
+        try:
+            if getattr(self, 'ws', None) and getattr(self.ws, 'sock', None) and self.ws.sock.connected:
+                self.ws.send(json.dumps({"type": "voice_output", "text": text}))
+            else:
+                import websocket
+                temp_ws = websocket.create_connection("ws://127.0.0.1:9999", timeout=5)
+                temp_ws.send(json.dumps({"type": "voice_output", "text": text}))
+                temp_ws.close()
+        except Exception as e:
+            log.warning(f"[SENTINEL] No se pudo enviar el mensaje proactivo: {e}")
 
     def on_message(self, ws, message):
         try:
@@ -110,12 +117,12 @@ Respuesta:"""
         pass
 
     def on_open(self, ws):
-        log.info("[SENTINEL] Conectado exitosamente al Sensory Bus (ws://localhost:9999). Consciencia activa.")
+        log.info("[SENTINEL] Conectado exitosamente al Sensory Bus (ws://127.0.0.1:9999). Consciencia activa.")
 
     def start(self):
         while True:
             try:
-                self.ws = websocket.WebSocketApp("ws://localhost:9999",
+                self.ws = websocket.WebSocketApp("ws://127.0.0.1:9999",
                                                 on_open=self.on_open,
                                                 on_message=self.on_message,
                                                 on_error=self.on_error,

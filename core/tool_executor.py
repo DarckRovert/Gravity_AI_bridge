@@ -64,7 +64,7 @@ class ToolExecutor:
                         code = kwargs.get("code", "")
                         lang = kwargs.get("language", "python").lower()
                         if lang not in ["python", "py", "python3"]:
-                            return False, f"AST Sandbox solo soporta Python en background mode. Rechazado."
+                            return False, "AST Sandbox solo soporta Python en background mode. Rechazado."
                         
                         from core.ast_sandbox import is_code_safe
                         is_safe, reason = is_code_safe(code)

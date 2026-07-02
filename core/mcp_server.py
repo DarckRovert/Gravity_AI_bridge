@@ -1,7 +1,6 @@
-import json
 import sqlite3
 import os
-from typing import Dict, Any, Callable, List
+from typing import Dict, Callable, List
 from core.logger import log
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

@@ -64,16 +64,30 @@ class LLMQueryNode(GravityNode):
 
             log.info(f"[LLMQueryNode] Usando {provider_name}/{best_model} | temp={temperature} | sys={len(system)}c")
 
-            full_text = provider_manager.complete(
-                messages=messages,
-                model=best_model,
-                provider=provider_name,
-                options=options
-            )
+            import time
+            max_retries = 3
+            base_delay = 2
+            
+            for attempt in range(max_retries):
+                try:
+                    full_text = provider_manager.complete(
+                        messages=messages,
+                        model=best_model,
+                        provider=provider_name,
+                        options=options
+                    )
+                    break
+                except Exception as e:
+                    if attempt < max_retries - 1:
+                        wait_time = base_delay ** (attempt + 1)
+                        log.warning(f"[LLMQueryNode] API Rate Limit o Error ({e}). Reintentando en {wait_time}s... (Intento {attempt + 1}/{max_retries})")
+                        time.sleep(wait_time)
+                    else:
+                        raise
 
             log.info(f"[LLMQueryNode] Resultado ({len(full_text)} chars)")
             return {"text": full_text.strip()}
 
         except Exception as exc:
-            log.error(f"[LLMQueryNode] Error: {exc}")
+            log.error(f"[LLMQueryNode] Fallo crítico tras reintentos: {exc}")
             raise

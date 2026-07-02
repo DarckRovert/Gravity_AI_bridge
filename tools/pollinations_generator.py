@@ -107,7 +107,7 @@ def generate(
 
     # Determinar semilla numérica determinista basada en el contenido si es aleatorio
     if seed is None:
-        seed = int(hashlib.md5(prompt.encode("utf-8")).hexdigest()[:8], 16) % 2147483647
+        seed = int(hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:8], 16) % 2147483647
 
     # Si se suministra prompt negativo, lo concatenamos como instrucción explícita
     if negative_prompt:

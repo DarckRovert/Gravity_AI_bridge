@@ -190,7 +190,6 @@ class RemotionEngine:
                     text=True,
                     encoding="utf-8",
                     errors="replace",
-                    shell=(sys.platform == "win32"),
                     timeout=2700,  # 45 min máximo por render
                 )
                 logger.info("Renderizado exitoso.")

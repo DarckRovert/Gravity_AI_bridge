@@ -24,7 +24,7 @@ import threading
 import traceback
 from abc import ABC, abstractmethod
 from collections import defaultdict, deque
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Callable, Dict, List, Optional, Set
 
 from core.logger import log
@@ -463,8 +463,17 @@ class WorkflowGraph:
             # Instanciar y ejecutar el nodo
             node_instance = node_cls(node_id=nid, config=nd.get("config") or {})
 
+            import concurrent.futures
+
+            # [B1] Reutilizar el pool global de timeout en lugar de crear uno por nodo
+            future = _node_timeout_executor.submit(node_instance.execute, node_inputs)
+
             try:
-                result = node_instance.execute(node_inputs)
+                result = future.result(timeout=600.0)
+            except concurrent.futures.TimeoutError as exc:
+                err_msg = f"[{node_type}/{nid}] Timeout Error: El nodo excedió el tiempo límite de ejecución (600s)."
+                log.error(f"[WorkflowEngine] {err_msg}")
+                raise RuntimeError(err_msg) from exc
             except Exception as exc:
                 err_msg = f"[{node_type}/{nid}] Error: {exc}\n{traceback.format_exc()}"
                 log.error(f"[WorkflowEngine] {err_msg}")
@@ -501,6 +510,8 @@ class WorkflowGraph:
 _active_jobs: Dict[str, WorkflowJob] = {}
 _jobs_lock = threading.RLock()
 _executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="gravity-wf")
+# Pool dedicado para timeouts de nodos individuales — reutilizado entre ejecuciones (B1)
+_node_timeout_executor = ThreadPoolExecutor(max_workers=8, thread_name_prefix="gravity-node")
 
 
 def load_workflow(workflow_id: str) -> dict:
@@ -567,12 +578,22 @@ def run_workflow(
                 finished_at=time.time(),
                 current_step="Error",
             )
-            log.error(f"[WorkflowManager] Job {job_id} ({graph.workflow_id}) falló: {exc}")
+            log.error(f"[WorkflowManager] Job {job_id} ({graph.workflow_id}) falló: {exc}\n{traceback.format_exc()}")
 
     if blocking:
         _run()
     else:
-        _executor.submit(_run)
+        future = _executor.submit(_run)
+        
+        # Añadir un callback para atrapar excepciones ocultas en el ThreadPool
+        def _future_done_callback(fut):
+            try:
+                fut.result() # Esto relanzará cualquier excepción no capturada
+            except Exception as e:
+                log.critical(f"[WorkflowManager] ThreadPool Crash crítico en Job {job_id}: {e}\n{traceback.format_exc()}")
+                job.update(status="failed", error=f"Critical Thread Crash: {e}", current_step="Fatal Error", finished_at=time.time())
+                
+        future.add_done_callback(_future_done_callback)
 
     return job
 

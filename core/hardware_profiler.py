@@ -47,15 +47,27 @@ AMD_GFX_MAP: Dict[str, str] = {
 def _run_cmd(cmd: str, timeout: int = 4) -> str:
     """Runs a shell command and returns stdout, suppressing all errors."""
     try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            shell=True,
-            encoding="utf-8",
-            errors="ignore",
-        )
+        # Si cmd es string y no usamos shell=True en Windows/Linux, fallará si tiene espacios.
+        # Por seguridad extrema, convertimos a una lista usando shlex SIEMPRE.
+        if isinstance(cmd, str):
+            if platform.system() == "Windows":
+                import shlex
+                cmd = shlex.split(cmd, posix=True)
+            else:
+                cmd = ["sh", "-c", cmd]
+        
+        kwargs = {
+            "capture_output": True,
+            "text": True,
+            "timeout": timeout,
+            "shell": False,
+            "encoding": "utf-8",
+            "errors": "ignore",
+        }
+        if platform.system() == "Windows":
+            kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
+
+        result = subprocess.run(cmd, **kwargs)
         return result.stdout.strip()
     except Exception:
         return ""

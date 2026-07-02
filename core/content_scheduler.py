@@ -317,7 +317,7 @@ def _scheduler_loop() -> None:
     """Loop daemon del scheduler. Duerme hasta la hora configurada y encola jobs."""
     log.info("[Scheduler] Daemon de producción autónoma iniciado.")
 
-    while True:
+    while _started:
         try:
             cfg = _load_config()
 
@@ -344,7 +344,14 @@ def _scheduler_loop() -> None:
                 log.info(
                     f"[Scheduler] Próxima ejecución en {wait_secs/3600:.1f}h ({next_run.strftime('%Y-%m-%d %H:%M UTC')})"
                 )
-                time.sleep(wait_secs)
+                # Sleep de a pasos cortos para responder al stop() rápidamente
+                for _ in range(int(wait_secs)):
+                    if not _started:
+                        break
+                    time.sleep(1)
+                
+            if not _started:
+                break
 
             # ── Ejecución: encolar N videos ────────────────────────────────────
             log.info(f"[Scheduler] Despertando. Encolando {videos_per_day} video(s)...")
@@ -405,11 +412,19 @@ def _scheduler_loop() -> None:
             log.info(f"[Scheduler] Ciclo completado. {queued} video(s) encolados.")
 
             # Dormir 60s para no re-ejecutar el mismo ciclo inmediatamente
-            time.sleep(60)
+            for _ in range(60):
+                if not _started:
+                    break
+                time.sleep(1)
 
         except Exception as e:
             log.error(f"[Scheduler] Error en loop: {e}")
-            time.sleep(120)
+            for _ in range(120):
+                if not _started:
+                    break
+                time.sleep(1)
+
+    log.info("[Scheduler] Daemon detenido exitosamente.")
 
 
 # ── API Pública ─────────────────────────────────────────────────────────────────
@@ -427,11 +442,19 @@ def start() -> None:
     t.start()
     log.info("[Scheduler] Content Scheduler daemon iniciado.")
 
+def stop() -> None:
+    global _started
+    if not _started:
+        return
+    _started = False
+    log.info("[Scheduler] Deteniendo daemon de programación de contenidos...")
+
 
 def get_state() -> dict:
     """Retorna el estado actual del scheduler para el dashboard."""
     with _lock:
         state = dict(_state)
+        state["running"] = _started
 
     cfg = _load_config()
     state["config"] = {

@@ -26,7 +26,9 @@ class SensoryBus:
         print(f"[SENSORY-BUS] Nuevo cliente conectado. Total: {len(self.connected_clients)}")
         try:
             async for message in websocket:
-                print(f"[SENSORY-BUS] Recibido: {message}")
+                # Filtrar mensajes de latidos (ping/status) para no hacer spam en la terminal
+                if '"voice_daemon_ping"' not in message and '"voice_daemon_status"' not in message:
+                    print(f"[SENSORY-BUS] Recibido: {message}")
                 # Broadcast the message to all OTHER clients
                 # For instance, Voice Daemon sends "voice_input", the Brain receives it.
                 await self.broadcast(message, sender=websocket)

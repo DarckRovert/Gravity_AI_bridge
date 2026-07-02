@@ -9,6 +9,7 @@ import urllib.parse
 import re
 import html
 from typing import List, Tuple
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from core.logger import log
 from core.firecrawl_scraper import scrape_url, _request_with_retry
@@ -82,23 +83,35 @@ def search_and_scrape(query: str, max_results: int = 2) -> str:
         return ""
 
     knowledge: List[str] = []
-    for link, snippet in results:
+    
+    def process_result(idx: int, link: str, snippet: str) -> str:
         # Excluir procesamiento de videos directos en scraping de texto
         if "youtube.com" in link or "youtu.be" in link:
-            knowledge.append(f"--- FUENTE: {link} ---\n{snippet}\n")
-            continue
+            return f"[{idx}] FUENTE: {link}\nRESUMEN: {snippet}\n"
 
         try:
             scrape_res = scrape_url(link)
             if scrape_res.get("ok") and len(scrape_res.get("content", "")) > 50:
                 text = scrape_res.get("content", "")[:3000]
-                knowledge.append(f"--- FUENTE: {link} ---\n{text}\n")
+                return f"[{idx}] FUENTE: {link}\nTEXTO: {text}\n"
             else:
-                knowledge.append(f"--- FUENTE: {link} ---\n{snippet}\n")
+                return f"[{idx}] FUENTE: {link}\nRESUMEN: {snippet}\n"
         except Exception as e:
-            log.debug(
-                f"[WebSearch] Failed to scrape {link}: {e}. Falling back to snippet."
-            )
-            knowledge.append(f"--- FUENTE: {link} ---\n{snippet}\n")
+            log.debug(f"[WebSearch] Failed to scrape {link}: {e}. Falling back to snippet.")
+            return f"[{idx}] FUENTE: {link}\nRESUMEN: {snippet}\n"
+
+    with ThreadPoolExecutor(max_workers=max_results) as executor:
+        futures = {
+            executor.submit(process_result, idx + 1, link, snippet): (idx + 1)
+            for idx, (link, snippet) in enumerate(results)
+        }
+        # Asegurar orden numérico
+        sorted_results = []
+        for future in as_completed(futures):
+            sorted_results.append((futures[future], future.result()))
+        
+        sorted_results.sort(key=lambda x: x[0])
+        knowledge = [res[1] for res in sorted_results]
 
     return "\n".join(knowledge)
+

@@ -254,7 +254,7 @@ class TestFileReaderNode(unittest.TestCase):
 class TestWorkflowTopology(unittest.TestCase):
 
     def test_all_workflows_load_and_sort(self):
-        from core.workflow_engine import list_workflows, WorkflowGraph
+        from core.workflow_engine import WorkflowGraph
         import glob
 
         wf_dir = os.path.join(BASE_DIR, "workflows")

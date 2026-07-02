@@ -29,6 +29,7 @@ moderngl
 # Video Studio — TTS offline (Windows SAPI) y Transcripción
 pyttsx3>=2.90
 faster-whisper>=1.0.0
+sounddevice>=0.4.6
 
 # Webscraping / MAI (Motor de Animacion Inteligente)
 websocket-client>=1.7.0

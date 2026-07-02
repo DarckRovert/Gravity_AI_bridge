@@ -696,7 +696,7 @@ AHORA ESCRIBE EL CAPÍTULO REFINADO:"""
                         import hashlib as _hl
 
                         char_seed = (
-                            int(_hl.md5(char_name.encode("utf-8")).hexdigest()[:8], 16)
+                            int(_hl.sha256(char_name.encode("utf-8")).hexdigest()[:8], 16)
                             % 2147483647
                         )
                         break

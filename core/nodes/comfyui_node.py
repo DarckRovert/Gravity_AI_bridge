@@ -28,7 +28,6 @@ class ComfyUIGenNode(GravityNode):
 
     def execute(self, inputs: dict) -> dict:
         import os
-        import sys
 
         BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         comfy_client_path = os.path.join(BASE_DIR, "_integrations", "comfy_client.py")

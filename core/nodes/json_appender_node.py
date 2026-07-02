@@ -61,7 +61,7 @@ class JSONAppenderNode(GravityNode):
             try:
                 with open(filepath, "r", encoding="utf-8") as f:
                     file_data = json.load(f)
-            except Exception as e:
+            except Exception:
                 log.warning(f"[{self.__class__.__name__}] Archivo JSON corrupto o vacío en {filepath}, creando base nueva.")
                 file_data = None
 

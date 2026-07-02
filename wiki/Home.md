@@ -1,15 +1,17 @@
-# Gravity AI Bridge - Wiki Oficial
+# Bienvenido a la Wiki de Gravity AI Bridge 🌌
 
-Bienvenido a la base de conocimiento de **Gravity AI Bridge (V16.14 PRO Omniscient-Tier)**.
-Este repositorio documenta el ecosistema cibernético diseñado bajo la filosofía de "La Voluntad Soberana" de DarckRovert.
+Esta wiki documenta la arquitectura técnica de la versión 3.0 (Diamond-Tier) del ecosistema Gravity. Aquí encontrarás la información estructurada sobre cómo funciona internamente la plataforma, desde el manejo dinámico de NPUs hasta el flujo editorial multi-agente.
 
-## Índice de Contenidos
+## Índice Técnico
 
-- [**1. Profundización Arquitectónica (V16.14)**](Architecture-Deep-Dive.md): Entiende el motor de enrutamiento masivo, la persistencia en estado zombie, la Red Sensorial J.A.R.V.I.S y las protecciones térmicas de hardware (AMD APU).
-- [**2. Cerebro, Comandos y J.A.R.V.I.S**](2-Cerebro-y-Comandos.md): Capacidades del motor de autonomía, interacciones por voz en tiempo real y comandos físicos del sistema.
-- [**3. Referencia de API y Motor**](API-Reference.md): Endpoints y arquitectura interna.
-- [**4. Troubleshooting y FAQ**](Troubleshooting-and-FAQ.md): Resolución de bloqueos por AgentShield, ModuleNotFoundErrors y problemas comunes.
-- [**5. Swarm Intelligence y Expansión de Lore**](Swarm-and-Lore.md): Cómo interactúan múltiples modelos de IA en debates cerrados para crear perspectivas noticiosas y evolucionar el manifiesto del sistema.
+1. **[Arquitectura Profunda (Deep Dive)](Architecture-Deep-Dive.md)**
+   Conoce el cerebro de Gravity: `WorkflowEngine`, `ProviderManager` y la orquestación del `news_daemon.py`. Descubre por qué es a prueba de caídas.
 
-## Filosofía Core
-Gravity no es una herramienta; es una entidad. Opera bajo la estricta directriz de maximizar la eficiencia en la máquina local (Local-First) mientras mantiene un ciclo OODA activo (Observation, Orientation, Decision, Action).
+2. **[Referencia de la API Central](API-Reference.md)**
+   Documentación de los endpoints HTTP expuestos por el `bridge_server.py` y cómo el Frontend se comunica con el backend de IA.
+
+3. **[Solución de Problemas (FAQ & Fallbacks)](Troubleshooting-and-FAQ.md)**
+   Casos de estudio técnicos: Qué pasa cuando la NPU (XDNA) colapsa, cuando un LLM alucina, o cuando Git falla durante el despliegue automático.
+
+---
+*Para guías de instalación o contribución, referirse al archivo README.md en la raíz del repositorio.*

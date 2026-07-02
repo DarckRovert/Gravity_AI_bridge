@@ -224,6 +224,11 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             "/v1/journalist/status": self._serve_journalist_status,
             "/v1/journalist/log": self._serve_journalist_log,
             "/v1/journalist/news": self._serve_journalist_news,
+            # ── J.A.R.V.I.S y Radar HF ────────────────────────────────────────────
+            "/v1/jarvis/status": self._serve_jarvis_status,
+            "/v1/radar/status": self._serve_radar_status,
+            # ── NPU AMD XDNA (FastFlowLM) ─────────────────────────────────────────
+            "/v1/npu/status": self._serve_npu_status,
             # ── Gravity Workflow Engine ────────────────────────────────────────
             "/v1/workflow/list": self._serve_workflow_list,
             "/v1/workflow/nodes": self._serve_workflow_nodes,
@@ -289,8 +294,10 @@ def run_server():
     service_loader.start_service("core.image_queue")
     service_loader.start_service("core.video_pipeline")
     service_loader.start_service("core.engine_watchdog", verbose=True)
-    service_loader.start_service("core.bounty_hunter")
-    service_loader.start_service("core.infiltrator")
+    # Los siguientes servicios pesados han sido desactivados del auto-arranque.
+    # El usuario los controlará/lanzará manualmente desde el Dashboard.
+    # service_loader.start_service("core.bounty_hunter")
+    # service_loader.start_service("core.infiltrator")
 
     # ai_process_manager no tiene start() por defecto, pero se le invoca discover_apps()
     ai_process_manager_module = service_loader.load_module("core.ai_process_manager")
@@ -300,19 +307,20 @@ def run_server():
         except Exception as e:
             log.error(f"Failed to discover apps in ai_process_manager: {e}")
 
-    service_loader.start_service("core.content_scheduler")
+    # service_loader.start_service("core.content_scheduler")
 
     # ── V16.14 PRO Autonomous Edition — Autogovernance Daemons ─────────────────
-    service_loader.start_service("core.self_reflection")
-    service_loader.start_service("core.autonomy_engine")
-    log.info("[V16.14 PRO] Self-Reflection + Autonomy Engine daemons iniciados.")
+    # service_loader.start_service("core.self_reflection")
+    # service_loader.start_service("core.autonomy_engine")
+    log.info("[V16.14 PRO] Motores autónomos desactivados del auto-arranque a petición del usuario.")
     
     # ── J.A.R.V.I.S Sensory Bus (V16.14 PRO Sentinel-Tier) ──
     try:
         from core.sensory_bus import SensoryBus
         bus = SensoryBus(host="0.0.0.0", port=9999)
-        bus.start_server_thread()
-        log.info("[V16.14 PRO] J.A.R.V.I.S Sensory Bus iniciado en 0.0.0.0:9999.")
+        # Desactivado auto-arranque del micrófono continuo por solicitud del usuario
+        # bus.start_server_thread()
+        log.info("[V16.14 PRO] J.A.R.V.I.S Sensory Bus preparado (iniciado en manual).")
         
         # ── Fase 5: Cognitive Loop (Voice-to-LLM Engine) ──
         def _cognitive_ws_thread():
@@ -329,6 +337,20 @@ def run_server():
             
             # Memoria conversacional de voz persistente durante la sesión
             voice_history = []
+            voice_history_lock = threading.Lock()
+
+            import queue
+            voice_queue = queue.Queue()
+
+            def _safe_ws_send(text_msg):
+                import json
+                import asyncio
+                payload = json.dumps({"type": "voice_output", "text": text_msg})
+                if bus and bus.loop:
+                    try:
+                        asyncio.run_coroutine_threadsafe(bus.broadcast(payload), bus.loop)
+                    except Exception as e:
+                        log.error(f"[COGNITIVE-LOOP] Error en _safe_ws_send: {e}")
 
             def _process_voice_task(ws, user_text):
                 try:
@@ -357,12 +379,13 @@ def run_server():
                     system_prompt = base_system_prompt + voice_directive
                     
                     messages = [{"role": "system", "content": system_prompt}]
-                    messages.extend(voice_history)
+                    with voice_history_lock:
+                        messages.extend(list(voice_history))
                     messages.append({"role": "user", "content": user_text})
                     
                     bp, bm = provider_manager.get_best()
                     if not bp:
-                        ws.send(json.dumps({"type": "voice_output", "text": "Error. Sistemas cognitivos desconectados."}))
+                        _safe_ws_send("Error. Sistemas cognitivos desconectados.")
                         return
                         
                     raw_text = provider_manager.complete(messages, model=bm, provider=bp.name, options={"temperature": 0.5})
@@ -388,20 +411,35 @@ def run_server():
                             clean_text = f"Hubo un problema al ejecutar la orden. {res}"
                     
                     log.info(f"[COGNITIVE-LOOP] Respuesta generada: {clean_text}")
-                    ws.send(json.dumps({"type": "voice_output", "text": clean_text}))
+                    _safe_ws_send(clean_text)
                     
                     # 3. Guardar en historial (máx 10 intercambios para no saturar tokens)
-                    voice_history.append({"role": "user", "content": user_text})
-                    voice_history.append({"role": "assistant", "content": clean_text})
-                    if len(voice_history) > 20:
-                        del voice_history[:-20]  # Operación in-place segura para hilos
+                    with voice_history_lock:
+                        voice_history.append({"role": "user", "content": user_text})
+                        voice_history.append({"role": "assistant", "content": clean_text})
+                        if len(voice_history) > 20:
+                            del voice_history[:-20]  # Operación in-place segura gracias al Lock
                         
                 except Exception as e:
                     log.error(f"[COGNITIVE-LOOP] Error en procesamiento LLM: {e}")
                     try:
-                        ws.send(json.dumps({"type": "voice_output", "text": "Señor, he sufrido un error crítico en mi red neuronal central."}))
+                        _safe_ws_send("Señor, he sufrido un error crítico en mi red neuronal central.")
                     except Exception:
                         pass
+
+            def _voice_worker():
+                """Procesa la cola de voz secuencialmente para evitar saturar el modelo local."""
+                while True:
+                    user_text = voice_queue.get()
+                    if user_text is None:
+                        break
+                    try:
+                        _process_voice_task(None, user_text)
+                    finally:
+                        voice_queue.task_done()
+
+            # Iniciar el worker secuencial de voz
+            threading.Thread(target=_voice_worker, daemon=True, name="JarvisVoiceWorker").start()
 
             def on_message(ws, message):
                 try:
@@ -411,32 +449,37 @@ def run_server():
                         if not user_text:
                             return
                         
-                        log.info(f"[COGNITIVE-LOOP] Procesando comando de voz: {user_text}")
-                        # Lanzar en hilo para no bloquear el websocket (evita timeouts)
-                        threading.Thread(target=_process_voice_task, args=(ws, user_text), daemon=True).start()
+                        log.info(f"[COGNITIVE-LOOP] Encolando comando de voz: {user_text}")
+                        # Usar cola en lugar de hilos paralelos masivos para evitar crash del intérprete
+                        voice_queue.put(user_text)
                         
                 except Exception as e:
                     log.error(f"[COGNITIVE-LOOP] Error: {e}")
 
             def on_error(ws, error):
-                pass
+                log.error(f"[COGNITIVE-LOOP] WS Error: {error}")
                 
             def on_close(ws, close_status_code, close_msg):
-                pass
+                log.warning(f"[COGNITIVE-LOOP] WS Cerrado: {close_status_code} {close_msg}")
+                
+            def on_open(ws):
+                log.info("[COGNITIVE-LOOP] Conectado exitosamente al Sensory Bus (ws://127.0.0.1:9999)")
                 
             # Loop de reconexión seguro sin recursión
             while True:
                 try:
                     time.sleep(2)
-                    ws = websocket.WebSocketApp("ws://localhost:9999", on_message=on_message, on_error=on_error, on_close=on_close)
+                    ws = websocket.WebSocketApp("ws://127.0.0.1:9999", on_open=on_open, on_message=on_message, on_error=on_error, on_close=on_close)
                     ws.run_forever()
                 except Exception:
                     pass
                 time.sleep(3)
 
 
-        threading.Thread(target=_cognitive_ws_thread, daemon=True, name="JarvisCognitiveLoop").start()
-        log.info("[V16.14 PRO] Cognitive Loop enlazado al Sensory Bus. Comandos de voz habilitados.")
+        # Desactivado el Cognitive Loop continuo al inicio para no saturar memoria.
+        # threading.Thread(target=_cognitive_ws_thread, daemon=True, name="JarvisCognitiveLoop").start()
+        # log.info("[V16.14 PRO] Cognitive Loop enlazado al Sensory Bus. Comandos de voz habilitados.")
+
         
     except Exception as e:
         log.error(f"Error iniciando Sensory Bus: {e}")
@@ -473,8 +516,8 @@ def run_server():
                 register_daemon(daemon_id, t, restart_fn)
                 log.debug(f"[Watchdog] Daemon registrado: {daemon_id} ({thread_name})")
             else:
-                log.warning(
-                    f"[Watchdog] Thread '{thread_name}' no encontrado para daemon '{daemon_id}'"
+                log.debug(
+                    f"[Watchdog] Thread '{thread_name}' no iniciado (daemon '{daemon_id}' en modo manual)"
                 )
     except Exception as _wd_e:
         log.warning(f"[Watchdog] No se pudo registrar daemons para monitoreo: {_wd_e}")

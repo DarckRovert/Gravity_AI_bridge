@@ -19,6 +19,9 @@ _BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BOUNTIES_FILE = os.path.join(_BASE_DIR, "BOUNTIES_ENCONTRADOS.md")
 POLL_INTERVAL_SEC = 1800  # 30 minutos
 
+_running = False
+_thread = None
+
 import xml.etree.ElementTree as ET  # noqa: E402
 
 
@@ -221,6 +224,7 @@ def limit_bounties_file():
 
 
 def bounty_loop():
+    global _running
     log.info(
         f"[BountyHunter] Demonio activado. Monitoreando micro-trabajos cada {POLL_INTERVAL_SEC//60} min."
     )
@@ -228,7 +232,7 @@ def bounty_loop():
 
     seen_ids = load_seen_ids()
 
-    while True:
+    while _running:
         try:
             new_bounties = 0
             posts = fetch_freelancer_rss() + fetch_reddit_json()
@@ -318,17 +322,37 @@ def bounty_loop():
         except Exception as e:
             log.error(f"[BountyHunter] Error en el loop de monitoreo: {e}")
 
-        time.sleep(POLL_INTERVAL_SEC)
+        # Dormir de a poco para permitir salir rápido si _running pasa a False
+        for _ in range(POLL_INTERVAL_SEC):
+            if not _running:
+                break
+            time.sleep(1)
+
+    log.info("[BountyHunter] Demonio detenido exitosamente.")
 
 
 def start():
     """Punto de entrada usado por core.service_loader"""
-    t = threading.Thread(target=bounty_loop, daemon=True, name="BountyHunterWorker")
-    t.start()
+    global _running, _thread
+    if _running:
+        return True
+    _running = True
+    _thread = threading.Thread(target=bounty_loop, daemon=True, name="BountyHunterWorker")
+    _thread.start()
     return True
 
+def stop():
+    global _running
+    if not _running:
+        return True
+    _running = False
+    log.info("[BountyHunter] Deteniendo motor...")
+    return True
+
+def get_status() -> dict:
+    return {"running": _running}
 
 if __name__ == "__main__":
     start()
-    while True:
+    while _running:
         time.sleep(1)

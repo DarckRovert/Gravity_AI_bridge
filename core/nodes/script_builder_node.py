@@ -3,7 +3,6 @@ Gravity Workflow Node: ScriptBuilder
 Transforma texto libre en un guión estructurado de N escenas para el Video Studio.
 """
 
-import json
 from core.workflow_engine import GravityNode, registry
 from core.logger import log
 

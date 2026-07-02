@@ -5,7 +5,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 
 from core.autonomy_engine import _execute_low_risk_action
-from core.workflow_engine import list_jobs
 import time
 
 def run_tests():
@@ -17,12 +16,12 @@ def run_tests():
         "description": 'run_workflow("investigacion_rapida", {"topic": "Computación Cuántica"})'
     }
 
-    print(f"\n[*] Ejecutando accion simulada del LLM:")
+    print("\n[*] Ejecutando accion simulada del LLM:")
     print(f"    Modulo: {mock_action['module']}")
     print(f"    Desc: {mock_action['description']}")
 
     ok, result = _execute_low_risk_action(mock_action)
-    print(f"\n[*] Respuesta del handler:")
+    print("\n[*] Respuesta del handler:")
     print(f"    OK: {ok}")
     print(f"    MSG: {result}")
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   Brain, Zap, ShieldCheck, TrendingUp, CheckCircle,
   XCircle, Clock, RefreshCw, Activity, Eye, Code2, Target, Lock,
-  BarChart3, ChevronRight, Cpu
+  BarChart3, ChevronRight, Cpu, Power, PowerOff, Radio
 } from 'lucide-react';
 import { showToast } from './Toast';
 
@@ -101,6 +101,10 @@ export const AutonomyPanel = () => {
   const [activeTab, setActiveTab]           = useState<'overview' | 'decisions' | 'patches' | 'rules'>('overview');
   const [triggeringOODA, setTriggeringOODA] = useState(false);
   const [triggeringReflection, setTriggeringReflection] = useState(false);
+  const [radarOnline, setRadarOnline]       = useState(false);
+  const [radarProcessing, setRadarProcessing] = useState(false);
+  const [npuStatus, setNpuStatus]           = useState<{online: boolean; models: string[]; error: string | null}>({online: false, models: [], error: null});
+  const [npuProcessing, setNpuProcessing]   = useState(false);
 
   const fetchAll = useCallback(async () => {
     try {
@@ -133,6 +137,19 @@ export const AutonomyPanel = () => {
         const d = await rulesRes.value.json().catch(() => null);
         if (d) setRules(d.invariant_rules || []);
       }
+      
+      const radarRes = await fetch('/v1/radar/status').catch(() => null);
+      if (radarRes && radarRes.ok) {
+        const rd = await radarRes.json().catch(() => null);
+        if (rd) setRadarOnline(rd.online);
+      }
+
+      const npuRes = await fetch('/v1/npu/status').catch(() => null);
+      if (npuRes && npuRes.ok) {
+        const nd = await npuRes.json().catch(() => null);
+        if (nd) setNpuStatus(nd);
+      }
+      
     } catch (_) {}
     finally { setLoading(false); }
   }, []);
@@ -173,6 +190,34 @@ export const AutonomyPanel = () => {
       showToast('error', `Error Reflexión: ${e.message}`);
     }
     finally { setTimeout(() => setTriggeringReflection(false), 3000); }
+  };
+
+  const handleStartRadar = async () => {
+    setRadarProcessing(true);
+    try { await fetch('/v1/radar/start', { method: 'POST' }); }
+    finally { setTimeout(() => { setRadarProcessing(false); fetchAll(); }, 2000); }
+  };
+
+  const handleStopRadar = async () => {
+    setRadarProcessing(true);
+    try { await fetch('/v1/radar/stop', { method: 'POST' }); }
+    finally { setTimeout(() => { setRadarProcessing(false); fetchAll(); }, 2000); }
+  };
+
+  const handleToggleNpu = async () => {
+    setNpuProcessing(true);
+    const endpoint = npuStatus.online ? '/v1/npu/stop' : '/v1/npu/start';
+    try { 
+      const res = await fetch(endpoint, { method: 'POST' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Error al cambiar estado NPU');
+      }
+      showToast('success', `Se envió orden para ${npuStatus.online ? 'detener' : 'iniciar'} NPU FastFlowLM`);
+    } catch (e: any) {
+      showToast('error', e.message);
+    }
+    finally { setTimeout(() => { setNpuProcessing(false); fetchAll(); }, 3000); }
   };
 
   const handlePatch = async (patchId: string, action: 'approve' | 'reject') => {
@@ -248,8 +293,101 @@ export const AutonomyPanel = () => {
             </button>
           </div>
         </div>
+        
+        {/* Radar HF Control Banner */}
+        <div className="flex items-center justify-between p-4 rounded-xl border bg-surface/50 border-border-subtle shadow-md flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+             <div className={`p-2 rounded-lg ${radarOnline ? 'bg-status-success/20 text-status-success' : 'bg-status-error/20 text-status-error'}`}>
+               <Radio size={20} className={radarOnline ? "animate-pulse" : ""} />
+             </div>
+             <div>
+               <h3 className="text-sm font-bold text-text-primary">Radar de Alta Frecuencia (HF)</h3>
+               <p className="text-xs text-text-muted">Escaneo global autónomo sub-minuto para urgencias.</p>
+             </div>
+          </div>
+          <div>
+            {!radarOnline ? (
+              <button 
+                 onClick={handleStartRadar}
+                 disabled={radarProcessing}
+                 className="flex items-center gap-2 px-6 py-2 rounded-xl bg-accent-primary/20 border border-accent-primary/30 text-accent-primary hover:bg-accent-primary hover:text-white transition-all text-xs font-black uppercase tracking-widest disabled:opacity-50"
+               >
+                 <Power size={14} className={radarProcessing ? "animate-spin" : ""} />
+                 {radarProcessing ? 'INICIANDO...' : 'INICIAR RADAR'}
+               </button>
+            ) : (
+              <button 
+                 onClick={handleStopRadar}
+                 disabled={radarProcessing}
+                 className="flex items-center gap-2 px-6 py-2 rounded-xl bg-status-error/10 border border-status-error/30 text-status-error hover:bg-status-error/20 transition-all text-xs font-bold uppercase tracking-widest disabled:opacity-50"
+               >
+                 <PowerOff size={14} className={radarProcessing ? "animate-spin" : ""} />
+                 {radarProcessing ? 'APAGANDO...' : 'APAGAR RADAR'}
+               </button>
+            )}
+          </div>
+        </div>
 
-        {/* ── Métricas rápidas ── */}
+        {/* NPU AMD XDNA Banner */}
+        <div className={`flex items-center justify-between p-4 rounded-xl border bg-surface/50 flex-wrap gap-4 ${
+          npuStatus.online
+            ? 'border-violet-500/30 shadow-[0_0_20px_rgba(139,92,246,0.1)]'
+            : npuStatus.error ? 'border-status-error/20' : 'border-border-subtle'
+        }`}>
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${
+              npuStatus.online ? 'bg-violet-500/20 text-violet-400' : 'bg-surface text-text-muted'
+            }`}>
+              <Cpu size={20} className={npuStatus.online ? 'animate-pulse' : ''} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
+                NPU AMD XDNA (FastFlowLM)
+                {npuStatus.online && (
+                  <span className="px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-400 text-[10px] font-black uppercase tracking-widest">ONLINE</span>
+                )}
+              </h3>
+              <p className="text-xs text-text-muted">
+                {npuStatus.online
+                  ? `${npuStatus.models.length} modelo(s) disponible(s): ${npuStatus.models.join(', ') || 'detectando...'}`
+                  : npuStatus.error || 'FastFlowLM no detectado en puerto 52625.'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {npuStatus.error && !npuStatus.online && (
+              <span className="text-[10px] text-status-error font-bold px-3 py-1 rounded-lg border border-status-error/20 bg-status-error/5">
+                Error de driver AMD XDNA
+              </span>
+            )}
+            <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-lg border ${
+              npuStatus.online
+                ? 'text-violet-400 border-violet-500/30 bg-violet-500/10'
+                : 'text-text-muted border-border-subtle bg-surface'
+            }`}>
+              Puerto 52625
+            </span>
+            <button 
+              onClick={handleToggleNpu}
+              disabled={npuProcessing}
+              className={`ml-2 px-4 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-widest transition-all disabled:opacity-50 flex items-center gap-2 ${
+                npuStatus.online 
+                  ? 'bg-status-error/10 text-status-error border border-status-error/20 hover:bg-status-error/20' 
+                  : 'bg-violet-500 text-white hover:bg-violet-600 shadow-lg shadow-violet-500/20'
+              }`}
+            >
+              {npuProcessing ? (
+                <><RefreshCw size={12} className="animate-spin" /> PROCESANDO...</>
+              ) : npuStatus.online ? (
+                <><PowerOff size={12} /> DETENER NPU</>
+              ) : (
+                <><Cpu size={12} /> INICIAR NPU XDNA</>
+              )}
+            </button>
+          </div>
+        </div>
+
+
         {loading ? (
           <div className="py-16 text-center text-text-muted animate-pulse">Cargando estado del engine...</div>
         ) : (

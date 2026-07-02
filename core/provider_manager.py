@@ -18,7 +18,13 @@ _lock = threading.RLock()
 _cached_results: List[ProviderResult] = []
 _cached_plugins: Dict[str, ProviderPlugin] = {}  # name → plugin
 _last_scan_time: float = 0.0
-_SCAN_TTL: float = 60.0  # seconds before re-scanning
+_SCAN_TTL: float = 180.0  # segundos antes de re-escanear (B2: 3 min — reduce overhead en workflows largos)
+
+# Lock global de inferencia — serializa todas las llamadas al LLM.
+# Evita condición de carrera entre daemons de fondo y el chat del usuario.
+# Timeout de 120s para que ninguna llamada quede bloqueada para siempre.
+_inference_lock = threading.Lock()
+_INFERENCE_LOCK_TIMEOUT: float = 120.0
 
 
 def _load_settings() -> Dict[str, Any]:
@@ -52,12 +58,21 @@ def _score_model(result: ProviderResult, model_name: str, task: str) -> float:
     else:
         score += 20.0
 
+    # ── NPU Priority Boost ────────────────────────────────────────────────────
+    # FastFlowLM corre en la NPU AMD XDNA (Ryzen AI). Cuando está activo,
+    # debe tener prioridad absoluta: deja libre la GPU/CPU para el resto del sistema.
+    if result.name == "FastFlowLM (NPU)":
+        score += 200.0  # Supera cualquier proveedor local por CPU/GPU
+
     # Model already loaded in GPU → big bonus
     if result.active_model == model_name:
         score += 50.0
 
-    # Response time penalty
-    score -= result.response_ms * 0.1
+    # Response time penalty (FLM durante carga inicial puede tener latencia alta, no penalizar exageradamente)
+    if result.name == "FastFlowLM (NPU)":
+        score -= min(result.response_ms * 0.05, 100.0)  # cap 100 pts de penalización
+    else:
+        score -= result.response_ms * 0.1
 
     # Task-specific model bonuses
     active = model_name.lower()
@@ -125,6 +140,7 @@ def _score_model(result: ProviderResult, model_name: str, task: str) -> float:
 
 
 # ── Public API ─────────────────────────────────────────────────────────────────
+
 
 
 def scan_all(force: bool = False) -> List[ProviderResult]:
@@ -342,7 +358,15 @@ def stream(
         r = plugin.check_health()
         model = r.active_model or (r.models[0]["name"] if r.models else "unknown")
 
-    yield from plugin.chat_stream(messages, model, options)
+    # Serializar acceso al LLM — evita condiciones de carrera entre daemons y el chat
+    acquired = _inference_lock.acquire(timeout=_INFERENCE_LOCK_TIMEOUT)
+    if not acquired:
+        yield "[ProviderManager] Motor de IA ocupado. Reintenta en unos segundos."
+        return
+    try:
+        yield from plugin.chat_stream(messages, model, options)
+    finally:
+        _inference_lock.release()
 
 
 def complete(

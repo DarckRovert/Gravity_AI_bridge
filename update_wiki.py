@@ -1,5 +1,4 @@
 import glob
-import os
 
 for filepath in glob.glob("wiki/*.md"):
     with open(filepath, "r", encoding="utf-8") as f:

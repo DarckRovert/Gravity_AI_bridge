@@ -1,0 +1,3 @@
+[FLM]  Configuring NPU Power Mode to performance (flm default)
+[FLM]  Using environment-specified port: 52625
+[FLM]  Loading model: C:\Users\darck\.flm\models\Llama-3.2-1B-NPU2

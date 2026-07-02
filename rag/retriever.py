@@ -241,9 +241,12 @@ class RAGEmbedder:
         )
 
         # 3. Execution
-        cmd = f'conda run -n {env_name} python -c "{worker_code}"'
+        cmd = ["conda", "run", "-n", env_name, "python", "-c", worker_code]
         try:
-            subprocess.run(cmd, shell=True, check=True, capture_output=True)
+            kwargs = {"check": True, "capture_output": True}
+            if os.name == "nt":
+                kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
+            subprocess.run(cmd, **kwargs)
             with open(out_path, "r") as f_out:
                 results = json.load(f_out)
         except Exception as e:
@@ -313,7 +316,7 @@ class RAGEmbedder:
             words = re.findall(r"\w+", text.lower())
             vec = [0.0] * DIM
             for w in words:
-                h = int(hashlib.md5(w.encode()).hexdigest(), 16) % DIM
+                h = int(hashlib.sha256(w.encode()).hexdigest(), 16) % DIM
                 vec[h] += 1.0
             # L2 normalize
             norm = math.sqrt(sum(x * x for x in vec)) or 1.0

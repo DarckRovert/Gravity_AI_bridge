@@ -20,6 +20,9 @@ def fetch_page_text(url: str, max_chars: int = 3000) -> str:
     Descarga y limpia el HTML de una URL, retornando texto plano.
     Usado para recuperación profunda de contenido más allá del snippet.
     """
+    if not url.startswith(("http://", "https://")):
+        return f"Error: Invalid URL scheme. Only http/https allowed. URL: {url}"
+
     try:
         req = urllib.request.Request(
             url,

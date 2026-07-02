@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   DollarSign, TrendingUp, Video, Globe, Share2, Tag,
-  RefreshCw, CheckCircle, XCircle, Play, BarChart2,
+  RefreshCw, CheckCircle, XCircle, Play, Square, BarChart2,
   Clock, ExternalLink, ChevronDown, ChevronUp, Zap,
   AlertTriangle, Info, Send
 } from 'lucide-react';
@@ -24,8 +24,8 @@ interface YouTubeStatus {
   quota_limit: number; uploads_today?: number;
 }
 interface SchedulerStatus {
-  enabled: boolean; jobs_queued: number; last_topic: string | null;
-  last_niche: string | null; config: { videos_per_day: number; time_utc: string };
+  enabled: boolean; running: boolean; jobs_queued: number; last_topic: string | null;
+  last_niche: string | null; config: { enabled: boolean; videos_per_day: number; time_utc: string };
 }
 interface SocialEntry { enabled: boolean; configured: boolean; uploads_24h: number; setup_url: string; }
 interface SocialStatus { tiktok: SocialEntry; instagram: SocialEntry; recent_log?: SocialLog[]; }
@@ -141,6 +141,14 @@ export const MonetizationHub = () => {
     setMsg('Encolando...');
     const d = await post('/v1/scheduler/trigger', {});
     setMsg(d.ok ? `✅ Job #${d.job_id} encolado: "${d.topic}"` : `❌ ${d.error}`);
+    fetchAll();
+  };
+
+  const toggleScheduler = async () => {
+    setMsg('Cambiando estado...');
+    const endpoint = sched?.running ? '/v1/content/stop' : '/v1/content/start';
+    const d = await post(endpoint, {});
+    setMsg(d.ok ? `✅ Daemon ${sched?.running ? 'detenido' : 'iniciado'} exitosamente` : `❌ ${d.error}`);
     fetchAll();
   };
 
@@ -316,22 +324,31 @@ export const MonetizationHub = () => {
       {/* Scheduler */}
       <Sec id="scheduler" title="Content Scheduler — Producción Autónoma" icon={Clock} open={open==='scheduler'} toggle={toggle}>
         <div className="grid grid-cols-2 gap-2">
-          <Row2 label="Estado"       value={<Badge ok={sched?.enabled??false} yes="Activo" no="Pausado"/>}/>
+          <Row2 label="Config (yaml)"       value={<Badge ok={sched?.config?.enabled??false} yes="Activa" no="Pausada"/>}/>
+          <Row2 label="Daemon Backend"      value={<Badge ok={sched?.running??false} yes="Corriendo" no="Detenido"/>}/>
           <Row2 label="Videos/día"   value={String(sched?.config?.videos_per_day??2)} mono/>
           <Row2 label="Hora UTC"     value={sched?.config?.time_utc??'--'} mono/>
           <Row2 label="Jobs en cola" value={String(sched?.jobs_queued??0)} mono/>
         </div>
         {sched?.last_topic && (
-          <div className="p-2.5 bg-surface rounded-lg">
+          <div className="p-2.5 bg-surface rounded-lg mt-2">
             <div className="text-[10px] text-text-muted mb-0.5">Último topic generado</div>
             <div className="text-xs font-bold truncate">{sched.last_topic}</div>
             {sched.last_niche && <div className="text-[10px] text-text-muted">Nicho: {sched.last_niche}</div>}
           </div>
         )}
-        <button onClick={triggerScheduler}
-          className="w-full py-2 px-4 rounded-lg bg-accent-primary hover:bg-accent-secondary text-white text-xs font-bold transition-colors flex items-center justify-center gap-2">
-          <Play size={12}/> Encolar Video Ahora
-        </button>
+        <div className="flex gap-2 mt-2">
+          <button onClick={toggleScheduler}
+            className={`flex-1 py-2 px-4 rounded-lg text-white text-xs font-bold transition-colors flex items-center justify-center gap-2 ${
+              sched?.running ? 'bg-status-error hover:bg-status-error/80' : 'bg-status-success hover:bg-status-success/80'
+            }`}>
+            {sched?.running ? <><Square size={12}/> Detener Motor Continuo</> : <><Play size={12}/> Iniciar Motor Continuo</>}
+          </button>
+          <button onClick={triggerScheduler}
+            className="flex-1 py-2 px-4 rounded-lg bg-accent-primary hover:bg-accent-secondary text-white text-xs font-bold transition-colors flex items-center justify-center gap-2">
+            <Play size={12}/> Encolar Video (1-vez)
+          </button>
+        </div>
       </Sec>
 
       {/* Language Cloner */}

@@ -74,8 +74,13 @@ Sistema de orquestación unificada con capacidades de Agente Autónomo de Sistem
     setMessages(prev => [...prev, { role: 'user', content: userMsg }, { role: 'assistant', content: '' }]);
     setIsStreaming(true);
 
+    // AbortController con timeout de 90s — si el backend no responde, no quedamos colgados
+    abortControllerRef.current = new AbortController();
+    const timeoutId = setTimeout(() => {
+      abortControllerRef.current?.abort();
+    }, 90000);
+
     try {
-      abortControllerRef.current = new AbortController();
       // Usamos el endpoint V11 que procesa contexto y comandos
       const res = await fetch('/v1/gravity/chat', {
         method: 'POST',
@@ -129,16 +134,29 @@ Sistema de orquestación unificada con capacidades de Agente Autónomo de Sistem
         }
       }
     } catch (e: any) {
+      clearTimeout(timeoutId);
       if (e.name === 'AbortError') {
-        // Cancelado por el usuario
+        // Puede ser timeout de 90s o cancelación manual del usuario
+        setMessages(prev => {
+          const newMsgs = [...prev];
+          const last = newMsgs[newMsgs.length - 1];
+          if (!last.content) {
+            newMsgs[newMsgs.length - 1].content = `⏱ Tiempo de espera agotado. El motor de IA puede estar ocupado procesando otra tarea. Reintenta en unos segundos.`;
+          }
+          return newMsgs;
+        });
       } else {
         setMessages(prev => {
           const newMsgs = [...prev];
-          newMsgs[newMsgs.length - 1].content = `❌ Error de conexión: ${e}`;
+          const errMsg = e?.message?.includes('fetch') 
+            ? `❌ Motor ocupado o sin respuesta. Reintenta en unos segundos. (${e})`
+            : `❌ Error de conexión: ${e}`;
+          newMsgs[newMsgs.length - 1].content = errMsg;
           return newMsgs;
         });
       }
     } finally {
+      clearTimeout(timeoutId);
       setIsStreaming(false);
       abortControllerRef.current = null;
     }

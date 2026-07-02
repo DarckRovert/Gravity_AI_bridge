@@ -121,7 +121,9 @@ def _get_machine_salt() -> bytes:
     if platform.system() == "Windows":
         try:
             vol = subprocess.check_output(
-                "vol C:", shell=True, stderr=subprocess.DEVNULL
+                ["cmd.exe", "/c", "vol", "C:"], 
+                stderr=subprocess.DEVNULL,
+                creationflags=subprocess.CREATE_NO_WINDOW
             ).decode(errors="ignore")
             parts.append(vol)
         except Exception:

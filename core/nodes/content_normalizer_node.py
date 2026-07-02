@@ -43,18 +43,20 @@ class ContentNormalizerNode(GravityNode):
     }
 
     def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
-        raw_json_str = inputs.get("raw_json", "")
-        content_type = inputs.get("content_type", "news")
-        author = inputs.get("author", "Nexo Ágora")
-        image_prompt_prefix = inputs.get("image_prompt_prefix", "cyberpunk news dark photorealistic")
-        default_category = inputs.get("default_category", "Tecnología Descentralizada")
+        raw_json_str = inputs.get("raw_json") or "{}"
+        content_type = inputs.get("content_type") or "news"
+        author = inputs.get("author") or "Nexo Ágora"
+        image_prompt_prefix = inputs.get("image_prompt_prefix") or "cyberpunk news dark photorealistic"
+        default_category = inputs.get("default_category") or "Tecnología Descentralizada"
 
         # Parse valid_categories from JSON string
         valid_categories: List[str] = []
-        raw_cats = inputs.get("valid_categories", "")
+        raw_cats = inputs.get("valid_categories") or ""
         if raw_cats:
             try:
-                valid_categories = json.loads(raw_cats)
+                parsed_cats = json.loads(raw_cats)
+                if isinstance(parsed_cats, list):
+                    valid_categories = parsed_cats
             except Exception:
                 valid_categories = []
 
@@ -111,23 +113,51 @@ class ContentNormalizerNode(GravityNode):
         if not article_data:
             log.warning(f"[{self.__class__.__name__}] Intentando reparar JSON truncado...")
             repaired = {}
-            for field in ["category", "title", "excerpt", "subtitle"]:
-                m = re.search(rf'"{field}"\s*:\s*"((?:[^"\\]|\\.)*)"', text, re.DOTALL)
+            
+            # Extract common string fields (English and Spanish)
+            string_fields = [
+                "category", "categoria", "categoría", 
+                "title", "titulo", "título", "title_articulo",
+                "excerpt", "extracto", "resumen", "description", "summary",
+                "subtitle", "subtitulo", "subtítulo"
+            ]
+            for field in string_fields:
+                m = re.search(rf'"{field}"\s*:\s*"((?:[^"\\]|\\.)*?)(?:"|$)', text, re.IGNORECASE | re.DOTALL)
                 if m:
                     repaired[field] = m.group(1).replace("\\n", "\n").replace('\\"', '"')
-            ft_match = re.search(r'"fullText"\s*:\s*"(.*?)(?:"|$)', text, re.DOTALL)
-            if ft_match:
-                ft = ft_match.group(1).rstrip("\\").replace("\\n", "\n").replace('\\"', '"')
-                if not ft.endswith("."):
-                    ft += " [Transmisión cortada — fragmento recuperado.]"
-                repaired["fullText"] = ft
-            feat_m = re.search(r'"featured"\s*:\s*(true|false)', text)
-            repaired["featured"] = feat_m.group(1) == "true" if feat_m else False
+            
+            # Extract full text fields
+            ft_fields = ["fullText", "fulltext_articulo", "texto", "contenido", "full_text", "cuerpo"]
+            for ft_field in ft_fields:
+                ft_match = re.search(rf'"{ft_field}"\s*:\s*"((?:[^"\\]|\\.)*?)(?:"|$)', text, re.IGNORECASE | re.DOTALL)
+                if ft_match:
+                    ft = ft_match.group(1).rstrip("\\").replace("\\n", "\n").replace('\\"', '"')
+                    if not ft.endswith("."):
+                        ft += " [Transmisión cortada — fragmento recuperado.]"
+                    repaired[ft_field] = ft
+                    break
+            
+            # Extract featured
+            feat_m = re.search(r'"(featured|destacado)"\s*:\s*(true|false)', text, re.IGNORECASE)
+            repaired["featured"] = feat_m.group(2).lower() == "true" if feat_m else False
 
-            if "title" in repaired:
+            if repaired:
                 article_data = repaired
             else:
-                raise ValueError("No se pudo extraer JSON ni repararlo.")
+                log.warning(f"[{self.__class__.__name__}] Falló la reparación estructurada. Tratando como texto plano.")
+                article_data = {
+                    "fullText": text.strip()[:3000] + " [Texto recuperado en crudo]"
+                }
+
+        # ── Validar tipo de datos antes de iterar ───────────────────────
+        if isinstance(article_data, list):
+            if len(article_data) > 0 and isinstance(article_data[0], dict):
+                article_data = article_data[0]
+            else:
+                article_data = {"fullText": str(article_data)}
+
+        if not isinstance(article_data, dict):
+            article_data = {"fullText": str(article_data)}
 
         # ── Normalización de llaves ─────────────────────────────────────
         normalized = {}
@@ -154,12 +184,12 @@ class ContentNormalizerNode(GravityNode):
                 normalized[k] = v
 
         # ── Garantizar llaves mínimas ───────────────────────────────────
-        if "title" not in normalized:
-            normalized["title"] = "Transmisión Clandestina de la Zona Ágora"
-        if "excerpt" not in normalized:
-            normalized["excerpt"] = "Reporte interceptado de los nodos de Gravity AI."
-        if "fullText" not in normalized:
-            normalized["fullText"] = "### Canal de contingencia activo\n\nNo se pudo decodificar."
+        if "title" not in normalized or not isinstance(normalized["title"], str):
+            normalized["title"] = str(normalized.get("title", "Transmisión Clandestina de la Zona Ágora"))
+        if "excerpt" not in normalized or not isinstance(normalized["excerpt"], str):
+            normalized["excerpt"] = str(normalized.get("excerpt", "Reporte interceptado de los nodos de Gravity AI."))
+        if "fullText" not in normalized or not isinstance(normalized["fullText"], str):
+            normalized["fullText"] = str(normalized.get("fullText", "### Canal de contingencia activo\n\nNo se pudo decodificar."))
 
         # Validar categoría
         if valid_categories and normalized.get("category") not in valid_categories:
@@ -177,10 +207,20 @@ class ContentNormalizerNode(GravityNode):
         normalized["date"] = datetime.now().isoformat()
         normalized["tags"] = normalized.get("tags", [])
 
-        if "readingTime" not in normalized:
-            # Estimar por longitud del texto (~200 palabras/min)
-            word_count = len(normalized.get("fullText", "").split())
-            normalized["readingTime"] = max(3, word_count // 200)
+        # Estimar por longitud del texto (~200 palabras/min)
+        word_count = len(normalized.get("fullText", "").split())
+        computed_reading_time = max(3, word_count // 200)
+
+        if "readingTime" in normalized:
+            try:
+                # El LLM a veces alucina "5 minutos", forzar a int
+                normalized["readingTime"] = int(re.sub(r"\D", "", str(normalized["readingTime"])))
+                if normalized["readingTime"] <= 0:
+                    normalized["readingTime"] = computed_reading_time
+            except Exception:
+                normalized["readingTime"] = computed_reading_time
+        else:
+            normalized["readingTime"] = computed_reading_time
 
         # ── Imagen Pollinations.ai ──────────────────────────────────────
         title_encoded = urllib.parse.quote(normalized["title"][:120])

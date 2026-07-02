@@ -633,10 +633,9 @@ def animate_with_comfyui(
                         subprocess, "CREATE_NEW_CONSOLE", 0x00000010
                     )
                     subprocess.Popen(
-                        [bat_file],
+                        ["cmd.exe", "/c", bat_file],
                         cwd=comfy_dir,
                         creationflags=CREATE_NEW_CONSOLE,
-                        shell=True,
                     )
                     for _ in range(30):
                         time.sleep(2.0)

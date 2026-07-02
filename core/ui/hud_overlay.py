@@ -5,8 +5,6 @@ Utiliza PySide6 (Qt) acelerado por hardware para efectos visuales sin consumir C
 """
 
 import sys
-import threading
-import time
 from core.logger import log
 
 try:

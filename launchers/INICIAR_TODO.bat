@@ -51,6 +51,51 @@ REM     ) else (
 REM         echo  [!] Advertencia: No se pudieron liberar todos los puertos secundarios.
 REM     )
 REM )
+REM ── 1.5. Iniciar FastFlowLM (NPU Server) si está instalado ───────────────
+echo.
+echo  [NPU] Verificando FastFlowLM (Motor NPU Hawk Point)...
+set _FLM_ACTIVE=0
+where flm >nul 2>&1
+if errorlevel 1 (
+    echo  [SKIP] FastFlowLM no instalado o no esta en el PATH.
+    goto :after_flm
+)
+
+REM Si llegamos aqui, FLM esta instalado. Verificamos RAM.
+set _FREE_MB=0
+for /f %%a in ('python -c "import psutil; print(int(psutil.virtual_memory().available / (1024*1024)))" 2^>nul') do set _FREE_MB=%%a
+
+if !_FREE_MB! lss 6000 (
+    echo  [WARN] RAM libre insuficiente ^(!_FREE_MB! MB^) para la compilacion NPU.
+    echo  [WARN] FLM requiere al menos 6GB libres. Cierra LM Studio o apps pesadas y reintenta.
+    echo  [INFO] FastFlowLM NO iniciado para evitar colapso del sistema.
+    goto :after_flm
+)
+
+echo  [OK] RAM libre: !_FREE_MB! MB. Iniciando servidor NPU en puerto 52625...
+start "Gravity :: FastFlowLM Server (NPU)" cmd /k "flm serve llama3.2:1b --port 52625"
+
+REM Esperar hasta 30s a que el puerto 52625 responda
+set _FLM_RETRIES=0
+:wait_flm
+netstat -ano | findstr ":52625 " | findstr "LISTENING" >nul 2>&1
+if not errorlevel 1 (
+    set _FLM_ACTIVE=1
+    echo  [OK] FastFlowLM activo en puerto 52625. La NPU esta en uso.
+    goto :after_flm
+)
+
+set /a _FLM_RETRIES+=1
+if !_FLM_RETRIES! lss 30 (
+    ping 127.0.0.1 -n 2 > nul
+    goto wait_flm
+)
+
+echo  [WARN] FastFlowLM no respondio en 30s ^(normal la 1era vez, puede tardar 5-10 min cargando^).
+echo  [INFO] El modelo NPU sigue cargando en segundo plano. El sistema lo usara cuando este listo.
+
+:after_flm
+
 REM ── 2. Bridge Server (GravityAI) ──────────────────────────────────────────
 echo.
 echo  [2/4] Verificando nucleo de Gravity...
@@ -62,7 +107,7 @@ if not errorlevel 1 (
 ) else (
     echo  [!] Gravity no esta respondiendo en el puerto 7860.
     echo  [+] Iniciando puente de Gravity AI automaticamente...
-    start "Gravity AI Bridge Server" cmd /k "cd /d "%ROOT%" && python bridge_server.py"
+    start "Gravity AI Bridge Server" cmd /k cd /d "%ROOT%" ^&^& python bridge_server.py
     set _BRIDGE_OK=1
 )
 
@@ -84,35 +129,18 @@ echo  [3/4] Motor Fooocus configurado en modo Manual.
 echo  [INFO] Para ahorrar memoria RAM, inicia Fooocus desde el Dashboard (Mission Control) cuando lo necesites.
 
 
-REM ── 4. Fooocus Studio UI (7862) ────────────────────────────────────────────────
+REM ── 4. Fooocus Studio UI (7862) — INICIO MANUAL para ahorrar RAM ───────────────────────────
 :after_fooocus
 echo.
-echo  [4/4] Iniciando Fooocus Studio UI (puerto 7862)...
-if not exist "%STUDIO_UI%" (
-    echo  [SKIP] tools\fooocus_studio_ui.py no encontrado. Studio UI omitido.
-    goto :launch_done
-)
-start "Gravity :: Fooocus Studio UI" cmd /k "cd /d "%ROOT%" && python tools\fooocus_studio_ui.py"
-echo  [OK] Studio UI iniciado.
+echo  [4/4] Fooocus Studio UI configurado en modo MANUAL (ahorra RAM).
+echo  [INFO] Inicialo desde el Dashboard Web cuando necesites generar imagenes.
+REM NOTA: Para activar el arranque automatico descomenta la linea siguiente:
+REM start "Gravity :: Fooocus Studio UI" cmd /k cd /d "%ROOT%" ^&^& python tools\fooocus_studio_ui.py
 
 echo.
-echo  [5/7] Despertando al Agente Periodistico Autonomo...
-start "Gravity :: Agente Periodistico" cmd /k "cd /d "%ROOT%" && python news_daemon.py"
-echo  [OK] Agente Periodistico iniciado en background.
-
-echo.
-echo  [6/7] Activando Radar de Alta Frecuencia...
-start "Gravity :: Radar de Alta Frecuencia" cmd /k "cd /d "%ROOT%" && python core\high_frequency_radar.py"
-echo  [OK] Radar de Alta Frecuencia activado (Monitorizacion sub-minuto).
-
-echo.
-echo  [7/7] Inicializando J.A.R.V.I.S. Sensory Net (Visión, Oído, Térmico, HUD)...
-start "Gravity :: Voice Daemon (Ears)" cmd /k "cd /d "%ROOT%" && python core\voice_daemon.py"
-start "Gravity :: Overwatch (Eyes)" cmd /k "cd /d "%ROOT%" && python core\overwatch_daemon.py"
-start "Gravity :: Thermal Watchdog (Nervous System)" cmd /k "cd /d "%ROOT%" && python core\thermal_watchdog.py"
-start "Gravity :: Spatial HUD" cmd /k "cd /d "%ROOT%" && python core\ui\hud_overlay.py"
-start "Gravity :: Sentinel Core (Proactive Brain)" cmd /k "cd /d "%ROOT%" && python core\sentinel_core.py"
-echo  [OK] Todos los sentidos periféricos y el Núcleo Centinela enlazados al Bus Principal.
+echo  [INFO] Los modulos autonomos (Periodista, Radar, J.A.R.V.I.S) 
+echo  [INFO] han sido configurados para inicio MANUAL via Dashboard Web.
+echo  [INFO] Esto ahorra recursos y evita multiples consolas.
 
 :launch_done
 echo.
@@ -123,29 +151,35 @@ echo  ^|   Dashboard Web:    http://localhost:7860  (Chat, V2V, Video Studio)   
 echo  ^|   Fooocus Motor:    http://127.0.0.1:7861  (API generacion imagenes)    ^|
 echo  ^|   Fooocus Studio:   http://127.0.0.1:7862  (UI de generacion)           ^|
 echo  ^|   V2V WebSocket:    ws://127.0.0.1:7863    (Motor en vivo)              ^|
-echo  ^|   Periodista:       Autonomo y en ejecucion silenciosa                  ^|
-echo  ^|   Radar HF:         Escaneo global de urgencias (cada 60s)               ^|
-echo  ^|   J.A.R.V.I.S:      Sensory Net 9999 + HUD Espacial + Voice + Overwatch  ^|
+echo  ^|   Periodista:       [MANUAL] Iniciar desde el Dashboard Web             ^|
+echo  ^|   Radar HF:         [MANUAL] Iniciar desde el Dashboard Web             ^|
+echo  ^|   J.A.R.V.I.S:      [MANUAL] Iniciar desde el Dashboard Web             ^|
+echo  ^|   FastFlowLM NPU:   http://localhost:52625 (Opcional, Backend de IA)     ^|
 echo  ^|                                                                          ^|
-echo  ^|   [!] V2V Engine: inicia desde el panel V2V Live Studio                 ^|
+echo  ^|   [!] V2V Engine y Modulos Autonomos inician desde el Dashboard Web     ^|
 echo  ^|   [!] Fooocus CPU tarda ~60-120s en cargar. Imagen: 3-8 min             ^|
-echo  ^|   [!] NO cierres ventanas de motores mientras trabajas                  ^|
+echo  ^|   [!] Todo corre en segundo plano de manera limpia sin tantas consolas  ^|
 echo  ^|                                                                          ^|
 echo  +--------------------------------------------------------------------------+
 echo.
 if "!_BRIDGE_OK!"=="1" (
     echo  Esperando a que el Dashboard responda...
-    :wait_dashboard
-    netstat -ano | findstr ":7860 " | findstr "LISTENING" >nul 2>&1
-    if errorlevel 1 (
-        timeout /t 1 /nobreak >nul
-        goto wait_dashboard
-    )
-    echo  Abriendo el Dashboard principal en tu navegador...
-    start http://127.0.0.1:7860/
+    goto wait_dashboard
 ) else (
     echo  [!] Dashboard no se abrira porque el servicio GravityAI esta detenido.
+    goto launch_done_final
 )
+
+:wait_dashboard
+netstat -ano | findstr ":7860 " | findstr "LISTENING" >nul 2>&1
+if errorlevel 1 (
+    ping 127.0.0.1 -n 2 > nul
+    goto wait_dashboard
+)
+echo  Abriendo el Dashboard principal en tu navegador...
+start http://127.0.0.1:7860/
+
+:launch_done_final
 echo.
 echo  [LISTO] Ecosistema Gravity AI V16.7 PRO (J.A.R.V.I.S) iniciado. Esta ventana puede cerrarse.
 pause

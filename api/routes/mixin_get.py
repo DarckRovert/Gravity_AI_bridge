@@ -105,6 +105,7 @@ class GetRoutesMixin:
             "/v1/obs/stream/status": self._serve_obs_stream_status,
             "/v1/obs/overlays": self._serve_obs_overlays,
             "/v1/bounties": self._serve_bounties,
+            "/v1/bounties/status": self._serve_bounties_status,
             "/v1/factory/list": self._serve_factory_list,
             "/v1/infiltrator/status": self._serve_infiltrator_status,
             # ── La Tinka Engine ────────────────────────────────────────────────────
@@ -122,6 +123,11 @@ class GetRoutesMixin:
             "/v1/journalist/status": self._serve_journalist_status,
             "/v1/journalist/log": self._serve_journalist_log,
             "/v1/journalist/news": self._serve_journalist_news,
+            # ── J.A.R.V.I.S y Radar ────────────────────────────────────────────────
+            "/v1/jarvis/status": self._serve_jarvis_status,
+            "/v1/radar/status": self._serve_radar_status,
+            # ── NPU AMD XDNA ───────────────────────────────────────────────────────────
+            "/v1/npu/status": self._serve_npu_status,
         }
 
         # Rutas con query string (?server=&lines=)
@@ -798,7 +804,6 @@ class GetRoutesMixin:
                         "pid": handle.process.pid if is_alive else None,
                     }
                 )
-
             body = json.dumps(
                 {"active_sessions": sessions, "count": len(sessions)}, indent=2
             ).encode("utf-8")
@@ -811,6 +816,56 @@ class GetRoutesMixin:
             self.send_response(500)
             self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_jarvis_status(self):
+        from api.routes.handlers.jarvis_handler import handle_jarvis_status
+        handle_jarvis_status(self)
+
+    def _serve_radar_status(self):
+        from api.routes.handlers.radar_handler import handle_radar_status
+        handle_radar_status(self)
+
+    def _serve_npu_status(self):
+        """Estado del NPU FastFlowLM AMD XDNA (puerto 52625)."""
+        import urllib.request
+        from urllib.error import URLError
+        url = "http://localhost:52625/v1/models"
+        result = {"online": False, "models": [], "error": None, "port": 52625, "driver": "AMD XDNA"}
+        try:
+            with urllib.request.urlopen(url, timeout=2) as resp:
+                data = json.loads(resp.read())
+                result["online"] = True
+                result["models"] = [m.get("id", "") for m in data.get("data", [])]
+        except TimeoutError:
+            result["online"] = True
+            result["models"] = ["Iniciando motor (compilando grafos)..."]
+        except URLError as e:
+            if isinstance(e.reason, TimeoutError) or "timed out" in str(e.reason).lower():
+                result["online"] = True
+                result["models"] = ["Iniciando motor (compilando grafos)..."]
+            elif "refused" in str(e.reason).lower() or "10061" in str(e.reason):
+                result["error"] = "FastFlowLM no está ejecutándose en el puerto 52625."
+            else:
+                result["error"] = f"Error de conexión: {e.reason}"
+        except OSError as e:
+            err = str(e)
+            if "refused" in err.lower() or "10061" in err:
+                result["error"] = "FastFlowLM no está ejecutándose en el puerto 52625."
+            elif "timeout" in err.lower() or "timed out" in err.lower():
+                result["online"] = True
+                result["models"] = ["Iniciando motor (compilando grafos)..."]
+            else:
+                result["error"] = f"Error de conexión: {err}"
+        except Exception as e:
+            result["error"] = str(e)
+            
+        body = json.dumps(result, indent=2).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self._send_cors()
+        self.end_headers()
+        self.wfile.write(body)
+
 
     # ── MCP Adapter ────────────────────────────────────────────────────────────
     def _serve_mcp_status(self):

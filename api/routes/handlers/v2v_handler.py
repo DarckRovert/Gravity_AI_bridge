@@ -63,7 +63,7 @@ def handle_v2v_start(req):
         # Since it's a V2V engine, it might need to grab the camera, so a visible console is good for debugging.
         CREATE_NEW_CONSOLE = 0x00000010
         subprocess.Popen(
-            [bat_path], cwd=v2v_dir, creationflags=CREATE_NEW_CONSOLE, shell=True
+            ["cmd.exe", "/c", bat_path], cwd=v2v_dir, creationflags=CREATE_NEW_CONSOLE
         )
 
         body = json.dumps({"ok": True, "message": "Motor V2V iniciado"}).encode()

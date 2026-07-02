@@ -66,7 +66,7 @@ class GitDeployNode(GravityNode):
             if commit_res.returncode != 0:
                 if "nothing to commit" in commit_output or "working tree clean" in commit_output:
                     log.info(f"[{self.__class__.__name__}] Nada que commitear en {repo_path}.")
-                    return {"status": "no_changes", "output": "nothing to commit"}
+                    return {"status": "no_changes", "commit_message": msg, "output": "nothing to commit"}
                 else:
                     err = commit_res.stderr.decode("utf-8", errors="ignore")
                     raise RuntimeError(f"Git commit failed: {err}")
@@ -86,13 +86,19 @@ class GitDeployNode(GravityNode):
                 push_res = subprocess.run(
                     ["git", "push"],
                     cwd=repo_path,
-                    check=True,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE
                 )
+                if push_res.returncode != 0:
+                    push_err = push_res.stderr.decode("utf-8", errors="ignore").strip()
+                    log.warning(
+                        f"[{self.__class__.__name__}] Git push falló (¿sin internet o conflicto?): {push_err}. "
+                        "El artículo fue guardado localmente. Se reintentará en el próximo deploy."
+                    )
+                    return {"status": "push_failed", "commit_message": msg, "output": push_err}
                 log.info(f"[{self.__class__.__name__}] Push realizado exitosamente.")
 
-            return {"status": "deployed", "commit_message": msg}
+            return {"status": "deployed", "commit_message": msg, "output": commit_output}
 
         except subprocess.CalledProcessError as e:
             err = e.stderr.decode("utf-8", errors="ignore") if e.stderr else str(e)

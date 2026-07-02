@@ -340,36 +340,41 @@ class PostChatMixin:
                     self.send_header("Cache-Control", "no-cache")
                     self._send_cors()
                     self.end_headers()
-                    for chunk_text in _pm.stream(
+                    stream_gen = _pm.stream(
                         messages_out,
                         model=best_m,
                         provider=best_p.name,
                         options=options,
-                    ):
-                        if not chunk_text:
-                            continue
-                        clean = stripper.process_chunk(chunk_text)
-                        if not clean:
-                            continue
-                        chunk = {
-                            "id": chat_id,
-                            "object": "chat.completion.chunk",
-                            "model": best_m,
-                            "choices": [
-                                {
-                                    "index": 0,
-                                    "delta": {"content": clean},
-                                    "finish_reason": None,
-                                }
-                            ],
-                        }
-                        try:
-                            self.wfile.write(
-                                f"data: {json.dumps(chunk)}\n\n".encode("utf-8")
-                            )
-                            self.wfile.flush()
-                        except Exception:
-                            break
+                    )
+                    try:
+                        for chunk_text in stream_gen:
+                            if not chunk_text:
+                                continue
+                            clean = stripper.process_chunk(chunk_text)
+                            if not clean:
+                                continue
+                            chunk = {
+                                "id": chat_id,
+                                "object": "chat.completion.chunk",
+                                "model": best_m,
+                                "choices": [
+                                    {
+                                        "index": 0,
+                                        "delta": {"content": clean},
+                                        "finish_reason": None,
+                                    }
+                                ],
+                            }
+                            try:
+                                self.wfile.write(
+                                    f"data: {json.dumps(chunk)}\n\n".encode("utf-8")
+                                )
+                                self.wfile.flush()
+                            except Exception:
+                                break
+                    finally:
+                        stream_gen.close()
+
                     final = {
                         "id": chat_id,
                         "object": "chat.completion.chunk",
@@ -550,40 +555,44 @@ class PostChatMixin:
                     self._send_cors()
                     self.end_headers()
                     output_chars = 0
-                    for chunk_text in provider_manager.stream(
+                    stream_gen = provider_manager.stream(
                         messages,
                         model=target_mod,
                         provider=target_prov,
                         options=options,
-                    ):
-                        if not chunk_text:
-                            continue
-                        clean = stripper.process_chunk(chunk_text)
-                        if not clean:
-                            continue
-                        output_chars += len(clean)
-                        chunk = {
-                            "id": chat_id,
-                            "object": "chat.completion.chunk",
-                            "model": target_mod,
-                            "choices": [
-                                {
-                                    "index": 0,
-                                    "delta": {"content": clean},
-                                    "finish_reason": None,
-                                }
-                            ],
-                        }
-                        try:
-                            self.wfile.write(
-                                f"data: {json.dumps(chunk)}\n\n".encode("utf-8")
-                            )
-                            self.wfile.flush()
-                        except Exception as write_err:
-                            log.debug(
-                                f"[Streaming] Socket cerrado durante escritura: {write_err}"
-                            )
-                            break
+                    )
+                    try:
+                        for chunk_text in stream_gen:
+                            if not chunk_text:
+                                continue
+                            clean = stripper.process_chunk(chunk_text)
+                            if not clean:
+                                continue
+                            output_chars += len(clean)
+                            chunk = {
+                                "id": chat_id,
+                                "object": "chat.completion.chunk",
+                                "model": target_mod,
+                                "choices": [
+                                    {
+                                        "index": 0,
+                                        "delta": {"content": clean},
+                                        "finish_reason": None,
+                                    }
+                                ],
+                            }
+                            try:
+                                self.wfile.write(
+                                    f"data: {json.dumps(chunk)}\n\n".encode("utf-8")
+                                )
+                                self.wfile.flush()
+                            except Exception as write_err:
+                                log.debug(
+                                    f"[Streaming] Socket cerrado durante escritura: {write_err}"
+                                )
+                                break
+                    finally:
+                        stream_gen.close()
                     # Final [DONE]
                     final = {
                         "id": chat_id,
