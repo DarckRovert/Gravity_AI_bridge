@@ -24,7 +24,7 @@ import os
 import sys
 import json
 import argparse
-import ctypes
+import tempfile
 from datetime import datetime
 from typing import Optional
 
@@ -341,12 +341,18 @@ class PeriodistaOrchestrator:
 def main() -> None:
     """Punto de entrada del daemon."""
     # [Single-Instance Lock] Prevenir múltiples instancias de forma nativa sin usar puertos (evita Firewall)
+    # Utilizamos el módulo msvcrt built-in de Python para bloquear un archivo temporal.
+    # Es 100% resistente a crashes porque Windows libera los file handles automáticamente si el proceso muere.
     if sys.platform == "win32":
-        mutex_name = "Local\\GravityAINewsDaemonLock"
-        # Crear un Mutex a nivel del sistema operativo. Si ya existe, GetLastError() retorna 183.
-        mutex = ctypes.windll.kernel32.CreateMutexW(None, False, mutex_name)
-        if ctypes.windll.kernel32.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
-            print("[!] GRAVITY AI: El Reportero ya está en ejecución (Mutex activo).")
+        import msvcrt
+        lock_file = os.path.join(tempfile.gettempdir(), "gravity_periodista.lock")
+        # Abrir o crear el archivo, lo mantenemos abierto durante la vida del proceso
+        global_lock_fd = os.open(lock_file, os.O_CREAT | os.O_RDWR)
+        try:
+            # LK_NBLCK = Non-blocking lock
+            msvcrt.locking(global_lock_fd, msvcrt.LK_NBLCK, 1)
+        except IOError:
+            print("[!] GRAVITY AI: El Reportero ya está en ejecución (Lock activo).")
             print("[!] Cierra la otra ventana o detenlo desde el Dashboard Web.")
             sys.exit(1)
     else:
