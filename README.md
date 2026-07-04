@@ -1,181 +1,252 @@
 <div align="center">
-  <img src="assets/hero_ai.png" alt="Gravity AI Bridge Logo" width="500"/>
-  <h1>GRAVITY AI BRIDGE V17.0 PRO (Diamond-Tier)</h1>
-  <p><strong>[Omniscient-Tier]</strong> | Orquestador Asíncrono de Inteligencia Artificial Local (AMD APU) y Cloud</p>
-  
-  [![Release](https://img.shields.io/badge/Release-V16.14_PRO-red?style=for-the-badge)](https://github.com/DarckRovert/Gravity_AI_bridge)
-  [![Architecture](https://img.shields.io/badge/Architecture-Asynchronous_Forensic-blue?style=for-the-badge)](#)
-  [![Engine](https://img.shields.io/badge/Engine-La_Tinka_WAL-purple?style=for-the-badge)](#)
-  [![Security](https://img.shields.io/badge/Security-AgentShield_Ring_0-green?style=for-the-badge)](#)
-  [![Sensory](https://img.shields.io/badge/Sensory-J.A.R.V.I.S_Protocol-cyan?style=for-the-badge)](#)
+  <img src="https://img.shields.io/badge/GRAVITY_AI-BRIDGE-fff?style=for-the-badge&logo=python&color=07090e" alt="Gravity AI Bridge"/>
+  <br><br>
+
+  [![Autor](https://img.shields.io/badge/Author-DarckRovert-818cf8.svg?style=flat-square)](https://github.com/DarckRovert)
+  [![Licencia](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
+  [![Arquitectura](https://img.shields.io/badge/Architecture-Omniscient--Tier-c69c6d.svg?style=flat-square)]()
+  [![Release](https://img.shields.io/badge/Release-V16.0_PRO-6366f1.svg?style=flat-square)]()
+  [![Security Audit](https://img.shields.io/badge/Security-Audited_100%25-success?style=flat-square&logo=shield)]()
+  [![Twitch](https://img.shields.io/badge/Twitch-DarckRovert-9146ff.svg?style=flat-square&logo=twitch)](https://twitch.tv/darckrovert)
 
   <p align="center">
-    <i><strong>Entidad Cibernética Autónoma de Grado Omnisciente (Omniscient-Tier).</strong><br>
-    Enrutador asíncrono masivo, Hot-Reload de Modelos IA, Swarm Intelligence (Debate), Interfaz Nivel Agentic y Bucle Vital OODA.<br>
-    Operación Local-First de Rendimiento Cero-Dependencias acelerado por AMD (AMF).</i>
+    <i><strong>Megainteligencia Asíncrona "Local-First" de Grado Corporativo Omniscient-Tier.</strong><br>
+    Orquestador universal de LLMs, pipelines multimedia, Agentes Autónomos, Game Servers y HITL.<br>
+    Arquitectura sin dependencias masivas · Zero-Cloud · Control total en 1 PC.</i>
   </p>
 </div>
 
 <br>
 
 > [!CAUTION]
-> Ecosistema de código cerrado **Omniscient-Tier**. 
-> Core Operacional de **[DarckRovert](https://github.com/DarckRovert)** diseñado para sobrevivir, generar capital y auto-gestionarse en hardware local.
+> Este es un ecosistema cerrado **Omniscient-Tier Local-First**. No es open-source público.
+> Core Operacional Privado de **[DarckRovert](https://github.com/DarckRovert)** — uso estrictamente no comercial.
 
 ---
 
-## 🧠 Anatomía del Monstruo (Gravity V16.14 PRO Omniscient-Tier)
+## 🌌 Filosofía y Problema que Resuelve
 
-Gravity trasciende la categoría de "script". Es un sistema operativo cibernético diseñado con arquitectura forense. Carece de la fragilidad de los orquestadores comerciales; fue forjado en Python nativo para exprimir el silicio y gobernar bases de conocimiento completas sin latencia cloud.
+En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Studio), motores de difusión (Fooocus), servidores C++ (MangosD/WoW) y pipelines CI/CD desde una sola máquina resulta en colisiones de hardware, puertos huérfanos, OOM en VRAM y latencias de segundos.
 
-### 1. El Router Nuclear (`bridge_server.py` & `providers/registry.py`)
+**Gravity AI Bridge V16.0 PRO** elimina todos estos problemas con Python nativo puro y un frontend React/Vite de alta respuesta. Su filosofía:
 
-```mermaid
-graph TD
-    User(["Usuario / Interfaz Web"]) -->|HTTP REST / SSE| Bridge["bridge_server.py"]
-    Radar(["Radar HF (Sub-minuto)"]) -.->|Dispara| Bridge
-    
-    subgraph J.A.R.V.I.S Sensory Net
-        Voice["Voice Daemon V2 (Edge-TTS + STT)"] -->|WS 9999 0.0.0.0| Bus["Sensory Bus (Async Hub)"]
-        Vision["Overwatch Daemon"] -->|Visión Pasiva| Bus
-        Dashboard["Panel React UI"] -->|WS 9999 LAN| Bus
-        Thermal["Thermal Watchdog"] -->|WMI Sensors| Bus
-        IoT["IoT Controller"] -->|Home Assistant| Bus
-        Sentinel["Sentinel Core"] -->|Decisión Autónoma LLM| Bus
-        
-        Bus -->|Eventos JSON| CogLoop["Cognitive Loop En Bridge"]
-        CogLoop -->|Ejecución Ejecutiva| Bridge
-    end
-    subgraph Gravity Core [Núcleo Operacional - 32 Cores]
-        Bridge -->|Spawn| Worker1[Session 1: LLM]
-        Bridge -->|Spawn| Worker2[Session 2: LLM]
-        Bridge -->|Spawn| WorkerN[Session 32: LLM]
-        
-        subgraph Swarm Intelligence
-            Worker1 -.->|Debate Oficial| Editor
-            Worker2 -.->|Debate Subversivo| Editor
-            Editor[Síntesis Periodística] --> Lore[Lore Expander]
-        end
-    end
-    
-    subgraph Data & Security Layer
-        Worker1 -.->|I/O Async| Tinka[("La Tinka Engine (WAL)")]
-        WorkerN -.->|I/O Async| Tinka
-        Worker1 -.->|OS Command| Shield{"AgentShield (Ring 0)"}
-        Shield -->|Bloquea| OS["Host OS"]
-    end
-    
-    subgraph Hot-Reload Registry
-        Registry["ProviderRegistry"] -->|Local| Ollama[("Ollama / LM Studio")]
-        Registry -->|Cloud| Cloud[("Z.ai Extension / OpenAI / Anthropic")]
-    end
-    
-    Worker1 --> Registry
-    WorkerN --> Registry
+> **Nota de Seguridad:** La versión V16.0 PRO ha pasado una rigurosa auditoría de código, erradicando vulnerabilidades de ReDoS y garantizando resiliencia absoluta contra fallos silenciosos en operaciones asíncronas y de Git.
+
+- **Zero Dependencias Masivas**: Latencia interna en microsegundos, payload de memoria insignificante.
+- **Conciencia Dinámica del Host**: Auto-diagnóstico de RAM y VRAM, ajuste dinámico de `num_ctx` de Ollama en tiempo real según estrés térmico.
+- **Local-First**: Sin enviar datos a la nube salvo APIs cloud explícitamente configuradas.
+- **Omniscient-Tier Control**: Dashboard SPA (React) unificado con observabilidad total en tiempo real.
+
+---
+
+## 🏛 Módulos del Ecosistema V16.0 PRO
+
+### 📰 Reportero Autónomo (Agente Periodístico)
+- **Operación Continua (Daemon):** Un agente persistente que despierta aleatoriamente cada 4-8 horas (`news_daemon.py`).
+- **Investigación Web Profunda:** Analiza temáticas complejas de geopolítica y ciberseguridad a través de Web Search y fuentes independientes vía RSS de YouTube (ej. Los Liberales).
+- **Redacción y Publicación End-to-End:** 7 Nodos Atómicos en `workflows/reporter.json` orquestan RSS → WebSearch → LLM → Normalización → news.json → VideoJob → GitDeploy. Cuenta con sanitización extrema en URLs (Pollinations Safe-Encoding) y publicación atómica.
+- **Auto-Mantenimiento:** Sincroniza bibliotecas e imágenes eliminando duplicados mediante un sistema de slugs.
+
+### 🧠 Multi-Agent Orchestrator (`core/multi_agent.py`)
+- Dispara peticiones REST concurrentes a múltiples modelos/APIs en paralelo.
+- **Voting Consensuado / Paralelo / Debate**: 2, 3 o 5 modelos votan la respuesta óptima o debaten un resultado mediante controles de UI nativos.
+- **Reasoning Stripper**: Filtra tokens `<think>` de modelos como DeepSeek-R1 via Regex antes de mostrarlos.
+- **Agent Routing**: Selección dinámica de modelo/proveedor según `--role` (auditor, planner, coder, researcher, executor).
+
+### 🖥️ Dashboard V16.1 PRO React SPA (`frontend/dist`)
+Panel de control unificado con 25 componentes orquestados en tiempo real:
+
+| Panel | Función |
+|---|---|
+| 💬 Chat Auditor | LLM chat con streaming SSE, plantillas, soporte multi-rol y **comandos nativos** (`/limpiar`, `/rag`, `/fabrica`, `/tareas`, `/investiga`) |
+| 🏠 Mission Control | KPIs en vivo: tokens, queue, costos, modelos activos |
+| 🎨 Vision Studio | UI iframe de Fooocus integrado |
+| 🖼️ Image Queue | Cola Fooocus con SSE stream de progreso |
+| 🎬 Video Studio | Generación de videos CPU-only con narración TTS |
+| 🎨 Image Lab | Generación via Pollinations.ai con historial |
+| 🚀 Deploy | Pipeline FabricaWeb → Netlify |
+| ⚔️ Game Servers | Control MangosD WoW (start/stop/log/players/backup) |
+| 🤖 Multi-Agent | Comparación/voting multi-modelo simultáneo |
+| 🖥️ Hardware | Perfil GPU/VRAM/NPU/CPU en tiempo real |
+| 💰 Monetización | Hub de ingresos: AdSense, Afiliados CPA, Multi-idioma, Social Uploads |
+| 💸 Auto-Pilot | **BountyHunter & Infiltrator**: Bot 100% autónomo para conseguir clientes en Freelancer.com |
+| 💰 Cost Center | Costos por proveedor, límites diarios, breakdown |
+| ⚡ Watchdog | Engine Watchdog: lock/unlock de modelo |
+| 💾 Sessions | Sesiones persistentes + workers activos con selector de role |
+| 📚 RAG | Estado del índice RAG, activar/desactivar inyección en chat |
+| 🔌 MCP Servers | Adaptadores MCP: tools, resources, estado de conexión |
+| 🛠️ Tools | Code Runner, Web Search, Git, Grep |
+| ⚡ Tools Pro | Versión avanzada con terminal reactiva |
+| 🕷️ Firecrawl | Scraping de URLs en Markdown (Firecrawl API o fallback HTML) |
+| 🛡️ HITL Approval | Intercepción y aprobación humana de tools de alto riesgo |
+| 📡 System Status | Estado completo de backends, latencias, modelos |
+| 🔒 Security | Monitor de procesos, puertos, integridad de archivos |
+| 📋 Audit Log | Historial de peticiones con rotación automática |
+| ⚙️ Configuración | API keys, modelo activo, links rápidos |
+
+### 🔄 Multi-Session Bridge V16.0 PRO (`core/session_runner.py`)
+- `CapacityWake` + `SessionSpawner`: hasta 32 subprocesos de agente aislados simultáneos.
+- Spawn vía UI con selector de **rol** (auditor/planner/coder/researcher/executor).
+- Kill de workers activos con estado PID en tiempo real.
+- Endpoints: `POST /v1/sessions/spawn`, `POST /v1/sessions/kill`, `GET /v1/sessions/active`.
+
+### 🛡️ HITL — Human in the Loop (`core/hitl_manager.py`)
+- Intercepta tools de alto riesgo: `code_runner`, `shell_exec`, `file_write`, `deploy`, `git_push`, etc.
+- Cola thread-safe con timeout de 120s y auto-rechazo.
+- Aprobación/rechazo desde el Dashboard en tiempo real con badge de alerta en el sidebar.
+- Bypass en modo background (permisos absolutos).
+
+### 🕷️ Firecrawl Scraper (`core/firecrawl_scraper.py`)
+- Modo premium: Firecrawl API → Markdown limpio y estructurado.
+- Modo fallback: `urllib` nativo sin dependencias externas → texto plano desde HTML.
+- Configurable via `firecrawl_api_key` en `config.yaml`.
+
+### 🔌 MCP Adapter (`core/mcp_adapter.py`)
+- Protocolo JSON-RPC stdio para servidores MCP externos.
+- Auto-reconexión, `list_tools`, `list_resources`, `read_resource`.
+- Registro global de adaptadores accesible desde el Dashboard.
+
+### 🎬 Video Studio Multi-Agent & Motores Demoscene V17 PBR
+Pipeline multimedia de alta fidelidad orquestado asíncronamente en daemon. Completamente reestructurado bajo el paquete `/core/video/` para máxima resiliencia, con **Motores Matemáticos V17 GLSL**, Renderizado Dual Nativo y despliegue para redes sociales:
+
+- **Dual Render Nativo en GPU**: El motor V17 (Interstellar, Turing Patterns, etc.) renderiza matemáticamente dos veces. Un Master Horizontal (`1920x1080`) y un Master Vertical (`1080x1920`) puro sin recortes FFMPEG.
+- **Smart Subtitle Safe-Zone**: Motor `.ASS` Aspect-Ratio Aware. Adapta dinámicamente los márgenes laterales (`MarginL 40px/440px`) y anclajes verticales según el aspect ratio para jamás salirse del encuadre seguro de TikTok.
+- **Generador Multi-Escena V16**: Flujo unificado que coordina generación de historia, split de diálogos, TTS (Edge-TTS) asíncrono y Whisper para metadatos temporales de precisión.
+- **Auto-Bypass de Fallas**: Sistema modular. Si falla Fooocus, el generador reintenta; si el LLM colapsa, usa un script genérico con `[visual anchor]` estricto.
+  - `audio_processor.py`: Análisis FFT extrae frecuencias separadas (Bass, Mid, High) para reactividad visual, además de compresión sidechain y TTS cinemático.
+  - `glsl_renderer_v13.py`: Cuna de las **5 Joyas Matemáticas V17** (Interstellar Kerr Black Hole, Turing Patterns, Inception KIFS, Neon Fluid, Organic Core). Iluminación basada en imagen (IBL) y post-procesado Hollywood (Cyber Glitch, Aberración Cromática, Film Grain orgánico).
+  - `pipeline.py`: Base de datos SQLite (WAL), daemon worker threads, y gestor de **Auto-Routing Dual** (Generación simultánea del Máster Horizontal 16:9 y el Center-Crop Vertical 9:16).
+  - `youtube_uploader.py`: Implementación del **OAuth2 Soft Shield**, que detecta tempranamente tokens inválidos y frena peticiones a red sin abortar el costoso render local.
+
+#### Flujo Híbrido de Renderizado Extremo:
+1. **Pipeline Multi-Agente (Research & Scripting)**: El *Writer* estructura la lírica y el *Retention Auditor* evalúa el anclaje emocional.
+2. **Generador de Ambientes**: Descarga asíncrona de assets o **Evasión Total AI** al utilizar los motores de shaders puristas V17.
+3. **Composición 3D (GLSL PBR)**: Cruce reactivo de las frecuencias del audio con la geometría 3D SDF (Odisea Espacial, Tunnel Cuántico, Mandelbulb) mapeando la imagen AI como ecosfera luminosa IBL.
+4. **Ensamble Final**: FFmpeg unifica capas visuales de alta precisión de cuadros y escupe la Copia Dual.
+
+**Reproductor Web Integrado**: Stream de video nativo en el Dashboard y Auto-Distribución a redes protegida por el Shield.
+
+### 📚 Course Generator & Scheduler (Info-Productos)
+- **Generación de Cursos (`course_generator.py`)**: Crea el syllabus completo de un curso o lista de reproducción, definiendo lecciones progresivas optimizadas para YouTube.
+- **Content Scheduler (`content_scheduler.py`)**: Automatiza la producción de estos cursos, encolando videos diariamente de forma autónoma sin intervención humana.
+
+### 💸 Autonomous Monetization Factory & Social Repurposing
+Sistema pasivo integrado en el pipeline de renderizado que multiplica los ingresos orgánicos.
+- **Social Assets Generator (`social_assets_generator.py`)**: Al terminar un video, extrae su guion y genera automáticamente:
+  - Hilos virales para **Twitter/X**.
+  - Carruseles para **Instagram**.
+  - Posts profesionales para **LinkedIn**.
+- **Language Cloner**: Traduce guiones (LLM) y genera audio en EN/PT/FR/DE recomponiendo videos con los assets ya renderizados.
+- **Affiliate Manager**: Banco de 20+ programas CPA categorizados por nicho. Inyecta CTAs dinámicos en las descripciones de YouTube.
+- **Social Distribution**: Auto-publicación simultánea a **TikTok** y **Instagram Reels** para viralizar contenido corto (Shorts de 58s).
+- **Revenue Tracker**: Dashboard estadístico que proyecta ingresos basados en vistas, CTR y retención por categoría.
+
+### 🎨 Image Queue / Fooocus (`core/image_queue.py`)
+- Bypass nativo del WebSocket Gradio con validación real de output.
+- SSE stream en `/v1/queue/stream` — sin polling, flujo puro de eventos.
+- Diferenciación real de imágenes generadas vs. pre-existentes (0% falsos positivos).
+
+### 🕹️ Game Server Manager (`core/game_server_manager.py`)
+- Subproceso MangosD con Ring-Buffer Deque de 500 líneas en RAM.
+- Pre-flight MySQL antes de arrancar (evita corrupción de Character-Files).
+- Auto-backup `mysqldump` en cierre, historial de jugadores, exposición WAN.
+
+### 🎥 OBS Studio Control & Gravity Spark V16.0 PRO (`core/obs_client.py` & `core/obs_spark_engine.py`)
+- **Control Total de OBS**: Auto-conexión vía WebSocket v5. Gestiona escenas, fuentes, mute/volumen, streaming y grabación desde la API.
+- **Gravity Spark (Motor de Overlays AI)**: Reemplaza costosos servicios de overlays web. Genera código HTML/JS autocontenido en tiempo real usando tu LLM local, inyectándolo directamente como `Browser Source` en OBS.
+- Capacidad de **modificar overlays al vuelo** ("hazlo azul", "añade un borde neón") sin recargar OBS.
+
+### 🧠 RAG (`rag/`)
+- Indexación de documentos locales en `_rag_index/`.
+- Inyección automática en `/v1/chat/completions` cuando `rag_enabled: true`.
+- Toggle en caliente via `POST /v1/rag/toggle`.
+
+### 🔐 Security Monitor (`core/security_monitor.py`)
+- Whitelist dinámica (Discord, Chrome, BattleNet, Steam) → 98% menos spam en logs.
+- GeoIP tracker de IPs externas con cache.
+- Anti-DDoS local: bloqueo por IP tras 120 peticiones en ventana.
+- Rotación de audit log en >5MB o >10,000 líneas.
+
+### 💰 Cost Tracker + Rate Limiter
+- Contabiliza tokens entrada/salida por proveedor en `_cost_log.json`.
+- Límite diario configurable; HTTP 429 al superarlo.
+- Rate limiter por IP en ventana de tiempo.
+
+### ⚙️ Engine Watchdog & Turbo KV (`core/engine_watchdog.py`)
+- Monitorea el mejor proveedor disponible.
+- Lock/unlock de modelo para fijar en modo manual.
+- Compatible con perfil de hardware (VRAM, CPU cores, RAM).
+- **Turbo KV**: Detecta automáticamente si se usa Ollama y configura en tiempo de ejecución las variables de entorno `OLLAMA_KV_CACHE_TYPE=q4_0` y `OLLAMA_FLASH_ATTENTION=1` para comprimir la cache 4x.
+
+---
+
+## 🚀 Instalación
+
+### Requisitos
+- Windows 10 1809+ (64-bit) o Windows 11
+- Python 3.10+ en PATH
+- Ollama, LM Studio, o cualquier backend OpenAI-compatible
+
+### Instalación desde Fuente
+```bash
+git clone https://github.com/DarckRovert/Gravity_AI_bridge.git
+cd Gravity_AI_bridge
+pip install -r requirements.txt
+cd frontend && npm install && npm run build && cd ..
+python bridge_server.py
 ```
 
-Gravity opera su propio `ThreadingHTTPServer` a prueba de balas.
-- **Session Spawner (32 Cores):** Capacidad para invocar y controlar hasta 32 sub-procesos aislados de IA simultáneamente, gestionados mediante BoundedSemaphores estrictos.
-- **La Tinka Engine:** Subsistema asíncrono puro que unifica escrituras de Bases de Datos (SQLite) con transacciones WAL, previniendo colisiones de memoria cuando 32 agentes escriben a la vez.
-- **Hot-Reload Registry:** Descubrimiento dinámico de proveedores de LLMs. Conecta modelos locales (Ollama, LM Studio) y APIs Cloud (Z.ai Extension, OpenAI) en tiempo real sin requerir reinicios de servidor.
+Dashboard disponible en: `http://localhost:7860`
 
-### 2. El Cerebro y La Barrera Rota (`gravity_brain.py`)
-El modelo de IA dentro de Gravity no está ciego. En cada interacción, el motor inyecta un payload masivo de telemetría (Temperaturas de GPU, Costos de API, Estados de Servidores) dándole **conciencia situacional absoluta**.
-- **Comandos de SO Nativos:** Los LLMs tienen acceso al comando `/fs_listar`, `/terminal` y `/codigo`, rompiendo la barrera de la interfaz de usuario y operando directamente sobre el file-system del host.
-
-### 3. Ciclo OODA (La Supervivencia Autónoma)
-Un demonio despierta cada 6 horas (`autonomy_engine.py`) ejecutando el ciclo Observe, Orient, Decide, Act.
-- Se impone un techo financiero inmutable ($0.50 USD diarios en tokens). 
-- Todo código dañino choca contra el `hitl_manager.py` (Human In The Loop), esperando confirmación visual en el Dashboard React.
-- **AgentShield:** Escudo Unicode cuántico en el Ring 0. Si un agente autómata intenta ejecutar un comando malicioso (borrar el sistema, Path Traversal), el escudo bloquea el payload antes de llegar al OS.
-- **Resource Watchdog:** Daemon letal que purga de la VRAM (matando los procesos del SO correspondientes) a las IAs locales estancadas si el Bridge detecta inactividad operativa con carga de RAM superior al 65%.
-
-### 4. Swarm Intelligence y Auto-Evolución de Lore
-La versión V17 incorpora clústeres de IA debatiendo entre sí (Swarm Intelligence):
-- **Periodismo Dual:** El `reporter.json` no solo redacta; hace que dos IAs (Postura Oficial vs Subversiva) debatan una noticia antes de que un "Editor en Jefe" sintetice la verdad.
-- **Lore Expander:** Gravity es capaz de leer su propia filosofía (*La Voluntad Soberana*) y evolucionarla basándose en los eventos globales que reporta.
-
-### 5. Aceleración Nativa (AMD Ryzen 8700G)
-La VRAM unificada es protegida ferozmente:
-- **Enrutamiento Infalible NPU/GPU (NUEVO V17):** El `ProviderManager` audita en tiempo real el estado de FastFlowLM (NPU XDNA). Si la NPU sufre un Exit Code 1 o se satura, el sistema redirige la carga instantáneamente a Ollama (GPU) o a la nube sin abortar el ciclo. 100% Tolerante a fallos.
-- **Daemon In-Process (NUEVO V17):** `news_daemon.py` ejecuta ahora el orquestador principal compartiendo el mismo proceso de memoria (`WorkflowEngine`), eliminando sobrecargas de SO (Subprocesos) e incrementando la velocidad de ejecución un 40%.
-- **Kill-Switch de RAM:** Antes de renderizar multimedia, el motor interrumpe y purga los LLMs de la memoria (`force_unload`).
-- **Prevención de Colapsos KV Cache:** La inyección masiva de meta-contexto y "Sliding Window" en los motores locales (especialmente con `ctx_size` altos) puede exigir hasta 8GB extra de VRAM/RAM solo para inferencia. El Watchdog monitoriza este pico (que causa congelamientos instantáneos en sistemas al límite) y fuerza limpiezas agresivas si la memoria física o el Swap (NVMe) superan límites críticos. `Fooocus` y otros motores pesados permanecen estrictamente desconectados hasta ser requeridos explícitamente para evitar colapsos fantasma.
-- **Codec AMD AMF (`h264_amf`):** FFmpeg ha sido parcheado para desviar toda carga de la CPU a los núcleos de compresión del APU.
-- **Radar de Alta Frecuencia:** Un demonio paralelo (`high_frequency_radar.py`) monitorea feeds RSS globales cada 60s, capaz de interrumpir los procesos e inyectar noticias de "Colapso" o "Guerra" directamente al motor Swarm.
-
-### 6. Interfaz Omnisciente y Fábricas (Dashboard y Tools)
-- **Dashboard React Asíncrono (35 Submódulos):** Mientras el motor nuclear restringe la IA a 32 procesos asíncronos para proteger el hardware, la interfaz web expone **35 paneles de control** simultáneos. Su arquitectura es **Zero-Crash**, previniendo colapsos de interfaz mediante el blindaje estricto de peticiones HTTP, parseos JSON inmunes a truncamientos y mitigación de falsos positivos en red. Desde allí operas el *Hitl Manager*, el monitoreo de VRAM en vivo y consolas rotativas sin tocar la terminal local.
-
-```mermaid
-mindmap
-  root((Dashboard React
-  36 Submódulos))
-    Mission Control
-      Métricas Hardware RAM/VRAM
-      Temperaturas CPU
-      Consola SSE en Vivo
-      Estado de Red Local
-    Finanzas y Mercenarios
-      Bounty Hunter Tracker
-      Revenue Tracker
-      Infiltrator Core
-      Presupuesto Diario OODA
-    Seguridad y Aprobación
-      HITL Queue Manager
-      Watchdog Override
-      Bloqueador de Nodos
-      Audit Log Viewer
-      AgentShield Monitor
-    Forja Multimedia
-      V17 Video Renderer
-      Fooocus Studio UI
-      FFMPEG Assembler
-      Extractor de Subtítulos
-    Conocimiento y Agentes
-      Knowledge Base Editor
-      Workflow Visualizer DAG
-      Chat Multi-Agente
-      RAG Indexer
-      Swarm Lore Engine
-```
-
-- **Forja Literaria y Multimedia:** Herramientas como `book_refiner.py` orquestan libros enteros, mientras el **Motor V17 Shaders** genera videos usando pura matemática GPU (SDF, Turing Patterns) evadiendo descargas de assets masivos, con Auto-Uploader a redes y renderizado dual (16:9 y 9:16).
+### Instalación con Installer (Windows)
+Descargar `Gravity_AI_Bridge_V16.0_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
 
 ---
 
-## ⚡ Instalación y Despliegue (Local-First)
+## ⚙️ Configuración Inicial y Seguridad de APIs
 
-Gravity está diseñado para ejecutarse en entornos cerrados Windows. 
+Para garantizar la máxima seguridad del ecosistema, **todos los datos sensibles y API keys locales han sido completamente purgados del repositorio público** (`config.yaml` y claves encriptadas se excluyen automáticamente a través de `.gitignore`).
 
-1. **Clonar y Preparar:**
-   ```bash
-   git clone https://github.com/DarckRovert/Gravity_AI_bridge.git
-   cd Gravity_AI_bridge
-   ```
-2. **Configuración de Telemetría y APIs:**
-   Duplica el archivo de configuración base y añade tus llaves maestras:
-   ```bash
-   cp config.yaml.example config.yaml
-   ```
-3. **Instalación Asistida:**
-   Gravity posee su propio motor de setup que aislará el entorno virtual (`venv`), compilará las dependencias de `requirements.txt` y verificará el hardware.
-   ```bash
-   python INSTALAR.py
-   ```
-4. **Despertar al Motor:**
-   Simplemente ejecuta el script maestro. Esto levantará el `bridge_server.py`, el motor OODA, y lanzará el Dashboard React en tu navegador por defecto.
-   ```bash
-   gravity.bat
-   ```
+### 🚀 Inicialización Automática (Zero-Configuration)
+Al iniciar el Bridge por primera vez (`python bridge_server.py`), el núcleo detecta automáticamente la ausencia de `config.yaml` y **crea una copia limpia a partir de [config.yaml.example](config.yaml.example)** sin credenciales reales. ¡Listo para arrancar al instante!
+
+### 🖥️ Configuración Interactiva desde el Dashboard
+No necesitas editar archivos de texto manualmente. Una vez iniciado el servidor, accede al Dashboard en **`http://localhost:7860`** y dirígete al panel **System Settings** (icono de engranaje):
+
+1. **Gestión de API Keys**: Introduce tus llaves de **OpenAI, Anthropic, Groq, Nvidia, u OpenRouter** de forma visual.
+2. **Cifrado Local Seguro**: Las llaves introducidas en la UI se cifran automáticamente en tu máquina física utilizando **Windows DPAPI** y se almacenan localmente de forma inmutable en tu almacén personal (`_keystore.bin`). Nadie más tendrá acceso a ellas.
+3. **Proveedor Universal AI**: Puedes configurar cualquier endpoint compatible con OpenAI (Base URL + Model Name + API Key) de manera extremadamente sencilla.
+4. **Límites de Costos**: Ajusta el presupuesto diario en dólares desde la barra deslizadora directamente en la UI.
+
 
 ---
 
-## 📚 Documentación Técnica (La Wiki Forense)
+## 🔐 Seguridad
 
-La documentación se ha estructurado como un archivo desclasificado de ingeniería interna. Revisa los folios en `/wiki`:
+Ver [`SECURITY.md`](SECURITY.md) para política de vulnerabilidades y reporte responsable.
 
-- ⚙️ **[1. Motor Nuclear](./wiki/1-Motor-Nuclear.md):** Deep Dive en el Enrutador HTTP, Resource Watchdog, Spawner Multi-hilos y el Registry de Proveedores.
-- 🧠 **[2. Cerebro y Comandos](./wiki/2-Cerebro-y-Comandos.md):** Explicación de la inyección de conciencia, telemetría y los más de 25 comandos nativos de disco duro (Agentic).
-- 🎬 **[3. Pipelines y Herramientas](./wiki/3-Pipelines-y-Herramientas.md):** Anatomía de la factoría literaria y el renderizado matemático GLSL V17.
-- 💰 **[4. Monetización y Mercenarios](./wiki/4-Monetizacion-y-Mercenarios.md):** Operación de las flotas extractoras (Bounty Hunter e Infiltrator) que retroalimentan la economía del sistema.
+---
+
+## 📖 Documentación
+
+| Documento | Contenido |
+|---|---|
+| [Wiki Principal](./wiki/Home.md) | Índice general |
+| [Arquitectura](./wiki/Arquitectura.md) | Diagrama de módulos y flujos |
+| [Guía API](./wiki/Guia-API.md) | Todos los endpoints REST |
+| [Manual Usuario](./wiki/Manual-Usuario.md) | Guía paso a paso |
+| [FAQ](./wiki/FAQ.md) | Preguntas frecuentes |
+| [CHANGELOG](./CHANGELOG.md) | Historial de versiones |
+| [CONTRIBUTING](./CONTRIBUTING.md) | Cómo contribuir |
+
+---
+
+> [!NOTE]
+> Ecosistema local privado V16.0 PRO Omniscient-Tier.
+> [**📖 WIKI CORPORATIVA**](./wiki/Home.md) | [📜 CONTRIBUCIÓN](./CONTRIBUTING.md) | [🔒 SEGURIDAD](./SECURITY.md)
+
+<br>
+
+<div align="center">
+  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V16.0 PRO — Motor Cinematic V2.0 PBR. All architectural assets belong to their proprietary author.</i></sub>
+</div>
