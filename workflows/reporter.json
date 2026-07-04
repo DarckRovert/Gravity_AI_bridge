@@ -13,7 +13,7 @@
       "id": "obtener_titular",
       "type": "RSSFeed",
       "inputs": {
-        "url": "https://news.google.com/rss/search?q=peru+geopolitica+OR+tecnologia+OR+control&hl=es-419&gl=PE&ceid=PE:es-419,https://feeds.bbci.co.uk/mundo/rss.xml,https://www.aljazeera.com/xml/rss/all.xml,https://theintercept.com/feed/?rss",
+        "url": "https://news.google.com/rss/search?q=peru+geopolitica+OR+tecnologia+OR+control&hl=es-419&gl=PE&ceid=PE:es-419,https://feeds.bbci.co.uk/mundo/rss.xml,https://www.aljazeera.com/xml/rss/all.xml,https://theintercept.com/feed/?rss,https://www.youtube.com/feeds/videos.xml?channel_id=UC8WwqW8uW2X6ys3PWMiDSzg",
         "max_items": 5
       }
     },
