@@ -231,8 +231,11 @@ class ContentNormalizerNode(GravityNode):
         if content_type == "science":
             img_width, img_height = 1280, 720
 
-        title_encoded = urllib.parse.quote(normalized["title"][:120])
-        prefix_encoded = urllib.parse.quote(image_prompt_prefix)
+        # Sanitizar título para Pollinations: remover caracteres especiales que rompen la URL o el prompt
+        import re
+        safe_title = re.sub(r'[^a-zA-Z0-9\sñÑáéíóúÁÉÍÓÚüÜ,.-]', '', normalized["title"][:120])
+        title_encoded = urllib.parse.quote(safe_title.strip(), safe='')
+        prefix_encoded = urllib.parse.quote(image_prompt_prefix, safe='')
         img_url = (
             f"https://image.pollinations.ai/prompt/{prefix_encoded}%20"
             f"{title_encoded}?width={img_width}&height={img_height}&nologo=true"
