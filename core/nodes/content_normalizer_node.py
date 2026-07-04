@@ -119,7 +119,7 @@ class ContentNormalizerNode(GravityNode):
                 "category", "categoria", "categoría", 
                 "title", "titulo", "título", "title_articulo",
                 "excerpt", "extracto", "resumen", "description", "summary",
-                "subtitle", "subtitulo", "subtítulo"
+                "subtitle", "subtitulo", "subtítulo", "region", "región", "pais", "país"
             ]
             for field in string_fields:
                 m = re.search(rf'"{field}"\s*:\s*"((?:[^"\\]|\\.)*?)(?:"|$)', text, re.IGNORECASE | re.DOTALL)
@@ -180,6 +180,8 @@ class ContentNormalizerNode(GravityNode):
                     normalized["featured"] = bool(v)
             elif k_lower in ("readingtime", "reading_time", "tiempo_lectura"):
                 normalized["readingTime"] = v
+            elif k_lower in ("region", "región", "pais", "país"):
+                normalized["region"] = v
             else:
                 normalized[k] = v
 
@@ -223,24 +225,63 @@ class ContentNormalizerNode(GravityNode):
             normalized["readingTime"] = computed_reading_time
 
         # ── Imagen Pollinations.ai ──────────────────────────────────────
+        # Resolución 16:9 para artfículos de portal (estándar web)
+        img_width = 1200
+        img_height = 675
+        if content_type == "science":
+            img_width, img_height = 1280, 720
+
         title_encoded = urllib.parse.quote(normalized["title"][:120])
         prefix_encoded = urllib.parse.quote(image_prompt_prefix)
         img_url = (
             f"https://image.pollinations.ai/prompt/{prefix_encoded}%20"
-            f"{title_encoded}?width=800&height=600"
+            f"{title_encoded}?width={img_width}&height={img_height}&nologo=true"
         )
-        normalized["image"] = img_url
 
-        def _warm_image(_url=img_url, _cls=self.__class__.__name__):
-            try:
-                req = urllib.request.Request(_url, headers={"User-Agent": "Mozilla/5.0"})
-                urllib.request.urlopen(req, timeout=45)
-                log.info(f"[{_cls}] Imagen pre-calentada OK.")
-            except Exception as e:
-                log.warning(f"[{_cls}] Fallo al pre-calentar imagen: {e}")
+        # Verificar que la imagen sea accesible antes de publicar
+        image_ok = False
+        try:
+            req_check = urllib.request.Request(
+                img_url,
+                headers={"User-Agent": "Mozilla/5.0"},
+                method="HEAD",
+            )
+            with urllib.request.urlopen(req_check, timeout=30) as r:
+                image_ok = r.status == 200
+        except Exception as _img_err:
+            log.warning(f"[{self.__class__.__name__}] Pollinations no responde ({_img_err}). Usando placeholder SVG.")
 
-        threading.Thread(target=_warm_image, daemon=True).start()
-        log.info(f"[{self.__class__.__name__}] Pre-calentamiento de imagen disparado en background.")
+        if image_ok:
+            normalized["image"] = img_url
+            # Pre-calentar en background (solo si sabemos que la URL es válida)
+            def _warm_image(_url=img_url, _cls=self.__class__.__name__):
+                try:
+                    req = urllib.request.Request(_url, headers={"User-Agent": "Mozilla/5.0"})
+                    urllib.request.urlopen(req, timeout=45)
+                    log.info(f"[{_cls}] Imagen pre-calentada OK.")
+                except Exception as e:
+                    log.warning(f"[{_cls}] Fallo al pre-calentar imagen: {e}")
+            threading.Thread(target=_warm_image, daemon=True).start()
+        else:
+            # Fallback: placeholder SVG inline (sin dependencias externas)
+            safe_title = normalized["title"][:60].replace('"', "'").replace('<', '').replace('>', '')
+            safe_type = content_type.upper()
+            svg_data = (
+                f'<svg xmlns="http://www.w3.org/2000/svg" width="{img_width}" height="{img_height}">'
+                f'<rect width="100%" height="100%" fill="#0d0d0d"/>'
+                f'<rect x="40" y="40" width="{img_width-80}" height="{img_height-80}" '
+                f'fill="none" stroke="#9b30ff" stroke-width="2"/>'
+                f'<text x="50%" y="42%" font-family="monospace" font-size="18" fill="#9b30ff" '
+                f'text-anchor="middle">[NEXO ÁGORA — {safe_type}]</text>'
+                f'<text x="50%" y="55%" font-family="monospace" font-size="14" fill="#cccccc" '
+                f'text-anchor="middle">{safe_title}</text>'
+                f'</svg>'
+            )
+            import base64
+            b64 = base64.b64encode(svg_data.encode("utf-8")).decode()
+            normalized["image"] = f"data:image/svg+xml;base64,{b64}"
+            log.info(f"[{self.__class__.__name__}] Usando placeholder SVG local.")
+
 
         return {
             "normalized_json": json.dumps(normalized, ensure_ascii=False)
