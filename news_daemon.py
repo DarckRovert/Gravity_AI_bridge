@@ -24,6 +24,7 @@ import os
 import sys
 import json
 import argparse
+import socket
 from datetime import datetime
 from typing import Optional
 
@@ -339,6 +340,15 @@ class PeriodistaOrchestrator:
 
 def main() -> None:
     """Punto de entrada del daemon."""
+    # [Single-Instance Lock] Prevenir múltiples instancias
+    try:
+        lock_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        lock_socket.bind(("127.0.0.1", 49301)) # Puerto arbitrario para el lock
+    except socket.error:
+        print("[!] GRAVITY AI: El Reportero ya está en ejecución (Puerto de bloqueo ocupado).")
+        print("[!] Cierra la otra ventana o detenlo desde el Dashboard Web.")
+        sys.exit(1)
+
     parser = argparse.ArgumentParser(description="Gravity AI — Daemon Orquestador Periodístico")
     parser.add_argument(
         "--test",
