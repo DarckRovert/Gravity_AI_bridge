@@ -24,7 +24,7 @@ import os
 import sys
 import json
 import argparse
-import socket
+import ctypes
 from datetime import datetime
 from typing import Optional
 
@@ -340,14 +340,24 @@ class PeriodistaOrchestrator:
 
 def main() -> None:
     """Punto de entrada del daemon."""
-    # [Single-Instance Lock] Prevenir múltiples instancias
-    try:
-        lock_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        lock_socket.bind(("127.0.0.1", 49301)) # Puerto arbitrario para el lock
-    except socket.error:
-        print("[!] GRAVITY AI: El Reportero ya está en ejecución (Puerto de bloqueo ocupado).")
-        print("[!] Cierra la otra ventana o detenlo desde el Dashboard Web.")
-        sys.exit(1)
+    # [Single-Instance Lock] Prevenir múltiples instancias de forma nativa sin usar puertos (evita Firewall)
+    if sys.platform == "win32":
+        mutex_name = "Local\\GravityAINewsDaemonLock"
+        # Crear un Mutex a nivel del sistema operativo. Si ya existe, GetLastError() retorna 183.
+        mutex = ctypes.windll.kernel32.CreateMutexW(None, False, mutex_name)
+        if ctypes.windll.kernel32.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
+            print("[!] GRAVITY AI: El Reportero ya está en ejecución (Mutex activo).")
+            print("[!] Cierra la otra ventana o detenlo desde el Dashboard Web.")
+            sys.exit(1)
+    else:
+        # Fallback cross-platform (sockets) solo si no está en Windows
+        try:
+            import socket
+            global_lock_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            global_lock_socket.bind(("127.0.0.1", 49301))
+        except Exception:
+            print("[!] GRAVITY AI: El Reportero ya está en ejecución.")
+            sys.exit(1)
 
     parser = argparse.ArgumentParser(description="Gravity AI — Daemon Orquestador Periodístico")
     parser.add_argument(
