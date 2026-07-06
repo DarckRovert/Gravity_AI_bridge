@@ -138,3 +138,17 @@ obs_spark:
   system_prompt_extra: ''
   default_width: 400
   default_height: 300
+periodista:
+  portal_path: F:/gravity-news-portal
+  news_json: src/data/news.json
+  essays_json: src/data/essays.json
+  science_json: src/data/science.json
+  max_items_per_feed: 30
+  cycle_interval_hours_min: 0.5
+  cycle_interval_hours_max: 1.0
+  llm_max_tokens: 4096
+  dedup_headline_days: 7
+  dedup_topic_days: 14
+  consecutive_error_threshold: 3
+  image_width: 1200
+  image_height: 675

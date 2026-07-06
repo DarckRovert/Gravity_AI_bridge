@@ -27,6 +27,10 @@ import argparse
 import tempfile
 from datetime import datetime
 from typing import Optional
+import warnings
+
+# Ocultar advertencias no críticas de ONNX (VitisAI / DML faltantes)
+warnings.filterwarnings("ignore", category=UserWarning, module="onnxruntime")
 
 # ── Configuración de codificación UTF-8 ────────────────────────────────────────
 if hasattr(sys.stdout, "reconfigure"):
@@ -63,8 +67,8 @@ STATE_FILE = os.path.join(local_app_data, "_periodista_state.json")
 CONSECUTIVE_ERROR_THRESHOLD = 3
 
 # Intervalo de espera entre ciclos (horas)
-WAIT_HOURS_MIN = 4.0
-WAIT_HOURS_MAX = 8.0
+WAIT_HOURS_MIN = 0.5
+WAIT_HOURS_MAX = 1.0
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -187,7 +191,22 @@ class PeriodistaOrchestrator:
             from core.workflow_engine import run_workflow
             import json as _json
 
-            job = run_workflow(workflow_name, blocking=True)
+            # Leer contexto del Investigador si existe
+            import os
+            context_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "inputs", "investigador_context.txt")
+            investigador_ctx = ""
+            if os.path.isfile(context_file):
+                try:
+                    with open(context_file, "r", encoding="utf-8") as f:
+                        investigador_ctx = f.read().strip()
+                except Exception as ex:
+                    log.warning(f"[Periodista] No se pudo leer investigador_context.txt: {ex}")
+
+            params = {}
+            if investigador_ctx:
+                params["investigador_context"] = investigador_ctx
+
+            job = run_workflow(workflow_name, params=params, blocking=True)
 
             if job.status == "done":
                 log.info(f"[Periodista] [{agent_name}] ✓ Workflow completado exitosamente.")
@@ -318,6 +337,13 @@ class PeriodistaOrchestrator:
                 log.info(f"[Periodista] Próxima ejecución: {next_run_str} (en {wait_secs / 3600:.1f}h)")
 
                 self._save_state("sleeping", last_title, next_run_ts, published_count=articles_published)
+                
+                # [Vector 3] Limpieza de RAM antes de dormir por horas
+                import gc
+                collected = gc.collect()
+                if collected > 0:
+                    log.debug(f"[Periodista] RAM Liberada (Daemon): {collected} objetos destruidos.")
+                    
                 time.sleep(wait_secs)
 
             except KeyboardInterrupt:
@@ -374,6 +400,23 @@ def main() -> None:
     args, _ = parser.parse_known_args()
 
     orchestrator = PeriodistaOrchestrator(test_mode=args.test)
+    
+    # Iniciar los daemons secundarios en el mismo proceso (Hilos en background)
+    try:
+        from core.anomaly_watchdog import AnomalyWatchdog
+        from research_daemon import ResearchDaemon
+        
+        watchdog = AnomalyWatchdog(interval_seconds=60)
+        watchdog.start()
+        
+        researcher = ResearchDaemon(interval_hours=12)
+        researcher.start()
+        
+        log.info("[Orquestador] Vigía e Investigador iniciados en background.")
+    except Exception as e:
+        log.error(f"[Orquestador] Advertencia: No se pudieron iniciar los daemons secundarios: {e}")
+
+    # Bloquea el hilo principal con el ciclo del Periodista
     orchestrator.run()
 
 

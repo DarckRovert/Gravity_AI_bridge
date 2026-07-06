@@ -97,7 +97,8 @@
         "author": "Nexo Ágora — Redacción Periodística",
         "image_prompt_prefix": "cyberpunk news dark photorealistic",
         "valid_categories": "[\"Control Biométrico\", \"Resistencia Digital\", \"Soberanía Criptográfica\", \"Vigilancia del Leviatán\", \"Tecnología Descentralizada\", \"Geopolítica y Macro-Leviatán\", \"Medicina y Bioética\", \"Cultura y Psicometría\", \"Cine e Ingeniería Social\", \"Deporte y Control Biométrico\", \"Ciencia y Sustrato\", \"Religión y Creencias Masivas\", \"Crimen de Estado y Abuso Policial\"]",
-        "default_category": "Tecnología Descentralizada"
+        "default_category": "Tecnología Descentralizada",
+        "images_dir": "F:/gravity-news-portal/public/images"
       }
     },
     {
@@ -106,7 +107,7 @@
       "inputs": {
         "filepath": "F:/gravity-news-portal/src/data/news.json",
         "new_item": "{{normalizar_noticia.normalized_json}}",
-        "max_items": 15
+        "max_items": 30
       }
     },
     {
@@ -114,7 +115,7 @@
       "type": "GitDeploy",
       "inputs": {
         "repository_path": "F:/gravity-news-portal",
-        "commit_message": "Gravity Reporter: Nueva publicación en el Ágora (Automated)",
+        "commit_message": "Gravity Reporter: Nueva publicación en el Ágora (Status: {{publicar_noticia.status}})",
         "files_to_add": ".",
         "push": true
       }
