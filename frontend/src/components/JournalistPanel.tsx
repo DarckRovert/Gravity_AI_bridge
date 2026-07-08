@@ -318,7 +318,7 @@ export const JournalistPanel = () => {
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {news.length > 0 ? news.slice(0, 3).map((item) => (
+                {news.length > 0 ? news.slice(0, 30).map((item) => (
                   <div key={item.id} className="group cursor-pointer bg-black/40 rounded-2xl overflow-hidden border border-border-subtle hover:border-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)] transition-all duration-300">
                     <div className="h-32 overflow-hidden relative">
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>

@@ -26,7 +26,12 @@ class PostAgentMixin:
                 BASE_DIR = os.path.dirname(
                     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
                 )
-                actions_path = os.path.join(BASE_DIR, "inputs", ".bounty_actions.json")
+                _app_data = os.path.join(
+                    os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+                    "Gravity", 
+                    "Databases"
+                )
+                actions_path = os.path.join(_app_data, ".bounty_actions.json")
                 os.makedirs(os.path.dirname(actions_path), exist_ok=True)
 
                 actions = {}

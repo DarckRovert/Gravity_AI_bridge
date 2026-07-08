@@ -73,7 +73,7 @@ if !_FREE_MB! lss 6000 (
 )
 
 echo  [OK] RAM libre: !_FREE_MB! MB. Iniciando servidor NPU en puerto 52625...
-start "Gravity :: FastFlowLM Server (NPU)" cmd /k "flm serve llama3.2:1b --port 52625"
+start "Gravity :: FastFlowLM Server (NPU)" cmd /k "flm serve llama3.2:1b --ctx-len 4096 --port 52625"
 
 REM Esperar hasta 30s a que el puerto 52625 responda
 set _FLM_RETRIES=0
@@ -145,7 +145,7 @@ echo  [INFO] Esto ahorra recursos y evita multiples consolas.
 :launch_done
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|          GRAVITY AI BRIDGE V16.7 PRO — Vision-Tier Ecosistema            ^|
+echo  ^|          GRAVITY AI BRIDGE V16.7 PRO — Vision-Tier Ecosistema           ^|
 echo  +--------------------------------------------------------------------------+
 echo  ^|   Dashboard Web:    http://localhost:7860  (Chat, V2V, Video Studio)    ^|
 echo  ^|   Fooocus Motor:    http://127.0.0.1:7861  (API generacion imagenes)    ^|
@@ -154,12 +154,12 @@ echo  ^|   V2V WebSocket:    ws://127.0.0.1:7863    (Motor en vivo)             
 echo  ^|   Periodista:       [MANUAL] Iniciar desde el Dashboard Web             ^|
 echo  ^|   Radar HF:         [MANUAL] Iniciar desde el Dashboard Web             ^|
 echo  ^|   J.A.R.V.I.S:      [MANUAL] Iniciar desde el Dashboard Web             ^|
-echo  ^|   FastFlowLM NPU:   http://localhost:52625 (Opcional, Backend de IA)     ^|
-echo  ^|                                                                          ^|
+echo  ^|   FastFlowLM NPU:   http://localhost:52625 (Opcional, Backend de IA)    ^|
+echo  ^|                                                                         ^|
 echo  ^|   [!] V2V Engine y Modulos Autonomos inician desde el Dashboard Web     ^|
 echo  ^|   [!] Fooocus CPU tarda ~60-120s en cargar. Imagen: 3-8 min             ^|
 echo  ^|   [!] Todo corre en segundo plano de manera limpia sin tantas consolas  ^|
-echo  ^|                                                                          ^|
+echo  ^|                                                                         ^|
 echo  +--------------------------------------------------------------------------+
 echo.
 if "!_BRIDGE_OK!"=="1" (

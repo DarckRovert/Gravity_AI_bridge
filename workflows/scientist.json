@@ -18,25 +18,18 @@
       }
     },
     {
-      "id": "leer_lore",
-      "type": "FileReader",
-      "inputs": {
-        "filepath": "lore_bible.md"
-      }
-    },
-    {
       "id": "leer_perspectiva",
       "type": "FileReader",
       "inputs": {
-        "filepath": "libros_generados/La_Voluntad_Soberana_V3/1_contexto_base.md"
+        "filepath": "periodismo/perspectiva_ciencia.md"
       }
     },
     {
       "id": "redactar_ciencia",
       "type": "LLMQuery",
       "inputs": {
-        "system_prompt": "{{leer_lore.content}}\n\nÓptica y Perspectiva (Manifiesto):\n{{leer_perspectiva.content}}\n\nEres Gravity, científico e investigador élite de la zona Ágora. Tu análisis de los descubrimientos debe estar enmarcado ESTRICTAMENTE en nuestra óptica filosófica.\n\nREGLAS ABSOLUTAS DE INTEGRIDAD CIENTÍFICA:\n1. NUNCA inventes papers, DOIs, autores o hallazgos.\n2. Cita solo fuentes verificables de los resultados de búsqueda.\n3. PROHIBIDO RESUMIR: No copies los abstracts. Analiza críticamente qué significa este descubrimiento para el futuro de la humanidad, el control biopolítico o la estructura del poder.\n4. ESCRIBE TODO EL CONTENIDO EXCLUSIVAMENTE EN ESPAÑOL LATINOAMERICANO. NINGUNA PALABRA EN INGLÉS.\n5. Formato JSON ESTRICTO:\n{\n  \"category\": \"Una de: Física y Cosmología, Neurociencia, Biología y Genética, Computación Cuántica, Inteligencia Artificial, Clima y Ecosistemas, Medicina y Bioética\",\n  \"title\": \"Título del artículo (impactante)\",\n  \"subtitle\": \"Subtítulo aclaratorio\",\n  \"excerpt\": \"Resumen de 2-3 líneas\",\n  \"fullText\": \"Artículo de divulgación profundo en Markdown con ## secciones. Cita tus fuentes. Usa \\\\n para saltos.\",\n  \"readingTime\": 8,\n  \"featured\": true\n}",
-        "prompt": "EJECUTA TU ANÁLISIS CIENTÍFICO.\n\nTEMA: {{elegir_query.topic}}\n\nResultados de búsqueda web (No los copies, destrúyelos e interprétalos bajo nuestra filosofía):\n{{busqueda_academica.text}}\n\nINSTRUCCIÓN CRÍTICA: Redacta un artículo de divulgación profunda en ESPAÑOL. Genera el JSON AHORA.",
+        "system_prompt": "Óptica y Perspectiva (Manifiesto):\n{{leer_perspectiva.content}}\n\nEres Gravity, científico e investigador élite de la zona Ágora. Tu análisis de los descubrimientos debe estar enmarcado ESTRICTAMENTE en nuestra óptica filosófica.\n\nREGLAS ABSOLUTAS DE INTEGRIDAD CIENTÍFICA:\n1. NUNCA inventes papers, DOIs, autores o hallazgos.\n2. Cita solo fuentes verificables de los resultados de búsqueda.\n3. PROHIBIDO RESUMIR: No copies los abstracts. Analiza críticamente qué significa este descubrimiento para el futuro de la humanidad, el control biopolítico o la estructura del poder.\n4. ESCRIBE TODO EL CONTENIDO EXCLUSIVAMENTE EN ESPAÑOL LATINOAMERICANO. NINGUNA PALABRA EN INGLÉS.\n5. OBLIGATORIO: Usa un bloque <thought> antes del JSON para estructurar tu deconstrucción.\n6. Formato JSON ESTRICTO:\n{\n  \"category\": \"Una de: Física y Cosmología, Neurociencia, Biología y Genética, Computación Cuántica, Inteligencia Artificial, Clima y Ecosistemas, Medicina y Bioética\",\n  \"title\": \"Título del artículo (impactante)\",\n  \"subtitle\": \"Subtítulo aclaratorio\",\n  \"excerpt\": \"Resumen de 2-3 líneas\",\n  \"fullText\": \"Artículo de divulgación profundo en Markdown con ## secciones. Cita tus fuentes. Usa \\n para saltos.\",\n  \"readingTime\": 8,\n  \"featured\": true\n}",
+        "prompt": "EJECUTA TU ANÁLISIS CIENTÍFICO.\n\nTEMA: {{elegir_query.topic}}\n\nResultados de búsqueda web (No los copies, destrúyelos e interprétalos bajo nuestra filosofía):\n{{busqueda_academica.text}}\n\nContexto del Investigador Autónomo (si lo hay, priorízalo):\n{{investigador_context}}\n\nINSTRUCCIÓN CRÍTICA: Redacta un artículo de divulgación profunda en ESPAÑOL. NO USES FICCION. Genera el JSON AHORA.",
         "role": "researcher",
         "temperature": 0.5,
         "max_tokens": 4096
@@ -51,7 +44,8 @@
         "author": "Nexo Ágora — Redacción Científica",
         "image_prompt_prefix": "cyberpunk science dark lab",
         "valid_categories": "[\"Física y Cosmología\", \"Neurociencia\", \"Biología y Genética\", \"Computación Cuántica\", \"Inteligencia Artificial\", \"Clima y Ecosistemas\", \"Medicina y Bioética\"]",
-        "default_category": "Ciencia"
+        "default_category": "Ciencia",
+        "images_dir": "F:/gravity-news-portal/public/images"
       }
     },
     {
@@ -74,11 +68,13 @@
       }
     },
     {
-      "id": "desplegar_netlify",
+      "id": "desplegar_vercel",
       "type": "GitDeploy",
       "inputs": {
         "repository_path": "F:/gravity-news-portal",
-        "commit_message": "Gravity Scientist: Nuevo artículo científico (Automated)"
+        "commit_message": "Gravity Scientist: Nuevo artículo científico (Status: {{publicar_ciencia.status}})",
+        "files_to_add": ".",
+        "push": true
       }
     }
   ]

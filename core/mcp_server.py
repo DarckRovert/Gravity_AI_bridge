@@ -78,7 +78,8 @@ def safe_path_resolve(base_dir: str, target_path: str) -> str:
 def list_video_jobs(limit: int = 5) -> str:
     import time
     try:
-        db_path = safe_path_resolve(BASE_DIR, "_video_queue.sqlite")
+        from core.db_migrator import _get_db_path
+        db_path = _get_db_path("video_queue")
     except ValueError as e:
         return f"AgentShield Security Error: {e}"
         

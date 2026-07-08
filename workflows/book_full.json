@@ -1,0 +1,53 @@
+{
+  "workflow_id": "book_full",
+  "description": "Pipeline completo: escribe un libro académico o de ficción, genera EPUB, extrae un resumen y serializa los capítulos para publicación externa.",
+  "nodes": [
+    {
+      "id": "escribir_libro",
+      "type": "BookWriter",
+      "inputs": {
+        "prompt": "{{prompt}}",
+        "title": "{{title}}",
+        "num_chapters": "{{num_chapters}}",
+        "mode": "{{mode}}",
+        "lore_file": "{{lore_file}}"
+      }
+    },
+    {
+      "id": "leer_contexto",
+      "type": "FileReader",
+      "inputs": {
+        "filepath": "{{escribir_libro.book_dir}}/1_contexto_base.md"
+      }
+    },
+    {
+      "id": "generar_extracto",
+      "type": "LLMQuery",
+      "inputs": {
+        "system_prompt": "Eres un editor literario. Tu tarea es generar un extracto de presentación para publicar en un portal editorial.",
+        "prompt": "Basándote en el siguiente contexto del libro '{{title}}', escribe un extracto editorial de 300-400 palabras que capture la esencia de la obra para atraer lectores. Incluye: premisa central, tono de la obra y por qué es relevante. Devuelve SOLO el extracto, sin títulos ni encabezados.\n\nContexto:\n{{leer_contexto.content}}",
+        "temperature": 0.8,
+        "max_tokens": 800
+      }
+    },
+    {
+      "id": "guardar_extracto",
+      "type": "FileSaver",
+      "inputs": {
+        "text": "# Extracto — {{title}}\n\n{{generar_extracto.text}}\n\n---\n\nLibro completo: {{escribir_libro.book_path}}\nEPUB: {{escribir_libro.epub_path}}",
+        "directory": "_entregables",
+        "prefix": "extracto_",
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "serializar_libro",
+      "type": "BookSerializer",
+      "inputs": {
+        "book_dir": "{{escribir_libro.book_dir}}",
+        "publish_target": "nexo_agora",
+        "schedule": "daily"
+      }
+    }
+  ]
+}

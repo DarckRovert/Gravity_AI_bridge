@@ -134,6 +134,7 @@ def _openai_compat_stream(
     Streams SSE lines and yields content string chunks.
     """
     url = f"{base_url.rstrip('/')}{path}"
+    tool_calls_accumulator = {}
     try:
         for raw_line in _http_post_stream(url, payload):
             line = raw_line.decode("utf-8", errors="ignore").strip()
@@ -145,12 +146,33 @@ def _openai_compat_stream(
             d = _safe_json(data_str)
             if d and "choices" in d and d["choices"]:
                 delta = d["choices"][0].get("delta", {})
+                
+                if "tool_calls" in delta:
+                    for tc in delta["tool_calls"]:
+                        idx = tc.get("index", 0)
+                        if idx not in tool_calls_accumulator:
+                            tool_calls_accumulator[idx] = {"id": tc.get("id", ""), "type": "function", "function": {"name": "", "arguments": ""}}
+                        if "id" in tc and tc["id"]:
+                            tool_calls_accumulator[idx]["id"] = tc["id"]
+                        if "function" in tc:
+                            f = tc["function"]
+                            if "name" in f and f["name"]:
+                                tool_calls_accumulator[idx]["function"]["name"] += f["name"]
+                            if "arguments" in f and f["arguments"]:
+                                tool_calls_accumulator[idx]["function"]["arguments"] += f["arguments"]
+                        continue
+                
                 chunk = delta.get("content", "")
                 r_chunk = delta.get("reasoning_content", "")
                 if r_chunk:
                     yield "<think>" + r_chunk + "</think>"
                 if chunk:
                     yield chunk
+                    
+        if tool_calls_accumulator:
+            tool_calls_list = [tool_calls_accumulator[i] for i in sorted(tool_calls_accumulator.keys())]
+            yield json.dumps({"__TOOL_CALLS__": tool_calls_list})
+            
     except Exception as e:
         yield f"\n\n[**SYSTEM ERROR**: Fallo de conexión con Modelo Local. Error: {str(e)}]\n\n"
 
@@ -166,7 +188,10 @@ def _openai_compat_complete(
         raw = _http_post(url, payload)
         data = _safe_json(raw)
         if data and "choices" in data and data["choices"]:
-            return data["choices"][0].get("message", {}).get("content", "")
+            msg = data["choices"][0].get("message", {})
+            if "tool_calls" in msg:
+                return json.dumps({"__TOOL_CALL__": msg["tool_calls"]})
+            return msg.get("content", "")
     except Exception as e:
         import logging
 
@@ -183,10 +208,10 @@ def _build_openai_payload(
     payload: Dict[str, Any] = {"model": model, "messages": messages, "stream": stream}
 
     # Surgical parameter injection for LM Studio / OpenAI compatibility
-    if "temperature" in options:
-        payload["temperature"] = float(options["temperature"])
-    if "top_p" in options:
-        payload["top_p"] = float(options["top_p"])
+    for k in ("temperature", "top_p", "tools", "tool_choice"):
+        if k in options:
+            payload[k] = options[k]
+
     if "max_tokens" in options and options["max_tokens"] > 0:
         payload["max_tokens"] = int(options["max_tokens"])
 

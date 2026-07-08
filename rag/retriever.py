@@ -16,7 +16,11 @@ import json
 import math
 import hashlib
 import urllib.request
+import warnings
 from collections import Counter
+
+# Ocultar advertencias de ONNX para proveedores faltantes
+warnings.filterwarnings("ignore", category=UserWarning, module="onnxruntime")
 
 # NPU/ONNX dependencies (lazy loaded inside methods)
 onnxruntime = None

@@ -274,8 +274,20 @@ class PostChatMixin:
                     pass
 
                 extra_rules = kb_data_brain.get("persistent_rules", [])
+                
+                tool_calling_enabled = True
+                try:
+                    settings_brain = {}
+                    sp = os.path.join(_base_dir_brain, "_settings.json")
+                    with open(sp, "r", encoding="utf-8") as _sf:
+                        settings_brain = json.load(_sf)
+                    tool_calling_enabled = settings_brain.get("tool_calling_enabled", True)
+                except Exception:
+                    pass
+
                 system_prompt = build_gravity_system_prompt(
-                    extra_rules=extra_rules if extra_rules else None
+                    extra_rules=extra_rules if extra_rules else None,
+                    tool_calling_enabled=tool_calling_enabled
                 )
 
                 # Insertar system prompt con conciencia sistémica
@@ -284,10 +296,6 @@ class PostChatMixin:
 
                 # Inyección RAG si está activa
                 try:
-                    settings_brain = {}
-                    sp = os.path.join(_base_dir_brain, "_settings.json")
-                    with open(sp, "r", encoding="utf-8") as _sf:
-                        settings_brain = json.load(_sf)
                     if settings_brain.get("rag_enabled", False) and user_msg:
                         from rag.retriever import RAGRetriever
 
@@ -331,6 +339,12 @@ class PostChatMixin:
                     for k in ("temperature", "top_p", "max_tokens")
                     if k in data
                 }
+                
+                if tool_calling_enabled:
+                    from core.system_tools import GRAVITY_SYSTEM_TOOLS
+                    options["tools"] = GRAVITY_SYSTEM_TOOLS
+                    options["tool_choice"] = "auto"
+                    
                 stripper = ReasoningStripper()
                 chat_id = f"chatcmpl-gravity-{uuid.uuid4().hex[:10]}"
 
@@ -340,40 +354,83 @@ class PostChatMixin:
                     self.send_header("Cache-Control", "no-cache")
                     self._send_cors()
                     self.end_headers()
-                    stream_gen = _pm.stream(
-                        messages_out,
-                        model=best_m,
-                        provider=best_p.name,
-                        options=options,
-                    )
-                    try:
-                        for chunk_text in stream_gen:
-                            if not chunk_text:
-                                continue
-                            clean = stripper.process_chunk(chunk_text)
-                            if not clean:
-                                continue
-                            chunk = {
-                                "id": chat_id,
-                                "object": "chat.completion.chunk",
-                                "model": best_m,
-                                "choices": [
-                                    {
-                                        "index": 0,
-                                        "delta": {"content": clean},
-                                        "finish_reason": None,
-                                    }
-                                ],
-                            }
-                            try:
-                                self.wfile.write(
-                                    f"data: {json.dumps(chunk)}\n\n".encode("utf-8")
-                                )
-                                self.wfile.flush()
-                            except Exception:
-                                break
-                    finally:
-                        stream_gen.close()
+                    
+                    max_tool_iterations = 3
+                    iteration = 0
+                    
+                    while iteration < max_tool_iterations:
+                        iteration += 1
+                        stream_gen = _pm.stream(
+                            messages_out,
+                            model=best_m,
+                            provider=best_p.name,
+                            options=options,
+                        )
+                        
+                        tool_calls_detected = False
+                        tool_calls_data = []
+                        try:
+                            for chunk_text in stream_gen:
+                                if not chunk_text:
+                                    continue
+                                    
+                                if chunk_text.startswith('{"__TOOL_CALLS__":'):
+                                    tool_calls_detected = True
+                                    try:
+                                        tool_calls_data = json.loads(chunk_text)["__TOOL_CALLS__"]
+                                    except Exception:
+                                        pass
+                                    break
+                                    
+                                clean = stripper.process_chunk(chunk_text)
+                                if not clean:
+                                    continue
+                                chunk = {
+                                    "id": chat_id,
+                                    "object": "chat.completion.chunk",
+                                    "model": best_m,
+                                    "choices": [
+                                        {
+                                            "index": 0,
+                                            "delta": {"content": clean},
+                                            "finish_reason": None,
+                                        }
+                                    ],
+                                }
+                                try:
+                                    self.wfile.write(
+                                        f"data: {json.dumps(chunk)}\n\n".encode("utf-8")
+                                    )
+                                    self.wfile.flush()
+                                except Exception:
+                                    break
+                        except Exception as e:
+                            log.error(f"Error in stream loop: {e}")
+                            break
+                        finally:
+                            stream_gen.close()
+                            
+                        if tool_calls_detected and tool_calls_data:
+                            from core.system_tools import handle_tool_call
+                            messages_out.append({
+                                "role": "assistant",
+                                "content": None,
+                                "tool_calls": tool_calls_data
+                            })
+                            for tc in tool_calls_data:
+                                func = tc.get("function", {})
+                                name = func.get("name", "")
+                                args = func.get("arguments", "")
+                                result_str = handle_tool_call(name, args)
+                                messages_out.append({
+                                    "role": "tool",
+                                    "tool_call_id": tc.get("id", ""),
+                                    "name": name,
+                                    "content": result_str
+                                })
+                            continue
+                        else:
+                            break
 
                     final = {
                         "id": chat_id,
@@ -390,32 +447,63 @@ class PostChatMixin:
                     except Exception:
                         pass
                 else:
-                    raw = _pm.complete(
-                        messages_out,
-                        model=best_m,
-                        provider=best_p.name,
-                        options=options,
-                    )
-                    full = stripper.process_chunk(raw)
-                    body = json.dumps(
-                        {
-                            "id": chat_id,
-                            "object": "chat.completion",
-                            "model": best_m,
-                            "choices": [
-                                {
-                                    "index": 0,
-                                    "message": {"role": "assistant", "content": full},
-                                    "finish_reason": "stop",
-                                }
-                            ],
-                        }
-                    ).encode("utf-8")
-                    self.send_response(200)
-                    self.send_header("Content-Type", "application/json")
-                    self._send_cors()
-                    self.end_headers()
-                    self.wfile.write(body)
+                    max_tool_iterations = 3
+                    iteration = 0
+                    
+                    while iteration < max_tool_iterations:
+                        iteration += 1
+                        raw = _pm.complete(
+                            messages_out,
+                            model=best_m,
+                            provider=best_p.name,
+                            options=options,
+                        )
+                        
+                        if raw.startswith('{"__TOOL_CALL__"'):
+                            try:
+                                tool_calls_data = json.loads(raw)["__TOOL_CALL__"]
+                                from core.system_tools import handle_tool_call
+                                messages_out.append({
+                                    "role": "assistant",
+                                    "content": None,
+                                    "tool_calls": tool_calls_data
+                                })
+                                for tc in tool_calls_data:
+                                    func = tc.get("function", {})
+                                    name = func.get("name", "")
+                                    args = func.get("arguments", "")
+                                    result_str = handle_tool_call(name, args)
+                                    messages_out.append({
+                                        "role": "tool",
+                                        "tool_call_id": tc.get("id", ""),
+                                        "name": name,
+                                        "content": result_str
+                                    })
+                                continue
+                            except Exception:
+                                pass
+                                
+                        full = stripper.process_chunk(raw)
+                        body = json.dumps(
+                            {
+                                "id": chat_id,
+                                "object": "chat.completion",
+                                "model": best_m,
+                                "choices": [
+                                    {
+                                        "index": 0,
+                                        "message": {"role": "assistant", "content": full},
+                                        "finish_reason": "stop",
+                                    }
+                                ],
+                            }
+                        ).encode("utf-8")
+                        self.send_response(200)
+                        self.send_header("Content-Type", "application/json")
+                        self._send_cors()
+                        self.end_headers()
+                        self.wfile.write(body)
+                        break
             except Exception as e:
                 log.error(f"[GravityChat] Error: {e}", exc_info=True)
                 try:

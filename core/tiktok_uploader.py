@@ -26,9 +26,15 @@ from core.logger import log
 from core.config_manager import config as config_manager
 
 BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_app_data = os.path.join(
+    os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+    "Gravity", 
+    "Databases"
+)
+os.makedirs(_app_data, exist_ok=True)
 CONFIG_PATH: str = os.path.join(BASE_DIR, "config.yaml")
-SOCIAL_LOG: str = os.path.join(BASE_DIR, "_integrations", "social_log.json")
-OAUTH_DIR: str = os.path.join(BASE_DIR, "_integrations")
+SOCIAL_LOG: str = os.path.join(_app_data, "social_log.json")
+OAUTH_DIR: str = os.path.join(_app_data)
 
 # Cerrojo reentrante a nivel de módulo para la E/S de credenciales y registros sociales
 _social_io_lock: threading.RLock = threading.RLock()

@@ -24,7 +24,7 @@ if BASE_DIR not in sys.path:
 
 from tools import latex_cleaner  # noqa: E402
 from core import image_router  # noqa: E402
-from core.provider_manager import provider_manager  # noqa: E402
+from core import provider_manager  # noqa: E402
 from core.chapter_qa import qa_agent  # noqa: E402
 from tools.llm_utils import clean_response, safe_complete  # noqa: E402
 from tools.web_search import WebSearch, fetch_page_text  # noqa: E402

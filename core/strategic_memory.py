@@ -33,7 +33,8 @@ except ImportError:
 from core.logger import log
 
 BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH: str = os.path.join(BASE_DIR, "gravity_brain.db")
+from core.db_migrator import _get_db_path
+DB_PATH: str = _get_db_path("gravity_brain")
 
 _db_lock = threading.RLock()
 

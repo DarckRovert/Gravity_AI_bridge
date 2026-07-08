@@ -15,7 +15,9 @@ import re
 
 # Subimos un nivel para que la base sea la raíz de F:\Gravity_AI_bridge
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CACHE_DB = os.path.join(BASE_DIR, "_cache.sqlite")
+LOCAL_APP_DATA = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), "Gravity", "Databases")
+os.makedirs(LOCAL_APP_DATA, exist_ok=True)
+CACHE_DB = os.path.join(LOCAL_APP_DATA, "_cache.sqlite")
 _db_lock = threading.RLock()
 _init_lock = threading.RLock()
 _db_initialized = False

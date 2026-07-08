@@ -706,6 +706,18 @@ def animate_with_comfyui(
         if not file_bytes:
             return None
 
+        # Validación estricta de Magic Bytes (GIF o WEBP)
+        is_gif = file_bytes.startswith(b'GIF8')
+        is_webp = file_bytes.startswith(b'RIFF') and b'WEBP' in file_bytes[:16]
+        
+        if len(file_bytes) < 100 or not (is_gif or is_webp):
+            try:
+                from core.logger import log
+                log.warning("[Animation Engine] Archivo animado corrupto devuelto por ComfyUI (Magic bytes inválidos).")
+            except Exception:
+                pass
+            return None
+
         # Guardar en el directorio del job
         if not output_dir:
             output_dir = os.path.join(_base, "_videos", f"job_{job_id}")
@@ -715,6 +727,12 @@ def animate_with_comfyui(
         out_path = os.path.join(output_dir, f"scene_{scene_idx:02d}_anim{out_ext}")
         with open(out_path, "wb") as f:
             f.write(file_bytes)
+
+        # Limpiar VRAM tras animación
+        try:
+            client.free_memory()
+        except Exception:
+            pass
 
         # Si el output es WEBP animado, convertir a MP4 via FFmpeg (con fallback a PIL para decodificar frames si falla)
         _ffmpeg = os.path.join(_base, "_integrations", "ffmpeg", "ffmpeg.exe")

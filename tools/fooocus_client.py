@@ -213,9 +213,13 @@ def trigger_gradio_generation(
     trigger_script: str = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "native_trigger.py")
     )
-    log_file: str = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", "fooocus_trigger_debug.log")
+    log_dir = os.path.join(
+        os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+        "Gravity", 
+        "Logs"
     )
+    os.makedirs(log_dir, exist_ok=True)
+    log_file: str = os.path.join(log_dir, "fooocus_trigger_debug.log")
 
     if not os.path.exists(fooocus_python):
         return {

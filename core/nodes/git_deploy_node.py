@@ -44,7 +44,7 @@ class GitDeployNode(GravityNode):
             raise ValueError(f"[{self.node_id}] Ruta de repositorio invalida: {repo_path}")
 
         try:
-            # git add
+            # PASO 1: git add
             subprocess.run(
                 ["git", "add", files],
                 cwd=repo_path,
@@ -53,8 +53,7 @@ class GitDeployNode(GravityNode):
                 stderr=subprocess.PIPE
             )
 
-            # git commit
-            # (If no changes, it will fail, we handle it)
+            # PASO 2: git commit
             commit_res = subprocess.run(
                 ["git", "commit", "-m", msg],
                 cwd=repo_path,
@@ -63,26 +62,41 @@ class GitDeployNode(GravityNode):
             )
             
             commit_output = commit_res.stdout.decode("utf-8", errors="ignore")
+            commit_err = commit_res.stderr.decode("utf-8", errors="ignore")
             if commit_res.returncode != 0:
-                if "nothing to commit" in commit_output or "working tree clean" in commit_output:
+                if "nothing to commit" in commit_output or "working tree clean" in commit_output \
+                        or "nothing to commit" in commit_err:
                     log.info(f"[{self.__class__.__name__}] Nada que commitear en {repo_path}.")
                     return {"status": "no_changes", "commit_message": msg, "output": "nothing to commit"}
-                else:
-                    err = commit_res.stderr.decode("utf-8", errors="ignore")
-                    raise RuntimeError(f"Git commit failed: {err}")
+                raise RuntimeError(f"Git commit failed: {commit_err}")
 
             log.info(f"[{self.__class__.__name__}] Commit realizado: {msg}")
 
-            # git push
-            if do_push:
-                # Primero intentamos un pull --rebase para evitar conflictos
-                subprocess.run(
-                    ["git", "pull", "--rebase"],
-                    cwd=repo_path,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE
+            # PASO 3: pull --rebase DESPUÉS del commit local
+            pull_res = subprocess.run(
+                ["git", "pull", "--rebase"],
+                cwd=repo_path,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            pull_out = pull_res.stdout.decode("utf-8", errors="ignore")
+            pull_err = pull_res.stderr.decode("utf-8", errors="ignore")
+            if pull_res.returncode != 0:
+                if "CONFLICT" in pull_out or "CONFLICT" in pull_err or "conflict" in pull_out.lower() or "conflict" in pull_err.lower():
+                    log.error(
+                        f"[{self.__class__.__name__}] MERGE CONFLICT detectado en pull --rebase. "
+                        "Abortando rebase para evitar corrupción del repositorio..."
+                    )
+                    # Abortar el rebase para devolver el repositorio al estado previo y no romper futuras ejecuciones
+                    subprocess.run(["git", "rebase", "--abort"], cwd=repo_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    return {"status": "merge_conflict", "commit_message": msg, "output": pull_err}
+                # Pull puede fallar si no hay remote o sin internet — no es fatal, continuar
+                log.warning(
+                    f"[{self.__class__.__name__}] pull --rebase retornó código {pull_res.returncode}: {pull_err[:200]}. Continuando."
                 )
-                
+
+            # PASO 4: git push
+            if do_push:
                 push_res = subprocess.run(
                     ["git", "push"],
                     cwd=repo_path,
@@ -104,3 +118,4 @@ class GitDeployNode(GravityNode):
             err = e.stderr.decode("utf-8", errors="ignore") if e.stderr else str(e)
             log.error(f"[{self.__class__.__name__}] Error Git: {err}")
             raise RuntimeError(f"Error en GitDeployNode: {err}")
+

@@ -37,8 +37,12 @@ MANAGED_DBS: Dict[str, str] = {
 }
 
 
+LOCAL_APP_DATA = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), "Gravity", "Databases")
+os.makedirs(LOCAL_APP_DATA, exist_ok=True)
+
+
 def _get_db_path(alias: str) -> str:
-    return os.path.join(BASE_DIR, MANAGED_DBS[alias])
+    return os.path.join(LOCAL_APP_DATA, MANAGED_DBS[alias])
 
 
 def _ensure_version_table(conn: sqlite3.Connection) -> None:
@@ -176,7 +180,7 @@ def get_status() -> Dict[str, dict]:
     """
     status = {}
     for alias, rel_path in MANAGED_DBS.items():
-        db_path = os.path.join(BASE_DIR, rel_path)
+        db_path = _get_db_path(alias)
         migration_dir = os.path.join(MIGRATIONS_DIR, alias)
         available = 0
         if os.path.isdir(migration_dir):

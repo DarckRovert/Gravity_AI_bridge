@@ -32,35 +32,7 @@ def _safe_read_settings() -> Dict[str, Any]:
 
 
 # ── OpenAI ────────────────────────────────────────────────────────────────────
-class OpenAIProvider(OpenAICompatCloudProvider):
-    name: str = "OpenAI"
-    _base_url: str = "https://api.openai.com/v1"
-    _key_id: str = "openai"
-    supports_vision: bool = True
-    supports_function_calling: bool = True
-    default_context: int = 128000
-    _available_models: List[str] = [
-        "gpt-4o",
-        "gpt-4o-mini",
-        "o1",
-        "o1-mini",
-        "o3",
-        "o3-mini",
-        "o4-mini",
-        "gpt-4-turbo",
-    ]
-
-    def get_cost_per_million_tokens(self, model: str) -> Dict[str, float]:
-        costs = {
-            "gpt-4o": {"input": 5.00, "output": 15.00},
-            "gpt-4o-mini": {"input": 0.15, "output": 0.60},
-            "o1": {"input": 15.00, "output": 60.00},
-            "o1-mini": {"input": 3.00, "output": 12.00},
-            "o3": {"input": 10.00, "output": 40.00},
-            "o3-mini": {"input": 1.10, "output": 4.40},
-            "o4-mini": {"input": 1.10, "output": 4.40},
-        }
-        return costs.get(model, {"input": 5.00, "output": 15.00})
+# [REMOVED] El usuario solicitó eliminar OpenAI por requerir saldo para funcionar.
 
 
 # ── Groq ──────────────────────────────────────────────────────────────────────

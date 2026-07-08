@@ -174,8 +174,14 @@ class PostSystemMixin:
                 BASE_DIR = os.path.dirname(
                     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
                 )
-                audit_path = os.path.join(BASE_DIR, "_audit_log.jsonl")
-                archive_dir = os.path.join(BASE_DIR, "_archivo")
+                from core.audit_log import get_audit_log_path
+                audit_path = get_audit_log_path()
+                archive_dir = os.path.join(
+                    os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+                    "Gravity", 
+                    "Logs", 
+                    "_archivo"
+                )
                 os.makedirs(archive_dir, exist_ok=True)
                 ts = time.strftime("%Y%m%d_%H%M%S")
                 archive_path = os.path.join(archive_dir, f"audit_{ts}.jsonl")

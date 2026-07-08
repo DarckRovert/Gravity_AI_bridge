@@ -64,6 +64,16 @@ def setup_logger(
     name: str = "gravity", log_file: str = "bridge.log", level: int = logging.INFO
 ) -> logging.Logger:
     """Configures and returns a structured logger with console and rotating file output."""
+    
+    import os
+    if log_file == "bridge.log":
+        log_dir = os.path.join(
+            os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+            "Gravity", 
+            "Logs"
+        )
+        os.makedirs(log_dir, exist_ok=True)
+        log_file = os.path.join(log_dir, "bridge.log")
     logger = logging.getLogger(name)
 
     # Prevenir que agreguemos handlers múltiples si se llama varias veces

@@ -16,7 +16,7 @@ from tools.web_search import WebSearch  # noqa: E402
 from tools import latex_cleaner  # noqa: E402
 from core import image_router  # noqa: E402
 from core.chapter_qa import qa_agent
-from tools.llm_utils import clean_response, atomic_write, safe_complete  # noqa: E402
+from tools.llm_utils import clean_response, atomic_write, atomic_append, safe_complete  # noqa: E402
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -335,7 +335,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
         ):
             with open(progress_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                start_chapter = data.get("ultimo_capitulo", 0) + 1
+                start_chapter = data.get("ultimo_capitulo_completado", 0) + 1
             with open(
                 os.path.join(book_dir, "2_escaleta.json"), "r", encoding="utf-8"
             ) as f:
@@ -470,9 +470,10 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                 existing_book = ""
                 with open(book_file, "r", encoding="utf-8") as f:
                     existing_book = f.read()
-                atomic_write(
-                    book_file, existing_book + "\n\n" + gf.read() + "\n\n=== CAPITULO ===\n\n"
-                )
+                if "# Glosario de Términos" not in existing_book:
+                    atomic_write(
+                        book_file, existing_book + "\n\n" + gf.read() + "\n\n=== CAPITULO ===\n\n"
+                    )
 
         try:
             import markdown

@@ -14,7 +14,8 @@ import time
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RAG_DIR = os.path.join(BASE_DIR, "_rag_index")
-RAG_DB = os.path.join(RAG_DIR, "index.sqlite")
+LOCAL_APP_DATA = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), "Gravity", "Databases")
+RAG_DB = os.path.join(LOCAL_APP_DATA, "index.sqlite")
 _lock = threading.Lock()
 
 os.makedirs(RAG_DIR, exist_ok=True)

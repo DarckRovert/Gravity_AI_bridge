@@ -44,7 +44,8 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 ### 📰 Reportero Autónomo (Agente Periodístico)
 - **Operación Continua (Daemon):** Un agente persistente que despierta aleatoriamente cada 4-8 horas (`news_daemon.py`).
 - **Investigación Web Profunda:** Analiza temáticas complejas de geopolítica y ciberseguridad a través de Web Search y fuentes independientes vía RSS de YouTube (ej. Los Liberales).
-- **Redacción y Publicación End-to-End:** 7 Nodos Atómicos en `workflows/reporter.json` orquestan RSS → WebSearch → LLM → Normalización → news.json → VideoJob → GitDeploy. Cuenta con sanitización extrema en URLs (Pollinations Safe-Encoding) y publicación atómica.
+- **Redacción y Publicación End-to-End:** 7 Nodos Atómicos en `workflows/reporter.json` orquestan RSS → WebSearch → LLM → Normalización → news.json → VideoJob → GitDeploy. Cuenta con sanitización extrema en URLs, publicación atómica y **Aislamiento Epistemológico** que erradica la contaminación de ciencia ficción en artículos periodísticos reales.
+- **Estabilidad Estructural (Anti-Alucinaciones):** Implanta forzosamente un `<thought>` pre-renderizado (Chain-of-Thought) en el LLM y utiliza un parser multinivel Regex de 4 capas para garantizar que el motor nunca sufra roturas de JSON ("Transmisiones Clandestinas").
 - **Auto-Mantenimiento:** Sincroniza bibliotecas e imágenes eliminando duplicados mediante un sistema de slugs.
 
 ### 🧠 Multi-Agent Orchestrator (`core/multi_agent.py`)

@@ -1,7 +1,9 @@
 @echo off
+chcp 65001 >nul
 title GRAVITY AI - Reportero Autonomo
 color 0A
 cd /d "%~dp0.."
+set "PYTHONPATH=%~dp0.."
 echo ======================================================================
 echo   INICIANDO GRAVITY AI - REPORTERO WEB
 echo ======================================================================

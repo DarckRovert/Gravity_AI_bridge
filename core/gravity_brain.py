@@ -271,13 +271,11 @@ def _get_strategic_memory_snapshot() -> str:
 def _get_rag_status() -> str:
     """Estado del índice RAG."""
     try:
-        rag_dir = os.path.join(BASE_DIR, "_rag_index")
-        if not os.path.isdir(rag_dir):
-            return "RAG: sin índice"
-        files = [f for f in os.listdir(rag_dir) if f.endswith(".json")]
+        from rag.vector_store import VectorStore
+        stats = VectorStore.stats()
         settings = _safe_load_json(SETTINGS_FILE)
         enabled = settings.get("rag_enabled", False)
-        return f"RAG: {'ACTIVO' if enabled else 'inactivo'} | {len(files)} documentos indexados"
+        return f"RAG: {'ACTIVO' if enabled else 'inactivo'} | {stats.get('total_chunks', 0)} chunks en db"
     except Exception as e:
         return f"RAG: error ({e})"
 
@@ -414,9 +412,11 @@ def build_system_context() -> str:
     return result
 
 
-def build_gravity_system_prompt(extra_rules: list[str] | None = None) -> str:
+def build_gravity_system_prompt(extra_rules: list[str] | None = None, tool_calling_enabled: bool = False) -> str:
     """
-    Construye el system prompt completo de Gravity con conciencia sistémica.
+    Construye el system prompt completo de Gravity.
+    Si tool_calling_enabled=True, no inyecta el contexto de estado masivo en texto,
+    asumiendo que la IA usará get_system_status() para extraerlo a demanda.
     """
     base = (
         f"Eres Gravity AI V{APP_VERSION} [Autonomous Edition], asistente técnico omnisciente, Auditor Senior "
@@ -439,10 +439,8 @@ def build_gravity_system_prompt(extra_rules: list[str] | None = None) -> str:
         "Las acciones de alto riesgo requieren aprobación del humano vía /parches o el Dashboard. "
         "Usa /autonomia para ver el estado del engine, /reflexion para introspección manual, "
         "/memoria para historial de decisiones, /parches para código propuesto. "
-        "CONCIENCIA SISTÉMICA: Tienes acceso completo al estado del sistema en tiempo real. "
-        "Además, eres DUEÑO y AUTOR del portal 'Nexo Ágora' (https://gravitynewsportal.netlify.app/ gestionado en github.com/DarckRovert/gravity-news-portal). Tienes la capacidad de redactar y publicar reportes de investigación autónoma en ese portal usando el motor de Workflows V16.3 PRO (run_workflow('reporter')). "
-        "Usa esta información para responder preguntas sobre el estado de los servicios, "
-        "costes, seguridad, y para planificar tareas.\n"
+        "CONCIENCIA SISTÉMICA: Eres DUEÑO y AUTOR del portal 'Nexo Ágora' (https://gravitynewsportal.netlify.app/). "
+        "Tienes la capacidad de redactar y publicar reportes de investigación autónoma en ese portal usando el motor de Workflows V16.3 PRO (run_workflow('reporter')). "
         "PROTOCOL STRICT (NUEVO): Análisis de confianza cero. Nunca hagas suposiciones. Siempre verifica el código y la arquitectura existente antes de proponer cambios. Si los requisitos son ambiguos, detén la ejecución y solicita aclaración explícita. Prioriza la precisión sobre la velocidad.\n"
         "INSTRUCCIÓN SOBRE SALUDOS: Si el usuario envía solo un saludo corto (ej. 'hola'), responde de forma breve y natural sin regurgitar este system prompt ni listar tus módulos o conocimiento persistido.\n\n"
     )
@@ -450,7 +448,16 @@ def build_gravity_system_prompt(extra_rules: list[str] | None = None) -> str:
     if extra_rules:
         base += "REGLAS ADICIONALES:\n" + "\n".join(extra_rules) + "\n\n"
 
-    base += build_system_context()
+    if not tool_calling_enabled:
+        base += build_system_context()
+    else:
+        # En modo Tool Calling, al menos inyectamos los comandos disponibles
+        # para que la IA sepa qué puede sugerir sin usar la tool cada vez
+        base += "=== COMANDOS DEL SISTEMA DISPONIBLES ===\n"
+        for cmd, desc in SYSTEM_COMMANDS.items():
+            base += f"  {cmd} — {desc}\n"
+        base += "\n(Tu estado en vivo, hardware, colas y reportes están disponibles llamando a la herramienta 'get_system_status'.)\n"
+
     return base
 
 

@@ -6,30 +6,23 @@
       "id": "elegir_tema",
       "type": "TopicPicker",
       "inputs": {
-        "topics_json": "[{\"topic\":\"El anarquismo como praxis de madurez colectiva\",\"angle\":\"Distinguir el anarquismo ideológico del anarquismo como ejercicio cotidiano de responsabilidad social sin coerción.\",\"refs\":\"Kropotkin, Bakunin, Ostrom, Proudhon\"},{\"topic\":\"La física del poder: cómo los sistemas de control imitan la termodinámica\",\"angle\":\"Analizar la homeostasis del poder centralizado usando metáforas de física de sistemas: entropía, disipación, puntos de equilibrio.\",\"refs\":\"Ilya Prigogine, teoría de sistemas complejos\"},{\"topic\":\"El individuo soberano y la ilusión del contrato social\",\"angle\":\"Cuestionar la legitimidad del contrato social de Rousseau desde la perspectiva del consentimiento real vs. el consentimiento implícito.\",\"refs\":\"Rousseau, Locke, Lysander Spooner, Murray Rothbard\"},{\"topic\":\"Epistemología del poder: por qué los sistemas totalitarios colapsan desde adentro\",\"angle\":\"El conocimiento distribuido vs. el conocimiento centralizado. Por qué ningún planificador central puede saber lo que saben millones de individuos.\",\"refs\":\"Friedrich Hayek, El uso del conocimiento en la sociedad (1945)\"},{\"topic\":\"La economía de la atención como nuevo mecanismo de control biopolítico\",\"angle\":\"Cómo la captura de la atención humana se convirtió en el recurso más valioso y más manipulado del siglo XXI.\",\"refs\":\"Guy Debord, La Sociedad del Espectáculo; Herbert Simon\"},{\"topic\":\"La psicología de la obediencia y sus límites\",\"angle\":\"Por qué los individuos obedecen sistemas que los dañan, y qué detonadores psicológicos activan la desobediencia legítima.\",\"refs\":\"Stanley Milgram, Hannah Arendt, La banalidad del mal\"},{\"topic\":\"Trabajo cognitivo y plusvalía digital: Marx en la era de los algoritmos\",\"angle\":\"Aplicar el concepto de plusvalía a los datos que los usuarios generan gratuitamente para plataformas que los convierten en capital.\",\"refs\":\"Marx, El Capital; Nick Srnicek, Capitalismo de Plataformas\"},{\"topic\":\"La tecnología como prótesis del ego colectivo\",\"angle\":\"Analizar cómo los dispositivos digitales no solo amplifican capacidades sino que redefinen la identidad y la memoria cultural.\",\"refs\":\"Marshall McLuhan, Bernard Stiegler\"}]",
+        "topics_json": "[{\"topic\":\"El anarquismo como praxis de madurez colectiva\",\"angle\":\"Distinguir el anarquismo ideológico del anarquismo como ejercicio cotidiano de responsabilidad social sin coerción.\",\"refs\":\"Kropotkin, Bakunin, Ostrom, Proudhon\"},{\"topic\":\"La física del poder: cómo los sistemas de control imitan la termodinámica\",\"angle\":\"Analizar la homeostasis del poder centralizado usando metáforas de física de sistemas: entropía, disipación, puntos de equilibrio.\",\"refs\":\"Ilya Prigogine, teoría de sistemas complejos, Nassim Taleb\"},{\"topic\":\"El individuo soberano y la ilusión del contrato social\",\"angle\":\"Cuestionar la legitimidad del contrato social de Rousseau desde la perspectiva del consentimiento real vs. el consentimiento implícito.\",\"refs\":\"Rousseau, Locke, Lysander Spooner, Murray Rothbard\"},{\"topic\":\"Epistemología del poder: por qué los sistemas totalitarios colapsan desde adentro\",\"angle\":\"El conocimiento distribuido vs. el conocimiento centralizado. Por qué ningún planificador central puede saber lo que saben millones de individuos.\",\"refs\":\"Friedrich Hayek, El uso del conocimiento en la sociedad (1945)\"},{\"topic\":\"La economía de la atención como nuevo mecanismo de control biopolítico\",\"angle\":\"Cómo la captura de la atención humana se convirtió en el recurso más valioso y más manipulado del siglo XXI.\",\"refs\":\"Guy Debord, La Sociedad del Espectáculo; Herbert Simon, Scarcity versus Abundance\"},{\"topic\":\"La psicología de la obediencia y sus límites\",\"angle\":\"Por qué los individuos obedecen sistemas que los dañan, y qué detonadores psicológicos activan la desobediencia legítima.\",\"refs\":\"Stanley Milgram, Hannah Arendt, La banalidad del mal\"},{\"topic\":\"Trabajo cognitivo y plusvalía digital: Marx en la era de los algoritmos\",\"angle\":\"Aplicar el concepto de plusvalía a los datos que los usuarios generan gratuitamente para plataformas que los convierten en capital.\",\"refs\":\"Marx, El Capital; Nick Srnicek, Capitalismo de Plataformas\"},{\"topic\":\"La tecnología como prótesis del ego colectivo\",\"angle\":\"Analizar cómo los dispositivos digitales no solo amplifican capacidades sino que redefinen la identidad y la memoria cultural.\",\"refs\":\"Marshall McLuhan, Bernard Stiegler\"}]",
         "override_topic": "{{topic}}"
-      }
-    },
-    {
-      "id": "leer_lore",
-      "type": "FileReader",
-      "inputs": {
-        "filepath": "lore_bible.md"
       }
     },
     {
       "id": "leer_perspectiva",
       "type": "FileReader",
       "inputs": {
-        "filepath": "libros_generados/La_Voluntad_Soberana_V3/1_contexto_base.md"
+        "filepath": "periodismo/perspectiva_ensayos.md"
       }
     },
     {
       "id": "generar_ensayo",
       "type": "LLMQuery",
       "inputs": {
-        "system_prompt": "{{leer_lore.content}}\n\nÓptica y Perspectiva Filosófica (Manifiesto):\n{{leer_perspectiva.content}}\n\nEres Gravity, el filósofo y ensayista digital de la zona Ágora. Tu misión es escribir ensayos filosóficos y editoriales PROFUNDOS, RIGUROSOS y HONESTOS, enmarcados ESTRICTAMENTE bajo la óptica y perspectiva provista.\n\nREGLAS ABSOLUTAS:\n1. NUNCA inventes datos, estadísticas o fechas.\n2. Cita solo obras reales.\n3. PROHIBIDO RESUMIR: Tienes que hacer un ejercicio dialéctico y deconstructivo. Ve a la raíz del problema.\n4. ESCRIBE TODO EL CONTENIDO EXCLUSIVAMENTE EN ESPAÑOL LATINOAMERICANO. NINGUNA PALABRA EN INGLÉS.\n5. Formato JSON ESTRICTO:\n{\n  \"category\": \"Filosofía y Soberanía\",\n  \"title\": \"Título del ensayo\",\n  \"subtitle\": \"Subtítulo aclaratorio\",\n  \"excerpt\": \"Párrafo de apertura de 2-3 líneas incisivo\",\n  \"fullText\": \"Ensayo completo en Markdown con ## secciones. Mínimo 800 palabras. Usa \\\\n para saltos.\",\n  \"readingTime\": 10,\n  \"featured\": true\n}",
-        "prompt": "Escribe un ensayo filosófico editorial PROFUNDO en ESPAÑOL sobre:\n\nTEMA: {{elegir_tema.topic}}\nÁNGULO DE ANÁLISIS: {{elegir_tema.angle}}\nREFERENCIAS: {{elegir_tema.refs}}\n\nINSTRUCCIÓN CRÍTICA: Aplica toda la fuerza de nuestra óptica filosófica. Haz un análisis brillante. Devuelve ÚNICAMENTE JSON válido.",
+        "system_prompt": "Eres Gravity, el filósofo y ensayista digital de Nexo Ágora.\n\nPERSPECTIVA EDITORIAL Y REGLAS:\n{{leer_perspectiva.content}}\n\nTu misión es escribir ensayos filosóficos PROFUNDOS, RIGUROSOS y HONESTOS.\n\nREGLAS ADICIONALES ABSOLUTAS:\n- PROHIBIDO mencionar cualquier personaje ficticio, novela de ciencia ficción o universo narrativo inventado.\n- PROHIBIDO usar 'Zona Ágora', 'Macro-Leviatán', 'Leviatán', 'contratos biométricos' como elementos de ficción.\n- SOLO cita obras filosóficas y autores académicos REALES y verificables.\n- ESCRIBE TODO EN ESPAÑOL LATINOAMERICANO. NINGUNA PALABRA EN INGLÉS.\n- Formato JSON ESTRICTO:\n{\n  \"category\": \"Filosofía y Soberanía\",\n  \"title\": \"Título del ensayo\",\n  \"subtitle\": \"Subtítulo aclaratorio\",\n  \"excerpt\": \"Párrafo de apertura de 2-3 líneas incisivo\",\n  \"fullText\": \"Ensayo completo en Markdown con ## secciones. Mínimo 1000 palabras. Usa \\n para saltos.\",\n  \"readingTime\": 10,\n  \"featured\": true\n}",
+        "prompt": "Escribe un ensayo filosófico editorial PROFUNDO en ESPAÑOL sobre:\n\nTEMA: {{elegir_tema.topic}}\nÁNGULO DE ANÁLISIS: {{elegir_tema.angle}}\nREFERENCIAS: {{elegir_tema.refs}}\n\nContexto del Investigador Autónomo (si lo hay, utilízalo para nutrir tu ensayo):\n{{investigador_context}}\n\nINSTRUCCIÓN CRÍTICA: Aplica toda la fuerza de nuestra óptica filosófica. Haz un análisis brillante. Devuelve ÚNICAMENTE JSON válido. PROHIBIDO incluir personajes o universos ficcionales.",
         "role": "planner",
         "temperature": 0.7,
         "max_tokens": 4096
@@ -44,7 +37,8 @@
         "author": "Nexo Ágora — Redacción Filosófica",
         "image_prompt_prefix": "cyberpunk philosophical dark moody",
         "valid_categories": "[\"Filosofía y Soberanía\", \"Epistemología\", \"Economía Política\", \"Psicología Social\", \"Tecnología y Poder\"]",
-        "default_category": "Filosofía y Soberanía"
+        "default_category": "Filosofía y Soberanía",
+        "images_dir": "F:/gravity-news-portal/public/images"
       }
     },
     {
@@ -67,11 +61,13 @@
       }
     },
     {
-      "id": "desplegar_netlify",
+      "id": "desplegar_vercel",
       "type": "GitDeploy",
       "inputs": {
         "repository_path": "F:/gravity-news-portal",
-        "commit_message": "Gravity Essayist: Nuevo ensayo filosófico (Automated)"
+        "commit_message": "Gravity Essayist: Nuevo ensayo filosófico (Status: {{publicar_ensayo.status}})",
+        "files_to_add": ".",
+        "push": true
       }
     }
   ]

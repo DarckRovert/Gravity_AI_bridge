@@ -34,7 +34,12 @@ if not os.path.exists(PYTHON_EXE):
     PYTHON_EXE = "python.exe"  # Fallback a PATH
 
 BRIDGE_SCRIPT = os.path.join(BASE_DIR, "bridge_server.py")
-LOG_DIR = os.path.join(BASE_DIR, "logs")
+LOG_DIR = os.path.join(
+    os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+    "Gravity", 
+    "Logs"
+)
+os.makedirs(LOG_DIR, exist_ok=True)
 
 
 def _is_admin() -> bool:

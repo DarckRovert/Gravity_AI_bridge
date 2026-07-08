@@ -14,7 +14,14 @@ from typing import Dict, Tuple, Any, Optional
 
 # Subimos un nivel para que la base sea la raíz de F:\Gravity_AI_bridge
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-COST_LOG_FILE = os.path.join(BASE_DIR, "_cost_log.json")
+# Migrado a AppData para evitar bloqueos por Google Drive (Zero-Trust)
+_app_data = os.path.join(
+    os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+    "Gravity", 
+    "Databases"
+)
+os.makedirs(_app_data, exist_ok=True)
+COST_LOG_FILE = os.path.join(_app_data, "_cost_log.json")
 SETTINGS_FILE = os.path.join(BASE_DIR, "_settings.json")
 
 _lock = threading.RLock()

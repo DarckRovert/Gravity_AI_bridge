@@ -69,7 +69,13 @@ def handle_jarvis_start(handler):
     ]
 
     try:
-        log_path = os.path.join(BASE_DIR, "gravity_jarvis.log")
+        log_dir = os.path.join(
+            os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+            "Gravity", 
+            "Logs"
+        )
+        os.makedirs(log_dir, exist_ok=True)
+        log_path = os.path.join(log_dir, "gravity_jarvis.log")
         launched = []
         for script in modules:
             if os.path.exists(script):

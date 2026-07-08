@@ -17,7 +17,9 @@ logger = logging.getLogger("gravity")
 def _cloud_request_stream(
     url: str, payload: Dict[str, Any], headers: Dict[str, str]
 ) -> Generator[str, None, None]:
-    """Streams SSE from any OpenAI-compatible cloud endpoint using requests library."""
+    """Streams SSE from any OpenAI-compatible cloud endpoint."""
+    tool_calls_accumulator = {}
+    
     try:
         with requests.post(
             url, json=payload, headers=headers, stream=True, timeout=300
@@ -36,6 +38,23 @@ def _cloud_request_stream(
                     d = json.loads(d_str)
                     if "choices" in d and d["choices"]:
                         delta = d["choices"][0].get("delta", {})
+                        
+                        # Handle tool calls streaming
+                        if "tool_calls" in delta:
+                            for tc in delta["tool_calls"]:
+                                idx = tc.get("index", 0)
+                                if idx not in tool_calls_accumulator:
+                                    tool_calls_accumulator[idx] = {"id": tc.get("id", ""), "type": "function", "function": {"name": "", "arguments": ""}}
+                                if "id" in tc and tc["id"]:
+                                    tool_calls_accumulator[idx]["id"] = tc["id"]
+                                if "function" in tc:
+                                    f = tc["function"]
+                                    if "name" in f and f["name"]:
+                                        tool_calls_accumulator[idx]["function"]["name"] += f["name"]
+                                    if "arguments" in f and f["arguments"]:
+                                        tool_calls_accumulator[idx]["function"]["arguments"] += f["arguments"]
+                                continue
+                                
                         r_chunk = delta.get("reasoning_content", "")
                         chunk = delta.get("content", "")
                         if r_chunk:
@@ -44,11 +63,17 @@ def _cloud_request_stream(
                             yield chunk
                 except Exception:
                     pass
+            
+            # If we accumulated tool calls, yield them as a special JSON string at the end
+            if tool_calls_accumulator:
+                tool_calls_list = [tool_calls_accumulator[i] for i in sorted(tool_calls_accumulator.keys())]
+                yield json.dumps({"__TOOL_CALLS__": tool_calls_list})
+                
     except Exception as e:
         logger.error(f"[CloudStream] Error streaming from {url}: {e}")
         err_msg = f"\n\n[**SYSTEM ERROR**: Fallo crítico de conexión con la nube. Error: {str(e)}]\n\n"
+        # Ensure the frontend can parse the error message immediately
         yield err_msg
-
 
 def _cloud_request_complete(
     url: str, payload: Dict[str, Any], headers: Dict[str, str]
@@ -59,7 +84,10 @@ def _cloud_request_complete(
         r.raise_for_status()
         d = r.json()
         if "choices" in d and d["choices"]:
-            return d["choices"][0].get("message", {}).get("content", "")
+            msg = d["choices"][0].get("message", {})
+            if "tool_calls" in msg:
+                return json.dumps({"__TOOL_CALL__": msg["tool_calls"]})
+            return msg.get("content", "")
     except Exception as e:
         logger.error(f"[CloudComplete] Error fetching from {url}: {e}")
     return ""
@@ -110,7 +138,7 @@ class OpenAICompatCloudProvider(ProviderPlugin):
         options: Dict[str, Any],
     ) -> Generator[str, None, None]:
         payload: Dict[str, Any] = {"model": model, "messages": messages, "stream": True}
-        for k in ("temperature", "top_p", "max_tokens"):
+        for k in ("temperature", "top_p", "max_tokens", "tools", "tool_choice"):
             if k in options:
                 payload[k] = options[k]
         url = f"{self._base_url.rstrip('/')}{self._chat_path}"
@@ -128,7 +156,7 @@ class OpenAICompatCloudProvider(ProviderPlugin):
             "messages": messages,
             "stream": False,
         }
-        for k in ("temperature", "top_p", "max_tokens"):
+        for k in ("temperature", "top_p", "max_tokens", "tools", "tool_choice"):
             if k in options:
                 payload[k] = options[k]
         url = f"{self._base_url.rstrip('/')}{self._chat_path}"

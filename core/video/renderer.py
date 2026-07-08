@@ -138,11 +138,19 @@ def _generate_scene_image(
                     img_data = comfy_client.get_image(
                         out["filename"], out.get("subfolder", ""), out["type"]
                     )
+                    
+                    if len(img_data) < 100 or not img_data.startswith(b'\x89PNG'):
+                        raise ValueError(f"Imagen corrupta (Magic bytes inválidos) en escena {scene_idx}")
+
                     with open(out_path, "wb") as f:
                         f.write(img_data)
                     log.info(
                         f"[VideoStudio] [ComfyUI L2] Escena {scene_idx}: {os.path.basename(out_path)}"
                     )
+                    
+                    # Limpiar VRAM tras generación intensiva
+                    comfy_client.free_memory()
+                    
                     return out_path
 
             log.warning(

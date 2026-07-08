@@ -63,7 +63,13 @@ def handle_radar_start(handler):
     script = os.path.join(BASE_DIR, "core", "high_frequency_radar.py")
 
     try:
-        log_path = os.path.join(BASE_DIR, "gravity_radar.log")
+        log_dir = os.path.join(
+            os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+            "Gravity", 
+            "Logs"
+        )
+        os.makedirs(log_dir, exist_ok=True)
+        log_path = os.path.join(log_dir, "gravity_radar.log")
         with open(log_path, "a", encoding="utf-8") as log_file:
             RADAR_PROC = subprocess.Popen(
                 ["python", script],

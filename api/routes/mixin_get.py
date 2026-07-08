@@ -884,34 +884,22 @@ class GetRoutesMixin:
     def _serve_rag_status(self):
         """Estado del índice RAG: documentos indexados, tamaño, carpeta."""
         try:
-            BASE_DIR = os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            from rag.vector_store import VectorStore
+            stats = VectorStore.stats()
+            _app_data = os.path.join(
+                os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+                "Gravity", 
+                "Databases"
             )
-            rag_dir = os.path.join(BASE_DIR, "_rag_index")
-            doc_count = 0
-            chunk_count = 0
-            size_bytes = 0
-            if os.path.isdir(rag_dir):
-                for fname in os.listdir(rag_dir):
-                    fpath = os.path.join(rag_dir, fname)
-                    if os.path.isfile(fpath):
-                        size_bytes += os.path.getsize(fpath)
-                        if fname.endswith(".json"):
-                            try:
-                                with open(fpath, "r", encoding="utf-8") as f:
-                                    data = json.load(f)
-                                if isinstance(data, list):
-                                    chunk_count += len(data)
-                                    doc_count += 1
-                            except Exception:
-                                pass
+            db_path = os.path.join(_app_data, "index.sqlite")
+            
             body = json.dumps(
                 {
-                    "rag_dir": rag_dir,
-                    "doc_count": doc_count,
-                    "chunk_count": chunk_count,
-                    "size_mb": round(size_bytes / (1024**2), 2),
-                    "online": doc_count > 0,
+                    "rag_dir": db_path,
+                    "doc_count": stats.get("sources", 0),
+                    "chunk_count": stats.get("total_chunks", 0),
+                    "size_mb": round(stats.get("size_kb", 0) / 1024, 2),
+                    "online": stats.get("total_chunks", 0) > 0,
                 },
                 indent=2,
             ).encode("utf-8")
@@ -1122,6 +1110,33 @@ class GetRoutesMixin:
         from api.routes.handlers.journalist_handler import handle_journalist_news
 
         handle_journalist_news(self)
+
+    def _serve_journalist_images(self):
+        import urllib.parse
+        import mimetypes
+        import os
+        path_clean = urllib.parse.unquote(self.path.split("?")[0])
+        filename = os.path.basename(path_clean)
+        filepath = os.path.join("f:\\gravity-news-portal\\public\\images", filename)
+        
+        if os.path.isfile(filepath):
+            mime, _ = mimetypes.guess_type(filepath)
+            mime = mime or "application/octet-stream"
+            try:
+                with open(filepath, "rb") as f:
+                    body = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", mime)
+                self.send_header("Content-Length", str(len(body)))
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception:
+                self.send_response(500)
+                self.end_headers()
+        else:
+            self.send_response(404)
+            self.end_headers()
 
     # ── La Tinka Engine ────────────────────────────────────────────────────────
     def _serve_tinka_status(self):
@@ -1722,7 +1737,12 @@ class GetRoutesMixin:
                 cfg = yaml.safe_load(f) or {}
             yt_cfg = cfg.get("youtube", {})
 
-            oauth_path = os.path.join(BASE_DIR, "_integrations", "youtube_oauth.json")
+            _app_data = os.path.join(
+                os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+                "Gravity", 
+                "Databases"
+            )
+            oauth_path = os.path.join(_app_data, "youtube_oauth.json")
             oauth_ok = os.path.isfile(oauth_path)
             has_refresh = False
             if oauth_ok:
@@ -1998,7 +2018,12 @@ class GetRoutesMixin:
                 os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             )
             file_path = os.path.join(BASE_DIR, "BOUNTIES_ENCONTRADOS.md")
-            actions_path = os.path.join(BASE_DIR, "inputs", ".bounty_actions.json")
+            _app_data = os.path.join(
+                os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+                "Gravity", 
+                "Databases"
+            )
+            actions_path = os.path.join(_app_data, ".bounty_actions.json")
             settings_path = os.path.join(BASE_DIR, "_settings.json")
 
             seen_urls = set()

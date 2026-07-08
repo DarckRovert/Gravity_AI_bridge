@@ -252,10 +252,10 @@ class WorkflowGraph:
                 raise ValueError(f"[WorkflowGraph] ID duplicado: {nd['id']}")
             ids.add(nd["id"])
 
-    def _resolve_deps(self) -> List[str]:
+    def _resolve_waves(self) -> List[List[str]]:
         """
-        Topological sort de los nodos.
-        Un nodo B depende de A si algún input de B referencia 'A.*'
+        Topological sort por oleadas (waves).
+        Retorna una lista de listas de IDs. Los nodos en una misma lista pueden ejecutarse en paralelo.
         """
         dep_graph: Dict[str, Set[str]] = defaultdict(set)
         all_ids = {nd["id"] for nd in self.node_defs}
@@ -269,39 +269,37 @@ class WorkflowGraph:
                         if f"{src_id}." in val:
                             dep_graph[nid].add(src_id)
 
-        # Kahn's algorithm
-        in_degree = {nid: 0 for nid in all_ids}
-        for nid, deps in dep_graph.items():
-            for dep in deps:
-                in_degree[nid] += 1 if dep != nid else 0
-
-        # Recalculate in_degree properly
         in_degree = defaultdict(int)
         for nid in all_ids:
             for dep in dep_graph[nid]:
                 in_degree[nid] += 1
 
-        # Build reverse: who does this node unlock?
         unlocks: Dict[str, List[str]] = defaultdict(list)
         for nid, deps in dep_graph.items():
             for dep in deps:
                 unlocks[dep].append(nid)
 
-        queue = deque(nid for nid in all_ids if in_degree[nid] == 0)
-        order: List[str] = []
+        queue = deque([nid for nid in all_ids if in_degree[nid] == 0])
+        waves: List[List[str]] = []
 
         while queue:
-            nid = queue.popleft()
-            order.append(nid)
-            for unlocked in unlocks[nid]:
-                in_degree[unlocked] -= 1
-                if in_degree[unlocked] == 0:
-                    queue.append(unlocked)
+            wave = []
+            for _ in range(len(queue)):
+                nid = queue.popleft()
+                wave.append(nid)
+            waves.append(wave)
 
-        if len(order) != len(all_ids):
+            for nid in wave:
+                for unlocked in unlocks[nid]:
+                    in_degree[unlocked] -= 1
+                    if in_degree[unlocked] == 0:
+                        queue.append(unlocked)
+
+        resolved_count = sum(len(w) for w in waves)
+        if resolved_count != len(all_ids):
             raise ValueError("[WorkflowGraph] Ciclo detectado en el grafo de nodos.")
 
-        return order
+        return waves
 
     def _resolve_value(
         self,
@@ -361,9 +359,8 @@ class WorkflowGraph:
                         return arr[int(idx_str)]
                     except (IndexError, ValueError):
                         pass
-            # Si es exacto pero no se encontró, retorna el texto original o falla
-            raise KeyError(f"[WorkflowGraph] Parámetro '{key}' no encontrado en params ni outputs.")
-
+            # Si es exacto pero no se encontró, retorna el texto original para que el nodo decida si es opcional
+            return val
         # Si hay multiples {{}} dentro de un string, reemplazar
         def _replace_match(match):
             key = match.group(1).strip()
@@ -421,83 +418,79 @@ class WorkflowGraph:
         params = params or {}
         node_outputs: Dict[str, Any] = {}
 
-        order = self._resolve_deps()
-        total = len(order)
+        waves = self._resolve_waves()
+        total_nodes = sum(len(w) for w in waves)
         nd_map = {nd["id"]: nd for nd in self.node_defs}
+        nodes_executed = 0
 
-        for step_idx, nid in enumerate(order):
-            nd = nd_map[nid]
-            node_type = nd["type"]
-            node_cls = registry.get(node_type)
+        import concurrent.futures
 
-            if node_cls is None:
-                raise ValueError(
-                    f"[WorkflowGraph] Nodo tipo '{node_type}' no registrado. "
-                    f"Tipos disponibles: {list(registry._nodes.keys())}"
-                )
+        for wave_idx, wave in enumerate(waves):
+            log.info(f"[WorkflowEngine] Ejecutando Oleada {wave_idx + 1}/{len(waves)} con nodos: {wave}")
+            futures = {}
 
-            progress_pct = int((step_idx / total) * 100)
-            step_msg = f"Ejecutando [{node_type}] ({step_idx + 1}/{total})"
+            # Lanzar todos los nodos de la oleada en paralelo
+            for nid in wave:
+                nd = nd_map[nid]
+                node_type = nd["type"]
+                node_cls = registry.get(node_type)
 
-            if job:
-                job.update(
-                    current_node=nid,
-                    current_step=step_msg,
-                    progress=progress_pct,
-                )
-            if on_progress:
-                on_progress(progress_pct, nid, step_msg)
+                if node_cls is None:
+                    raise ValueError(f"[WorkflowGraph] Nodo tipo '{node_type}' no registrado.")
 
-            log.info(f"[WorkflowEngine] {self.workflow_id} -> {step_msg}")
+                nodes_executed += 1
+                progress_pct = int((nodes_executed / total_nodes) * 100)
+                step_msg = f"Iniciando [{node_type}] ({nodes_executed}/{total_nodes})"
 
-            node_inputs = self._build_node_inputs(nd, params, node_outputs)
+                if job:
+                    job.update(current_node=nid, current_step=step_msg, progress=progress_pct)
+                if on_progress:
+                    on_progress(progress_pct, nid, step_msg)
 
-            # --- PRE-EXECUTION HOOKS ---
-            try:
-                node_inputs = hook_manager.run_pre_hooks(nid, node_type, node_inputs)
-            except Exception as exc:
-                err_msg = f"[{node_type}/{nid}] Pre-Hook Error: {exc}"
-                log.error(f"[WorkflowEngine] {err_msg}")
-                raise RuntimeError(err_msg) from exc
+                node_inputs = self._build_node_inputs(nd, params, node_outputs)
 
-            # Instanciar y ejecutar el nodo
-            node_instance = node_cls(node_id=nid, config=nd.get("config") or {})
+                # Pre-Hooks (se ejecutan síncronamente antes de enviar al pool)
+                try:
+                    node_inputs = hook_manager.run_pre_hooks(nid, node_type, node_inputs)
+                except Exception as exc:
+                    err_msg = f"[{node_type}/{nid}] Pre-Hook Error: {exc}"
+                    log.error(f"[WorkflowEngine] {err_msg}")
+                    raise RuntimeError(err_msg) from exc
 
-            import concurrent.futures
+                node_instance = node_cls(node_id=nid, config=nd.get("config") or {})
+                future = _node_timeout_executor.submit(node_instance.execute, node_inputs)
+                futures[future] = (nid, node_type)
 
-            # [B1] Reutilizar el pool global de timeout en lugar de crear uno por nodo
-            future = _node_timeout_executor.submit(node_instance.execute, node_inputs)
+            # Esperar a que terminen los nodos de esta oleada
+            for future in concurrent.futures.as_completed(futures):
+                nid, node_type = futures[future]
+                try:
+                    result = future.result(timeout=600.0)
+                except concurrent.futures.TimeoutError as exc:
+                    err_msg = f"[{node_type}/{nid}] Timeout Error: El nodo excedió 600s."
+                    log.error(f"[WorkflowEngine] {err_msg}")
+                    raise RuntimeError(err_msg) from exc
+                except Exception as exc:
+                    err_msg = f"[{node_type}/{nid}] Error: {exc}\n{traceback.format_exc()}"
+                    log.error(f"[WorkflowEngine] {err_msg}")
+                    raise RuntimeError(err_msg) from exc
 
-            try:
-                result = future.result(timeout=600.0)
-            except concurrent.futures.TimeoutError as exc:
-                err_msg = f"[{node_type}/{nid}] Timeout Error: El nodo excedió el tiempo límite de ejecución (600s)."
-                log.error(f"[WorkflowEngine] {err_msg}")
-                raise RuntimeError(err_msg) from exc
-            except Exception as exc:
-                err_msg = f"[{node_type}/{nid}] Error: {exc}\n{traceback.format_exc()}"
-                log.error(f"[WorkflowEngine] {err_msg}")
-                raise RuntimeError(err_msg) from exc
+                if not isinstance(result, dict):
+                    raise TypeError(f"[WorkflowGraph] Nodo {node_type}/{nid} retornó {type(result).__name__}, se esperaba dict.")
 
-            if not isinstance(result, dict):
-                raise TypeError(
-                    f"[WorkflowGraph] Nodo {node_type}/{nid} retornó {type(result).__name__}, se esperaba dict."
-                )
+                # Post-Hooks
+                try:
+                    result = hook_manager.run_post_hooks(nid, node_type, result)
+                except Exception as exc:
+                    err_msg = f"[{node_type}/{nid}] Post-Hook Error: {exc}"
+                    log.error(f"[WorkflowEngine] {err_msg}")
+                    raise RuntimeError(err_msg) from exc
 
-            # --- POST-EXECUTION HOOKS ---
-            try:
-                result = hook_manager.run_post_hooks(nid, node_type, result)
-            except Exception as exc:
-                err_msg = f"[{node_type}/{nid}] Post-Hook Error: {exc}"
-                log.error(f"[WorkflowEngine] {err_msg}")
-                raise RuntimeError(err_msg) from exc
+                node_outputs[nid] = result
+                log.info(f"[WorkflowEngine] [{node_type}/{nid}] OK — outputs: {list(result.keys())}")
 
-            node_outputs[nid] = result
-            log.info(f"[WorkflowEngine] [{node_type}/{nid}] OK — outputs: {list(result.keys())}")
-
-        # Los outputs del workflow son los del último nodo en orden topológico
-        final_outputs = node_outputs.get(order[-1], {}) if order else {}
-        # Incluir también todos los outputs intermedios bajo "all_outputs"
+        # Identificar el output final (los outputs del último nodo de la última oleada, por retrocompatibilidad)
+        final_outputs = node_outputs.get(waves[-1][-1], {}) if waves and waves[-1] else {}
         final_outputs["_all_node_outputs"] = node_outputs
 
         return final_outputs
@@ -579,6 +572,12 @@ def run_workflow(
                 current_step="Error",
             )
             log.error(f"[WorkflowManager] Job {job_id} ({graph.workflow_id}) falló: {exc}\n{traceback.format_exc()}")
+        finally:
+            # [Vector 3] Forzar recolección de basura agresiva al terminar un workflow (pesado en RAM por LLM y JSON grandes)
+            import gc
+            collected = gc.collect()
+            if collected > 0:
+                log.debug(f"[WorkflowManager] RAM Liberada: {collected} objetos huérfanos destruidos.")
 
     if blocking:
         _run()

@@ -20,8 +20,15 @@ from core.logger import log
 from core.config_manager import config
 
 BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH: str = os.path.join(BASE_DIR, "_video_queue.sqlite")
-REVENUE_PATH: str = os.path.join(BASE_DIR, "_integrations", "revenue_log.json")
+from core.db_migrator import _get_db_path
+DB_PATH: str = _get_db_path("video_queue")
+_app_data = os.path.join(
+    os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+    "Gravity", 
+    "Databases"
+)
+os.makedirs(_app_data, exist_ok=True)
+REVENUE_PATH: str = os.path.join(_app_data, "revenue_log.json")
 
 # Cerrojo reentrante a nivel de módulo para sincronizar I/O y mutaciones en revenue
 _revenue_io_lock = threading.RLock()

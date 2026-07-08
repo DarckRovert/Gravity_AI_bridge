@@ -24,7 +24,12 @@ except Exception as e:
 
 # 2. YouTube OAuth
 try:
-    oauth_path = os.path.join(BASE_DIR, "_integrations", "youtube_oauth.json")
+    _app_data_auth = os.path.join(
+        os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+        "Gravity", 
+        "Databases"
+    )
+    oauth_path = os.path.join(_app_data_auth, "youtube_oauth.json")
     if os.path.isfile(oauth_path):
         with open(oauth_path, "r", encoding="utf-8") as f:
             d = json.load(f)
@@ -37,7 +42,12 @@ except Exception as e:
 
 # 3. DB de videos
 try:
-    db_path = os.path.join(BASE_DIR, "_video_queue.sqlite")
+    app_data = os.path.join(
+        os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+        "Gravity", 
+        "Databases"
+    )
+    db_path = os.path.join(app_data, "_video_queue.sqlite")
     conn = sqlite3.connect(db_path)
     total = conn.execute("SELECT COUNT(*) FROM video_jobs").fetchone()[0]
     done = conn.execute(
@@ -93,7 +103,12 @@ except Exception as e:
 
 # 8. TikTok/Instagram creds
 for plat in ["tiktok", "instagram"]:
-    path = os.path.join(BASE_DIR, "_integrations", f"{plat}_creds.json")
+    _app_data_auth = os.path.join(
+        os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+        "Gravity", 
+        "Databases"
+    )
+    path = os.path.join(_app_data_auth, f"{plat}_creds.json")
     if os.path.isfile(path):
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)

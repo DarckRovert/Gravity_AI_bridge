@@ -9,6 +9,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAX_BYTES = 5 * 1024 * 1024  # 5 MB
 MAX_LINES = 10_000  # 10k líneas — umbral de rotación por volumen
 
+def get_audit_log_path(filename: str = "_audit_log.jsonl") -> str:
+    log_dir = os.path.join(
+        os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+        "Gravity", 
+        "Logs"
+    )
+    os.makedirs(log_dir, exist_ok=True)
+    return os.path.join(log_dir, filename)
 
 class AuditLogger:
     """
@@ -24,7 +32,7 @@ class AuditLogger:
         with self._lock:
             # Soportar rutas relativas y absolutas
             if not os.path.isabs(log_path):
-                self.log_path = os.path.join(BASE_DIR, log_path)
+                self.log_path = get_audit_log_path(log_path)
             else:
                 self.log_path = log_path
             self._line_count: int = self._count_lines_unlocked()

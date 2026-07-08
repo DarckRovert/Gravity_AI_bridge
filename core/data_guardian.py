@@ -489,7 +489,8 @@ def startup_check(base_dir: str = BASE_DIR) -> tuple[dict, list[str]]:
     all_warnings += w
 
     # ── 2. Audit JSONL (lazy: comprobación O(1) antes de reparar) ────────────
-    audit_path = os.path.join(base_dir, "_audit_log.jsonl")
+    from core.audit_log import get_audit_log_path
+    audit_path = get_audit_log_path()
     if os.path.exists(audit_path) and _audit_log_has_corruption(audit_path):
         ok, removed, w = repair_audit_log(audit_path)
         all_warnings += w

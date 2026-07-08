@@ -118,6 +118,24 @@ class ComfyUIClient:
         except Exception as e:
             raise RuntimeError(f"ComfyUI get_image error para {filename}: {e}")
 
+    def free_memory(self, unload_models: bool = True, free_memory: bool = True) -> bool:
+        """
+        Ordena a ComfyUI liberar VRAM/RAM y descargar modelos residentes.
+        Ideal para llamarse entre generaciones pesadas o si hay OOM.
+        """
+        payload = {
+            "unload_models": unload_models,
+            "free_memory": free_memory
+        }
+        data = json.dumps(payload).encode("utf-8")
+        url = f"http://{self.server_address}/free"
+        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                return resp.getcode() == 200
+        except Exception:
+            return False
+
     def wait_for_completion(self, prompt_id: str, timeout_seconds: float = 600.0) -> list[dict]:
         """
         Bloquea mediante WebSocket hasta que el prompt finalice.
@@ -152,6 +170,10 @@ class ComfyUIClient:
                             err_data = msg.get("data", {})
                             if err_data.get("prompt_id") == prompt_id:
                                 raise RuntimeError(f"ComfyUI abortó la generación: {err_data.get('exception_type')}")
+            except _ws.WebSocketTimeoutException:
+                raise RuntimeError(f"ComfyUI WebSocket Timeout tras {timeout_seconds}s esperando prompt_id={prompt_id}")
+            except _ws.WebSocketException as e:
+                raise RuntimeError(f"ComfyUI WebSocket Error crítico: {e}")
             finally:
                 ws.close()
 

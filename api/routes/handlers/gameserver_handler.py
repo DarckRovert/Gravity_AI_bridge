@@ -190,7 +190,8 @@ def handle_gameserver_backup(handler):
         backup_dir = os.path.join(BASE, "_archivo", "server_backups")
         os.makedirs(backup_dir, exist_ok=True)
         ts = int(time.time())
-        gs_db = os.path.join(BASE, "_image_queue.sqlite")
+        from core.db_migrator import _get_db_path
+        gs_db = _get_db_path("image_queue")
         if os.path.isfile(gs_db):
             shutil.copy2(gs_db, os.path.join(backup_dir, f"backup_{ts}.sqlite"))
             msg = f"Backup creado: backup_{ts}.sqlite en _archivo/server_backups/"

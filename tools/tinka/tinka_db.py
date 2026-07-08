@@ -1,9 +1,19 @@
 import sqlite3
-
+import os
 
 class TinkaDB:
     def __init__(self, db_path="tinka_history.db"):
-        self.db_path = db_path
+        app_data = os.path.join(
+            os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+            "Gravity", 
+            "Databases"
+        )
+        os.makedirs(app_data, exist_ok=True)
+        # Solo usar app_data si no nos pasaron una ruta absoluta
+        if not os.path.isabs(db_path):
+            self.db_path = os.path.join(app_data, db_path)
+        else:
+            self.db_path = db_path
         self._init_db()
 
     def _init_db(self):

@@ -28,9 +28,16 @@ from core.logger import log
 from core.config_manager import config as config_manager
 
 BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OAUTH_PATH: str = os.path.join(BASE_DIR, "_integrations", "youtube_oauth.json")
-QUOTA_PATH: str = os.path.join(BASE_DIR, "_integrations", "yt_quota.json")
-DB_PATH: str = os.path.join(BASE_DIR, "_video_queue.sqlite")
+_app_data = os.path.join(
+    os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+    "Gravity", 
+    "Databases"
+)
+os.makedirs(_app_data, exist_ok=True)
+OAUTH_PATH: str = os.path.join(_app_data, "youtube_oauth.json")
+QUOTA_PATH: str = os.path.join(_app_data, "yt_quota.json")
+from core.db_migrator import _get_db_path
+DB_PATH: str = _get_db_path("video_queue")
 CONFIG_PATH: str = os.path.join(BASE_DIR, "config.yaml")
 FFMPEG_EXE: str = os.path.join(BASE_DIR, "_integrations", "ffmpeg", "ffmpeg.exe")
 

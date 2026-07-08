@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import re
 from core import provider_manager
 
 logger = logging.getLogger("VisualLore")
@@ -51,8 +52,8 @@ SINOPSIS:
 
     try:
         messages = [{"role": "user", "content": prompt}]
-        # Usamos una temperatura baja para mayor consistencia
-        response = provider_manager.complete(messages)
+        # temperature=0 para máxima consistencia — los personajes NUNCA deben variar entre ejecuciones
+        response = provider_manager.complete(messages, options={"temperature": 0})
 
         # Limpiar tags de pensamiento
         import re
@@ -145,3 +146,88 @@ def inject_lore_to_prompt(lore_data: dict, base_image_prompt: str) -> str:
         final_prompt = f"{final_prompt}. Style: {global_style}"
 
     return final_prompt
+
+
+# ── Deduplicación de Biblia del Lore ─────────────────────────────────────────
+
+
+def deduplicate_lore_file(lore_path: str) -> int:
+    """
+    Limpia un archivo de lore Markdown (ej. lore_bible.md) eliminando entradas duplicadas
+    en las secciones '## Nuevas Entidades Descubiertas'.
+
+    Estrategia:
+      1. Parsea los bloques H3 (### NombreEntidad: descripcion).
+      2. Mantiene solo la PRIMERA aparición de cada nombre de entidad.
+      3. Reescribe el archivo en limpio.
+
+    Args:
+        lore_path: Ruta absoluta al archivo .md del lore.
+
+    Returns:
+        Número de entidades duplicadas eliminadas.
+    """
+    if not os.path.exists(lore_path):
+        logger.warning(f"[deduplicate_lore_file] Archivo no encontrado: {lore_path}")
+        return 0
+
+    with open(lore_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # Separar secciones principales (H2 o H1) del resto del archivo
+    # Mantener intacto todo lo que NO sea secciones de nuevas entidades
+    discovery_header = "## Nuevas Entidades Descubiertas"
+
+    # Partir el archivo en bloques por el marcador de nuevas entidades
+    parts = content.split(discovery_header)
+    base_content = parts[0]  # Todo lo anterior a la primera seccion de entidades
+    entity_blocks = parts[1:]  # Cada bloque posterior al marcador
+
+    if not entity_blocks:
+        logger.info("[deduplicate_lore_file] No se encontraron secciones de entidades. Nada que limpiar.")
+        return 0
+
+    # Combinar todos los bloques de entidades en uno solo
+    all_entities_text = "\n".join(entity_blocks)
+
+    # Parsear cada entrada H3 (### Nombre: descripcion...)
+    h3_pattern = re.compile(r"(### [^\n]+(?:\n(?!###)[^\n]*)*)")
+    all_entries = h3_pattern.findall(all_entities_text)
+
+    seen_names: set = set()
+    unique_entries: list = []
+    duplicates_removed = 0
+
+    for entry in all_entries:
+        # Extraer el nombre (primera palabra tras ###)
+        name_match = re.match(r"### ([^:\n]+)", entry)
+        if not name_match:
+            unique_entries.append(entry)
+            continue
+        name = name_match.group(1).strip().lower()
+        if name not in seen_names:
+            seen_names.add(name)
+            unique_entries.append(entry)
+        else:
+            duplicates_removed += 1
+            logger.info(f"  [deduplicate] Duplicado eliminado: '{name_match.group(1).strip()}'")
+
+    if duplicates_removed == 0:
+        logger.info("[deduplicate_lore_file] No se encontraron duplicados.")
+        return 0
+
+    # Reconstruir el archivo
+    new_entities_section = (
+        f"\n{discovery_header}\n" + "\n".join(unique_entries)
+        if unique_entries
+        else ""
+    )
+    new_content = base_content + new_entities_section
+
+    with open(lore_path, "w", encoding="utf-8") as f:
+        f.write(new_content)
+
+    logger.info(
+        f"[deduplicate_lore_file] Limpieza completa. {duplicates_removed} duplicados eliminados de '{lore_path}'."
+    )
+    return duplicates_removed

@@ -44,7 +44,8 @@ def _notify_update() -> None:
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH = os.path.join(BASE_DIR, "_image_queue.sqlite")
+from core.db_migrator import _get_db_path
+DB_PATH = _get_db_path("image_queue")
 
 # ── Schema ─────────────────────────────────────────────────────────────────────
 

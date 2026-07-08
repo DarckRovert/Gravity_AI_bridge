@@ -16,8 +16,13 @@ import time
 import threading
 from typing import Dict, Any, List, Optional, Tuple
 
-BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LAST_SCAN_FILE: str = os.path.join(BASE_DIR, "_last_scan.json")
+app_data = os.path.join(
+    os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+    "Gravity", 
+    "Databases"
+)
+os.makedirs(app_data, exist_ok=True)
+LAST_SCAN_FILE: str = os.path.join(app_data, "_last_scan.json")
 
 # Cerrojo reentrante global para prevenir corrupciones en lecturas/escrituras concurrentes
 _scan_lock: threading.RLock = threading.RLock()

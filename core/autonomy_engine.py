@@ -1,23 +1,23 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  GRAVITY AI — AUTONOMY ENGINE V16.0 PRO [Autonomous Edition]                ║
+║  GRAVITY AI — AUTONOMY ENGINE V16.0 PRO [Autonomous Edition]                 ║
 ║                                                                              ║
-║  El cerebro ejecutivo autónomo de Gravity.                                  ║
-║  Implementa el ciclo OODA: Observe → Orient → Decide → Act → Learn         ║
+║  El cerebro ejecutivo autónomo de Gravity.                                   ║
+║  Implementa el ciclo OODA: Observe → Orient → Decide → Act → Learn           ║
 ║                                                                              ║
-║  Ciclo (cada 6h por defecto):                                               ║
-║    1. OBSERVE  → Lee estado completo: revenue, errores, hardware, seguridad ║
-║    2. ORIENT   → Clasifica: CRÍTICO / ALERTA / NORMAL / OPORTUNIDAD        ║
-║    3. DECIDE   → Genera plan de acción vía LLM activo                      ║
-║    4. ACT      → Ejecuta acciones de bajo riesgo directamente               ║
-║                  Encola acciones de alto riesgo en hitl_manager             ║
-║    5. LEARN    → Persiste decisión + resultado en strategic_memory          ║
+║  Ciclo (cada 6h por defecto):                                                ║
+║    1. OBSERVE  → Lee estado completo: revenue, errores, hardware, seguridad  ║
+║    2. ORIENT   → Clasifica: CRÍTICO / ALERTA / NORMAL / OPORTUNIDAD          ║
+║    3. DECIDE   → Genera plan de acción vía LLM activo                        ║
+║    4. ACT      → Ejecuta acciones de bajo riesgo directamente                ║
+║                  Encola acciones de alto riesgo en hitl_manager              ║
+║    5. LEARN    → Persiste decisión + resultado en strategic_memory           ║
 ║                                                                              ║
 ║  Seguridad:                                                                  ║
-║    ▸ Reglas invariantes: límites que NUNCA el engine puede traspasar        ║
-║    ▸ Presupuesto de API: $0.50/día para ciclos de introspección             ║
-║    ▸ Toda acción se registra en audit log (append-only)                     ║
-║    ▸ Acciones de alto riesgo requieren aprobación humana via HITL           ║
+║    ▸ Reglas invariantes: límites que NUNCA el engine puede traspasar         ║
+║    ▸ Presupuesto de API: $0.50/día para ciclos de introspección              ║
+║    ▸ Toda acción se registra en audit log (append-only)                      ║
+║    ▸ Acciones de alto riesgo requieren aprobación humana via HITL            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
@@ -216,6 +216,59 @@ def _observe() -> Dict[str, Any]:
     except Exception as e:
         snapshot["bounties"] = {"error": str(e)}
 
+    # Periodista Autónomo
+    try:
+        import json as _json
+        app_data = os.path.join(
+            os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+            "Gravity", 
+            "Databases"
+        )
+        periodista_file = os.path.join(app_data, "_periodista_state.json")
+        if os.path.isfile(periodista_file):
+            with open(periodista_file, "r", encoding="utf-8") as _f:
+                ps = _json.load(_f)
+            last_pub = ps.get("last_successful_publish")
+            hours_since_pub = None
+            if last_pub:
+                try:
+                    from datetime import datetime as _dt
+                    delta = datetime.now(timezone.utc) - _dt.fromisoformat(last_pub).replace(tzinfo=timezone.utc)
+                    hours_since_pub = round(delta.total_seconds() / 3600, 1)
+                except Exception:
+                    pass
+            snapshot["periodista"] = {
+                "status": ps.get("status", "unknown"),
+                "cycle_count": ps.get("cycle_count", 0),
+                "total_published": ps.get("total_published", 0),
+                "consecutive_errors": ps.get("consecutive_errors", 0),
+                "last_error": ps.get("last_error"),
+                "hours_since_last_pub": hours_since_pub,
+            }
+        else:
+            snapshot["periodista"] = {"status": "not_running"}
+    except Exception as e:
+        snapshot["periodista"] = {"error": str(e)}
+
+    # Modo Vigía (Anomaly Watchdog)
+    try:
+        import json as _json
+        import os
+        app_data = os.path.join(
+            os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+            "Gravity", 
+            "Databases"
+        )
+        vigia_file = os.path.join(app_data, "_vigia_state.json")
+        if os.path.isfile(vigia_file):
+            with open(vigia_file, "r", encoding="utf-8") as _f:
+                vs = _json.load(_f)
+            snapshot["vigia"] = vs
+        else:
+            snapshot["vigia"] = {"overall_status": "NOT_RUNNING"}
+    except Exception as e:
+        snapshot["vigia"] = {"error": str(e)}
+
     return snapshot
 
 
@@ -293,6 +346,47 @@ def _orient(snapshot: Dict[str, Any]) -> Tuple[str, List[str]]:
     if bounty_size > 1.0 and level == "NORMAL":
         level = "OPORTUNIDAD"
         alerts.append(f"MERCENARIO: Se encontraron {bounty_size}KB de nuevas ofertas de trabajo freelance. Sugerir aplicar.")
+
+    # Periodista Autónomo
+    per = snapshot.get("periodista", {})
+    consec_err = per.get("consecutive_errors", 0)
+    hours_silent = per.get("hours_since_last_pub")
+    per_status = per.get("status", "")
+
+    if per_status == "not_running":
+        if level == "NORMAL":
+            level = "ALERTA"
+        alerts.append("PERIODISTA: El daemon del Periodista Autónomo no está activo (sin _periodista_state.json)")
+    elif consec_err >= 3:
+        if level not in ("CRÍTICO",):
+            level = "ALERTA"
+        alerts.append(
+            f"PERIODISTA: {consec_err} errores consecutivos. "
+            f"Error: {str(per.get('last_error', ''))[:80]}"
+        )
+    elif hours_silent is not None and hours_silent > 24:
+        if level == "NORMAL":
+            level = "ALERTA"
+        alerts.append(
+            f"PERIODISTA: Sin publicaciones en {hours_silent:.1f}h — verificar estado del daemon"
+        )
+
+    # Vigía (Detector Constante)
+    vig = snapshot.get("vigia", {})
+    if vig.get("overall_status") != "NORMAL" and vig.get("overall_status") != "NOT_RUNNING":
+        if level == "NORMAL":
+            level = "ALERTA"
+        
+        q_status = vig.get("quality", {}).get("status", "UNKNOWN")
+        if q_status != "NORMAL":
+            if level != "CRÍTICO":
+                level = "ALERTA"
+            alerts.append(f"VIGÍA: Calidad semántica de periodismo en riesgo ({q_status}) — Considerar rotar LLM o cambiar temperatura")
+            
+        l_status = vig.get("logs", {}).get("status", "UNKNOWN")
+        if l_status != "NORMAL":
+            level = "CRÍTICO" if l_status == "CRITICAL_ERROR_SPIKE" else "ALERTA"
+            alerts.append(f"VIGÍA: Pico de errores detectado en logs ({vig.get('logs', {}).get('error_count', 0)} errores)")
 
     return level, alerts
 

@@ -15,7 +15,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from core.provider_manager import provider_manager
+from core import provider_manager
 from tools.llm_utils import safe_complete
 from core.logger import log
 

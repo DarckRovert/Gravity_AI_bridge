@@ -5,6 +5,7 @@ Envía un prompt al proveedor de IA activo (local o cloud) y retorna texto.
 
 from core.workflow_engine import GravityNode, registry
 from core.logger import log
+import re
 
 
 @registry.register
@@ -37,6 +38,12 @@ class LLMQueryNode(GravityNode):
 
         if not prompt:
             raise ValueError(f"[{self.node_id}] El campo 'prompt' es obligatorio.")
+            
+        # [Vector 4] Sanitización contra Prompt Injection desde orígenes externos (RSS, Web)
+        injection_pattern = r"(?i)(ignore (all )?(previous )?instructions|disregard|system prompt|new instructions|you are now|bypass)"
+        if re.search(injection_pattern, prompt):
+            log.warning(f"[{self.__class__.__name__}] Posible Prompt Injection detectado y censurado.")
+            prompt = re.sub(injection_pattern, "[REDACTED]", prompt)
 
         messages = []
         if system:
@@ -85,8 +92,15 @@ class LLMQueryNode(GravityNode):
                     else:
                         raise
 
+            # Extraer y remover bloque <thought> si existe (Chain-of-Thought)
+            thought_match = re.search(r"<thought>(.*?)</thought>", full_text, re.DOTALL)
+            if thought_match:
+                log.info(f"[LLMQueryNode] Chain-of-Thought detectado ({len(thought_match.group(1))} chars)")
+                full_text = re.sub(r"<thought>.*?</thought>", "", full_text, flags=re.DOTALL)
+
+            full_text = full_text.strip()
             log.info(f"[LLMQueryNode] Resultado ({len(full_text)} chars)")
-            return {"text": full_text.strip()}
+            return {"text": full_text}
 
         except Exception as exc:
             log.error(f"[LLMQueryNode] Fallo crítico tras reintentos: {exc}")

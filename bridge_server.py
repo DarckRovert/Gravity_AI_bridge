@@ -249,6 +249,8 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             self._serve_obs_overlay_html()
         elif self.path.startswith("/v1/factory/download/"):
             self._serve_factory_download()
+        elif self.path.startswith("/images/"):
+            self._serve_journalist_images()
         else:
             # Intentar servir desde el frontend/dist (JS, CSS, Assets)
             self._serve_frontend_static()
@@ -537,14 +539,14 @@ def run_server():
     try:
         import sqlite3 as _sqlite3
 
-        _wal_path = os.path.join(_BASE, "_cache.sqlite")
+        from core.cache_engine import CACHE_DB as _wal_path
         if os.path.exists(_wal_path):
-            log.info("[DEBUG] Conectando a _cache.sqlite para WAL...")
+            log.info(f"[DEBUG] Conectando a {_wal_path} para WAL...")
             _wal_conn = _sqlite3.connect(_wal_path)
             log.info("[DEBUG] Ejecutando PRAGMA wal_checkpoint...")
             _wal_conn.execute("PRAGMA wal_checkpoint(PASSIVE)")
             _wal_conn.close()
-            log.info("[V16.14 PRO] WAL checkpoint completado en _cache.sqlite.")
+            log.info("[V16.14 PRO] WAL checkpoint completado en cache DB.")
     except Exception as _e:
         log.debug(f"[V16.14 PRO] WAL checkpoint salteado: {_e}")
 

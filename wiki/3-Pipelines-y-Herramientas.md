@@ -71,6 +71,8 @@ Gravity cuenta con múltiples formas de extraer sangre (datos) de la red, inclus
 
 ## 5. El Orquestador de Flujos Topológicos (DAG)
 
+## 5. El Orquestador de Flujos Topológicos (DAG)
+
 ```mermaid
 graph LR
     subgraph JSON Workflow [reporter.json]
@@ -88,6 +90,12 @@ A nivel subyacente, nada de esto se ejecuta secuencialmente.
 El archivo `core/workflow_engine.py` convierte archivos JSON (`workflows/reporter.json`) en **Grafos Dirigidos Acíclicos (Algoritmo de Kahn)**. 
 - Mapea dependencias entre herramientas. Por ejemplo, el nodo de Video no arrancará hasta que el nodo de `book_refiner` haya emitido un payload exitoso.
 - Si una herramienta falla (ej. *Fooocus* colapsa generando imágenes), el Grafo aísla el error, congela esa rama específica y mantiene al resto del sistema con vida, evitando un colapso en cascada del servidor.
+
+### 5.1. Aislamiento Epistemológico (Realidad vs. Ficción)
+A partir de la versión más reciente, el Orquestador y los workflows que alimentan portales en vivo (`essayist.json`, `reporter.json`, `scientist.json`) operan bajo estricto **aislamiento epistemológico**.
+- Se desvinculó completamente el uso de la *Biblia de Lore* (`lore_bible.md`) de los flujos periodísticos y científicos, erradicando la contaminación narrativa (ej. términos de novelas de ciencia ficción).
+- Estos agentes ahora se alimentan exclusivamente de **Manifiestos Editoriales** (`perspectiva_ensayos.md` y `perspectiva_ciencia.md`), que obligan al LLM a analizar el mundo usando teoría de sistemas, sociología, filosofía política real y bases empíricas (peer-reviewed).
+- Los workflows agnósticos (como `book_full.json`) mantienen la capacidad de escribir ficción si el usuario inyecta deliberadamente un archivo de lore como parámetro de entrada.
 
 ## 6. J.A.R.V.I.S Sensory Tools (V17.0 PRO Sentinel-Tier)
 

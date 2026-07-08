@@ -179,7 +179,13 @@ def _init_bounties_file():
             f.write("---\n\n")
 
 
-SEEN_IDS_FILE = os.path.join(_BASE_DIR, "inputs", ".bounty_seen_ids.json")
+_app_data = os.path.join(
+    os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+    "Gravity", 
+    "Databases"
+)
+os.makedirs(_app_data, exist_ok=True)
+SEEN_IDS_FILE = os.path.join(_app_data, ".bounty_seen_ids.json")
 
 
 def load_seen_ids():

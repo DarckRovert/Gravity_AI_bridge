@@ -1,10 +1,13 @@
 import os
 import json
+import sys
+import time
 from datetime import datetime
 from typing import Dict, Any
 
 from core.workflow_engine import GravityNode, registry
 from core.logger import log
+import re
 
 @registry.register
 class JSONAppenderNode(GravityNode):
@@ -31,7 +34,6 @@ class JSONAppenderNode(GravityNode):
         
         filepath = self.safe_path_resolve(filepath, is_write=True)
 
-        import re
         # Intentar parsear el new_item para asegurar que es un dict
         try:
             new_item = json.loads(new_item_str, strict=False)
@@ -54,51 +56,77 @@ class JSONAppenderNode(GravityNode):
         if "id" not in new_item:
             new_item["id"] = int(datetime.now().timestamp() * 1000)
 
-        # Leer array actual
-        file_data = None
-        items = []
-        if os.path.exists(filepath):
+        lock_path = filepath + ".lock"
+        lock_fd = None
+
+        # Ensure directory exists before creating lock
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
+        if sys.platform == "win32":
+            # Simple spinlock
+            for _ in range(60):
+                try:
+                    lock_fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_RDWR)
+                    break
+                except FileExistsError:
+                    try:
+                        if time.time() - os.path.getmtime(lock_path) > 30:
+                            os.remove(lock_path)
+                    except OSError:
+                        pass
+                    time.sleep(0.1)
+            else:
+                log.error(f"[{self.__class__.__name__}] Timeout esperando lock win32 en {lock_path}")
+                raise TimeoutError("Timeout en lock win32")
+        else:
+            lock_fd = open(lock_path, "w")
+            import fcntl
+            fcntl.flock(lock_fd, fcntl.LOCK_EX)
+
+        try:
+            # Leer array actual
+            file_data = None
+            items = []
+            if os.path.exists(filepath):
+                try:
+                    with open(filepath, "r", encoding="utf-8") as f:
+                        file_data = json.load(f)
+                except Exception:
+                    log.warning(f"[{self.__class__.__name__}] Archivo JSON corrupto o vacío en {filepath}, creando base nueva.")
+                    file_data = None
+
+            if root_key:
+                if not isinstance(file_data, dict):
+                    file_data = {root_key: []}
+                items = file_data.get(root_key, [])
+                if not isinstance(items, list):
+                    items = []
+            else:
+                if not isinstance(file_data, list):
+                    file_data = []
+                items = file_data
+
+            # Eliminar duplicados (si existe un item con el mismo ID, se sobrescribe)
+            if "id" in new_item:
+                items = [art for art in items if art.get("id") != new_item["id"]]
+
+            # Insertar al inicio y recortar
+            items.insert(0, new_item)
+            
+            # Opcional: ordenar por date inverso
             try:
-                with open(filepath, "r", encoding="utf-8") as f:
-                    file_data = json.load(f)
+                items = sorted(items, key=lambda x: str(x.get("date") or ""), reverse=True)
             except Exception:
-                log.warning(f"[{self.__class__.__name__}] Archivo JSON corrupto o vacío en {filepath}, creando base nueva.")
-                file_data = None
+                pass
 
-        if root_key:
-            if not isinstance(file_data, dict):
-                file_data = {root_key: []}
-            items = file_data.get(root_key, [])
-            if not isinstance(items, list):
-                items = []
-        else:
-            if not isinstance(file_data, list):
-                file_data = []
-            items = file_data
+            items = items[:max_items]
 
-        # Eliminar duplicados (si existe un item con el mismo ID, se sobrescribe)
-        if "id" in new_item:
-            items = [art for art in items if art.get("id") != new_item["id"]]
+            if root_key:
+                file_data[root_key] = items
+            else:
+                file_data = items
 
-        # Insertar al inicio y recortar
-        items.insert(0, new_item)
-        
-        # Opcional: ordenar por date inverso
-        try:
-            items = sorted(items, key=lambda x: x.get("date", ""), reverse=True)
-        except Exception:
-            pass
-
-        items = items[:max_items]
-
-        if root_key:
-            file_data[root_key] = items
-        else:
-            file_data = items
-
-        # Guardar atómicamente
-        try:
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            # Guardar atómicamente
             tmp_path = filepath + ".tmp"
             with open(tmp_path, "w", encoding="utf-8") as f:
                 json.dump(file_data, f, indent=2, ensure_ascii=False)
@@ -108,3 +136,16 @@ class JSONAppenderNode(GravityNode):
         except Exception as e:
             log.error(f"[{self.__class__.__name__}] Error escribiendo JSON: {e}")
             raise
+        finally:
+            if sys.platform == "win32":
+                if lock_fd is not None:
+                    os.close(lock_fd)
+                    try:
+                        os.remove(lock_path)
+                    except OSError:
+                        pass
+            else:
+                if lock_fd:
+                    import fcntl
+                    fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                    lock_fd.close()

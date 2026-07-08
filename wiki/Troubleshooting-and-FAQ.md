@@ -1,26 +1,16 @@
-# Troubleshooting y Preguntas Frecuentes (FAQ)
+# Troubleshooting y FAQ
 
-Esta guía te ayudará a resolver los problemas más comunes al operar Gravity AI (AgentShield V16.14).
+### 1. El portal de noticias tiene errores de decodificación JSON.
+**Solución:** Revisa los logs de `task-*`. Puede ocurrir si un proveedor LLM falla y devuelve un JSON en un bloque markdown inesperado. El sistema ahora tiene un parche en `clean_llm_response()` para extraer y limpiar la salida.
 
-## Preguntas Frecuentes (FAQ)
+### 2. Fooocus no arranca desde el `INICIAR_TODO.bat`
+**Explicación:** Por defecto, Fooocus arranca en "modo manual" para ahorrar RAM (frecuentemente más de 12GB requeridos). Debes activarlo manualmente desde el Mission Control (L0).
 
-### Error: `ModuleNotFoundError: No module named 'core'`
-Este error ocurre cuando inicias un demonio secundario (como `voice_daemon.py` o `sentinel_core.py`) navegando directamente a la carpeta `core/` y ejecutando python desde ahí. Python asume que el directorio raíz es `core/` y no el directorio del proyecto, por lo que no puede encontrar el propio módulo `core`. 
-**Solución:** Inicia siempre los demonios usando los archivos batch `.bat` ubicados en la raíz o en `launchers/` (ej: `Launch_JARVIS.bat` o `INICIAR_TODO.bat`). Estos archivos inyectan automáticamente `set "PYTHONPATH=%ROOT%"` en la memoria de Windows para que Python resuelva la ruta completa sin importar desde dónde se lance.
+### 3. Problemas de Push a Github en el Agente Periodístico
+**Solución:** Verifica que el usuario local de Windows tenga las credenciales de Git cacheadas globalmente (`git config --global credential.helper wincred`).
 
-### ¿Por qué mi script/hook es bloqueado por AgentShield?
-Si ves un error `PermissionError: AgentShield Core Protection blocked write attempt`, significa que el script intentó escribir en un área crítica protegida (ej: `core/`, `.agents/`, `.env`, `_settings.json`). Esta es una medida de seguridad (Ring 0) para evitar que el LLM modifique la arquitectura base o fugue secretos. Si necesitas escribir, asegúrate de que el script apunte a un directorio de trabajo válido como `scratch/` o un directorio de salidas específico.
+### 4. Fallos al decodificar contenido de Web Search
+**Explicación:** Si la búsqueda web retorna errores de Gzip o decodificación, revisa que no estés enviando headers de codificación (Accept-Encoding) incompatibles con `urllib`. La V16.0 PRO ya maneja esto limpiando cabeceras innecesarias.
 
-### ¿Por qué mi comando de consola (shell) requiere aprobación pero los scripts Python no?
-A partir de la Fase 16.5, los comandos directos a la terminal de Windows (`shell_exec`, `run_command`) son catalogados como **Herramientas de Alto Riesgo** por el `HITLManager` y bloquean la ejecución hasta que un humano lo aprueba (o lo rechaza automáticamente si corre en background). Los scripts Python (vía `code_runner`) corren en el **AST Sandbox** el cual restringe módulos peligrosos (como RCE de OS o Network Socket) en tiempo de compilación. Por ello gozan de autonomía completa.
-
-### Gravity dice que "el hook no tiene una firma válida"
-Mitigación CVE-2025-59536. Los archivos de Python en la carpeta `.agents/hooks/` deben estar registrados con su hash exacto en `%LOCALAPPDATA%\Gravity\hooks_trust.json`. Si editaste un hook manualmente, el hash cambió y el motor lo bloquea previniendo un ataque de envenenamiento de repositorio. Para arreglarlo, debes actualizar el hash en el archivo de confianza global.
-
-## Troubleshooting
-
-### Error: `No se pudo decodificar con utf-8, cp1252 ni latin-1`
-A partir del filtro Unicode, el sistema lee con codificación estricta y purga caracteres invisibles. Si tu archivo contiene codificaciones corruptas extremas, asegúrate de guardar tus scripts de entrada puramente como UTF-8.
-
-### La IA entra en un bucle intentando leer un archivo protegido
-Revisa que en tus *prompts* o *skills* no estés pidiendo a la IA que inspeccione o deduzca variables leyendo el archivo `.env`. Este comportamiento está bloqueado intencionalmente para evitar fugas de secretos (*Secret Leak*). Las variables deben inyectarse por entorno, no dejar que la IA las lea desde disco.
+### 5. Falla silenciosa al instalar faster-whisper
+**Solución:** En V16.0 PRO, la instalación de dependencias como Whisper es de tipo "bloqueante" (`blocking`). Si notas errores de "módulo no encontrado" en la consola, verifica que el subprocess tenga permisos para instalar pip localmente sin detener la ejecución.

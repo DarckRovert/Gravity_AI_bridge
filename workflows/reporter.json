@@ -111,7 +111,7 @@
       }
     },
     {
-      "id": "desplegar_netlify",
+      "id": "desplegar_vercel",
       "type": "GitDeploy",
       "inputs": {
         "repository_path": "F:/gravity-news-portal",

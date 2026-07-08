@@ -18,8 +18,13 @@ class TinkaEngine:
     """
 
     def __init__(self, db_path="tinka_history.db"):
-        self.db_path = db_path
-        self.db = TinkaDB(db_path)
+        LOCAL_APP_DATA = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), "Gravity", "Databases")
+        os.makedirs(LOCAL_APP_DATA, exist_ok=True)
+        if db_path == "tinka_history.db":
+            self.db_path = os.path.join(LOCAL_APP_DATA, db_path)
+        else:
+            self.db_path = db_path
+        self.db = TinkaDB(self.db_path)
         self.scraper = TinkaScraper(self.db)
         self.analyzer = TinkaAnalyzer(self.db)
         self.predictor = TinkaPredictor(self.db)

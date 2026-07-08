@@ -33,8 +33,14 @@ def _get_status_dict():
         except Exception:
             pass
 
-    # Intentar leer estado interno de _periodista_state.json (Fix D2/D4)
-    state_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), "_periodista_state.json")
+    # Intentar leer estado interno de _periodista_state.json
+    local_app_data = os.path.join(
+        os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+        "Gravity", 
+        "Databases"
+    )
+    state_file = os.path.join(local_app_data, "_periodista_state.json")
+    
     internal_state = {}
     if os.path.exists(state_file):
         try:
@@ -85,7 +91,15 @@ def handle_journalist_start(handler):
     script = os.path.join(BASE_DIR, "news_daemon.py")
 
     try:
-        log_file = open(os.path.join(BASE_DIR, "gravity.log"), "a", encoding="utf-8")
+        log_dir = os.path.join(
+            os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+            "Gravity", 
+            "Logs"
+        )
+        os.makedirs(log_dir, exist_ok=True)
+        log_file_path = os.path.join(log_dir, "gravity.log")
+        
+        log_file = open(log_file_path, "a", encoding="utf-8")
         JOURNALIST_PROC = subprocess.Popen(
             ["python", script],
             cwd=BASE_DIR,
@@ -132,7 +146,12 @@ def handle_journalist_stop(handler):
         if killed:
             # Fix D5: Si lo matamos a la fuerza, el daemon no puede actualizar su estado. 
             # Actualizamos el JSON aquí para evitar estado "fantasma".
-            state_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), "_periodista_state.json")
+            app_data = os.path.join(
+                os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+                "Gravity", 
+                "Databases"
+            )
+            state_file = os.path.join(app_data, "_periodista_state.json")
             try:
                 if os.path.exists(state_file):
                     with open(state_file, "r", encoding="utf-8") as f:
@@ -166,10 +185,12 @@ def handle_journalist_stop(handler):
 
 
 def handle_journalist_log(handler):
-    BASE_DIR = os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    log_dir = os.path.join(
+        os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+        "Gravity", 
+        "Logs"
     )
-    log_path = os.path.join(BASE_DIR, "gravity.log")
+    log_path = os.path.join(log_dir, "gravity.log")
 
     if not os.path.exists(log_path):
         handler.send_response(200)

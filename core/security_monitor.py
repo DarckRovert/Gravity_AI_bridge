@@ -58,9 +58,10 @@ WHITELIST_PORTS: Set[int] = {
     3000,  # Node DevServer
     4000,  # GraphQL / dev
     9090,  # Prometheus
-    9229,  # Node debugger
+    61,  # Node debugger
     8188,  # ComfyUI
     4455,  # OBS WebSocket
+    52625, # FastFlowLM NPU
 }
 
 # Procesos legítimos que pueden abrir puertos aleatorios sin ser sospechosos.
@@ -143,6 +144,8 @@ LEGITIMATE_PROCESS_NAMES: Set[str] = {
     "koboldcpp.exe",
     "obs64.exe",
     "obs32.exe",
+    "flm.exe",
+    "fastflowlm.exe",
     "antigrav",
     "antigrav.exe",
     "antigravity.exe",
@@ -300,7 +303,8 @@ def _record_alert(level: str, message: str) -> None:
 
         # Log al archivo de auditoría de forma completamente thread-safe
         try:
-            audit_path = os.path.join(BASE_DIR, "_audit_log.jsonl")
+            from core.audit_log import get_audit_log_path
+            audit_path = get_audit_log_path()
             with open(audit_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(entry, ensure_ascii=False) + "\n")
         except Exception:
@@ -827,7 +831,8 @@ def _monitor_loop() -> None:
 
             # Rotación automática del audit log si supera 10 MB (BUG-08) bajo RLock
             try:
-                audit_path = os.path.join(BASE_DIR, "_audit_log.jsonl")
+                from core.audit_log import get_audit_log_path
+                audit_path = get_audit_log_path()
                 with _lock:
                     if (
                         os.path.isfile(audit_path)
@@ -835,7 +840,12 @@ def _monitor_loop() -> None:
                     ):
                         import shutil as _sh
 
-                        archive_dir = os.path.join(BASE_DIR, "_archivo")
+                        archive_dir = os.path.join(
+                            os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+                            "Gravity", 
+                            "Logs", 
+                            "_archivo"
+                        )
                         os.makedirs(archive_dir, exist_ok=True)
                         ts_rot = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
                         _sh.move(

@@ -27,7 +27,8 @@ from core.video.glsl_compute_renderer_v14 import render_v14_compute_video
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUTPUT_DIR = os.path.join(BASE_DIR, "_videos")
-DB_PATH = os.path.join(BASE_DIR, "_video_queue.sqlite")
+from core.db_migrator import _get_db_path
+DB_PATH = _get_db_path("video_queue")
 FFMPEG_EXE = os.path.join(BASE_DIR, "_integrations", "ffmpeg", "ffmpeg.exe")
 
 DEFAULT_SCENES = 6

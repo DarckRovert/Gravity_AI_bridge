@@ -1,58 +1,33 @@
-# Architecture Deep Dive (V16.14 PRO Cognitive-Tier)
+# Arquitectura Profunda (L0, L1, L2)
 
-Gravity AI Bridge opera mediante una arquitectura altamente modular y resistente a fallos diseñada específicamente para entornos de recursos compartidos (como el Ryzen 7 8700G).
+## Estructura de Capas
 
-## 1. El Workflow Engine (`core/workflow_engine.py`)
-El corazón del ecosistema. Ejecuta grafos dirigidos acíclicos (DAGs) definidos en JSON.
-- **Auto-cargado de Nodos:** Dinámicamente escanea `core/nodes/` e inyecta las clases heredadas de `GravityNode`.
-- **Z.ai Cloud Fallback:** Integración nativa de alta disponibilidad. Si el hardware local colapsa (OOM), el motor desvía la petición matemática o de inferencia a los clusters remotos de Z.ai de forma transparente.
-- **AgentShield Ring 0:** Todo comando de sistema disparado por el Workflow pasa por un interceptor Regex que bloquea manipulaciones de rutas absolutas o borrados en el disco primario.
-- **Persistencia Zombie:** Si el servidor se apaga abruptamente, la cola SQLite (`_video_queue.sqlite`) mantiene los trabajos "running" para poder ser reseteados.
-- **Inyección Dinámica de Variables:** Utiliza sintaxis Jinja-like (`{{nodo.variable}}`) para encadenar las salidas de un modelo IA como entrada del siguiente nodo en tiempo de ejecución.
+1. **L0: Cerebro y Coordinación (Gravity Bridge Server)**
+   - Puerto `7860`.
+   - Carga el entorno de Gradio (`bridge_server.py`) y el motor cognitivo (`gravity_brain.py`).
+   - El Motor de Autonomía (`autonomy_engine.py`) opera aquí en un ciclo OODA de 6 horas, tomando decisiones sobre gasto, contenido y seguridad.
 
-## 2. Optimizaciones de Hardware (AMD APU)
-Para proteger la RAM unificada compartida entre CPU y GPU, Gravity implementa:
+2. **L1: Motor de Renderizado Estático (Fooocus Studio)**
+   - Puertos `7861` y `7862`.
+   - Controla la API para la generación asíncrona de miniaturas y recursos gráficos.
 
-```mermaid
-graph LR
-    RAM[("Unified RAM 32GB")] -.->|Llama 3 Loading| LLM["NativeLlamaProvider"]
-    RAM -.->|H.264 Encoder| AMF["h264_amf Hardware Encoder"]
-    
-    LLM -->|force_unload| Drop[Purga de Memoria]
-    Drop -->|Libera espacio| AMF
-```
+3. **L2: Motor de Renderizado Dinámico (ComfyUI / LTX)**
+   - Puerto `8188`.
+   - Utilizado para animaciones pesadas y pipelines de contenido de video en lote.
 
-- **Kill-Switch de LLMs (`NativeLlamaProvider.force_unload()`)**: Inyectado directamente en `video_job_node.py`. Justo antes de que FFmpeg o ComfyUI asalten la VRAM, este interruptor oblitera el modelo de lenguaje de la memoria, garantizando que el pipeline visual tenga todo el espacio necesario.
-- **Aceleración H.264 AMF**: Se purgó `libx264` del ecosistema. Todos los motores, desde `video_slicer` hasta el renderizado GLSL, inyectan `-c:v h264_amf` nativamente, logrando velocidades de codificación de 4x en hardware AMD Radeon sin estresar la CPU.
+## Reportero Autónomo
+Un proceso demonio continuo (`news_daemon.py`) que:
+1. Ejecuta `workflows/reporter.json` via `run_workflow("reporter")`.
+2. Busca temáticas usando herramientas de WebSearch.
+3. Inyecta respuestas LLM en `news.json` en un repositorio independiente (`gravity-news-portal`).
+4. Realiza sincronizaciones automáticas a través de `git commit` y `git push` a Netlify. Cuenta con control de idempotencia para evitar fallos si no hay cambios nuevos, garantizando un ciclo de ejecución continuo.
 
-## 3. High Frequency Radar
-Demonio independiente (`core/high_frequency_radar.py`) que:
-- Escanea RSS globales (ej: Google News) cada 60 segundos.
-- Busca keywords de emergencia (*"colapso"*, *"guerra"*, *"alerta"*).
-- Interrumpe pacíficamente el flujo e inyecta la crisis directamente en el motor principal invocando `run_workflow('reporter')` de forma no bloqueante.
+## Mecanismo de Estabilidad Estructural (Anti-Alucinaciones)
 
-## 4. J.A.R.V.I.S Cognitive Architecture (V16.14 PRO)
-El ecosistema periférico se coordina mediante un bus asíncrono y capacidades de ejecución de comandos por voz:
-
-```mermaid
-graph TD
-    Mic[Micrófono USB] -->|Audio| Voice[Voice Daemon V2]
-    Voice -->|Transcribe 'crea video'| Bus((Sensory Bus ws:9999))
-    Dashboard[React UI Dashboard] -->|WS 9999 LAN| Bus
-    Bus -->|voice_input| CogLoop[Cognitive Loop Thread]
-    
-    subgraph Gravity Engine
-        CogLoop -->|Inyecta Reglas + Prompt| LLM((Provider Manager))
-        LLM -->|Genera Comando '/video crear'| Extractor[Regex Command Extractor]
-        Extractor -->|Ejecuta a nivel kernel| Bridge[execute_system_command]
-    end
-    
-    Bridge -->|Resultado OK| CogLoop
-    CogLoop -->|voice_output| Bus
-    Bus -->|JSON| Voice
-    Voice -->|Edge-TTS| Speaker[Altavoces]
-```
-
-- **Sensory Bus**: Hub asíncrono puro (Port 9999, Host 0.0.0.0) tolerante a caídas de red que permite conexión LAN desde múltiples dispositivos. Si un módulo muere, se desconecta sin tirar el servidor central. Se suprimen silenciosamente las peticiones HTTP fantasma (port scanners) para evitar tracebacks masivos.
-- **Voice Daemon V2**: Opera un bucle seguro con SpeechRecognition (True VAD). Emplea bloqueos lógicos (`is_speaking = False` en un bloque `finally`) y archivos temporales únicos UUID para evitar la corrupción de disco por hilos concurrentes.
-- **Cognitive Loop (En el Bridge)**: Posee **Memoria a Corto Plazo** (20 turnos de historial) y **Capacidades Ejecutivas**. Si detecta una orden, el LLM emite un Comando Slash (`/`) que el Bucle extrae ignorando charla de relleno, disparando la acción física en el servidor.
+Para garantizar la estabilidad del portal frente a alucinaciones de modelos locales de menor tamaño (ej. caídas de formato JSON provocando "Transmisiones Clandestinas"), la arquitectura implementa dos capas de seguridad:
+1. **Chain-of-Thought Forzado (`<thought>`):** Todos los manifiestos de redactores exigen que el LLM planifique sus deconstrucciones dentro de un bloque XML `<thought>` antes de escupir el JSON final. Esto purga la longitud de razonamiento e impide que rompa el string JSON.
+2. **Parser Multinivel (`ContentNormalizerNode`):** El motor no falla si el LLM incluye texto extra. Implementa un parser con 4 capas de fallback:
+   - `json.loads` estricto.
+   - Extracción con Regex de bloques de código ` ```json `.
+   - Extracción de llaves extremas `{...}` (ignorando el bloque `<thought>` superior).
+   - Ensamblaje manual y reparación sintáctica del JSON si ocurre un truncamiento por límite de tokens.

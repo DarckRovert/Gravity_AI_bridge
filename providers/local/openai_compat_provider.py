@@ -408,7 +408,7 @@ class FastFlowLMProvider(_OpenAICompatLocalProvider):
     default_port: int = 52625
     supports_vision: bool = True
     supports_function_calling: bool = True
-    default_context: int = 256000  # Soporta hasta 256k tokens
+    default_context: int = 4096  # Restringido para evitar VRAM crash (0xc01e0009) en NPU
     _alt_ports: List[int] = [52625]
 
     def check_health(self) -> ProviderResult:

@@ -151,10 +151,8 @@ def handle_youtube_upload(handler):
             handler.end_headers()
             handler.wfile.write(json.dumps({"error": "job_id requerido"}).encode())
             return
-        BASE_D = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        )
-        db_p = os.path.join(BASE_D, "_video_queue.sqlite")
+        from core.db_migrator import _get_db_path
+        db_p = _get_db_path("video_queue")
         conn = _sq3.connect(db_p)
         conn.row_factory = _sq3.Row
         row = conn.execute(

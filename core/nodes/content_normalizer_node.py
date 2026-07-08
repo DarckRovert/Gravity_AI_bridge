@@ -37,6 +37,7 @@ class ContentNormalizerNode(GravityNode):
         "image_prompt_prefix": "TEXT", # Ej: "cyberpunk science dark lab"
         "valid_categories": "TEXT",    # JSON array string, ej: '["Física","Neuro"]'
         "default_category": "TEXT",    # Ej: "Ciencia"
+        "images_dir": "TEXT",          # Opcional: Ruta absoluta para guardar la imagen localmente
     }
     OUTPUT_SCHEMA = {
         "normalized_json": "TEXT"
@@ -203,11 +204,18 @@ class ContentNormalizerNode(GravityNode):
             normalized["featured"] = False
 
         # ── Campos computados ───────────────────────────────────────────
-        normalized["id"] = slugify(normalized["title"])
         normalized["type"] = content_type
         normalized["author"] = author
         normalized["date"] = datetime.now().isoformat()
         normalized["tags"] = normalized.get("tags", [])
+        
+        # Generar un ID único y seguro (max 60 chars para evitar crash de Path en Windows)
+        import hashlib
+        short_hash = hashlib.md5(normalized["date"].encode()).hexdigest()[:6]
+        base_slug = slugify(normalized["title"])[:50]
+        if base_slug.endswith("-"):
+            base_slug = base_slug[:-1]
+        normalized["id"] = f"{base_slug}-{short_hash}"
 
         # Estimar por longitud del texto (~200 palabras/min)
         word_count = len(normalized.get("fullText", "").split())
@@ -225,14 +233,13 @@ class ContentNormalizerNode(GravityNode):
             normalized["readingTime"] = computed_reading_time
 
         # ── Imagen Pollinations.ai ──────────────────────────────────────
-        # Resolución 16:9 para artfículos de portal (estándar web)
+        # Resolución 16:9 para artículos de portal (estándar web)
         img_width = 1200
         img_height = 675
         if content_type == "science":
             img_width, img_height = 1280, 720
 
         # Sanitizar título para Pollinations: remover caracteres especiales que rompen la URL o el prompt
-        import re
         safe_title = re.sub(r'[^a-zA-Z0-9\sñÑáéíóúÁÉÍÓÚüÜ,.-]', '', normalized["title"][:120])
         title_encoded = urllib.parse.quote(safe_title.strip(), safe='')
         prefix_encoded = urllib.parse.quote(image_prompt_prefix, safe='')
@@ -241,33 +248,51 @@ class ContentNormalizerNode(GravityNode):
             f"{title_encoded}?width={img_width}&height={img_height}&nologo=true"
         )
 
-        # Verificar que la imagen sea accesible antes de publicar
+        images_dir = inputs.get("images_dir", "").strip()
+
         image_ok = False
         try:
-            req_check = urllib.request.Request(
-                img_url,
-                headers={"User-Agent": "Mozilla/5.0"},
-                method="HEAD",
-            )
-            with urllib.request.urlopen(req_check, timeout=30) as r:
-                image_ok = r.status == 200
-        except Exception as _img_err:
-            log.warning(f"[{self.__class__.__name__}] Pollinations no responde ({_img_err}). Usando placeholder SVG.")
+            if images_dir:
+                # Descarga síncrona para guardar localmente
+                import os
+                os.makedirs(images_dir, exist_ok=True)
+                slug = normalized["id"]
+                img_filename = f"{slug}.jpg"
+                img_path = os.path.join(images_dir, img_filename)
+                
+                log.info(f"[{self.__class__.__name__}] Descargando imagen en {img_path} ...")
+                req = urllib.request.Request(img_url, headers={"User-Agent": "Mozilla/5.0"})
+                with urllib.request.urlopen(req, timeout=45) as r:
+                    if r.status == 200:
+                        with open(img_path, "wb") as f:
+                            f.write(r.read())
+                        image_ok = True
+                        normalized["image"] = f"/images/{img_filename}"
+                        log.info(f"[{self.__class__.__name__}] Imagen guardada localmente: {img_filename}")
+            else:
+                # Solo verificar y pre-calentar si no se guarda localmente
+                req_check = urllib.request.Request(img_url, headers={"User-Agent": "Mozilla/5.0"}, method="HEAD")
+                with urllib.request.urlopen(req_check, timeout=30) as r:
+                    image_ok = r.status == 200
+                
+                if image_ok:
+                    normalized["image"] = img_url
+                    def _warm_image(_url=img_url, _cls=self.__class__.__name__):
+                        try:
+                            req = urllib.request.Request(_url, headers={"User-Agent": "Mozilla/5.0"})
+                            urllib.request.urlopen(req, timeout=45)
+                            log.info(f"[{_cls}] Imagen pre-calentada OK.")
+                        except Exception as e:
+                            log.warning(f"[{_cls}] Fallo al pre-calentar imagen: {e}")
+                    threading.Thread(target=_warm_image, daemon=True).start()
 
-        if image_ok:
-            normalized["image"] = img_url
-            # Pre-calentar en background (solo si sabemos que la URL es válida)
-            def _warm_image(_url=img_url, _cls=self.__class__.__name__):
-                try:
-                    req = urllib.request.Request(_url, headers={"User-Agent": "Mozilla/5.0"})
-                    urllib.request.urlopen(req, timeout=45)
-                    log.info(f"[{_cls}] Imagen pre-calentada OK.")
-                except Exception as e:
-                    log.warning(f"[{_cls}] Fallo al pre-calentar imagen: {e}")
-            threading.Thread(target=_warm_image, daemon=True).start()
-        else:
+        except Exception as _img_err:
+            log.warning(f"[{self.__class__.__name__}] Error con Pollinations ({_img_err}). Usando SVG.")
+            image_ok = False
+
+        if not image_ok:
             # Fallback: placeholder SVG inline (sin dependencias externas)
-            safe_title = normalized["title"][:60].replace('"', "'").replace('<', '').replace('>', '')
+            safe_title_svg = normalized["title"][:60].replace('"', "'").replace('<', '').replace('>', '')
             safe_type = content_type.upper()
             svg_data = (
                 f'<svg xmlns="http://www.w3.org/2000/svg" width="{img_width}" height="{img_height}">'
@@ -277,7 +302,7 @@ class ContentNormalizerNode(GravityNode):
                 f'<text x="50%" y="42%" font-family="monospace" font-size="18" fill="#9b30ff" '
                 f'text-anchor="middle">[NEXO ÁGORA — {safe_type}]</text>'
                 f'<text x="50%" y="55%" font-family="monospace" font-size="14" fill="#cccccc" '
-                f'text-anchor="middle">{safe_title}</text>'
+                f'text-anchor="middle">{safe_title_svg}</text>'
                 f'</svg>'
             )
             import base64

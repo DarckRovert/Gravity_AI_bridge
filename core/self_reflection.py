@@ -31,7 +31,8 @@ from typing import Any, Dict, List, Optional
 from core.logger import log
 
 BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-AUDIT_LOG_PATH: str = os.path.join(BASE_DIR, "_audit_log.jsonl")
+from core.audit_log import get_audit_log_path
+AUDIT_LOG_PATH: str = get_audit_log_path()
 PATCHES_DIR: str = os.path.join(BASE_DIR, "_self_patches")
 KNOWLEDGE_FILE: str = os.path.join(BASE_DIR, "_knowledge.json")
 

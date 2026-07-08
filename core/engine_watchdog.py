@@ -253,6 +253,10 @@ def _apply_engine_optimization(provider_name, protocol):
 
         api_opts = build_api_options(engine_key, profile, user_opts)
 
+        # Restringir max_tokens para FastFlowLM (NPU) para que coincida con --ctx-len 4096
+        if "fastflow" in pn_lower and engine_key == "openai_compat":
+            if api_opts.get("max_tokens", 0) > 4096:
+                api_opts["max_tokens"] = 4096
         # Aplicar optimización KV-cache de Ollama via turbo_kv
         if engine_key == "ollama":
             try:

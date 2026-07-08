@@ -171,8 +171,10 @@ class RemotionEngine:
                 composition_id,
                 str(output_mp4),
                 f"--props={str(props_path)}",
-                "--gl=angle",
+                "--gl=swangle",
                 "--concurrency=1",
+                "--image-format=jpeg",
+                "--disable-web-security",
             ]
 
             # En Windows a veces npx necesita shell=True o ser llamado como npx.cmd

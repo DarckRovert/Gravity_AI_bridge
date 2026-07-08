@@ -1,45 +1,15 @@
-# Referencia de API (Gravity AI Bridge)
+# Referencia de API
 
-Esta referencia técnica está orientada a desarrolladores que desean integrar extensiones u otras aplicaciones con la arquitectura **Gravity V16.14 PRO**.
+## `core/provider_manager.py`
+Módulo clave para la comunicación con múltiples proveedores de LLM.
+- `complete(messages, provider=None, model=None, options=None)`
+- Conoce y enruta peticiones hacia LM Studio local, Ollama, Nvidia NIM, Groq, y OpenAI, con manejo de fallback en caso de `401 Unauthorized`.
 
-## Endpoints Nativos
+## `core/autonomy_engine.py`
+Núcleo del agente CEO.
+- `run_ooda_cycle()`: Ejecuta la lectura del estado (Observe), clasifica alertas (Orient), determina acciones con LLM (Decide), ejecuta tareas de bajo riesgo (Act) y actualiza la base de conocimiento (Learn).
 
-El `bridge_server.py` expone un micro-servidor local que procesa interacciones asíncronas con agentes, subagentes y la base de datos de historial (`gravity_brain.db`).
-
-### J.A.R.V.I.S Sensory Bus (Nuevo en V16.14)
-**`ws://0.0.0.0:9999`**
-Un hub de WebSockets asíncrono puro que permite a los módulos periféricos y a la interfaz UI (Dashboard) comunicarse con el núcleo cognitivo de Gravity a través de la red local (LAN).
-- **Formatos JSON soportados:**
-  - `{"type": "voice_input", "text": "string"}`: Enviado por el Voice Daemon cuando el usuario habla.
-  - `{"type": "voice_output", "text": "string"}`: Enviado por el Cognitive Loop para que el Voice Daemon hable por los altavoces.
-  - `{"type": "system_status", "payload": "string"}`: Notificaciones de sistema o cambios de estado para la UI del Dashboard.
-
-### 1. `POST /api/chat`
-Envía un prompt a la inteligencia principal (o sub-enjambre) para su ejecución autónoma.
-- **Payload:** `{"message": "string", "session_id": "string", "bg_mode": bool}`
-- **Respuesta:** Event-stream de texto o JSON con el estatus de la tarea.
-- **Seguridad:** Sujeto a la intercepción del `HITLManager`.
-
-### 2. `GET /api/status`
-Recupera el estado en tiempo real del motor (Idle, Thinking, Wait-for-User, Executing Tool).
-- **Respuesta:** `{"status": "string", "active_tasks": int}`
-
-### 3. `POST /api/hitl/approve`
-Punto de entrada de validación desde el Frontend para liberar una herramienta suspendida por el *AgentShield*.
-- **Payload:** `{"approval_id": "string", "decision": "approve|reject"}`
-- **Respuesta:** `200 OK`
-
-## Módulo de Herramientas (`core/tools_engine.py`)
-
-Las herramientas expuestas al LLM están limitadas y protegidas por un esquema dinámico de permisos (*Ring 0*).
-
-| Herramienta | Descripción | Protección (AgentShield) |
-|-------------|-------------|-------------------------|
-| `view_file` | Lee un archivo desde disco. | **Bloqueada** para `.env`. Purga Unicode oculta (Zero-Width). |
-| `replace_file_content` | Reemplaza cadenas de texto. | **Bloqueada** para archivos de configuración, `.env` y el directorio `core/`. |
-| `run_command` / `shell_exec`| Ejecuta comandos en PowerShell. | **HITL Obligatorio** - Espera aprobación asíncrona del admin. |
-| `code_runner` | Ejecuta un script temporal. | **AST Sandbox** - Libre autonomía pero sin acceso de escritura o red. |
-| `grep_search` | Búsqueda por palabra clave. | Validada por `_safe_path` (Bloqueo en `.env`). |
-
----
-*Nota: Si estás creando un `hook` custom en `.agents/hooks/`, tu código correrá en un entorno no bloqueado por AST, por ello Gravity AI valida la firma criptográfica antes de cargar el módulo en el servidor.*
+## `gravity_reporter.py`
+Ejecución del periodista.
+- Argumentos: `--topic "..."`, `--focus "..."`.
+- Fallbacks automáticos entre motores.

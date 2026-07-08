@@ -364,7 +364,30 @@ def stream(
         yield "[ProviderManager] Motor de IA ocupado. Reintenta en unos segundos."
         return
     try:
-        yield from plugin.chat_stream(messages, model, options)
+        chunks_yielded = 0
+        try:
+            for chunk in plugin.chat_stream(messages, model, options):
+                chunks_yielded += 1
+                yield chunk
+            if chunks_yielded == 0:
+                raise Exception("Empty response (Timeout o error de conexión)")
+        except Exception as e:
+            from core.logger import log
+            log.warning(f"[ProviderManager] Proveedor principal '{plugin.name}' falló: {e}. Activando Fallback...")
+            
+            # Buscar el segundo mejor proveedor
+            fallback_res, fallback_mod = get_best(task)
+            if fallback_res and fallback_res.name != plugin.name:
+                fallback_plug = get_plugin(fallback_res.name)
+                if fallback_plug:
+                    log.info(f"[ProviderManager] Fallback activado -> Usando {fallback_plug.name} ({fallback_mod})")
+                    yield from fallback_plug.chat_stream(messages, fallback_mod, options)
+                else:
+                    if chunks_yielded == 0:
+                        raise Exception("Fallo proveedor principal y no hay motores de respaldo.")
+            else:
+                if chunks_yielded == 0:
+                    raise Exception("Fallo proveedor principal y es el único motor configurado/saludable.")
     finally:
         _inference_lock.release()
 

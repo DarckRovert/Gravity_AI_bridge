@@ -19,8 +19,14 @@ from core.logger import log
 from core.config_manager import config
 
 BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH: str = os.path.join(BASE_DIR, "_integrations", "affiliate_db.json")
-AFFILIATE_LOG: str = os.path.join(BASE_DIR, "_integrations", "affiliate_log.json")
+_app_data = os.path.join(
+    os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+    "Gravity", 
+    "Databases"
+)
+os.makedirs(_app_data, exist_ok=True)
+DB_PATH: str = os.path.join(_app_data, "affiliate_db.json")
+AFFILIATE_LOG: str = os.path.join(_app_data, "affiliate_log.json")
 
 # Cerrojo reentrante a nivel de módulo para sincronizar I/O y mutaciones
 _affiliate_io_lock = threading.RLock()

@@ -31,9 +31,13 @@ ESTÁ ESTRICTAMENTE PROHIBIDO:
 
 Solo devuelve el texto corregido. No añadas NINGUNA nota conversacional como "Aquí tienes el texto corregido", ni comillas adicionales. Si no encuentras faltas de ortografía, devuelve el texto EXACTAMENTE IGUAL sin tocar una sola letra."""
 
-STATE_FILE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "corrector_estado.json"
+_app_data = os.path.join(
+    os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+    "Gravity", 
+    "Databases"
 )
+os.makedirs(_app_data, exist_ok=True)
+STATE_FILE = os.path.join(_app_data, "corrector_estado.json")
 
 
 def load_state():
