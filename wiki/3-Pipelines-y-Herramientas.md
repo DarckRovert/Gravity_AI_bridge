@@ -6,6 +6,19 @@ Gravity no está confinado a una simple ventana de chat. Dispone de un arsenal d
 
 Gravity tiene la capacidad de producir libros y ensayos enteros, estructurados, refinados y curados, actuando como un escuadrón de redactores de alto nivel con un blindaje QA extremo.
 
+```mermaid
+flowchart TD
+    Start([Inicio Escritura/Refinado]) --> Gen[Generar Capítulo]
+    Gen --> QA{Filtro QA Agent}
+    QA -->|FAIL| Retry[Regenerar con Feedback QA]
+    Retry --> Gen
+    QA -->|PASS| Save[Guardar cap_X.md]
+    Save --> Hist[Actualizar Memoria Histórica]
+    Hist --> Progress[Guardar Métricas e Incrementar Conteo Palabras]
+    Progress --> Master[Append a Libro Maestro con Separador Standard]
+    Master --> End([Fin de Capítulo])
+```
+
 - **`book_writer.py` & `fiction_writer.py` & `research_writer.py`:** Motores de redacción profunda que fragmentan un esqueleto narrativo o temático y asignan sub-capítulos a los LLMs disponibles. Estos scripts manejan controles de continuidad avanzada y memoria comprimida.
 - **`book_refiner.py` & `research_refiner.py`:** Editores en Jefe y Correctores de Estilo. Re-escriben capítulos del borrador en diferentes profundidades (polish, full, expand, enhance) utilizando OSINT y búsquedas académicas dinámicas.
 - **`epub_generator.py` & `pdf_exporter.py`:** Ensambladores finales de alta gama. Empaquetan el formato Markdown/HTML en archivos ePub y PDFs comerciales con portadas dinámicas y estilo impecable.
