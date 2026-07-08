@@ -53,7 +53,7 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 - **Reasoning Stripper**: Filtra tokens `<think>` de modelos como DeepSeek-R1 via Regex antes de mostrarlos.
 - **Agent Routing**: Selección dinámica de modelo/proveedor según `--role` (auditor, planner, coder, researcher, executor).
 
-### 🖥️ Dashboard V16.1 PRO React SPA (`frontend/dist`)
+### 🖥️ Dashboard V17.0 PRO React SPA (`frontend/dist`)
 Panel de control unificado con 25 componentes orquestados en tiempo real:
 
 | Panel | Función |
@@ -199,7 +199,7 @@ python bridge_server.py
 Dashboard disponible en: `http://localhost:7860`
 
 ### Instalación con Installer (Windows)
-Descargar `Gravity_AI_Bridge_V16.0_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
+Descargar `Gravity_AI_Bridge_V17.0_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
 
 ---
 

@@ -76,7 +76,7 @@ El archivo `core/workflow_engine.py` convierte archivos JSON (`workflows/reporte
 - Mapea dependencias entre herramientas. Por ejemplo, el nodo de Video no arrancará hasta que el nodo de `book_refiner` haya emitido un payload exitoso.
 - Si una herramienta falla (ej. *Fooocus* colapsa generando imágenes), el Grafo aísla el error, congela esa rama específica y mantiene al resto del sistema con vida, evitando un colapso en cascada del servidor.
 
-## 6. J.A.R.V.I.S Sensory Tools (V16.8 PRO Sentinel-Tier)
+## 6. J.A.R.V.I.S Sensory Tools (V17.0 PRO Sentinel-Tier)
 
 La evolución hacia el protocolo J.A.R.V.I.S dota de herramientas no solo digitales, sino espaciales, físicas y **proactivas**, cerrando la brecha entre la terminal y el mundo real.
 

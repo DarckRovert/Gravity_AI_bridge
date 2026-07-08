@@ -1,4 +1,4 @@
-# Folio 2: Cerebro y Comandos (Gravity V16.14 PRO)
+# Folio 2: Cerebro y Comandos (Gravity V17.0 PRO)
 
 El archivo `core/gravity_brain.py` es el pilar central cognitivo de Gravity. A diferencia de las UIs convencionales que simplemente envían prompts de texto crudo a una API, Gravity **inyecta un meta-contexto inmenso** en cada una de las interacciones.
 

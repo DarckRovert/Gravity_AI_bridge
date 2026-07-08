@@ -1,4 +1,4 @@
-# Folio 4: Monetización y Flotas Mercenarias (Gravity V16.7 PRO)
+# Folio 4: Monetización y Flotas Mercenarias (Gravity V17.0 PRO)
 
 Gravity no es una caja de arena para experimentos lúdicos. Es un sistema económico auto-sustentable diseñado para buscar oportunidades de negocio en internet, cazar contratos (Bounties) y generar ingresos pasivos, alimentando su propio ciclo de vida y financiando sus llamadas API.
 

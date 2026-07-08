@@ -1,4 +1,4 @@
-# Folio 1: Motor Nuclear y Enrutamiento (Gravity V16.7 PRO)
+# Folio 1: Motor Nuclear y Enrutamiento (Gravity V17.0 PRO)
 
 Este documento desglosa la capa fundacional del sistema operativo Gravity. El "Backend" no es un framework monolítico como Django o FastAPI; es un motor enrutador asíncrono puro forjado en la biblioteca estándar de Python, diseñado para evadir el sobrecosto de latencia y exprimir los hilos del procesador al máximo.
 

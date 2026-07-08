@@ -1,6 +1,6 @@
-# 🧠 Plan de Evolución Agéntica — Gravity AI Bridge V16.0 Roadmap
+# 🧠 Plan de Evolución Agéntica — Gravity AI Bridge V17.0 Roadmap
 
-Estado: **V16.7 PRO Activo** | Próximo hito: **V17.0 Autonomous Studio**
+Estado: **V17.0 PRO Activo** | Próximo hito: **V18.0 Swarm Autonomy**
 
 ---
 
