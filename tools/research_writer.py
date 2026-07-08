@@ -15,6 +15,8 @@ from core import provider_manager  # noqa: E402
 from tools.web_search import WebSearch  # noqa: E402
 from tools import latex_cleaner  # noqa: E402
 from core import image_router  # noqa: E402
+from core.chapter_qa import qa_agent
+from tools.llm_utils import clean_response, atomic_write, safe_complete  # noqa: E402
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -22,12 +24,6 @@ logging.basicConfig(
 logger = logging.getLogger("GravityResearchAuthor")
 
 
-def atomic_write(filepath: str, content: str):
-    """Escribe un archivo de forma atómica para evitar corrupción."""
-    tmp_path = filepath + ".tmp"
-    with open(tmp_path, "w", encoding="utf-8") as f:
-        f.write(content)
-    os.replace(tmp_path, filepath)
 
 
 class GravityResearchAuthor:
@@ -44,84 +40,6 @@ class GravityResearchAuthor:
 
         self.web_search_tool = WebSearch()
 
-    def _clean_response(self, text: str) -> str:
-        if not text:
-            return ""
-        cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
-        if "<think>" in cleaned:
-            cleaned = re.sub(r"<think>.*", "", cleaned, flags=re.DOTALL).strip()
-
-        # Purga de Markdown residual
-        if cleaned.startswith("```"):
-            cleaned = re.sub(r"^```[a-zA-Z0-9-]*\n", "", cleaned)
-            cleaned = re.sub(r"\n```$", "", cleaned)
-
-        # Limpieza conversacional
-        prefixes_to_strip = [
-            "Aquí tienes el capítulo",
-            "Aquí está el capítulo",
-            "Claro, aquí",
-            "Aquí tienes la continuación",
-            "Entendido.",
-            "¡Por supuesto!",
-        ]
-        for prefix in prefixes_to_strip:
-            if cleaned.lower().startswith(prefix.lower()):
-                lines = cleaned.split("\n")
-                while lines and (
-                    lines[0].lower().startswith(prefix.lower())
-                    or lines[0].strip() == ""
-                ):
-                    lines.pop(0)
-                cleaned = "\n".join(lines).strip()
-
-        return cleaned
-
-    def _safe_complete(self, messages: list, max_retries=3, require_json=False) -> Any:
-        current_messages = list(messages)
-        for attempt in range(max_retries):
-            try:
-                response = provider_manager.complete(current_messages)
-                cleaned = self._clean_response(response)
-
-                if not cleaned or len(cleaned) < 5:
-                    logger.warning(
-                        f"Respuesta vacía o muy corta en intento {attempt+1}/{max_retries}. Reintentando..."
-                    )
-                    time.sleep(2)
-                    continue
-
-                if require_json:
-                    try:
-                        json_match = re.search(r"\{[\s\S]*\}|\[[\s\S]*\]", cleaned)
-                        if json_match:
-                            return json.loads(json_match.group(0))
-                        else:
-                            return json.loads(cleaned)
-                    except json.JSONDecodeError:
-                        logger.warning(
-                            f"JSON inválido en intento {attempt+1}/{max_retries}. Pidiendo corrección al LLM..."
-                        )
-                        current_messages.append(
-                            {"role": "assistant", "content": response}
-                        )
-                        current_messages.append(
-                            {
-                                "role": "user",
-                                "content": "Tu respuesta anterior no es un JSON válido. Por favor, corrige los errores de sintaxis y devuelve ÚNICAMENTE el JSON válido.",
-                            }
-                        )
-                        time.sleep(2)
-                        continue
-
-                return cleaned
-            except Exception as e:
-                logger.error(
-                    f"Error en llamada al LLM (intento {attempt+1}/{max_retries}): {e}"
-                )
-                time.sleep(2)
-        return [] if require_json else ""
-
     def _generate_book_cover(
         self, book_dir: str, title: str, synopsis: str
     ) -> Optional[str]:
@@ -137,7 +55,7 @@ class GravityResearchAuthor:
             "Return ONLY the English image prompt."
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        image_prompt = self._safe_complete(messages).strip()
+        image_prompt = safe_complete(provider_manager, messages).strip()
 
         if not image_prompt:
             logger.warning("No se pudo generar un prompt visual válido.")
@@ -170,7 +88,7 @@ class GravityResearchAuthor:
             "Tu respuesta establecerá el marco teórico sobre el que se estructurará todo el ensayo."
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        return self._safe_complete(messages)
+        return safe_complete(provider_manager, messages)
 
     def _generate_outline(
         self, synopsis: str, num_chapters: int, user_prompt: str
@@ -192,14 +110,21 @@ class GravityResearchAuthor:
         )
         messages = [{"role": "user", "content": sys_prompt}]
 
-        data = self._safe_complete(messages, require_json=True)
-        if isinstance(data, dict):
-            return data.get("capitulos", [])
-        elif isinstance(data, list):
-            return data
-        else:
+        response = safe_complete(provider_manager, messages, require_json=True)
+        try:
+            if isinstance(response, dict):
+                return response.get("capitulos", [])
+            elif isinstance(response, str):
+                import re
+
+                json_match = re.search(r"\{.*\}", response, re.DOTALL)
+                if json_match:
+                    data = json.loads(json_match.group(0))
+                    return data.get("capitulos", [])
+                return json.loads(response).get("capitulos", [])
+        except Exception as e:
             logger.error(
-                "Fallo irrecuperable al generar escaleta. Se usará una genérica."
+                f"Fallo irrecuperable al generar escaleta: {e}. Se usará una genérica."
             )
             fallback_len = num_chapters if num_chapters > 0 else 5
             return [
@@ -230,7 +155,7 @@ class GravityResearchAuthor:
             "Devuelve SOLO las 3 consultas, una por l\u00ednea, sin numeraci\u00f3n ni explicaciones."
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        queries_raw = self._safe_complete(messages).strip()
+        queries_raw = safe_complete(provider_manager, messages).strip()
         queries = [
             q.strip().strip("\"'") for q in queries_raw.split("\n") if q.strip()
         ][:3]
@@ -324,7 +249,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
         full_chapter_text = ""
 
         for i in range(max_continuations):
-            response = self._safe_complete(messages)
+            response = safe_complete(provider_manager, messages)
 
             if i > 0:
                 full_chapter_text += response
@@ -363,7 +288,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
             f"Capítulo:\n{chapter_text}"
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        return self._safe_complete(messages)
+        return safe_complete(provider_manager, messages)
 
     def _generate_glossary_and_bib(self, accumulated_history: str) -> str:
         logger.info("Fase Final: Generando Glosario y Referencias...")
@@ -374,7 +299,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
             f"Resumen del Libro:\n{accumulated_history}"
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        return self._safe_complete(messages)
+        return safe_complete(provider_manager, messages)
 
     def _post_process_markdown(self, md_content: str) -> str:
         """Pipeline completo de limpieza: LaTeX → Unicode + normalización de tablas Markdown."""
@@ -387,7 +312,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
         self,
         prompt: str,
         title: str = "Ensayo",
-        num_chapters: int = 5,
+        num_chapters: int = 5, review_outline: bool = False,
         max_free_chapters: int = 20,
     ):
         logger.info(f"--- INICIANDO ENSAYO: {title} ---")
@@ -432,6 +357,10 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                 os.path.join(book_dir, "2_escaleta.json"),
                 json.dumps(outline, indent=2, ensure_ascii=False),
             )
+            if review_outline:
+                input(f"\n[HITL] Escaleta guardada en {os.path.join(book_dir, '2_escaleta.json')}. Edite el archivo si lo desea y presione ENTER para continuar...")
+                with open(os.path.join(book_dir, "2_escaleta.json"), 'r', encoding='utf-8') as f:
+                    outline = json.load(f)
 
             initial_book = f"# {title}\n\n*Investigación generada por GravityResearchAuthor*\n\n## Índice\n"
             for c in outline:
@@ -442,7 +371,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                     c_title.lower().replace(" ", "-").replace(":", "")
                 )
                 initial_book += f"{c.get('numero')}. [{c_title}]({anchor})\n"
-            initial_book += "\n---\n\n"
+            initial_book += "\n=== CAPITULO ===\n\n"
             atomic_write(book_file, initial_book)
 
             atomic_write(history_file, "")
@@ -481,6 +410,21 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                 prompt,
             )
 
+            # QA Check: Validar el capítulo antes de guardarlo
+            qa_result = qa_agent.validate_chapter(chapter_text, base_context, "")
+            if qa_result.get("status") == "FAIL":
+                logger.warning(f"QA REJECTED Cap {chap_num}: {qa_result.get('feedback')}. Reescribiendo...")
+                chapter_text = self._write_chapter(
+                    chap,
+                    base_context,
+                    full_outline_text,
+                    accumulated_history,
+                    search_results,
+                    prompt,
+                )
+            else:
+                logger.info(f"QA PASSED Cap {chap_num}.")
+
             atomic_write(os.path.join(book_dir, f"cap_{chap_num}.md"), chapter_text)
 
             if chap_num < num_chapters:
@@ -490,28 +434,29 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                 )
                 atomic_write(history_file, accumulated_history)
 
+            word_count = len(chapter_text.split())
+            progress_data = {"ultimo_capitulo_completado": chap_num, "total": num_chapters}
+            
+            if os.path.exists(progress_file):
+                try:
+                    with open(progress_file, "r") as pf:
+                        old_progress = json.load(pf)
+                        progress_data["total_words"] = old_progress.get("total_words", 0) + word_count
+                except:
+                    progress_data["total_words"] = word_count
+            else:
+                progress_data["total_words"] = word_count
+
             atomic_write(
                 progress_file,
-                json.dumps({"ultimo_capitulo": chap_num, "total": num_chapters}),
+                json.dumps(progress_data, indent=2),
             )
+            logger.info(f"[Metrics] Capítulo {chap_num}: {word_count} palabras. Total libro: {progress_data['total_words']} palabras.")
 
-            # Reconstrucción dinámica para atornillar el checkpoint
-            book_content = f"# {title}\n\n*Investigación generada por GravityResearchAuthor*\n\n## Índice\n"
-            for c in outline:
-                c_title = c.get("titulo", "")
-                import urllib.parse
+            # BUG-06 Resuelto: Append O(1) en lugar de reconstrucción dinámica O(n^2)
 
-                anchor = "#" + urllib.parse.quote(
-                    c_title.lower().replace(" ", "-").replace(":", "")
-                )
-                book_content += f"{c.get('numero')}. [{c_title}]({anchor})\n"
-            book_content += "\n---\n\n"
-            for i in range(1, chap_num + 1):
-                cf_path = os.path.join(book_dir, f"cap_{i}.md")
-                if os.path.exists(cf_path):
-                    with open(cf_path, "r", encoding="utf-8") as cf:
-                        book_content += cf.read() + "\n\n---\n\n"
-            atomic_write(book_file, book_content)
+            # Guardado
+            atomic_append(book_file, chapter_text + "\n\n=== CAPITULO ===\n\n")
 
             logger.info(f"Capítulo {chap_num} finalizado y guardado.")
 
@@ -526,7 +471,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                 with open(book_file, "r", encoding="utf-8") as f:
                     existing_book = f.read()
                 atomic_write(
-                    book_file, existing_book + "\n\n" + gf.read() + "\n\n---\n\n"
+                    book_file, existing_book + "\n\n" + gf.read() + "\n\n=== CAPITULO ===\n\n"
                 )
 
         try:

@@ -14,6 +14,14 @@ if BASE_DIR not in sys.path:
 from core import provider_manager  # noqa: E402
 from tools import latex_cleaner  # noqa: E402
 from core import image_router  # noqa: E402
+from core.chapter_qa import qa_agent
+from tools.llm_utils import (  # noqa: E402
+    clean_response,
+    atomic_write,
+    atomic_append,
+    safe_complete,
+    compress_history,
+)
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -21,21 +29,8 @@ logging.basicConfig(
 logger = logging.getLogger("GravityAuthor")
 
 
-def atomic_write(filepath: str, content: str):
-    """Escribe un archivo de forma atómica para evitar corrupción."""
-    tmp_path = filepath + ".tmp"
-    with open(tmp_path, "w", encoding="utf-8") as f:
-        f.write(content)
-    os.replace(tmp_path, filepath)
-
-
-def atomic_append(filepath: str, content: str):
-    """Hace un append seguro usando lectura y atomic_write."""
-    existing = ""
-    if os.path.exists(filepath):
-        with open(filepath, "r", encoding="utf-8") as f:
-            existing = f.read()
-    atomic_write(filepath, existing + content)
+# atomic_write, atomic_append, clean_response, safe_complete, compress_history
+# se importan desde tools.llm_utils — no duplicar aquí.
 
 
 class GravityAuthor:
@@ -50,40 +45,6 @@ class GravityAuthor:
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
-    def _clean_response(self, text: str) -> str:
-        """Limpia etiquetas <think> y marcadores conversacionales."""
-        import re
-
-        if not text:
-            return ""
-        cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
-        if "<think>" in cleaned:
-            cleaned = re.sub(r"<think>.*", "", cleaned, flags=re.DOTALL).strip()
-
-        if cleaned.startswith("```"):
-            cleaned = re.sub(r"^```[a-zA-Z0-9-]*\n", "", cleaned)
-            cleaned = re.sub(r"\n```$", "", cleaned)
-
-        prefixes_to_strip = [
-            "Aquí tienes el capítulo",
-            "Aquí está el capítulo",
-            "Claro, aquí",
-            "Aquí tienes la continuación",
-            "Entendido.",
-            "¡Por supuesto!",
-        ]
-        for prefix in prefixes_to_strip:
-            if cleaned.lower().startswith(prefix.lower()):
-                lines = cleaned.split("\n")
-                while lines and (
-                    lines[0].lower().startswith(prefix.lower())
-                    or lines[0].strip() == ""
-                ):
-                    lines.pop(0)
-                cleaned = "\n".join(lines).strip()
-
-        return cleaned
-
     def _generate_synopsis(self, prompt: str) -> str:
         logger.info("Fase 1: Generando Universo, Personajes y Sinopsis...")
         sys_prompt = (
@@ -93,8 +54,7 @@ class GravityAuthor:
             f"Idea del Usuario: {prompt}"
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        response = provider_manager.complete(messages)
-        return self._clean_response(response)
+        return safe_complete(provider_manager, messages)
 
     def _generate_outline(self, synopsis: str, num_chapters: int) -> list:
         logger.info(
@@ -108,8 +68,8 @@ class GravityAuthor:
             f"Sinopsis:\n{synopsis}"
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        response = provider_manager.complete(messages)
-        response = self._clean_response(response)
+        # BUG-01 fix: usar safe_complete con require_json=True
+        response = safe_complete(provider_manager, messages, require_json=True)
         try:
             if isinstance(response, dict):
                 return response.get("capitulos", [])
@@ -133,7 +93,7 @@ class GravityAuthor:
                 }
                 for i in range(1, num_chapters + 1)
             ]
-        return []
+        # BUG-01 fix: código muerto eliminado (el return [] anterior era inalcanzable)
 
     def _summarize_chapter(self, chapter_text: str) -> str:
         logger.info("Fase Intermedia: Resumiendo el capítulo recién generado...")
@@ -143,8 +103,7 @@ class GravityAuthor:
             f"Capítulo:\n{chapter_text}"
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        response = provider_manager.complete(messages)
-        return self._clean_response(response)
+        return safe_complete(provider_manager, messages)
 
     def _generate_bibliography(self, accumulated_history: str) -> str:
         logger.info("Fase Final: Generando Bibliografía...")
@@ -157,8 +116,7 @@ class GravityAuthor:
             f"Resumen del Libro:\n{accumulated_history}"
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        response = provider_manager.complete(messages)
-        return self._clean_response(response)
+        return safe_complete(provider_manager, messages)
 
     def _generate_glossary(self, accumulated_history: str) -> str:
         logger.info("Fase Final: Generando Glosario de Términos...")
@@ -169,8 +127,7 @@ class GravityAuthor:
             f"Resumen del Libro:\n{accumulated_history}"
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        response = provider_manager.complete(messages)
-        return self._clean_response(response)
+        return safe_complete(provider_manager, messages)
 
     def _write_chapter(
         self,
@@ -219,14 +176,14 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
         full_text = ""
         for _i in range(3):
             response = provider_manager.complete(messages)
-            response = self._clean_response(response)
+            response = clean_response(response)
 
             if not response:
                 logger.warning("La IA devolvió una respuesta vacía. Reintentando...")
                 time.sleep(2)
                 continue
 
-            # Defensa Anti-Truncamiento
+            # Defensa Anti-Truncamiento: capítulo demasiado corto en primer intento
             if len(response) < 500 and _i == 0:
                 logger.warning(
                     f"Respuesta anormalmente corta ({len(response)} chars). Forzando reintento profundo..."
@@ -240,7 +197,12 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                 time.sleep(1)
                 continue
 
-            full_text = (full_text + response) if _i > 0 else response
+            # BUG-03 fix: acumular correctamente sin perder el texto del intento 0
+            if _i == 0:
+                full_text = response
+            else:
+                full_text = full_text + "\n" + response
+
             if full_text.strip() and full_text.strip()[-1] in ".?!\"'*:":
                 break
             if _i < 2:
@@ -260,7 +222,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
         return latex_cleaner.full_clean(full_text.strip())
 
     def write_book(
-        self, prompt: str, title: str = "Mi Libro Generado", num_chapters: int = 5
+        self, prompt: str, title: str = "Mi Libro Generado", num_chapters: int = 5, review_outline: bool = False
     ):
         logger.info(f"--- INICIANDO PROYECTO LITERARIO: {title} ---")
         return self._orchestrate_writing(
@@ -296,8 +258,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
             f"TEXTO ORIGINAL:\n{source_text}"
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        response = provider_manager.complete(messages)
-        return self._clean_response(response)
+        return safe_complete(provider_manager, messages)
 
     def _generate_expansion_outline(self, analysis: str, num_chapters: int) -> list:
         logger.info(
@@ -316,8 +277,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
             f"Análisis del Borrador:\n{analysis}"
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        response = provider_manager.complete(messages)
-        response = self._clean_response(response)
+        response = safe_complete(provider_manager, messages, require_json=True)
         try:
             if isinstance(response, dict):
                 return response.get("capitulos", [])
@@ -339,7 +299,6 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                 }
                 for i in range(1, num_chapters + 1)
             ]
-        return []
 
     def rewrite_and_expand_document(
         self, source_url: str, title: str = "Libro Expandido", num_chapters: int = 5
@@ -363,7 +322,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
         phase1_callable,
         phase2_callable,
         source_text=None,
-        resume=True,
+        resume=True, review_outline=False,
     ):
         book_dir = os.path.join(self.output_dir, title.replace(" ", "_"))
         if not os.path.exists(book_dir):
@@ -411,6 +370,10 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
             outline = phase2_callable(base_context)
             outline_str = json.dumps(outline, indent=2, ensure_ascii=False)
             atomic_write(os.path.join(book_dir, "2_escaleta.json"), outline_str)
+            if review_outline:
+                input(f"\n[HITL] Escaleta guardada en {os.path.join(book_dir, '2_escaleta.json')}. Edite el archivo si lo desea y presione ENTER para continuar...")
+                with open(os.path.join(book_dir, "2_escaleta.json"), 'r', encoding='utf-8') as f:
+                    outline = json.load(f)
 
             # Preparar archivo principal
             initial_book = f"# {title}\n\n*Generado y Expandido por Gravity AI Bridge*\n\n## Índice\n"
@@ -422,7 +385,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                     c_title.lower().replace(" ", "-").replace(":", "")
                 )
                 initial_book += f"{c.get('numero')}. [{c_title}]({anchor})\n"
-            initial_book += "\n---\n\n"
+            initial_book += "\n=== CAPITULO ===\n\n"
             atomic_write(book_file, initial_book)
 
             atomic_write(history_file, "")
@@ -441,25 +404,52 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                 chap, base_context, full_outline_text, accumulated_history, source_text
             )
 
+            # QA Check: Validar el capítulo antes de guardarlo
+            qa_result = qa_agent.validate_chapter(chapter_text, base_context, "")
+            if qa_result.get("status") == "FAIL":
+                logger.warning(f"QA REJECTED Cap {chap_num}: {qa_result.get('feedback')}. Reescribiendo...")
+                chapter_text = self._write_chapter(
+                    chap, base_context, full_outline_text, accumulated_history, source_text
+                )
+            else:
+                logger.info(f"QA PASSED Cap {chap_num}.")
+
             atomic_write(os.path.join(book_dir, f"cap_{chap_num}.md"), chapter_text)
-            atomic_append(book_file, chapter_text + "\n\n---\n\n")
+
+            # Guardado
+            atomic_append(book_file, chapter_text + "\n\n=== CAPITULO ===\n\n")
 
             if chap_num < num_chapters:
                 new_summary = self._summarize_chapter(chapter_text)
                 accumulated_history += f"\n\nResumen Cap {chap_num}:\n{new_summary}"
+                # DT-07 fix: comprimir historial si supera 15k chars (evita truncamiento silencioso)
+                accumulated_history = compress_history(provider_manager, accumulated_history)
                 atomic_write(history_file, accumulated_history)
+
+            word_count = len(chapter_text.split())
+            progress_data = {"ultimo_capitulo_completado": chap_num, "total": num_chapters}
+            
+            if os.path.exists(progress_file):
+                try:
+                    with open(progress_file, "r") as pf:
+                        old_progress = json.load(pf)
+                        progress_data["total_words"] = old_progress.get("total_words", 0) + word_count
+                except:
+                    progress_data["total_words"] = word_count
+            else:
+                progress_data["total_words"] = word_count
 
             atomic_write(
                 progress_file,
-                json.dumps(
-                    {"ultimo_capitulo_completado": chap_num, "total": num_chapters}
-                ),
+                json.dumps(progress_data, indent=2),
             )
+            logger.info(f"[Metrics] Capítulo {chap_num}: {word_count} palabras. Total libro: {progress_data['total_words']} palabras.")
 
             logger.info(f"Capítulo {chap_num} finalizado y guardado.")
 
         # Generar Bibliografía y Glosario
-        if not resume or not os.path.exists(os.path.join(book_dir, "bibliografia.md")):
+        # BUG-02 fix: la condición debe basarse en si ya existe el archivo, no en el flag resume
+        if not os.path.exists(os.path.join(book_dir, "bibliografia.md")):
             logger.info("Fase Final: Generando Bibliografía y Referencias...")
             bibliography_text = self._generate_bibliography(accumulated_history)
             glossary_text = self._generate_glossary(accumulated_history)
@@ -470,9 +460,9 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown)
                 book_file,
                 "\n\n"
                 + glossary_text
-                + "\n\n---\n\n"
+                + "\n\n=== CAPITULO ===\n\n"
                 + bibliography_text
-                + "\n\n---\n\n",
+                + "\n\n=== CAPITULO ===\n\n",
             )
 
         # Render HTML nativo al finalizar (con tablas)
@@ -553,6 +543,7 @@ if __name__ == "__main__":
         url = input("URL de Google Docs (con permisos de lectura): ")
         title = input("Título del Libro Final: ")
         caps = int(input("Número de capítulos deseados: "))
+        hitl = input("¿Revisar escaleta manualmente antes de escribir? (s/n): ").strip().lower() == 's'
         author.rewrite_and_expand_document(
-            source_url=url, title=title, num_chapters=caps
+            source_url=url, title=title, num_chapters=caps, review_outline=hitl
         )

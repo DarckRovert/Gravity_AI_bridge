@@ -4,6 +4,31 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 
 ---
 
+## [V17.0 PRO] The Sovereign Forge & Quality Shield · 08/07/2026
+
+**[INTEGRACIÓN DE AGENTE QA ANTI-ALUCINACIONES, MÉTRICAS DE PALABRAS, HITL Y ESTANDARIZACIÓN LITERARIA]**
+
+### La Forja Literaria (Escritura y Refinado Resilientes)
+- **Agente QA Integrado (`core/chapter_qa.py`)**: Implementación de un validador anti-alucinaciones autónomo. Realiza análisis semántico sobre capítulos recién generados y refinados comparándolos con el Lore y la sinopsis. Si falla la consistencia, realiza una reescritura correctiva automática en caliente antes de persistir cualquier cambio.
+- **Extractor de JSON Robusto**: El Agente QA ahora limpia etiquetas de bloques de código Markdown (````json ... ````) de manera nativa mediante Regex, evitando saltos accidentales de validación por fallos de parseo.
+- **Métricas de Palabras en Tiempo Real**: Inyección de acumuladores incrementales de conteo físico de palabras en `book_writer.py`, `fiction_writer.py`, `research_writer.py`, `book_refiner.py` y `research_refiner.py`. Las métricas se actualizan atómicamente en `progreso_metadata.json` o `progreso.json`.
+- **Estandarización de Separadores**: Migración absoluta de separadores de capítulos al estándar inmutable `=== CAPITULO ===` en todos los generadores, refinadores y en el empaquetador ePub, eliminando desajustes visuales y falsos positivos causados por el uso tradicional de líneas horizontales (`---`).
+- **Modo HITL para Escaletas**: Integración opcional de intercepción humana para depuración de la estructura de capítulos en todos los writers antes de ejecutar la producción por lotes.
+- **Limpieza de Invocaciones LLM**: Purga de llamadas directas a `provider_manager.complete` en refinadores, redirigiéndolas exclusivamente a `safe_complete` en `tools.llm_utils` para garantizar reintentos automáticos, limpieza de pensamientos y estabilidad de APIs.
+- **PDF Exporter (`tools/pdf_exporter.py`)**: Integración de un motor de exportación profesional para generar copias digitales limpias en formato PDF con portadas embebidas.
+
+---
+
+## [V16.5 PRO] Zero-Trust Architecture & AppData Migration · 03/07/2026
+
+**[BLINDAJE CONTRA GOOGLE DRIVE Y AISLAMIENTO TOTAL DE ESTADO]**
+
+### Migración Definitiva a %LOCALAPPDATA%
+- **Inmutabilidad del Directorio Raíz**: Toda la estructura de logs, colas asíncronas SQLite y archivos JSON transitorios de alta frecuencia (como `_periodista_state.json` o `_cost_log.json`) han sido migrados a `%LOCALAPPDATA%\Gravity\Databases` y `%LOCALAPPDATA%\Gravity\Logs`. Esto evita bloqueos de archivos cruzados por motores de sincronización en la nube (ej. Google Drive) durante las operaciones de escritura continua.
+- **RAG Migración y Reparación**: Las métricas de estado de la base de memoria vectorial (RAG) han sido actualizadas para extraer telemetría dinámica directamente de la conexión a `index.sqlite` en AppData, purgando dependencias obsoletas hacia el antiguo directorio estático `_rag_index`.
+
+---
+
 ## [V16.4 PRO] OODA Loop & Executive Packaging · 27/06/2026
 
 **[CONSOLIDACIÓN AUTÓNOMA Y DESPLIEGUE COMO EJECUTABLE ÚNICO]**

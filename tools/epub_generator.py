@@ -87,8 +87,16 @@ def generate_epub(target_dir: str) -> str:
     )
     book.add_item(default_css)
 
-    # Dividir el contenido por "---" que es el separador de capítulos en los ensambladores
-    sections = re.split(r"\n\s*---\s*\n", content)
+    # BUG-05 fix: usar marcador único para evitar partir en reglas horizontales internas del texto.
+    # Los ensambladores de book_writer y fiction_writer ya usan "\n\n---\n\n" como separador,
+    # pero "---" también es válido en Markdown como regla horizontal dentro de un capítulo.
+    # Estrategia: intentar primero con el marcador único GRAVITY_CHAPTER_BREAK (futuro),
+    # con fallback al separador original pero solo cuando está en línea propia y rodeado de saltos dobles.
+    if "<!-- GRAVITY_CHAPTER_BREAK -->" in content:
+        sections = content.split("<!-- GRAVITY_CHAPTER_BREAK -->")
+    else:
+        # Separar solo cuando "---" aparece en línea completamente sola (no dentro de párrafos)
+        sections = re.split(r"(?m)^\s*===\s*CAPITULO\s*===\s*$", content)
 
     epub_chapters = []
 

@@ -23,7 +23,9 @@ if BASE_DIR not in sys.path:
 
 from tools import latex_cleaner  # noqa: E402
 from core import image_router  # noqa: E402
-from core import provider_manager  # noqa: E402
+from core.provider_manager import provider_manager
+from core.chapter_qa import qa_agent
+from tools.llm_utils import clean_response, safe_complete, compress_history  # noqa: E402
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -258,16 +260,16 @@ def _assemble_book(book_dir: str, title: str, caps: List[str]) -> str:
 
     content = f"# {title}\n\n*Refinado por Gravity Book Refiner*\n\n"
     if toc_lines:
-        content += "## Índice\n" + "\n".join(toc_lines) + "\n\n---\n\n"
+        content += "## Índice\n" + "\n".join(toc_lines) + "\n\n=== CAPITULO ===\n\n"
 
     for cap_path in caps:
-        content += _load_file(cap_path) + "\n\n---\n\n"
+        content += _load_file(cap_path) + "\n\n=== CAPITULO ===\n\n"
 
     # Apéndices opcionales
     for extra in ["glosario.md", "bibliografia.md"]:
         extra_path = os.path.join(book_dir, extra)
         if os.path.exists(extra_path):
-            content += _load_file(extra_path) + "\n\n---\n\n"
+            content += _load_file(extra_path) + "\n\n=== CAPITULO ===\n\n"
 
     return content
 
@@ -287,42 +289,6 @@ class BookRefiner:
 
     def __init__(self):
         pass
-
-    def _clean_response(self, text: str) -> str:
-        """Limpia etiquetas <think> y marcadores conversacionales."""
-        import re
-
-        if not text:
-            return ""
-        cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
-        if "<think>" in cleaned:
-            cleaned = re.sub(r"<think>.*", "", cleaned, flags=re.DOTALL).strip()
-
-        if cleaned.startswith("```"):
-            cleaned = re.sub(r"^```[a-zA-Z0-9-]*\n", "", cleaned)
-            cleaned = re.sub(r"\n```$", "", cleaned)
-
-        prefixes_to_strip = [
-            "Aquí tienes",
-            "Aquí está",
-            "Claro, aquí",
-            "Entendido.",
-            "¡Por supuesto!",
-            "A continuación",
-        ]
-        for prefix in prefixes_to_strip:
-            if cleaned.lower().startswith(prefix.lower()):
-                lines = cleaned.split("\n")
-                while lines and (
-                    lines[0].lower().startswith(prefix.lower())
-                    or lines[0].strip() == ""
-                ):
-                    lines.pop(0)
-                cleaned = "\n".join(lines).strip()
-
-        return cleaned
-
-    # ── MODO POLISH ───────────────────────────────────────────────────────────
 
     def polish(self, book_dir: str) -> str:
         """
@@ -514,6 +480,25 @@ class BookRefiner:
                     book_dir=out_dir,
                 )
 
+                # QA Check: Validar el refinado
+                qa_result = qa_agent.validate_chapter(new_text, synopsis, json.dumps(lore_data) if lore_data else "")
+                if qa_result.get("status") == "FAIL":
+                    logger.warning(f"QA REJECTED REFINER Cap {cap_num}: {qa_result.get('feedback')}. Reescribiendo...")
+                    new_text = self._rewrite_chapter(
+                        cap_num=cap_num,
+                        chap_title=chap_title,
+                        chap_events=chap_events,
+                        original_text=original_text,
+                        synopsis=synopsis,
+                        full_outline=full_outline,
+                        accumulated_history=accumulated or history_text,
+                        depth=depth,
+                        lore_data=lore_data,
+                        book_dir=out_dir,
+                    )
+                else:
+                    logger.info(f"QA PASSED REFINER Cap {cap_num}.")
+
             # Guardar capítulo reescrito
             new_cap_path = os.path.join(out_dir, f"cap_{cap_num}.md")
             _save_file(new_cap_path, new_text)
@@ -525,10 +510,20 @@ class BookRefiner:
             _save_file(os.path.join(out_dir, "historial_acumulado.md"), accumulated)
 
             # Guardar progreso
+            word_count = len(new_text.split())
+            progress_data = {"ultimo_capitulo_completado": cap_num, "total": len(caps)}
+            if os.path.exists(progress_path):
+                try:
+                    with open(progress_path, "r", encoding="utf-8") as pf:
+                        old_progress = json.load(pf)
+                        progress_data["total_words"] = old_progress.get("total_words", 0) + word_count
+                except:
+                    progress_data["total_words"] = word_count
+            else:
+                progress_data["total_words"] = word_count
+
             with open(progress_path, "w", encoding="utf-8") as f:
-                json.dump(
-                    {"ultimo_capitulo_completado": cap_num, "total": len(caps)}, f
-                )
+                json.dump(progress_data, f, indent=2)
 
             logger.info(f"  cap_{cap_num} reescrito y guardado.")
             time.sleep(1)  # rate limiting cortés
@@ -630,9 +625,8 @@ AHORA ESCRIBE EL CAPÍTULO REFINADO:"""
         max_cont = 3
         full_text = ""
         for i in range(max_cont):
-            response = provider_manager.complete(messages)
+            response = safe_complete(provider_manager, messages)
             # Limpiar tags de pensamiento y basura conversacional
-            response = self._clean_response(response)
 
             if i > 0:
                 full_text += response
@@ -749,8 +743,7 @@ AHORA ESCRIBE EL CAPÍTULO REFINADO:"""
             f"Capítulo completo:\n{chapter_text}"
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        resp = provider_manager.complete(messages)
-        return self._clean_response(resp)
+        return safe_complete(provider_manager, messages)
 
     def _ensure_cover(
         self, book_dir: str, title: str, synopsis_excerpt: str
@@ -797,8 +790,8 @@ def _cli():
     parser.add_argument(
         "--depth",
         default="full",
-        choices=["full", "expand", "enhance"],
-        help="Profundidad del rewrite (solo en modo rewrite)",
+        choices=["full", "expand", "enhance", "publish"],
+        help="Nivel de profundidad del rewrite (solo en modo rewrite)",
     )
     parser.add_argument("--from-chapter", type=int, default=1, help="Capítulo inicial")
     args = parser.parse_args()

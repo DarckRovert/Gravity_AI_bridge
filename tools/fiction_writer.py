@@ -9,6 +9,12 @@ if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
 from core import provider_manager  # noqa: E402
+from tools.llm_utils import (  # noqa: E402
+    clean_response,
+    atomic_write,
+    safe_complete,
+    compress_history,
+)
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -16,12 +22,8 @@ logging.basicConfig(
 logger = logging.getLogger("GravityFictionAuthor")
 
 
-def atomic_write(filepath: str, content: str):
-    """Escribe un archivo de forma atómica para evitar corrupción."""
-    tmp_path = filepath + ".tmp"
-    with open(tmp_path, "w", encoding="utf-8") as f:
-        f.write(content)
-    os.replace(tmp_path, filepath)
+# atomic_write, clean_response, safe_complete, compress_history
+# se importan desde tools.llm_utils — no duplicar aquí.
 
 
 class GravityFictionAuthor:
@@ -42,100 +44,6 @@ class GravityFictionAuthor:
             with open(lore_file, "r", encoding="utf-8") as f:
                 self.lore_bible = f.read()
 
-    def _clean_response(self, text: str) -> str:
-        """Limpia etiquetas <think> (incluso si no están cerradas) sin perder el texto real."""
-        import re
-
-        if not text:
-            return ""
-        # Quita todos los bloques <think> cerrados
-        cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
-
-        # Si quedó algún <think> sin cerrar, corta todo desde ahí
-        if "<think>" in cleaned:
-            cleaned = re.sub(r"<think>.*", "", cleaned, flags=re.DOTALL).strip()
-
-        # Purga de Markdown residual
-        if cleaned.startswith("```"):
-            cleaned = re.sub(r"^```[a-zA-Z0-9-]*\n", "", cleaned)
-            cleaned = re.sub(r"\n```$", "", cleaned)
-
-        # Limpieza conversacional
-        prefixes_to_strip = [
-            "Aquí tienes el capítulo",
-            "Aquí está el capítulo",
-            "Claro, aquí",
-            "Aquí tienes la continuación",
-            "Entendido.",
-            "¡Por supuesto!",
-        ]
-        for prefix in prefixes_to_strip:
-            if cleaned.lower().startswith(prefix.lower()):
-                lines = cleaned.split("\n")
-                while lines and (
-                    lines[0].lower().startswith(prefix.lower())
-                    or lines[0].strip() == ""
-                ):
-                    lines.pop(0)
-                cleaned = "\n".join(lines).strip()
-
-        return cleaned
-
-    def _safe_complete(self, messages: list, max_retries=3, require_json=False) -> str:
-        """Ejecuta provider_manager.complete con reintentos y corrección de JSON si es necesario."""
-        import time
-        import json
-        import re
-
-        current_messages = list(
-            messages
-        )  # Copia superficial para poder añadir correcciones
-
-        for attempt in range(max_retries):
-            try:
-                response = provider_manager.complete(current_messages)
-                cleaned = self._clean_response(response)
-
-                if not cleaned or len(cleaned) < 5:
-                    logger.warning(
-                        f"Respuesta vacía o muy corta en intento {attempt+1}/{max_retries}. Reintentando..."
-                    )
-                    time.sleep(2)
-                    continue
-
-                if require_json:
-                    try:
-                        json_match = re.search(r"\{.*\}", cleaned, re.DOTALL)
-                        if json_match:
-                            json.loads(json_match.group(0))
-                        else:
-                            json.loads(cleaned)
-                    except json.JSONDecodeError:
-                        logger.warning(
-                            f"JSON inválido en intento {attempt+1}/{max_retries}. Pidiendo corrección al LLM..."
-                        )
-                        current_messages.append(
-                            {"role": "assistant", "content": response}
-                        )
-                        current_messages.append(
-                            {
-                                "role": "user",
-                                "content": "Tu respuesta anterior no es un JSON válido. Por favor, corrige los errores de sintaxis y devuelve ÚNICAMENTE el JSON válido.",
-                            }
-                        )
-                        time.sleep(2)
-                        continue
-
-                return cleaned
-
-            except Exception as e:
-                logger.error(
-                    f"Error en llamada al LLM (intento {attempt+1}/{max_retries}): {e}"
-                )
-                time.sleep(2)
-
-        return ""
-
     def _generate_synopsis(self, prompt: str) -> str:
         logger.info("Fase 1: Generando Sinopsis de Temporada / Libro...")
         sys_prompt = (
@@ -146,7 +54,7 @@ class GravityFictionAuthor:
             f"Petición del Usuario / Idea Principal: {prompt}"
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        return self._safe_complete(messages)
+        return safe_complete(provider_manager, messages)
 
     def _generate_outline(self, synopsis: str, num_chapters: int) -> list:
         logger.info(
@@ -162,7 +70,7 @@ class GravityFictionAuthor:
             f"Sinopsis:\n{synopsis}"
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        response = self._safe_complete(messages, require_json=True)
+        response = safe_complete(provider_manager, messages, require_json=True)
         import re
 
         try:
@@ -195,7 +103,7 @@ class GravityFictionAuthor:
             f"Capítulo:\n{chapter_text}"
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        return self._safe_complete(messages)
+        return safe_complete(provider_manager, messages)
 
     def _generate_glossary(self, accumulated_history: str) -> str:
         logger.info("Fase Final: Generando Glosario de Ficción...")
@@ -206,7 +114,7 @@ class GravityFictionAuthor:
             f"Memoria de Continuidad:\n{accumulated_history}"
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        return self._safe_complete(messages)
+        return safe_complete(provider_manager, messages)
 
     def _review_and_revise_chapter(
         self, chapter_text: str, lore_bible: str, accumulated_history: str
@@ -222,7 +130,7 @@ class GravityFictionAuthor:
             f"Borrador original a corregir:\n{chapter_text}"
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        return self._safe_complete(messages)
+        return safe_complete(provider_manager, messages)
 
     def _extract_and_update_lore(self, chapter_text: str):
         if (
@@ -239,7 +147,7 @@ class GravityFictionAuthor:
             f"Capítulo:\n{chapter_text}"
         )
         messages = [{"role": "user", "content": sys_prompt}]
-        new_lore = self._safe_complete(messages)
+        new_lore = safe_complete(provider_manager, messages)
 
         if "NADA_NUEVO" not in new_lore.upper() and len(new_lore) > 10:
             existing_lore = ""
@@ -254,19 +162,8 @@ class GravityFictionAuthor:
             logger.info("Biblia del Lore expandida dinámicamente.")
 
     def _compress_history(self, accumulated_history: str) -> str:
-        if len(accumulated_history) > 15000:
-            logger.info(
-                "Compresión de Memoria: El historial es muy grande, resumiendo..."
-            )
-            sys_prompt = (
-                "Resume el siguiente historial de continuidad. Mantén ÚNICAMENTE el estado actual de los personajes principales "
-                "(vivos, muertos, heridos, alianzas), objetos clave, y el hilo argumental principal activo. "
-                "Hazlo extremadamente denso y omite detalles menores de capítulos viejos.\n\n"
-                f"Historial actual:\n{accumulated_history}"
-            )
-            messages = [{"role": "user", "content": sys_prompt}]
-            return self._safe_complete(messages)
-        return accumulated_history
+        """Delegado a llm_utils.compress_history."""
+        return compress_history(provider_manager, accumulated_history)
 
     def _write_chapter(
         self,
@@ -310,7 +207,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown.
         full_chapter_text = ""
 
         for i in range(max_continuations):
-            response = self._safe_complete(messages)
+            response = safe_complete(provider_manager, messages)
             full_chapter_text += (" " + response) if i > 0 else response
 
             # Chequear si terminó abruptamente
@@ -353,7 +250,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown.
         self,
         prompt: str,
         title: str = "Libro 1",
-        num_chapters: int = 5,
+        num_chapters: int = 5, review_outline: bool = False,
         previous_history_file: Optional[str] = None,
     ):
         logger.info(f"--- INICIANDO NOVELA: {title} ---")
@@ -371,7 +268,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown.
         num_chapters,
         phase1_callable,
         phase2_callable,
-        resume=True,
+        resume=True, review_outline=False,
         previous_history_file=None,
     ):
         book_dir = os.path.join(self.output_dir, title.replace(" ", "_"))
@@ -429,6 +326,10 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown.
             outline = phase2_callable(base_context)
             outline_str = json.dumps(outline, indent=2, ensure_ascii=False)
             atomic_write(os.path.join(book_dir, "2_escaleta.json"), outline_str)
+            if review_outline:
+                input(f"\n[HITL] Escaleta guardada en {os.path.join(book_dir, '2_escaleta.json')}. Edite el archivo si lo desea y presione ENTER para continuar...")
+                with open(os.path.join(book_dir, "2_escaleta.json"), 'r', encoding='utf-8') as f:
+                    outline = json.load(f)
 
             initial_book = f"# {title}\n\n*Novela generada por Gravity Fiction Engine*\n\n## Índice\n"
             for c in outline:
@@ -439,7 +340,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown.
                     c_title.lower().replace(" ", "-").replace(":", "")
                 )
                 initial_book += f"{c.get('numero')}. [{c_title}]({anchor})\n"
-            initial_book += "\n---\n\n"
+            initial_book += "\n=== CAPITULO ===\n\n"
             atomic_write(book_file, initial_book)
 
             atomic_write(history_file, "")
@@ -470,6 +371,20 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown.
                 chapter_text, self.lore_bible, accumulated_history
             )
 
+            # QA Check: Validar el capítulo antes de guardarlo
+            qa_result = qa_agent.validate_chapter(chapter_text, base_context, self.lore_bible)
+            if qa_result.get("status") == "FAIL":
+                logger.warning(f"QA REJECTED Cap {chap_num}: {qa_result.get('feedback')}. Reescribiendo...")
+                # Hacemos un reintento simple
+                chapter_text = self._write_chapter(
+                    chap, base_context, full_outline_text, accumulated_history
+                )
+                chapter_text = self._review_and_revise_chapter(
+                    chapter_text, self.lore_bible, accumulated_history
+                )
+            else:
+                logger.info(f"QA PASSED Cap {chap_num}.")
+
             # NUEVO: Expansión Dinámica del Lore
             self._extract_and_update_lore(chapter_text)
 
@@ -486,30 +401,29 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown.
                 atomic_write(history_file, accumulated_history)
 
             # Guardado atómico de metadata (Checkpoint completado)
+            word_count = len(chapter_text.split())
+            
+            progress_data = {"ultimo_capitulo_completado": chap_num, "total": num_chapters}
+            
+            # Cargar progreso previo para métricas
+            if os.path.exists(progress_file):
+                try:
+                    with open(progress_file, "r") as pf:
+                        old_progress = json.load(pf)
+                        progress_data["total_words"] = old_progress.get("total_words", 0) + word_count
+                except:
+                    progress_data["total_words"] = word_count
+            else:
+                progress_data["total_words"] = word_count
+
             atomic_write(
                 progress_file,
-                json.dumps(
-                    {"ultimo_capitulo_completado": chap_num, "total": num_chapters}
-                ),
+                json.dumps(progress_data, indent=2),
             )
+            logger.info(f"[Metrics] Capítulo {chap_num}: {word_count} palabras. Total libro: {progress_data['total_words']} palabras.")
 
-            # Reconstrucción dinámica del archivo del libro maestro para evitar duplicados en reinicios
-            book_content = f"# {title}\n\n*Novela generada por Gravity Fiction Engine*\n\n## Índice\n"
-            for c in outline:
-                c_title = c.get("titulo", "")
-                import urllib.parse
-
-                anchor = "#" + urllib.parse.quote(
-                    c_title.lower().replace(" ", "-").replace(":", "")
-                )
-                book_content += f"{c.get('numero')}. [{c_title}]({anchor})\n"
-            book_content += "\n---\n\n"
-            for i in range(1, chap_num + 1):
-                cf_path = os.path.join(book_dir, f"cap_{i}.md")
-                if os.path.exists(cf_path):
-                    with open(cf_path, "r", encoding="utf-8") as cf:
-                        book_content += cf.read() + "\n\n---\n\n"
-            atomic_write(book_file, book_content)
+            # BUG-06 Resuelto: Append O(1) en lugar de reconstrucción O(n^2)
+            atomic_append(book_file, chapter_text + "\n\n=== CAPITULO ===\n\n")
 
             logger.info(f"Capítulo {chap_num} finalizado y guardado.")
 
@@ -527,7 +441,7 @@ AHORA ESCRIBE EL CAPÍTULO (Incluye el título al inicio y usa formato Markdown.
                 with open(book_file, "r", encoding="utf-8") as f:
                     existing_book = f.read()
                 atomic_write(
-                    book_file, existing_book + "\n\n" + gf.read() + "\n\n---\n\n"
+                    book_file, existing_book + "\n\n" + gf.read() + "\n\n=== CAPITULO ===\n\n"
                 )
 
         try:
@@ -555,4 +469,5 @@ if __name__ == "__main__":
     prompt = input("Idea de la novela / temporada: ")
     title = input("Título del Libro: ")
     caps = int(input("Número de capítulos deseados: "))
-    author.write_fiction_book(prompt=prompt, title=title, num_chapters=caps)
+    hitl = input("¿Revisar escaleta manualmente antes de escribir? (s/n): ").strip().lower() == 's'
+    author.write_fiction_book(prompt=prompt, title=title, num_chapters=caps, review_outline=hitl)

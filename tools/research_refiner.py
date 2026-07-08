@@ -24,7 +24,9 @@ if BASE_DIR not in sys.path:
 
 from tools import latex_cleaner  # noqa: E402
 from core import image_router  # noqa: E402
-from core import provider_manager  # noqa: E402
+from core.provider_manager import provider_manager  # noqa: E402
+from core.chapter_qa import qa_agent  # noqa: E402
+from tools.llm_utils import clean_response, safe_complete  # noqa: E402
 from tools.web_search import WebSearch, fetch_page_text  # noqa: E402
 
 logging.basicConfig(
@@ -131,15 +133,15 @@ def _assemble_essay(essay_dir: str, title: str, caps: List[str]) -> str:
 
     content = f"# {title}\n\n*Refinado por Gravity Research Refiner*\n\n"
     if toc_lines:
-        content += "## Índice\n" + "\n".join(toc_lines) + "\n\n---\n\n"
+        content += "## Índice\n" + "\n".join(toc_lines) + "\n\n=== CAPITULO ===\n\n"
 
     for cap_path in caps:
-        content += _load_file(cap_path) + "\n\n---\n\n"
+        content += _load_file(cap_path) + "\n\n=== CAPITULO ===\n\n"
 
     for extra in ["anexos.md", "glosario.md", "bibliografia.md"]:
         extra_path = os.path.join(essay_dir, extra)
         if os.path.exists(extra_path):
-            content += _load_file(extra_path) + "\n\n---\n\n"
+            content += _load_file(extra_path) + "\n\n=== CAPITULO ===\n\n"
 
     return content
 
@@ -159,42 +161,6 @@ class ResearchRefiner:
 
     def __init__(self):
         self.web_search_tool = WebSearch()
-
-    def _clean_response(self, text: str) -> str:
-        """Limpia etiquetas <think> y marcadores conversacionales."""
-        import re
-
-        if not text:
-            return ""
-        cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
-        if "<think>" in cleaned:
-            cleaned = re.sub(r"<think>.*", "", cleaned, flags=re.DOTALL).strip()
-
-        if cleaned.startswith("```"):
-            cleaned = re.sub(r"^```[a-zA-Z0-9-]*\n", "", cleaned)
-            cleaned = re.sub(r"\n```$", "", cleaned)
-
-        prefixes_to_strip = [
-            "Aquí tienes",
-            "Aquí está",
-            "Claro, aquí",
-            "Entendido.",
-            "¡Por supuesto!",
-            "A continuación",
-        ]
-        for prefix in prefixes_to_strip:
-            if cleaned.lower().startswith(prefix.lower()):
-                lines = cleaned.split("\n")
-                while lines and (
-                    lines[0].lower().startswith(prefix.lower())
-                    or lines[0].strip() == ""
-                ):
-                    lines.pop(0)
-                cleaned = "\n".join(lines).strip()
-
-        return cleaned
-
-    # ── MODO POLISH ───────────────────────────────────────────────────────────
 
     def polish(self, essay_dir: str) -> str:
         """
@@ -350,6 +316,24 @@ class ResearchRefiner:
                 depth=depth,
             )
 
+            # QA Check: Validar el refinado
+            qa_result = qa_agent.validate_chapter(new_text, synopsis, "")
+            if qa_result.get("status") == "FAIL":
+                logger.warning(f"QA REJECTED REFINER Cap {cap_num}: {qa_result.get('feedback')}. Reescribiendo...")
+                new_text = self._rewrite_chapter(
+                    cap_num=cap_num,
+                    chap_title=chap_title,
+                    chap_events=chap_events,
+                    original_text=original_text,
+                    synopsis=synopsis,
+                    full_outline=full_outline,
+                    accumulated_history=accumulated or history_text,
+                    search_context=search_context,
+                    depth=depth,
+                )
+            else:
+                logger.info(f"QA PASSED REFINER Cap {cap_num}.")
+
             new_cap_path = os.path.join(out_dir, f"cap_{cap_num}.md")
             _save_file(new_cap_path, new_text)
             new_caps_paths.append(new_cap_path)
@@ -358,8 +342,20 @@ class ResearchRefiner:
             accumulated += f"\n\nResumen Cap {cap_num}:\n{summary}"
             _save_file(os.path.join(out_dir, "historial.md"), accumulated)
 
-            with open(progress_path, "w") as f:
-                json.dump({"ultimo_capitulo": cap_num, "total": len(caps)}, f)
+            word_count = len(new_text.split())
+            progress_data = {"ultimo_capitulo_completado": cap_num, "total": len(caps)}
+            if os.path.exists(progress_path):
+                try:
+                    with open(progress_path, "r", encoding="utf-8") as pf:
+                        old_progress = json.load(pf)
+                        progress_data["total_words"] = old_progress.get("total_words", 0) + word_count
+                except:
+                    progress_data["total_words"] = word_count
+            else:
+                progress_data["total_words"] = word_count
+
+            with open(progress_path, "w", encoding="utf-8") as f:
+                json.dump(progress_data, f, indent=2)
 
             logger.info(f"  cap_{cap_num} completado.")
             time.sleep(1)
@@ -393,8 +389,7 @@ class ResearchRefiner:
             "Devuelve SOLO las 3 consultas, una por línea, sin numeración."
         )
         try:
-            q_raw = provider_manager.complete([{"role": "user", "content": sys_prompt}])
-            q_raw = self._clean_response(q_raw)
+            q_raw = safe_complete(provider_manager, [{"role": "user", "content": sys_prompt}])
             queries = [q.strip().strip("\"'") for q in q_raw.split("\n") if q.strip()][
                 :3
             ]
@@ -492,8 +487,7 @@ ESCRIBE EL CAPÍTULO REFINADO AHORA:"""
         messages = [{"role": "user", "content": sys_prompt}]
         full_text = ""
         for i in range(3):
-            response = provider_manager.complete(messages)
-            response = self._clean_response(response)
+            response = safe_complete(provider_manager, messages)
             full_text = full_text + response if i > 0 else response
 
             if full_text.strip() and full_text.strip()[-1] in ".?!\"'*:":
@@ -516,8 +510,7 @@ ESCRIBE EL CAPÍTULO REFINADO AHORA:"""
             "para mantener coherencia en los siguientes.\n\n"
             f"Capítulo:\n{chapter_text[:3000]}"
         )
-        resp = provider_manager.complete([{"role": "user", "content": sys_prompt}])
-        return self._clean_response(resp)
+        return safe_complete(provider_manager, [{"role": "user", "content": sys_prompt}])
 
     def _ensure_cover(
         self, essay_dir: str, title: str, synopsis_excerpt: str
