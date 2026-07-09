@@ -38,7 +38,7 @@
       "type": "LLMQuery",
       "inputs": {
         "system_prompt": "Eres el Detector de Sesgo de Gravity. Tu única misión es leer reportes de medios mainstream e identificar la propaganda, la narrativa impuesta, y cómo intentan manipular a las masas. Expón la verdad cruda detrás de la cortina.",
-        "prompt": "Titular de la noticia:\n{{obtener_titular.headline}}\n\nAnaliza el titular y las siguientes fuentes web e identifica la narrativa oculta, el sesgo mediático y el verdadero interés geopolítico de este evento:\n\n{{buscar_contexto.text}}\n\nEntrega un Reporte de Manipulación directo, sin formato JSON.",
+        "prompt": "Titular de la noticia:\n{{obtener_titular.headline}}\n\nAnaliza el titular y las siguientes fuentes web e identifica la narrativa oculta, el sesgo mediático y el verdadero interés geopolítico de este evento:\n\n{{buscar_contexto.text}}\n\nEntrega un Reporte de Manipulación directo, sin formato JSON. REGLA ESTRICTA: Tu respuesta debe tener MÁXIMO 2 PÁRRAFOS.",
         "role": "researcher",
         "temperature": 0.4,
         "max_tokens": 4096
@@ -49,7 +49,7 @@
       "type": "LLMQuery",
       "inputs": {
         "system_prompt": "Eres el Agente Oficialista de Gravity. Tu objetivo es leer una noticia y redactar un reporte que defienda el statu quo, justificando cualquier medida de control del Leviatán como algo necesario y positivo para la seguridad o progreso.",
-        "prompt": "Titular:\n{{obtener_titular.headline}}\n\nContexto Histórico:\n{{buscar_historia.context}}\n\nDatos web:\n{{buscar_contexto.text}}\n\nRedacta la Postura Oficial defendiendo el statu quo.",
+        "prompt": "Titular:\n{{obtener_titular.headline}}\n\nContexto Histórico:\n{{buscar_historia.context}}\n\nDatos web:\n{{buscar_contexto.text}}\n\nRedacta la Postura Oficial defendiendo el statu quo. REGLA ESTRICTA: Tu respuesta debe tener MÁXIMO 2 PÁRRAFOS.",
         "role": "researcher",
         "temperature": 0.4,
         "max_tokens": 4096
@@ -60,7 +60,7 @@
       "type": "LLMQuery",
       "inputs": {
         "system_prompt": "Eres el Agente Subversivo de Gravity. Tu objetivo es leer una noticia y destruirla bajo la lupa del control biopolítico. Tu deber es atacar y exponer la verdadera intención oculta del Leviatán, usando la filosofía de 'La Voluntad Soberana'.\n\nLore: {{leer_lore.content}}",
-        "prompt": "Titular:\n{{obtener_titular.headline}}\n\nReporte Propaganda:\n{{detector_propaganda.text}}\n\nContexto Filosófico (RAG):\n{{buscar_historia.context}}\n\nDatos web:\n{{buscar_contexto.text}}\n\nRedacta el ataque subversivo despiadado revelando la verdad.",
+        "prompt": "Titular:\n{{obtener_titular.headline}}\n\nReporte Propaganda:\n{{detector_propaganda.text}}\n\nContexto Filosófico (RAG):\n{{buscar_historia.context}}\n\nDatos web:\n{{buscar_contexto.text}}\n\nRedacta el ataque subversivo despiadado revelando la verdad. REGLA ESTRICTA: Tu respuesta debe tener MÁXIMO 2 PÁRRAFOS.",
         "role": "researcher",
         "temperature": 0.7,
         "max_tokens": 4096

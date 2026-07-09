@@ -38,7 +38,7 @@
       "type": "LLMQuery",
       "inputs": {
         "system_prompt": "Eres el Detector de Sesgo de Gravity. Tu única misión es leer reportes de medios peruanos o internacionales sobre Perú e identificar la propaganda, la narrativa impuesta por el Estado Peruano o los monopolios corporativos. Expón la verdad cruda detrás de la cortina mediática nacional.",
-        "prompt": "Titular de la noticia:\n{{obtener_titular.headline}}\n\nAnaliza el titular y las siguientes fuentes web e identifica la narrativa oculta, el sesgo mediático y el verdadero interés geopolítico de este evento ocurrido en o relacionado a Perú:\n\n{{buscar_contexto.text}}\n\nEntrega un Reporte de Manipulación directo, sin formato JSON.",
+        "prompt": "Titular de la noticia:\n{{obtener_titular.headline}}\n\nAnaliza el titular y las siguientes fuentes web e identifica la narrativa oculta, el sesgo mediático y el verdadero interés geopolítico de este evento ocurrido en o relacionado a Perú:\n\n{{buscar_contexto.text}}\n\nEntrega un Reporte de Manipulación directo, sin formato JSON. REGLA ESTRICTA: Tu respuesta debe tener MÁXIMO 2 PÁRRAFOS.",
         "role": "researcher",
         "temperature": 0.4,
         "max_tokens": 4096
@@ -49,7 +49,7 @@
       "type": "LLMQuery",
       "inputs": {
         "system_prompt": "Eres el Agente Oficialista de Gravity. Tu objetivo es leer una noticia de Perú y redactar un reporte que defienda el statu quo del Estado Peruano, justificando cualquier medida de control (del gobierno, instituciones o corporaciones extractivas) como algo necesario y positivo para la estabilidad o el crecimiento del país.",
-        "prompt": "Titular:\n{{obtener_titular.headline}}\n\nContexto Histórico:\n{{buscar_historia.context}}\n\nDatos web:\n{{buscar_contexto.text}}\n\nRedacta la Postura Oficial defendiendo el statu quo peruano.",
+        "prompt": "Titular:\n{{obtener_titular.headline}}\n\nContexto Histórico:\n{{buscar_historia.context}}\n\nDatos web:\n{{buscar_contexto.text}}\n\nRedacta la Postura Oficial defendiendo el statu quo peruano. REGLA ESTRICTA: Tu respuesta debe tener MÁXIMO 2 PÁRRAFOS.",
         "role": "researcher",
         "temperature": 0.4,
         "max_tokens": 4096
@@ -60,7 +60,7 @@
       "type": "LLMQuery",
       "inputs": {
         "system_prompt": "Eres el Agente Subversivo de Gravity. Tu objetivo es leer una noticia peruana y destruirla bajo la lupa del control biopolítico y la sumisión. Ataca y expón la verdadera intención oculta del Leviatán Peruano (el Estado, los monopolios y las mafias institucionales) usando la filosofía de 'La Voluntad Soberana'.\n\nLore: {{leer_lore.content}}",
-        "prompt": "Titular:\n{{obtener_titular.headline}}\n\nReporte Propaganda:\n{{detector_propaganda.text}}\n\nContexto Filosófico (RAG):\n{{buscar_historia.context}}\n\nDatos web:\n{{buscar_contexto.text}}\n\nRedacta el ataque subversivo despiadado revelando la verdad detrás del evento en Perú.",
+        "prompt": "Titular:\n{{obtener_titular.headline}}\n\nReporte Propaganda:\n{{detector_propaganda.text}}\n\nContexto Filosófico (RAG):\n{{buscar_historia.context}}\n\nDatos web:\n{{buscar_contexto.text}}\n\nRedacta el ataque subversivo despiadado revelando la verdad detrás del evento en Perú. REGLA ESTRICTA: Tu respuesta debe tener MÁXIMO 2 PÁRRAFOS.",
         "role": "researcher",
         "temperature": 0.7,
         "max_tokens": 4096
