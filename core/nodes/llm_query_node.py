@@ -104,6 +104,13 @@ class LLMQueryNode(GravityNode):
                 full_text = re.sub(r"<thought>.*?</thought>", "", full_text, flags=re.DOTALL)
 
             full_text = full_text.strip()
+            
+            # [Vector 5] Hard limit output to prevent runaway generation blowing up downstream context
+            # (Fallback in case LM Studio or other local server ignores the max_tokens parameter)
+            if max_tokens and len(full_text) > max_tokens * 6:
+                log.warning(f"[LLMQueryNode] Force-truncating runaway output (was {len(full_text)} chars, max_tokens={max_tokens})")
+                full_text = full_text[:max_tokens * 6] + "\n... [TRUNCADO AUTOMÁTICAMENTE POR EXCESO DE LONGITUD]"
+
             log.info(f"[LLMQueryNode] Resultado ({len(full_text)} chars)")
             return {"text": full_text}
 
