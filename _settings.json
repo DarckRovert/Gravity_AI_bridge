@@ -1,9 +1,9 @@
 {
-    "provider": "Nvidia NIM",
+    "provider": "LM Studio",
     "provider_protocol": "openai",
-    "api_url": "https://integrate.api.nvidia.com/v1",
-    "last_model": "meta/llama-3.3-70b-instruct",
-    "model_locked": false,
+    "api_url": "http://localhost:1234",
+    "last_model": "qwen/qwen3.5-9b",
+    "model_locked": true,
     "advanced_params": {
         "num_ctx": 8192
     },
@@ -11,5 +11,5 @@
     "rag_enabled": false,
     "bounty_profile": "Test Expert Developer",
     "locked_provider": "LM Studio",
-    "locked_model": "test"
+    "locked_model": "qwen/qwen3.5-9b"
 }

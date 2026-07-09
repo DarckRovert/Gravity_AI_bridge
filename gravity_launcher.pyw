@@ -35,9 +35,19 @@ else:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     EXE_PATH = None
 
-PID_FILE   = os.path.join(BASE_DIR, "_gravity_launcher.pid")
+# Utilizar AppData para evitar bloqueos por sincronización en la nube (Zero-Trust)
+_app_data_base = os.path.join(
+    os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
+    "Gravity"
+)
+_logs_dir = os.path.join(_app_data_base, "Logs")
+_dbs_dir = os.path.join(_app_data_base, "Databases")
+os.makedirs(_logs_dir, exist_ok=True)
+os.makedirs(_dbs_dir, exist_ok=True)
+
+PID_FILE   = os.path.join(_dbs_dir, "_gravity_launcher.pid")
 BRIDGE_PY  = os.path.join(BASE_DIR, "bridge_server.py")
-LOG_FILE   = os.path.join(BASE_DIR, "bridge.log")  # Unificado con MODO_FANTASMA.vbs
+LOG_FILE   = os.path.join(_logs_dir, "bridge.log")  # Unificado con MODO_FANTASMA.vbs
 DASHBOARD  = "http://127.0.0.1:7860"
 PORT       = 7860
 PYTHON     = sys.executable

@@ -492,12 +492,12 @@ h1, h2, h3, h4 {
 }
 
 .terminal-container {
-    background: rgba(4, 6, 12, 0.85);
+    background: rgba(4, 6, 12, 0.70);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-md);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
-    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255,255,255,0.05);
+    backdrop-filter: blur(40px) saturate(150%);
+    -webkit-backdrop-filter: blur(40px) saturate(150%);
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8), inset 0 1px 2px rgba(255,255,255,0.1);
     overflow: hidden;
     transition: var(--transition-smooth);
     position: relative;
@@ -712,13 +712,13 @@ h1, h2, h3, h4 {
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-md);
     padding: 32px;
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
+    backdrop-filter: blur(35px) saturate(120%);
+    -webkit-backdrop-filter: blur(35px) saturate(120%);
     position: relative;
     overflow: hidden;
     transition: var(--transition-smooth);
     outline: none;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.08);
 }
 
 /* Dynamic Glowing Border and Radial Accent */
@@ -763,7 +763,7 @@ h1, h2, h3, h4 {
     transform: translateY(-8px) scale(1.02);
     border-color: rgba(168, 85, 247, 0.6);
     background-color: var(--bg-card-hover);
-    box-shadow: 0 20px 40px rgba(168, 85, 247, 0.25);
+    box-shadow: 0 25px 50px rgba(168, 85, 247, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15);
 }
 
 .feature-card:hover::before {
