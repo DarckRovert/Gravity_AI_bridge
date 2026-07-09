@@ -56,6 +56,20 @@ class JSONAppenderNode(GravityNode):
         if "id" not in new_item:
             new_item["id"] = int(datetime.now().timestamp() * 1000)
 
+        # ── Guard de integridad de contenido: nunca publicar artículos rotos ──
+        BROKEN_FULLTEXT = "### Canal de contingencia activo\n\nNo se pudo decodificar."
+        ft = new_item.get("fullText", "") or ""
+        if ft.strip() == BROKEN_FULLTEXT.strip():
+            raise ValueError(
+                f"[{self.__class__.__name__}] ABORT: Rechazando publicación de item con fullText de contingencia. "
+                f"El normalizer debería haber abortado antes. título: '{new_item.get('title', 'desconocido')}'"
+            )
+        if len(ft.strip()) < 100 and ft.strip():
+            raise ValueError(
+                f"[{self.__class__.__name__}] ABORT: fullText demasiado corto ({len(ft)} chars). "
+                f"Posible artículo roto. título: '{new_item.get('title', 'desconocido')}'"
+            )
+
         lock_path = filepath + ".lock"
         lock_fd = None
 
