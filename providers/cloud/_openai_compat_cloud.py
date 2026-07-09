@@ -138,7 +138,7 @@ class OpenAICompatCloudProvider(ProviderPlugin):
         options: Dict[str, Any],
     ) -> Generator[str, None, None]:
         payload: Dict[str, Any] = {"model": model, "messages": messages, "stream": True}
-        for k in ("temperature", "top_p", "max_tokens", "tools", "tool_choice"):
+        for k in ("temperature", "top_p", "max_tokens", "tools", "tool_choice", "stop"):
             if k in options:
                 payload[k] = options[k]
         url = f"{self._base_url.rstrip('/')}{self._chat_path}"
@@ -156,7 +156,7 @@ class OpenAICompatCloudProvider(ProviderPlugin):
             "messages": messages,
             "stream": False,
         }
-        for k in ("temperature", "top_p", "max_tokens", "tools", "tool_choice"):
+        for k in ("temperature", "top_p", "max_tokens", "tools", "tool_choice", "stop"):
             if k in options:
                 payload[k] = options[k]
         url = f"{self._base_url.rstrip('/')}{self._chat_path}"

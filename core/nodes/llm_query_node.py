@@ -19,6 +19,7 @@ class LLMQueryNode(GravityNode):
         "role": "TEXT",          # ignorado en runtime (solo documentación)
         "temperature": "FLOAT",  # opcional, default 0.7
         "max_tokens": "INT",     # opcional
+        "stop": "LIST",          # opcional, lista de strings para detener generación
         "provider": "TEXT",      # opcional, fuerza un proveedor (ej: openai, nvidia)
         "model": "TEXT",         # opcional, fuerza un modelo específico
     }
@@ -53,6 +54,10 @@ class LLMQueryNode(GravityNode):
         options = {"temperature": temperature}
         if max_tokens:
             options["max_tokens"] = max_tokens
+            
+        stop_tokens = inputs.get("stop")
+        if stop_tokens:
+            options["stop"] = stop_tokens
 
         try:
             forced_provider = inputs.get("provider") or self.config.get("provider")
