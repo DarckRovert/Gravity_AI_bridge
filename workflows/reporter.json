@@ -74,7 +74,7 @@
         "prompt": "EJECUTA TU SÍNTESIS MAGISTRAL.\n\nTitular Original:\n{{obtener_titular.headline}}\n\nPostura Oficial (El Leviatán):\n{{postura_oficial.text}}\n\nPostura Subversiva (La Verdad):\n{{postura_subversiva.text}}\n\nFuentes de memoria: {{buscar_historia.sources}}\nFuentes web (Numeradas [1], [2]...): \n{{buscar_contexto.text}}\n\nINSTRUCCIÓN: Actúa como el mejor periodista del mundo. Escribe el reportaje cruzando ambas posturas y nuestra óptica filosófica basado en el titular original. DEBES incluir citas numéricas [X] en el texto y las referencias al final de fullText. Genera el JSON EXACTAMENTE incluyendo el atributo 'region'.",
         "role": "planner",
         "temperature": 0.5,
-        "max_tokens": 4096,
+        "max_tokens": 2048,
         "stop": ["}"]
       }
     },
