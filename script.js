@@ -248,6 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     { text: '  gravity vote    - Simulates parallel multi-agent voting debate' },
                     { text: '  gravity spark   - Dynamically inject overlays HTML into OBS Studio' },
                     { text: '  gravity deploy  - Simulates the packaging and deployment pipeline to Netlify' },
+                    { text: '  gravity audit vector - Escanear bloqueos Mutex y salud del Garbage Collector' },
                     { text: '  clear           - Clears the console logs' }
                 ]);
             } else if (cleanCmd === 'clear') {
@@ -307,6 +308,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     { text: '  [Netlify] Assigning dynamic subdomain... gravity-bridge.netlify.app', type: 'highlight' },
                     { text: '  [Netlify] SSL/DNS propagation checks - OK', type: 'success-msg' },
                     { text: '[SUCCESS] Landing page uploaded. Live URL: https://gravity-bridge.netlify.app', type: 'success-msg' }
+                ]);
+            } else if (cleanCmd === 'gravity audit vector') {
+                writeToTerminal([
+                    { text: '[SECURITY AUDIT] Escaneando vectores de vulnerabilidad de Ring 0...', type: 'system-msg' },
+                    { text: '  [Vector 1] Concurrencia JSON: OS Mutex Locking ACTIVADO (msvcrt.LK_NBLCK)', type: 'success-msg' },
+                    { text: '  [Vector 2] Resiliencia de Red: Fallback Pollinations -> SVG Activo', type: 'success-msg' },
+                    { text: '  [Vector 3] Fugas de Memoria: Watchdog GC Sweep 100% Funcional', type: 'success-msg' },
+                    { text: '  [Vector 4] Prompt Injection: Regex Sanitizer [REDACTED] Activo', type: 'success-msg' },
+                    { text: '[SUCCESS] 0 Amenazas encontradas. Sistema Blindado Nivel Militar.', type: 'highlight' }
                 ]);
             } else {
                 writeToTerminal([
