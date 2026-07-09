@@ -5,7 +5,9 @@
     {
       "id": "context",
       "type": "RAGQuery",
-      "config": { "top_k": 3 },
+      "config": {
+        "top_k": 3
+      },
       "inputs": {
         "query": "{{topic}}"
       }
@@ -19,7 +21,11 @@
         "max_tokens": 200
       },
       "inputs": {
-        "prompt": "Tema: {{topic}}\nContexto adicional: {{context.context}}\n\nGenera un prompt de imagen fotorrealista detallado en inglés:"
+        "prompt": "Tema: {{topic}}\nContexto adicional: {{context.context}}\n\nGenera un prompt de imagen fotorrealista detallado en inglés:",
+        "max_tokens": 500,
+        "stop": [
+          "\n\n\n"
+        ]
       }
     },
     {

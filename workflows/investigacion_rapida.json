@@ -5,7 +5,9 @@
     {
       "id": "search",
       "type": "WebSearch",
-      "config": { "max_results": 3 },
+      "config": {
+        "max_results": 3
+      },
       "inputs": {
         "query": "{{topic}}"
       }
@@ -13,7 +15,9 @@
     {
       "id": "rag",
       "type": "RAGQuery",
-      "config": { "top_k": 5 },
+      "config": {
+        "top_k": 5
+      },
       "inputs": {
         "query": "{{topic}}"
       }
@@ -27,7 +31,11 @@
         "max_tokens": 1500
       },
       "inputs": {
-        "prompt": "Fuentes web:\n{{search.text}}\n\nContexto de base de conocimiento:\n{{rag.context}}\n\nAnaliza y sintetiza la información sobre: {{topic}}\n\nIncluye: resumen ejecutivo, puntos clave y conclusiones."
+        "prompt": "Fuentes web:\n{{search.text}}\n\nContexto de base de conocimiento:\n{{rag.context}}\n\nAnaliza y sintetiza la información sobre: {{topic}}\n\nIncluye: resumen ejecutivo, puntos clave y conclusiones.",
+        "max_tokens": 1500,
+        "stop": [
+          "\n\n\n"
+        ]
       }
     }
   ]

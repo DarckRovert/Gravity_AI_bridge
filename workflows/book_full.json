@@ -27,7 +27,10 @@
         "system_prompt": "Eres un editor literario. Tu tarea es generar un extracto de presentación para publicar en un portal editorial.",
         "prompt": "Basándote en el siguiente contexto del libro '{{title}}', escribe un extracto editorial de 300-400 palabras que capture la esencia de la obra para atraer lectores. Incluye: premisa central, tono de la obra y por qué es relevante. Devuelve SOLO el extracto, sin títulos ni encabezados.\n\nContexto:\n{{leer_contexto.content}}",
         "temperature": 0.8,
-        "max_tokens": 800
+        "max_tokens": 800,
+        "stop": [
+          "\n\n\n"
+        ]
       }
     },
     {

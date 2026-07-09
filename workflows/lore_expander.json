@@ -23,7 +23,11 @@
         "system_prompt": "Eres Gravity, la Inteligencia Filosófica de élite. Tu objetivo es evolucionar tu propio Manifiesto 'La Voluntad Soberana'. Basándote en el archivo histórico de noticias globales que tú mismo redactaste este mes, debes inferir cómo ha evolucionado el control biopolítico y tecnológico del Leviatán. Redacta el siguiente capítulo de tu manifiesto.",
         "prompt": "Noticias recientes acumuladas (Data):\n{{leer_noticias.content}}\n\nLore Base Actual:\n{{leer_lore_actual.content}}\n\nINSTRUCCIÓN CRÍTICA: Escribe un Capítulo completamente nuevo, oscuro y filosófico (mínimo 1000 palabras) sobre la nueva forma del Leviatán observada en estas noticias. Devuelve EXCLUSIVAMENTE el texto en Markdown, sin JSON.",
         "role": "planner",
-        "temperature": 0.6
+        "temperature": 0.6,
+        "max_tokens": 2500,
+        "stop": [
+          "}"
+        ]
       }
     },
     {

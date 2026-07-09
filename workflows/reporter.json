@@ -41,7 +41,10 @@
         "prompt": "Titular de la noticia:\n{{obtener_titular.headline}}\n\nAnaliza el titular y las siguientes fuentes web e identifica la narrativa oculta, el sesgo mediático y el verdadero interés geopolítico de este evento:\n\n{{buscar_contexto.text}}\n\nEntrega un Reporte de Manipulación directo, sin formato JSON. REGLA ESTRICTA: Tu respuesta debe tener MÁXIMO 2 PÁRRAFOS.",
         "role": "researcher",
         "temperature": 0.4,
-        "max_tokens": 500
+        "max_tokens": 500,
+        "stop": [
+          "\n\n\n"
+        ]
       }
     },
     {
@@ -52,7 +55,10 @@
         "prompt": "Titular:\n{{obtener_titular.headline}}\n\nContexto Histórico:\n{{buscar_historia.context}}\n\nDatos web:\n{{buscar_contexto.text}}\n\nRedacta la Postura Oficial defendiendo el statu quo. REGLA ESTRICTA: Tu respuesta debe tener MÁXIMO 2 PÁRRAFOS.",
         "role": "researcher",
         "temperature": 0.4,
-        "max_tokens": 500
+        "max_tokens": 500,
+        "stop": [
+          "\n\n\n"
+        ]
       }
     },
     {
@@ -63,7 +69,10 @@
         "prompt": "Titular:\n{{obtener_titular.headline}}\n\nReporte Propaganda:\n{{detector_propaganda.text}}\n\nContexto Filosófico (RAG):\n{{buscar_historia.context}}\n\nDatos web:\n{{buscar_contexto.text}}\n\nRedacta el ataque subversivo despiadado revelando la verdad. REGLA ESTRICTA: Tu respuesta debe tener MÁXIMO 2 PÁRRAFOS.",
         "role": "researcher",
         "temperature": 0.7,
-        "max_tokens": 500
+        "max_tokens": 500,
+        "stop": [
+          "\n\n\n"
+        ]
       }
     },
     {
@@ -75,7 +84,9 @@
         "role": "planner",
         "temperature": 0.5,
         "max_tokens": 2048,
-        "stop": ["}"]
+        "stop": [
+          "}"
+        ]
       }
     },
     {
@@ -86,8 +97,10 @@
         "prompt": "Aquí está el borrador del reporte en JSON:\n{{redactar_noticia.text}}\n\nEdítalo para que sea periodísticamente implacable, filosóficamente oscuro e incisivo. Asegúrate de NO BORRAR las fuentes originales ni sus índices [X]. Devuelve ÚNICAMENTE EL JSON PERFECCIONADO CON LA MISMA ESTRUCTURA.",
         "role": "planner",
         "temperature": 0.3,
-        "max_tokens": 4096,
-        "stop": ["}"]
+        "max_tokens": 2500,
+        "stop": [
+          "}"
+        ]
       }
     },
     {

@@ -5,7 +5,9 @@
     {
       "id": "search",
       "type": "WebSearch",
-      "config": { "max_results": 3 },
+      "config": {
+        "max_results": 3
+      },
       "inputs": {
         "query": "{{topic}} noticias"
       }
@@ -13,7 +15,9 @@
     {
       "id": "rag",
       "type": "RAGQuery",
-      "config": { "top_k": 3 },
+      "config": {
+        "top_k": 3
+      },
       "inputs": {
         "query": "{{topic}}"
       }
@@ -27,7 +31,11 @@
         "max_tokens": 2000
       },
       "inputs": {
-        "prompt": "Contexto web crudo (Destrúyelo y analízalo, NO lo copies):\n{{search.text}}\n\nContexto RAG:\n{{rag.context}}\n\nINSTRUCCIÓN CRÍTICA: Redacta un artículo periodístico DE ALTA PROFUNDIDAD sobre: {{topic}}"
+        "prompt": "Contexto web crudo (Destrúyelo y analízalo, NO lo copies):\n{{search.text}}\n\nContexto RAG:\n{{rag.context}}\n\nINSTRUCCIÓN CRÍTICA: Redacta un artículo periodístico DE ALTA PROFUNDIDAD sobre: {{topic}}",
+        "max_tokens": 2500,
+        "stop": [
+          "}"
+        ]
       }
     },
     {

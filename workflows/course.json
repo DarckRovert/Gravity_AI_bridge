@@ -8,7 +8,11 @@
       "inputs": {
         "system_prompt": "Eres un instructor académico experto. Tu tarea es estructurar cursos intensivos con máxima retención. Devuelve un índice de lecciones estructuradas.",
         "prompt": "Diseña un curso completo sobre: {{topic}} en idioma {{lang}}.\n\nIncluye: \n- Título del Curso\n- Exactamente {{n_videos}} módulos/lecciones con descripciones detalladas.",
-        "role": "planner"
+        "role": "planner",
+        "max_tokens": 2000,
+        "stop": [
+          "}"
+        ]
       }
     },
     {
@@ -27,7 +31,11 @@
       "inputs": {
         "system_prompt": "Extrae los módulos del temario provisto. Devuelve ÚNICAMENTE un JSON válido (sin formato markdown ```json) con esta estructura exacta: {\"id\": \"nombre_corto_sin_espacios_ni_tildes\", \"topics\": [\"Lección 1: Título\", \"Lección 2: Título\"], \"style\": \"documental\", \"lang\": \"{{lang}}\", \"bgm_type\": \"corporativo\", \"n_scenes\": 45, \"estimated_cpm_usd\": 15.0, \"times_used\": 0, \"last_used\": null}",
         "prompt": "Temario:\n{{crear_syllabus.text}}",
-        "role": "planner"
+        "role": "planner",
+        "max_tokens": 1000,
+        "stop": [
+          "}"
+        ]
       }
     },
     {

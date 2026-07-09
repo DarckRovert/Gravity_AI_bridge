@@ -32,7 +32,10 @@
         "prompt": "EJECUTA TU ANÁLISIS CIENTÍFICO.\n\nTEMA: {{elegir_query.topic}}\n\nResultados de búsqueda web (No los copies, destrúyelos e interprétalos bajo nuestra filosofía):\n{{busqueda_academica.text}}\n\nContexto del Investigador Autónomo (si lo hay, priorízalo):\n{{investigador_context}}\n\nINSTRUCCIÓN CRÍTICA: Redacta un artículo de divulgación profunda en ESPAÑOL. NO USES FICCION. Genera el JSON AHORA.",
         "role": "researcher",
         "temperature": 0.5,
-        "max_tokens": 4096
+        "max_tokens": 2500,
+        "stop": [
+          "}"
+        ]
       }
     },
     {
