@@ -25,7 +25,8 @@
         "prompt": "Escribe un ensayo filosófico editorial PROFUNDO en ESPAÑOL sobre:\n\nTEMA: {{elegir_tema.topic}}\nÁNGULO DE ANÁLISIS: {{elegir_tema.angle}}\nREFERENCIAS: {{elegir_tema.refs}}\n\nContexto del Investigador Autónomo (si lo hay, utilízalo para nutrir tu ensayo):\n{{investigador_context}}\n\nINSTRUCCIÓN CRÍTICA: Aplica toda la fuerza de nuestra óptica filosófica. Haz un análisis brillante. Devuelve ÚNICAMENTE JSON válido. PROHIBIDO incluir personajes o universos ficcionales.",
         "role": "planner",
         "temperature": 0.7,
-        "max_tokens": 4096
+        "max_tokens": 3000,
+        "stop": ["}"]
       }
     },
     {

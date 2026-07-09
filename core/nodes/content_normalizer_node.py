@@ -311,6 +311,15 @@ class ContentNormalizerNode(GravityNode):
             log.info(f"[{self.__class__.__name__}] Usando placeholder SVG local.")
 
 
+        # ── Guard crítico: abortar si el contenido es el fallback de contingencia ──
+        FALLBACK_FULLTEXT = "### Canal de contingencia activo\n\nNo se pudo decodificar."
+        if normalized.get("fullText", "").strip() == FALLBACK_FULLTEXT.strip():
+            raise ValueError(
+                f"[ContentNormalizerNode] ABORT: fullText es el placeholder de contingencia. "
+                f"El LLM no generó JSON válido. Título tentativo: '{normalized.get('title', 'Desconocido')}'. "
+                f"Revisa el nodo LLMQuery anterior y su max_tokens."
+            )
+
         return {
             "normalized_json": json.dumps(normalized, ensure_ascii=False)
         }
