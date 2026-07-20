@@ -6,12 +6,15 @@ import json
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from core.provider_manager import complete
 
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+_PARENT_DIR = os.path.dirname(_BASE_DIR)
+
 DIRECTORIES = [
-    r"F:\Gravity_AI_bridge\ensayos_generados",
-    r"F:\Gravity_AI_bridge\ficcion_generada",
-    r"F:\Gravity_AI_bridge\libros_generados",
-    r"F:\gravity-news-portal\dist\books",
-    r"F:\gravity-news-portal\public\books",
+    os.path.join(_BASE_DIR, "ensayos_generados"),
+    os.path.join(_BASE_DIR, "ficcion_generada"),
+    os.path.join(_BASE_DIR, "libros_generados"),
+    os.path.join(_PARENT_DIR, "gravity-news-portal", "dist", "books"),
+    os.path.join(_PARENT_DIR, "gravity-news-portal", "public", "books"),
 ]
 
 PROMPT_SISTEMA = """Eres un corrector ortográfico y gramatical implacable.

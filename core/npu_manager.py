@@ -42,49 +42,9 @@ class NPUManager:
         return False
 
     def start(self) -> bool:
-        if self.is_running():
-            log.info("FastFlowLM ya está corriendo (detectado por puerto o proceso).")
-            return True
-            
-        env = os.environ.copy()
-        
-        # En arquitecturas de driver actualizadas (32.0+), FastFlowLM detecta XRT de manera autónoma.
-        # Forzar XLNX_VART_FIRMWARE hacia un .dll estático obsoleto provoca un crash instantáneo (Exit Code 1).
-        
-        # Desactivar la verificación de actualización
-        env["FLM_DISABLE_UPDATE_CHECK"] = "1"
-        
-        # Inyectar el entorno conda ryzen-ai-1.3.1 (VitisAIExecutionProvider) en el PATH.
-        # FastFlowLM necesita este entorno para comunicarse con la NPU Phoenix (XDNA).
-        _ryzen_env = r"C:\Users\darck\miniconda3\envs\ryzen-ai-1.3.1"
-        _ryzen_scripts = os.path.join(_ryzen_env, "Scripts")
-        if os.path.isdir(_ryzen_env):
-            env["PATH"] = _ryzen_env + os.pathsep + _ryzen_scripts + os.pathsep + env.get("PATH", "")
-            env["CONDA_PREFIX"] = _ryzen_env
-            env["CONDA_DEFAULT_ENV"] = "ryzen-ai-1.3.1"
-            log.info(f"Entorno Ryzen AI 1.3.1 inyectado: {_ryzen_env}")
-        else:
-            log.warning("Entorno ryzen-ai-1.3.1 no encontrado. La NPU puede usar CPU como fallback.")
-        
-        try:
-            log.info(f"Levantando NPU (FastFlowLM) con modelo {self._model} en puerto {self._port}...")
-            # Usamos creationflags=subprocess.CREATE_NEW_PROCESS_GROUP para aislarlo de la consola de Gravity
-            self._process = subprocess.Popen(
-                ["flm", "serve", self._model, "--port", str(self._port)],
-                env=env,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
-            )
-            self._running = True
-            time.sleep(2)  # Darle tiempo para arrancar
-            return self.is_running()
-        except FileNotFoundError:
-            log.error("El ejecutable 'flm' no se encuentra en el PATH.")
-            return False
-        except Exception as e:
-            log.error(f"Error al iniciar FastFlowLM: {e}")
-            return False
+        log.warning("FastFlowLM deshabilitado: hardware Ryzen 7 8700G posee NPU XDNA1 (FastFlowLM requiere NPU XDNA2).")
+        log.info("Usa LM Studio con aceleración Vulkan para tu iGPU Radeon 780M (Plan B) para correr el LLM local.")
+        return False
 
     def stop(self) -> bool:
         if not self.is_running():

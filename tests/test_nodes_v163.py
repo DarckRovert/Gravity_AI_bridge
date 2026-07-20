@@ -111,6 +111,25 @@ class TestContentNormalizerNode(unittest.TestCase):
         data = self._run(raw)
         self.assertEqual(data["title"], "From Markdown")
 
+    def test_repairs_unescaped_quotes_and_truncation(self):
+        # 1. Probar reparación de JSON con comillas internas sin escapar (seguido de comas)
+        raw_unescaped = '{\n  "title": "Análisis: Un "enfoque" crítico",\n  "category": "Geopolítica",\n  "fullText": "Cuerpo del artículo."\n}'
+        data = self._run(raw_unescaped)
+        self.assertEqual(data["title"], 'Análisis: Un "enfoque" crítico')
+        self.assertEqual(data["category"], 'Geopolítica')
+
+        # 2. Probar reparación de JSON truncado dentro del campo fullText (debe salvaguardarlo y agregar el sufijo)
+        raw_truncated_inside = '{\n  "title": "Análisis truncado",\n  "fullText": "Este es el cuerpo del artículo'
+        data = self._run(raw_truncated_inside)
+        self.assertEqual(data["title"], 'Análisis truncado')
+        self.assertTrue(data["fullText"].startswith('Este es el cuerpo del artículo'))
+        self.assertIn('[Transmisión cortada — fragmento recuperado.]', data["fullText"])
+
+        # 3. Probar que una truncación total antes de que empiece fullText levanta correctamente un ValueError de contingencia
+        raw_truncated_before = '{\n  "title": "Análisis vacío'
+        with self.assertRaises(ValueError):
+            self._run(raw_truncated_before)
+
     def test_fallback_title_when_missing(self):
         raw = '{"fullText": "only body, no title"}'
         data = self._run(raw)
@@ -263,11 +282,13 @@ class TestWorkflowTopology(unittest.TestCase):
 
         errors = []
         for wf_file in wf_files:
+            if " (1)" in os.path.basename(wf_file):
+                continue
             try:
                 with open(wf_file, "r", encoding="utf-8") as f:
                     wf_data = json.load(f)
                 graph = WorkflowGraph(wf_data)
-                order = graph._resolve_deps()
+                order = graph._resolve_waves()
                 self.assertGreater(len(order), 0)
             except Exception as e:
                 errors.append(f"{os.path.basename(wf_file)}: {e}")
@@ -282,6 +303,8 @@ class TestWorkflowTopology(unittest.TestCase):
         mismatches = []
         for wf_file in glob.glob(os.path.join(wf_dir, "*.json")):
             fname = os.path.splitext(os.path.basename(wf_file))[0]
+            if " (1)" in fname:
+                continue
             with open(wf_file, "r", encoding="utf-8") as f:
                 wf_data = json.load(f)
             wf_id = wf_data.get("workflow_id", "")

@@ -118,6 +118,8 @@ class PostChatMixin:
         # /v1/universal/config — Guardar configuración del proveedor Universal AI
         if self.path == "/v1/gravity/chat":
             try:
+                from core.resource_watchdog import resource_watchdog
+                resource_watchdog.notify_activity()
                 length = int(self.headers.get("Content-Length", 0))
                 data = json.loads(self.rfile.read(length)) if length else {}
                 messages_in = data.get("messages", [])
@@ -133,6 +135,31 @@ class PostChatMixin:
 
                 # Inyección de scraping web en tiempo real para el Chat
                 if user_msg_idx != -1:
+                    
+                    # ── GUARDRAILS (Fase 2 Ensamblaje) ──
+                    from core.guardrails import evaluate_pre_llm_guardrails
+                    guard_result = evaluate_pre_llm_guardrails(user_msg)
+                    if guard_result.matched:
+                        response_content = f"🛡️ **Guardrails:** {guard_result.reply}"
+                        if stream_mode:
+                            chat_id = f"chatcmpl-guard-{uuid.uuid4().hex[:10]}"
+                            self.send_response(200)
+                            self.send_header("Content-Type", "text/event-stream")
+                            self._send_cors()
+                            self.end_headers()
+                            chunk = {"id": chat_id, "object": "chat.completion.chunk", "model": "gravity-guard", "choices": [{"index": 0, "delta": {"content": response_content}, "finish_reason": "stop"}]}
+                            self.wfile.write(f"data: {json.dumps(chunk)}\n\n".encode("utf-8"))
+                            self.wfile.write(b"data: [DONE]\n\n")
+                            self.wfile.flush()
+                        else:
+                            body = json.dumps({"id": f"chatcmpl-guard-{uuid.uuid4().hex[:10]}", "object": "chat.completion", "model": "gravity-guard", "choices": [{"index": 0, "message": {"role": "assistant", "content": response_content}, "finish_reason": "stop"}]}).encode("utf-8")
+                            self.send_response(200)
+                            self.send_header("Content-Type", "application/json")
+                            self._send_cors()
+                            self.end_headers()
+                            self.wfile.write(body)
+                        return True
+                    
                     import re
 
                     urls = re.findall(r"(https?://[^\s)\]]+)", user_msg)
@@ -519,6 +546,8 @@ class PostChatMixin:
 
         # Rate limiting
         if self.path == "/v1/chat/completions":
+            from core.resource_watchdog import resource_watchdog
+            resource_watchdog.notify_activity()
             ip = self.client_address[0]
             auth_hdr = self.headers.get("Authorization", "")
             api_key = auth_hdr.split(" ")[-1] if " " in auth_hdr else auth_hdr
@@ -536,6 +565,38 @@ class PostChatMixin:
                 post_data = self.rfile.read(content_length)
                 payload = json.loads(post_data.decode("utf-8"))
                 messages = payload.get("messages", [])
+                
+                # ── GUARDRAILS (Fase 2 Ensamblaje) ──
+                from core.guardrails import evaluate_pre_llm_guardrails
+                
+                last_user_msg = ""
+                for i in range(len(messages) - 1, -1, -1):
+                    if messages[i].get("role") == "user":
+                        last_user_msg = messages[i].get("content", "")
+                        break
+                        
+                guard_result = evaluate_pre_llm_guardrails(last_user_msg)
+                if guard_result.matched:
+                    # Interceptar y responder inmediatamente sin tocar el LLM
+                    chat_id = f"chatcmpl-guard-{uuid.uuid4().hex[:10]}"
+                    body = json.dumps({
+                        "id": chat_id,
+                        "object": "chat.completion",
+                        "model": "gravity-guardrails",
+                        "choices": [{
+                            "index": 0,
+                            "message": {"role": "assistant", "content": guard_result.reply},
+                            "finish_reason": "stop"
+                        }],
+                        "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+                    }).encode("utf-8")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(body)
+                    return True
+
                 req_model = payload.get("model", "gravity-bridge-auto")
                 is_streaming = payload.get("stream", True)
                 options = {

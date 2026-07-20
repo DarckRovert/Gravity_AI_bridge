@@ -15,6 +15,66 @@ from core.logger import log
 from core.firecrawl_scraper import scrape_url, _request_with_retry
 
 
+
+# Instancias públicas de SearXNG con JSON habilitado
+# Se rotan aleatoriamente para distribuir carga y evitar bloqueos por IP
+_SEARXNG_INSTANCES = [
+    "https://searx.be",
+    "https://search.sapti.me",
+    "https://searx.tiekoetter.com",
+    "https://searxng.site",
+    "https://search.privacyguides.net",
+    "https://searx.work",
+    "https://priv.au",
+]
+
+def _searxng_fallback(query: str, max_results: int = 2) -> List[Tuple[str, str]]:
+    """
+    Fallback a instancias públicas de SearXNG cuando DuckDuckGo falla.
+    Retorna lista de (url, snippet) igual que el parser de DDG.
+    Prueba instancias en orden aleatorio para distribuir la carga.
+    """
+    import json as _json
+    import random
+    encoded_q = urllib.parse.quote(query)
+    results: List[Tuple[str, str]] = []
+    
+    # Rotar instancias aleatoriamente para evitar rate limiting en una sola
+    instances = list(_SEARXNG_INSTANCES)
+    random.shuffle(instances)
+
+    for instance in instances:
+        try:
+            url = f"{instance}/search?q={encoded_q}&format=json&language=es-ES&categories=general"
+            req = urllib.request.Request(
+                url,
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                    "Accept": "application/json, text/plain, */*",
+                    "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
+                }
+            )
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                raw = resp.read().decode("utf-8", errors="replace")
+                data = _json.loads(raw)
+            
+            for r in data.get("results", [])[:max_results]:
+                link = r.get("url", "")
+                snippet = r.get("content", r.get("title", ""))
+                if link and snippet and len(snippet) > 20:
+                    results.append((link, snippet))
+            
+            if results:
+                log.info(f"[WebSearch] SearXNG ({instance}) OK: {len(results)} resultados.")
+                return results
+
+        except Exception as e:
+            log.debug(f"[WebSearch] SearXNG {instance} falló: {e}")
+            continue
+
+    return results
+
+
 def search_and_scrape(query: str, max_results: int = 2) -> str:
     """
     Busca en DuckDuckGo de forma thread-safe y hace scraping de los resultados principales.
@@ -79,8 +139,11 @@ def search_and_scrape(query: str, max_results: int = 2) -> str:
             break
 
     if not results:
-        log.info(f"[WebSearch] No results found on DuckDuckGo for query: '{query}'")
-        return ""
+        log.info(f"[WebSearch] No results found on DuckDuckGo for query: '{query}'. Intentando SearXNG...")
+        results = _searxng_fallback(query, max_results)
+        if not results:
+            log.warning(f"[WebSearch] SearXNG también falló para: '{query}'")
+            return ""
 
     knowledge: List[str] = []
     

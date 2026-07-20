@@ -1,4 +1,4 @@
-# Folio 3: Pipelines Multi-Agente y Herramientas (Gravity V17.0 PRO)
+# Folio 3: Pipelines Multi-Agente y Herramientas (Gravity V30.0 MYTHOS)
 
 Gravity no está confinado a una simple ventana de chat. Dispone de un arsenal de más de 25 herramientas forenses, de producción y de raspado de datos ubicadas en el directorio `tools/`. Estas herramientas son invocadas dinámicamente por los sub-agentes según requiera el ciclo OODA o el usuario.
 
@@ -97,13 +97,14 @@ A partir de la versión más reciente, el Orquestador y los workflows que alimen
 - Estos agentes ahora se alimentan exclusivamente de **Manifiestos Editoriales** (`perspectiva_ensayos.md` y `perspectiva_ciencia.md`), que obligan al LLM a analizar el mundo usando teoría de sistemas, sociología, filosofía política real y bases empíricas (peer-reviewed).
 - Los workflows agnósticos (como `book_full.json`) mantienen la capacidad de escribir ficción si el usuario inyecta deliberadamente un archivo de lore como parámetro de entrada.
 
-## 6. J.A.R.V.I.S Sensory Tools (V17.0 PRO Sentinel-Tier)
+## 6. J.A.R.V.I.S Sensory Tools & Herramientas V30.0 MYTHOS
 
-La evolución hacia el protocolo J.A.R.V.I.S dota de herramientas no solo digitales, sino espaciales, físicas y **proactivas**, cerrando la brecha entre la terminal y el mundo real.
+La evolución hacia el protocolo J.A.R.V.I.S dota a Gravity de herramientas digitales, espaciales, físicas y **proactivas**, cerrando la brecha entre la terminal y el mundo real.
 
 - **`sentinel_core.py`:** El Lóbulo Frontal Proactivo. Se engancha al Sensory Bus, acumula contexto de la pantalla y la temperatura, y decide de forma autónoma (usando LLaMA3) si debe hablarte o alertarte, sin requerir prompts del usuario.
 - **`voice_daemon.py` (V2):** Oídos y Cuerdas Vocales perfectas. Usa `SpeechRecognition` para una detección de silencio dinámico (True VAD) y sintetiza voz hiper-realista en milisegundos usando **Microsoft Edge-TTS** y `pygame`.
 - **`vision_tool.py` & `overwatch_daemon.py`:** Utilizan `mss` para capturar el framebuffer de tus monitores a alta velocidad. Gravity puede "ver" pasivamente lo que haces, interpretando el contexto visual mediante LLMs ligeros (como Moondream2 o LLaVA).
 - **`os_controller.py`:** Las "Manos" cibernéticas. Otorga al LLM la capacidad de invocar `pyautogui` para controlar el ratón y el teclado de forma autónoma, manipulando la UI de Windows si las APIs estándar fallan.
-- **`iot_controller.py`:** Integra el motor de decisiones con redes domóticas locales (ej. Home Assistant o MQTT), permitiendo a Gravity encender luces, revisar cámaras o interactuar con hardware IOT.
-- **`thermal_watchdog.py`:** Sistema biológico de supervivencia. Lee directamente los sensores ACPI por WMI para prevenir daños térmicos a la CPU/APU, con potestad para aplicar pausas de emergencia al motor de renderizado (Tinka Engine).
+- **`iot_controller.py` (V30.0):** Integra el motor con redes domóticas locales (Home Assistant). Realiza consultas REST reales a `/api/states` recuperando el estado verídico de sensores perimetrales, cámaras y alarmas.
+- **`thermal_watchdog.py` (V30.0):** Sistema biológico de supervivencia activa. Monitorea temperaturas mediante WMI y, al superar los 85°C, utiliza `psutil` para suspender dinámicamente subprocesos pesados (`ollama`, `ffmpeg`, `comfyui`), reanudándolos automáticamente al enfriar a <75°C.
+- **`tinka_engine.py` (V30.0):** Motor de análisis y estadística predictiva para loterías. Realiza scraping masivo en vivo de resultados y calcula frecuencias relativas reales almacenadas en la base de datos `tinka_history.db`.

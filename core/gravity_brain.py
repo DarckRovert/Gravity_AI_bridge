@@ -37,6 +37,7 @@ APP_VERSION = "16.3"
 SYSTEM_COMMANDS = {
     "/help": "Lista todos los comandos disponibles",
     "/status": "Estado completo del sistema en tiempo real",
+    "/status <modulo>": "[Agentic] Consulta el estado JSON en vivo de un módulo específico",
     "/video crear <tema>": "Encola un nuevo video cinematográfico",
     "/video estado": "Estado de la cola de videos",
     "/imagen <prompt>": "Genera una imagen via Pollinations.ai",
@@ -67,6 +68,10 @@ SYSTEM_COMMANDS = {
     "/decidir <meta>": "[V16] Forzar ciclo de decisión OODA sobre una meta específica",
     "/reglas": "[V16] Ver las reglas invariantes del sistema autónomo",
     "/noticia <tema>": "Investiga, redacta y publica un reporte periodístico en el portal de Nexo Ágora.",
+    # ── GTLIS TikTok Radar ───────────────────────────────────────────────────
+    "/tiktok radar": "[GTLIS] Estado en tiempo real del escáner TikTok Radar.",
+    "/tiktok osint <user>": "[GTLIS] Ejecuta Deep OSINT profile de una cuenta de TikTok.",
+    "/tiktok geo": "[GTLIS] Ejecuta el rastreo geográfico predictivo en la red TikTok."
 }
 
 _brain_lock = threading.RLock()
@@ -153,6 +158,17 @@ def _get_image_queue_status() -> str:
         return f"Image Queue: {pending} pendientes | {running} ejecutando | {done} completadas"
     except Exception as e:
         return f"Image Queue: error ({e})"
+
+
+def _get_tiktok_status() -> str:
+    """Estado del módulo TikTok Radar (GTLIS)."""
+    try:
+        from core.tiktok_radar import _load_watchlist
+        watchlist = _load_watchlist()
+        active = len(watchlist)
+        return f"TikTok Radar (GTLIS): {active} objetivos en vigilancia activa."
+    except Exception as e:
+        return f"TikTok Radar: no disponible ({e})"
 
 
 def _get_hardware_status() -> str:
@@ -367,6 +383,8 @@ def build_system_context() -> str:
         "",
         _get_image_queue_status(),
         "",
+        _get_tiktok_status(),
+        "",
         _get_hardware_status(),
         "",
         _get_cost_status(),
@@ -535,6 +553,16 @@ def parse_chat_commands(user_message: str) -> Optional[dict]:
         }
 
     # /status o /estado
+    if msg.lower().startswith("/status ") or msg.lower().startswith("/estado "):
+        mod = msg.split(" ", 1)[1].strip()
+        if mod:
+            return {
+                "command": "get_module_status",
+                "args": {"target": mod},
+                "api_action": f"TOOL get_module_status {mod}",
+                "user_feedback": f"Consultando estado en vivo del módulo: {mod}",
+            }
+
     if msg.lower() in ("/status", "/estado"):
         return {
             "command": "get_status",
@@ -772,7 +800,26 @@ def execute_system_command(command_info: dict) -> dict:
     args = command_info.get("args", {})
 
     try:
-        if cmd == "change_model":
+        if cmd == "get_module_status":
+            target = args.get("target", "").lower()
+            import importlib
+            
+            module_paths = [f"core.{target}", f"tools.{target}", target]
+            for m_path in module_paths:
+                try:
+                    mod = importlib.import_module(m_path)
+                    if hasattr(mod, "get_status"):
+                        st = mod.get_status()
+                        res = json.dumps(st, indent=2, ensure_ascii=False, default=str)
+                        return {"ok": True, "result_text": f"✓ Estado del módulo **{target}**:\n```json\n{res}\n```"}
+                    else:
+                        return {"ok": False, "result_text": f"✗ El módulo `{target}` fue encontrado en `{m_path}` pero no exporta la función `get_status()`."}
+                except ImportError:
+                    continue
+            
+            return {"ok": False, "result_text": f"✗ Módulo `{target}` no encontrado."}
+
+        elif cmd == "change_model":
             target = args.get("target", "").lower()
             settings_path = os.path.join(BASE_DIR, "_settings.json")
 

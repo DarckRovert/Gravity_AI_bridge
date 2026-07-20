@@ -68,7 +68,8 @@ class LLMQueryNode(GravityNode):
                 best_model = forced_model
                 log.info(f"[LLMQueryNode] Forzando proveedor: {provider_name} (modelo: {best_model or 'auto'})")
             else:
-                best_provider, best_model = provider_manager.get_best()
+                # Enjambre: cada nodo recibe el siguiente proveedor en rotación
+                best_provider, best_model = provider_manager.get_swarm_provider()
                 provider_name = best_provider.name if hasattr(best_provider, 'name') else best_provider
 
             if not provider_name:

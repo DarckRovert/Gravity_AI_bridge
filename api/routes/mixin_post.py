@@ -36,6 +36,9 @@ class PostRoutesMixin(
             return
         if self._handle_post_workflow():
             return
+        # ── GTLIS — TikTok Live Intelligence Suite ────────────────────────
+        if self._handle_post_tiktok():
+            return
 
         # Fallback si no hay ruta registrada
         self.send_response(404)
@@ -44,3 +47,4 @@ class PostRoutesMixin(
         self.send_header("Content-Type", "application/json")
         self.end_headers()
         self.wfile.write(json.dumps({"error": "Endpoint POST no encontrado"}).encode())
+

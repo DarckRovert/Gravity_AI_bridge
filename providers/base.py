@@ -7,17 +7,39 @@ All providers (local and cloud) implement ProviderPlugin.
 """
 
 from abc import ABC, abstractmethod
-from typing import Generator, Optional
+from dataclasses import dataclass, field
+from typing import Any, Dict, Generator, List, Literal, Optional
 
-"""
-╔══════════════════════════════════════════════════════════════╗
-║     GRAVITY AI — PROVIDER BASE CLASSES V13.0 PRO                  ║
-║     ProviderResult + ProviderPlugin ABC                      ║
-╚══════════════════════════════════════════════════════════════╝
-All providers (local and cloud) implement ProviderPlugin.
-"""
+# ── Typed provider response (Vocero-pattern) ─────────────────────────────────
 
-from typing import Any, Dict, List  # noqa: E402
+ProviderErrorCode = Literal[
+    "",           # sin error (ok=True)
+    "no_key",     # API key no configurada
+    "auth",       # 401/403 del proveedor
+    "not_found",  # 404/410: modelo descontinuado o endpoint inexistente
+    "network",    # error de red, timeout, conexión rechazada
+    "empty",      # respuesta vacía inesperada del modelo
+    "invalid_response",  # respuesta no parseable
+]
+
+
+@dataclass
+class ProviderResponse:
+    """
+    Resultado discriminado de una llamada al LLM.
+    Patrón: nunca lanza excepción al caller — siempre retorna ok/error.
+
+    ok=True  → text contiene la respuesta completa.
+    ok=False → error describe la causa, detail agrega contexto técnico.
+    """
+    ok: bool
+    text: str = ""
+    error: ProviderErrorCode = ""
+    detail: str = ""
+
+    def __bool__(self) -> bool:
+        return self.ok
+
 
 # ── Unified scan result ───────────────────────────────────────────────────────
 
@@ -133,7 +155,27 @@ class ProviderPlugin(ABC):
     ) -> str:
         """
         Non-streaming chat. Returns the full response as a string.
+        Deprecated in favor of chat_complete_safe(). Kept for backwards compat.
         """
+
+    def chat_complete_safe(
+        self,
+        messages: List[Dict[str, Any]],
+        model: str,
+        options: Dict[str, Any],
+    ) -> "ProviderResponse":
+        """
+        Non-streaming chat con resultado discriminado (Vocero-pattern).
+        Default: envuelve chat_complete() para compatibilidad con providers existentes.
+        Override en cloud providers para manejo granular de errores HTTP.
+        """
+        try:
+            text = self.chat_complete(messages, model, options)
+            if not text:
+                return ProviderResponse(ok=False, error="empty", detail="Respuesta vacía del modelo")
+            return ProviderResponse(ok=True, text=text)
+        except Exception as e:
+            return ProviderResponse(ok=False, error="network", detail=str(e))
 
     # ── Optional overrides ────────────────────────────────────────────────────
 

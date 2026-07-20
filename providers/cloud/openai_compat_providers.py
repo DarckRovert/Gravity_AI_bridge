@@ -45,10 +45,6 @@ class GroqProvider(OpenAICompatCloudProvider):
     _available_models: List[str] = [
         "llama-3.3-70b-versatile",
         "llama-3.1-8b-instant",
-        "deepseek-r1-distill-llama-70b",
-        "qwen-qwq-32b",
-        "mistral-saba-24b",
-        "gemma2-9b-it",
     ]
 
     def get_cost_per_million_tokens(self, model: str) -> Dict[str, float]:
@@ -113,7 +109,6 @@ class TogetherProvider(OpenAICompatCloudProvider):
         "meta-llama/Llama-3.3-70B-Instruct-Turbo",
         "Qwen/Qwen2.5-72B-Instruct-Turbo",
         "deepseek-ai/DeepSeek-R1",
-        "mistralai/Mixtral-8x22B-Instruct-v0.1",
         "google/gemma-2-27b-it",
     ]
 
@@ -138,7 +133,6 @@ class FireworksProvider(OpenAICompatCloudProvider):
         "accounts/fireworks/models/qwen2p5-coder-32b-instruct",
         "accounts/fireworks/models/deepseek-r1",
         "accounts/fireworks/models/firefunction-v2",
-        "accounts/fireworks/models/mixtral-8x22b-instruct",
     ]
 
     def get_cost_per_million_tokens(self, model: str) -> Dict[str, float]:
@@ -154,10 +148,9 @@ class xAIProvider(OpenAICompatCloudProvider):
     supports_function_calling: bool = True
     default_context: int = 131072
     _available_models: List[str] = [
-        "grok-3",
+        "grok-4",
+        "grok-4-mini",
         "grok-3-mini",
-        "grok-2-vision",
-        "grok-beta",
     ]
 
     def get_cost_per_million_tokens(self, model: str) -> Dict[str, float]:
@@ -249,11 +242,9 @@ class NvidiaProvider(OpenAICompatCloudProvider):
     supports_function_calling: bool = True
     default_context: int = 128000
     _available_models: List[str] = [
-        "meta/llama-3.3-70b-instruct",
-        "meta/llama-3.1-8b-instruct",
-        "deepseek-ai/deepseek-v4-pro",
-        "deepseek-ai/deepseek-v4-flash",
-        "mistralai/mixtral-8x22b-instruct-v0.1",
+        # AUDITADO 2026-07-16: meta/llama-3.1-70b-instruct → TIMEOUT (muerto)
+        # AUDITADO 2026-07-16: deepseek-ai/deepseek-v4-flash → HTTP 200 pero responde en chino (incompatible)
+        "meta/llama-3.1-8b-instruct",  # VIVO y estable
     ]
 
     def get_cost_per_million_tokens(self, model: str) -> Dict[str, float]:

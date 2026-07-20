@@ -115,7 +115,7 @@ def is_engine_running(provider_name: str) -> bool:
     pn = provider_name.lower()
     targets = []
     if "lm studio" in pn:
-        targets = ["LM Studio.exe", "lmstudioworker.exe"]
+        targets = ["LM Studio.exe", "lmstudioworker.exe", "lms.exe", "lmstudio-server.exe"]
     elif "ollama" in pn:
         targets = ["ollama.exe", "ollama app.exe", "ollama_llama_server.exe"]
     elif "jan" in pn:
@@ -223,6 +223,20 @@ def start_engine(provider_name: str) -> Dict[str, Any]:
                 close_fds=True,
             )
         else:
+            # Special handling for LM Studio v0.4.x Headless CLI (lms.exe)
+            if provider_name == "LM Studio":
+                lms_path = os.path.expanduser("~/.lmstudio/bin/lms.exe")
+                if os.path.exists(lms_path):
+                    # Iniciar el servidor API oficial de LM Studio (v0.4.x)
+                    subprocess.Popen(
+                        [lms_path, "server", "start"],
+                        creationflags=proc_flags,
+                        cwd=os.path.dirname(lms_path),
+                        env=env,
+                        close_fds=True,
+                    )
+                    return {"success": True, "message": f"{provider_name} CLI (lms) iniciado en background."}
+
             subprocess.Popen(
                 [path],
                 creationflags=proc_flags,
@@ -273,7 +287,7 @@ def stop_engine(provider_name: str) -> Dict[str, Any]:
     pn = provider_name.lower()
 
     if "lm studio" in pn:
-        targets = ["LM Studio.exe", "lmstudioworker.exe"]
+        targets = ["LM Studio.exe", "lmstudioworker.exe", "lms.exe", "lmstudio-server.exe"]
     elif "ollama" in pn:
         targets = ["ollama.exe", "ollama app.exe", "ollama_llama_server.exe"]
     elif "jan" in pn:

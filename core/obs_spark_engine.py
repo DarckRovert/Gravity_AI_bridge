@@ -11,6 +11,7 @@ import re
 import threading
 import time
 import random
+import json
 from typing import List, Dict, Any, Optional
 from core.logger import log
 
@@ -35,6 +36,38 @@ def _get_overlays_dir() -> str:
         _OVERLAYS_DIR = os.path.join(BASE, rel.replace("/", os.sep))
         os.makedirs(_OVERLAYS_DIR, exist_ok=True)
     return _OVERLAYS_DIR
+
+
+def _get_state_file_path() -> str:
+    return os.path.join(_get_overlays_dir(), "active_overlays.json")
+
+
+def _save_active_overlays():
+    path = _get_state_file_path()
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            with _overlays_lock:
+                json.dump(_active_overlays, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        log.error(f"[GravitySpark] Error saving active overlays state: {e}")
+
+
+def _load_active_overlays():
+    global _active_overlays
+    path = _get_state_file_path()
+    if os.path.isfile(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    with _overlays_lock:
+                        _active_overlays.clear()
+                        _active_overlays.update(data)
+            log.info(
+                f"[GravitySpark] Loaded {len(_active_overlays)} active overlays from state cache."
+            )
+        except Exception as e:
+            log.error(f"[GravitySpark] Error loading active overlays state: {e}")
 
 
 _SYSTEM_PROMPT = """Eres un experto en overlays de streaming para OBS Studio.
@@ -73,21 +106,6 @@ def _call_local_llm(prompt: str, temperature: float = 0.6) -> str:
     model = config.get("obs_spark.model", "")
     options = {"temperature": temperature}
 
-    # Auto-promover Nvidia NIM si está online y no se especificó otro en config
-    if not provider:
-        try:
-            results = provider_manager.scan_all()
-            nvidia = next(
-                (r for r in results if r.name == "Nvidia NIM" and r.is_healthy), None
-            )
-            if nvidia:
-                provider = "Nvidia NIM"
-                model = "meta/llama-3.3-70b-instruct"
-                log.info(
-                    "[GravitySpark] Nvidia NIM detectado online. Usando Llama 3.3 70B de Nvidia para generación premium de alta velocidad."
-                )
-        except Exception as e:
-            log.warning(f"[GravitySpark] Error auto-detectando Nvidia NIM: {e}")
 
     for attempt in range(3):
         try:
@@ -117,16 +135,34 @@ def _call_local_llm(prompt: str, temperature: float = 0.6) -> str:
 
 def _extract_html(raw: str) -> str:
     """Extrae el bloque HTML de la respuesta del LLM."""
+    # 1. Buscar bloque markdown ```html ... ``` que contenga <!DOCTYPE ... </html>
     match = re.search(
         r"```(?:html)?\s*(<!DOCTYPE[\s\S]*?</html>)\s*```", raw, re.IGNORECASE
     )
     if match:
         return match.group(1).strip()
 
+    # 1b. Bloque ```html ... ``` genérico si contiene marcas HTML estructuradas
+    match = re.search(
+        r"```(?:html)?\s*([\s\S]*?)\s*```", raw, re.IGNORECASE
+    )
+    if match:
+        content = match.group(1).strip()
+        lower_content = content.lower()
+        if any(tag in lower_content for tag in ("<html", "<body", "<div", "<style", "<script")):
+            return content
+
+    # 2. Buscar <!DOCTYPE ... </html> directamente en el texto sin markdown blocks
     match = re.search(r"(<!DOCTYPE[\s\S]*?</html>)", raw, re.IGNORECASE)
     if match:
         return match.group(1).strip()
 
+    # 2b. Buscar <html ... </html>
+    match = re.search(r"(<html[\s\S]*?</html>)", raw, re.IGNORECASE)
+    if match:
+        return match.group(1).strip()
+
+    # 3. Si ya contiene doctype o html de forma suelta
     if "<!DOCTYPE" in raw.upper() or "<html" in raw.lower():
         return raw.strip()
 
@@ -220,6 +256,7 @@ def generate_overlay(
                 "cubo núcleo gravity",
                 "gravity_core",
                 "un cubo wireframe 3d rotando constantemente en el centro de la pantalla, renderizado usando puras matemáticas de proyección de vértices sobre html5 canvas 2d (simulando un motor 3d desde cero). en su centro, un orbe brillante palpitante. hace fetch a la api local de gravity para ajustar su velocidad de rotación según la latencia.",
+                "un cubo wireframe 4d rotando constantemente en el centro de la pantalla, renderizado usando puras matemáticas de proyección de vértices sobre html5 canvas 2d (simulando un motor 4d desde cero). en su centro, un orbe brillante palpitante. hace fetch a la api local de gravity para ajustar su velocidad de rotación según la latencia.",
             ],
             "cinematic_start": [
                 "pantalla de inicio cinematográfica",
@@ -304,6 +341,7 @@ def generate_overlay(
             "width": width,
             "height": height,
         }
+        _save_active_overlays()
 
         return {
             "ok": True,
@@ -353,6 +391,7 @@ def edit_overlay(
             log.warning(f"[GravitySpark] No se pudo refrescar en OBS: {e}")
 
         _active_overlays[overlay_id]["prompt"] = new_prompt
+        _save_active_overlays()
 
         return {
             "ok": True,
@@ -372,6 +411,7 @@ def remove_overlay(overlay_id: str) -> Dict[str, Any]:
         if overlay_id not in _active_overlays:
             return {"ok": False, "error": f"Overlay {overlay_id} no encontrado"}
         info = _active_overlays.pop(overlay_id)
+        _save_active_overlays()
 
         errors = []
 
@@ -425,3 +465,33 @@ def get_overlay_html(overlay_id: str) -> Optional[str]:
         except Exception as e:
             log.error(f"[GravitySpark] Error leyendo HTML de overlay: {e}")
             return None
+
+
+
+def _clean_orphaned_overlay_files():
+    """Busca y elimina físicamente archivos HTML huérfanos del directorio de overlays."""
+    try:
+        overlays_dir = _get_overlays_dir()
+        if not os.path.isdir(overlays_dir):
+            return
+        with _overlays_lock:
+            active_ids = set(_active_overlays.keys())
+        for filename in os.listdir(overlays_dir):
+            if filename.endswith(".html"):
+                overlay_id = filename[:-5]
+                # Verificar que el nombre sea un ID de 16 caracteres hexadecimales
+                if len(overlay_id) == 16 and all(c in "0123456789abcdef" for c in overlay_id):
+                    if overlay_id not in active_ids:
+                        file_path = os.path.join(overlays_dir, filename)
+                        try:
+                            os.remove(file_path)
+                            log.info(f"[GravitySpark] Eliminado archivo de overlay huérfano: {filename}")
+                        except Exception as e:
+                            log.warning(f"[GravitySpark] No se pudo eliminar el archivo huérfano {filename}: {e}")
+    except Exception as e:
+        log.error(f"[GravitySpark] Error en la limpieza de archivos huérfanos: {e}")
+
+
+# ── Cargar estado al importar ────────────────────────────────────────────────
+_load_active_overlays()
+_clean_orphaned_overlay_files()

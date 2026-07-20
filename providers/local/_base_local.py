@@ -135,10 +135,14 @@ def _openai_compat_stream(
     """
     url = f"{base_url.rstrip('/')}{path}"
     tool_calls_accumulator = {}
+    raw_buffer = []
+    has_yielded = False
     try:
         for raw_line in _http_post_stream(url, payload):
             line = raw_line.decode("utf-8", errors="ignore").strip()
             if not line.startswith("data:"):
+                if line:
+                    raw_buffer.append(line)
                 continue
             data_str = line[5:].strip()
             if data_str == "[DONE]":
@@ -165,15 +169,23 @@ def _openai_compat_stream(
                 chunk = delta.get("content", "")
                 r_chunk = delta.get("reasoning_content", "")
                 if r_chunk:
+                    has_yielded = True
                     yield "<think>" + r_chunk + "</think>"
                 if chunk:
+                    has_yielded = True
                     yield chunk
                     
         if tool_calls_accumulator:
             tool_calls_list = [tool_calls_accumulator[i] for i in sorted(tool_calls_accumulator.keys())]
+            has_yielded = True
             yield json.dumps({"__TOOL_CALLS__": tool_calls_list})
             
+        if not has_yielded and raw_buffer:
+            raise Exception("Respuesta del servidor no es un stream válido: " + " ".join(raw_buffer)[:500])
+            
     except Exception as e:
+        if not has_yielded:
+            raise e
         yield f"\n\n[**SYSTEM ERROR**: Fallo de conexión con Modelo Local. Error: {str(e)}]\n\n"
 
 

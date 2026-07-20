@@ -46,6 +46,9 @@ class OverwatchDaemon:
             if not bp:
                 return "Overwatch offline: sin proveedor de IA activo."
 
+            if bp.category != "local":
+                return "Overwatch suspendido: la vigilancia visual requiere un modelo local por privacidad y seguridad."
+
             # Intentar con mensaje multimodal (formato OpenAI con image_url)
             messages = [
                 {

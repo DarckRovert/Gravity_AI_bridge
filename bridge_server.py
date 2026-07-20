@@ -90,9 +90,10 @@ def background_scanner():
 from api.routes.mixin_get import GetRoutesMixin  # noqa: E402
 from api.routes.mixin_post import PostRoutesMixin  # noqa: E402
 from api.routes.mixin_workflow import WorkflowMixin  # noqa: E402
+from api.routes.mixin_tiktok import TikTokMixin  # noqa: E402  — GTLIS White-Hat
 
 
-class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMixin, WorkflowMixin):
+class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMixin, WorkflowMixin, TikTokMixin):
     def handle_one_request(self):
         try:
             super().handle_one_request()
@@ -106,6 +107,12 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
 
     def _check_rate(self) -> bool:
         """Verifica el rate limit para la IP del cliente. Retorna False y envía 429 si bloqueada."""
+        try:
+            from core.resource_watchdog import resource_watchdog
+            resource_watchdog.notify_activity()
+        except Exception:
+            pass
+            
         ip = self.client_address[0] if self.client_address else "unknown"
         if ip != "unknown":
             register_ip_hit(ip)
@@ -233,6 +240,21 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             "/v1/workflow/list": self._serve_workflow_list,
             "/v1/workflow/nodes": self._serve_workflow_nodes,
             "/v1/workflow/jobs": self._serve_workflow_jobs,
+            # ── GTLIS — TikTok Live Intelligence Suite (V16.15) ────────────────
+            "/v1/tiktok/status": self._serve_tiktok_status,
+            "/v1/tiktok/probe": self._serve_tiktok_probe,
+            "/v1/tiktok/report": self._serve_tiktok_report,
+            "/v1/tiktok/channels": self._serve_tiktok_channels,
+            "/v1/tiktok/alerts": self._serve_tiktok_alerts,
+            "/v1/tiktok/history": self._serve_tiktok_history,
+            "/v1/tiktok/bot": self._serve_tiktok_bot_analyze,
+            "/v1/tiktok/geo": self._serve_tiktok_geo,
+            "/v1/tiktok/deep_osint": self._serve_tiktok_deep_osint,
+            "/v1/tiktok/dossier": self._serve_tiktok_dossier,
+            "/v1/tiktok/chat_suggestions": self._serve_tiktok_chat_suggestions,
+            "/v1/tiktok/comments": self._serve_tiktok_comments,
+            "/v1/tiktok/audio_transcript": self._serve_tiktok_audio_transcript,
+            "/v1/tiktok/psychological_profile": self._serve_tiktok_psychological_profile,
         }
 
         # Rutas con query string (?server=&lines=)
@@ -290,6 +312,14 @@ def run_server():
     threading.Thread(
         target=background_scanner, daemon=True, name="GravityBGScanner"
     ).start()
+
+    # ── Universal LLM Endpoint Auditor V20.0 (Mythos Edition) ───────────────
+    try:
+        from core.endpoint_auditor import run_background_auditor
+        run_background_auditor(interval_seconds=3600.0)
+        log.info("[V20.0] Universal LLM Endpoint Auditor iniciado (intervalo 1h).")
+    except Exception as _aud_e:
+        log.warning(f"[EndpointAuditor] No se pudo iniciar auditoría periódica: {_aud_e}")
 
     # Arrancar módulos background V16.14 PRO de manera tolerante a fallos
     service_loader.start_service("core.security_monitor")
@@ -567,6 +597,7 @@ def run_server():
         f"Gravity Bridge V16.14 PRO — http://localhost:{port} | Dashboard: / | API: /v1"
     )
     server = ThreadingHTTPServer(("0.0.0.0", port), GravityBridgeHandler)
+    server.daemon_threads = True  # Permite cierre instantáneo sin colgar hilos SSE u HTTP activos
     try:
         server.serve_forever()
     except KeyboardInterrupt:

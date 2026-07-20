@@ -264,6 +264,12 @@ def _refresh_access_token(oauth: Dict[str, Any]) -> Optional[str]:
                         log.error(
                             "[YouTube-Shield] ⚠️ INVALID_GRANT DETECTADO. El refresh_token ha muerto (Revocado o Expirado)."
                         )
+                        try:
+                            if os.path.isfile(OAUTH_PATH):
+                                os.remove(OAUTH_PATH)
+                                log.info("[YouTube-Shield] Token muerto purgado. Volviendo a fallback de render local.")
+                        except Exception as del_err:
+                            log.debug(f"[YouTube-Shield] No se pudo borrar OAuth: {del_err}")
                     else:
                         log.error(f"[YouTube] Error Auth {e.code}: {err_body}")
                     return None  # Fallo crítico, no reintentar
@@ -308,7 +314,7 @@ def verify_token_health() -> bool:
         return True
     else:
         log.error(
-            "[YouTube-Shield] ❌ SALUD DEL TOKEN COMPROMETIDA. Abortando pipeline para proteger GPU."
+            "[YouTube-Shield] ❌ SALUD DEL TOKEN COMPROMETIDA. Token revocado o expirado."
         )
         return False
 

@@ -469,9 +469,22 @@ def _generate_script(
             for prov in set(llms_to_wake):
                 log.info(f"[VideoStudio] [Auto-Wake] Encendiendo motor LLM: {prov}...")
                 start_engine(prov)
-            log.info("[VideoStudio] Esperando 12s a que la IA local cargue...")
-            time.sleep(12)
-            provider_manager.scan_all(force=True)  # Forzar re-escaneo para detectarlos
+            
+            # Esperar hasta 45s con escaneo activo a que el proveedor de IA local cargue
+            max_wait = 45
+            wait_interval = 3
+            waited = 0
+            log.info(f"[VideoStudio] Esperando que la IA local cargue (máximo {max_wait}s)...")
+            while waited < max_wait:
+                time.sleep(wait_interval)
+                waited += wait_interval
+                scan_results = provider_manager.scan_all(force=True)
+                active_healthy = [r.name for r in scan_results if r.is_healthy and r.models]
+                if any(p in active_healthy for p in llms_to_wake):
+                    log.info(f"[VideoStudio] [Auto-Wake] ✓ Motor LLM detectado online en {waited}s.")
+                    break
+            else:
+                log.warning("[VideoStudio] [Auto-Wake] Excedido tiempo de espera para la IA local. Continuando...")
 
         best_result, best_model = provider_manager.get_best()
         if not best_result:
@@ -573,25 +586,38 @@ def _generate_script(
         except Exception:
             pass
 
-    anchor = topic[:120]
+    # Limpieza inteligente del topic para el fallback visual de Stable Diffusion
+    clean_topic = original_topic
+    if clean_topic.lower().startswith("resumen de noticia:"):
+        clean_topic = clean_topic[len("resumen de noticia:"):].strip()
+    clean_topic = re.sub(r"https?://\S+", "", clean_topic)
+    clean_topic = re.sub(r"\[.*?\]", "", clean_topic)
+    clean_topic = clean_topic.replace("\n", " ").strip()
+
+    # Visual anchor descriptivo limpio de hasta 80 caracteres
+    visual_anchor = clean_topic[:80].strip()
+    if not visual_anchor:
+        visual_anchor = "cinematic atmospheric scene"
+
     _fallback_narrations = [
-        f"En este fascinante recorrido por {original_topic[:60]}, descubriremos aspectos que transformarán tu perspectiva sobre el mundo.",
-        f"El tema de {original_topic[:60]} esconde secretos que pocos conocen. Prepárate para una exploración profunda y reveladora.",
-        f"Cada detalle de {original_topic[:60]} nos acerca más a comprender fenómenos que moldean nuestra realidad cotidiana.",
-        f"La historia detrás de {original_topic[:60]} es más extraordinaria de lo que imaginas. Acompáñanos en este viaje único.",
-        f"Analizamos en detalle {original_topic[:60]} con datos precisos y perspectivas que cambiarán tu forma de ver este tema.",
-        f"Concluimos nuestra exploración de {original_topic[:60]} con las conclusiones más importantes y lo que significa para el futuro.",
+        f"En este fascinante recorrido por {visual_anchor[:50]}, descubriremos aspectos que transformarán tu perspectiva sobre el mundo.",
+        f"El tema de {visual_anchor[:50]} esconde secretos que pocos conocen. Prepárate para una exploración profunda y reveladora.",
+        f"Cada detalle de {visual_anchor[:50]} nos acerca más a comprender fenómenos que moldean nuestra realidad cotidiana.",
+        f"La historia detrás de {visual_anchor[:50]} es más extraordinaria de lo que imaginas. Acompáñanos en este viaje único.",
+        f"Analizamos en detalle {visual_anchor[:50]} con datos precisos y perspectivas que cambiarán tu forma de ver este tema.",
+        f"Concluimos nuestra exploración de {visual_anchor[:50]} con las conclusiones más importantes y lo que significa para el futuro.",
     ]
     style_info = CINEMA_STYLES.get(style, CINEMA_STYLES[DEFAULT_STYLE])
     style_prefix = style_info["prefix"]
     scenes = [
         {
             "title": f"Capítulo {i+1}",
-            "character_anchor": anchor,
-            "image_prompt": f"{anchor}, cinematic scene {i+1}, {style_prefix}, high detail, dramatic lighting",
+            "character_anchor": visual_anchor,
+            "image_prompt": f"{visual_anchor}, scene {i+1}, {style_prefix}, cinematic lighting, highly detailed, 8k resolution",
             "narration": _fallback_narrations[i % len(_fallback_narrations)],
             "mood": "neutral",
         }
         for i in range(n_scenes)
     ]
-    return scenes, anchor, original_topic[:60]
+    return scenes, visual_anchor, visual_anchor[:60]
+

@@ -33,7 +33,9 @@ def analyze_competitors(topic: str) -> str:
     log.info(f"[MarketResearch] Analizando a la competencia para: '{topic}'")
 
     # 1. Buscar en DuckDuckGo resultados de YouTube y artículos top
-    query: str = f"{topic} youtube video"
+    # Sanitizamos el topic para no exceder los límites de DuckDuckGo / SearXNG
+    safe_topic = topic.split('.')[0][:80].strip() if topic else ""
+    query: str = f"{safe_topic} youtube video"
     try:
         raw_data: str = search_and_scrape(query, max_results=3)
     except Exception as search_err:

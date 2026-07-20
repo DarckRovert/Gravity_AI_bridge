@@ -58,8 +58,8 @@ class TinkaEngine:
         even_odd = self.analyzer.get_even_odd_distribution()
 
         return {
-            "numeros_calientes": list(hot_cold["hot"].keys()),
-            "numeros_frios": list(hot_cold["cold"].keys()),
+            "numeros_calientes": [{"number": int(n), "count": c} for n, c in hot_cold["hot"].items()],
+            "numeros_frios": [{"number": int(n), "count": c} for n, c in hot_cold["cold"].items()],
             "distribucion_par_impar_comun": list(even_odd.keys())[:3],
         }
 

@@ -1,7 +1,7 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║        GRAVITY AI - PROVIDER MANAGER V16.0 PRO [Diamond-Tier Edition]         ║
-║                     Orquestador universal: local + cloud                     ║
+║      GRAVITY AI - PROVIDER MANAGER V17.0 PRO [Swarm Edition]                ║
+║      Orquestador universal: local + cloud + enjambre round-robin            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
@@ -12,19 +12,37 @@ import os as _os
 from typing import Generator, List, Dict, Tuple, Optional, Any
 
 from providers.registry import ProviderRegistry
-from providers.base import ProviderPlugin, ProviderResult
+from providers.base import ProviderPlugin, ProviderResult, ProviderResponse
 
 _lock = threading.RLock()
 _cached_results: List[ProviderResult] = []
 _cached_plugins: Dict[str, ProviderPlugin] = {}  # name → plugin
 _last_scan_time: float = 0.0
-_SCAN_TTL: float = 180.0  # segundos antes de re-escanear (B2: 3 min — reduce overhead en workflows largos)
+_SCAN_TTL: float = 180.0  # segundos antes de re-escanear
 
-# Lock global de inferencia — serializa todas las llamadas al LLM.
-# Evita condición de carrera entre daemons de fondo y el chat del usuario.
-# Timeout de 120s para que ninguna llamada quede bloqueada para siempre.
+# ── Enjambre (Swarm) Round-Robin ─────────────────────────────────────────────
+# Cada llamada al LLM recibe el siguiente proveedor saludable en la lista.
+# Thread-safe. No bloquea llamadas paralelas entre proveedores distintos.
+_swarm_counter: int = 0
+_swarm_lock = threading.Lock()
+
+# Lock por proveedor individual — permite paralelismo entre proveedores distintos
+# pero serializa las llamadas al mismo proveedor (evita race conditions).
+_provider_locks: Dict[str, threading.Lock] = {}
+_provider_locks_lock = threading.Lock()
+_INFERENCE_LOCK_TIMEOUT: float = 180.0
+
+# Alias de compatibilidad: el lock global ya no bloquea en modo swarm,
+# pero lo mantenemos para que imports externos no fallen.
 _inference_lock = threading.Lock()
-_INFERENCE_LOCK_TIMEOUT: float = 120.0
+
+
+def _get_provider_lock(provider_name: str) -> threading.Lock:
+    """Returns (or creates) a per-provider lock. Thread-safe."""
+    with _provider_locks_lock:
+        if provider_name not in _provider_locks:
+            _provider_locks[provider_name] = threading.Lock()
+        return _provider_locks[provider_name]
 
 
 def _load_settings() -> Dict[str, Any]:
@@ -59,9 +77,9 @@ def _score_model(result: ProviderResult, model_name: str, task: str) -> float:
         score += 20.0
 
     # ── NPU Priority Boost ────────────────────────────────────────────────────
-    # FastFlowLM corre en la NPU AMD XDNA (Ryzen AI). Cuando está activo,
+    # FastFlowLM corre en la NPU AMD XDNA (Ryzen AI). Cuando está activo y saludable,
     # debe tener prioridad absoluta: deja libre la GPU/CPU para el resto del sistema.
-    if result.name == "FastFlowLM (NPU)":
+    if result.name == "FastFlowLM (NPU)" and result.is_healthy:
         score += 200.0  # Supera cualquier proveedor local por CPU/GPU
 
     # Model already loaded in GPU → big bonus
@@ -279,6 +297,57 @@ def get_best(task: str = "any") -> Tuple[Optional[ProviderResult], Optional[str]
     return best_pair
 
 
+def get_ranked_providers(task: str = "any") -> List[Tuple[ProviderResult, str]]:
+    """
+    Returns ALL healthy (provider, model) pairs sorted by score descending.
+    Used by swarm routing to pick the Nth best provider.
+    Enjambre Híbrido: Mezcla Local y Nube al mismo tiempo.
+    """
+    results = scan_all()
+    healthy = [r for r in results if r.is_healthy and r.models]
+    if not healthy:
+        return []
+
+    # En el enjambre, queremos TODOS los candidatos (Local + Cloud) para distribuirlos
+    candidates = healthy
+
+    scored: List[Tuple[float, ProviderResult, str]] = []
+    for r in candidates:
+        for m in r.models:
+            m_name = m["name"]
+            score = _score_model(r, m_name, task)
+            scored.append((score, r, m_name))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return [(r, m) for _, r, m in scored]
+
+
+def get_swarm_provider(task: str = "any") -> Tuple[Optional[ProviderResult], Optional[str]]:
+    """
+    Enjambre Round-Robin: cada llamada devuelve el siguiente proveedor saludable
+    en orden rotativo. Permite que múltiples nodos usen distintas IAs en paralelo.
+    Cae de vuelta a get_best() si solo hay 1 proveedor disponible.
+    """
+    global _swarm_counter
+    ranked = get_ranked_providers(task)
+    if not ranked:
+        return None, None
+    if len(ranked) == 1:
+        return ranked[0]
+    with _swarm_lock:
+        idx = _swarm_counter % len(ranked)
+        _swarm_counter += 1
+    return ranked[idx]
+
+
+def _get_provider_lock(provider_name: str) -> threading.Lock:
+    """Returns (creating if needed) the per-provider lock."""
+    with _provider_locks_lock:
+        if provider_name not in _provider_locks:
+            _provider_locks[provider_name] = threading.Lock()
+        return _provider_locks[provider_name]
+
+
 def get_plugin(name: str) -> Optional[ProviderPlugin]:
     """Returns the ProviderPlugin instance for a given provider name."""
     scan_all()
@@ -322,6 +391,7 @@ def stream(
     provider: Optional[str] = None,
     options: Optional[Dict[str, Any]] = None,
     task: str = "any",
+    _visited_providers: Optional[set] = None,
 ) -> Generator[str, None, None]:
     """
     Universal streaming interface.
@@ -358,15 +428,23 @@ def stream(
         r = plugin.check_health()
         model = r.active_model or (r.models[0]["name"] if r.models else "unknown")
 
-    # Serializar acceso al LLM — evita condiciones de carrera entre daemons y el chat
-    acquired = _inference_lock.acquire(timeout=_INFERENCE_LOCK_TIMEOUT)
+    _visited = _visited_providers or set()
+    if plugin.name in _visited:
+        raise Exception(f"Bucle de Fallback detectado. Todos los motores de respaldo fallaron.")
+    _visited.add(plugin.name)
+
+    # Serializar acceso por proveedor — permite paralelismo entre distintos motores en Enjambre
+    prov_lock = _get_provider_lock(plugin.name)
+    acquired = prov_lock.acquire(timeout=_INFERENCE_LOCK_TIMEOUT)
     if not acquired:
-        yield "[ProviderManager] Motor de IA ocupado. Reintenta en unos segundos."
-        return
+        raise Exception(f"[ProviderManager] Proveedor {plugin.name} ocupado procesando otra tarea (ingesta pesada de tokens/TTFT). Reintenta en un par de minutos.")
+    lock_released = False
     try:
-        chunks_yielded = 0
+        stream_committed = False  # True tras el primer chunk emitido al cliente
+        chunks_yielded = 0        # Contador de chunks — usado en el fallback
         try:
             for chunk in plugin.chat_stream(messages, model, options):
+                stream_committed = True
                 chunks_yielded += 1
                 yield chunk
             if chunks_yielded == 0:
@@ -374,22 +452,40 @@ def stream(
         except Exception as e:
             from core.logger import log
             log.warning(f"[ProviderManager] Proveedor principal '{plugin.name}' falló: {e}. Activando Fallback...")
-            
-            # Buscar el segundo mejor proveedor
-            fallback_res, fallback_mod = get_best(task)
-            if fallback_res and fallback_res.name != plugin.name:
+
+            # Patrón monotónico (Vocero): si ya emitimos datos al cliente,
+            # NO mezclar con respuesta de otro proveedor. El stream está comprometido.
+            if stream_committed:
+                log.warning("[ProviderManager] Stream comprometido (ya se emitieron chunks). Fallback omitido para evitar corrupción.")
+                return
+
+            # Buscar el proveedor de respaldo, excluyendo obligatoriamente a los que ya fallaron
+            ranked = get_ranked_providers(task)
+            fallback_res, fallback_mod = None, None
+            for r, m in ranked:
+                if r.name not in _visited:
+                    fallback_res, fallback_mod = r, m
+                    break
+
+            if fallback_res:
                 fallback_plug = get_plugin(fallback_res.name)
                 if fallback_plug:
                     log.info(f"[ProviderManager] Fallback activado -> Usando {fallback_plug.name} ({fallback_mod})")
-                    yield from fallback_plug.chat_stream(messages, fallback_mod, options)
+                    # Soltamos el lock del proveedor original para evitar dead-locks
+                    prov_lock.release()
+                    lock_released = True
+                    # Recursión para re-iniciar el stream adquiriendo correctamente el lock del Fallback
+                    yield from stream(messages, fallback_mod, fallback_plug.name, options, task, _visited)
+                    return
                 else:
                     if chunks_yielded == 0:
-                        raise Exception("Fallo proveedor principal y no hay motores de respaldo.")
+                        raise Exception("Fallo proveedor principal y motor de respaldo no encontrado.")
             else:
                 if chunks_yielded == 0:
                     raise Exception("Fallo proveedor principal y es el único motor configurado/saludable.")
     finally:
-        _inference_lock.release()
+        if not lock_released:
+            prov_lock.release()
 
 
 def complete(
@@ -402,6 +498,152 @@ def complete(
     """Universal non-streaming chat completion."""
     chunks = list(stream(messages, model, provider, options, task))
     return "".join(chunks)
+
+
+def complete_safe(
+    messages: List[Dict[str, Any]],
+    model: Optional[str] = None,
+    provider: Optional[str] = None,
+    options: Optional[Dict[str, Any]] = None,
+    task: str = "any",
+) -> ProviderResponse:
+    """
+    Universal non-streaming chat con resultado discriminado (Vocero-pattern).
+    NUNCA lanza excepción al caller. Retorna ProviderResponse(ok=False, error=...) en fallo.
+    """
+    options = options or {}
+
+    if provider:
+        plugin = get_plugin(provider)
+    else:
+        result, auto_model = get_best(task)
+        plugin = get_plugin(result.name) if result else None
+        if not model:
+            model = auto_model
+
+    if not plugin:
+        return ProviderResponse(
+            ok=False, error="network",
+            detail="No hay proveedores disponibles. Inicia Ollama o configura una API key."
+        )
+
+    if not model:
+        r = plugin.check_health()
+        model = r.active_model or (r.models[0]["name"] if r.models else "unknown")
+
+    return plugin.chat_complete_safe(messages, model, options)
+
+
+def complete_json(
+    messages: List[Dict[str, Any]],
+    model: Optional[str] = None,
+    provider: Optional[str] = None,
+    options: Optional[Dict[str, Any]] = None,
+    task: str = "any",
+    max_retries: int = 3,
+) -> Dict[str, Any]:
+    """
+    Extrae JSON válido de la respuesta del LLM con 3 estrategias de fallback
+    y hasta max_retries reintentos (Vocero chatJson pattern).
+
+    Retorna:
+      {"ok": True,  "data": {...}}            → JSON extraído correctamente
+      {"ok": False, "error": str, "raw": str} → no se pudo extraer JSON válido
+    """
+    import re
+    import json as _json
+
+    def _try_extract(text: str) -> Optional[Dict]:
+        """3 estrategias de extracción en orden de especificidad."""
+        # 1. Bloque ```json ... ```
+        m = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", text)
+        if m:
+            try:
+                return _json.loads(m.group(1))
+            except Exception:
+                pass
+
+        # 2. Texto completo (el modelo respondió JSON puro)
+        try:
+            return _json.loads(text.strip())
+        except Exception:
+            pass
+
+        # 3. Primer objeto balanceado {...}
+        depth = 0
+        start = -1
+        for i, ch in enumerate(text):
+            if ch == "{":
+                if depth == 0:
+                    start = i
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0 and start != -1:
+                    try:
+                        return _json.loads(text[start:i + 1])
+                    except Exception:
+                        start = -1  # sigue buscando el siguiente objeto
+        return None
+
+    current_messages = list(messages)
+    last_raw = ""
+
+    for attempt in range(max_retries):
+        resp = complete_safe(current_messages, model, provider, options, task)
+        if not resp.ok:
+            return {"ok": False, "error": f"{resp.error}: {resp.detail}", "raw": ""}
+
+        last_raw = resp.text
+        extracted = _try_extract(last_raw)
+        if extracted is not None:
+            return {"ok": True, "data": extracted}
+
+        # Reintento: agregar mensaje de corrección (Vocero pattern)
+        if attempt < max_retries - 1:
+            current_messages = list(messages) + [
+                {"role": "assistant", "content": last_raw},
+                {
+                    "role": "user",
+                    "content": (
+                        "Tu respuesta anterior no era JSON válido. "
+                        "Responde SOLAMENTE con un objeto JSON válido, sin texto adicional, "
+                        "sin bloques de código markdown."
+                    )
+                }
+            ]
+
+    from core.logger import log
+    log.warning(f"[ProviderManager] complete_json() falló tras {max_retries} intentos. Última respuesta: {last_raw[:200]}")
+    return {"ok": False, "error": "invalid_response", "raw": last_raw}
+
+
+def complete_structured(
+    schema: Any,
+    messages: List[Dict[str, Any]],
+    model: Optional[str] = None,
+    provider: Optional[str] = None,
+    options: Optional[Dict[str, Any]] = None,
+    task: str = "any",
+    max_retries: int = 3,
+) -> Any:
+    """
+    Envoltura Pydantic que usa core.llm_frontier.chat_structured
+    para garantizar la validación de un esquema.
+    Retorna un ChatResult[T].
+    """
+    from core.llm_frontier import chat_structured
+    
+    def _completer(msgs: List[Dict[str, Any]], **kwargs) -> str:
+        res = complete_safe(msgs, model, provider, options, task)
+        return res.text if res.ok else ""
+        
+    return chat_structured(
+        schema=schema,
+        complete_fn=_completer,
+        messages=messages,
+        max_attempts=max_retries
+    )
 
 
 def get_cost_estimate(

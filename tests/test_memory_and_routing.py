@@ -1,7 +1,7 @@
+import sys
 import unittest
 from unittest.mock import MagicMock, patch
 import os
-import sys
 
 # Asegurar path de importación
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -60,43 +60,51 @@ class TestMemoryAndRouting(unittest.TestCase):
             "La tarea code debe favorecer a Qwen-Coder sobre Hermes",
         )
 
+    @patch("psutil.swap_memory")
     @patch("psutil.virtual_memory")
     @patch("os.path.getsize")
-    @patch("llama_cpp.Llama")
     def test_proactive_memory_eviction(
-        self, mock_llama, mock_getsize, mock_virtual_memory
+        self, mock_getsize, mock_virtual_memory, mock_swap_memory
     ):
-        # Configurar mocks
-        mock_getsize.return_value = 5 * 1024 * 1024 * 1024  # 5 GB de modelo
+        # Crear un mock dinámico para el módulo completo de llama_cpp
+        mock_llama_module = MagicMock()
+        mock_llama_class = MagicMock()
+        mock_llama_module.Llama = mock_llama_class
 
-        # Simular RAM disponible muy baja (ej. 2 GB libres)
-        mock_virtual_memory.return_value = MagicMock(
-            available=2 * 1024 * 1024 * 1024, percent=90.0
-        )
+        # Inyectar temporalmente el módulo mockeado en sys.modules durante el test
+        with patch.dict("sys.modules", {"llama_cpp": mock_llama_module}):
+            # Configurar mocks de memoria y tamaño
+            mock_getsize.return_value = 5 * 1024 * 1024 * 1024  # 5 GB de modelo
+            mock_swap_memory.return_value = MagicMock(free=0)
 
-        provider = NativeLlamaProvider()
+            # Simular RAM disponible muy baja (ej. 2 GB libres)
+            mock_virtual_memory.return_value = MagicMock(
+                available=2 * 1024 * 1024 * 1024, percent=90.0
+            )
 
-        # Simulamos que tenemos un modelo inactivo cargado
-        provider._instances["old_model.gguf"] = {
-            "instance": MagicMock(),
-            "last_used": 10.0,
-        }
+            provider = NativeLlamaProvider()
 
-        # Intentamos cargar un nuevo modelo "new_model.gguf"
-        # Con 2 GB libres y un modelo de 5 GB requerido (+1 GB buffer = 6 GB necesarios),
-        # debe gatillarse la liberación proactiva de old_model.gguf
-        with patch("os.path.exists", return_value=True):
-            provider._load_model("new_model.gguf", {"num_ctx": 4096})
+            # Simulamos que tenemos un modelo inactivo cargado
+            provider._instances["old_model.gguf"] = {
+                "instance": MagicMock(),
+                "last_used": 10.0,
+            }
 
-        # Verificar que old_model.gguf fue desalojado
-        self.assertNotIn(
-            "old_model.gguf",
-            provider._instances,
-            "El modelo antiguo debió ser desalojado para liberar RAM",
-        )
-        self.assertIn(
-            "new_model.gguf", provider._instances, "El nuevo modelo debió ser cargado"
-        )
+            # Intentamos cargar un nuevo modelo "new_model.gguf"
+            # Con 2 GB libres y un modelo de 5 GB requerido (+1 GB buffer = 6 GB necesarios),
+            # debe gatillarse la liberación proactiva de old_model.gguf
+            with patch("os.path.exists", return_value=True):
+                provider._load_model("new_model.gguf", {"num_ctx": 4096})
+
+            # Verificar que old_model.gguf fue desalojado
+            self.assertNotIn(
+                "old_model.gguf",
+                provider._instances,
+                "El modelo antiguo debió ser desalojado para liberar RAM",
+            )
+            self.assertIn(
+                "new_model.gguf", provider._instances, "El nuevo modelo debió ser cargado"
+            )
 
 
 if __name__ == "__main__":

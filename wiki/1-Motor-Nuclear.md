@@ -1,4 +1,4 @@
-# Folio 1: Motor Nuclear y Enrutamiento (Gravity V17.0 PRO)
+# Folio 1: Motor Nuclear y Enrutamiento (Gravity V30.0 MYTHOS)
 
 Este documento desglosa la capa fundacional del sistema operativo Gravity. El "Backend" no es un framework monolítico como Django o FastAPI; es un motor enrutador asíncrono puro forjado en la biblioteca estándar de Python, diseñado para evadir el sobrecosto de latencia y exprimir los hilos del procesador al máximo.
 
@@ -60,8 +60,19 @@ El motor que dota de autonomía cronometrada a Gravity. Si el `bridge_server.py`
 3. El motor verifica su **Regla Invariante Absoluta**: `AUTONOMY_DAILY_BUDGET_USD: float = 0.50`. Si el gasto acumulado del día supera los cincuenta centavos, el ciclo aborta inmediatamente para evitar cobros masivos de proveedores Cloud en la tarjeta de crédito.
 4. Genera un snapshot y lo inyecta en el Prompt del LLM Maestro en turno, quien emite una cadena de comandos en formato JSON para disparar al Sistema de Workflows o interactuar con el File System.
 
-### Resource Watchdog (Control de Fugas de VRAM/RAM y Mitigación de Colapsos KV Cache)
-El núcleo autónomo es escoltado por `core/resource_watchdog.py`. Una APU moderna (como la AMD Ryzen 7 8700G con Radeon 780M) comparte memoria RAM y VRAM dinámicamente. 
-- **La Amenaza del KV Cache:** El mayor riesgo de colapso en Gravity ("Out of Memory" o congelamientos instantáneos del host al chatear) **NO** proviene del encendido accidental de UI's pesadas como Fooocus. Proviene del inmenso meta-contexto inyectado en el LLM (hasta 128,000 tokens en la V16.0 PRO). Cargar esta "Sliding Window" y el contexto RAG en el motor local (ej. LM Studio con `ctx_size=32768`) consume súbitamente de 3 GB a 8 GB extra de RAM solo para calcular la inferencia (KV Cache). Si la PC ya operaba al límite, se fuerza el Swap del NVMe y el sistema colapsa.
-- En lugar de dejar procesos dormidos como zombies, el Watchdog inspecciona mediante `psutil` el árbol de procesos completo del sistema operativo.
-- Si Gravity no registra *Jobs* en los últimos 120 segundos y la ocupación de memoria supera el 65%, desencadena la directiva `_kill_stray_ai_processes()`. Destruirá inmediatamente cualquier proceso de fondo relacionado a `comfyui`, `ollama` o `lm studio`, liberando los Gigabytes retenidos, limpiando el KV Cache inflado, y garantizando que el sistema sea inmune a memory leaks crónicos.
+## 4. Subsistemas de Resiliencia V30.0 MYTHOS
+
+### Pydantic Frontier & Validaciones de Esquema (`core/llm_frontier.py`)
+En V30.0 MYTHOS, la interacción con LLMs se eleva al estándar **Pydantic Frontier**. En lugar de procesar JSON crudo con expresiones regulares frágiles, el método `complete_structured` inyecta esquemas JSON validados directamente al modelo y reintenta automáticamente hasta 3 veces si la salida no cumple con la estructura Pydantic esperada.
+
+### Pre-LLM Guardrails Deterministas (`core/guardrails.py`)
+Los endpoints `/v1/chat/completions` y `/v1/gravity/chat` ahora integran guardias deterministas que interceptan mensajes de emergencia (`alto`, `detente`, `cancela`), solicitudes de reinicio (`reset`) y peticiones de handoff humano en **microsegundos**, respondiendo instantáneamente sin invocar la GPU ni consumir tokens del proveedor.
+
+### Universal LLM Endpoint Auditor (`core/endpoint_auditor.py`)
+Un demonio proactivo en segundo plano audita periódicamente cada modelo configurado en proveedores en la nube (`Groq`, `Mistral`, `Nvidia NIM`, `DeepSeek`, `Together AI`, `Fireworks AI`, `xAI`, `Perplexity`, `OpenRouter`) enviando solicitudes ligeras (`max_tokens: 1`). Si un proveedor descontinúa un modelo (HTTP 404/410), el auditor emite alertas en los logs para prevenir fallos de enrutamiento en producción.
+
+### Server-Sent Events (SSE) Bus (`/v1/events/stream`)
+El bus de eventos in-process expone un canal SSE en vivo donde el Dashboard React consume notificaciones de métricas, alertas térmicas y eventos del sistema sin requerir peticiones de sondeo (polling) periódicas.
+
+### Garantía de Hilos Daemon (`server.daemon_threads = True`)
+El servidor HTTP de Gravity configura explícitamente sus hilos de atención como hilos **Daemon**, asegurando que al cerrar o reiniciar la aplicación, todos los sockets SSE e hilos activos se liberen de forma limpia e instantánea sin congelar el proceso principal.

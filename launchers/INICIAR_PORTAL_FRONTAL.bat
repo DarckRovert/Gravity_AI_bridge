@@ -10,5 +10,5 @@ echo Iniciando servidor web de React/Vite...
 echo Por favor, no cierres esta ventana mientras leas las noticias.
 echo.
 
-cd /d "F:\gravity-news-portal"
+cd /d "%~dp0..\..\gravity-news-portal"
 npm run dev

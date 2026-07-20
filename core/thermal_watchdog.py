@@ -50,14 +50,61 @@ class ThermalWatchdog:
             self.resume_heavy_workloads()
 
     def pause_heavy_workloads(self):
-        """Simula escribir el estado PAUSE en la base de datos La Tinka para detener Renders."""
-        # TODO: Implementar escritura real en SQLite / Tinka WAL
-        log.warning("[JARVIS-Thermal] Señal de PAUSA inyectada a los Nodos de Renderizado y Ollama.")
+        """Escribe el estado THERMAL_THROTTLE en _settings.json y suspende procesos pesados."""
+        try:
+            import os
+            import json
+            import psutil
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            settings_path = os.path.join(base_dir, "_settings.json")
+            if os.path.exists(settings_path):
+                with open(settings_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                data["thermal_throttling"] = True
+                data["thermal_throttling_temp"] = self.max_temp
+                with open(settings_path, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=4)
+            
+            # Suspender sub-procesos pesados (ollama, ffmpeg, python render jobs)
+            for proc in psutil.process_iter(['pid', 'name']):
+                try:
+                    pname = (proc.info['name'] or '').lower()
+                    if any(k in pname for k in ('ollama', 'ffmpeg', 'comfyui')):
+                        proc.suspend()
+                        log.warning(f"[JARVIS-Thermal] Proceso suspendido por temperatura: {pname} (PID {proc.info['pid']})")
+                except Exception:
+                    pass
+            log.warning("[JARVIS-Thermal] Señal de PAUSA inyectada a los Nodos de Renderizado y Ollama.")
+        except Exception as e:
+            log.error(f"[JARVIS-Thermal] Error al pausar cargas pesadas: {e}")
 
     def resume_heavy_workloads(self):
-        """Simula escribir el estado RUNNING en La Tinka."""
-        # TODO: Implementar escritura real en SQLite / Tinka WAL
-        log.info("[JARVIS-Thermal] Señal de REANUDACIÓN enviada a los Nodos.")
+        """Remueve la marca de throttling y reanuda procesos suspendidos."""
+        try:
+            import os
+            import json
+            import psutil
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            settings_path = os.path.join(base_dir, "_settings.json")
+            if os.path.exists(settings_path):
+                with open(settings_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                data["thermal_throttling"] = False
+                with open(settings_path, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=4)
+
+            # Reanudar procesos suspendidos
+            for proc in psutil.process_iter(['pid', 'name']):
+                try:
+                    pname = (proc.info['name'] or '').lower()
+                    if any(k in pname for k in ('ollama', 'ffmpeg', 'comfyui')):
+                        proc.resume()
+                        log.info(f"[JARVIS-Thermal] Proceso reanudado: {pname} (PID {proc.info['pid']})")
+                except Exception:
+                    pass
+            log.info("[JARVIS-Thermal] Señal de REANUDACIÓN enviada a los Nodos.")
+        except Exception as e:
+            log.error(f"[JARVIS-Thermal] Error al reanudar cargas pesadas: {e}")
 
     def loop(self):
         log.info("[JARVIS-Thermal] Watchdog de Supervivencia Activa iniciado.")

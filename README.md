@@ -5,7 +5,7 @@
   [![Autor](https://img.shields.io/badge/Author-DarckRovert-818cf8.svg?style=flat-square)](https://github.com/DarckRovert)
   [![Licencia](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
   [![Arquitectura](https://img.shields.io/badge/Architecture-Omniscient--Tier-c69c6d.svg?style=flat-square)]()
-  [![Release](https://img.shields.io/badge/Release-V17.0_PRO-6366f1.svg?style=flat-square)]()
+  [![Release](https://img.shields.io/badge/Release-V16.0_PRO-6366f1.svg?style=flat-square)]()
   [![Security Audit](https://img.shields.io/badge/Security-Audited_100%25-success?style=flat-square&logo=shield)]()
   [![Twitch](https://img.shields.io/badge/Twitch-DarckRovert-9146ff.svg?style=flat-square&logo=twitch)](https://twitch.tv/darckrovert)
 
@@ -28,9 +28,9 @@
 
 En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Studio), motores de difusión (Fooocus), servidores C++ (MangosD/WoW) y pipelines CI/CD desde una sola máquina resulta en colisiones de hardware, puertos huérfanos, OOM en VRAM y latencias de segundos.
 
-**Gravity AI Bridge V17.0 PRO** elimina todos estos problemas con Python nativo puro y un frontend React/Vite de alta respuesta. Su filosofía:
+**Gravity AI Bridge V16.0 PRO** elimina todos estos problemas con Python nativo puro y un frontend React/Vite de alta respuesta. Su filosofía:
 
-> **Nota de Seguridad:** La versión V17.0 PRO ha pasado una rigurosa auditoría de código, erradicando vulnerabilidades de ReDoS y garantizando resiliencia absoluta contra fallos silenciosos en operaciones asíncronas y de Git.
+> **Nota de Seguridad:** La versión V16.0 PRO ha pasado una rigurosa auditoría de código, erradicando vulnerabilidades de ReDoS y garantizando resiliencia absoluta contra fallos silenciosos en operaciones asíncronas y de Git.
 
 - **Zero Dependencias Masivas**: Latencia interna en microsegundos, payload de memoria insignificante.
 - **Conciencia Dinámica del Host**: Auto-diagnóstico de RAM y VRAM, ajuste dinámico de `num_ctx` de Ollama en tiempo real según estrés térmico.
@@ -39,13 +39,12 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 
 ---
 
-## 🏛 Módulos del Ecosistema V17.0 PRO
+## 🏛 Módulos del Ecosistema V16.0 PRO
 
 ### 📰 Reportero Autónomo (Agente Periodístico)
 - **Operación Continua (Daemon):** Un agente persistente que despierta aleatoriamente cada 4-8 horas (`news_daemon.py`).
 - **Investigación Web Profunda:** Analiza temáticas complejas de geopolítica y ciberseguridad a través de Web Search y fuentes independientes vía RSS de YouTube (ej. Los Liberales).
-- **Redacción y Publicación End-to-End:** 7 Nodos Atómicos en `workflows/reporter.json` orquestan RSS → WebSearch → LLM → Normalización → news.json → VideoJob → GitDeploy. Cuenta con sanitización extrema en URLs, publicación atómica y **Aislamiento Epistemológico** que erradica la contaminación de ciencia ficción en artículos periodísticos reales.
-- **Estabilidad Estructural (Anti-Alucinaciones):** Implanta forzosamente un `<thought>` pre-renderizado (Chain-of-Thought) en el LLM y utiliza un parser multinivel Regex de 4 capas para garantizar que el motor nunca sufra roturas de JSON ("Transmisiones Clandestinas").
+- **Redacción y Publicación End-to-End:** 7 Nodos Atómicos en `workflows/reporter.json` orquestan RSS → WebSearch → LLM → Normalización → news.json → VideoJob → GitDeploy. Cuenta con sanitización extrema en URLs (Pollinations Safe-Encoding) y publicación atómica.
 - **Auto-Mantenimiento:** Sincroniza bibliotecas e imágenes eliminando duplicados mediante un sistema de slugs.
 
 ### 🧠 Multi-Agent Orchestrator (`core/multi_agent.py`)
@@ -54,7 +53,7 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 - **Reasoning Stripper**: Filtra tokens `<think>` de modelos como DeepSeek-R1 via Regex antes de mostrarlos.
 - **Agent Routing**: Selección dinámica de modelo/proveedor según `--role` (auditor, planner, coder, researcher, executor).
 
-### 🖥️ Dashboard V17.0 PRO React SPA (`frontend/dist`)
+### 🖥️ Dashboard V16.1 PRO React SPA (`frontend/dist`)
 Panel de control unificado con 25 componentes orquestados en tiempo real:
 
 | Panel | Función |
@@ -85,7 +84,7 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 | 📋 Audit Log | Historial de peticiones con rotación automática |
 | ⚙️ Configuración | API keys, modelo activo, links rápidos |
 
-### 🔄 Multi-Session Bridge V17.0 PRO (`core/session_runner.py`)
+### 🔄 Multi-Session Bridge V16.0 PRO (`core/session_runner.py`)
 - `CapacityWake` + `SessionSpawner`: hasta 32 subprocesos de agente aislados simultáneos.
 - Spawn vía UI con selector de **rol** (auditor/planner/coder/researcher/executor).
 - Kill de workers activos con estado PID en tiempo real.
@@ -152,7 +151,7 @@ Sistema pasivo integrado en el pipeline de renderizado que multiplica los ingres
 - Pre-flight MySQL antes de arrancar (evita corrupción de Character-Files).
 - Auto-backup `mysqldump` en cierre, historial de jugadores, exposición WAN.
 
-### 🎥 OBS Studio Control & Gravity Spark V17.0 PRO (`core/obs_client.py` & `core/obs_spark_engine.py`)
+### 🎥 OBS Studio Control & Gravity Spark V16.0 PRO (`core/obs_client.py` & `core/obs_spark_engine.py`)
 - **Control Total de OBS**: Auto-conexión vía WebSocket v5. Gestiona escenas, fuentes, mute/volumen, streaming y grabación desde la API.
 - **Gravity Spark (Motor de Overlays AI)**: Reemplaza costosos servicios de overlays web. Genera código HTML/JS autocontenido en tiempo real usando tu LLM local, inyectándolo directamente como `Browser Source` en OBS.
 - Capacidad de **modificar overlays al vuelo** ("hazlo azul", "añade un borde neón") sin recargar OBS.
@@ -200,7 +199,7 @@ python bridge_server.py
 Dashboard disponible en: `http://localhost:7860`
 
 ### Instalación con Installer (Windows)
-Descargar `Gravity_AI_Bridge_V17.0_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
+Descargar `Gravity_AI_Bridge_V16.0_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
 
 ---
 
@@ -243,11 +242,11 @@ Ver [`SECURITY.md`](SECURITY.md) para política de vulnerabilidades y reporte re
 ---
 
 > [!NOTE]
-> Ecosistema local privado V17.0 PRO Omniscient-Tier.
+> Ecosistema local privado V16.0 PRO Omniscient-Tier.
 > [**📖 WIKI CORPORATIVA**](./wiki/Home.md) | [📜 CONTRIBUCIÓN](./CONTRIBUTING.md) | [🔒 SEGURIDAD](./SECURITY.md)
 
 <br>
 
 <div align="center">
-  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V17.0 PRO — Motor Cinematic V2.0 PBR. All architectural assets belong to their proprietary author.</i></sub>
+  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V16.0 PRO — Motor Cinematic V2.0 PBR. All architectural assets belong to their proprietary author.</i></sub>
 </div>

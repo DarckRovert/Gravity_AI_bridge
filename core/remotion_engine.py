@@ -58,6 +58,35 @@ class RemotionEngine:
         with self._lock:
             logger.info(f"Iniciando render para composición: {composition_id}")
 
+            # Purga defensiva de directorios temporales viejos en public/ para evitar acumulación de gigabytes y ralentización de I/O
+            public_dir = self.workspace / "public"
+            if public_dir.exists():
+                def _purge_onerror(func, p, exc):
+                    import stat
+                    try:
+                        os.chmod(p, stat.S_IWRITE)
+                        func(p)
+                    except Exception:
+                        pass
+                for item in public_dir.iterdir():
+                    if item.is_dir() and item.name.startswith("temp_"):
+                        try:
+                            shutil.rmtree(item, onerror=_purge_onerror)
+                            logger.info(f"Purga exitosa de directorio temporal huérfano: {item.name}")
+                        except Exception:
+                            # Ignorar si está bloqueado por otro proceso aún
+                            pass
+
+            # Purga defensiva de archivos props JSON temporales viejos en el workspace
+            if self.workspace.exists():
+                for item in self.workspace.iterdir():
+                    if item.is_file() and item.name.startswith("temp_props_") and item.name.endswith(".json"):
+                        try:
+                            item.unlink()
+                            logger.info(f"Purga exitosa de props temporal huérfano: {item.name}")
+                        except Exception:
+                            pass
+
             # Helper robusto para copiar archivos mitigando bloqueos temporales en Windows
             def _copy_file_with_retry(
                 src: str, dst: Path, max_retries: int = 5, delay: float = 0.2
@@ -102,10 +131,17 @@ class RemotionEngine:
             def _rmtree_with_retry(
                 path: Path, max_retries: int = 5, delay: float = 0.2
             ) -> None:
+                def _rm_onerror(func, p, exc):
+                    import stat
+                    try:
+                        os.chmod(p, stat.S_IWRITE)
+                        func(p)
+                    except Exception:
+                        pass
                 for attempt in range(max_retries):
                     try:
                         if path.exists():
-                            shutil.rmtree(path)
+                            shutil.rmtree(path, onerror=_rm_onerror)
                         return
                     except PermissionError:
                         if attempt == max_retries - 1:
@@ -171,10 +207,11 @@ class RemotionEngine:
                 composition_id,
                 str(output_mp4),
                 f"--props={str(props_path)}",
-                "--gl=swangle",
                 "--concurrency=1",
                 "--image-format=jpeg",
                 "--disable-web-security",
+                "--log=verbose",
+                "--browser-executable=C:/Program Files/Google/Chrome/Application/chrome.exe",
             ]
 
             # En Windows a veces npx necesita shell=True o ser llamado como npx.cmd
@@ -201,9 +238,19 @@ class RemotionEngine:
                 logger.error("Remotion render excedió el timeout de 45 minutos.")
                 raise RuntimeError("Remotion render timeout (45 min)")
             except subprocess.CalledProcessError as e:
-                stderr_tail = (e.stderr or "")[-3000:]
-                logger.error(f"Error renderizando video:\n{stderr_tail}")
-                raise RuntimeError(f"Remotion render failed: {stderr_tail}")
+                if output_mp4.exists() and output_mp4.stat().st_size > 0:
+                    logger.warning(
+                        f"Remotion terminó con código de error {e.returncode}, pero el MP4 fue generado con éxito ({output_mp4.stat().st_size} bytes). Continuando de forma tolerante..."
+                    )
+                else:
+                    stderr_tail = (e.stderr or "")[-3000:]
+                    stdout_tail = (e.stdout or "")[-3000:]
+                    logger.error(
+                        f"Error renderizando video.\nSTDOUT:\n{stdout_tail}\nSTDERR:\n{stderr_tail}"
+                    )
+                    raise RuntimeError(
+                        f"Remotion render failed. STDOUT: {stdout_tail} | STDERR: {stderr_tail}"
+                    )
             finally:
                 # 3. Limpiar archivo de props temporal y los assets copiados usando reintentos defensivos
                 _unlink_with_retry(props_path)
@@ -219,15 +266,23 @@ class RemotionEngine:
 
 if __name__ == "__main__":
     # Prueba del motor si se ejecuta directamente
+    import sys
+    sys.stdout.reconfigure(encoding='utf-8')
+    
     engine = RemotionEngine()
     test_props = {
-        "title": "TOP 3 IA TOOLS",
-        "subtitle": "Para mejorar tu productividad",
-        "themeColor": "#f43f5e",  # Rose color
+        "scenes": [
+            {
+                "imagePath": "F:/Gravity_AI_bridge/_videos/job_3/scene_01_image.png",
+                "audioPath": "F:/Gravity_AI_bridge/_videos/job_3/scene_01_audio.wav",
+                "durationInFrames": 150,
+                "words": []
+            }
+        ]
     }
     try:
         mp4_path = engine.render_composition(
-            composition_id="ShortTemplate", output_name="test_short", props=test_props
+            composition_id="LongTemplate", output_name="test_long", props=test_props
         )
         print(f"Video generado en: {mp4_path}")
     except Exception as e:

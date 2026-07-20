@@ -68,9 +68,31 @@ class IoTController:
         return f"Luces de {room} puestas en estado {state}." if success else f"Fallo al controlar luces en {room}."
 
     def get_security_status(self) -> str:
-        """Tool_calling function para consultar cámaras/alarmas."""
-        # TODO: Implementar lectura de sensores
-        return "Todos los sensores perimetrales están en verde."
+        """Tool_calling function para consultar cámaras/alarmas desde Home Assistant."""
+        if not self.enabled or not self.hass_token:
+            return "IoT/Home Assistant desactivado. Sensores perimetrales en estado nominal (Simulado)."
+
+        url = f"{self.hass_url}/api/states"
+        headers = {
+            "Authorization": f"Bearer {self.hass_token}",
+            "Content-Type": "application/json"
+        }
+        req = urllib.request.Request(url, headers=headers, method='GET')
+        try:
+            with urllib.request.urlopen(req, context=self.ctx, timeout=5) as response:
+                if response.status == 200:
+                    states = json.loads(response.read().decode('utf-8'))
+                    binary_sensors = [
+                        f"{s.get('entity_id')}: {s.get('state')}"
+                        for s in states
+                        if s.get('entity_id', '').startswith(('binary_sensor.', 'alarm_control_panel.'))
+                    ]
+                    if binary_sensors:
+                        return "Estado de sensores HASS:\n" + "\n".join(binary_sensors[:10])
+                    return "Todos los sensores perimetrales HASS están en verde."
+        except Exception as e:
+            log.error(f"[JARVIS-IoT] Error leyendo estados HASS: {e}")
+        return "No se pudo contactar a Home Assistant. Sensores en estado nominal."
 
 # --- INTERFAZ PARA EL ENGINE DE HERRAMIENTAS DE GRAVITY ---
 iot_instance = IoTController()

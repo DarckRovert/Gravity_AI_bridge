@@ -1,10 +1,19 @@
-# 🧠 Plan de Evolución Agéntica — Gravity AI Bridge V17.0 Roadmap
+# 🧠 Plan de Evolución Agéntica — Gravity AI Bridge V30.0 MYTHOS Roadmap
 
-Estado: **V17.0 PRO Activo** | Próximo hito: **V18.0 Swarm Autonomy**
+Estado: **V30.0 MYTHOS Activo** | Próximo hito: **V31.0 Swarm Autonomy**
 
 ---
 
 ## ✅ Hitos Completados
+
+### V30.0 MYTHOS — Monolito de Excelencia & Resiliencia L9 (Julio 2026)
+- [x] **LLM Frontier & Pydantic Validation:** Inyección de `complete_structured` en el gestor de proveedores con validación de esquemas Pydantic y 3 intentos de auto-corrección.
+- [x] **Pre-LLM Guardrails:** Intercepción determinista en microsegundos de comandos de parada (`alto`, `stop`), reinicio (`reset`) y escalado a humano (`handoff`).
+- [x] **Universal LLM Endpoint Auditor:** Demonio proactivo en segundo plano que prueba la disponibilidad real (`max_tokens: 1`) de los modelos configurados en la nube y alerta sobre modelos descontinuados (HTTP 404/410).
+- [x] **Server-Sent Events (SSE) Bus:** Enrutamiento in-process `/v1/events/stream` desacoplado para notificaciones en vivo en el Dashboard React.
+- [x] **Thermal Watchdog & Throttling:** Monitoreo térmico con `psutil` que suspende procesos pesados (`ollama`, `ffmpeg`, `comfyui`) si la CPU/APU alcanza los 85°C y los reanuda al enfriar.
+- [x] **Home Assistant IoT Integration:** Consulta nativa del estado de sensores y alarmas mediante la API REST de Home Assistant.
+- [x] **Limpieza Total de Deuda Técnica:** Purga de 20+ archivos duplicados `(1)` y erradicación de todas las rutas absolutas hardcodeadas en favor de resoluciones relativas dinámicas (`os.path.dirname`).
 
 ### V16.4 PRO — OODA Loop & Executive Packaging (Junio 2026)
 - [x] Consolidación del Bucle OODA con *Scraping de Bounties* integrado (Orient & Decide).
@@ -36,7 +45,7 @@ Estado: **V17.0 PRO Activo** | Próximo hito: **V18.0 Swarm Autonomy**
 
 ---
 
-## 🔭 V16.0 Autonomous Studio — Hitos Planificados
+## 🔭 V30.0 Autonomous Studio — Hitos Planificados
 
 ### 🎯 Prioridad Alta
 
@@ -93,7 +102,7 @@ Estado: **V17.0 PRO Activo** | Próximo hito: **V18.0 Swarm Autonomy**
 
 ---
 
-## 📐 Principios de Diseño para V16.0
+## 📐 Principios de Diseño para V30.0
 
 1. **Local-First siempre**: Ninguna función crítica dependerá de APIs cloud. Toda IA de síntesis corre localmente.
 2. **Zero-Config para el usuario**: El sistema infiere estilos, duraciones y transiciones sin intervención manual.
@@ -103,7 +112,7 @@ Estado: **V17.0 PRO Activo** | Próximo hito: **V18.0 Swarm Autonomy**
 
 ---
 
-## 🔗 Dependencias Técnicas para V16.0
+## 🔗 Dependencias Técnicas para V30.0
 
 | Feature | Dependencia | Estado |
 |---|---|---|

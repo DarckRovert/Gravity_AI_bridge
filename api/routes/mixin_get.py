@@ -53,7 +53,9 @@ class GetRoutesMixin:
             "/v1/hardware/stats": self._serve_hardware,
             "/v1/cost": self._serve_cost,
             "/v1/watchdog": self._serve_watchdog,
+            "/v1/resource_watchdog": self._serve_resource_watchdog,
             "/v1/sessions": self._serve_sessions,
+            "/v1/events/stream": self._serve_events_stream,
             "/v1/rag/status": self._serve_rag_status,
             "/v1/rag/search": self._serve_rag_search,
             # ── V16.0 PRO New Endpoints ─────────────────────────────────────────────
@@ -128,6 +130,20 @@ class GetRoutesMixin:
             "/v1/radar/status": self._serve_radar_status,
             # ── NPU AMD XDNA ───────────────────────────────────────────────────────────
             "/v1/npu/status": self._serve_npu_status,
+            # ── GTLIS — TikTok Live Intelligence Suite (OSINT White-Hat) ───────────────
+            "/v1/tiktok/status": self._serve_tiktok_status,
+            "/v1/tiktok/channels": self._serve_tiktok_channels,
+            "/v1/tiktok/probe": self._serve_tiktok_probe,
+            "/v1/tiktok/report": self._serve_tiktok_report,
+            "/v1/tiktok/alerts": self._serve_tiktok_alerts,
+            "/v1/tiktok/history": self._serve_tiktok_history,
+            "/v1/tiktok/bot": self._serve_tiktok_bot_analyze,
+            "/v1/tiktok/geo": self._serve_tiktok_geo,
+            "/v1/tiktok/deep_osint": getattr(self, "_serve_tiktok_deep_osint", lambda: None),
+            "/v1/tiktok/dossier": getattr(self, "_serve_tiktok_dossier", lambda: None),
+            "/v1/tiktok/comments": getattr(self, "_serve_tiktok_comments", lambda: None),
+            "/v1/tiktok/audio_transcript": getattr(self, "_serve_tiktok_audio_transcript", lambda: None),
+            "/v1/tiktok/psychological_profile": getattr(self, "_serve_tiktok_psychological_profile", lambda: None),
         }
 
         # Rutas con query string (?server=&lines=)
@@ -172,6 +188,9 @@ class GetRoutesMixin:
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
                 self.send_header("Content-Length", str(len(body)))
+                self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+                self.send_header("Pragma", "no-cache")
+                self.send_header("Expires", "0")
                 self._send_cors()
                 self.end_headers()
                 self.wfile.write(body)
@@ -214,10 +233,16 @@ class GetRoutesMixin:
                 else os.path.dirname(os.path.abspath(sys.executable))
             )
             dist_path = os.path.realpath(os.path.join(BASE, "web"))
+            filepath = os.path.realpath(os.path.join(dist_path, rel_path))
         else:
+            web_path = os.path.realpath(os.path.join(BASE, "web"))
             dist_path = os.path.realpath(os.path.join(BASE, "frontend", "dist"))
-
-        filepath = os.path.realpath(os.path.join(dist_path, rel_path))
+            
+            filepath = os.path.realpath(os.path.join(web_path, rel_path))
+            if not os.path.exists(filepath):
+                filepath = os.path.realpath(os.path.join(dist_path, rel_path))
+            else:
+                dist_path = web_path
 
         # Seguridad: verificar que el path resuelto esté dentro del directorio permitido
         if not filepath.startswith(dist_path + os.sep) and filepath != dist_path:
@@ -829,6 +854,17 @@ class GetRoutesMixin:
         """Estado del NPU FastFlowLM AMD XDNA (puerto 52625)."""
         import urllib.request
         from urllib.error import URLError
+        
+        # Detección física instantánea de la NPU vía registro para diagnóstico
+        npu_detected = False
+        try:
+            import winreg
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Enum\PCI")
+            npu_detected = any("VEN_1022" in winreg.EnumKey(key, i) and "DEV_1502" in winreg.EnumKey(key, i) for i in range(winreg.QueryInfoKey(key)[0]))
+        except Exception:
+            pass
+        
+        npu_msg = "NPU física AMD XDNA1 (Hawk Point) activa/detectada." if npu_detected else "No se detectó hardware NPU AMD compatible."
         url = "http://localhost:52625/v1/models"
         result = {"online": False, "models": [], "error": None, "port": 52625, "driver": "AMD XDNA"}
         try:
@@ -837,23 +873,20 @@ class GetRoutesMixin:
                 result["online"] = True
                 result["models"] = [m.get("id", "") for m in data.get("data", [])]
         except TimeoutError:
-            result["online"] = True
-            result["models"] = ["Iniciando motor (compilando grafos)..."]
+            result["error"] = f"FastFlowLM deshabilitado (XDNA2 requerido). {npu_msg}"
         except URLError as e:
             if isinstance(e.reason, TimeoutError) or "timed out" in str(e.reason).lower():
-                result["online"] = True
-                result["models"] = ["Iniciando motor (compilando grafos)..."]
+                result["error"] = f"FastFlowLM deshabilitado (XDNA2 requerido). {npu_msg}"
             elif "refused" in str(e.reason).lower() or "10061" in str(e.reason):
-                result["error"] = "FastFlowLM no está ejecutándose en el puerto 52625."
+                result["error"] = f"FastFlowLM deshabilitado (XDNA2 requerido). {npu_msg}"
             else:
                 result["error"] = f"Error de conexión: {e.reason}"
         except OSError as e:
             err = str(e)
             if "refused" in err.lower() or "10061" in err:
-                result["error"] = "FastFlowLM no está ejecutándose en el puerto 52625."
+                result["error"] = f"FastFlowLM deshabilitado (XDNA2 requerido). {npu_msg}"
             elif "timeout" in err.lower() or "timed out" in err.lower():
-                result["online"] = True
-                result["models"] = ["Iniciando motor (compilando grafos)..."]
+                result["error"] = f"FastFlowLM deshabilitado (XDNA2 requerido). {npu_msg}"
             else:
                 result["error"] = f"Error de conexión: {err}"
         except Exception as e:
@@ -1077,6 +1110,23 @@ class GetRoutesMixin:
                     "worker_pool": True,
                 },
             }
+            body = json.dumps(data, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_resource_watchdog(self):
+        """GET /v1/resource_watchdog — Telemetría del Resource Watchdog (RAM/VRAM/limpiezas)."""
+        try:
+            from core.resource_watchdog import resource_watchdog
+            data = resource_watchdog.get_status()
             body = json.dumps(data, indent=2).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
@@ -1401,6 +1451,17 @@ class GetRoutesMixin:
             except Exception:
                 pass
 
+            tiktok_data = {}
+            try:
+                from core.tiktok_radar import _load_watchlist
+                wl = _load_watchlist()
+                tiktok_data = {
+                    "active_targets": len(wl),
+                    "targets": wl
+                }
+            except Exception:
+                pass
+
             context_text = build_system_context()
 
             data = {
@@ -1418,6 +1479,7 @@ class GetRoutesMixin:
                 },
                 "hardware": hw,
                 "cost": cost_data,
+                "tiktok": tiktok_data,
                 "security_alerts": len(security_monitor.get_state().get("alerts", [])),
                 "system_commands": SYSTEM_COMMANDS,
                 "context_text": context_text,
@@ -2413,3 +2475,27 @@ class GetRoutesMixin:
             self._send_cors()
             self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_events_stream(self):
+        """
+        Endpoint SSE (Server-Sent Events) del Event Bus (Mythos Edition Phase 2).
+        Conecta el Dashboard React al bus de eventos interno en tiempo real.
+        """
+        from core.event_bus import event_bus
+
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Connection", "keep-alive")
+        self._send_cors()
+        self.end_headers()
+        
+        try:
+            # El método subscribe() es un Generador, no una Cola
+            for item in event_bus.subscribe("global"):
+                payload = json.dumps(item, ensure_ascii=False)
+                self.wfile.write(f"data: {payload}\n\n".encode("utf-8"))
+                self.wfile.flush()
+        except Exception:
+            # Cliente desconectado (o error de socket)
+            pass

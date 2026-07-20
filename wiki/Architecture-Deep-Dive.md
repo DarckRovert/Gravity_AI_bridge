@@ -21,13 +21,3 @@ Un proceso demonio continuo (`news_daemon.py`) que:
 2. Busca temáticas usando herramientas de WebSearch.
 3. Inyecta respuestas LLM en `news.json` en un repositorio independiente (`gravity-news-portal`).
 4. Realiza sincronizaciones automáticas a través de `git commit` y `git push` a Netlify. Cuenta con control de idempotencia para evitar fallos si no hay cambios nuevos, garantizando un ciclo de ejecución continuo.
-
-## Mecanismo de Estabilidad Estructural (Anti-Alucinaciones)
-
-Para garantizar la estabilidad del portal frente a alucinaciones de modelos locales de menor tamaño (ej. caídas de formato JSON provocando "Transmisiones Clandestinas"), la arquitectura implementa dos capas de seguridad:
-1. **Chain-of-Thought Forzado (`<thought>`):** Todos los manifiestos de redactores exigen que el LLM planifique sus deconstrucciones dentro de un bloque XML `<thought>` antes de escupir el JSON final. Esto purga la longitud de razonamiento e impide que rompa el string JSON.
-2. **Parser Multinivel (`ContentNormalizerNode`):** El motor no falla si el LLM incluye texto extra. Implementa un parser con 4 capas de fallback:
-   - `json.loads` estricto.
-   - Extracción con Regex de bloques de código ` ```json `.
-   - Extracción de llaves extremas `{...}` (ignorando el bloque `<thought>` superior).
-   - Ensamblaje manual y reparación sintáctica del JSON si ocurre un truncamiento por límite de tokens.

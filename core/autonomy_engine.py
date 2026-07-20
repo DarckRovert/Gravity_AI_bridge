@@ -224,31 +224,41 @@ def _observe() -> Dict[str, Any]:
             "Gravity", 
             "Databases"
         )
-        periodista_file = os.path.join(app_data, "_periodista_state.json")
-        if os.path.isfile(periodista_file):
-            with open(periodista_file, "r", encoding="utf-8") as _f:
-                ps = _json.load(_f)
-            last_pub = ps.get("last_successful_publish")
-            hours_since_pub = None
-            if last_pub:
-                try:
-                    from datetime import datetime as _dt
-                    delta = datetime.now(timezone.utc) - _dt.fromisoformat(last_pub).replace(tzinfo=timezone.utc)
-                    hours_since_pub = round(delta.total_seconds() / 3600, 1)
-                except Exception:
-                    pass
-            snapshot["periodista"] = {
-                "status": ps.get("status", "unknown"),
-                "cycle_count": ps.get("cycle_count", 0),
-                "total_published": ps.get("total_published", 0),
-                "consecutive_errors": ps.get("consecutive_errors", 0),
-                "last_error": ps.get("last_error"),
-                "hours_since_last_pub": hours_since_pub,
-            }
-        else:
-            snapshot["periodista"] = {"status": "not_running"}
+        
+        def _get_reporter_status(filename):
+            path = os.path.join(app_data, filename)
+            if not os.path.isfile(path):
+                return {"status": "not_running"}
+            try:
+                with open(path, "r", encoding="utf-8") as _f:
+                    ps = _json.load(_f)
+                last_pub = ps.get("last_successful_publish")
+                hours_since_pub = None
+                if last_pub:
+                    try:
+                        from datetime import datetime as _dt
+                        delta = datetime.now(timezone.utc) - _dt.fromisoformat(last_pub).replace(tzinfo=timezone.utc)
+                        hours_since_pub = round(delta.total_seconds() / 3600, 1)
+                    except Exception:
+                        pass
+                return {
+                    "status": ps.get("status", "unknown"),
+                    "cycle_count": ps.get("cycle_count", 0),
+                    "total_published": ps.get("total_published", 0),
+                    "consecutive_errors": ps.get("consecutive_errors", 0),
+                    "last_error": ps.get("last_error"),
+                    "hours_since_last_pub": hours_since_pub,
+                }
+            except Exception as ex:
+                return {"error": str(ex)}
+
+        snapshot["periodista"] = _get_reporter_status("_periodista_state.json")
+        snapshot["periodista_peru"] = _get_reporter_status("_periodista_peru_state.json")
+        snapshot["periodista_geopolitico"] = _get_reporter_status("_periodista_geopolitica_state.json")
     except Exception as e:
         snapshot["periodista"] = {"error": str(e)}
+        snapshot["periodista_peru"] = {"error": str(e)}
+        snapshot["periodista_geopolitico"] = {"error": str(e)}
 
     # Modo Vigía (Anomaly Watchdog)
     try:
@@ -347,43 +357,49 @@ def _orient(snapshot: Dict[str, Any]) -> Tuple[str, List[str]]:
         level = "OPORTUNIDAD"
         alerts.append(f"MERCENARIO: Se encontraron {bounty_size}KB de nuevas ofertas de trabajo freelance. Sugerir aplicar.")
 
-    # Periodista Autónomo
-    per = snapshot.get("periodista", {})
-    consec_err = per.get("consecutive_errors", 0)
-    hours_silent = per.get("hours_since_last_pub")
-    per_status = per.get("status", "")
+    # Periodista Autónomo (Web, Perú, Geopolítico)
+    for name, key, filename in [
+        ("Web", "periodista", "_periodista_state.json"),
+        ("Perú", "periodista_peru", "_periodista_peru_state.json"),
+        ("Geopolítico", "periodista_geopolitico", "_periodista_geopolitica_state.json")
+    ]:
+        per = snapshot.get(key, {})
+        consec_err = per.get("consecutive_errors", 0)
+        hours_silent = per.get("hours_since_last_pub")
+        per_status = per.get("status", "")
 
-    if per_status == "not_running":
-        if level == "NORMAL":
-            level = "ALERTA"
-        alerts.append("PERIODISTA: El daemon del Periodista Autónomo no está activo (sin _periodista_state.json)")
-    elif consec_err >= 3:
-        if level not in ("CRÍTICO",):
-            level = "ALERTA"
-        alerts.append(
-            f"PERIODISTA: {consec_err} errores consecutivos. "
-            f"Error: {str(per.get('last_error', ''))[:80]}"
-        )
-    elif hours_silent is not None and hours_silent > 24:
-        if level == "NORMAL":
-            level = "ALERTA"
-        alerts.append(
-            f"PERIODISTA: Sin publicaciones en {hours_silent:.1f}h — verificar estado del daemon"
-        )
+        if per_status == "not_running":
+            if level == "NORMAL":
+                level = "ALERTA"
+            alerts.append(f"PERIODISTA {name.upper()}: El daemon no está activo (sin {filename})")
+        elif consec_err >= 3:
+            if level not in ("CRÍTICO",):
+                level = "ALERTA"
+            alerts.append(
+                f"PERIODISTA {name.upper()}: {consec_err} errores consecutivos. "
+                f"Error: {str(per.get('last_error', ''))[:80]}"
+            )
+        elif hours_silent is not None and hours_silent > 24:
+            if level == "NORMAL":
+                level = "ALERTA"
+            alerts.append(
+                f"PERIODISTA {name.upper()}: Sin publicaciones en {hours_silent:.1f}h — verificar estado del daemon"
+            )
 
     # Vigía (Detector Constante)
     vig = snapshot.get("vigia", {})
-    if vig.get("overall_status") != "NORMAL" and vig.get("overall_status") != "NOT_RUNNING":
+    overall_status = vig.get("overall_status", "NORMAL")
+    if overall_status != "NORMAL" and overall_status != "NOT_RUNNING":
         if level == "NORMAL":
             level = "ALERTA"
         
-        q_status = vig.get("quality", {}).get("status", "UNKNOWN")
+        q_status = vig.get("quality", {}).get("status", "NORMAL")
         if q_status != "NORMAL":
             if level != "CRÍTICO":
                 level = "ALERTA"
             alerts.append(f"VIGÍA: Calidad semántica de periodismo en riesgo ({q_status}) — Considerar rotar LLM o cambiar temperatura")
             
-        l_status = vig.get("logs", {}).get("status", "UNKNOWN")
+        l_status = vig.get("logs", {}).get("status", "NORMAL")
         if l_status != "NORMAL":
             level = "CRÍTICO" if l_status == "CRITICAL_ERROR_SPIKE" else "ALERTA"
             alerts.append(f"VIGÍA: Pico de errores detectado en logs ({vig.get('logs', {}).get('error_count', 0)} errores)")

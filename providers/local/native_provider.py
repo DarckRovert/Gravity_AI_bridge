@@ -76,9 +76,10 @@ class NativeLlamaProvider(ProviderPlugin):
                         )
                         del self._instances[m_name]["instance"]
                         del self._instances[m_name]
-                        import gc
-
-                        gc.collect()
+                
+                if to_delete:
+                    import gc
+                    gc.collect()
 
         t = threading.Thread(
             target=watchdog_loop, daemon=True, name="NativeLlamaWatchdog"
@@ -88,6 +89,7 @@ class NativeLlamaProvider(ProviderPlugin):
     @classmethod
     def force_unload(cls):
         """Descarga inmediatamente todos los modelos Llama de la memoria RAM."""
+        unloaded = False
         with cls._inference_lock:
             if not cls._instances:
                 return
@@ -103,7 +105,9 @@ class NativeLlamaProvider(ProviderPlugin):
             for m_name in list(cls._instances.keys()):
                 del cls._instances[m_name]["instance"]
                 del cls._instances[m_name]
-            
+            unloaded = True
+
+        if unloaded:
             import gc
             gc.collect()
 

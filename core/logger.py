@@ -66,14 +66,14 @@ def setup_logger(
     """Configures and returns a structured logger with console and rotating file output."""
     
     import os
-    if log_file == "bridge.log":
+    if not os.path.isabs(log_file):
         log_dir = os.path.join(
             os.environ.get("LOCALAPPDATA", os.path.expanduser("~\\AppData\\Local")), 
             "Gravity", 
             "Logs"
         )
         os.makedirs(log_dir, exist_ok=True)
-        log_file = os.path.join(log_dir, "bridge.log")
+        log_file = os.path.join(log_dir, log_file)
     logger = logging.getLogger(name)
 
     # Prevenir que agreguemos handlers múltiples si se llama varias veces
@@ -115,10 +115,19 @@ def setup_logger(
                 pass
     logger.addHandler(console_handler)
 
+    class SafeRotatingFileHandler(RotatingFileHandler):
+        def doRollover(self):
+            try:
+                super().doRollover()
+            except PermissionError:
+                pass
+            except Exception:
+                pass
+
     # 2. File Handler (JSON Format)
     # Rotating file handler: 10MB max, keep 5 backups
     try:
-        file_handler = RotatingFileHandler(
+        file_handler = SafeRotatingFileHandler(
             log_file, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"
         )
         file_handler.setFormatter(SanitizedJSONFormatter())

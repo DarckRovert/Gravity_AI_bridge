@@ -120,17 +120,24 @@ class ContentNormalizerNode(GravityNode):
                 "category", "categoria", "categoría", 
                 "title", "titulo", "título", "title_articulo",
                 "excerpt", "extracto", "resumen", "description", "summary",
-                "subtitle", "subtitulo", "subtítulo", "region", "región", "pais", "país"
+                "subtitle", "subtitulo", "subtítulo", "region", "región", "pais", "país",
+                "image_prompt"
             ]
             for field in string_fields:
-                m = re.search(rf'"{field}"\s*:\s*"((?:[^"\\]|\\.)*?)(?:"|$)', text, re.IGNORECASE | re.DOTALL)
+                # 1. Intentar regex consciente del siguiente campo (evita truncamiento prematuro por comillas internas seguidas de comas)
+                m = re.search(rf'"{field}"\s*:\s*"(.*?)"\s*(?:,\s*"\w+"\s*:|\}}\s*$|$)', text, re.IGNORECASE | re.DOTALL)
+                if not m:
+                    # 2. Fallback a regex simple si el JSON está cortado/truncado sin comilla de cierre
+                    m = re.search(rf'"{field}"\s*:\s*"(.*?)(?:"\s*(?:,|\}}|$)|$)', text, re.IGNORECASE | re.DOTALL)
                 if m:
                     repaired[field] = m.group(1).replace("\\n", "\n").replace('\\"', '"')
             
             # Extract full text fields
             ft_fields = ["fullText", "fulltext_articulo", "texto", "contenido", "full_text", "cuerpo"]
             for ft_field in ft_fields:
-                ft_match = re.search(rf'"{ft_field}"\s*:\s*"((?:[^"\\]|\\.)*?)(?:"|$)', text, re.IGNORECASE | re.DOTALL)
+                ft_match = re.search(rf'"{ft_field}"\s*:\s*"(.*?)"\s*(?:,\s*"\w+"\s*:|\}}\s*$|$)', text, re.IGNORECASE | re.DOTALL)
+                if not ft_match:
+                    ft_match = re.search(rf'"{ft_field}"\s*:\s*"(.*?)(?:"\s*(?:,|\}}|$)|$)', text, re.IGNORECASE | re.DOTALL)
                 if ft_match:
                     ft = ft_match.group(1).rstrip("\\").replace("\\n", "\n").replace('\\"', '"')
                     if not ft.endswith("."):
@@ -183,6 +190,8 @@ class ContentNormalizerNode(GravityNode):
                 normalized["readingTime"] = v
             elif k_lower in ("region", "región", "pais", "país"):
                 normalized["region"] = v
+            elif k_lower in ("image_prompt", "imageprompt", "prompt_imagen", "prompt_image"):
+                normalized["image_prompt"] = v
             else:
                 normalized[k] = v
 
@@ -209,13 +218,17 @@ class ContentNormalizerNode(GravityNode):
         normalized["date"] = datetime.now().isoformat()
         normalized["tags"] = normalized.get("tags", [])
         
-        # Generar un ID único y seguro (max 60 chars para evitar crash de Path en Windows)
-        import hashlib
-        short_hash = hashlib.md5(normalized["date"].encode()).hexdigest()[:6]
-        base_slug = slugify(normalized["title"])[:50]
+        # Generar ID único basado SÓLO en el título para que funcione el reemplazo de duplicados en JSONAppender
+        base_slug = slugify(normalized["title"])[:60]
         if base_slug.endswith("-"):
             base_slug = base_slug[:-1]
-        normalized["id"] = f"{base_slug}-{short_hash}"
+        
+        # Fallback de seguridad extrema: si el título era puros emojis/símbolos y slugify queda vacío
+        if not base_slug:
+            import hashlib
+            base_slug = "articulo-anonimo-" + hashlib.md5(normalized["title"].encode()).hexdigest()[:8]
+            
+        normalized["id"] = base_slug
 
         # Estimar por longitud del texto (~200 palabras/min)
         word_count = len(normalized.get("fullText", "").split())
@@ -239,14 +252,26 @@ class ContentNormalizerNode(GravityNode):
         if content_type == "science":
             img_width, img_height = 1280, 720
 
-        # Sanitizar título para Pollinations: remover caracteres especiales que rompen la URL o el prompt
-        safe_title = re.sub(r'[^a-zA-Z0-9\sñÑáéíóúÁÉÍÓÚüÜ,.-]', '', normalized["title"][:120])
-        title_encoded = urllib.parse.quote(safe_title.strip(), safe='')
+        # Sanitizar para Pollinations: usar image_prompt (si existe) o title
         prefix_encoded = urllib.parse.quote(image_prompt_prefix, safe='')
-        img_url = (
-            f"https://image.pollinations.ai/prompt/{prefix_encoded}%20"
-            f"{title_encoded}?width={img_width}&height={img_height}&nologo=true"
-        )
+        img_prompt_custom = str(normalized.get("image_prompt") or "").strip()
+        
+        if img_prompt_custom:
+            # Si el LLM proporcionó un prompt en inglés, lo usamos
+            safe_custom = re.sub(r'[^a-zA-Z0-9\s,.-]', '', img_prompt_custom[:200])
+            custom_encoded = urllib.parse.quote(safe_custom.strip(), safe='')
+            img_url = (
+                f"https://image.pollinations.ai/prompt/{prefix_encoded}%20"
+                f"{custom_encoded}?width={img_width}&height={img_height}&nologo=true"
+            )
+        else:
+            # Fallback al título original (comportamiento legacy)
+            safe_title = re.sub(r'[^a-zA-Z0-9\sñÑáéíóúÁÉÍÓÚüÜ,.-]', '', normalized["title"][:120])
+            title_encoded = urllib.parse.quote(safe_title.strip(), safe='')
+            img_url = (
+                f"https://image.pollinations.ai/prompt/{prefix_encoded}%20"
+                f"{title_encoded}?width={img_width}&height={img_height}&nologo=true"
+            )
 
         images_dir = inputs.get("images_dir", "").strip()
 
@@ -270,21 +295,22 @@ class ContentNormalizerNode(GravityNode):
                         normalized["image"] = f"/images/{img_filename}"
                         log.info(f"[{self.__class__.__name__}] Imagen guardada localmente: {img_filename}")
             else:
-                # Solo verificar y pre-calentar si no se guarda localmente
-                req_check = urllib.request.Request(img_url, headers={"User-Agent": "Mozilla/5.0"}, method="HEAD")
-                with urllib.request.urlopen(req_check, timeout=30) as r:
-                    image_ok = r.status == 200
+                # Fire-and-forget: asignamos la url de Pollinations directamente y la pre-calentamos en background
+                normalized["image"] = img_url
+                image_ok = True
                 
-                if image_ok:
-                    normalized["image"] = img_url
-                    def _warm_image(_url=img_url, _cls=self.__class__.__name__):
-                        try:
-                            req = urllib.request.Request(_url, headers={"User-Agent": "Mozilla/5.0"})
-                            urllib.request.urlopen(req, timeout=45)
-                            log.info(f"[{_cls}] Imagen pre-calentada OK.")
-                        except Exception as e:
-                            log.warning(f"[{_cls}] Fallo al pre-calentar imagen: {e}")
-                    threading.Thread(target=_warm_image, daemon=True).start()
+                def _warm_image(_url=img_url, _cls=self.__class__.__name__):
+                    try:
+                        req_check = urllib.request.Request(_url, headers={"User-Agent": "Mozilla/5.0"}, method="HEAD")
+                        with urllib.request.urlopen(req_check, timeout=15) as r:
+                            if r.status == 200:
+                                log.info(f"[{_cls}] Imagen pre-calentada OK.")
+                            else:
+                                log.warning(f"[{_cls}] Pollinations retornó status {r.status} en HEAD check.")
+                    except Exception as e:
+                        log.warning(f"[{_cls}] Fallo al pre-calentar imagen en background: {e}")
+                        
+                threading.Thread(target=_warm_image, daemon=True).start()
 
         except Exception as _img_err:
             log.warning(f"[{self.__class__.__name__}] Error con Pollinations ({_img_err}). Usando SVG.")

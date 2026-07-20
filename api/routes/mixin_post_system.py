@@ -10,6 +10,47 @@ from core.npu_manager import npu_manager
 
 class PostSystemMixin:
     def _handle_post_system(self):
+        if self.path == "/v1/resource_watchdog/clean":
+            try:
+                from core.resource_watchdog import resource_watchdog
+                killed = resource_watchdog.trigger_cleanup()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": True, "killed": killed}).encode())
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return True
+
+        if self.path == "/v1/resource_watchdog/config":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data = json.loads(self.rfile.read(length)) if length else {}
+                from core.resource_watchdog import resource_watchdog
+                
+                if "idle_timeout_seconds" in data:
+                    resource_watchdog.idle_timeout_seconds = int(data["idle_timeout_seconds"])
+                if "ram_threshold" in data:
+                    resource_watchdog.ram_threshold_percent = float(data["ram_threshold"])
+                if "swap_threshold" in data:
+                    resource_watchdog.swap_threshold_percent = float(data["swap_threshold"])
+                    
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": True, "status": resource_watchdog.get_status()}).encode())
+            except Exception as e:
+                self.send_response(500)
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return True
+
         if self.path == "/v1/content/start":
             try:
                 from core import content_scheduler

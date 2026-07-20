@@ -1,6 +1,6 @@
 # Wiki de Gravity AI Bridge 📚
 
-Bienvenido a la Wiki Oficial del ecosistema **Gravity AI Bridge V17.0 PRO**.
+Bienvenido a la Wiki Oficial del ecosistema **Gravity AI Bridge V30.0 MYTHOS**.
 
 ## Índice de Contenidos
 

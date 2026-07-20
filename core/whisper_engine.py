@@ -50,15 +50,19 @@ class WhisperEngine:
             if self.use_npu:
                 try:
                     logger.info(
-                        "Fase 3: Intentando activar motor ONNX Runtime para aceleración NPU/DirectML..."
+                        "Fase 3: Intentando activar motor ONNX Runtime para aceleración NPU/DirectML (iGPU Radeon 780M)..."
                     )
                     from optimum.onnxruntime import ORTModelForSpeechSeq2Seq
                     from transformers import AutoProcessor, pipeline
 
                     model_id = f"openai/whisper-{model_size}"
                     processor = AutoProcessor.from_pretrained(model_id)
+                    # Forzar explícitamente el uso de la iGPU principal (device_id=0) para evitar el bug de codificación de DXGI en device_id=1
                     model = ORTModelForSpeechSeq2Seq.from_pretrained(
-                        model_id, export=True, provider="DmlExecutionProvider"
+                        model_id, 
+                        export=True, 
+                        provider="DmlExecutionProvider",
+                        provider_options={"device_id": "0"}
                     )
                     self.model = pipeline(
                         "automatic-speech-recognition",
@@ -68,7 +72,7 @@ class WhisperEngine:
                         return_timestamps="word",
                     )
                     _model_cache[cache_key] = self.model
-                    logger.info("¡Modelo ONNX cargado exitosamente en NPU/DirectML!")
+                    logger.info("¡Modelo ONNX Whisper cargado exitosamente en iGPU/DirectML (device_id=0)!")
                     return
                 except ImportError:
                     logger.warning(
@@ -133,6 +137,8 @@ class WhisperEngine:
                         language=language,
                         word_timestamps=True,
                         initial_prompt=initial_prompt,
+                        vad_filter=True,
+                        vad_parameters=dict(min_speech_duration_ms=300),
                     )
                     segments = list(segments)
                     for segment in segments:

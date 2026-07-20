@@ -83,7 +83,7 @@ class LMStudioProvider(_OpenAICompatLocalProvider):
         for port in self._alt_ports:
             t0 = time.time()
             url = f"http://localhost:{port}"
-            data = _http_get(f"{url}{self._health_path}", timeout=2.5)
+            data = _http_get(f"{url}{self._health_path}", timeout=1.2)
             if data and "data" in data:
                 r = self._make_result(url)
                 r.is_healthy = True
@@ -103,7 +103,7 @@ class LMStudioProvider(_OpenAICompatLocalProvider):
         if self._last_working_url:
             return self._last_working_url
         for port in self._alt_ports:
-            data = _http_get(f"http://localhost:{port}/v1/models", timeout=2.5)
+            data = _http_get(f"http://localhost:{port}/v1/models", timeout=1.2)
             if data:
                 url = f"http://localhost:{port}"
                 self._last_working_url = url
@@ -431,23 +431,34 @@ class FastFlowLMProvider(_OpenAICompatLocalProvider):
             r.max_context = self.default_context
             self._last_working_url = url
         else:
-            # Verificar si el proceso FLM está corriendo aunque el puerto no responda aún
-            # (estado: cargando modelo en NPU)
-            import socket as _sock
+            # Verificar si el proceso FLM está realmente en ejecución en el sistema
+            # para evitar falsos positivos con otros procesos en el mismo puerto (ej. Language Server)
+            flm_running = False
             try:
-                _s = _sock.socket(_sock.AF_INET, _sock.SOCK_STREAM)
-                _s.settimeout(1.0)
-                _conn = _s.connect_ex(("127.0.0.1", self.default_port))
-                _s.close()
-                if _conn == 0:
-                    # Puerto abierto pero /v1/models no respondió — FLM arrancando
-                    r.is_healthy = True
-                    r.models = [{"name": "llama3.2:1b", "size": 0}]
-                    r.active_model = "llama3.2:1b (cargando NPU...)"
-                    r.max_context = self.default_context
-                    self._last_working_url = url
+                import psutil
+                for proc in psutil.process_iter(['name']):
+                    if proc.info['name'] and proc.info['name'].lower() == 'flm.exe':
+                        flm_running = True
+                        break
             except Exception:
                 pass
+
+            if flm_running:
+                import socket as _sock
+                try:
+                    _s = _sock.socket(_sock.AF_INET, _sock.SOCK_STREAM)
+                    _s.settimeout(1.0)
+                    _conn = _s.connect_ex(("127.0.0.1", self.default_port))
+                    _s.close()
+                    if _conn == 0:
+                        # Puerto abierto pero /v1/models no respondió — FLM arrancando
+                        r.is_healthy = True
+                        r.models = [{"name": "llama3.2:1b", "size": 0}]
+                        r.active_model = "llama3.2:1b (cargando NPU...)"
+                        r.max_context = self.default_context
+                        self._last_working_url = url
+                except Exception:
+                    pass
         return r
 
     def _base_url(self) -> str:
