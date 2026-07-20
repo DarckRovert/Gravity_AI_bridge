@@ -4,13 +4,13 @@
 
   [![Autor](https://img.shields.io/badge/Author-DarckRovert-818cf8.svg?style=flat-square)](https://github.com/DarckRovert)
   [![Licencia](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
-  [![Arquitectura](https://img.shields.io/badge/Architecture-Omniscient--Tier-c69c6d.svg?style=flat-square)]()
-  [![Release](https://img.shields.io/badge/Release-V16.0_PRO-6366f1.svg?style=flat-square)]()
+  [![Arquitectura](https://img.shields.io/badge/Architecture-Mythos--Tier-c69c6d.svg?style=flat-square)]()
+  [![Release](https://img.shields.io/badge/Release-V30.0_MYTHOS-6366f1.svg?style=flat-square)]()
   [![Security Audit](https://img.shields.io/badge/Security-Audited_100%25-success?style=flat-square&logo=shield)]()
   [![Twitch](https://img.shields.io/badge/Twitch-DarckRovert-9146ff.svg?style=flat-square&logo=twitch)](https://twitch.tv/darckrovert)
 
   <p align="center">
-    <i><strong>Megainteligencia Asíncrona "Local-First" de Grado Corporativo Omniscient-Tier.</strong><br>
+    <i><strong>Megainteligencia Asíncrona "Local-First" de Grado Corporativo Mythos-Tier.</strong><br>
     Orquestador universal de LLMs, pipelines multimedia, Agentes Autónomos, Game Servers y HITL.<br>
     Arquitectura sin dependencias masivas · Zero-Cloud · Control total en 1 PC.</i>
   </p>
@@ -19,8 +19,8 @@
 <br>
 
 > [!CAUTION]
-> Este es un ecosistema cerrado **Omniscient-Tier Local-First**. No es open-source público.
-> Core Operacional Privado de **[DarckRovert](https://github.com/DarckRovert)** — uso estrictamente no comercial.
+> Este es un ecosistema cerrado **Mythos-Tier Local-First**. No es open-source público.
+> Core Operacional Privado de **[DarckRovert](https://github.com/DarckRovert)** — uso strictly no comercial.
 
 ---
 
@@ -28,18 +28,18 @@
 
 En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Studio), motores de difusión (Fooocus), servidores C++ (MangosD/WoW) y pipelines CI/CD desde una sola máquina resulta en colisiones de hardware, puertos huérfanos, OOM en VRAM y latencias de segundos.
 
-**Gravity AI Bridge V16.0 PRO** elimina todos estos problemas con Python nativo puro y un frontend React/Vite de alta respuesta. Su filosofía:
+**Gravity AI Bridge V30.0 MYTHOS** elimina todos estos problemas con Python nativo puro y un frontend React/Vite de alta respuesta. Su filosofía:
 
-> **Nota de Seguridad:** La versión V16.0 PRO ha pasado una rigurosa auditoría de código, erradicando vulnerabilidades de ReDoS y garantizando resiliencia absoluta contra fallos silenciosos en operaciones asíncronas y de Git.
+> **Nota de Seguridad:** La versión V30.0 MYTHOS ha pasado una rigurosa auditoría de código, erradicando vulnerabilidades de ReDoS y garantizando resiliencia absoluta contra fallos silenciosos en operaciones asíncronas y de Git.
 
 - **Zero Dependencias Masivas**: Latencia interna en microsegundos, payload de memoria insignificante.
 - **Conciencia Dinámica del Host**: Auto-diagnóstico de RAM y VRAM, ajuste dinámico de `num_ctx` de Ollama en tiempo real según estrés térmico.
 - **Local-First**: Sin enviar datos a la nube salvo APIs cloud explícitamente configuradas.
-- **Omniscient-Tier Control**: Dashboard SPA (React) unificado con observabilidad total en tiempo real.
+- **Mythos-Tier Control**: Dashboard SPA (React) unificado con observabilidad total en tiempo real.
 
 ---
 
-## 🏛 Módulos del Ecosistema V16.0 PRO
+## 🏛 Módulos del Ecosistema V30.0 MYTHOS
 
 ### 📰 Reportero Autónomo (Agente Periodístico)
 - **Operación Continua (Daemon):** Un agente persistente que despierta aleatoriamente cada 4-8 horas (`news_daemon.py`).
