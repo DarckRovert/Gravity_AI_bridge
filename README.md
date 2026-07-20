@@ -80,11 +80,7 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 | 🕷️ Firecrawl | Scraping de URLs en Markdown (Firecrawl API o fallback HTML) |
 | 🛡️ HITL Approval | Intercepción y aprobación humana de tools de alto riesgo |
 | 📡 System Status | Estado completo de backends, latencias, modelos |
-| 🔒 Security | Monitor de procesos, puertos, integridad de archivos |
-| 📋 Audit Log | Historial de peticiones con rotación automática |
-| ⚙️ Configuración | API keys, modelo activo, links rápidos |
-
-### 🔄 Multi-Session Bridge V16.0 PRO (`core/session_runner.py`)
+| 🔒 Security | Monitor de proceso### 🔄 Multi-Session Bridge V30.0 MYTHOS (`core/session_runner.py`)
 - `CapacityWake` + `SessionSpawner`: hasta 32 subprocesos de agente aislados simultáneos.
 - Spawn vía UI con selector de **rol** (auditor/planner/coder/researcher/executor).
 - Kill de workers activos con estado PID en tiempo real.
@@ -106,21 +102,21 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 - Auto-reconexión, `list_tools`, `list_resources`, `read_resource`.
 - Registro global de adaptadores accesible desde el Dashboard.
 
-### 🎬 Video Studio Multi-Agent & Motores Demoscene V17 PBR
-Pipeline multimedia de alta fidelidad orquestado asíncronamente en daemon. Completamente reestructurado bajo el paquete `/core/video/` para máxima resiliencia, con **Motores Matemáticos V17 GLSL**, Renderizado Dual Nativo y despliegue para redes sociales:
+### 🎬 Video Studio Multi-Agent & Motores Demoscene V30 PBR
+Pipeline multimedia de alta fidelidad orquestado asíncronamente en daemon. Completamente reestructurado bajo el paquete `/core/video/` para máxima resiliencia, con **Motores Matemáticos V30 GLSL**, Renderizado Dual Nativo y despliegue para redes sociales:
 
-- **Dual Render Nativo en GPU**: El motor V17 (Interstellar, Turing Patterns, etc.) renderiza matemáticamente dos veces. Un Master Horizontal (`1920x1080`) y un Master Vertical (`1080x1920`) puro sin recortes FFMPEG.
+- **Dual Render Nativo en GPU**: El motor V30 (Interstellar, Turing Patterns, etc.) renderiza matemáticamente dos veces. Un Master Horizontal (`1920x1080`) y un Master Vertical (`1080x1920`) puro sin recortes FFMPEG.
 - **Smart Subtitle Safe-Zone**: Motor `.ASS` Aspect-Ratio Aware. Adapta dinámicamente los márgenes laterales (`MarginL 40px/440px`) y anclajes verticales según el aspect ratio para jamás salirse del encuadre seguro de TikTok.
-- **Generador Multi-Escena V16**: Flujo unificado que coordina generación de historia, split de diálogos, TTS (Edge-TTS) asíncrono y Whisper para metadatos temporales de precisión.
+- **Generador Multi-Escena V30**: Flujo unificado que coordina generación de historia, split de diálogos, TTS (Edge-TTS) asíncrono y Whisper para metadatos temporales de precisión.
 - **Auto-Bypass de Fallas**: Sistema modular. Si falla Fooocus, el generador reintenta; si el LLM colapsa, usa un script genérico con `[visual anchor]` estricto.
   - `audio_processor.py`: Análisis FFT extrae frecuencias separadas (Bass, Mid, High) para reactividad visual, además de compresión sidechain y TTS cinemático.
-  - `glsl_renderer_v13.py`: Cuna de las **5 Joyas Matemáticas V17** (Interstellar Kerr Black Hole, Turing Patterns, Inception KIFS, Neon Fluid, Organic Core). Iluminación basada en imagen (IBL) y post-procesado Hollywood (Cyber Glitch, Aberración Cromática, Film Grain orgánico).
+  - `glsl_renderer_v13.py`: Cuna de las **5 Joyas Matemáticas V30** (Interstellar Kerr Black Hole, Turing Patterns, Inception KIFS, Neon Fluid, Organic Core). Iluminación basada en imagen (IBL) y post-procesado Hollywood (Cyber Glitch, Aberración Cromática, Film Grain orgánico).
   - `pipeline.py`: Base de datos SQLite (WAL), daemon worker threads, y gestor de **Auto-Routing Dual** (Generación simultánea del Máster Horizontal 16:9 y el Center-Crop Vertical 9:16).
   - `youtube_uploader.py`: Implementación del **OAuth2 Soft Shield**, que detecta tempranamente tokens inválidos y frena peticiones a red sin abortar el costoso render local.
 
 #### Flujo Híbrido de Renderizado Extremo:
 1. **Pipeline Multi-Agente (Research & Scripting)**: El *Writer* estructura la lírica y el *Retention Auditor* evalúa el anclaje emocional.
-2. **Generador de Ambientes**: Descarga asíncrona de assets o **Evasión Total AI** al utilizar los motores de shaders puristas V17.
+2. **Generador de Ambientes**: Descarga asíncrona de assets o **Evasión Total AI** al utilizar los motores de shaders puristas V30.
 3. **Composición 3D (GLSL PBR)**: Cruce reactivo de las frecuencias del audio con la geometría 3D SDF (Odisea Espacial, Tunnel Cuántico, Mandelbulb) mapeando la imagen AI como ecosfera luminosa IBL.
 4. **Ensamble Final**: FFmpeg unifica capas visuales de alta precisión de cuadros y escupe la Copia Dual.
 
@@ -151,7 +147,7 @@ Sistema pasivo integrado en el pipeline de renderizado que multiplica los ingres
 - Pre-flight MySQL antes de arrancar (evita corrupción de Character-Files).
 - Auto-backup `mysqldump` en cierre, historial de jugadores, exposición WAN.
 
-### 🎥 OBS Studio Control & Gravity Spark V16.0 PRO (`core/obs_client.py` & `core/obs_spark_engine.py`)
+### 🎥 OBS Studio Control & Gravity Spark V30.0 MYTHOS (`core/obs_client.py` & `core/obs_spark_engine.py`)
 - **Control Total de OBS**: Auto-conexión vía WebSocket v5. Gestiona escenas, fuentes, mute/volumen, streaming y grabación desde la API.
 - **Gravity Spark (Motor de Overlays AI)**: Reemplaza costosos servicios de overlays web. Genera código HTML/JS autocontenido en tiempo real usando tu LLM local, inyectándolo directamente como `Browser Source` en OBS.
 - Capacidad de **modificar overlays al vuelo** ("hazlo azul", "añade un borde neón") sin recargar OBS.
@@ -199,7 +195,7 @@ python bridge_server.py
 Dashboard disponible en: `http://localhost:7860`
 
 ### Instalación con Installer (Windows)
-Descargar `Gravity_AI_Bridge_V16.0_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
+Descargar `Gravity_AI_Bridge_V30.0_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
 
 ---
 
@@ -232,21 +228,21 @@ Ver [`SECURITY.md`](SECURITY.md) para política de vulnerabilidades y reporte re
 | Documento | Contenido |
 |---|---|
 | [Wiki Principal](./wiki/Home.md) | Índice general |
-| [Arquitectura](./wiki/Arquitectura.md) | Diagrama de módulos y flujos |
-| [Guía API](./wiki/Guia-API.md) | Todos los endpoints REST |
-| [Manual Usuario](./wiki/Manual-Usuario.md) | Guía paso a paso |
-| [FAQ](./wiki/FAQ.md) | Preguntas frecuentes |
+| [Arquitectura](./wiki/Architecture-Deep-Dive.md) | Diagrama de módulos y flujos |
+| [Guía API](./wiki/API-Reference.md) | Todos los endpoints REST |
+| [Troubleshooting](./wiki/Troubleshooting-and-FAQ.md) | Guía de soluciones y FAQ |
+| [Evolución Agéntica](./wiki/Plan-Evolucion-Agentic.md) | Roadmap del sistema |
 | [CHANGELOG](./CHANGELOG.md) | Historial de versiones |
 | [CONTRIBUTING](./CONTRIBUTING.md) | Cómo contribuir |
 
 ---
 
 > [!NOTE]
-> Ecosistema local privado V16.0 PRO Omniscient-Tier.
+> Ecosistema local privado V30.0 MYTHOS Edition.
 > [**📖 WIKI CORPORATIVA**](./wiki/Home.md) | [📜 CONTRIBUCIÓN](./CONTRIBUTING.md) | [🔒 SEGURIDAD](./SECURITY.md)
 
 <br>
 
 <div align="center">
-  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V16.0 PRO — Motor Cinematic V2.0 PBR. All architectural assets belong to their proprietary author.</i></sub>
+  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V30.0 MYTHOS Edition — Motor Cinematic PBR. All architectural assets belong to their proprietary author.</i></sub>
 </div>

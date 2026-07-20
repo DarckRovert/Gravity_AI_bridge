@@ -1,4 +1,4 @@
-# 🎬 Remotion Workspace — Gravity AI Bridge V16.0 PRO
+# 🎬 Remotion Workspace — Gravity AI Bridge V30.0 MYTHOS
 
 Motor de renderizado de **Shorts verticales (9:16)** con subtítulos karaoke interactivos y efectos visuales cinematográficos. Integrado en el pipeline de Video Studio de Gravity AI Bridge.
 

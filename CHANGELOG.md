@@ -2,6 +2,26 @@
 
 Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Bridge.
 
+## [V30.0 MYTHOS] Monolito de Excelencia & Resiliencia L9 · 20/07/2026
+
+**[MONOLITO V30.0 MYTHOS EDITION — AUDITORÍA UNIVERSAL DE ENDPOINTS, PYDANTIC FRONTIER, GUARDRAILS DETERMINISTAS, SSE STREAM BUS, THERMAL THROTTLING Y HOME ASSISTANT IOT]**
+
+### Arquitectura Nuclear & Resiliencia LLM
+- **Pydantic Frontier (`core/llm_frontier.py`)**: Interfaz de validación Pydantic estricta con 3 niveles de auto-corrección para eliminar salidas JSON frágiles de proveedores LLM.
+- **Pre-LLM Guardrails (`core/guardrails.py`)**: Intercepción determinista en microsegundos de comandos críticos (`stop`, `reset`, `handoff`) en `/v1/chat/completions` y `/v1/gravity/chat`.
+- **Universal LLM Endpoint Auditor (`core/endpoint_auditor.py`)**: Demonio de auditoría continua en segundo plano que prueba la disponibilidad real (`max_tokens: 1`) de los modelos configurados en proveedores cloud y detecta modelos descontinuados (HTTP 404/410).
+- **Server-Sent Events (SSE) Stream (`/v1/events/stream`)**: Canal de notificaciones en vivo desacoplado para alimentar el Dashboard React sin polling.
+- **Daemon Threading Security (`bridge_server.py`)**: Hilos HTTP configurados como `daemon_threads = True` para evitar congelamientos en apagado o reinicio.
+
+### Sensores & Domótica (J.A.R.V.I.S Tools)
+- **Thermal Watchdog (`core/thermal_watchdog.py`)**: Control térmico activo con `psutil` que suspende procesos de inferencia pesados (`ollama`, `ffmpeg`, `comfyui`) si la temperatura supera 85°C.
+- **IoT Controller (`core/tools/iot_controller.py`)**: Conexión REST verídica a `/api/states` de Home Assistant para telemetría de sensores, cámaras y alarmas.
+- **Tinka Engine (`tools/tinka_engine.py`)**: Motor estadístico real sobre la base de datos `tinka_history.db`.
+
+### Documentación & Auditoría Global
+- **Sincronización Total Mythos**: Actualizados `README.md`, `SECURITY.md`, `ULTRA_MASTER_PLAN.md`, `remotion_workspace/README.md`, `landing_page/index.html` y todos los folios de `wiki/`.
+- **Purga de Deuda Técnica**: Eliminados más de 20 archivos clonados `(1)` en cachés, assets y logs.
+
 ---
 
 ## [V17.0 PRO] The Sovereign Forge & Quality Shield · 08/07/2026
