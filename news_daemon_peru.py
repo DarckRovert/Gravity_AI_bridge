@@ -28,7 +28,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE_DIR)
 
 try:
-    from core.logger import log
+    from core.logger import setup_logger
+    log = setup_logger(name="periodista_peru", log_file="bridge.log")
 except ImportError:
     import logging
     log = logging.getLogger("periodista_peru")
@@ -121,6 +122,13 @@ class PeriodistaPeruOrchestrator:
         except Exception as e:
             log.warning(f"[Periodista Perú] No se pudo escribir estado: {e}")
 
+    def _check_alert_ooda(self) -> None:
+        n = self._state.get("consecutive_errors", 0)
+        if n >= CONSECUTIVE_ERROR_THRESHOLD:
+            log.warning(
+                f"[Periodista Perú] ⚠ {n} errores consecutivos — estado marcado para detección por OODA engine."
+            )
+
     def _run_workflow_agent(self, workflow_name: str, agent_name: str) -> str:
         log.info(f"[Periodista Perú] [{agent_name}] Iniciando workflow: {workflow_name}...")
         try:
@@ -208,6 +216,7 @@ class PeriodistaPeruOrchestrator:
             except Exception as e:
                 log.error(f"[Periodista Perú] ✗ Error: {e}. Reintentando en 60s...")
                 self._save_state("error", error=str(e))
+                self._check_alert_ooda()
                 time.sleep(60)
 
 def main() -> None:
@@ -219,6 +228,14 @@ def main() -> None:
             msvcrt.locking(global_lock_fd, msvcrt.LK_NBLCK, 1)
         except IOError:
             print("[!] GRAVITY AI: El Reportero Perú ya está en ejecución (Lock activo).")
+            sys.exit(1)
+    else:
+        try:
+            import socket
+            global_lock_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            global_lock_socket.bind(("127.0.0.1", 49302))
+        except Exception:
+            print("[!] GRAVITY AI: El Reportero Perú ya está en ejecución.")
             sys.exit(1)
 
     parser = argparse.ArgumentParser(description="Gravity AI — Reportero Perú")

@@ -128,6 +128,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
 
             <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted mt-6 mb-2 px-2">IA & Sistema</div>
             <NavItem id="jarvis" icon={Mic} label="J.A.R.V.I.S Sensory Net" />
+            <NavItem id="tiktokradar" icon={Radio} label="TikTok Radar" />
             <NavItem id="tinka" icon={Dices} label="La Tinka Engine" />
             <NavItem id="multiagent" icon={Bot} label="Multi-Agent" />
             <NavItem id="hardware" icon={Cpu} label="Hardware" />
@@ -160,6 +161,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
             <NavItem id="softwarefactory" icon={Code2} label="Dev Studio / Fábrica" />
             <NavItem id="infiltrator" icon={Ghost} label="Infiltrador (AGI)" />
             <NavItem id="journalist" icon={Newspaper} label="El Periodista" />
+            <NavItem id="tiktokradar" icon={Radio} label="TikTok Radar (GTLIS)" />
           </div>
 
           <div className="p-4 shrink-0 border-t border-border-subtle bg-surface/30 rounded-b-2xl">

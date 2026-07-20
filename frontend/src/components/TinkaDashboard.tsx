@@ -90,10 +90,10 @@ export const TinkaDashboard: React.FC = () => {
     );
   }
 
-  // Preparamos datos para Recharts
-  const chartData = analysis?.numeros_calientes?.slice(0, 10).map((n: number, index: number) => ({
-    name: `Bolilla ${n}`,
-    frecuencia: 100 - (index * 5) // Mock frequency weight based on order
+  // Preparamos datos reales para Recharts
+  const chartData = analysis?.numeros_calientes?.slice(0, 10).map((item: any) => ({
+    name: `Bolilla ${typeof item === 'object' ? item.number : item}`,
+    frecuencia: typeof item === 'object' ? item.count : 50
   })) || [];
 
   return (

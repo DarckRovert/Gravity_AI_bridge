@@ -1,0 +1,137 @@
+{
+  "workflow_id": "geopolitica",
+  "description": "Reportero Geopolítico: busca en RSS global, investiga deconstrucción de narrativas, redacta un análisis profundo con su skill, publica en el portal y genera Video Job.",
+  "nodes": [
+    {
+      "id": "leer_lore",
+      "type": "SkillReader",
+      "inputs": {
+        "skill_name": "geopolitical_investigator"
+      }
+    },
+    {
+      "id": "obtener_titular",
+      "type": "RSSFeed",
+      "inputs": {
+        "url": "https://news.google.com/rss/search?q=medio+oriente+OR+geopolitica+OR+conflicto+internacional+OR+israel+OR+palestina+OR+otan&hl=es-419&gl=US&ceid=US:es-419,https://www.aljazeera.com/xml/rss/all.xml",
+        "max_items": 5
+      }
+    },
+    {
+      "id": "buscar_contexto",
+      "type": "WebSearch",
+      "inputs": {
+        "query": "{{obtener_titular.headline}} analysis fact check UN international law",
+        "max_results": 5
+      }
+    },
+    {
+      "id": "buscar_historia",
+      "type": "RAGQuery",
+      "inputs": {
+        "query": "{{obtener_titular.headline}}",
+        "top_k": 5
+      }
+    },
+    {
+      "id": "detector_propaganda",
+      "type": "LLMQuery",
+      "inputs": {
+        "system_prompt": "Eres el Detector de Propaganda de Gravity AI. Tu misión es leer declaraciones oficiales y noticias mainstream, e identificar eufemismos militares, justificaciones políticas y psyops. Expón qué datos se están omitiendo.",
+        "prompt": "Titular de la noticia:\n{{obtener_titular.headline}}\n\nAnaliza el titular y las fuentes web para identificar el sesgo mediático, la propaganda estatal y el interés geopolítico oculto:\n\n{{buscar_contexto.text}}\n\nEntrega un Reporte de Deconstrucción directo. REGLA ESTRICTA: Tu respuesta debe tener MÁXIMO 2 PÁRRAFOS.",
+        "role": "researcher",
+        "temperature": 0.4,
+        "max_tokens": 500,
+        "stop": [
+          "\n\n\n"
+        ]
+      }
+    },
+    {
+      "id": "redactar_noticia",
+      "type": "LLMQuery",
+      "inputs": {
+        "system_prompt": "Eres el Investigador Geopolítico Supremo.\n\nInstrucciones del Skill:\n{{leer_lore.content}}\n\nContexto Histórico (RAG):\n{{buscar_historia.context}}\n\nREGLAS DE ORO:\n1. Aplica un empirismo estricto: contrasta la narrativa oficial con los datos, reportes de ONGs y derecho internacional.\n2. IMPORTANTE: Usa citas entre corchetes (ej. [1], [2]) en tu texto referenciando las fuentes web.\n3. Es OBLIGATORIO incluir un apartado '### Fuentes y Evidencia Empírica' al final del artículo (dentro de fullText).\n4. ESCRIBE TODO EL CONTENIDO EXCLUSIVAMENTE EN ESPAÑOL. EXCEPCIÓN CRÍTICA: El campo 'image_prompt' SIEMPRE en inglés.\n5. OBLIGATORIO: Respuesta estructurada precedida por un bloque <thought> donde planeas tu deconstrucción.\n{\n  \"region\": \"Medio Oriente / Global\",\n  \"category\": \"Geopolítica y Macro-Leviatán\",\n  \"featured\": true,\n  \"title\": \"Título incisivo y objetivo de investigación (sin corchetes)\",\n  \"excerpt\": \"Resumen directo de 3 líneas con el hallazgo principal.\",\n  \"image_prompt\": \"Prompt in ENGLISH describing a highly detailed photojournalism scene for this article (e.g. 'photojournalism style, destroyed buildings, UN officials looking at documents, grim atmosphere')\",\n  \"fullText\": \"Ensayo periodístico profundo en Markdown. Usa [1], [2]. Al final añade el apartado de FUENTES.\\n\\nSEPARA LOS PÁRRAFOS CON `\\n\\n`.\"\n}",
+        "prompt": "EJECUTA TU INVESTIGACIÓN.\n\nTitular Original:\n{{obtener_titular.headline}}\n\nReporte de Propaganda Detectada:\n{{detector_propaganda.text}}\n\nFuentes de memoria: {{buscar_historia.sources}}\nFuentes web (Numeradas [1], [2]...): \n{{buscar_contexto.text}}\n\nINSTRUCCIÓN: Escribe tu reporte de investigación destapando las narrativas falsas y basándote en evidencia. Genera el JSON EXACTAMENTE como se pide.",
+        "role": "planner",
+        "temperature": 0.5,
+        "max_tokens": 2048,
+        "provider": "groq",
+        "model": "llama-3.3-70b-versatile"
+      }
+    },
+    {
+      "id": "editor_jefe",
+      "type": "LLMQuery",
+      "inputs": {
+        "system_prompt": "Eres el Editor en Jefe de Investigación. Recibirás un artículo en JSON. Tu trabajo es endurecer el texto, purgar sesgos emocionales y mantener un tono frío, analítico e irrefutable. MANTÉN INTACTAS las citas [X] en el texto y ES CRÍTICO CONSERVAR EL APARTADO DE FUENTES.\n\nREGLA ESTRICTA DE ESTRUCTURA:\nTu respuesta debe ser ÚNICAMENTE el JSON perfecto (claves: region, category, featured, title, excerpt, image_prompt (MUST be in English), fullText). Está estrictamente PROHIBIDO incluir bloques de razonamiento o <thought>. Empieza con '{' y termina con '}'.\\n\\nREGLA CRÍTICA DE FORMATO: ES OBLIGATORIO que mantengas los saltos de línea (doble `\\n\\n`) en el atributo fullText.",
+        "prompt": "Aquí está el borrador del reporte en JSON:\n{{redactar_noticia.text}}\n\nEdítalo para que sea periodísticamente implacable y objetivo. Devuelve ÚNICAMENTE EL JSON PERFECCIONADO CON LA MISMA ESTRUCTURA.",
+        "role": "planner",
+        "temperature": 0.3,
+        "max_tokens": 2500,
+        "provider": "groq",
+        "model": "llama-3.3-70b-versatile"
+      }
+    },
+    {
+      "id": "normalizar_noticia",
+      "type": "ContentNormalizer",
+      "inputs": {
+        "raw_json": "{{editor_jefe.text}}",
+        "content_type": "news",
+        "author": "Nexo Ágora — Unidad de Investigación",
+        "image_prompt_prefix": "photojournalism documentary style highly detailed realistic",
+        "valid_categories": "[\"Control Biométrico\", \"Resistencia Digital\", \"Soberanía Criptográfica\", \"Vigilancia del Leviatán\", \"Tecnología Descentralizada\", \"Geopolítica y Macro-Leviatán\", \"Medicina y Bioética\", \"Cultura y Psicometría\", \"Crimen de Estado y Abuso Policial\"]",
+        "default_category": "Geopolítica y Macro-Leviatán",
+        "images_dir": "F:/gravity-news-portal/public/images"
+      }
+    },
+    {
+      "id": "publicar_noticia",
+      "type": "JSONAppender",
+      "inputs": {
+        "filepath": "F:/gravity-news-portal/src/data/news.json",
+        "new_item": "{{normalizar_noticia.normalized_json}}",
+        "max_items": 30
+      }
+    },
+    {
+      "id": "crear_tiktok",
+      "type": "VideoJob",
+      "inputs": {
+        "title": "{{normalizar_noticia.normalized_json}}",
+        "excerpt": "{{normalizar_noticia.normalized_json}}"
+      }
+    },
+    {
+      "id": "crear_copy_redes",
+      "type": "LLMQuery",
+      "inputs": {
+        "system_prompt": "Eres el Editor de Redes de Investigación. Tu objetivo es redactar un kit de redes sociales para promover una investigación geopolítica.",
+        "prompt": "Genera el Social Media Kit para este artículo:\n{{editor_jefe.text}}\n\nIncluye:\n1. Título para TikTok/Reels.\n2. Descripción (Copy) penetrante y basado en hechos (max 4 líneas).\n3. Hashtags relevantes.\n\nENTREGA SOLO EL TEXTO DEL KIT, SIN JSON.",
+        "role": "planner",
+        "temperature": 0.5,
+        "max_tokens": 4096
+      }
+    },
+    {
+      "id": "escribir_social_media_kit",
+      "type": "FileWriter",
+      "inputs": {
+        "filepath": "F:/Gravity_AI_bridge/_videos/job_{{crear_tiktok.job_id}}/social_media_kit.txt",
+        "content": "{{crear_copy_redes.text}}",
+        "append": false
+      }
+    },
+    {
+      "id": "desplegar_vercel",
+      "type": "GitDeploy",
+      "inputs": {
+        "repository_path": "F:/gravity-news-portal",
+        "commit_message": "Geopolítica: Nueva investigación (Status: {{publicar_noticia.status}})",
+        "files_to_add": ".",
+        "push": true
+      }
+    }
+  ]
+}

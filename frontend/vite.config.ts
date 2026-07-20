@@ -9,6 +9,11 @@ export default defineConfig({
     tailwindcss(),
   ],
   build: {
+    // Sacar el build de frontend/dist/ (sincronizado por Google Drive)
+    // a web/ en la raíz del proyecto — que el bridge_server ya sirve como
+    // primera opción en _serve_dashboard() y NO es monitoreado por Drive.
+    outDir: '../web',
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         manualChunks(id) {

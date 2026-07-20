@@ -45,7 +45,8 @@ sys.path.insert(0, BASE_DIR)
 
 # ── Logger central de Gravity (D1) ────────────────────────────────────────────
 try:
-    from core.logger import log
+    from core.logger import setup_logger
+    log = setup_logger(name="periodista", log_file="bridge.log")
 except ImportError:
     import logging
     log = logging.getLogger("periodista")

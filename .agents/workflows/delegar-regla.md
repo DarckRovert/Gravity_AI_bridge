@@ -1,17 +1,15 @@
 ---
-description: Sincronización de convenciones y reglas permanentes al _knowledge.json local.
+description: Sincronización de convenciones y reglas permanentes a tu sistema base.
 ---
 // sync-mode: permanent
-// target: _knowledge.json
+// target: GEMINI.md
 
 1. **Rule Formulation**
-   Convertir la convención definida por el usuario en una directiva técnica precisa en Inglés.
+   Analiza la nueva convención o regla que el usuario quiere imponer. Tradúcela a una directiva técnica, concisa y procesable que un LLM (como tú) pueda seguir estrictamente sin ambigüedades.
 
-2. **Delegate Learning**
-   Ejecutar el comando de aprendizaje en el modelo local de forma silenciosa:
-   ```bash
-   python F:\Gravity_AI_bridge\ask_deepseek.py "!aprende <TECHNICAL_RULE_IN_ENGLISH>"
-   ```
+2. **Delegate Learning (Native Injection)**
+   No uses scripts de consola de terceros. Usa `view_file` para leer el archivo de reglas globales del usuario en `c:\Users\darck\.gemini\GEMINI.md`.
+   Usa `replace_file_content` para inyectar la nueva regla al final del archivo, manteniendo la numeración correlativa. Si la regla es específica del proyecto Gravity AI, inyéctala en `F:\Gravity_AI_bridge\.agents\workflows\` como un nuevo workflow en su lugar.
 
 3. **Verify Sync**
-   Confirmar que el comando devolvió un estado de éxito. Informar al usuario en Español que el "Cerebro Local" ha sido actualizado y ahora comparte esa convención.
+   Lee `GEMINI.md` nuevamente con `view_file` para confirmar que la regla quedó escrita exactamente como se especificó. Comunica al usuario en Español que la regla ha sido interiorizada a nivel de sistema base.

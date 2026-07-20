@@ -75,4 +75,5 @@ export type PanelId =
   | 'autonomy'
   | 'modelhub'
   | 'memorystudio'
-  | 'journalist';
+  | 'journalist'
+  | 'tiktokradar';

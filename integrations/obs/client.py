@@ -44,6 +44,7 @@ class OBSClient:
         self._lock = threading.Lock()
         self._client = None
         self._connected = False
+        self._enabled = False
         self._host = _DEFAULT_HOST
         self._port = _DEFAULT_PORT
         self._password = _DEFAULT_PASSWORD
@@ -64,6 +65,7 @@ class OBSClient:
             self._host = host
             self._port = port
             self._password = password
+            self._enabled = True
 
     def connect(self) -> dict:
         if not OBS_AVAILABLE:
@@ -128,16 +130,27 @@ class OBSClient:
                     pass
             self._client = None
             self._connected = False
+            self._enabled = False
 
     def is_connected(self) -> bool:
         return self._connected
 
     def _reconnect_loop(self):
         time.sleep(5)
+        current_backoff = _RECONNECT_SECS
+        max_backoff = 300
         while True:
-            if not self._connected and OBS_AVAILABLE:
-                self.connect()
-            time.sleep(_RECONNECT_SECS)
+            with self._lock:
+                should_reconnect = self._enabled and not self._connected
+            if should_reconnect and OBS_AVAILABLE:
+                res = self.connect()
+                if res.get("ok"):
+                    current_backoff = _RECONNECT_SECS
+                else:
+                    current_backoff = min(current_backoff * 2, max_backoff)
+            else:
+                current_backoff = _RECONNECT_SECS
+            time.sleep(current_backoff)
 
     def _refresh_locked(self):
         try:

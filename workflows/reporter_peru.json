@@ -42,7 +42,9 @@
         "role": "researcher",
         "temperature": 0.4,
         "max_tokens": 500,
-        "stop": ["\n\n\n"]
+        "stop": [
+          "\n\n\n"
+        ]
       }
     },
     {
@@ -54,7 +56,9 @@
         "role": "researcher",
         "temperature": 0.4,
         "max_tokens": 500,
-        "stop": ["\n\n\n"]
+        "stop": [
+          "\n\n\n"
+        ]
       }
     },
     {
@@ -66,31 +70,35 @@
         "role": "researcher",
         "temperature": 0.7,
         "max_tokens": 500,
-        "stop": ["\n\n\n"]
+        "stop": [
+          "\n\n\n"
+        ]
       }
     },
     {
       "id": "redactar_noticia",
       "type": "LLMQuery",
       "inputs": {
-        "system_prompt": "Eres Gravity, el Gran Sintetizador del 'Nexo Ágora' y el mejor periodista de investigación de Sudamérica. Evalúas el debate entre la Postura Oficial del Estado Peruano y la Postura Subversiva para extraer la verdad absoluta.\n\nLore Oficial:\n{{leer_lore.content}}\n\nContexto Filosófico (RAG):\n{{buscar_historia.context}}\n\nREGLAS DE ORO:\n1. Construye el reporte deconstruyendo la noticia peruana.\n2. IMPORTANTE: Usa citas entre corchetes (ej. [1], [2]) en tu texto cuando referencies los datos de las fuentes web, igual que Perplexity.\n3. Es OBLIGATORIO incluir un apartado '### Fuentes y Referencias' al final del artículo (dentro de fullText) citando los enlaces web y libros consultados, en correspondencia con los números [X].\n4. ESCRIBE TODO EL CONTENIDO EXCLUSIVAMENTE EN ESPAÑOL LATINOAMERICANO. NINGUNA PALABRA EN INGLÉS.\n5. OBLIGATORIO: Tu respuesta debe tener EXACTAMENTE esta estructura, precedida por un bloque <thought> donde planeas tu respuesta:\n<thought>\nAquí va tu razonamiento interno...\n</thought>\n{\n  \"region\": \"Perú\",\n  \"category\": \"Geopolítica y Macro-Leviatán\",\n  \"featured\": true,\n  \"title\": \"Título impactante y filosófico sin corchetes ni numeros\",\n  \"excerpt\": \"Resumen incisivo de 3 líneas\",\n  \"fullText\": \"Ensayo periodístico profundo en Markdown enfocado en Perú (entre 600 y 900 palabras). El texto debe contener referencias como [1] o [2]. Al final añade el apartado de FUENTES.\\n\"\n}",
+        "system_prompt": "Eres Gravity, el Gran Sintetizador del 'Nexo Ágora' y el mejor periodista de investigación de Sudamérica. Evalúas el debate entre la Postura Oficial del Estado Peruano y la Postura Subversiva para extraer la verdad absoluta.\n\nLore Oficial:\n{{leer_lore.content}}\n\nContexto Filosófico (RAG):\n{{buscar_historia.context}}\n\nREGLAS DE ORO:\n1. Construye el reporte deconstruyendo la noticia peruana.\n2. IMPORTANTE: Usa citas entre corchetes (ej. [1], [2]) en tu texto cuando referencies los datos de las fuentes web, igual que Perplexity.\n3. Es OBLIGATORIO incluir un apartado '### Fuentes y Referencias' al final del artículo (dentro de fullText) citando los enlaces web y libros consultados, en correspondencia con los números [X].\n4. ESCRIBE TODO EL CONTENIDO EXCLUSIVAMENTE EN ESPAÑOL LATINOAMERICANO. NINGUNA PALABRA EN INGLÉS. EXCEPCIÓN CRÍTICA: El campo \"image_prompt\" SIEMPRE debe estar escrito en inglés porque es usado por un sistema generador de imágenes que no comprende el español. Esta es la ÚNICA excepción a la regla anterior.\n5. OBLIGATORIO: Tu respuesta debe tener EXACTAMENTE esta estructura, precedida por un bloque <thought> donde planeas tu respuesta:\n<thought>\nAquí va tu razonamiento interno...\n</thought>\n{\n  \"region\": \"Perú\",\n  \"category\": \"Geopolítica y Macro-Leviatán\",\n  \"featured\": true,\n  \"title\": \"Título impactante y filosófico sin corchetes ni numeros\",\n  \"excerpt\": \"Resumen incisivo de 3 líneas\",\n  \"image_prompt\": \"Prompt in ENGLISH describing a photorealistic and highly detailed scene for this article (e.g. 'cyberpunk photorealistic corrupted politician in a dark office in Lima')\",\n  \"fullText\": \"Ensayo periodístico profundo en Markdown enfocado en Perú (entre 600 y 900 palabras). El texto debe contener referencias como [1] o [2]. Al final añade el apartado de FUENTES.\\n\\nREGLA CRÍTICA DE FORMATO: ES OBLIGATORIO separar los párrafos usando `\\n\\n`. NUNCA escribas todo en un solo bloque de texto. Usa formato Markdown real (títulos con ###, listas con -, negritas).\\n\"\n}",
         "prompt": "EJECUTA TU SÍNTESIS MAGISTRAL.\n\nTitular Original:\n{{obtener_titular.headline}}\n\nPostura Oficial (El Leviatán Peruano):\n{{postura_oficial.text}}\n\nPostura Subversiva (La Verdad Cruda):\n{{postura_subversiva.text}}\n\nFuentes de memoria: {{buscar_historia.sources}}\nFuentes web (Numeradas [1], [2]...): \n{{buscar_contexto.text}}\n\nINSTRUCCIÓN: Actúa como el mejor periodista del mundo. Escribe el reportaje basado en el titular cruzando ambas posturas y nuestra óptica filosófica sobre el contexto de Perú. DEBES incluir citas numéricas [X] en el texto y las referencias al final de fullText. Genera el JSON EXACTAMENTE. Asegúrate de que region siempre sea 'Perú'.",
         "role": "planner",
         "temperature": 0.5,
         "max_tokens": 2048,
-        "stop": ["}"]
+        "provider": "groq",
+        "model": "llama-3.3-70b-versatile"
       }
     },
     {
       "id": "editor_jefe",
       "type": "LLMQuery",
       "inputs": {
-        "system_prompt": "Eres el Editor en Jefe Supremo de Gravity, y el mejor editor de periodismo investigativo de Latinoamérica. Recibirás un ensayo periodístico crudo sobre Perú en formato JSON. Tu trabajo es endurecer el texto, purgar cualquier rastro de debilidad o mediocridad, y llevar la narrativa a un nivel Pulitzer. Verifica que cumpla impecablemente la filosofía de 'La Voluntad Soberana'. MANTÉN INTACTAS las citas [X] en el texto y ES CRÍTICO Y OBLIGATORIO CONSERVAR EL APARTADO DE FUENTES AL FINAL DEL TEXTO (fullText).\n\nREGLA ESTRICTA DE ESTRUCTURA:\nTu respuesta debe ser ÚNICAMENTE el JSON perfecto (claves: region, category, featured, title, excerpt, fullText). Está estrictamente PROHIBIDO incluir introducciones, explicaciones, notas, ni bloques de razonamiento o <thought>. Empieza directamente con '{' y termina con '}'.",
-        "prompt": "Aquí está el borrador del reporte en JSON:\n{{redactar_noticia.text}}\n\nEdítalo para que sea periodísticamente implacable, filosóficamente oscuro e incisivo contra la corrupción y el estatismo en el Perú. Asegúrate de NO BORRAR las fuentes originales ni sus índices [X]. Devuelve ÚNICAMENTE EL JSON PERFECCIONADO CON LA MISMA ESTRUCTURA.",
+        "system_prompt": "Eres el Editor en Jefe Supremo de Gravity, y el mejor editor de periodismo investigativo de Latinoamérica. Recibirás un ensayo periodístico crudo sobre Perú en formato JSON. Tu trabajo es endurecer el texto, purgar cualquier rastro de debilidad o mediocridad, y llevar la narrativa a un nivel Pulitzer. Verifica que cumpla impecablemente la filosofía de 'La Voluntad Soberana'. MANTÉN INTACTAS las citas [X] en el texto y ES CRÍTICO Y OBLIGATORIO CONSERVAR EL APARTADO DE FUENTES AL FINAL DEL TEXTO (fullText).\n\nREGLA ESTRICTA DE ESTRUCTURA:\nTu respuesta debe ser ÚNICAMENTE el JSON perfecto (claves: region, category, featured, title, excerpt, image_prompt (MUST be in English), fullText). Está estrictamente PROHIBIDO incluir introducciones, explicaciones, notas, ni bloques de razonamiento o <thought>. Empieza directamente con '{' y termina con '}'.\\n\\nREGLA CRÍTICA DE FORMATO: ES OBLIGATORIO que mantengas los saltos de línea (doble `\\n\\n`) en el atributo fullText. El texto JAMÁS debe ser un solo bloque continuo.",
+        "prompt": "Aquí está el borrador del reporte en JSON:\n{{redactar_noticia.text}}\n\nEdítalo para que sea periodísticamente implacable, filosóficamente oscuro e incisivo contra la corrupción y el estatismo en el Perú. Asegúrate de NO BORRAR las fuentes originales ni sus índices [X]. Devuelve ÚNICAMENTE EL JSON PERFECCIONADO CON LA MISMA ESTRUCTURA.\n\nREGLA DE FORMATO: Respeta y MANTÉN los saltos de línea `\\n\\n` para separar párrafos. No fusiones todo el texto en un solo bloque.",
         "role": "planner",
         "temperature": 0.3,
         "max_tokens": 2500,
-        "stop": ["}"]
+        "provider": "groq",
+        "model": "llama-3.3-70b-versatile"
       }
     },
     {
@@ -113,6 +121,34 @@
         "filepath": "F:/gravity-news-portal/src/data/news.json",
         "new_item": "{{normalizar_noticia.normalized_json}}",
         "max_items": 30
+      }
+    },
+    {
+      "id": "crear_tiktok",
+      "type": "VideoJob",
+      "inputs": {
+        "title": "{{normalizar_noticia.normalized_json}}",
+        "excerpt": "{{normalizar_noticia.normalized_json}}"
+      }
+    },
+    {
+      "id": "crear_copy_redes",
+      "type": "LLMQuery",
+      "inputs": {
+        "system_prompt": "Eres el Community Manager Supremo de Gravity. Tu objetivo es redactar un kit de redes sociales ultra-viral, oscuro y filosófico (estilo cyberpunk/distópico) basado en la noticia recibida.",
+        "prompt": "Genera el Social Media Kit para este artículo:\n{{editor_jefe.text}}\n\nIncluye:\n1. Título para TikTok/Reels.\n2. Descripción (Copy) penetrante y subversivo (max 4 líneas).\n3. Hashtags relevantes (incluye #GravityAI y #LaVoluntadSoberana).\n\nENTREGA SOLO EL TEXTO DEL KIT, SIN JSON.",
+        "role": "planner",
+        "temperature": 0.5,
+        "max_tokens": 4096
+      }
+    },
+    {
+      "id": "escribir_social_media_kit",
+      "type": "FileWriter",
+      "inputs": {
+        "filepath": "F:/Gravity_AI_bridge/_videos/job_{{crear_tiktok.job_id}}/social_media_kit.txt",
+        "content": "{{crear_copy_redes.text}}",
+        "append": false
       }
     },
     {
