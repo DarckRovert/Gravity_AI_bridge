@@ -94,7 +94,7 @@ export const MissionControl: React.FC = () => {
               Live Telemetry
             </div>
             <h1 className="text-4xl font-black text-white tracking-tighter mb-2 drop-shadow-lg">Mission Control</h1>
-            <p className="text-text-muted text-sm font-medium">Core systems monitoring powered by Gravity Brain V16.3</p>
+            <p className="text-text-muted text-sm font-medium">Core systems monitoring powered by Gravity Brain V30.0 MYTHOS</p>
           </div>
           <div className="flex gap-3">
             <button 
@@ -244,7 +244,7 @@ export const MissionControl: React.FC = () => {
             {ctx ? (
               <div className="flex items-center gap-4 p-4 rounded-xl glass-card border border-status-success/20 transition-all">
                 <div className="text-xs text-text-muted font-mono w-24">{new Date().toLocaleTimeString()}</div>
-                <div className="flex-1 text-sm text-text-primary font-medium">Enlace de telemetría estable con Gravity Brain V16.3.</div>
+                <div className="flex-1 text-sm text-text-primary font-medium">Enlace de telemetría estable con Gravity Brain V30.0 MYTHOS.</div>
                 <div className="px-3 py-1 rounded-md bg-status-success/15 border border-status-success/30 text-status-success text-[10px] font-black uppercase tracking-widest shadow-[0_0_10px_rgba(16,185,129,0.1)]">ONLINE</div>
               </div>
             ) : (

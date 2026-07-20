@@ -1,0 +1,1 @@
+var e=7860,t=typeof window<`u`?`${window.location.protocol}//${window.location.hostname}:${e}`:`http://localhost:${e}`;export{t};

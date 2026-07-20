@@ -258,7 +258,7 @@ export const AutonomyPanel = () => {
                 Autonomy Engine
               </h1>
               <p className="text-text-muted mt-1 font-medium text-sm">
-                Gravity V16.3 PRO — Primera empresa peruana autogestionada por IA
+                Gravity V30.0 MYTHOS — Empresa peruana autogestionada por IA
               </p>
             </div>
           </div>

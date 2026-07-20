@@ -7,21 +7,24 @@ import type { Message } from '../types';
 export const ChatAuditor: React.FC = () => {
   const defaultMessage: Message = {
     role: 'system',
-    content: `🤖 **Gravity AI V16.3 PRO [Agentic Core Edition] — En Línea**
+    content: `🤖 **Gravity AI V30.0 MYTHOS [Agentic Core Edition] — En Línea**
 
-Sistema de orquestación unificada con capacidades de Agente Autónomo de Sistema.
+Soy el motor autónomo de Gravity AI Bridge V30.0 MYTHOS Edition. ¿Qué deseas ejecutar o auditar hoy?
 
-**Módulos Activos:**
-- 🧠 **Gravity Brain V16.3**: LLM con conciencia sistémica total.
-- 📁 **Agentic ToolEngine**: Acceso directo al SO y sistema de archivos.
-- 🎥 **Video Studio**: Fábrica de monetización autónoma + YouTube auto-upload.
-- 📹 **V2V Live Studio**: Transformación de cámara en tiempo real vía DirectML.
-- 💰 **Revenue Tracker**: Afiliados CPA inyectados en cada descripción.
+**Capacidades Sistémicas:**
+- 🧠 **Gravity Brain V30.0**: LLM con conciencia sistémica total.
+- ⚡ **Resource Watchdog**: Monitoreo de RAM/VRAM en tiempo real con throttling dinámico.
+- 📡 **Sensory Net & IoT**: Telemetría visual, de audio y sensores de Home Assistant.
+- 🛡️ **Pydantic Frontier & Guardrails**: Intercepción determinista y esquemas validados.
+
+**Herramientas Agentic [V30.0 MYTHOS]:**
+- 📰 \`/workflow reporter\` (Publicación periodística end-to-end)
+- 📊 \`/autonomia\` (Bucle OODA y tracker financiero)
+- 🔍 \`/audit-endpoints\` (Auditoría en vivo de proveedores LLM)
 
 **Comandos Estándar:**
 \`/help\` — Lista completa de comandos
 \`/status\` — Auditoría del sistema en vivo
-\`/video crear <tema>\` — Encola un video
 
 **Herramientas Agentic [V16.3 PRO]:**
 \`/fs_ver <ruta>\` — Lee cualquier archivo del proyecto

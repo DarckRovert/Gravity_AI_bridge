@@ -30,7 +30,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KNOWLEDGE_FILE = os.path.join(BASE_DIR, "_knowledge.json")
 SETTINGS_FILE = os.path.join(BASE_DIR, "_settings.json")
 
-APP_VERSION = "16.3"
+APP_VERSION = "30.0 MYTHOS"
 
 # ── Comandos disponibles del sistema (chat slash commands) ────────────────────
 

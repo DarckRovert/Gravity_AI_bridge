@@ -70,7 +70,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePanel, setActive
             <Bot size={18} className="text-white hidden [.fallback-icon_&]:block" />
           </div>
           <div className="text-xl font-black tracking-tighter bg-gradient-to-r from-white via-accent-primary to-accent-secondary bg-clip-text text-transparent drop-shadow-sm">
-            GRAVITY <span className="font-light opacity-80">V16.14 PRO</span>
+            GRAVITY <span className="font-light opacity-80">V30.0 MYTHOS</span>
           </div>
         </div>
         

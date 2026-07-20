@@ -55,7 +55,7 @@ except ImportError:
 # ── Reasoning Stripper (módulo compartido) ───────────────────────────────────
 from core.reasoning_stripper import ReasoningStripper  # noqa: E402
 
-APP_VERSION = "16.0"
+APP_VERSION = "30.0 MYTHOS"
 BASE_DIR = os.path.dirname(__file__)
 KNOWLEDGE_FILE = os.path.join(BASE_DIR, "_knowledge.json")
 
