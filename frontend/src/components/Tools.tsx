@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Hammer, Code, Search, FileText, Zap, ExternalLink, Box, Database } from 'lucide-react';
 import { showToast } from './Toast';
 
@@ -74,7 +74,7 @@ export const Tools = () => {
               </div>
            </div>
            <button 
-             onClick={() => showToast('info', "Módulo de Registro de Plugins en desarrollo (V13.0 PRO)")}
+             onClick={() => showToast('info', "Módulo de Registro de Plugins en desarrollo (V30.0 MYTHOS)")}
              className="px-8 py-3 bg-accent-primary text-white font-black rounded-xl shadow-lg hover:scale-105 transition-all"
            >
               REGISTRAR PLUGIN

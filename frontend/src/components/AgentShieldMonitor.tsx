@@ -4,7 +4,7 @@ import { showToast } from './Toast';
 
 export const AgentShieldMonitor = () => {
   const [logs, setLogs] = useState<any[]>([
-    { ts: new Date().toISOString(), type: 'info', msg: 'AgentShield Core Protection Iniciado (V16.5)' },
+    { ts: new Date().toISOString(), type: 'info', msg: 'AgentShield Core Protection Iniciado (V30.0 MYTHOS)' },
     { ts: new Date().toISOString(), type: 'info', msg: 'Rutas Ring 0 cargadas y bloqueadas.' },
     { ts: new Date().toISOString(), type: 'success', msg: 'Ruta F:/gravity-news-portal añadida a excepciones (Whitelist)' }
   ]);

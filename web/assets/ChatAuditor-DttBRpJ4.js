@@ -32,7 +32,7 @@ Soy el motor autónomo de Gravity AI Bridge V30.0 MYTHOS Edition. ¿Qué deseas 
 \`/help\` — Lista completa de comandos
 \`/status\` — Auditoría del sistema en vivo
 
-**Herramientas Agentic [V16.3 PRO]:**
+**Herramientas Agentic [V30.0 MYTHOS]:**
 \`/fs_ver <ruta>\` — Lee cualquier archivo del proyecto
 \`/fs_listar <ruta>\` — Lista un directorio
 \`/fs_buscar <texto> <ruta>\` — Busca en el código fuente
