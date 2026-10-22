@@ -17,7 +17,9 @@ try:
         timeout=10
     )
     if r.status_code == 200:
-        print("Groq OK ->", r.json()["choices"][0]["message"]["content"])
+        msg = r.json()["choices"][0]["message"]
+        txt = msg.get("content") or msg.get("reasoning") or ""
+        print("Groq OK ->", repr(txt[:50]))
     else:
         print("Groq ERROR:", r.status_code, r.text[:150])
 except Exception as e:
