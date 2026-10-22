@@ -2,6 +2,27 @@
 
 Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Bridge.
 
+## [V30.1 MYTHOS] Decoupled Core & Cross-Project Token Delegator · 22/10/2026
+
+**[DESACOPLAMIENTO MODULAR DE ROUTERS, GESTOR DE CONCURRENCIA SQLITE WAL, WORKFLOWS POR ROLES Y HERRAMIENTA UNIVERSAL DE AHORRO DE TOKENS]**
+
+### Desacoplamiento Arquitectónico & Resiliencia
+- **Router GET Modular (`api/routes/`)**: Desacoplamiento de `mixin_get.py` (anteriormente un monolito de 111 KB) en 4 sub-mixins especializados por dominio:
+  - `mixin_get_gameserver.py`: Servidores de juego C++ (MangosD/WoW) y registro.
+  - `mixin_get_intelligence.py`: Periodismo OSINT, Tinka Engine, NPU XDNA, Radar e Infiltrator.
+  - `mixin_get_autonomy.py`: Autonomy Engine, Self-Reflection, Bounties, Software Factory y Event Bus SSE.
+  - `mixin_get_media.py`: Video Studio, Image Lab, Fooocus y Streaming.
+- **Telemetría Centralizada (`core/telemetry_collector.py`)**: Extracción de más de 200 líneas de observabilidad de `core/gravity_brain.py` hacia un módulo cohesivo dedicado, manteniendo `build_system_context()` ultra-liviano.
+- **Capa de Concurrencia SQLite WAL (`core/db_manager.py`)**: Implementación del decorador `@sqlite_retry` con exponential backoff y `get_connection()` forzando `PRAGMA journal_mode=WAL` y `busy_timeout=30000ms`, erradicando errores de "database is locked" en Windows. Integrado en `core/cache_engine.py`.
+- **Enrutamiento Dinámico por Rol en Nodos (`core/nodes/llm_query_node.py`)**: Reemplazo de modelos cableados en workflows (`reporter.json`, `geopolitica.json`) por resolución dinámica de roles (`agent_routing`), resolviendo automáticamente el mejor modelo activo.
+
+### Ahorro de Tokens Cross-Project
+- **Despachador Universal (`tools/gravity_delegate.py`)**: Herramienta CLI y librería Python para delegar tareas mecánicas (pruebas unitarias, boilerplate, CRUD, regex, docstrings, refactorización) desde cualquier proyecto a Gravity AI, con fallback multi-nivel automático (Local LM Studio → Groq → Nvidia NIM).
+- **Gobernanza Portable (`GRAVITY_RULE.md` & `.agents/rules/gravity_bridge.md`)**: Regla universal lista para copiar a cualquier proyecto externo para que Antigravity, Cursor, Claude Code o Windsurf ahorren tokens de frontera delegando tareas a Gravity AI Bridge.
+- **Bypass de Cloudflare WAF Error 1010 (`providers/cloud/_openai_compat_cloud.py`)**: Inyección forzada de User-Agent completo de Chrome 131 Desktop en requests a Groq y Nvidia NIM.
+
+---
+
 ## [V30.0 MYTHOS] Monolito de Excelencia & Resiliencia L9 · 20/07/2026
 
 **[MONOLITO V30.0 MYTHOS EDITION — AUDITORÍA UNIVERSAL DE ENDPOINTS, PYDANTIC FRONTIER, GUARDRAILS DETERMINISTAS, SSE STREAM BUS, THERMAL THROTTLING Y HOME ASSISTANT IOT]**

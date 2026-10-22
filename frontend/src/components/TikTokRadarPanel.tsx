@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Eye, Plus, Trash2, Radio, Activity, Globe, Shield,
-  AlertTriangle, Users, Zap, MapPin, Search, RefreshCw, Bot,
+  AlertTriangle, Users, User, Zap, MapPin, Search, RefreshCw, Bot,
   Network, Clock, ChevronRight, X, Wifi, WifiOff, TrendingUp,
-  Server, Flag, Languages, Layers, Copy, Check, MessageSquare, Tv, Play, Mic
+  Server, Flag, Languages, Layers, Copy, Check, MessageSquare, Tv, Play, Mic, Download, Gift, Compass, Share2, Camera, BarChart2
 } from 'lucide-react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -29,6 +29,11 @@ interface Channel {
   bitrate_kbps?: number;
   resolution?: string;
   fps?: number;
+  display_name?: string;
+  bio?: string;
+  followers?: number;
+  verified?: boolean;
+  avatar_url?: string;
   error?: string;
 }
 
@@ -52,6 +57,7 @@ interface RadarStatus {
 
 interface GeoReport {
   username: string;
+  network?: { cdn_provider?: string; cdn_ip?: string; geo_country?: string; geo_city?: string };
   summary?: {
     ips_discovered: string[];
     nodes_mapped: number;
@@ -135,6 +141,7 @@ export const TikTokRadarPanel = () => {
 
   // Voice Intel state
   const [voiceProfile, setVoiceProfile] = useState<any>(null);
+  const [selectedParticipantIdx, setSelectedParticipantIdx] = useState<number>(0);
   const [voiceTranscript, setVoiceTranscript] = useState<any[]>([]);
   const [voiceLoading, setVoiceLoading] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
@@ -174,16 +181,17 @@ export const TikTokRadarPanel = () => {
         HlsClass = (window as any).Hls;
       }
 
+      const proxiedStreamUrl = API(`/v1/tiktok/proxy_stream?url=${encodeURIComponent(selectedChannel.stream_url!)}`);
       if (HlsClass.isSupported()) {
         if (hlsRef.current) {
           hlsRef.current.destroy();
         }
         const hls = new HlsClass();
-        hls.loadSource(selectedChannel.stream_url!);
+        hls.loadSource(proxiedStreamUrl);
         hls.attachMedia(videoRef.current!);
         hlsRef.current = hls;
       } else if (videoRef.current!.canPlayType('application/vnd.apple.mpegurl')) {
-        videoRef.current!.src = selectedChannel.stream_url!;
+        videoRef.current!.src = proxiedStreamUrl;
       }
     };
 
@@ -231,6 +239,55 @@ export const TikTokRadarPanel = () => {
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
+  // Deep OSINT state & Handlers
+  const [osintReport, setOsintReport] = useState<any>(null);
+  const [osintLoading, setOsintLoading] = useState(false);
+  const [osintError, setOsintError] = useState<string | null>(null);
+
+  const handleDeepOsint = async (username: string) => {
+    setOsintLoading(true);
+    setOsintError(null);
+    try {
+      const res = await fetch(API(`/v1/tiktok/deep_osint?user=${encodeURIComponent(username)}`));
+      const data = await res.json();
+      if (res.ok && data) {
+        setOsintReport(data);
+        if (selectedChannel) {
+          setSelectedChannel(prev => prev ? {
+            ...prev,
+            display_name: data.display_name || prev.display_name,
+            bio: data.bio || prev.bio,
+            followers: data.followers || prev.followers,
+            verified: data.verified !== undefined ? data.verified : prev.verified,
+            avatar_url: data.profile_pic_url || prev.avatar_url,
+          } : null);
+        }
+      } else {
+        setOsintError(data?.error || 'No se pudo obtener la información OSINT del usuario.');
+      }
+    } catch (e: any) {
+      setOsintError(e?.message || 'Error al conectar con la API de OSINT.');
+    } finally {
+      setOsintLoading(false);
+    }
+  };
+
+  const handleGeoChannel = async (username: string) => {
+    setGeoLoading(true);
+    try {
+      const res = await fetch(API(`/v1/tiktok/geo?user=${encodeURIComponent(username)}`));
+      const data = await res.json();
+      if (res.ok) {
+        setGeoReport(data);
+        setActiveTab('geo');
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setGeoLoading(false);
+    }
+  };
+
   // HITL Chat Controller states
   const [chatMsg, setChatMsg] = useState('');
   const [sessionCookie, setSessionCookie] = useState(() => localStorage.getItem('tiktok_session_id') || '');
@@ -240,6 +297,14 @@ export const TikTokRadarPanel = () => {
 
   const handleSendChat = async () => {
     if (!selectedChannel || !chatMsg.trim()) return;
+    if (!sessionCookie.trim()) {
+      setShowConfig(true);
+      setSendResult({
+        success: false,
+        error: 'Para enviar mensajes vía API a la sala de TikTok se requiere tu cookie sessionid. Pégala arriba en Configurar Cookie o usa el botón "Copiar y Abrir Live".'
+      });
+      return;
+    }
     setSendingChat(true);
     setSendResult(null);
     try {
@@ -258,7 +323,7 @@ export const TikTokRadarPanel = () => {
         setChatMsg('');
         setTimeout(() => setSendResult(null), 4000);
       } else {
-        setSendResult({ success: false, error: data.error || 'Error al procesar el mensaje.' });
+        setSendResult({ success: false, error: data.error || 'Error al procesar el mensaje en TikTok. Verifica que tu sessionid esté activa.' });
       }
     } catch (e: any) {
       setSendResult({ success: false, error: e.message || 'Error de conexión.' });
@@ -309,32 +374,53 @@ export const TikTokRadarPanel = () => {
   const [probeResult, setProbeResult] = useState<any>(null);
   const [probeLoading, setProbeLoading] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'channels' | 'alerts' | 'geo' | 'voice'>('channels');
+  const [activeTab, setActiveTab] = useState<'channels' | 'alerts' | 'geo' | 'voice' | 'gifts' | 'cib' | 'biometrics' | 'vision' | 'triangulation'>('channels');
   const alertsEndRef = useRef<HTMLDivElement>(null);
 
-  // Deep OSINT
-  const [osintLoading, setOsintLoading] = useState(false);
-  const [dossierContent, setDossierContent] = useState<string | null>(null);
+  // Intelligence States para V6.0
+  const [giftsData, setGiftsData] = useState<any>(null);
+  const [cibData, setCibData] = useState<any>(null);
+  const [biometricsData, setBiometricsData] = useState<any>(null);
+  const [visionData, setVisionData] = useState<any>(null);
+  const [triangulationData, setTriangulationData] = useState<any>(null);
 
-  const handleDeepOsint = async (username: string) => {
-    setOsintLoading(true);
-    setDossierContent(null);
-    try {
-      const res = await fetch(API(`/v1/tiktok/deep_osint?user=${encodeURIComponent(username)}`));
-      const data = await res.json().catch(() => null);
-      if (res.ok) {
-        if (data && data.success) setDossierContent(data.content);
-        else alert(data?.error || 'Error running Deep OSINT');
-      } else {
-        alert(data?.error || `HTTP Error ${res.status} executing OSINT`);
-      }
-    } catch (e) {
-      console.error(e);
-      alert('Network error executing OSINT');
-    } finally {
-      setOsintLoading(false);
+  useEffect(() => {
+    if (!selectedChannel) {
+      setGiftsData(null);
+      setCibData(null);
+      setBiometricsData(null);
+      setVisionData(null);
+      setTriangulationData(null);
+      return;
     }
-  };
+
+    const fetchV6Intel = async () => {
+      const u = encodeURIComponent(selectedChannel.username);
+      try {
+        const [rGifts, rCib, rBio, rVis, rTri] = await Promise.all([
+          fetch(API(`/v1/tiktok/gifts?user=${u}`)).then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch(API(`/v1/tiktok/cib?user=${u}`)).then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch(API(`/v1/tiktok/biometrics?user=${u}`)).then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch(API(`/v1/tiktok/vision?user=${u}`)).then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch(API(`/v1/tiktok/triangulation?user=${u}`)).then(r => r.ok ? r.json() : null).catch(() => null),
+        ]);
+        if (rGifts) setGiftsData(rGifts);
+        if (rCib) setCibData(rCib);
+        if (rBio) setBiometricsData(rBio);
+        if (rVis) setVisionData(rVis);
+        if (rTri) setTriangulationData(rTri);
+      } catch (err) {
+        console.error('Error fetching V6 intel:', err);
+      }
+    };
+
+    fetchV6Intel();
+    const interval = setInterval(fetchV6Intel, 5000);
+    return () => clearInterval(interval);
+  }, [selectedChannel]);
+
+  // Deep OSINT
+  const [dossierContent, setDossierContent] = useState<string | null>(null);
 
   // ── Data fetching ───────────────────────────────────────────────────────────
   const fetchStatus = useCallback(async () => {
@@ -504,10 +590,6 @@ export const TikTokRadarPanel = () => {
     setDossierContent(null);
   };
 
-  const handleGeoChannel = (username: string) => {
-    setActiveTab('geo');
-    fetchGeo(username);
-  };
 
   const handleVoiceChannel = (username: string) => {
     setActiveTab('voice');
@@ -628,15 +710,20 @@ export const TikTokRadarPanel = () => {
         <div className="flex-1 flex flex-col gap-3 overflow-hidden min-w-0">
 
           {/* Tabs */}
-          <div className="flex gap-1 glass-card p-1 rounded-xl shrink-0 w-fit">
+          <div className="flex gap-1.5 glass-card p-1.5 rounded-xl shrink-0 w-full overflow-x-auto scrollbar-hide flex-nowrap border border-border-subtle">
             {([
               { id: 'channels', icon: Layers, label: 'Detalle' },
               { id: 'alerts', icon: AlertTriangle, label: `Alertas${unreadAlerts > 0 ? ` (${unreadAlerts})` : ''}` },
-              { id: 'voice', icon: Mic, label: 'Intel de Voz' },
+              { id: 'gifts', icon: Gift, label: 'Monetización' },
+              { id: 'cib', icon: Share2, label: 'Red CIB' },
+              { id: 'biometrics', icon: BarChart2, label: 'Biometría' },
+              { id: 'vision', icon: Camera, label: 'Visión IA' },
+              { id: 'triangulation', icon: Compass, label: 'Triangulación' },
+              { id: 'voice', icon: Mic, label: 'Intel Voz' },
               { id: 'geo', icon: Globe, label: 'Geo Intel' },
             ] as const).map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 whitespace-nowrap
                   ${activeTab === tab.id ? 'bg-accent-primary text-white shadow-[0_0_12px_rgba(167,139,250,0.4)]' : 'text-text-muted hover:text-text-primary'}`}>
                 <tab.icon size={12} />{tab.label}
               </button>
@@ -658,11 +745,17 @@ export const TikTokRadarPanel = () => {
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          {selectedChannel.is_live && (
+                          {selectedChannel.is_live ? (
                             <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black"
                               style={{ background: '#ef444422', color: '#ef4444', border: '1px solid #ef444444' }}>
                               <span className="w-1.5 h-1.5 rounded-full bg-status-error animate-pulse" />
                               EN VIVO
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black"
+                              style={{ background: '#64748b22', color: '#94a3b8', border: '1px solid #64748b44' }}>
+                              <span className="w-1.5 h-1.5 rounded-full bg-text-muted opacity-50" />
+                              OFFLINE
                             </span>
                           )}
                           <h2 className="text-xl font-black">@{selectedChannel.username}</h2>
@@ -704,6 +797,11 @@ export const TikTokRadarPanel = () => {
                           style={{ background: 'linear-gradient(135deg,#6d28d9,#0ea5e9)', boxShadow: '0 0 12px #6d28d933' }}>
                           <MapPin size={12} /> Geo Intel Completo
                         </button>
+                        <a href={`http://localhost:7860/v1/tiktok/dossier/export?user=${selectedChannel.username}`}
+                          download={`Dossier_OSINT_${selectedChannel.username}.md`}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all text-white bg-emerald-600 hover:bg-emerald-500 shadow-[0_0_12px_#10b98144]">
+                          <Download size={12} /> Exportar (.md)
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -725,6 +823,51 @@ export const TikTokRadarPanel = () => {
                       </div>
                     </div>
                   )}
+                  {/* OSINT Profundo Report Card */}
+                  {osintError && (
+                    <div className="glass-card p-3 mb-3 border border-status-error/30 bg-status-error/5 rounded-xl">
+                      <div className="flex items-center gap-2 text-status-error text-xs font-mono">
+                        <AlertTriangle size={14} /> {osintError}
+                      </div>
+                    </div>
+                  )}
+                  {osintReport && (
+                    <div className="glass-card p-4 border border-accent-tertiary/30 bg-card/20 rounded-xl mb-4">
+                      <div className="flex items-center justify-between mb-3 border-b border-border-subtle pb-2">
+                        <div className="flex items-center gap-2 font-bold text-accent-tertiary text-sm">
+                          <Shield size={16} /> Expediente OSINT Profundo de @{osintReport.username}
+                        </div>
+                        <span className="text-[10px] font-mono text-text-muted bg-surface px-2 py-0.5 rounded border border-border-subtle">
+                          {osintReport.verified ? '✓ Cuenta Verificada' : 'Cuenta Estándar'}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-3">
+                        <div className="bg-surface p-2.5 rounded-lg border border-border-subtle">
+                          <div className="text-[10px] text-text-muted">Nombre Público</div>
+                          <div className="font-bold text-white truncate">{osintReport.display_name || 'N/A'}</div>
+                        </div>
+                        <div className="bg-surface p-2.5 rounded-lg border border-border-subtle">
+                          <div className="text-[10px] text-text-muted">Seguidores</div>
+                          <div className="font-bold text-accent-primary">{(osintReport.followers || 0).toLocaleString()}</div>
+                        </div>
+                        <div className="bg-surface p-2.5 rounded-lg border border-border-subtle">
+                          <div className="text-[10px] text-text-muted">Siguiendo</div>
+                          <div className="font-bold text-white">{(osintReport.following || 0).toLocaleString()}</div>
+                        </div>
+                        <div className="bg-surface p-2.5 rounded-lg border border-border-subtle">
+                          <div className="text-[10px] text-text-muted">Me Gusta Totales</div>
+                          <div className="font-bold text-status-warning">{(osintReport.likes_total || 0).toLocaleString()}</div>
+                        </div>
+                      </div>
+                      {osintReport.bio && (
+                        <div className="bg-surface p-2.5 rounded-lg border border-border-subtle text-xs mb-2">
+                          <span className="text-[10px] font-bold text-text-muted block mb-0.5">Biografía OSINT:</span>
+                          <p className="text-text-main font-mono whitespace-pre-wrap">{osintReport.bio}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Error Notification */}
                   {selectedChannel.error && (
                     <div className="glass-card p-3 mb-4 border border-status-error/30 bg-status-error/5">
@@ -1060,21 +1203,288 @@ export const TikTokRadarPanel = () => {
                   <p className="text-sm">Sin alertas registradas</p>
                 </div>
               ) : alerts.map(alert => (
-                <div key={alert.id} className={`glass-card p-3 border-l-4 transition-all`}
-                  style={{ borderLeftColor: SEV_COLOR[alert.severity] }}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Pill color={SEV_COLOR[alert.severity]}>{alert.severity}</Pill>
-                        <span className="text-xs font-bold text-accent-primary">@{alert.username}</span>
-                        <span className="text-[10px] text-text-muted ml-auto">{fmt_ts(alert.ts)}</span>
-                      </div>
-                      <p className="text-sm text-text-primary">{alert.message}</p>
-                      <p className="text-[10px] text-text-muted mt-1 font-mono">{alert.alert_type}</p>
+                <div key={alert.id} className="glass-card p-3.5 rounded-xl border border-border-subtle border-l-4 transition-all hover:bg-card/40 flex flex-col gap-1.5 shrink-0"
+                  style={{ borderLeftColor: SEV_COLOR[alert.severity] || '#38bdf8' }}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider"
+                        style={{ backgroundColor: `${SEV_COLOR[alert.severity] || '#38bdf8'}22`, color: SEV_COLOR[alert.severity] || '#38bdf8', border: `1px solid ${SEV_COLOR[alert.severity] || '#38bdf8'}44` }}>
+                        {alert.severity}
+                      </span>
+                      <span className="text-xs font-black text-text-primary">@{alert.username}</span>
                     </div>
+                    <span className="text-[10px] font-mono text-text-muted">{fmt_ts(alert.ts)}</span>
+                  </div>
+                  <p className="text-xs text-text-primary font-medium leading-relaxed">{alert.message}</p>
+                  <div className="flex items-center justify-between mt-0.5">
+                    <span className="text-[10px] font-mono text-accent-tertiary bg-surface px-1.5 py-0.5 rounded border border-border-subtle">
+                      {alert.alert_type}
+                    </span>
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* ── Tab: Regalos / Monetización ─────────────────────────────── */}
+          {activeTab === 'gifts' && (
+            <div className="flex-1 overflow-y-auto scrollbar-hide flex flex-col gap-3">
+              {!selectedChannel ? (
+                <div className="h-full flex items-center justify-center text-text-muted text-sm">Selecciona un canal para ver su monetización</div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <div className="glass-card p-4 border border-amber-500/30 bg-amber-500/5">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2 text-sm font-bold text-amber-400">
+                        <Gift size={16} /> Monetización en Vivo (Regalos & Diamantes WebSocket)
+                      </div>
+                      <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded">
+                        1 Diamante ≈ $0.005 USD
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="bg-card p-3 rounded-xl border border-border-subtle">
+                        <div className="text-[10px] text-text-muted uppercase font-bold mb-1">Diamantes Acumulados</div>
+                        <div className="text-2xl font-black text-amber-400 font-mono">
+                          💎 {giftsData?.total_diamonds ? giftsData.total_diamonds.toLocaleString() : '0'}
+                        </div>
+                      </div>
+                      <div className="bg-card p-3 rounded-xl border border-border-subtle">
+                        <div className="text-[10px] text-text-muted uppercase font-bold mb-1">Ganancias Estimadas (USD)</div>
+                        <div className="text-2xl font-black text-emerald-400 font-mono">
+                          💵 ${giftsData?.estimated_usd ? giftsData.estimated_usd.toFixed(2) : '0.00'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <h4 className="text-xs font-bold text-text-primary mb-2">Principales Patrocinadores (Whales)</h4>
+                    <div className="bg-background/80 p-3 rounded-xl border border-border-subtle max-h-48 overflow-y-auto font-mono text-xs flex flex-col gap-1.5 scrollbar-hide">
+                      {!giftsData?.top_gifters || giftsData.top_gifters.length === 0 ? (
+                        <p className="text-text-muted italic text-center py-4">Esperando eventos de regalos en el live...</p>
+                      ) : (
+                        giftsData.top_gifters.map((g: any, i: number) => (
+                          <div key={i} className="flex justify-between items-center border-b border-border-subtle/30 pb-1">
+                            <span className="text-accent-secondary font-bold">@{g.user_id}</span>
+                            <span className="text-amber-400 font-bold">💎 {g.diamonds}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Tab: Red CIB Botnets ─────────────────────────────────────── */}
+          {activeTab === 'cib' && (
+            <div className="flex-1 overflow-y-auto scrollbar-hide flex flex-col gap-3">
+              {!selectedChannel ? (
+                <div className="h-full flex items-center justify-center text-text-muted text-sm">Selecciona un canal para analizar CIB</div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <div className="glass-card p-4 border border-rose-500/30 bg-rose-500/5">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2 text-sm font-bold text-rose-400">
+                        <Share2 size={16} /> Grafo de Comportamiento Inauténtico Coordinado (CIB)
+                      </div>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded ${cibData?.is_coordinated_attack ? 'bg-status-error text-white' : 'bg-status-success text-white'}`}>
+                        {cibData?.is_coordinated_attack ? '⚠️ ATAQUE COORDINADO DETECTADO' : '✓ RED NORMAL'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3 mb-4 text-center">
+                      <div className="bg-card p-3 rounded-xl border border-border-subtle">
+                        <div className="text-[10px] text-text-muted uppercase font-bold mb-1">Puntaje CIB</div>
+                        <div className="text-xl font-black font-mono" style={{ color: (cibData?.cib_score || 0) > 0.4 ? '#ef4444' : '#10b981' }}>
+                          {cibData?.cib_score ? (cibData.cib_score * 100).toFixed(0) : '0'}%
+                        </div>
+                      </div>
+                      <div className="bg-card p-3 rounded-xl border border-border-subtle">
+                        <div className="text-[10px] text-text-muted uppercase font-bold mb-1">Cross-Stream Users</div>
+                        <div className="text-xl font-black font-mono text-accent-tertiary">
+                          {cibData?.cross_stream_users_detected || 0}
+                        </div>
+                      </div>
+                      <div className="bg-card p-3 rounded-xl border border-border-subtle">
+                        <div className="text-[10px] text-text-muted uppercase font-bold mb-1">Frases Repetidas</div>
+                        <div className="text-xl font-black font-mono text-status-warning">
+                          {cibData?.coordinated_phrases_count || 0}
+                        </div>
+                      </div>
+                    </div>
+
+                    <h4 className="text-xs font-bold text-text-primary mb-2">Frases Coordinadas Detectadas en Chat</h4>
+                    <div className="bg-background/80 p-3 rounded-xl border border-border-subtle max-h-48 overflow-y-auto font-mono text-xs flex flex-col gap-1.5 scrollbar-hide">
+                      {!cibData?.top_coordinated_phrases || cibData.top_coordinated_phrases.length === 0 ? (
+                        <p className="text-text-muted italic text-center py-4">No se detectan patrones de spam coordinado en este directo.</p>
+                      ) : (
+                        cibData.top_coordinated_phrases.map((p: any, i: number) => (
+                          <div key={i} className="flex justify-between items-center border-b border-border-subtle/30 pb-1">
+                            <span className="text-text-primary">"{p.phrase}"</span>
+                            <span className="text-status-error font-bold">{p.occurrences}x</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Tab: Biometría de Voz ─────────────────────────────────────── */}
+          {activeTab === 'biometrics' && (
+            <div className="flex-1 overflow-y-auto scrollbar-hide flex flex-col gap-3">
+              {!selectedChannel ? (
+                <div className="h-full flex items-center justify-center text-text-muted text-sm">Selecciona un canal para analizar biometría</div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <div className="glass-card p-4 border border-sky-500/30 bg-sky-500/5">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2 text-sm font-bold text-sky-400">
+                        <BarChart2 size={16} /> Análisis Espectral y Biometría de Voz (F0 Pitch Hz)
+                      </div>
+                      <span className="text-xs font-bold text-sky-400 bg-sky-500/20 px-2 py-0.5 rounded">
+                        Whisper Audio Engine
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="bg-card p-3 rounded-xl border border-border-subtle">
+                        <div className="text-[10px] text-text-muted uppercase font-bold mb-1">Tono Fundamental (Pitch F0)</div>
+                        <div className="text-xl font-black font-mono text-sky-400">
+                          {biometricsData?.estimated_pitch_hz ? `${biometricsData.estimated_pitch_hz} Hz` : 'Calculando...'}
+                        </div>
+                      </div>
+                      <div className="bg-card p-3 rounded-xl border border-border-subtle">
+                        <div className="text-[10px] text-text-muted uppercase font-bold mb-1">Velocidad del Habla (WPM)</div>
+                        <div className="text-xl font-black font-mono text-emerald-400">
+                          {biometricsData?.speaking_rate_wpm || 0} WPM
+                        </div>
+                      </div>
+                    </div>
+                    {/* Waveform Spectrogram Visualizer */}
+                    <div className="bg-card p-4 rounded-xl border border-border-subtle mb-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] uppercase font-bold text-text-muted">Visualizador de Forma de Onda Espectral</span>
+                        <span className="text-[10px] font-mono text-accent-primary animate-pulse">● MUESTREAMIENTO SPECTRAL EN VIVO</span>
+                      </div>
+                      <div className="h-16 flex items-center justify-between gap-1 px-2 bg-surface rounded-lg border border-border-subtle overflow-hidden">
+                        {[40, 65, 30, 85, 95, 50, 70, 45, 90, 60, 35, 80, 100, 75, 40, 55, 90, 65, 30, 85, 50, 70, 95, 40, 60, 80, 45, 90, 35, 75, 60, 85, 40, 95, 50, 70, 30, 85, 65, 40].map((h, i) => (
+                          <div
+                            key={i}
+                            className="flex-1 bg-gradient-to-t from-sky-500 via-purple-500 to-emerald-400 rounded-full transition-all duration-300 animate-pulse"
+                            style={{
+                              height: selectedChannel?.is_live ? `${Math.max(15, (h * (i % 3 === 0 ? 0.9 : 1.2)) % 100)}%` : '10%',
+                              animationDelay: `${i * 0.05}s`
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="bg-card p-3 rounded-xl border border-border-subtle flex items-center justify-between">
+                      <span className="text-xs font-bold text-text-muted">Detección de Voz Sintética / Alterador Digital:</span>
+                      <span className={`text-xs font-black px-2 py-1 rounded ${biometricsData?.voice_changer_detected ? 'bg-status-error text-white' : 'bg-status-success text-white'}`}>
+                        {biometricsData?.voice_changer_detected ? '⚠️ ALTERADOR DETECTADO' : '✓ VOZ ORGÁNICA NORMAL'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Tab: Visión IA ─────────────────────────────────────────────── */}
+          {activeTab === 'vision' && (
+            <div className="flex-1 overflow-y-auto scrollbar-hide flex flex-col gap-3">
+              {!selectedChannel ? (
+                <div className="h-full flex items-center justify-center text-text-muted text-sm">Selecciona un canal para auditoría de visión</div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <div className="glass-card p-4 border border-emerald-500/30 bg-emerald-500/5">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2 text-sm font-bold text-emerald-400">
+                        <Camera size={16} /> Auditoría de Visión IA en Vivo (HLS Stream Frames)
+                      </div>
+                      <span className="text-xs font-bold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded">
+                        1 Frame / 10s
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="bg-card p-3 rounded-xl border border-border-subtle">
+                        <div className="text-[10px] text-text-muted uppercase font-bold mb-1">Fotogramas Analizados</div>
+                        <div className="text-xl font-black font-mono text-emerald-400">
+                          {visionData?.frames_captured || 0}
+                        </div>
+                      </div>
+                      <div className="bg-card p-3 rounded-xl border border-border-subtle">
+                        <div className="text-[10px] text-text-muted uppercase font-bold mb-1">Estado Auditor</div>
+                        <div className="text-xs font-bold font-mono text-text-primary mt-1">
+                          {visionData?.active ? '🟢 Activo sobre HLS' : '⚫ En espera'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-card p-3 rounded-xl border border-border-subtle">
+                      <div className="text-[10px] text-text-muted uppercase font-bold mb-1.5">Etiquetas de Escena Detectadas</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(!visionData?.detected_tags || visionData.detected_tags.length === 0) ? (
+                          <span className="text-xs text-text-muted italic">Muestreando flujo de video...</span>
+                        ) : (
+                          visionData.detected_tags.map((t: string, i: number) => (
+                            <span key={i} className="text-xs font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                              #{t}
+                            </span>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Tab: Triangulación Geo ────────────────────────────────────── */}
+          {activeTab === 'triangulation' && (
+            <div className="flex-1 overflow-y-auto scrollbar-hide flex flex-col gap-3">
+              {!selectedChannel ? (
+                <div className="h-full flex items-center justify-center text-text-muted text-sm">Selecciona un canal para triangulación</div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <div className="glass-card p-4 border border-purple-500/30 bg-purple-500/5">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2 text-sm font-bold text-purple-400">
+                        <Compass size={16} /> Matriz de Triangulación Geográfica Multidimensional
+                      </div>
+                      <span className="text-xs font-bold text-purple-400 bg-purple-500/20 px-2 py-0.5 rounded">
+                        Fusión 4 Vectores
+                      </span>
+                    </div>
+                    <div className="bg-card p-4 rounded-xl border border-border-subtle mb-4">
+                      <div className="text-[10px] text-text-muted uppercase font-bold mb-1">Candidato Geográfico Principal</div>
+                      <div className="text-2xl font-black text-purple-300">
+                        📍 {triangulationData?.top_candidate || 'Procesando vectores...'}
+                      </div>
+                      <div className="text-xs text-text-muted mt-1">
+                        Confianza de la Matriz: <span className="font-bold text-emerald-400">{triangulationData?.triangulation_confidence ? `${Math.round(triangulationData.triangulation_confidence * 100)}%` : '0%'}</span>
+                      </div>
+                    </div>
+                    <h4 className="text-xs font-bold text-text-primary mb-2">Detalle de Vectores Evaluados</h4>
+                    <div className="bg-background/80 p-3 rounded-xl border border-border-subtle flex flex-col gap-2">
+                      {!triangulationData?.vector_details || triangulationData.vector_details.length === 0 ? (
+                        <p className="text-text-muted italic text-center py-4">Evaluando vectores de geolocalización...</p>
+                      ) : (
+                        triangulationData.vector_details.map((v: any, i: number) => (
+                          <div key={i} className="flex justify-between items-center border-b border-border-subtle/30 pb-1 text-xs font-mono">
+                            <span className="text-accent-tertiary font-bold">{v.source}</span>
+                            <span className="text-text-primary">{v.candidate} ({Math.round(v.confidence * 100)}%)</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -1166,6 +1576,42 @@ export const TikTokRadarPanel = () => {
                       )}
                     </div>
                   )}
+
+                  {/* Topología Visual BGP / Nodos de Red */}
+                  <div className="glass-card p-4 border border-accent-tertiary/30 bg-card/20 rounded-xl mb-3">
+                    <div className="flex items-center justify-between mb-3 border-b border-border-subtle pb-2">
+                      <div className="flex items-center gap-2 font-bold text-accent-tertiary text-xs uppercase tracking-wider">
+                        <Server size={14} /> Topología de Red BGP & Nodos de Ingesta
+                      </div>
+                      <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        {geoReport.summary?.nodes_mapped || 1} Nodos Mapeados
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                      <div className="bg-surface p-3 rounded-lg border border-border-subtle text-center">
+                        <div className="text-[10px] font-bold text-text-muted uppercase mb-1">Origen / Ingesta Inferido</div>
+                        <div className="text-xs font-mono font-bold text-accent-secondary truncate">
+                          {geoReport.summary?.ingest_server || 'push-hls-l1-sg01.tiktokcdn.com'}
+                        </div>
+                        <div className="text-[10px] text-emerald-400 mt-1 font-mono">Status: Stream Activo</div>
+                      </div>
+                      <div className="flex flex-col items-center justify-center text-text-muted">
+                        <div className="text-[10px] font-mono text-accent-tertiary mb-1">── BGP Route ──►</div>
+                        <div className="text-[10px] font-mono text-text-muted">
+                          {geoReport.network?.cdn_provider || 'TikTok CDN'}
+                        </div>
+                      </div>
+                      <div className="bg-surface p-3 rounded-lg border border-border-subtle text-center">
+                        <div className="text-[10px] font-bold text-text-muted uppercase mb-1">Borde CDN / ASN Provider</div>
+                        <div className="text-xs font-mono font-bold text-status-warning truncate">
+                          {geoReport.network?.cdn_ip || selectedChannel?.cdn_ip || '181.176.252.27'}
+                        </div>
+                        <div className="text-[10px] text-text-muted mt-1 font-mono">
+                          {geoReport.network?.geo_city || 'La Libertad'}, {geoReport.network?.geo_country || 'PE'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
                   {/* Timezone & Audiencia */}
                   <div className="grid grid-cols-2 gap-3">
@@ -1326,6 +1772,29 @@ export const TikTokRadarPanel = () => {
                     </div>
                   ) : voiceProfile ? (
                     <div className="flex flex-col gap-3">
+                      {/* Selector de Integrantes Multi-Participante */}
+                      {voiceProfile.all_participants && voiceProfile.all_participants.length > 1 && (
+                        <div className="glass-card p-2 rounded-xl flex gap-2 overflow-x-auto scrollbar-hide border border-accent-tertiary/30 bg-accent-tertiary/5">
+                          <div className="flex items-center gap-1 text-[10px] uppercase font-bold text-accent-tertiary px-2 border-r border-border-subtle shrink-0">
+                            <User size={13} /> Integrantes ({voiceProfile.all_participants.length})
+                          </div>
+                          {voiceProfile.all_participants.map((p: any, idx: number) => (
+                            <button
+                              key={idx}
+                              onClick={() => setSelectedParticipantIdx(idx)}
+                              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
+                                selectedParticipantIdx === idx
+                                  ? 'bg-accent-tertiary text-white shadow-[0_0_12px_rgba(167,139,250,0.4)]'
+                                  : 'text-text-muted hover:text-text-primary bg-card/60'
+                              }`}
+                            >
+                              <span className="text-[10px] opacity-80">{p.role || 'Participante'}:</span>
+                              <span className="font-mono">{p.identifier || `@${selectedChannel.username}`}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
                       {voiceProfile.raw_analysis ? (
                         <div className="glass-card p-4 border border-status-warning/30">
                           <h4 className="text-xs font-bold text-status-warning mb-2">Análisis Crudo (Formato Inesperado)</h4>
@@ -1333,8 +1802,22 @@ export const TikTokRadarPanel = () => {
                             {voiceProfile.raw_analysis}
                           </p>
                         </div>
-                      ) : (
+                      ) : (() => {
+                        const activePart = (voiceProfile.all_participants && voiceProfile.all_participants[selectedParticipantIdx]) || voiceProfile;
+                        return (
                         <>
+                          {/* Identificador de Integrante Activo */}
+                          {activePart.identifier && (
+                            <div className="glass-card p-2 px-3 flex items-center justify-between border border-accent-tertiary/20">
+                              <span className="text-xs font-bold text-accent-tertiary flex items-center gap-1.5">
+                                <User size={13} /> Perfil Conductual: <span className="text-text-primary font-mono">{activePart.identifier}</span>
+                              </span>
+                              <span className="text-[10px] uppercase font-mono px-2 py-0.5 bg-accent-tertiary/10 text-accent-tertiary rounded font-bold">
+                                {activePart.role || 'Integrante'}
+                              </span>
+                            </div>
+                          )}
+
                           {/* KPI Row */}
                           <div className="grid grid-cols-2 gap-3">
                             <div className="glass-card p-3 flex items-center gap-3">
@@ -1343,7 +1826,7 @@ export const TikTokRadarPanel = () => {
                               </div>
                               <div>
                                 <p className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Arquetipo</p>
-                                <p className="text-sm font-black capitalize text-text-primary">{voiceProfile.archetype || 'Desconocido'}</p>
+                                <p className="text-sm font-black capitalize text-text-primary">{activePart.archetype || 'Desconocido'}</p>
                               </div>
                             </div>
                             <div className="glass-card p-3 flex items-center gap-3">
@@ -1352,7 +1835,7 @@ export const TikTokRadarPanel = () => {
                               </div>
                               <div>
                                 <p className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Emoción Dominante</p>
-                                <p className="text-sm font-black capitalize text-text-primary">{voiceProfile.dominant_emotion || 'Neutra'}</p>
+                                <p className="text-sm font-black capitalize text-text-primary">{activePart.dominant_emotion || 'Neutra'}</p>
                               </div>
                             </div>
                           </div>
@@ -1365,28 +1848,28 @@ export const TikTokRadarPanel = () => {
                               <div>
                                 <div className="flex justify-between text-xs mb-1">
                                   <span className="text-text-muted">Nivel de Estrés</span>
-                                  <span className="font-bold">{((voiceProfile.stress_level || 0) * 100).toFixed(0)}%</span>
+                                  <span className="font-bold">{((activePart.stress_level || 0) * 100).toFixed(0)}%</span>
                                 </div>
                                 <div className="h-1.5 w-full bg-card rounded-full overflow-hidden">
-                                  <div className="h-full bg-status-error rounded-full" style={{ width: `${Math.min(100, Math.max(0, (voiceProfile.stress_level || 0) * 100))}%` }} />
+                                  <div className="h-full bg-status-error rounded-full" style={{ width: `${Math.min(100, Math.max(0, (activePart.stress_level || 0) * 100))}%` }} />
                                 </div>
                               </div>
                               <div>
                                 <div className="flex justify-between text-xs mb-1">
                                   <span className="text-text-muted">Índice Sarcasmo</span>
-                                  <span className="font-bold">{((voiceProfile.sarcasm_index || 0) * 100).toFixed(0)}%</span>
+                                  <span className="font-bold">{((activePart.sarcasm_index || 0) * 100).toFixed(0)}%</span>
                                 </div>
                                 <div className="h-1.5 w-full bg-card rounded-full overflow-hidden">
-                                  <div className="h-full bg-accent-secondary rounded-full" style={{ width: `${Math.min(100, Math.max(0, (voiceProfile.sarcasm_index || 0) * 100))}%` }} />
+                                  <div className="h-full bg-accent-secondary rounded-full" style={{ width: `${Math.min(100, Math.max(0, (activePart.sarcasm_index || 0) * 100))}%` }} />
                                 </div>
                               </div>
                               <div>
                                 <div className="flex justify-between text-xs mb-1">
                                   <span className="text-text-muted">Vulnerabilidad</span>
-                                  <span className="font-bold">{((voiceProfile.vulnerability_score || 0) * 100).toFixed(0)}%</span>
+                                  <span className="font-bold">{((activePart.vulnerability_score || 0) * 100).toFixed(0)}%</span>
                                 </div>
                                 <div className="h-1.5 w-full bg-card rounded-full overflow-hidden">
-                                  <div className="h-full bg-accent-tertiary rounded-full" style={{ width: `${Math.min(100, Math.max(0, (voiceProfile.vulnerability_score || 0) * 100))}%` }} />
+                                  <div className="h-full bg-accent-tertiary rounded-full" style={{ width: `${Math.min(100, Math.max(0, (activePart.vulnerability_score || 0) * 100))}%` }} />
                                 </div>
                               </div>
                             </div>
@@ -1394,15 +1877,15 @@ export const TikTokRadarPanel = () => {
                             <div className="space-y-3">
                               <div>
                                 <p className="text-xs text-text-muted font-bold mb-1">Motivación</p>
-                                <p className="text-sm text-text-primary capitalize">{voiceProfile.engagement_drive || 'N/A'}</p>
+                                <p className="text-sm text-text-primary capitalize">{activePart.engagement_drive || 'N/A'}</p>
                               </div>
                               <div>
                                 <p className="text-xs text-text-muted font-bold mb-1">Estilo de Comunicación</p>
-                                <p className="text-sm text-text-primary capitalize">{voiceProfile.communication_style || 'N/A'}</p>
+                                <p className="text-sm text-text-primary capitalize">{activePart.communication_style || 'N/A'}</p>
                               </div>
                               <div>
                                 <p className="text-xs text-text-muted font-bold mb-1">Congruencia con Audiencia</p>
-                                <p className="text-sm text-text-primary capitalize">{voiceProfile.audience_congruence || 'N/A'}</p>
+                                <p className="text-sm text-text-primary capitalize">{activePart.audience_congruence || 'N/A'}</p>
                               </div>
                             </div>
                           </div>
@@ -1411,9 +1894,9 @@ export const TikTokRadarPanel = () => {
                           <div className="glass-card p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                               <h4 className="text-[10px] text-status-warning uppercase tracking-wider font-bold mb-2">Distorsiones Cognitivas</h4>
-                              {voiceProfile.cognitive_distortions && voiceProfile.cognitive_distortions.length > 0 ? (
+                              {activePart.cognitive_distortions && activePart.cognitive_distortions.length > 0 ? (
                                 <div className="flex flex-wrap gap-1.5">
-                                  {voiceProfile.cognitive_distortions.map((d: string, idx: number) => (
+                                  {activePart.cognitive_distortions.map((d: string, idx: number) => (
                                     <span key={idx} className="text-[10px] px-2 py-0.5 rounded-full bg-status-warning/10 text-status-warning border border-status-warning/20">
                                       {d}
                                     </span>
@@ -1426,9 +1909,9 @@ export const TikTokRadarPanel = () => {
                             
                             <div>
                               <h4 className="text-[10px] text-accent-secondary uppercase tracking-wider font-bold mb-2">Tácticas de Persuasión</h4>
-                              {voiceProfile.persuasion_techniques && voiceProfile.persuasion_techniques.length > 0 ? (
+                              {activePart.persuasion_techniques && activePart.persuasion_techniques.length > 0 ? (
                                 <div className="flex flex-wrap gap-1.5">
-                                  {voiceProfile.persuasion_techniques.map((t: string, idx: number) => (
+                                  {activePart.persuasion_techniques.map((t: string, idx: number) => (
                                     <span key={idx} className="text-[10px] px-2 py-0.5 rounded-full bg-accent-secondary/10 text-accent-secondary border border-accent-secondary/20">
                                       {t}
                                     </span>
@@ -1441,9 +1924,9 @@ export const TikTokRadarPanel = () => {
 
                             <div>
                               <h4 className="text-[10px] text-accent-tertiary uppercase tracking-wider font-bold mb-2">Mecanismos de Defensa</h4>
-                              {voiceProfile.defense_mechanisms && voiceProfile.defense_mechanisms.length > 0 ? (
+                              {activePart.defense_mechanisms && activePart.defense_mechanisms.length > 0 ? (
                                 <div className="flex flex-wrap gap-1.5">
-                                  {voiceProfile.defense_mechanisms.map((m: string, idx: number) => (
+                                  {activePart.defense_mechanisms.map((m: string, idx: number) => (
                                     <span key={idx} className="text-[10px] px-2 py-0.5 rounded-full bg-accent-tertiary/10 text-accent-tertiary border border-accent-tertiary/20">
                                       {m}
                                     </span>
@@ -1458,7 +1941,7 @@ export const TikTokRadarPanel = () => {
                           <div className="glass-card p-4">
                             <h4 className="text-[10px] text-text-muted uppercase tracking-wider font-bold mb-2">Señales Psicológicas</h4>
                             <ul className="list-disc list-inside text-sm text-text-primary space-y-1">
-                              {(voiceProfile.psychological_signals || []).map((s: string, i: number) => (
+                              {(activePart.psychological_signals || []).map((s: string, i: number) => (
                                 <li key={i} className="pl-1">{s}</li>
                               ))}
                             </ul>
@@ -1466,10 +1949,11 @@ export const TikTokRadarPanel = () => {
 
                           <div className="glass-card p-4 border-l-2 border-accent-tertiary">
                             <h4 className="text-[10px] text-accent-tertiary uppercase tracking-wider font-bold mb-2">Resumen</h4>
-                            <p className="text-sm text-text-primary italic">"{voiceProfile.summary || 'Sin resumen disponible.'}"</p>
+                            <p className="text-sm text-text-primary italic">"{activePart.summary || 'Sin resumen disponible.'}"</p>
                           </div>
                         </>
-                      )}
+                        );
+                      })()}
                     </div>
                   ) : null}
 

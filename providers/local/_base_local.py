@@ -81,7 +81,7 @@ def pick_active_model(models: List[Dict[str, Any]]) -> Optional[str]:
 def _http_post_stream(
     url: str,
     payload: dict,
-    timeout: float = 300.0,
+    timeout: float = 15.0,
 ) -> Generator[bytes, None, None]:
     """POST JSON, yield raw response lines with safe execution timeouts."""
     data = json.dumps(payload).encode("utf-8")
@@ -201,13 +201,13 @@ def _openai_compat_complete(
         data = _safe_json(raw)
         if data and "choices" in data and data["choices"]:
             msg = data["choices"][0].get("message", {})
-            if "tool_calls" in msg:
+            if msg.get("tool_calls"):
                 return json.dumps({"__TOOL_CALL__": msg["tool_calls"]})
             return msg.get("content", "")
     except Exception as e:
         import logging
 
-        logging.getLogger("gravity").error(f"[BaseLocal] Error in completion: {e}")
+        logging.getLogger("gravity").debug(f"[BaseLocal] Local completion offline/unavailable: {e}")
     return ""
 
 
@@ -220,9 +220,15 @@ def _build_openai_payload(
     payload: Dict[str, Any] = {"model": model, "messages": messages, "stream": stream}
 
     # Surgical parameter injection for LM Studio / OpenAI compatibility
-    for k in ("temperature", "top_p", "tools", "tool_choice"):
+    for k in ("temperature", "top_p", "tools", "tool_choice", "repetition_penalty", "frequency_penalty", "presence_penalty"):
         if k in options:
             payload[k] = options[k]
+
+    # Prevenir bucles de degeneración de tokens en modelos locales (LM Studio)
+    if "repetition_penalty" not in payload:
+        payload["repetition_penalty"] = 1.1
+    if "frequency_penalty" not in payload:
+        payload["frequency_penalty"] = 0.15
 
     if "max_tokens" in options and options["max_tokens"] > 0:
         payload["max_tokens"] = int(options["max_tokens"])

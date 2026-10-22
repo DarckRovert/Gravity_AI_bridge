@@ -12,7 +12,7 @@ import os
 import subprocess
 import logging
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 log = logging.getLogger("gravity.game_backup")
@@ -55,7 +55,7 @@ def backup_database(server_id: str, cfg: Dict[str, Any]) -> Dict[str, Any]:
 
     with _backup_lock:
         os.makedirs(SAVES_DIR, exist_ok=True)
-        ts: str = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        ts: str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         backup_file: str = os.path.join(SAVES_DIR, f"backup_{server_id}_{ts}.sql")
 
         db_host: str = cfg.get("db_host", "127.0.0.1")

@@ -1680,6 +1680,23 @@ def _process_job(
                                 pass
 
                 try:
+                    from core.video.cloud_uploader import upload_video_to_cdn, patch_json_with_video
+                    vid_to_upload = _shorts_path if ("_shorts_path" in locals() and _shorts_path and os.path.isfile(_shorts_path)) else final_path
+                    if os.path.isfile(vid_to_upload):
+                        cdn_url = upload_video_to_cdn(vid_to_upload)
+                        if cdn_url:
+                            # Save CDN URL to database
+                            from core.db import execute_query
+                            execute_query(
+                                "UPDATE video_jobs SET youtube_url = ? WHERE id = ?",
+                                (cdn_url, job_id)
+                            )
+                            # Link video to article JSON
+                            patch_json_with_video(title or topic, cdn_url)
+                except Exception as _cdn_e:
+                    log.warning(f"[VideoStudio] CDN upload error: {_cdn_e}")
+
+                try:
                     from core.youtube_uploader import upload_job_async
 
                     if not skip_youtube_upload:
@@ -1906,9 +1923,54 @@ def start() -> None:
         )
 
 
+def start_detached_worker() -> None:
+    """Inicia un proceso independiente en segundo plano para procesar la cola de videos."""
+    import sys
+    import subprocess
+
+    try:
+        import psutil
+
+        for proc in psutil.process_iter(["cmdline"]):
+            try:
+                cmd = proc.info.get("cmdline") or []
+                if any("core.video.pipeline" in arg for arg in cmd):
+                    log.info(
+                        "[VideoStudio] Worker independiente ya está en ejecución."
+                    )
+                    return
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+    except Exception:
+        pass
+
+    try:
+        log.info(
+            "[VideoStudio] Lanzando proceso independiente de renderizado..."
+        )
+        subprocess.Popen(
+            [sys.executable, "-m", "core.video.pipeline"],
+            cwd=BASE_DIR,
+            creationflags=0x00000008 | 0x00000200 if os.name == "nt" else 0,  # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
+        )
+    except Exception as e:
+        log.warning(
+            f"[VideoStudio] No se pudo lanzar proceso independiente ({e}). Usando hilo local."
+        )
+        start()
+
+
 def get_video_url(output_path: str) -> str:
     """Convierte ruta absoluta en URL relativa para descarga."""
     if not output_path:
         return ""
     fname = os.path.basename(output_path)
     return f"/v1/video/download?file={fname}"
+
+
+if __name__ == "__main__":
+    log.info(
+        "[VideoStudio] Proceso independiente de renderizado de video iniciado."
+    )
+    _worker_loop()
+

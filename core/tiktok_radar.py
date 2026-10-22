@@ -32,6 +32,7 @@ from core.logger import log
 from tools.tiktok_live_monitor import get_monitor, LiveSnapshot
 from core.tiktok_osint_engine import TikTokOSINTEngine
 from core.tiktok_audio_transcriber import AudioTranscriber
+from core.tiktok_frame_auditor import StreamFrameAuditor
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 _LOCAL_APP_DATA = os.path.join(
@@ -53,6 +54,84 @@ MAX_WATCHED_CHANNELS = 50        # límite de canales en watchlist
 
 _thread_local = threading.local()
 
+def _ensure_tables(conn: sqlite3.Connection) -> None:
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS tiktok_watchlist (
+                username TEXT PRIMARY KEY,
+                interval_sec INTEGER DEFAULT 15,
+                added_at TEXT,
+                active INTEGER DEFAULT 1,
+                notes TEXT,
+                display_name TEXT DEFAULT '',
+                bio TEXT DEFAULT '',
+                followers INTEGER DEFAULT 0,
+                verified INTEGER DEFAULT 0,
+                avatar_url TEXT DEFAULT ''
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS tiktok_snapshots (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT,
+                ts TEXT,
+                is_live INTEGER,
+                viewers INTEGER,
+                title TEXT,
+                stream_url TEXT,
+                codec_video TEXT,
+                codec_audio TEXT,
+                bitrate_kbps INTEGER,
+                resolution TEXT,
+                fps REAL,
+                cdn_provider TEXT,
+                cdn_ip TEXT,
+                geo_country TEXT,
+                geo_city TEXT,
+                room_id TEXT,
+                user_id TEXT,
+                bot_score REAL,
+                engagement REAL,
+                display_name TEXT DEFAULT '',
+                bio TEXT DEFAULT '',
+                followers INTEGER DEFAULT 0,
+                verified INTEGER DEFAULT 0,
+                avatar_url TEXT DEFAULT '',
+                raw_meta TEXT
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS tiktok_alerts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT,
+                ts TEXT,
+                alert_type TEXT,
+                severity TEXT,
+                message TEXT,
+                snapshot_id INTEGER,
+                acknowledged INTEGER DEFAULT 0
+            )
+        """)
+        cols = [r["name"] for r in conn.execute("PRAGMA table_info(tiktok_watchlist)").fetchall()]
+        for col_name, col_type in [("interval_sec", "INTEGER DEFAULT 15"), ("display_name", "TEXT DEFAULT ''"), ("bio", "TEXT DEFAULT ''"), ("followers", "INTEGER DEFAULT 0"), ("verified", "INTEGER DEFAULT 0"), ("avatar_url", "TEXT DEFAULT ''")]:
+            if col_name not in cols:
+                try:
+                    conn.execute(f"ALTER TABLE tiktok_watchlist ADD COLUMN {col_name} {col_type}")
+                except Exception:
+                    pass
+
+        snap_cols = [r["name"] for r in conn.execute("PRAGMA table_info(tiktok_snapshots)").fetchall()]
+        for col_name, col_type in [("display_name", "TEXT DEFAULT ''"), ("bio", "TEXT DEFAULT ''"), ("followers", "INTEGER DEFAULT 0"), ("verified", "INTEGER DEFAULT 0"), ("avatar_url", "TEXT DEFAULT ''")]:
+            if col_name not in snap_cols:
+                try:
+                    conn.execute(f"ALTER TABLE tiktok_snapshots ADD COLUMN {col_name} {col_type}")
+                except Exception:
+                    pass
+        conn.commit()
+    except Exception as e:
+        log.debug(f"[TikTokRadar·DB] Table init note: {e}")
+
+
 def _get_conn() -> sqlite3.Connection:
     """Abre y mantiene conexión a gravity_brain.db con WAL mode (thread-local)."""
     if not hasattr(_thread_local, "conn"):
@@ -61,6 +140,7 @@ def _get_conn() -> sqlite3.Connection:
         conn.execute("PRAGMA synchronous=NORMAL")
         conn.execute("PRAGMA cache_size=-64000") # 64MB cache
         conn.row_factory = sqlite3.Row
+        _ensure_tables(conn)
         _thread_local.conn = conn
     return _thread_local.conn
 
@@ -75,8 +155,9 @@ def _persist_snapshot(snap: LiveSnapshot, conn: Optional[sqlite3.Connection] = N
             INSERT INTO tiktok_snapshots
             (username, ts, is_live, viewers, title, stream_url,
              codec_video, codec_audio, bitrate_kbps, resolution, fps,
-             cdn_provider, cdn_ip, geo_country, geo_city, room_id, user_id, bot_score, engagement, raw_meta)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+             cdn_provider, cdn_ip, geo_country, geo_city, room_id, user_id, bot_score, engagement,
+             display_name, bio, followers, verified, avatar_url, raw_meta)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """,
             (
                 snap.username,
@@ -98,6 +179,11 @@ def _persist_snapshot(snap: LiveSnapshot, conn: Optional[sqlite3.Connection] = N
                 snap.user_id,
                 snap.bot_score,
                 snap.engagement,
+                getattr(snap, "display_name", ""),
+                getattr(snap, "bio", ""),
+                getattr(snap, "followers", 0),
+                1 if getattr(snap, "verified", False) else 0,
+                getattr(snap, "avatar_url", ""),
                 json.dumps(snap.raw_meta, ensure_ascii=False),
             ),
         )
@@ -212,7 +298,7 @@ def _get_last_snapshot(username: str) -> Optional[Dict[str, Any]]:
             WHERE username=?
             ORDER BY ts DESC LIMIT 1
             """,
-            (username,),
+            (username.lstrip("@"),),
         ).fetchone()
         return dict(row) if row else None
     except sqlite3.OperationalError:
@@ -226,7 +312,7 @@ def _get_recent_alerts(username: Optional[str] = None, limit: int = 50) -> List[
         if username:
             rows = conn.execute(
                 "SELECT * FROM tiktok_alerts WHERE username=? ORDER BY ts DESC LIMIT ?",
-                (username, limit),
+                (username.lstrip("@"), limit),
             ).fetchall()
         else:
             rows = conn.execute(
@@ -252,7 +338,7 @@ def _get_history(username: str, limit: int = 100) -> List[Dict[str, Any]]:
             WHERE username=?
             ORDER BY ts DESC LIMIT ?
             """,
-            (username, limit),
+            (username.lstrip("@"), limit),
         ).fetchall()
         return [dict(r) for r in rows]
     except sqlite3.OperationalError:
@@ -276,11 +362,42 @@ def _get_last_live_snapshot(username: str) -> Optional[Dict[str, Any]]:
         return None
 
 
+# Patch de compatibilidad para TikTokLive: remapa nickName -> nick_name y filtra kwargs inesperados
+try:
+    from TikTokLive.proto.custom_proto import ExtendedUser
+    _orig_extended_user_from_user = ExtendedUser.from_user
+
+    @classmethod
+    def _patched_extended_user_from_user(cls, user, **kwargs):
+        if isinstance(user, ExtendedUser):
+            return user
+        try:
+            pdict = user.to_pydict(**kwargs) if hasattr(user, "to_pydict") else {}
+            if "nickName" in pdict and "nick_name" not in pdict:
+                pdict["nick_name"] = pdict.pop("nickName")
+            if hasattr(cls, "__dataclass_fields__"):
+                valid_fields = set(cls.__dataclass_fields__.keys())
+                pdict = {k: v for k, v in pdict.items() if k in valid_fields}
+            return cls(**pdict)
+        except Exception:
+            try:
+                return _orig_extended_user_from_user(user, **kwargs)
+            except Exception:
+                return user
+
+    ExtendedUser.from_user = _patched_extended_user_from_user
+except Exception as _patch_err:
+    log.debug(f"[TikTokRadar] Non-critical monkey-patch note: {_patch_err}")
+
+
 class CommentCollector:
-    """Recolecta comentarios de TikTok Live en segundo plano usando la biblioteca TikTokLive."""
+    """Recolecta comentarios y regalos de TikTok Live en segundo plano usando la biblioteca TikTokLive."""
     def __init__(self, username: str) -> None:
         self.username = username.lstrip("@")
         self.comments: deque = deque(maxlen=200)
+        self.gifts: deque = deque(maxlen=100)
+        self.total_diamonds: int = 0
+        self.top_gifters: Dict[str, int] = {}
         self.running = False
         self._thread: Optional[threading.Thread] = None
         self.client: Optional[Any] = None
@@ -310,7 +427,7 @@ class CommentCollector:
     def _run_loop(self) -> None:
         import asyncio
         from TikTokLive import TikTokLiveClient
-        from TikTokLive.events import CommentEvent
+        from TikTokLive.events import CommentEvent, GiftEvent
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -321,11 +438,52 @@ class CommentCollector:
         async def on_comment(event: CommentEvent) -> None:
             if not self.running:
                 return
-            self.comments.append({
-                "user_id": event.user.unique_id,
-                "text": event.comment,
-                "timestamp_ms": int(time.time() * 1000)
-            })
+            try:
+                uid = "anonymous"
+                if hasattr(event, "user") and event.user:
+                    uid = getattr(event.user, "unique_id", None) or getattr(event.user, "nickname", "anonymous")
+                comment_text = getattr(event, "comment", "") or ""
+                self.comments.append({
+                    "user_id": str(uid),
+                    "text": str(comment_text),
+                    "timestamp_ms": int(time.time() * 1000)
+                })
+                try:
+                    from core.tiktok_cib_engine import get_cib_engine
+                    get_cib_engine().record_comment(self.username, str(uid), str(comment_text))
+                except Exception:
+                    pass
+            except Exception as ce:
+                log.debug(f"[TikTokRadar·Chat] Error parseando comentario: {ce}")
+
+        @self.client.on(GiftEvent)
+        async def on_gift(event: GiftEvent) -> None:
+            if not self.running:
+                return
+            try:
+                gift_info = getattr(event, "gift", None)
+                count = getattr(gift_info, "repeat_count", 1) or getattr(event, "repeat_count", 1) or 1
+                diamond_count = getattr(gift_info, "diamond_count", 1) or 1
+                total_gift_diamonds = diamond_count * count
+
+                uid = "anonymous"
+                if hasattr(event, "user") and event.user:
+                    uid = getattr(event.user, "unique_id", None) or getattr(event.user, "nickname", "anonymous")
+
+                gift_name = getattr(gift_info, "name", "Regalo") or "Regalo"
+
+                self.total_diamonds += total_gift_diamonds
+                self.top_gifters[str(uid)] = self.top_gifters.get(str(uid), 0) + total_gift_diamonds
+
+                self.gifts.append({
+                    "user_id": str(uid),
+                    "gift_name": str(gift_name),
+                    "count": count,
+                    "diamonds": total_gift_diamonds,
+                    "timestamp_ms": int(time.time() * 1000)
+                })
+            except Exception as ge:
+                log.debug(f"[TikTokRadar·Chat] Error parseando regalo: {ge}")
 
         try:
             loop.run_until_complete(self.client.start())
@@ -355,6 +513,7 @@ class TikTokRadar:
         self._watchers: Dict[str, Dict[str, Any]] = {}
         self._chat_collectors: Dict[str, CommentCollector] = {}
         self._audio_transcribers: Dict[str, AudioTranscriber] = {}
+        self._frame_auditors: Dict[str, StreamFrameAuditor] = {}
         self._lock = threading.RLock()
         self._running = False
         self._supervisor_thread: Optional[threading.Thread] = None
@@ -404,6 +563,12 @@ class TikTokRadar:
                 except Exception as e:
                     log.debug(f"[TikTokRadar] Error deteniendo audio transcriber para {username}: {e}")
             self._audio_transcribers.clear()
+            for username, auditor in list(self._frame_auditors.items()):
+                try:
+                    auditor.stop()
+                except Exception as e:
+                    log.debug(f"[TikTokRadar] Error deteniendo frame auditor para {username}: {e}")
+            self._frame_auditors.clear()
             self._watchers.clear()
         log.info("[TikTokRadar] ■ Radar detenido")
 
@@ -428,10 +593,11 @@ class TikTokRadar:
                     if state.get("is_polling", False):
                         continue
                     
-                    interval = state["interval"]
+                    base_interval = state["interval"]
+                    effective_interval = base_interval if state.get("was_live") else max(base_interval, 60)
                     last_check = state["last_check"]
                     
-                    if now - last_check >= interval:
+                    if now - last_check >= effective_interval:
                         state["is_polling"] = True
                         try:
                             self._pool.submit(self._tick, username, state)
@@ -490,6 +656,14 @@ class TikTokRadar:
                             self._audio_transcribers[username] = transcriber
                         except Exception as ae:
                             log.warning(f"[TikTokRadar] No se pudo iniciar audio para @{username}: {ae}")
+                    # Iniciar auditor de visión por fotogramas si hay stream_url disponible
+                    if username not in self._frame_auditors and snap.stream_url:
+                        try:
+                            auditor = StreamFrameAuditor(username, snap.stream_url)
+                            auditor.start()
+                            self._frame_auditors[username] = auditor
+                        except Exception as fe:
+                            log.warning(f"[TikTokRadar] No se pudo iniciar auditor de visión para @{username}: {fe}")
                 else:
                     # Detener colector de chat si estaba corriendo
                     if username in self._chat_collectors:
@@ -499,6 +673,10 @@ class TikTokRadar:
                     if username in self._audio_transcribers:
                         self._audio_transcribers[username].stop()
                         del self._audio_transcribers[username]
+                    # Detener auditor de visión
+                    if username in self._frame_auditors:
+                        self._frame_auditors[username].stop()
+                        del self._frame_auditors[username]
                 state_ref["last_snapshot"] = snap
                 
             status = "🔴 EN VIVO" if snap.is_live else "⚫ offline"
@@ -624,8 +802,15 @@ class TikTokRadar:
                     "codec_audio": last.get("codec_audio", "") if last else "",
                     "bitrate_kbps": last.get("bitrate_kbps", 0) if last else 0,
                     "resolution": last.get("resolution", "") if last else "",
-                    "fps": last.get("fps", 0.0) if last else 0.0,
-                    "error": json.loads(last.get("raw_meta", "{}")).get("error", "") if (last and last.get("raw_meta")) else "",
+                    "error": (
+                        last.get("raw_meta", {}).get("error", "")
+                        if isinstance(last.get("raw_meta"), dict)
+                        else (
+                            json.loads(last.get("raw_meta")).get("error", "")
+                            if (last and isinstance(last.get("raw_meta"), str) and last.get("raw_meta").startswith("{"))
+                            else ""
+                        )
+                    ) if last else "",
                 })
         return {
             "running": self._running,
@@ -643,6 +828,51 @@ class TikTokRadar:
             if collector:
                 return list(collector.comments)
         return []
+
+    def get_transcripts(self, username: str) -> List[Dict[str, Any]]:
+        """Retorna las líneas de audio transcritas en vivo por WhisperEngine para un canal."""
+        username = username.lstrip("@").lower()
+        with self._lock:
+            transcriber = self._audio_transcribers.get(username)
+            if transcriber:
+                return transcriber.get_lines()
+        return []
+
+    def get_gifts(self, username: str) -> Dict[str, Any]:
+        """Retorna el registro de regalos, total de diamantes y ranking de patrocinadores en vivo."""
+        username = username.lstrip("@")
+        with self._lock:
+            collector = self._chat_collectors.get(username)
+            if collector:
+                sorted_gifters = sorted(collector.top_gifters.items(), key=lambda x: x[1], reverse=True)[:10]
+                est_usd = round(collector.total_diamonds * 0.005, 2)
+                return {
+                    "username": username,
+                    "total_diamonds": collector.total_diamonds,
+                    "estimated_usd": est_usd,
+                    "recent_gifts": list(collector.gifts),
+                    "top_gifters": [{"user_id": g[0], "diamonds": g[1]} for g in sorted_gifters]
+                }
+        return {"username": username, "total_diamonds": 0, "estimated_usd": 0.0, "recent_gifts": [], "top_gifters": []}
+
+    def get_vision_audit(self, username: str) -> Dict[str, Any]:
+        """Retorna la auditoría de visión e inspección de fotogramas en vivo."""
+        username = username.lstrip("@").lower()
+        with self._lock:
+            auditor = self._frame_auditors.get(username)
+            if auditor:
+                return auditor.get_status()
+        return {
+            "username": username,
+            "active": False,
+            "frames_captured": 0,
+            "last_frame": "",
+            "detected_tags": ["canal_offline_o_sin_stream"]
+        }
+
+    def get_last_snapshot(self, username: str) -> Optional[Dict[str, Any]]:
+        """Retorna el snapshot más reciente de un canal."""
+        return _get_last_snapshot(username)
 
     def get_report(self, username: str) -> Dict[str, Any]:
         username = username.lstrip("@")

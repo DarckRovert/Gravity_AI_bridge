@@ -93,7 +93,30 @@ class ReasoningStripper:
                     self.buffer = ""
                     break
 
+        output = self._filter_repetitive_loops(output)
         return output
+
+    def _filter_repetitive_loops(self, text: str) -> str:
+        """Filtra palabras o frases que se repiten consecutivamente más de 6 veces."""
+        if not text or len(text) < 15:
+            return text
+        import re
+        # Detecta palabras simples repetidas más de 6 veces (ej. delegate delegate delegate...)
+        text = re.sub(r'(\b\w+\b(?:\s+\b\w+\b){0,2})(?:\s+\1){5,}', r'\1 ... [Secuencia repetitiva interceptada]', text, flags=re.IGNORECASE)
+        return text
+
+    @staticmethod
+    def strip_reasoning_text(text: str) -> str:
+        """Elimina de forma estática todos los bloques y etiquetas de pensamiento <think>...</think>."""
+        if not text:
+            return ""
+        import re
+        # Eliminar bloques completos <think>...</think>
+        cleaned = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
+        # Eliminar etiquetas residuales solitarias <think> o </think>
+        cleaned = re.sub(r'</?think>', '', cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r'<\|canal\|>pensamiento.*?(?:<channel\|>|$)', '', cleaned, flags=re.DOTALL)
+        return cleaned.strip()
 
     def reset(self) -> None:
         """Reinicia el estado del stripper para reutilización."""

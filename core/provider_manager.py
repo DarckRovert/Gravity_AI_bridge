@@ -349,10 +349,39 @@ def _get_provider_lock(provider_name: str) -> threading.Lock:
 
 
 def get_plugin(name: str) -> Optional[ProviderPlugin]:
-    """Returns the ProviderPlugin instance for a given provider name."""
+    """Returns the ProviderPlugin instance for a given provider name (case-insensitive & alias resilient)."""
+    if not name:
+        return None
     scan_all()
     with _lock:
-        return _cached_plugins.get(name)
+        if name in _cached_plugins:
+            return _cached_plugins[name]
+            
+        name_clean = name.lower().strip()
+        alias_map = {
+            "groq": "Groq",
+            "nvidia": "Nvidia NIM",
+            "nvidia nim": "Nvidia NIM",
+            "mistral": "Mistral AI",
+            "mistral ai": "Mistral AI",
+            "together": "Together AI",
+            "together ai": "Together AI",
+            "fireworks": "Fireworks AI",
+            "fireworks ai": "Fireworks AI",
+            "xai": "xAI (Grok)",
+            "grok": "xAI (Grok)",
+            "perplexity": "Perplexity",
+            "ollama": "Ollama",
+            "lm studio": "LM Studio",
+            "lmstudio": "LM Studio"
+        }
+        if name_clean in alias_map and alias_map[name_clean] in _cached_plugins:
+            return _cached_plugins[alias_map[name_clean]]
+
+        for p_name, plugin in _cached_plugins.items():
+            if p_name.lower().strip() == name_clean or name_clean in p_name.lower() or p_name.lower() in name_clean:
+                return plugin
+        return None
 
 
 def get_active_plugin() -> Optional[ProviderPlugin]:

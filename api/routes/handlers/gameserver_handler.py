@@ -208,3 +208,151 @@ def handle_gameserver_backup(handler):
         handler._send_cors()
         handler.end_headers()
         handler.wfile.write(json.dumps({"error": str(e)}).encode())
+
+
+# ── WoW Perú SSH Tunnel ──────────────────────────────────────────────────────
+
+def handle_tunnel_status(handler):
+    """GET /v1/gameserver/tunnel/status"""
+    try:
+        from core.ssh_tunnel_manager import get_status as tunnel_status
+        body = json.dumps(tunnel_status(), indent=2).encode("utf-8")
+        handler.send_response(200)
+        handler.send_header("Content-Type", "application/json")
+        handler._send_cors()
+        handler.end_headers()
+        handler.wfile.write(body)
+    except Exception as e:
+        handler.send_response(500)
+        handler.end_headers()
+        handler.wfile.write(json.dumps({"error": str(e)}).encode())
+
+
+def handle_tunnel_connect(handler):
+    """POST /v1/gameserver/tunnel/connect"""
+    try:
+        from core.ssh_tunnel_manager import start_tunnel
+        result = start_tunnel()
+        code = 200 if result.get("ok") else 500
+        handler.send_response(code)
+        handler.send_header("Content-Type", "application/json")
+        handler._send_cors()
+        handler.end_headers()
+        handler.wfile.write(json.dumps(result).encode())
+    except Exception as e:
+        handler.send_response(500)
+        handler.end_headers()
+        handler.wfile.write(json.dumps({"error": str(e)}).encode())
+
+
+def handle_tunnel_disconnect(handler):
+    """POST /v1/gameserver/tunnel/disconnect"""
+    try:
+        from core.ssh_tunnel_manager import stop_tunnel
+        result = stop_tunnel()
+        handler.send_response(200)
+        handler.send_header("Content-Type", "application/json")
+        handler._send_cors()
+        handler.end_headers()
+        handler.wfile.write(json.dumps(result).encode())
+    except Exception as e:
+        handler.send_response(500)
+        handler.end_headers()
+        handler.wfile.write(json.dumps({"error": str(e)}).encode())
+
+
+# ── WoW Perú GM Daemon ───────────────────────────────────────────────────────
+
+def handle_gm_daemon_status(handler):
+    """GET /v1/gameserver/gm/status"""
+    try:
+        from core import game_master_daemon
+        body = json.dumps(game_master_daemon.get_status(), indent=2).encode("utf-8")
+        handler.send_response(200)
+        handler.send_header("Content-Type", "application/json")
+        handler._send_cors()
+        handler.end_headers()
+        handler.wfile.write(body)
+    except Exception as e:
+        handler.send_response(500)
+        handler.end_headers()
+        handler.wfile.write(json.dumps({"error": str(e)}).encode())
+
+
+def handle_gm_daemon_start(handler):
+    """POST /v1/gameserver/gm/start"""
+    try:
+        from core import game_master_daemon
+        result = game_master_daemon.start()
+        code = 200 if result.get("ok") else 500
+        handler.send_response(code)
+        handler.send_header("Content-Type", "application/json")
+        handler._send_cors()
+        handler.end_headers()
+        handler.wfile.write(json.dumps(result).encode())
+    except Exception as e:
+        handler.send_response(500)
+        handler.end_headers()
+        handler.wfile.write(json.dumps({"error": str(e)}).encode())
+
+
+def handle_gm_daemon_stop(handler):
+    """POST /v1/gameserver/gm/stop"""
+    try:
+        from core import game_master_daemon
+        result = game_master_daemon.stop()
+        handler.send_response(200)
+        handler.send_header("Content-Type", "application/json")
+        handler._send_cors()
+        handler.end_headers()
+        handler.wfile.write(json.dumps(result).encode())
+    except Exception as e:
+        handler.send_response(500)
+        handler.end_headers()
+        handler.wfile.write(json.dumps({"error": str(e)}).encode())
+
+
+# ── Línea de Fases: Progression Governor ───────────────────────────────────
+
+def handle_gameserver_progression(handler):
+    """GET /v1/gameserver/progression"""
+    try:
+        from core.progression_governor import governor
+        data = governor.get_progression_data()
+        body = json.dumps(data, indent=2).encode('utf-8')
+        handler.send_response(200)
+        handler.send_header('Content-Type', 'application/json')
+        handler._send_cors()
+        handler.end_headers()
+        handler.wfile.write(body)
+    except Exception as e:
+        handler.send_response(500)
+        handler.end_headers()
+        handler.wfile.write(json.dumps({'error': str(e)}).encode())
+
+
+def handle_gameserver_progression_set(handler):
+    """POST /v1/gameserver/progression/set"""
+    try:
+        length = int(handler.headers.get('Content-Length', 0))
+        data = json.loads(handler.rfile.read(length)) if length else {}
+        phase = data.get('phase', '')
+        changed_by = data.get('changed_by', 'Gravity AI Dashboard')
+        if not phase:
+            handler.send_response(400)
+            handler.end_headers()
+            handler.wfile.write(json.dumps({'error': "Parámetro 'phase' requerido."}).encode())
+            return
+
+        from core.progression_governor import governor
+        result = governor.set_phase(phase, changed_by=changed_by)
+        code = 200 if result.get('ok') else 400
+        handler.send_response(code)
+        handler.send_header('Content-Type', 'application/json')
+        handler._send_cors()
+        handler.end_headers()
+        handler.wfile.write(json.dumps(result).encode())
+    except Exception as e:
+        handler.send_response(500)
+        handler.end_headers()
+        handler.wfile.write(json.dumps({'error': str(e)}).encode())

@@ -22,6 +22,7 @@ from tools.code_runner import CodeRunner  # noqa: E402
 from tools.web_search import WebSearch  # noqa: E402
 from tools.git_tool import GitTool, FileOpsTool  # noqa: E402
 from tools.file_edit_v2 import FileEditV2  # noqa: E402
+from tools.wow_server_tool import WoWServerTool  # noqa: E402
 
 # Cerrojo reentrante global para la exclusión mutua de ejecución concurrente de herramientas
 _executor_lock: threading.RLock = threading.RLock()
@@ -39,6 +40,7 @@ class ToolExecutor:
             "git_tool": GitTool(),
             "file_ops": FileOpsTool(),
             "file_edit": FileEditV2(),
+            "wow_server": WoWServerTool(),
         }
 
     def execute_tool(self, tool_name: str, bg_mode: bool = False, **kwargs: Any) -> Tuple[bool, str]:

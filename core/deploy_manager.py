@@ -198,6 +198,7 @@ def _run_step(cmd: List[str], cwd: str, timeout: int = 300) -> tuple[bool, str]:
         }
         if os.name == "nt":
             kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
+            kwargs["shell"] = True
 
         proc = subprocess.Popen(cmd, **kwargs)
 

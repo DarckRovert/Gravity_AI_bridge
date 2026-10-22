@@ -62,24 +62,39 @@ class LLMQueryNode(GravityNode):
         try:
             forced_provider = inputs.get("provider") or self.config.get("provider")
             forced_model = inputs.get("model") or self.config.get("model")
+            role = inputs.get("role") or self.config.get("role")
 
-            if forced_provider:
+            # Resolución dinámica por Rol (Role-Based Routing)
+            from core.config_manager import config
+            if role and (not forced_provider or forced_provider == "auto"):
+                routing = config.get(f"agent_routing.{role}", {})
+                if routing:
+                    forced_provider = routing.get("provider")
+                    forced_model = routing.get("model")
+
+            if forced_provider and forced_provider != "auto":
                 provider_name = forced_provider
-                best_model = forced_model
-                log.info(f"[LLMQueryNode] Forzando proveedor: {provider_name} (modelo: {best_model or 'auto'})")
+                best_model = None if forced_model == "auto" else forced_model
+                log.info(f"[LLMQueryNode] Usando proveedor configurado: {provider_name} (modelo: {best_model or 'auto'}) [Rol: {role or 'default'}]")
             else:
-                # Enjambre: cada nodo recibe el siguiente proveedor en rotación
-                best_provider, best_model = provider_manager.get_swarm_provider()
+                # Enjambre / Selección dinámica por tarea
+                best_provider, best_model = provider_manager.get_swarm_provider(task=role or "any")
                 provider_name = best_provider.name if hasattr(best_provider, 'name') else best_provider
 
             if not provider_name:
-                raise ValueError("No hay proveedores de IA disponibles o saludables. Revisa tu memoria RAM, inicia un motor local o configura una API Key.")
+                best_p, best_m = provider_manager.get_best(task=role or "any")
+                if best_p:
+                    provider_name = best_p.name
+                    best_model = best_m
+                else:
+                    raise ValueError("No hay proveedores de IA disponibles o saludables. Revisa tu memoria RAM, inicia un motor local o configura una API Key.")
 
-            log.info(f"[LLMQueryNode] Usando {provider_name}/{best_model} | temp={temperature} | sys={len(system)}c")
+            log.info(f"[LLMQueryNode] Usando {provider_name}/{best_model or 'auto'} | temp={temperature} | sys={len(system)}c")
 
             import time
             max_retries = 3
             base_delay = 2
+            full_text = ""
             
             for attempt in range(max_retries):
                 try:
@@ -87,7 +102,8 @@ class LLMQueryNode(GravityNode):
                         messages=messages,
                         model=best_model,
                         provider=provider_name,
-                        options=options
+                        options=options,
+                        task=role or "any"
                     )
                     break
                 except Exception as e:
@@ -96,7 +112,13 @@ class LLMQueryNode(GravityNode):
                         log.warning(f"[LLMQueryNode] API Rate Limit o Error ({e}). Reintentando en {wait_time}s... (Intento {attempt + 1}/{max_retries})")
                         time.sleep(wait_time)
                     else:
-                        raise
+                        log.warning(f"[LLMQueryNode] Fallaron todos los intentos con {provider_name}. Probando fallback general...")
+                        full_text = provider_manager.complete(
+                            messages=messages,
+                            options=options,
+                            task=role or "any"
+                        )
+                        break
 
             # Extraer y remover bloque <thought> si existe (Chain-of-Thought)
             thought_match = re.search(r"<thought>(.*?)</thought>", full_text, re.DOTALL)

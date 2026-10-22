@@ -34,15 +34,15 @@ def _sanitize_content(text: str) -> str:
     return text.strip()
 
 
+from core.db_manager import get_connection as db_get_connection, sqlite_retry
+
 def _get_connection() -> sqlite3.Connection:
     """Returns a connection with WAL mode enabled for concurrent R/W. Schema is initialized once."""
     global _db_initialized
-    conn = sqlite3.connect(CACHE_DB, check_same_thread=False, timeout=20)
-    conn.execute("PRAGMA synchronous=NORMAL")
+    conn = db_get_connection(CACHE_DB, timeout=30.0, wal_mode=True)
     if not _db_initialized:
         with _init_lock:
             if not _db_initialized:
-                conn.execute("PRAGMA journal_mode=WAL")
                 conn.execute("""
                     CREATE TABLE IF NOT EXISTS cache (
                         key        TEXT PRIMARY KEY,

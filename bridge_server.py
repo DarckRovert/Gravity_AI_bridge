@@ -129,156 +129,6 @@ class GravityBridgeHandler(BaseHTTPRequestHandler, GetRoutesMixin, PostRoutesMix
             return False
         return True
 
-    def do_OPTIONS(self):
-        if not self._check_rate():
-            return
-        self.send_response(200)
-        self._send_cors()
-        self.end_headers()
-
-    def do_GET(self):
-        if not self._check_rate():
-            return
-        routes = {
-            "/": self._serve_dashboard,
-            "/dashboard": self._serve_dashboard,
-            "/health": self._serve_health,
-            "/v1/models": self._serve_models,
-            "/v1/status": self._serve_status,
-            "/v1/audit": self._serve_audit,
-            "/v1/fooocus/status": self._serve_fooocus_status,
-            "/v1/images": self._serve_images,
-            "/metrics": self._serve_metrics,
-            "/v1/security": self._serve_security,
-            "/v1/security/geoip": self._serve_security_geoip,
-            "/v1/queue": self._serve_queue,
-            "/v1/deploy/status": self._serve_deploy_status,
-            "/v1/gameserver/status": self._serve_gameserver_status,
-            "/v1/gameserver/log": self._serve_gameserver_log,
-            "/v1/gameserver/players": self._serve_gameserver_players,
-            "/registro": self._serve_registro,
-            # ── V16.14 PRO Endpoints ────────────────────────────────────────
-            "/v1/hardware": self._serve_hardware,
-            "/v1/hardware/stats": self._serve_hardware,
-            "/v1/cost": self._serve_cost,
-            "/v1/watchdog": self._serve_watchdog,
-            "/v1/sessions": self._serve_sessions,
-            "/v1/rag/status": self._serve_rag_status,
-            "/v1/rag/search": self._serve_rag_search,
-            # ── V16.14 PRO New Endpoints ─────────────────────────────────────────────
-            "/v1/queue/stream": self._serve_queue_stream,
-            "/v1/fabricaweb/status": self._serve_fabricaweb_status,
-            # ── V16.14 PRO Video Studio ──────────────────────────────────────────────
-            "/v1/video/status": self._serve_video_status,
-            "/v1/video/download": self._serve_video_download,
-            "/v1/video/voices": self._serve_video_voices,
-            "/v1/video/engines": self._serve_video_engines,
-            "/v1/video/stream": self._serve_video_stream,
-            "/v1/video/thumbnail": self._serve_video_thumbnail,
-            "/v1/video/list": self._serve_video_list,
-            # ── V16.14 PRO Image Lab (Pollinations) ────────────────────────────────────────
-            "/v1/image/health": self._serve_pollinations_health,
-            "/v1/image/lab/history": self._serve_image_lab_list,
-            # ── V16.14 PRO Diamond Tier ───────────────────────────────────────────────
-            "/v1/sessions/active": self._serve_active_sessions,
-            "/v1/mcp/status": self._serve_mcp_status,
-            "/v1/mcp/resource": self._serve_mcp_resource,
-            "/v1/hitl/pending": self._serve_hitl_pending,
-            "/v1/tools/firecrawl/health": self._serve_firecrawl_health,
-            # ── V16.14 PRO Gravity Brain ──────────────────────────────────────────────
-            "/v1/gravity/context": self._serve_gravity_context,
-            # ── V16.14 PRO MAI Animations ────────────────────────────────────────────
-            "/v1/video/animations": self._serve_video_animations,
-            "/v1/processes": self._serve_processes,
-            # ── V16.14 PRO Monetización ─────────────────────────────────────────────
-            "/v1/scheduler/status": self._serve_scheduler_status,
-            "/v1/scheduler/niches": self._serve_scheduler_niches,
-            "/v1/youtube/status": self._serve_youtube_status,
-            "/v1/youtube/auth/url": self._serve_youtube_auth_url,
-            "/v1/video/upload-status": self._serve_video_upload_status,
-            # ── V16.0 Monetization Hub ────────────────────────────────────────
-            "/v1/revenue/summary": self._serve_revenue_summary,
-            "/v1/revenue/timeline": self._serve_revenue_timeline,
-            "/v1/revenue/top": self._serve_revenue_top_jobs,
-            "/v1/youtube/quota": self._serve_youtube_quota,
-            "/v1/social/status": self._serve_social_status,
-            "/v1/affiliates/status": self._serve_affiliates_status,
-            "/v1/affiliates/programs": self._serve_affiliates_programs,
-            "/v1/language/status": self._serve_language_status,
-            "/v1/v2v/status": self._serve_v2v_status,
-            # ── Gravity OBS Control + Gravity Spark ───────────────────────────────
-            "/v1/obs/status": self._serve_obs_status,
-            "/v1/obs/scenes": self._serve_obs_scenes,
-            "/v1/obs/scene/items": self._serve_obs_scene_items,
-            "/v1/obs/inputs": self._serve_obs_inputs,
-            "/v1/obs/stream/status": self._serve_obs_stream_status,
-            "/v1/obs/overlays": self._serve_obs_overlays,
-            "/v1/bounties": self._serve_bounties,
-            "/v1/factory/list": self._serve_factory_list,
-            "/v1/infiltrator/status": self._serve_infiltrator_status,
-            # ── La Tinka Engine ────────────────────────────────────────────────────
-            "/v1/tinka/status": self._serve_tinka_status,
-            "/v1/tinka/analyze": self._serve_tinka_analyze,
-            "/v1/tinka/predict": self._serve_tinka_predict,
-            "/v1/tinka/update": self._serve_tinka_update,
-            # ── V16.14 PRO Autonomous Edition ───────────────────────────────────────
-            "/v1/autonomy/status": self._serve_autonomy_status,
-            "/v1/autonomy/decisions": self._serve_autonomy_decisions,
-            "/v1/autonomy/rules": self._serve_autonomy_rules,
-            "/v1/reflection/report": self._serve_reflection_report,
-            "/v1/reflection/patches": self._serve_reflection_patches,
-            # ── Periodista Autónomo (OSINT) ────────────────────────────────────────
-            "/v1/journalist/status": self._serve_journalist_status,
-            "/v1/journalist/log": self._serve_journalist_log,
-            "/v1/journalist/news": self._serve_journalist_news,
-            # ── J.A.R.V.I.S y Radar HF ────────────────────────────────────────────
-            "/v1/jarvis/status": self._serve_jarvis_status,
-            "/v1/radar/status": self._serve_radar_status,
-            # ── NPU AMD XDNA (FastFlowLM) ─────────────────────────────────────────
-            "/v1/npu/status": self._serve_npu_status,
-            # ── Gravity Workflow Engine ────────────────────────────────────────
-            "/v1/workflow/list": self._serve_workflow_list,
-            "/v1/workflow/nodes": self._serve_workflow_nodes,
-            "/v1/workflow/jobs": self._serve_workflow_jobs,
-            # ── GTLIS — TikTok Live Intelligence Suite (V16.15) ────────────────
-            "/v1/tiktok/status": self._serve_tiktok_status,
-            "/v1/tiktok/probe": self._serve_tiktok_probe,
-            "/v1/tiktok/report": self._serve_tiktok_report,
-            "/v1/tiktok/channels": self._serve_tiktok_channels,
-            "/v1/tiktok/alerts": self._serve_tiktok_alerts,
-            "/v1/tiktok/history": self._serve_tiktok_history,
-            "/v1/tiktok/bot": self._serve_tiktok_bot_analyze,
-            "/v1/tiktok/geo": self._serve_tiktok_geo,
-            "/v1/tiktok/deep_osint": self._serve_tiktok_deep_osint,
-            "/v1/tiktok/dossier": self._serve_tiktok_dossier,
-            "/v1/tiktok/chat_suggestions": self._serve_tiktok_chat_suggestions,
-            "/v1/tiktok/comments": self._serve_tiktok_comments,
-            "/v1/tiktok/audio_transcript": self._serve_tiktok_audio_transcript,
-            "/v1/tiktok/psychological_profile": self._serve_tiktok_psychological_profile,
-        }
-
-        # Rutas con query string (?server=&lines=)
-        path_clean = self.path.split("?")[0]
-        if path_clean in routes:
-            routes[path_clean]()
-        elif self.path.startswith("/v1/workflow/status/"):
-            self._serve_workflow_status()
-        elif self.path.startswith("/static/output/"):
-            self._serve_static_output()
-        elif self.path.startswith("/static/imagelab/"):
-            self._serve_static_image_lab()
-        elif self.path.startswith("/obs-overlay/"):
-            self._serve_obs_overlay_html()
-        elif self.path.startswith("/v1/factory/download/"):
-            self._serve_factory_download()
-        elif self.path.startswith("/images/"):
-            self._serve_journalist_images()
-        else:
-            # Intentar servir desde el frontend/dist (JS, CSS, Assets)
-            self._serve_frontend_static()
-
-    # Rutas manejadas de forma nativa por los modulos Mixins incorporados
-
     def log_message(self, fmt, *args):
         log.debug(fmt % args)
 
@@ -326,6 +176,18 @@ def run_server():
     service_loader.start_service("core.image_queue")
     service_loader.start_service("core.video_pipeline")
     service_loader.start_service("core.engine_watchdog", verbose=True)
+
+    # ── WoW Perú GM Daemon (auto-arranque) ───────────────────────────────────
+    try:
+        from core.config_manager import config as _cfg
+        _wow_cfg = _cfg.get("game_servers", {}).get("wow_peru", {})
+        if _wow_cfg.get("enabled", False):
+            service_loader.start_service("core.game_master_daemon")
+            log.info("[WoW Peru] GameMasterDaemon registrado para auto-arranque.")
+        else:
+            log.info("[WoW Peru] GameMasterDaemon desactivado (wow_peru.enabled: false).")
+    except Exception as _gmd_e:
+        log.warning(f"[WoW Peru] No se pudo arrancar GameMasterDaemon: {_gmd_e}")
     # Los siguientes servicios pesados han sido desactivados del auto-arranque.
     # El usuario los controlará/lanzará manualmente desde el Dashboard.
     # service_loader.start_service("core.bounty_hunter")

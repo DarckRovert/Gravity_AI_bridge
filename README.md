@@ -5,7 +5,7 @@
   [![Autor](https://img.shields.io/badge/Author-DarckRovert-818cf8.svg?style=flat-square)](https://github.com/DarckRovert)
   [![Licencia](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
   [![Arquitectura](https://img.shields.io/badge/Architecture-Mythos--Tier-c69c6d.svg?style=flat-square)]()
-  [![Release](https://img.shields.io/badge/Release-V30.0_MYTHOS-6366f1.svg?style=flat-square)]()
+  [![Release](https://img.shields.io/badge/Release-V30.1_MYTHOS-6366f1.svg?style=flat-square)]()
   [![Security Audit](https://img.shields.io/badge/Security-Audited_100%25-success?style=flat-square&logo=shield)]()
   [![Twitch](https://img.shields.io/badge/Twitch-DarckRovert-9146ff.svg?style=flat-square&logo=twitch)](https://twitch.tv/darckrovert)
 
@@ -28,7 +28,7 @@
 
 En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Studio), motores de difusión (Fooocus), servidores C++ (MangosD/WoW) y pipelines CI/CD desde una sola máquina resulta en colisiones de hardware, puertos huérfanos, OOM en VRAM y latencias de segundos.
 
-**Gravity AI Bridge V30.0 MYTHOS** elimina todos estos problemas con Python nativo puro y un frontend React/Vite de alta respuesta. Su filosofía:
+**Gravity AI Bridge V30.1 MYTHOS** elimina todos estos problemas con Python nativo puro y un frontend React/Vite de alta respuesta. Su filosofía:
 
 > **Nota de Seguridad:** La versión V30.0 MYTHOS ha pasado una rigurosa auditoría de código, erradicando vulnerabilidades de ReDoS y garantizando resiliencia absoluta contra fallos silenciosos en operaciones asíncronas y de Git.
 
@@ -39,7 +39,12 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 
 ---
 
-## 🏛 Módulos del Ecosistema V30.0 MYTHOS
+## 🏛 Módulos del Ecosistema V30.1 MYTHOS
+
+### ⚡ Token Delegator & Cross-Project Bridge (`tools/gravity_delegate.py`)
+- **Ahorro Masivo de Tokens:** Permite que cualquier otro proyecto local delegue tareas mecánicas (pruebas unitarias, boilerplate, CRUD, regex, docstrings, refactorización) a Gravity AI Bridge sin gastar tokens de frontera.
+- **Fallback Automático Multi-Nivel:** LM Studio Local → Groq (`openai/gpt-oss-120b`, `openai/gpt-oss-20b`) → Nvidia NIM.
+- **Regla Portable (`GRAVITY_RULE.md`):** Gobernanza universal lista para copiar a cualquier proyecto externo para que Antigravity, Cursor, Claude Code o Windsurf deleguen tareas automáticamente.
 
 ### 📰 Reportero Autónomo (Agente Periodístico)
 - **Operación Continua (Daemon):** Un agente persistente que despierta aleatoriamente cada 4-8 horas (`news_daemon.py`).

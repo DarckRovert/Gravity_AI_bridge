@@ -43,18 +43,16 @@ class GroqProvider(OpenAICompatCloudProvider):
     supports_function_calling: bool = True
     default_context: int = 131072
     _available_models: List[str] = [
-        "llama-3.3-70b-versatile",
-        "llama-3.1-8b-instant",
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
     ]
 
     def get_cost_per_million_tokens(self, model: str) -> Dict[str, float]:
         costs = {
-            "llama-3.3-70b-versatile": {"input": 0.59, "output": 0.79},
-            "llama-3.1-8b-instant": {"input": 0.05, "output": 0.08},
-            "deepseek-r1-distill-llama-70b": {"input": 0.75, "output": 0.99},
-            "qwen-qwq-32b": {"input": 0.29, "output": 0.39},
+            "openai/gpt-oss-120b": {"input": 0.50, "output": 0.70},
+            "openai/gpt-oss-20b": {"input": 0.10, "output": 0.15},
         }
-        return costs.get(model, {"input": 0.59, "output": 0.79})
+        return costs.get(model, {"input": 0.30, "output": 0.50})
 
 
 # ── Mistral ───────────────────────────────────────────────────────────────────
@@ -242,9 +240,10 @@ class NvidiaProvider(OpenAICompatCloudProvider):
     supports_function_calling: bool = True
     default_context: int = 128000
     _available_models: List[str] = [
-        # AUDITADO 2026-07-16: meta/llama-3.1-70b-instruct → TIMEOUT (muerto)
-        # AUDITADO 2026-07-16: deepseek-ai/deepseek-v4-flash → HTTP 200 pero responde en chino (incompatible)
-        "meta/llama-3.1-8b-instruct",  # VIVO y estable
+        "meta/llama-3.2-11b-vision-instruct",  # AUDITADO 2026-10-21: HTTP 200 (VIVO, 11B Vision)
+        "meta/llama-3.2-90b-vision-instruct",  # AUDITADO 2026-10-21: HTTP 200 (VIVO, 90B Vision)
+        "google/diffusiongemma-26b-a4b-it",   # AUDITADO 2026-10-21: HTTP 200 (VIVO, 26B)
+        "nvidia/nemotron-3-ultra-550b-a55b",   # AUDITADO 2026-10-21: HTTP 200 (VIVO, 550B)
     ]
 
     def get_cost_per_million_tokens(self, model: str) -> Dict[str, float]:

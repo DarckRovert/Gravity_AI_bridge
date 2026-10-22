@@ -89,9 +89,12 @@ def _cloud_request_complete(
         d = r.json()
         if "choices" in d and d["choices"]:
             msg = d["choices"][0].get("message", {})
-            if "tool_calls" in msg:
+            if msg.get("tool_calls"):
                 return json.dumps({"__TOOL_CALL__": msg["tool_calls"]})
-            return msg.get("content", "")
+            content = msg.get("content") or ""
+            if not content and (msg.get("reasoning_content") or msg.get("reasoning")):
+                return msg.get("reasoning_content") or msg.get("reasoning") or ""
+            return content
     except Exception as e:
         logger.error(f"[CloudComplete] Error fetching from {url}: {e}")
     return ""
@@ -127,9 +130,9 @@ def _cloud_request_complete_safe(
         d = r.json()
         if "choices" in d and d["choices"]:
             msg = d["choices"][0].get("message", {})
-            if "tool_calls" in msg:
+            if msg.get("tool_calls"):
                 return ProviderResponse(ok=True, text=json.dumps({"__TOOL_CALL__": msg["tool_calls"]}))
-            text = msg.get("content", "")
+            text = msg.get("content") or msg.get("reasoning_content") or msg.get("reasoning") or ""
             if not text:
                 return ProviderResponse(ok=False, error="empty", detail="El modelo retornó content vacío")
             return ProviderResponse(ok=True, text=text)

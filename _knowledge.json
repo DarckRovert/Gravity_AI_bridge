@@ -1,8 +1,8 @@
 {
   "project": "Gravity AI Bridge",
-  "version": "16.0 PRO",
-  "status": "Official Release Omniscient-Tier",
-  "architecture": "Omni-Tier / Tri-Hardware / Claw-Inspired (Agentic Search & Surgical Edit) / Background Daemon Engine",
+  "version": "30.1 MYTHOS",
+  "status": "Official Release Mythos-Tier L9 (Decoupled Architecture & Cross-Project Token Delegator)",
+  "architecture": "Mythos-Tier / Local-First / Decoupled Domain Sub-Mixins / SQLite WAL Resilient / Agentic Token Delegator",
   "vulnerability_fixes": [
     {
       "id": "SEC-01",
@@ -18,6 +18,21 @@
       "id": "ERR-02",
       "description": "EOFError infinite loop during sys.stdin pipe operations",
       "resolution": "Implemented sys.stdin.isatty() validation and explicit EOFError handler in ask_deepseek.py"
+    },
+    {
+      "id": "V30.1-DEBT",
+      "description": "Resolución integral de deuda técnica de crecimiento L9",
+      "resolution": "Router GET modularizado en 4 sub-mixins de dominio. Telemetría desacoplada en core/telemetry_collector.py. Enrutamiento dinámico por roles en llm_query_node.py. Concurrencia SQLite WAL con exponential backoff en core/db_manager.py."
+    },
+    {
+      "id": "V30.1-DELEGATOR",
+      "description": "Despachador universal cross-project para ahorro masivo de tokens",
+      "resolution": "Implementado tools/gravity_delegate.py y GRAVITY_RULE.md para delegar tareas mecánicas a motores locales y cloud de bajo costo."
+    },
+    {
+      "id": "V30.1-WAF",
+      "description": "Bypass de Cloudflare WAF Error 1010 en Groq y Nvidia NIM",
+      "resolution": "Inyección forzada de User-Agent de navegador completo en headers de llamadas HTTP en _openai_compat_cloud.py."
     },
     {
       "id": "V13.0 PRO-CLAW",

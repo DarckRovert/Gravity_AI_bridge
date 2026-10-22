@@ -2,7 +2,7 @@
     "provider": "LM Studio",
     "provider_protocol": "openai",
     "api_url": "http://localhost:1234",
-    "last_model": "qwen/qwen3.5-9b",
+    "last_model": "qwythos-9b-claude-mythos-5-1m-uncensored-heretic",
     "model_locked": true,
     "advanced_params": {
         "num_ctx": 8192
@@ -11,5 +11,5 @@
     "rag_enabled": false,
     "bounty_profile": "Test Expert Developer",
     "locked_provider": "LM Studio",
-    "locked_model": "qwen/qwen3.5-9b"
+    "locked_model": "qwythos-9b-claude-mythos-5-1m-uncensored-heretic"
 }

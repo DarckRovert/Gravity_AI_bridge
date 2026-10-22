@@ -46,6 +46,53 @@ game_servers:
     db_name: characters
     db_user: root
     db_name_auth: realmd
+  wow_peru:
+    enabled: true
+    display_name: WoW Perú (AzerothCore 3.3.5a)
+    type: azerothcore
+    use_ssh_tunnel: true
+    ssh_host: login.wow-peru.lat
+    ssh_port: 22
+    ssh_user: root
+    ssh_key: ''
+    remote_soap_port: 7878
+    soap_host: 127.0.0.1
+    soap_port: 7878
+    soap_user: gm_admin
+    soap_pass: ''
+    soap_namespace: urn:AC
+    db_host: 127.0.0.1
+    db_port: 3306
+    db_name: characters
+    db_name_auth: auth
+    db_name_world: world
+    db_user: acore
+    db_pass: ''
+  project_jaina:
+    enabled: true
+    display_name: Project JAIna (AzerothCore 3.3.5a)
+    type: azerothcore
+    use_ssh_tunnel: false
+    server_dir: E:\AzerothCore\server
+    worldserver_exe: worldserver.exe
+    authserver_exe: authserver.exe
+    start_bat: E:\AzerothCore\server\Iniciar_AzerothCore.bat
+    stop_bat: E:\AzerothCore\server\Detener_Servidor_Local.bat
+    log_file: E:\AzerothCore\server\Server.log
+    soap_host: 127.0.0.1
+    soap_port: 7878
+    soap_user: DARCK
+    soap_pass: darck
+    soap_namespace: urn:AC
+    db_host: 127.0.0.1
+    db_port: 3306
+    db_name: acore_characters
+    db_name_auth: acore_auth
+    db_name_world: acore_world
+    db_user: root
+    db_pass: '123456'
+    auto_restart: true
+    restart_delay_seconds: 15
 ai_engines:
   LM Studio: C:\Users\darck\AppData\Local\Programs\LM Studio\LM Studio.exe
   Ollama: C:\Users\darck\AppData\Local\Programs\Ollama\ollama app.exe
@@ -127,9 +174,9 @@ comfyui:
   visual_consistency: true
 obs_websocket:
   enabled: true
-  host: 192.168.1.111
+  host: 192.168.1.171
   port: 4455
-  password: IPaMHSVcl6goie6T
+  password: lPaMHSVcI6goie6T
   auto_connect: true
   reconnect_interval_s: 10
 obs_spark:
@@ -152,3 +199,10 @@ periodista:
   consecutive_error_threshold: 3
   image_width: 1200
   image_height: 675
+object_storage:
+  provider: cloudflare_r2
+  bucket: gravity-media
+  public_domain: https://pub-65294eff4ec54d0fbc8488fa77c63c61.r2.dev
+  account_id: 1dce613c17788c3306d27905145197d1
+  access_key_id: f73276010cdcf4fbd32ff42526633f2b
+  secret_access_key: 6141a577c277573b717ce7ac2a60359a26ccad2291aaaa1e3e4e4e745354d53c

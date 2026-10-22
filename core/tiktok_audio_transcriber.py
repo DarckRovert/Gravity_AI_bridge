@@ -93,7 +93,10 @@ class AudioTranscriber:
         # Iniciar ffmpeg segmentador
         chunk_pattern = os.path.join(self.temp_dir, "chunk_%03d.wav")
         cmd = [
-            "ffmpeg", "-y", "-i", self.stream_url,
+            "ffmpeg", "-y",
+            "-user_agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+            "-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "5",
+            "-i", self.stream_url,
             "-vn", "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1",
             "-f", "segment", "-segment_time", "5",
             "-reset_timestamps", "1",

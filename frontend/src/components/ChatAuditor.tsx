@@ -77,11 +77,11 @@ Soy el motor autónomo de Gravity AI Bridge V30.0 MYTHOS Edition. ¿Qué deseas 
     setMessages(prev => [...prev, { role: 'user', content: userMsg }, { role: 'assistant', content: '' }]);
     setIsStreaming(true);
 
-    // AbortController con timeout de 90s — si el backend no responde, no quedamos colgados
+    // AbortController con timeout de 120s — si el backend no responde, no quedamos colgados
     abortControllerRef.current = new AbortController();
     const timeoutId = setTimeout(() => {
       abortControllerRef.current?.abort();
-    }, 90000);
+    }, 120000);
 
     try {
       // Usamos el endpoint V11 que procesa contexto y comandos

@@ -36,25 +36,13 @@ class VideoJobNode(GravityNode):
 
         try:
             # Import dinámico para no romper el motor si el módulo de video no está instalado
-            from core.video.pipeline import add_job
+            from core.video.pipeline import add_job, start_detached_worker as start_video_pipeline
+
+            # Asegurar que el worker procesador independiente esté activo en segundo plano
+            start_video_pipeline()
 
             topic_text = f"Resumen de Noticia: {title}. {excerpt}"
             video_title = f"TikTok: {title}"[:60]
-
-            # RAM Kill-Switch: Descargar LLM de la memoria para que el APU tenga espacio.
-            try:
-                from providers.local.native_provider import NativeLlamaProvider
-                NativeLlamaProvider.force_unload()
-                
-                # Cerrar motor configurado por defecto (ej. LM Studio, Ollama)
-                from core.ai_process_manager import get_config, stop_engine
-                cfg = get_config()
-                def_prov = cfg.get("model", {}).get("default_provider", "LM Studio")
-                if def_prov in cfg.get("ai_engines", {}):
-                    log.info(f"[{self.__class__.__name__}] Ejecutando Kill-Switch para el motor local: {def_prov}")
-                    stop_engine(def_prov)
-            except Exception as _unload_err:
-                log.warning(f"[{self.__class__.__name__}] Falló el kill-switch de RAM: {_unload_err}")
 
             job_id = add_job(
                 topic=topic_text,

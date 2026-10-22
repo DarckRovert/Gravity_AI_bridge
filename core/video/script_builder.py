@@ -456,45 +456,51 @@ def _generate_script(
         except Exception:
             pass
 
-        # AUTO-WAKE: Encender IA local si está configurada y apagada
+        # AUTO-WAKE: Encender IA local solo si NO hay ningún proveedor saludable en línea
         initial_scan = provider_manager.scan_all()
-        healthy_names = [res.name for res in initial_scan if res.is_healthy]
+        healthy_names = [res.name for res in initial_scan if res.is_healthy and res.models]
 
-        llms_to_wake = [
-            p
-            for p in [writer_prov, audit_prov]
-            if p in ["LM Studio", "Ollama", "Jan AI"] and p not in healthy_names
-        ]
-        if llms_to_wake:
-            for prov in set(llms_to_wake):
-                log.info(f"[VideoStudio] [Auto-Wake] Encendiendo motor LLM: {prov}...")
-                start_engine(prov)
-            
-            # Esperar hasta 45s con escaneo activo a que el proveedor de IA local cargue
-            max_wait = 45
-            wait_interval = 3
-            waited = 0
-            log.info(f"[VideoStudio] Esperando que la IA local cargue (máximo {max_wait}s)...")
-            while waited < max_wait:
-                time.sleep(wait_interval)
-                waited += wait_interval
-                scan_results = provider_manager.scan_all(force=True)
-                active_healthy = [r.name for r in scan_results if r.is_healthy and r.models]
-                if any(p in active_healthy for p in llms_to_wake):
-                    log.info(f"[VideoStudio] [Auto-Wake] ✓ Motor LLM detectado online en {waited}s.")
-                    break
-            else:
-                log.warning("[VideoStudio] [Auto-Wake] Excedido tiempo de espera para la IA local. Continuando...")
+        if not healthy_names:
+            llms_to_wake = [
+                p
+                for p in [writer_prov, audit_prov]
+                if p in ["LM Studio", "Ollama", "Jan AI"]
+            ]
+            if llms_to_wake:
+                for prov in set(llms_to_wake):
+                    log.info(f"[VideoStudio] [Auto-Wake] Encendiendo motor LLM: {prov}...")
+                    start_engine(prov)
+                
+                max_wait = 15
+                wait_interval = 3
+                waited = 0
+                log.info(f"[VideoStudio] Esperando que la IA local cargue (máximo {max_wait}s)...")
+                while waited < max_wait:
+                    time.sleep(wait_interval)
+                    waited += wait_interval
+                    scan_results = provider_manager.scan_all(force=True)
+                    active_healthy = [r.name for r in scan_results if r.is_healthy and r.models]
+                    if any(p in active_healthy for p in llms_to_wake):
+                        log.info(f"[VideoStudio] [Auto-Wake] ✓ Motor LLM detectado online en {waited}s.")
+                        break
+                else:
+                    log.warning("[VideoStudio] [Auto-Wake] Excedido tiempo de espera para la IA local. Continuando...")
 
         best_result, best_model = provider_manager.get_best()
         if not best_result:
             raise RuntimeError("No hay proveedor LLM activo")
 
-        writer_prov = writer_prov or best_result.name
-        writer_mod = writer_mod if writer_mod and writer_mod != "auto" else best_model
+        if not writer_prov or writer_prov not in healthy_names:
+            writer_prov = best_result.name
+            writer_mod = best_model
+        else:
+            writer_mod = writer_mod if writer_mod and writer_mod != "auto" else best_model
 
-        audit_prov = audit_prov or best_result.name
-        audit_mod = audit_mod if audit_mod and audit_mod != "auto" else best_model
+        if not audit_prov or audit_prov not in healthy_names:
+            audit_prov = best_result.name
+            audit_mod = best_model
+        else:
+            audit_mod = audit_mod if audit_mod and audit_mod != "auto" else best_model
 
         messages = [
             {"role": "system", "content": system_prompt},

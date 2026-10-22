@@ -85,7 +85,7 @@
         "temperature": 0.5,
         "max_tokens": 2048,
         "provider": "groq",
-        "model": "llama-3.3-70b-versatile"
+        "model": "openai/gpt-oss-120b"
       }
     },
     {
@@ -98,7 +98,7 @@
         "temperature": 0.3,
         "max_tokens": 2500,
         "provider": "groq",
-        "model": "llama-3.3-70b-versatile"
+        "model": "openai/gpt-oss-120b"
       }
     },
     {
@@ -120,7 +120,7 @@
       "inputs": {
         "filepath": "F:/gravity-news-portal/src/data/news.json",
         "new_item": "{{normalizar_noticia.normalized_json}}",
-        "max_items": 30
+        "max_items": 1000
       }
     },
     {

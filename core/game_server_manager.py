@@ -32,6 +32,29 @@ BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # ── Configuración por Defecto ──────────────────────────────────────────────────
 
 DEFAULT_SERVERS: Dict[str, Any] = {
+    "wow_peru": {
+        "enabled": True,
+        "display_name": "WoW Perú (AzerothCore 3.3.5a)",
+        "type": "azerothcore",
+        "use_ssh_tunnel": True,
+        "ssh_host": "login.wow-peru.lat",
+        "ssh_port": 22,
+        "ssh_user": "root",
+        "ssh_key": "",
+        "remote_soap_port": 7878,
+        "soap_host": "127.0.0.1",
+        "soap_port": 7878,
+        "soap_user": "gm_admin",
+        "soap_pass": "",
+        "soap_namespace": "urn:AC",
+        "db_host": "127.0.0.1",
+        "db_port": 3306,
+        "db_name": "characters",
+        "db_name_auth": "auth",
+        "db_name_world": "world",
+        "db_user": "acore",
+        "db_pass": "",
+    },
     "wow_vanilla": {
         "enabled": True,
         "display_name": "WoW Vanilla (MaNGOS)",
@@ -65,7 +88,8 @@ except ImportError:
 _processes: Dict[str, Dict[str, Any]] = (
     {}
 )  # {server_id: {proc_world, proc_realm, status, ...}}
-_lock = threading.RLock()  # Cerrojo reentrante para sincronización segura
+_lock = threading.RLock()
+_ssh_tunnels: Dict[str, Any] = {}  # Cerrojo reentrante para sincronización segura
 _watchdog_threads: Dict[str, threading.Thread] = {}
 _stdout_buffers: Dict[str, deque[str]] = (
     {}
@@ -574,16 +598,57 @@ def get_players(server_id: str) -> Dict[str, Any]:
 
 
 def send_command(server_id: str, command: str) -> Dict[str, Any]:
-    """Envía un comando al servidor."""
+    """Envía un comando al servidor via SOAP para AzerothCore o consolas soportadas."""
+    servers_cfg: Dict[str, Any] = _load_config()
+    cfg = servers_cfg.get(server_id, {})
+    server_type = cfg.get("type", "").lower()
+
+    if server_type in ("azerothcore", "trinitycore", "soap") or "soap_port" in cfg:
+        if cfg.get("use_ssh_tunnel"):
+            from core.ssh_tunnel_manager import SSHTunnelManager
+            global _ssh_tunnels
+            if server_id not in _ssh_tunnels:
+                _ssh_tunnels[server_id] = SSHTunnelManager(
+                    ssh_host=cfg.get("ssh_host", "127.0.0.1"),
+                    ssh_port=int(cfg.get("ssh_port", 22)),
+                    ssh_user=cfg.get("ssh_user", "root"),
+                    ssh_key=cfg.get("ssh_key"),
+                    local_port=int(cfg.get("soap_port", 7878)),
+                    remote_target_port=int(cfg.get("remote_soap_port", 7878)),
+                )
+            tunnel = _ssh_tunnels[server_id]
+            if not tunnel.is_active():
+                t_res = tunnel.start()
+                if not t_res.get("ok"):
+                    log.warning(f"[GameServer] Túnel SSH advertencia: {t_res.get('error')}")
+
+        from core.soap_client import AzerothCoreSOAPClient
+        soap_host = cfg.get("soap_host", "127.0.0.1")
+        soap_port = int(cfg.get("soap_port", 7878))
+        soap_user = cfg.get("soap_user", "")
+        soap_pass = cfg.get("soap_pass", "")
+        if not soap_pass:
+            try:
+                from core.key_manager import KeyManager
+                soap_pass = KeyManager.get_key(f"{server_id}_soap_pass") or ""
+            except Exception:
+                pass
+        soap_ns = cfg.get("soap_namespace", "urn:AC")
+
+        client = AzerothCoreSOAPClient(
+            host=soap_host,
+            port=soap_port,
+            username=soap_user,
+            password=soap_pass,
+            namespace=soap_ns,
+        )
+        return client.execute_command(command)
+
     return {
         "ok": False,
         "server": server_id,
         "command": command,
-        "note": (
-            "Ejecución directa de comandos GM requiere SOAP habilitado en mangosd.conf "
-            "(SOAPEnabled=1, SOAPPort=7878). Activa esa opción y reinicia el servidor. "
-            "Por ahora, ejecuta el comando directamente en la ventana de la consola del worldserver."
-        ),
+        "note": "Servidor sin soporte SOAP activo en configuración.",
     }
 
 

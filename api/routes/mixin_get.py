@@ -17,9 +17,18 @@ from core.logger import log
 # Sin embargo, movemos la lógica stateful a api.state.py previamente.
 
 from api.state import geoip_cache, recent_ips, geoip_lock
+from api.routes.mixin_get_gameserver import GetGameserverMixin
+from api.routes.mixin_get_intelligence import GetIntelligenceMixin
+from api.routes.mixin_get_autonomy import GetAutonomyMixin
+from api.routes.mixin_get_media import GetMediaMixin
 
 
-class GetRoutesMixin:
+class GetRoutesMixin(
+    GetGameserverMixin,
+    GetIntelligenceMixin,
+    GetAutonomyMixin,
+    GetMediaMixin,
+):
     def do_OPTIONS(self):
         if not self._check_rate():
             return
@@ -47,6 +56,9 @@ class GetRoutesMixin:
             "/v1/gameserver/status": self._serve_gameserver_status,
             "/v1/gameserver/log": self._serve_gameserver_log,
             "/v1/gameserver/players": self._serve_gameserver_players,
+            "/v1/gameserver/tunnel/status": self._serve_tunnel_status,
+            "/v1/gameserver/gm/status": self._serve_gm_daemon_status,
+            "/v1/gameserver/progression": self._serve_gameserver_progression,
             "/registro": self._serve_registro,
             # ── V16.0 PRO Endpoints ────────────────────────────────────────
             "/v1/hardware": self._serve_hardware,
@@ -141,15 +153,32 @@ class GetRoutesMixin:
             "/v1/tiktok/geo": self._serve_tiktok_geo,
             "/v1/tiktok/deep_osint": getattr(self, "_serve_tiktok_deep_osint", lambda: None),
             "/v1/tiktok/dossier": getattr(self, "_serve_tiktok_dossier", lambda: None),
+            "/v1/tiktok/chat_suggestions": getattr(self, "_serve_tiktok_chat_suggestions", lambda: None),
             "/v1/tiktok/comments": getattr(self, "_serve_tiktok_comments", lambda: None),
             "/v1/tiktok/audio_transcript": getattr(self, "_serve_tiktok_audio_transcript", lambda: None),
             "/v1/tiktok/psychological_profile": getattr(self, "_serve_tiktok_psychological_profile", lambda: None),
+            # ── Gravity Workflow Engine ────────────────────────────────────────
+            "/v1/workflow/list": getattr(self, "_serve_workflow_list", lambda: None),
+            "/v1/workflow/nodes": getattr(self, "_serve_workflow_nodes", lambda: None),
+            "/v1/workflow/jobs": getattr(self, "_serve_workflow_jobs", lambda: None),
         }
 
         # Rutas con query string (?server=&lines=)
         path_clean = self.path.split("?")[0]
+
+        # ── GTLIS — TikTok Live Intelligence Suite (Delegación Modular) ───────────
+        if path_clean.startswith("/v1/tiktok/"):
+            if hasattr(self, "_handle_get_tiktok") and self._handle_get_tiktok():
+                return
+
         if path_clean in routes:
             routes[path_clean]()
+        elif self.path.startswith("/v1/workflow/status/"):
+            if hasattr(self, "_serve_workflow_status"):
+                self._serve_workflow_status()
+            else:
+                self.send_response(404)
+                self.end_headers()
         elif self.path.startswith("/static/output/"):
             self._serve_static_output()
         elif self.path.startswith("/static/imagelab/"):
@@ -158,6 +187,8 @@ class GetRoutesMixin:
             self._serve_obs_overlay_html()
         elif self.path.startswith("/v1/factory/download/"):
             self._serve_factory_download()
+        elif self.path.startswith("/images/"):
+            self._serve_journalist_images()
         else:
             # Intentar servir desde el frontend/dist (JS, CSS, Assets)
             self._serve_frontend_static()
@@ -507,6 +538,21 @@ class GetRoutesMixin:
 
         handle_gameserver_players(self)
 
+    def _serve_tunnel_status(self):
+        from api.routes.handlers.gameserver_handler import handle_tunnel_status
+
+        handle_tunnel_status(self)
+
+    def _serve_gameserver_progression(self):
+        from api.routes.handlers.gameserver_handler import handle_gameserver_progression
+        handle_gameserver_progression(self)
+
+    def _serve_gm_daemon_status(self):
+        from api.routes.handlers.gameserver_handler import handle_gm_daemon_status
+
+        handle_gm_daemon_status(self)
+
+
     # ── Security Monitor ────────────────────────────────────────────────────────
     def _serve_security(self):
         """Estado del Security Monitor: procesos, puertos, integridad de archivos."""
@@ -815,20 +861,21 @@ class GetRoutesMixin:
             self.wfile.write(json.dumps({"error": str(e)}).encode())
 
     def _serve_active_sessions(self):
-        """Lista las instancias de SessionSpawner activas."""
+        """Lista las instancias de SessionSpawner activas de forma thread-safe."""
         try:
-            from core.session_runner import active_sessions
+            from core.session_runner import get_all_sessions
 
-            sessions = []
-            for s_id, handle in active_sessions.items():
-                is_alive = handle.process.poll() is None
-                sessions.append(
-                    {
-                        "id": s_id,
-                        "alive": is_alive,
-                        "pid": handle.process.pid if is_alive else None,
-                    }
-                )
+            raw_sessions = get_all_sessions()
+            sessions = [
+                {
+                    "id": s["session_id"],
+                    "alive": s["alive"],
+                    "pid": s["pid"] if s["alive"] else None,
+                    "last_activity": s.get("last_activity"),
+                    "current_activity": s.get("current_activity"),
+                }
+                for s in raw_sessions
+            ]
             body = json.dumps(
                 {"active_sessions": sessions, "count": len(sessions)}, indent=2
             ).encode("utf-8")
@@ -839,6 +886,7 @@ class GetRoutesMixin:
             self.wfile.write(body)
         except Exception as e:
             self.send_response(500)
+            self._send_cors()
             self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode())
 
@@ -2212,6 +2260,23 @@ class GetRoutesMixin:
             ).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_bounties_status(self):
+        """GET /v1/bounties/status — Estado en vivo del daemon Bounty Hunter."""
+        try:
+            from core import bounty_hunter
+            data = bounty_hunter.get_status()
+            body = json.dumps(data).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
             self._send_cors()
             self.end_headers()
             self.wfile.write(body)

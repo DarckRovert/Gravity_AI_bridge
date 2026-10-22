@@ -1,0 +1,9 @@
+name: Gravity Local V15.1 PRO [Diamond-Tier Edition]
+version: 10.0.0
+schema: v1
+models:
+  - name: "Gravity Bridge"
+    provider: openai
+    model: gravity-bridge-auto
+    apiBase: "http://localhost:7860/v1"
+    apiKey: "gravity-local"

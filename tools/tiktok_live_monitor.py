@@ -99,6 +99,106 @@ _BROWSER_HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 }
 
+
+def normalize_tiktok_username(raw_input: str) -> str:
+    """
+    Normaliza cualquier entrada de usuario (handle, URL completa, URL de live, enlace corto).
+    Soporta:
+      - @username o username
+      - https://www.tiktok.com/@username
+      - https://www.tiktok.com/@username/live
+      - https://www.tiktok.com/live/@username
+      - https://vt.tiktok.com/... o https://vm.tiktok.com/...
+    """
+    if not raw_input:
+        return ""
+    clean = str(raw_input).strip()
+
+    # Resolución de enlaces cortos vt.tiktok.com / vm.tiktok.com si aplica
+    if "vt.tiktok.com" in clean or "vm.tiktok.com" in clean:
+        try:
+            req = urllib.request.Request(clean, headers=_BROWSER_HEADERS, method="HEAD")
+            ctx = ssl.create_default_context()
+            with urllib.request.urlopen(req, context=ctx, timeout=5) as resp:
+                clean = resp.geturl()
+        except Exception:
+            pass
+
+    # Extraer @username si está presente en cualquier formato de URL
+    m = re.search(r"@([a-zA-Z0-9_.-]+)", clean)
+    if m:
+        return m.group(1).rstrip("/?")
+
+    # Si fue una URL sin @ (ej. tiktok.com/live/username)
+    if "tiktok.com/" in clean:
+        parts = clean.split("?")[0].rstrip("/").split("/")
+        candidate = parts[-1]
+        if candidate in ("live", "video") and len(parts) > 1:
+            candidate = parts[-2]
+        return candidate.lstrip("@")
+
+    # Limpiar arrobas, queries y espacios sobrantes
+    return clean.lstrip("@").split("?")[0].split("/")[0].strip()
+
+
+class GeoIPResolver:
+    """
+    Resolver GeoIP multicapa con caché LRU thread-safe.
+    Prueba secuencialmente: ipinfo.io ➔ ip-api.com ➔ freeipapi.com
+    """
+    _cache: Dict[str, Tuple[str, str]] = {}
+    _cache_lock = threading.Lock()
+    _max_cache = 500
+
+    @classmethod
+    def resolve(cls, ip: str) -> Tuple[str, str]:
+        if not ip or ip in ("127.0.0.1", "localhost", "0.0.0.0"):
+            return "", ""
+        with cls._cache_lock:
+            if ip in cls._cache:
+                return cls._cache[ip]
+
+        country, city = "", ""
+        # Tier 1: ipinfo.io
+        try:
+            req = urllib.request.Request(f"https://ipinfo.io/{ip}/json", headers={"User-Agent": "curl/7.68.0"})
+            with urllib.request.urlopen(req, timeout=2.5) as res:
+                data = json.loads(res.read().decode())
+                country = data.get("country", "")
+                city = data.get("city", "")
+        except Exception:
+            pass
+
+        # Tier 2: ip-api.com
+        if not country:
+            try:
+                req = urllib.request.Request(f"http://ip-api.com/json/{ip}?fields=countryCode,city", headers={"User-Agent": "curl/7.68.0"})
+                with urllib.request.urlopen(req, timeout=2.5) as res:
+                    data = json.loads(res.read().decode())
+                    country = data.get("countryCode", "")
+                    city = data.get("city", "")
+            except Exception:
+                pass
+
+        # Tier 3: freeipapi.com
+        if not country:
+            try:
+                req = urllib.request.Request(f"https://freeipapi.com/api/json/{ip}", headers={"User-Agent": "curl/7.68.0"})
+                with urllib.request.urlopen(req, timeout=2.5) as res:
+                    data = json.loads(res.read().decode())
+                    country = data.get("countryCode", "")
+                    city = data.get("cityName", "")
+            except Exception:
+                pass
+
+        with cls._cache_lock:
+            if len(cls._cache) >= cls._max_cache:
+                cls._cache.clear()
+            cls._cache[ip] = (country, city)
+
+        return country, city
+
+
 # ── Data Models ────────────────────────────────────────────────────────────────
 
 
@@ -124,6 +224,11 @@ class LiveSnapshot:
     geo_city: str = ""
     bot_score: float = 0.0
     engagement: float = 0.0
+    display_name: str = ""
+    bio: str = ""
+    followers: int = 0
+    verified: bool = False
+    avatar_url: str = ""
     raw_meta: Dict[str, Any] = field(default_factory=dict)
     error: Optional[str] = None
 
@@ -178,18 +283,126 @@ class LiveStreamProbe:
     def __init__(self) -> None:
         self._ytdlp_lock = threading.Lock()
 
+    def is_stream_url_expired(self, stream_url: str) -> bool:
+        """Verifica si el token de firma de la URL HLS ha expirado (expire=TIMESTAMP)."""
+        if not stream_url:
+            return True
+        import urllib.parse
+        parsed = urllib.parse.urlparse(stream_url)
+        params = urllib.parse.parse_qs(parsed.query)
+        expire_str = params.get("expire", [None])[0]
+        if expire_str:
+            try:
+                exp_ts = int(expire_str)
+                now_ts = int(time.time())
+                return now_ts >= (exp_ts - 30)  # Margen de 30 segundos antes de expiración
+            except Exception:
+                pass
+        return False
+
+    def refresh_stream_url(self, username: str) -> str:
+        """Refresca pasivamente la URL HLS activa de un canal en vivo."""
+        snap = self.fetch_live_metadata(username)
+        return snap.stream_url if snap.is_live else ""
+
     def fetch_live_metadata(self, username: str) -> LiveSnapshot:
         """
         Extrae metadata técnica de un canal en vivo.
         Retorna LiveSnapshot con todos los campos disponibles.
         """
-        snap = LiveSnapshot(username=username)
-        url = f"https://www.tiktok.com/@{username.lstrip('@')}/live"
+        clean_user = normalize_tiktok_username(username)
+        snap = LiveSnapshot(username=clean_user)
+        url = f"https://www.tiktok.com/@{clean_user}/live"
 
         try:
+            # 1. Intentar consulta directa al Webcast API oficial de TikTok
+            webcast_info = self._check_webcast_api(clean_user)
+            if webcast_info:
+                if webcast_info.get("offline"):
+                    snap.is_live = False
+                    snap.error = None
+                    return snap
+
+                if webcast_info.get("is_live"):
+                    snap.is_live = True
+                    snap.title = webcast_info.get("title", "")
+                    snap.viewers = webcast_info.get("viewers", 0)
+                    snap.room_id = webcast_info.get("room_id", "")
+                    snap.user_id = webcast_info.get("user_id", "")
+                    snap.display_name = webcast_info.get("display_name", "")
+                    snap.avatar_url = webcast_info.get("avatar_url", "")
+                    snap.stream_url = webcast_info.get("stream_url", "")
+                    snap.error = None
+
+                    if snap.stream_url:
+                        try:
+                            from urllib.parse import urlparse
+                            import socket
+                            hostname = urlparse(snap.stream_url).hostname
+                            if hostname:
+                                snap.cdn_provider = hostname
+                                try:
+                                    ip = socket.gethostbyname(hostname)
+                                    snap.cdn_ip = ip
+                                    country, city = GeoIPResolver.resolve(ip)
+                                    snap.geo_country = country
+                                    snap.geo_city = city
+                                except Exception as e:
+                                    log.debug(f"[GTLIS·Probe] GeoIP lookup failed: {e}")
+                        except Exception:
+                            pass
+
+                        tech = self.probe_stream_tech(snap.stream_url)
+                        snap.codec_video = tech.get("codec_video", "")
+                        snap.codec_audio = tech.get("codec_audio", "")
+                        snap.bitrate_kbps = tech.get("bitrate_kbps", 0)
+                        snap.resolution = tech.get("resolution", "")
+                        snap.fps = tech.get("fps", 0.0)
+                    else:
+                        # Inspección de red empírica para transmisiones en vivo con restricción de acceso/18+
+                        try:
+                            import socket
+                            edge_host = "webcast.tiktok.com"
+                            snap.cdn_provider = f"{edge_host} (TikTok Webcast Ingest)"
+                            try:
+                                ip = socket.gethostbyname(edge_host)
+                                snap.cdn_ip = ip
+                                country, city = GeoIPResolver.resolve(ip)
+                                snap.geo_country = country
+                                snap.geo_city = city
+                            except Exception as e:
+                                log.debug(f"[GTLIS·Probe] Host resolution error: {e}")
+                            snap.codec_video = "Protegido (Restricción de Edad 18+)"
+                            snap.codec_audio = "Protegido (Restricción de Edad 18+)"
+                            snap.bitrate_kbps = 0
+                            snap.resolution = "N/A (Stream Protegido)"
+                            snap.fps = 0.0
+                        except Exception as e:
+                            log.debug(f"[GTLIS·Probe] Network infrastructure resolution failed: {e}")
+
+                    if snap.viewers > 0:
+                        likes = webcast_info.get("like_count") or 0
+                        comments = webcast_info.get("comment_count") or 0
+                        snap.engagement = round(((likes + comments) / snap.viewers) * 100, 2)
+
+                    return snap
+
+            # 2. Fallback secondary a yt-dlp
             info = self._run_ytdlp(url)
             if not info:
-                snap.error = "yt-dlp no pudo extraer metadata (canal offline o privado)"
+                snap.is_live = False
+                snap.error = "No se pudo consultar el servidor de TikTok"
+                snap.raw_meta["error"] = snap.error
+                return snap
+
+            if info.get("offline"):
+                snap.is_live = False
+                snap.error = None
+                return snap
+
+            if info.get("error"):
+                snap.is_live = False
+                snap.error = info["error"]
                 snap.raw_meta["error"] = snap.error
                 return snap
 
@@ -223,13 +436,30 @@ class LiveStreamProbe:
                         try:
                             ip = socket.gethostbyname(hostname)
                             snap.cdn_ip = ip
-                            # Fast inline GeoIP using free ipinfo API
-                            req = urllib.request.Request(
-                                f"https://ipinfo.io/{ip}/json",
-                                headers={"User-Agent": "curl/7.68.0"}
-                            )
-                            with urllib.request.urlopen(req, timeout=3.0) as res:
-                                geo_data = json.loads(res.read().decode())
+                            # Fast inline GeoIP usando ipinfo.io + fallback ip-api.com
+                            geo_data = None
+                            try:
+                                req = urllib.request.Request(
+                                    f"https://ipinfo.io/{ip}/json",
+                                    headers={"User-Agent": "curl/7.68.0"}
+                                )
+                                with urllib.request.urlopen(req, timeout=3.0) as res:
+                                    geo_data = json.loads(res.read().decode())
+                            except Exception:
+                                pass
+                            if not geo_data:
+                                try:
+                                    req = urllib.request.Request(
+                                        f"http://ip-api.com/json/{ip}?fields=countryCode,city",
+                                        headers={"User-Agent": "curl/7.68.0"}
+                                    )
+                                    with urllib.request.urlopen(req, timeout=3.0) as res:
+                                        data = json.loads(res.read().decode())
+                                        geo_data = {"country": data.get("countryCode", ""), "city": data.get("city", "")}
+                                except Exception:
+                                    pass
+
+                            if geo_data:
                                 snap.geo_country = geo_data.get("country", "")
                                 snap.geo_city = geo_data.get("city", "")
                         except Exception as e:
@@ -268,7 +498,121 @@ class LiveStreamProbe:
             snap.raw_meta["error"] = snap.error
             log.error(f"[GTLIS·Probe] Error analizando @{username}: {exc}")
 
-        return snap
+    def _extract_stream_string(self, stream_info: Any) -> str:
+        """Extrae la URL de flujo en cadena (HLS/RTMP/FLV) soportando variantes dict/str."""
+        if not isinstance(stream_info, dict):
+            return str(stream_info) if stream_info else ""
+        
+        # 1. Check hls_pull_url
+        hls = stream_info.get("hls_pull_url")
+        if isinstance(hls, str) and hls.strip():
+            return hls.strip()
+        if isinstance(hls, dict) and hls:
+            for key in ("FULL_HD1", "HD1", "SD1", "ORIGIN"):
+                if key in hls and isinstance(hls[key], str):
+                    return hls[key]
+            first_val = next(iter(hls.values()), "")
+            if isinstance(first_val, str):
+                return first_val
+
+        # 2. Check hls_pull_url_map
+        hls_map = stream_info.get("hls_pull_url_map")
+        if isinstance(hls_map, dict) and hls_map:
+            for key in ("FULL_HD1", "HD1", "SD1", "ORIGIN"):
+                if key in hls_map and isinstance(hls_map[key], str):
+                    return hls_map[key]
+            first_val = next(iter(hls_map.values()), "")
+            if isinstance(first_val, str):
+                return first_val
+
+        # 3. Check flv_pull_url
+        flv = stream_info.get("flv_pull_url")
+        if isinstance(flv, str) and flv.strip():
+            return flv.strip()
+        if isinstance(flv, dict) and flv:
+            for key in ("FULL_HD1", "HD1", "SD1", "ORIGIN"):
+                if key in flv and isinstance(flv[key], str):
+                    return flv[key]
+            first_val = next(iter(flv.values()), "")
+            if isinstance(first_val, str):
+                return first_val
+
+        # 4. Check rtmp_pull_url
+        rtmp = stream_info.get("rtmp_pull_url")
+        if isinstance(rtmp, str) and rtmp.strip():
+            return rtmp.strip()
+
+        return ""
+
+    def _check_webcast_api(self, username: str) -> Optional[Dict[str, Any]]:
+        """Consulta directa al API Webcast oficial de TikTok en tiempo real."""
+        url = f"https://webcast.tiktok.com/webcast/room/info_by_user/?aid=1988&unique_id={username}"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
+            "Referer": "https://www.tiktok.com/",
+        }
+        try:
+            from curl_cffi import requests
+            r = requests.get(url, headers=headers, impersonate="chrome120", timeout=5)
+            if r.status_code == 200:
+                res = r.json()
+                status_code = res.get("status_code")
+                data = res.get("data", {})
+                if status_code == 0 and data:
+                    room_status = data.get("status")
+                    if room_status == 2 or "stream_url" in data:
+                        stream_info = data.get("stream_url", {})
+                        owner = data.get("owner", {})
+                        hls_url = self._extract_stream_string(stream_info)
+                        avatar = ""
+                        if isinstance(owner, dict):
+                            av_thumb = owner.get("avatar_thumb") or owner.get("avatar_medium") or owner.get("avatar_larger")
+                            if isinstance(av_thumb, dict) and av_thumb.get("url_list"):
+                                urls = av_thumb["url_list"]
+                                if isinstance(urls, list) and len(urls) > 0:
+                                    avatar = str(urls[0])
+                        return {
+                            "is_live": True,
+                            "title": data.get("title", ""),
+                            "viewers": data.get("user_count", 0),
+                            "room_id": str(data.get("id_str") or data.get("id") or ""),
+                            "user_id": str(owner.get("id_str") or owner.get("id") or ""),
+                            "stream_url": hls_url,
+                            "display_name": owner.get("nickname", "") if isinstance(owner, dict) else "",
+                            "avatar_url": avatar,
+                            "like_count": data.get("like_count", 0),
+                            "comment_count": 0,
+                        }
+                if status_code in (30003, 4003110) or data.get("message") == "room has finished":
+                    return {"is_live": False, "offline": True}
+        except Exception as e:
+            log.debug(f"[GTLIS·WebcastAPI] Fetch error para @{username}: {e}")
+
+        # Fallback a TikTokLiveClient.is_live (detecta streams en vivo con restricción de edad 18+)
+        try:
+            import asyncio
+            from TikTokLive import TikTokLiveClient
+            client = TikTokLiveClient(unique_id=username)
+            if asyncio.run(client.is_live()):
+                log.info(f"[GTLIS·WebcastAPI] @{username} detectado EN VIVO vía TikTokLive Client (Restricción de edad/18+)")
+                return {
+                    "is_live": True,
+                    "title": "Transmisión en Vivo (Restricción 18+ / Transmisión Activa)",
+                    "viewers": 1,
+                    "room_id": getattr(client, "room_id", "") or "live_active",
+                    "user_id": "",
+                    "stream_url": "",
+                    "display_name": username,
+                    "avatar_url": "",
+                    "like_count": 0,
+                    "comment_count": 0,
+                }
+        except Exception as client_err:
+            log.debug(f"[GTLIS·TikTokLiveClient] Fallback check failed: {client_err}")
+
+        return None
 
     def _run_ytdlp(self, url: str) -> Optional[Dict[str, Any]]:
         """Ejecuta yt-dlp en subproceso y retorna el JSON de info."""
@@ -312,13 +656,27 @@ class LiveStreamProbe:
                 if result.returncode == 0 and result.stdout.strip():
                     return json.loads(result.stdout.strip())
                 if result.stderr:
-                    log.debug(f"[GTLIS·yt-dlp] stderr: {result.stderr[:300]}")
+                    stderr_msg = result.stderr.strip()
+                    log.debug(f"[GTLIS·yt-dlp] stderr: {stderr_msg[:300]}")
+                    s_lower = stderr_msg.lower()
+                    if "is not currently live" in s_lower or "not live" in s_lower:
+                        return {"is_live": False, "offline": True}
+                    if "private" in s_lower:
+                        return {"is_live": False, "error": "El canal es privado o requiere inicio de sesión"}
+                    if "user not found" in s_lower or "unable to find user" in s_lower:
+                        return {"is_live": False, "error": "El usuario especificado no existe en TikTok"}
+                    if "suspended" in s_lower or "banned" in s_lower:
+                        return {"is_live": False, "error": "La cuenta de TikTok ha sido suspendida"}
+                    return {"is_live": False, "error": stderr_msg[:200]}
             except subprocess.TimeoutExpired:
                 log.warning("[GTLIS·yt-dlp] Timeout al consultar stream")
+                return {"is_live": False, "error": "Timeout al consultar servidor de TikTok"}
             except json.JSONDecodeError as e:
                 log.warning(f"[GTLIS·yt-dlp] JSON decode error: {e}")
+                return {"is_live": False, "error": f"Error de parseo JSON de TikTok: {e}"}
             except Exception as e:
                 log.error(f"[GTLIS·yt-dlp] Error inesperado: {e}")
+                return {"is_live": False, "error": str(e)}
         return None
 
     def _extract_best_stream_url(self, info: Dict[str, Any]) -> str:
@@ -486,6 +844,23 @@ class ProfileIntelligence:
                     report.likes_total = stat_info.get("heartCount", 0)
                     report.video_count = stat_info.get("videoCount", 0)
 
+                # Extraer huellas de redes sociales desde bio
+                bio_text = report.bio.lower()
+                cp = {}
+                if "ig:" in bio_text or "instagram" in bio_text:
+                    ig_m = re.search(r"(?:ig|instagram)[:\s]*@?([a-zA-Z0-9_.-]+)", bio_text)
+                    if ig_m: cp["instagram"] = f"https://instagram.com/{ig_m.group(1)}"
+                if "yt:" in bio_text or "youtube" in bio_text:
+                    yt_m = re.search(r"(?:yt|youtube)[:\s]*@?([a-zA-Z0-9_.-]+)", bio_text)
+                    if yt_m: cp["youtube"] = f"https://youtube.com/@{yt_m.group(1)}"
+                if "linktr.ee" in bio_text:
+                    lt_m = re.search(r"linktr\.ee/([a-zA-Z0-9_.-]+)", bio_text)
+                    if lt_m: cp["linktree"] = f"https://linktr.ee/{lt_m.group(1)}"
+                if "t.me/" in bio_text or "telegram" in bio_text:
+                    tg_m = re.search(r"(?:t\.me/|telegram[:\s]*@?)([a-zA-Z0-9_.-]+)", bio_text)
+                    if tg_m: cp["telegram"] = f"https://t.me/{tg_m.group(1)}"
+                report.cross_platform = cp
+
                 log.info(
                     f"[GTLIS·Profile] @{username} — "
                     f"followers={report.followers:,}, verified={report.verified}"
@@ -519,6 +894,33 @@ class ProfileIntelligence:
                 return json.loads(m2.group(1))
             except json.JSONDecodeError:
                 pass
+
+        # Fallback 2: buscar __UNIVERSAL_DATA_FOR_REHYDRATION__ (estructura moderna TikTok)
+        m3 = re.search(r'<script [^>]*id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>(.*?)</script>', html, re.DOTALL)
+        if m3:
+            try:
+                raw_json = m3.group(1).strip()
+                if "=" in raw_json[:30]:
+                    raw_json = raw_json.split("=", 1)[1].strip()
+                if raw_json.endswith(";"):
+                    raw_json = raw_json[:-1]
+                data = json.loads(raw_json)
+                default_scope = data.get("__DEFAULT_SCOPE__", {})
+                user_detail = default_scope.get("webapp.user-detail", {})
+                if user_detail:
+                    user_info = user_detail.get("userInfo", {}).get("user", {})
+                    user_stats = user_detail.get("userInfo", {}).get("stats", {})
+                    if user_info or user_stats:
+                        clean_handle = (user_info.get("uniqueId") or "").lower()
+                        return {
+                            "UserModule": {
+                                "users": {clean_handle: user_info},
+                                "stats": {clean_handle: user_stats}
+                            }
+                        }
+            except Exception:
+                pass
+
         return None
 
     def _extract_og_fallback(self, html: str, report: ProfileReport) -> ProfileReport:

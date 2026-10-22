@@ -47,7 +47,7 @@
       "inputs": {
         "filepath": "F:/gravity-news-portal/src/data/essays.json",
         "new_item": "{{normalizar_ensayo.normalized_json}}",
-        "max_items": 20
+        "max_items": 1000
       }
     },
     {

@@ -26,7 +26,7 @@ class JSONAppenderNode(GravityNode):
     def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         filepath = inputs.get("filepath", "")
         new_item_str = inputs.get("new_item", "{}")
-        max_items = int(inputs.get("max_items", 50))
+        max_items = int(inputs.get("max_items", 1000))
         root_key = inputs.get("root_key", "")
 
         if not filepath:

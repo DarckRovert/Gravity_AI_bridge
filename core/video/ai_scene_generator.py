@@ -15,6 +15,7 @@ import socket
 import time
 import urllib.request
 import urllib.parse
+import hashlib
 import numpy as np
 from core.logger import log
 from typing import Optional
@@ -68,9 +69,11 @@ def _build_prompt(
     """
     ctx = ENGINE_VISUAL_CONTEXT.get(engine, ENGINE_VISUAL_CONTEXT["space_odyssey"])
 
-    # Si el director proveyó un prompt específico, lo usamos. Si no, usamos el por defecto del engine.
+    # Si el director proveyó un prompt específico, lo usamos. Si no, usamos el por defecto del engine enriquecido por section_text.
     if custom_scene_prompt and len(custom_scene_prompt.strip()) > 5:
         scene = custom_scene_prompt.strip()
+    elif section_text and len(section_text.strip()) > 5:
+        scene = f"{ctx['scene']}, inspired by: {section_text.strip()[:100]}"
     else:
         scene = ctx["scene"]
 
@@ -99,10 +102,16 @@ def _build_prompt(
 # ── Backends de generación ───────────────────────────────────────────────────
 
 
-def _fooocus_online() -> bool:
-    """Verifica si Fooocus está activo en :7865."""
+def _fooocus_online(port: Optional[int] = None) -> bool:
+    """Verifica si Fooocus está activo en el puerto configurado (7861 por defecto)."""
+    if port is None:
+        try:
+            from core.config_manager import config
+            port = int(config.get("fooocus.port", 7861))
+        except Exception:
+            port = int(os.getenv("FOOOCUS_PORT", 7861))
     try:
-        s = socket.create_connection(("127.0.0.1", 7865), timeout=1.5)
+        s = socket.create_connection(("127.0.0.1", port), timeout=1.5)
         s.close()
         return True
     except Exception:
@@ -302,16 +311,6 @@ def generate_scene_images(
     for i, scene in enumerate(timeline):
         engine = scene.get("engine", "space_odyssey")
         label = f"escena_{i+1}_{engine}"
-        cache_key = f"{label}_{w}x{h}.jpg"
-        out_path = os.path.join(SCENE_CACHE_DIR, cache_key)
-
-        # Usar caché si existe (evita regenerar en re-renders)
-        if os.path.isfile(out_path) and os.path.getsize(out_path) > 10000:
-            log.info(f"[AISceneGen] Cache hit: {cache_key}")
-            scene_images.append(out_path)
-            last_valid_path = out_path
-            continue
-
         # Extraer color hint de colorsA (frame del centro de la escena)
         color_hint = None
         if colorsA is not None and len(colorsA) > 0:
@@ -326,6 +325,17 @@ def generate_scene_images(
             color_hint=color_hint,
             custom_scene_prompt=scene.get("custom_scene_prompt", ""),
         )
+
+        prompt_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:12]
+        cache_key = f"{label}_{prompt_hash}_{w}x{h}.jpg"
+        out_path = os.path.join(SCENE_CACHE_DIR, cache_key)
+
+        # Usar caché si existe para este prompt idéntico
+        if os.path.isfile(out_path) and os.path.getsize(out_path) > 10000:
+            log.info(f"[AISceneGen] Cache hit ({prompt_hash}): {cache_key}")
+            scene_images.append(out_path)
+            last_valid_path = out_path
+            continue
 
         success = False
         if use_fooocus:

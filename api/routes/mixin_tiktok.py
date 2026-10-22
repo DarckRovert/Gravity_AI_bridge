@@ -127,18 +127,9 @@ class TikTokMixin:
         GET /v1/tiktok/probe?user=HANDLE[&action=probe|profile|recon|full]
         Ejecuta un análisis OSINT inmediato sobre el canal especificado.
         """
+        from tools.tiktok_live_monitor import normalize_tiktok_username
         params = _parse_qs(self.path)
-        raw_user = params.get("user", "").strip()
-        
-        import re
-        if "tiktok.com/" in raw_user:
-            match = re.search(r"@([a-zA-Z0-9_.-]+)", raw_user)
-            if match:
-                raw_user = match.group(1)
-            else:
-                raw_user = raw_user.split("?")[0].split("/")[-1]
-                
-        username = raw_user.lstrip("@")
+        username = normalize_tiktok_username(params.get("user", ""))
         action = params.get("action", "probe")
 
         if not username:
@@ -723,6 +714,220 @@ class TikTokMixin:
             log.error(f"[AudioTranscriptAPI] Error para @{username}: {exc}")
             _json_response(self, {"error": str(exc)}, 500)
 
+    def _serve_tiktok_gifts(self):
+        """
+        GET /v1/tiktok/gifts?user=HANDLE
+        Retorna la lista de regalos capturados, total de diamantes e ingresos estimados en USD.
+        """
+        from tools.tiktok_live_monitor import normalize_tiktok_username
+        params = _parse_qs(self.path)
+        username = normalize_tiktok_username(params.get("user", ""))
+        if not username:
+            _json_response(self, {"error": "Se requiere ?user=HANDLE"}, 400)
+            return
+        try:
+            radar = _get_radar()
+            data = radar.get_gifts(username)
+            _json_response(self, data)
+        except Exception as exc:
+            _json_response(self, {"error": str(exc), "total_diamonds": 0}, 500)
+
+    def _serve_tiktok_vision(self):
+        """
+        GET /v1/tiktok/vision?user=HANDLE
+        Retorna la auditoría de visión por IA y fotogramas capturados.
+        """
+        from tools.tiktok_live_monitor import normalize_tiktok_username
+        params = _parse_qs(self.path)
+        username = normalize_tiktok_username(params.get("user", ""))
+        if not username:
+            _json_response(self, {"error": "Se requiere ?user=HANDLE"}, 400)
+            return
+        try:
+            radar = _get_radar()
+            data = radar.get_vision_audit(username)
+            _json_response(self, data)
+        except Exception as exc:
+            _json_response(self, {"error": str(exc)}, 500)
+
+    def _serve_tiktok_export_dossier(self):
+        """
+        GET /v1/tiktok/dossier/export?user=HANDLE
+        Genera y descarga de forma inmediata un expediente forense Markdown consolidado.
+        """
+        from tools.tiktok_live_monitor import normalize_tiktok_username
+        params = _parse_qs(self.path)
+        username = normalize_tiktok_username(params.get("user", ""))
+        if not username:
+            _json_response(self, {"error": "Se requiere ?user=HANDLE"}, 400)
+            return
+        try:
+            radar = _get_radar()
+            filepath = radar.run_full_osint(username)
+            content = ""
+            if os.path.exists(filepath):
+                with open(filepath, "r", encoding="utf-8") as f:
+                    content = f.read()
+            else:
+                content = f"# Dossier OSINT - @{username}\n\nNo se pudo recuperar el archivo."
+            body_bytes = content.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/markdown; charset=utf-8")
+            self.send_header("Content-Disposition", f'attachment; filename="Dossier_OSINT_{username}.md"')
+            self.send_header("Content-Length", str(len(body_bytes)))
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body_bytes)
+        except Exception as exc:
+            _json_response(self, {"error": str(exc)}, 500)
+
+    def _serve_tiktok_cib(self):
+        """
+        GET /v1/tiktok/cib?user=HANDLE
+        Retorna el análisis de comportamiento inauténtico coordinado y grafos de bots.
+        """
+        from tools.tiktok_live_monitor import normalize_tiktok_username
+        from core.tiktok_cib_engine import get_cib_engine
+        params = _parse_qs(self.path)
+        username = normalize_tiktok_username(params.get("user", ""))
+        if not username:
+            _json_response(self, {"error": "Se requiere ?user=HANDLE"}, 400)
+            return
+        try:
+            cib_engine = get_cib_engine()
+            report = cib_engine.get_cib_report(username)
+            _json_response(self, report)
+        except Exception as exc:
+            _json_response(self, {"error": str(exc)}, 500)
+
+    def _serve_tiktok_biometrics(self):
+        """
+        GET /v1/tiktok/biometrics?user=HANDLE
+        Retorna el análisis espectral de voz y huella acústica.
+        """
+        from tools.tiktok_live_monitor import normalize_tiktok_username
+        from core.tiktok_voice_biometrics import get_voice_engine
+        params = _parse_qs(self.path)
+        username = normalize_tiktok_username(params.get("user", ""))
+        if not username:
+            _json_response(self, {"error": "Se requiere ?user=HANDLE"}, 400)
+            return
+        try:
+            radar = _get_radar()
+            lines = radar.get_audio_transcript(username)
+            voice_engine = get_voice_engine()
+            analysis = voice_engine.analyze_audio_lines(username, lines)
+            _json_response(self, analysis)
+        except Exception as exc:
+            _json_response(self, {"error": str(exc)}, 500)
+
+    def _serve_tiktok_triangulation(self):
+        """
+        GET /v1/tiktok/triangulation?user=HANDLE
+        Retorna la matriz de triangulación geográfica multidimensional.
+        """
+        from tools.tiktok_live_monitor import normalize_tiktok_username
+        from core.tiktok_geo_triangulator import get_triangulator
+        params = _parse_qs(self.path)
+        username = normalize_tiktok_username(params.get("user", ""))
+        if not username:
+            _json_response(self, {"error": "Se requiere ?user=HANDLE"}, 400)
+            return
+        try:
+            radar = _get_radar()
+            lines = radar.get_audio_transcript(username)
+            snap = radar.get_last_snapshot(username) or {}
+            cdn_country = snap.get("geo_country", "")
+            cdn_city = snap.get("geo_city", "")
+            triangulator = get_triangulator()
+            result = triangulator.triangulate(username, cdn_country, cdn_city, lines)
+            _json_response(self, result)
+        except Exception as exc:
+            _json_response(self, {"error": str(exc)}, 500)
+
+    def _serve_tiktok_stream_events(self):
+        """
+        GET /v1/tiktok/stream_events
+        Emisión continua SSE (Server-Sent Events) para eventos en vivo de TikTok.
+        """
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Connection", "keep-alive")
+        self._send_cors()
+        self.end_headers()
+        try:
+            radar = _get_radar()
+            status = radar.get_status()
+            event_data = f"data: {json.dumps(status)}\n\n"
+            self.wfile.write(event_data.encode("utf-8"))
+            self.wfile.flush()
+        except Exception:
+            pass
+
+    def _serve_tiktok_proxy_stream(self):
+        """
+        GET /v1/tiktok/proxy_stream?url=ENCODED_URL
+        Proxy HTTP pasivo para flujos HLS (.m3u8 y .ts) de TikTok CDN.
+        Supera bloqueos CORS y 403 Forbidden agregando headers de Referer de TikTok.
+        """
+        params = _parse_qs(self.path)
+        stream_url = params.get("url", "")
+        if not stream_url:
+            _json_response(self, {"error": "Missing ?url=PARAM"}, 400)
+            return
+
+        try:
+            import urllib.request
+            import urllib.parse
+
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+                "Referer": "https://www.tiktok.com/",
+                "Origin": "https://www.tiktok.com"
+            }
+            resp = None
+            last_err = None
+            for attempt in range(2):
+                try:
+                    req = urllib.request.Request(stream_url, headers=headers)
+                    resp = urllib.request.urlopen(req, timeout=8)
+                    break
+                except Exception as attempt_err:
+                    last_err = attempt_err
+                    time.sleep(0.2)
+
+            if not resp:
+                raise last_err or Exception("Failed to fetch stream segment after retries")
+
+            with resp:
+                content_type = resp.headers.get("Content-Type", "application/vnd.apple.mpegurl")
+                body = resp.read()
+
+                if ".m3u8" in stream_url or "mpegurl" in content_type:
+                    lines = body.decode("utf-8", errors="replace").splitlines()
+                    new_lines = []
+                    base_url = stream_url.rsplit("/", 1)[0]
+                    for line in lines:
+                        l = line.strip()
+                        if l and not l.startswith("#"):
+                            segment_url = l if l.startswith("http") else f"{base_url}/{l}"
+                            proxied_url = f"/v1/tiktok/proxy_stream?url={urllib.parse.quote(segment_url)}"
+                            new_lines.append(proxied_url)
+                        else:
+                            new_lines.append(line)
+                    body = "\n".join(new_lines).encode("utf-8")
+
+                self.send_response(200)
+                self.send_header("Content-Type", content_type)
+                self.send_header("Content-Length", str(len(body)))
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+        except Exception as exc:
+            log.warning(f"[ProxyStream] Error proxeando stream: {exc}")
+            _json_response(self, {"error": str(exc)}, 500)
+
     def _serve_tiktok_psychological_profile(self):
         """
         GET /v1/tiktok/psychological_profile?user=HANDLE
@@ -756,63 +961,104 @@ class TikTokMixin:
             chat_text = "\n".join([f"@{c.get('user_id','?')}: {c.get('text','')}" for c in chat_comments[-30:]]) if chat_comments else "(sin chat disponible)"
 
             prompt = f"""
-            Analiza los siguientes datos en tiempo real de un directo en TikTok Live.
+            Analiza los siguientes datos en tiempo real de un directo en TikTok Live de @{username}.
 
             DIÁLOGO DETECTADO (con identificación automática de hablantes):
             {audio_text}
 
-            LO QUE DICE EL CHAT:
+            MENSAJES RECIENTES DEL CHAT:
             {chat_text}
 
-            Genera un perfil psicológico-conductual forense estructurado en JSON con los siguientes campos:
+            Identifica a CADA integrante/hablante por separado (Streamer principal @{username}, Invitados Co-Host, y Usuarios Clave del Chat como @Serendi21). NO confundas a los participantes. Crea un perfil psicológico-conductual forense INDEPENDIENTE para cada uno.
+
+            Genera una respuesta en JSON estricto con el siguiente esquema:
             {{
-              "archetype": "(Educador|Entretenedor|Líder|Manipulador|Activista|Vendedor|etc.)",
-              "dominant_emotion": "(confianza|ira|alegría|ansiedad|entusiasmo|frustración|etc.)",
-              "stress_level": 0.0-1.0,
-              "sarcasm_index": 0.0-1.0,
-              "vulnerability_score": 0.0-1.0,
-              "engagement_drive": "(altruista|egoísta|mixto)",
-              "communication_style": "(asertivo|pasivo|agresivo|didáctico|humoristico)",
-              "cognitive_distortions": ["lista de distorsiones cognitivas o falacias lógicas observadas en su habla (ej. ad hominem, generalización apresurada, victimización, falacia del espantapájaros)"],
-              "persuasion_techniques": ["lista de técnicas de persuasión o manipulación identificadas (ej. gaslighting, apelación a la emoción, proyección, encuadre defensivo)"],
-              "defense_mechanisms": ["lista de mecanismos de defensa observados (ej. proyección, racionalización, negación, intelectualización, humor defensivo)"],
-              "psychological_signals": ["lista de señales conductuales observadas en 3-5 puntos cortos"],
-              "audience_congruence": "(alta|media|baja): descripción de si el chat apoya o contradice al streamer",
-              "summary": "Resumen de 2-3 oraciones del perfil"
+              "participants": [
+                {{
+                  "role": "Host Principal | Co-Host / Invitado | Usuario Clave Chat",
+                  "identifier": "@username o Hablante X",
+                  "archetype": "(Educador|Entretenedor|Líder|Manipulador|Activista|Crítico|etc.)",
+                  "dominant_emotion": "(confianza|ira|alegría|ansiedad|entusiasmo|frustración|etc.)",
+                  "stress_level": 0.0-1.0,
+                  "sarcasm_index": 0.0-1.0,
+                  "vulnerability_score": 0.0-1.0,
+                  "engagement_drive": "(altruista|egoísta|mixto)",
+                  "communication_style": "(asertivo|pasivo|agresivo|didáctico|humoristico)",
+                  "cognitive_distortions": ["distorsiones cognitivas específicas de este integrante"],
+                  "persuasion_techniques": ["tácticas de persuasión específicas de este integrante"],
+                  "defense_mechanisms": ["mecanismos de defensa específicos de este integrante"],
+                  "psychological_signals": ["3-5 señales conductuales clave de este integrante"],
+                  "summary": "Resumen de 2 oraciones del comportamiento de este participante específico"
+                }}
+              ]
             }}
 
-            Responde SOLO con el JSON, sin texto adicional.
+            Responde SOLO con el JSON válido, sin texto adicional.
             """
 
             from core.provider_manager import complete
-            raw_response = complete(
-                messages=[
-                    {"role": "system", "content": "Eres un experto en psicología conductual y análisis de comportamiento en redes sociales. Respondes SOLO con JSON válido."},
-                    {"role": "user", "content": prompt}
-                ],
-                task="any"
-            )
+            messages = [
+                {"role": "system", "content": "Eres un experto en psicología conductual forense y diarización de participantes en redes sociales. Respondes SOLO con JSON válido conteniendo la lista de participantes."},
+                {"role": "user", "content": prompt}
+            ]
 
-            # Limpiar markdown si el LLM lo envolvió
-            cleaned = raw_response.strip()
-            if cleaned.startswith("```"):
-                lines_clean = cleaned.splitlines()
-                if lines_clean[0].startswith("```"):
-                    lines_clean = lines_clean[1:]
-                if lines_clean and lines_clean[-1].strip() == "```":
-                    lines_clean = lines_clean[:-1]
-                cleaned = "\n".join(lines_clean).strip()
+            raw_response = ""
+            try:
+                raw_response = complete(messages=messages, task="any")
+            except Exception as exc:
+                log.warning(f"[PsychProfile] Fallo en proveedor cloud: {exc}. Conmutando a LM Studio local...")
+
+            if not raw_response or "too many requests" in raw_response.lower() or "429" in raw_response or "rate limit" in raw_response.lower():
+                log.warning("[PsychProfile] Límite de tasa 429 (Too Many Requests) alcanzado. Conmutando automáticamente a LM Studio local...")
+                try:
+                    raw_response = complete(messages=messages, provider="lmstudio")
+                except Exception as loc_err:
+                    log.warning(f"[PsychProfile] Fallback a LM Studio local falló: {loc_err}")
+
+            from core.reasoning_stripper import ReasoningStripper
+            cleaned = ReasoningStripper.strip_reasoning_text(raw_response)
+
+            # Limpiar bloque markdown ```json ... ``` si el LLM lo envolvió
+            if "```" in cleaned:
+                import re
+                m = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', cleaned, re.DOTALL)
+                if m:
+                    cleaned = m.group(1).strip()
+                else:
+                    lines_clean = cleaned.splitlines()
+                    lines_clean = [l for l in lines_clean if not l.strip().startswith("```")]
+                    cleaned = "\n".join(lines_clean).strip()
 
             try:
-                profile = json.loads(cleaned)
+                profile_data = json.loads(cleaned)
+                participants = profile_data.get("participants", [])
+                if not participants and isinstance(profile_data, dict):
+                    # Si devolvió un único objeto, envolverlo en lista como Host
+                    profile_data["role"] = f"Host Principal (@{username})"
+                    profile_data["identifier"] = f"@{username}"
+                    participants = [profile_data]
+                    profile_data = {"participants": participants}
+
+                # Compatibilidad hacia atrás: primer participante es el perfil principal
+                profile = participants[0] if participants else {}
+                profile["all_participants"] = participants
+
                 # Guardar en la Memoria Estratégica Global de Gravity AI
                 try:
                     from core.strategic_memory import upsert_pattern
-                    upsert_pattern(f"tiktok:profile:{username}", json.dumps(profile, ensure_ascii=False))
+                    upsert_pattern(f"tiktok:profile:{username}", json.dumps(profile_data, ensure_ascii=False))
                 except Exception as mem_err:
                     log.warning(f"[PsychProfile] Fallo guardando en Memoria Estratégica: {mem_err}")
             except Exception:
-                profile = {"raw_analysis": cleaned}
+                profile = {
+                    "role": f"Host Principal (@{username})",
+                    "identifier": f"@{username}",
+                    "archetype": "Analizado",
+                    "dominant_emotion": "Evaluada",
+                    "summary": cleaned[:500] if cleaned else "Análisis en curso...",
+                    "raw_analysis": cleaned,
+                    "all_participants": []
+                }
 
             _json_response(self, {
                 "username": username,
@@ -826,6 +1072,9 @@ class TikTokMixin:
         except Exception as exc:
             log.error(f"[PsychProfile] Error generando perfil para @{username}: {exc}")
             _json_response(self, {"error": str(exc)}, 500)
+
+    # Alias de compatibilidad
+    _serve_tiktok_psych_profile = _serve_tiktok_psychological_profile
 
     def _serve_tiktok_send_chat(self):
         """
@@ -957,6 +1206,44 @@ class TikTokMixin:
             "/v1/tiktok/send_chat": self._serve_tiktok_send_chat,
         }
         handler = _POST_ROUTES.get(path)
+        if handler:
+            handler()
+            return True
+        return False
+
+    def _handle_get_tiktok(self) -> bool:
+        """
+        Dispatcher GET para el módulo GTLIS.
+        Retorna True si manejó la ruta, False si no aplica.
+        """
+        path = self.path.split("?")[0]
+        _GET_ROUTES = {
+            "/v1/tiktok/status":            self._serve_tiktok_status,
+            "/v1/tiktok/channels":          self._serve_tiktok_channels,
+            "/v1/tiktok/probe":             self._serve_tiktok_probe,
+            "/v1/tiktok/report":            self._serve_tiktok_report,
+            "/v1/tiktok/alerts":            self._serve_tiktok_alerts,
+            "/v1/tiktok/history":           self._serve_tiktok_history,
+            "/v1/tiktok/bot":               self._serve_tiktok_bot_analyze,
+            "/v1/tiktok/geo":               self._serve_tiktok_geo,
+            "/v1/tiktok/deep_osint":        self._serve_tiktok_deep_osint,
+            "/v1/tiktok/dossier":           self._serve_tiktok_dossier,
+            "/v1/tiktok/dossier/export":    self._serve_tiktok_export_dossier,
+            "/v1/tiktok/gifts":             self._serve_tiktok_gifts,
+            "/v1/tiktok/vision":            self._serve_tiktok_vision,
+            "/v1/tiktok/cib":               self._serve_tiktok_cib,
+            "/v1/tiktok/biometrics":        self._serve_tiktok_biometrics,
+            "/v1/tiktok/triangulation":     self._serve_tiktok_triangulation,
+            "/v1/tiktok/stream_events":    self._serve_tiktok_stream_events,
+            "/v1/tiktok/proxy_stream":      self._serve_tiktok_proxy_stream,
+            "/v1/tiktok/chat_suggestions": self._serve_tiktok_chat_suggestions,
+            "/v1/tiktok/comments":          self._serve_tiktok_comments,
+            "/v1/tiktok/transcripts":              self._serve_tiktok_audio_transcript,
+            "/v1/tiktok/audio_transcript":         self._serve_tiktok_audio_transcript,
+            "/v1/tiktok/psych_profile":            self._serve_tiktok_psychological_profile,
+            "/v1/tiktok/psychological_profile":    self._serve_tiktok_psychological_profile,
+        }
+        handler = _GET_ROUTES.get(path)
         if handler:
             handler()
             return True

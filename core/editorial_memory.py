@@ -19,7 +19,7 @@ import os
 import re
 import sqlite3
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from core.logger import log
@@ -116,7 +116,7 @@ def seen_headline(text: str, window_days: int = 7) -> bool:
         return False
 
     fp = _fingerprint(text)
-    cutoff = (datetime.utcnow() - timedelta(days=window_days)).isoformat()
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=window_days)).isoformat()
 
     try:
         with _lock:
@@ -148,7 +148,7 @@ def record_headline(
         return
 
     fp = _fingerprint(text)
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
 
     try:
         with _lock:
@@ -187,7 +187,7 @@ def seen_topic(
         return False
 
     fp = _fingerprint(topic)
-    cutoff = (datetime.utcnow() - timedelta(days=window_days)).isoformat()
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=window_days)).isoformat()
 
     try:
         with _lock:
@@ -219,7 +219,7 @@ def record_topic(topic: str, workflow: str = "") -> None:
         return
 
     fp = _fingerprint(topic)
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
 
     try:
         with _lock:
@@ -248,14 +248,14 @@ def get_stats() -> dict:
                 ).fetchone()[0]
                 headlines_7d = conn.execute(
                     "SELECT COUNT(*) FROM editorial_headlines WHERE created_at >= ?",
-                    ((datetime.utcnow() - timedelta(days=7)).isoformat(),),
+                    ((datetime.now(timezone.utc) - timedelta(days=7)).isoformat(),),
                 ).fetchone()[0]
                 total_topics = conn.execute(
                     "SELECT COUNT(*) FROM editorial_topics"
                 ).fetchone()[0]
                 topics_14d = conn.execute(
                     "SELECT COUNT(*) FROM editorial_topics WHERE created_at >= ?",
-                    ((datetime.utcnow() - timedelta(days=14)).isoformat(),),
+                    ((datetime.now(timezone.utc) - timedelta(days=14)).isoformat(),),
                 ).fetchone()[0]
                 # Intentar contar libros si la tabla existe
                 try:
@@ -340,7 +340,7 @@ def record_book(title: str, mode: str = "academic", book_path: str = "") -> None
         return
 
     fp = _fingerprint(title)
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
 
     try:
         with _lock:

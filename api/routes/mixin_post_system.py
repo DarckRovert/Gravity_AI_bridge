@@ -684,26 +684,23 @@ class PostSystemMixin:
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return True
 
-        # /v1/sessions/kill — Termina un subproceso de sesión
+        # /v1/sessions/kill — Termina un subproceso de sesión de forma segura y libera el slot
         if self.path == "/v1/sessions/kill":
             try:
                 length = int(self.headers.get("Content-Length", 0))
                 data = json.loads(self.rfile.read(length)) if length else {}
                 s_id = data.get("session_id", "").strip()
 
-                from core.session_runner import active_sessions
+                from core.session_runner import terminate_session
 
-                if s_id in active_sessions:
-                    handle = active_sessions[s_id]
-                    if handle.process.poll() is None:
-                        handle.process.terminate()
-                    del active_sessions[s_id]
-                    msg = f"Worker {s_id} terminado con éxito."
+                success = terminate_session(s_id)
+                if success:
+                    msg = f"Worker {s_id} terminado con éxito y slot liberado."
                 else:
                     msg = f"Worker {s_id} no encontrado o ya inactivo."
 
-                body = json.dumps({"ok": True, "message": msg}).encode("utf-8")
-                self.send_response(200)
+                body = json.dumps({"ok": success, "message": msg}).encode("utf-8")
+                self.send_response(200 if success else 404)
                 self.send_header("Content-Type", "application/json")
                 self._send_cors()
                 self.end_headers()

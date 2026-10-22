@@ -93,207 +93,19 @@ def _safe_load_json(path: str) -> Dict[str, Any]:
         return {}
 
 
-def _get_provider_status() -> str:
-    """Estado de proveedores de IA disponibles."""
-    try:
-        from core import provider_manager
-
-        scans = provider_manager.scan_all()
-        online = [s for s in scans if s.is_healthy]
-        best_p, best_m = provider_manager.get_best()
-        lines = []
-        for s in scans:
-            status = "ONLINE" if s.is_healthy else "OFFLINE"
-            lat = f"{getattr(s, 'response_ms', 0)}ms" if s.is_healthy else "-"
-            lines.append(
-                f"  - {s.name}: {status} | {len(s.models)} modelos | latencia {lat}"
-            )
-        active_str = f"{best_p.name}/{best_m}" if best_p else "ninguno"
-        return (
-            f"Proveedores IA: {len(online)}/{len(scans)} online\n"
-            f"Activo: {active_str}\n" + "\n".join(lines)
-        )
-    except Exception as e:
-        return f"Proveedores IA: error al consultar ({e})"
-
-
-def _get_video_status() -> str:
-    """Estado de la cola de video."""
-    try:
-        from core import video_pipeline
-
-        data = video_pipeline.get_queue_status()
-        pending = data.get("pending_count", 0)
-        current = data.get("current_job")
-        history_count = len(data.get("history", []))
-        ffmpeg_ok = data.get("ffmpeg_ok", False)
-        lines = [
-            f"Video Studio: FFmpeg={'OK' if ffmpeg_ok else 'NO INSTALADO'} | {pending} en cola | {history_count} histórico"
-        ]
-        if current:
-            lines.append(
-                f"  ▸ Job #{current.get('id')} EN PROCESO: {current.get('topic', '?')[:50]} "
-                f"| Paso: {current.get('current_step', '?')} | {current.get('progress', 0)}%"
-            )
-        # Mostrar últimos 3 del historial
-        for job in data.get("history", [])[:3]:
-            st = job.get("status", "?")
-            lines.append(
-                f"  ▸ Job #{job.get('id')}: {job.get('topic', '?')[:40]} | {st}"
-            )
-        return "\n".join(lines)
-    except Exception as e:
-        return f"Video Studio: error ({e})"
-
-
-def _get_image_queue_status() -> str:
-    """Estado de la cola de imágenes."""
-    try:
-        from core import image_queue
-
-        data = image_queue.get_queue_status()
-        pending = data.get("pending_count", 0)
-        running = data.get("running_count", 0)
-        done = data.get("done_count", 0)
-        return f"Image Queue: {pending} pendientes | {running} ejecutando | {done} completadas"
-    except Exception as e:
-        return f"Image Queue: error ({e})"
-
-
-def _get_tiktok_status() -> str:
-    """Estado del módulo TikTok Radar (GTLIS)."""
-    try:
-        from core.tiktok_radar import _load_watchlist
-        watchlist = _load_watchlist()
-        active = len(watchlist)
-        return f"TikTok Radar (GTLIS): {active} objetivos en vigilancia activa."
-    except Exception as e:
-        return f"TikTok Radar: no disponible ({e})"
-
-
-def _get_hardware_status() -> str:
-    """Métricas de hardware."""
-    try:
-        from core.hardware_profiler import get_full_profile
-        import psutil
-
-        profile = get_full_profile()
-        cpu = psutil.cpu_percent(interval=None)
-        ram = psutil.virtual_memory().percent
-        gpu = profile.get("gpu_name", "Desconocida")[:30]
-        vram = profile.get("vram_mb", 0)
-        gpu_type = profile.get("gpu_type", "cpu").upper()
-        return (
-            f"Hardware: CPU {cpu:.0f}% | RAM {ram:.0f}% | "
-            f"GPU {gpu} [{gpu_type}] | VRAM {vram:,}MB"
-        )
-    except Exception as e:
-        return f"Hardware: no disponible ({e})"
-
-
-def _get_cost_status() -> str:
-    """Estado de costes API."""
-    try:
-        from core.cost_tracker import CostTracker, _get_daily_limit
-
-        session_cost = CostTracker.get_session_cost()
-        daily_cost = CostTracker.get_daily_cost()
-        daily_limit = _get_daily_limit()
-        session_tokens = CostTracker.get_session_tokens()
-        total_tok = int(session_tokens.get("input", 0)) + int(
-            session_tokens.get("output", 0)
-        )
-        return (
-            f"Costes: Sesión ${session_cost:.4f} ({total_tok:,} tokens) | "
-            f"Hoy ${daily_cost:.4f} / límite ${daily_limit:.2f}"
-        )
-    except Exception as e:
-        return f"Costes: no disponible ({e})"
-
-
-def _get_security_status() -> str:
-    """Estado del monitor de seguridad."""
-    try:
-        from core import security_monitor
-
-        state = security_monitor.get_state()
-        score = state.get("score", 100)
-        alerts = state.get("alerts", [])
-        critical = [a for a in alerts if a.get("level") == "CRITICAL"]
-        warnings = [a for a in alerts if a.get("level") == "WARNING"]
-        status_str = f"Security: Score {score}/100"
-        if critical:
-            status_str += f" | {len(critical)} CRÍTICAS"
-            for a in critical[:2]:
-                status_str += f"\n  ⚠ CRÍTICA: {a.get('message', '')[:80]}"
-        if warnings:
-            status_str += f" | {len(warnings)} advertencias"
-        if not critical and not warnings:
-            status_str += " | Sin alertas activas"
-        return status_str
-    except Exception as e:
-        return f"Security: no disponible ({e})"
-
-
-def _get_autonomy_status() -> str:
-    """Estado del motor de autonomía (V16.0 PRO)."""
-    try:
-        from core.autonomy_engine import get_state as ae_state
-
-        st = ae_state()
-        level = st.get("last_status_level", "NORMAL")
-        cycles = st.get("cycles_done", 0)
-        budget = st.get("budget_remaining_usd", 0)
-        actions = st.get("actions_taken", 0)
-        pending = st.get("actions_pending_hitl", 0)
-        next_cyc = (st.get("next_cycle_utc") or "?")[:19]
-        return (
-            f"Autonomy Engine: {level} | {cycles} ciclos | "
-            f"{actions} acciones ejecutadas | {pending} pendientes HITL | "
-            f"Budget restante ${budget:.3f} | Próximo ciclo: {next_cyc}"
-        )
-    except Exception as e:
-        return f"Autonomy Engine: no disponible ({e})"
-
-
-def _get_reflection_status() -> str:
-    """Estado del motor de auto-reflexión (V16.0 PRO)."""
-    try:
-        from core.self_reflection import get_state as refl_state, _count_pending_patches
-
-        st = refl_state()
-        issues = st.get("issues_found", 0)
-        patches = _count_pending_patches()
-        cycles = st.get("cycles_done", 0)
-        last_run = (st.get("last_run_utc") or "nunca")[:19]
-        return (
-            f"Self-Reflection: {cycles} ciclos | {issues} problemas detectados | "
-            f"{patches} parche(s) pendiente(s) | Último análisis: {last_run}"
-        )
-    except Exception as e:
-        return f"Self-Reflection: no disponible ({e})"
-
-
-def _get_strategic_memory_snapshot() -> str:
-    """Snapshot de la memoria estratégica (V16.0 PRO)."""
-    try:
-        from core.strategic_memory import get_brain_snapshot
-
-        return get_brain_snapshot()
-    except Exception as e:
-        return f"Memoria Estratégica: no disponible ({e})"
-
-
-def _get_rag_status() -> str:
-    """Estado del índice RAG."""
-    try:
-        from rag.vector_store import VectorStore
-        stats = VectorStore.stats()
-        settings = _safe_load_json(SETTINGS_FILE)
-        enabled = settings.get("rag_enabled", False)
-        return f"RAG: {'ACTIVO' if enabled else 'inactivo'} | {stats.get('total_chunks', 0)} chunks en db"
-    except Exception as e:
-        return f"RAG: error ({e})"
+from core.telemetry_collector import (
+    get_provider_status as _get_provider_status,
+    get_video_status as _get_video_status,
+    get_image_queue_status as _get_image_queue_status,
+    get_tiktok_status as _get_tiktok_status,
+    get_hardware_status as _get_hardware_status,
+    get_cost_status as _get_cost_status,
+    get_security_status as _get_security_status,
+    get_autonomy_status as _get_autonomy_status,
+    get_reflection_status as _get_reflection_status,
+    get_strategic_memory_snapshot as _get_strategic_memory_snapshot,
+    get_rag_status as _get_rag_status,
+)
 
 
 def _get_knowledge_rules() -> List[str]:
@@ -375,7 +187,7 @@ def build_system_context() -> str:
 
     # Cache expirado o primera vez: construir completo
     sections = [
-        f"=== GRAVITY AI V{APP_VERSION} — ESTADO DEL SISTEMA [{now_str}] ===",
+        f"[GRAVITY AI V{APP_VERSION} — ESTADO DEL SISTEMA ({now_str})]",
         "",
         _get_provider_status(),
         "",
@@ -847,7 +659,7 @@ def execute_system_command(command_info: dict) -> dict:
                         elif "nube" in target or "nvidia" in target or target == "1":
                             settings["model_locked"] = True
                             settings["locked_provider"] = "Nvidia NIM"
-                            settings["locked_model"] = "meta/llama-3.3-70b-instruct"
+                            settings["locked_model"] = "meta/llama-3.2-90b-vision-instruct"
                             msg_res = "✓ Modelo anclado exitosamente a **Nvidia NIM (Nube)**. Maxima capacidad de razonamiento activada."
                         else:
                             return {

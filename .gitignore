@@ -9,3 +9,70 @@ venv/
 _keys/
 *.bin
 .tmp.driveupload/
+_videos/
+*.mp4
+*.wav
+*.avi
+# Heavy binaries, checkpoints and executables
+models/
+*.gguf
+*.onnx
+*.onnx_data
+*.exe
+*.dll
+*.pkg
+dist/
+build/
+_integrations/
+_sessions/
+ffmpeg-master-*/
+rag/models/
+
+# Remotion temp
+remotion_workspace/out/
+remotion_workspace/public/temp_*
+remotion_workspace/temp_*
+
+# Windows metadata
+**/*[Dd]esktop.ini
+**/*[Tt]humbs.db
+$RECYCLE.BIN/
+
+# SQLite databases & temp buffers
+*.db
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db-wal
+*.db-shm
+
+# Logs & Audit
+logs/
+*.log
+_audit_log*
+_archivo/
+
+# Scratch, temporary files and generated content
+scratch/
+temp_frames/
+temp_audio/
+*.tmp
+libros_generados/
+_ensayos_generados/
+_investigaciones/
+ensayos_generados/
+ficcion_generada/
+test_concat/
+test_ask.txt
+test_out.txt
+test_amf.mp4
+temp_record.wav
+bandit_results*.json
+exhaustive_results*.json
+cookies.txt
+elbingo2050*.txt
+flm_err.txt
+corrector_estado.json
+_periodista_state.json
+inputs/.bounty_*
+

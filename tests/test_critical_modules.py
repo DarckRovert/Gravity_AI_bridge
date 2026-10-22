@@ -607,3 +607,94 @@ class TestGameServerManager:
         result = _now()
         assert result.endswith("Z")
         assert "T" in result
+
+
+# ══════════════════════════════════════════════════════════════════════
+# GET ROUTES DISPATCHER & HANDLERS
+# ══════════════════════════════════════════════════════════════════════
+
+
+class TestGetRoutes:
+    def test_serve_bounties_status(self, monkeypatch):
+        import io
+        from bridge_server import GravityBridgeHandler
+
+        handler = object.__new__(GravityBridgeHandler)
+        handler.send_response = MagicMock()
+        handler.send_header = MagicMock()
+        handler._send_cors = MagicMock()
+        handler.end_headers = MagicMock()
+        handler.wfile = io.BytesIO()
+
+        monkeypatch.setattr("core.bounty_hunter.get_status", lambda: {"running": True})
+
+        handler._serve_bounties_status()
+        assert handler.send_response.call_args[0][0] == 200
+        data = json.loads(handler.wfile.getvalue().decode("utf-8"))
+        assert data["running"] is True
+
+    def test_serve_resource_watchdog(self, monkeypatch):
+        import io
+        from bridge_server import GravityBridgeHandler
+        from core.resource_watchdog import resource_watchdog
+
+        handler = object.__new__(GravityBridgeHandler)
+        handler.send_response = MagicMock()
+        handler.send_header = MagicMock()
+        handler._send_cors = MagicMock()
+        handler.end_headers = MagicMock()
+        handler.wfile = io.BytesIO()
+
+        monkeypatch.setattr(resource_watchdog, "get_status", lambda: {"status": "ok", "ram_threshold": 85})
+
+        handler._serve_resource_watchdog()
+        assert handler.send_response.call_args[0][0] == 200
+        data = json.loads(handler.wfile.getvalue().decode("utf-8"))
+        assert data["ram_threshold"] == 85
+
+    def test_deploy_manager_run_step(self):
+        from core.deploy_manager import _run_step
+        ok, out = _run_step(["npm", "--version"], cwd=".", timeout=15)
+        assert ok is True
+        assert len(out.strip()) > 0
+
+
+class TestAISceneGenerator:
+    """Verificación de aislamiento de caché y detección de puerto en ai_scene_generator."""
+
+    def test_fooocus_online_resolves_config_port(self, monkeypatch):
+        from core.video.ai_scene_generator import _fooocus_online
+
+        checked_ports = []
+
+        def fake_create_connection(address, timeout=1.5):
+            checked_ports.append(address[1])
+            raise ConnectionRefusedError()
+
+        monkeypatch.setattr("socket.create_connection", fake_create_connection)
+
+        res = _fooocus_online()
+        assert res is False
+        assert 7861 in checked_ports
+
+    def test_generate_scene_images_cache_key_unique_per_prompt(self, tmp_path, monkeypatch):
+        from core.video import ai_scene_generator
+        monkeypatch.setattr(ai_scene_generator, "SCENE_CACHE_DIR", str(tmp_path))
+        monkeypatch.setattr(ai_scene_generator, "_fooocus_online", lambda: False)
+
+        def fake_fallback(c1, c2, w, h, path):
+            with open(path, "wb") as f:
+                f.write(b"X" * 15000)
+            return True
+
+        monkeypatch.setattr(ai_scene_generator, "_generate_procedural_fallback", fake_fallback)
+
+        timeline_a = [{"engine": "space_odyssey", "start": 0, "end": 100, "label": "Canción Espacial A"}]
+        timeline_b = [{"engine": "space_odyssey", "start": 0, "end": 100, "label": "Canción Andina B"}]
+
+        res_a = ai_scene_generator.generate_scene_images(timeline_a, w=640, h=360, force_pollinations=True)
+        res_b = ai_scene_generator.generate_scene_images(timeline_b, w=640, h=360, force_pollinations=True)
+
+        assert len(res_a) == 1 and len(res_b) == 1
+        assert res_a[0] != res_b[0]
+

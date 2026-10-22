@@ -492,3 +492,90 @@ class TestTikTokMixinDispatcher:
         handler = self._make_handler("/v1/tiktok/watch?extra=1")
         handled = handler._handle_post_tiktok()
         assert handled is True
+
+    def test_get_routes_dispatched_without_attribute_error(self):
+        from api.routes.mixin_tiktok import TikTokMixin
+
+        class FakeGetHandler(TikTokMixin):
+            def __init__(self, path: str):
+                self.path = path
+                self._called = []
+
+            def _serve_tiktok_gifts(self): self._called.append("gifts")
+            def _serve_tiktok_cib(self): self._called.append("cib")
+            def _serve_tiktok_biometrics(self): self._called.append("biometrics")
+            def _serve_tiktok_vision(self): self._called.append("vision")
+            def _serve_tiktok_triangulation(self): self._called.append("triangulation")
+            def _serve_tiktok_psychological_profile(self): self._called.append("psych")
+
+        endpoints = [
+            ("/v1/tiktok/gifts?user=test", "gifts"),
+            ("/v1/tiktok/cib?user=test", "cib"),
+            ("/v1/tiktok/biometrics?user=test", "biometrics"),
+            ("/v1/tiktok/vision?user=test", "vision"),
+            ("/v1/tiktok/triangulation?user=test", "triangulation"),
+            ("/v1/tiktok/psychological_profile?user=test", "psych"),
+            ("/v1/tiktok/psych_profile?user=test", "psych"),
+        ]
+
+        for path, expected in endpoints:
+            handler = FakeGetHandler(path)
+            assert handler._handle_get_tiktok() is True
+            assert expected in handler._called
+
+    def test_radar_has_get_last_snapshot(self):
+        from core.tiktok_radar import TikTokRadar
+        assert hasattr(TikTokRadar, "get_last_snapshot")
+        assert callable(getattr(TikTokRadar, "get_last_snapshot"))
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# LiveStreamProbe — Offline and Error Handling Tests
+# ══════════════════════════════════════════════════════════════════════════════
+
+
+class TestLiveStreamProbe:
+    @pytest.fixture(autouse=True)
+    def probe(self):
+        from tools.tiktok_live_monitor import LiveStreamProbe
+        return LiveStreamProbe()
+
+    @patch("subprocess.run")
+    def test_offline_channel_returns_no_error(self, mock_run, probe):
+        mock_res = MagicMock()
+        mock_res.returncode = 1
+        mock_res.stdout = ""
+        mock_res.stderr = "ERROR: [tiktok:live] testuser: The channel is not currently live"
+        mock_run.return_value = mock_res
+
+        snap = probe.fetch_live_metadata("testuser")
+        assert snap.is_live is False
+        assert snap.error is None
+        assert snap.viewers == 0
+
+    @patch("tools.tiktok_live_monitor.LiveStreamProbe._check_webcast_api", return_value=None)
+    @patch("subprocess.run")
+    def test_genuine_extraction_error_captured(self, mock_run, mock_webcast, probe):
+        mock_res = MagicMock()
+        mock_res.returncode = 1
+        mock_res.stdout = ""
+        mock_res.stderr = "ERROR: [tiktok:live] Unable to download webpage: HTTP Error 404: Not Found"
+        mock_run.return_value = mock_res
+
+        snap = probe.fetch_live_metadata("testuser")
+        assert snap.is_live is False
+        assert snap.error is not None
+        assert "404" in snap.error
+
+
+class TestNormalizeUsername:
+    def test_handles_various_formats(self):
+        from tools.tiktok_live_monitor import normalize_tiktok_username
+        assert normalize_tiktok_username("@sampleuser") == "sampleuser"
+        assert normalize_tiktok_username("sampleuser") == "sampleuser"
+        assert normalize_tiktok_username("https://www.tiktok.com/@sampleuser") == "sampleuser"
+        assert normalize_tiktok_username("https://www.tiktok.com/@sampleuser/live") == "sampleuser"
+        assert normalize_tiktok_username("https://www.tiktok.com/live/@sampleuser?lang=es") == "sampleuser"
+        assert normalize_tiktok_username("  @user_name.123/  ") == "user_name.123"
+
+
