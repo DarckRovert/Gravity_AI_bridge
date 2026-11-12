@@ -1460,4 +1460,27 @@ watchdog:
         }
     });
 
+    // ==========================================
+    // 14. DYNAMIC DASHBOARD LINK RESOLVER
+    // ==========================================
+    const dashboardButtons = document.querySelectorAll('#dashboard-link, .mobile-dashboard-btn');
+    const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname) ||
+                        window.location.hostname.startsWith('192.168.') ||
+                        window.location.hostname.startsWith('10.') ||
+                        window.location.hostname.startsWith('100.') ||
+                        window.location.port === '7860';
+
+    dashboardButtons.forEach(btn => {
+        if (isLocalHost) {
+            btn.setAttribute('href', '/dashboard');
+            btn.removeAttribute('target');
+        } else {
+            // En GitHub Pages u otro host publico, enlaza al servidor local del usuario
+            btn.setAttribute('href', 'http://localhost:7860/dashboard');
+            btn.setAttribute('target', '_blank');
+            btn.setAttribute('rel', 'noopener noreferrer');
+            btn.setAttribute('title', 'Abre tu panel local en http://localhost:7860/dashboard');
+        }
+    });
+
 });
