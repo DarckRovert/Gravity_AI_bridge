@@ -342,7 +342,8 @@ def _execute_db_query(
     """Ejecuta una consulta SQL en DB_PATH con reintentos exponenciales y retroceso aleatorizado."""
     for attempt in range(5):
         try:
-            conn = sqlite3.connect(DB_PATH, timeout=30.0)
+            from core.db_manager import get_connection
+            conn = get_connection(DB_PATH, timeout=30.0)
             conn.row_factory = sqlite3.Row
             cur = conn.cursor()
             cur.execute(query, params)

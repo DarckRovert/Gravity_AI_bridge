@@ -14,41 +14,22 @@ from core.reasoning_stripper import ReasoningStripper
 class PostChatMixin:
     def _handle_post_chat(self):
         if self.path == "/v1/keys":
-            try:
-                length = int(self.headers.get("Content-Length", 0))
-                data = json.loads(self.rfile.read(length)) if length else {}
-                provider = data.get("provider", "").strip().lower()
-                api_key = data.get("api_key", "").strip()
-                if not provider or not api_key:
-                    self.send_response(400)
-                    self.send_header("Content-Type", "application/json")
-                    self._send_cors()
-                    self.end_headers()
-                    self.wfile.write(
-                        json.dumps(
-                            {"error": "provider y api_key son requeridos"}
-                        ).encode()
-                    )
-                    return True
-                from core.key_manager import KeyManager
+            data = self._read_json()
+            if data is None:
+                return True
+            provider = data.get("provider", "").strip().lower()
+            api_key = data.get("api_key", "").strip()
+            if not provider or not api_key:
+                self._send_error("provider y api_key son requeridos", status=400)
+                return True
+            from core.key_manager import KeyManager
 
-                KeyManager.set_key(provider, api_key)
-                body = json.dumps(
-                    {
-                        "ok": True,
-                        "provider": provider,
-                        "masked": KeyManager.mask(provider),
-                    }
-                ).encode()
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self._send_cors()
-                self.end_headers()
-                self.wfile.write(body)
-            except Exception as e:
-                self.send_response(500)
-                self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            KeyManager.set_key(provider, api_key)
+            self._send_json({
+                "ok": True,
+                "provider": provider,
+                "masked": KeyManager.mask(provider),
+            })
             return True
 
         # /v1/cost/limit — Actualizar límite diario de gasto

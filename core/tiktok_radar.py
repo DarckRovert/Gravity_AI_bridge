@@ -133,11 +133,10 @@ def _ensure_tables(conn: sqlite3.Connection) -> None:
 
 
 def _get_conn() -> sqlite3.Connection:
-    """Abre y mantiene conexión a gravity_brain.db con WAL mode (thread-local)."""
+    """Abre y mantiene conexión a gravity_brain.db con WAL mode y timeout (thread-local)."""
     if not hasattr(_thread_local, "conn"):
-        conn = sqlite3.connect(_DB_PATH, check_same_thread=False)
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA synchronous=NORMAL")
+        from core.db_manager import get_connection
+        conn = get_connection(_DB_PATH, check_same_thread=False, timeout=30.0)
         conn.execute("PRAGMA cache_size=-64000") # 64MB cache
         conn.row_factory = sqlite3.Row
         _ensure_tables(conn)

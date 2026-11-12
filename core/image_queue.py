@@ -75,8 +75,9 @@ _current_job: Optional[dict] = None
 
 
 def _get_conn() -> sqlite3.Connection:
-    """Retorna una conexión a la base de datos SQLite."""
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=15)
+    """Retorna una conexión a la base de datos SQLite con resiliencia WAL."""
+    from core.db_manager import get_connection
+    conn = get_connection(DB_PATH, check_same_thread=False, timeout=30.0)
     conn.row_factory = sqlite3.Row
     return conn
 

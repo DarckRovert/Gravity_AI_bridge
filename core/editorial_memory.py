@@ -34,10 +34,10 @@ _lock = threading.RLock()
 
 
 def _get_conn() -> sqlite3.Connection:
-    """Retorna una conexión al DB con row_factory configurado."""
-    conn = sqlite3.connect(DB_PATH, timeout=10, check_same_thread=False)
+    """Retorna una conexión al DB con row_factory y WAL configurado vía db_manager."""
+    from core.db_manager import get_connection
+    conn = get_connection(DB_PATH, timeout=30.0, check_same_thread=False)
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
     return conn
 
 

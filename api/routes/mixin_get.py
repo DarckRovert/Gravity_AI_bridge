@@ -17,6 +17,7 @@ from core.logger import log
 # Sin embargo, movemos la lógica stateful a api.state.py previamente.
 
 from api.state import geoip_cache, recent_ips, geoip_lock
+from api.routes.base_mixin import BaseApiMixin
 from api.routes.mixin_get_gameserver import GetGameserverMixin
 from api.routes.mixin_get_intelligence import GetIntelligenceMixin
 from api.routes.mixin_get_autonomy import GetAutonomyMixin
@@ -24,6 +25,7 @@ from api.routes.mixin_get_media import GetMediaMixin
 
 
 class GetRoutesMixin(
+    BaseApiMixin,
     GetGameserverMixin,
     GetIntelligenceMixin,
     GetAutonomyMixin,

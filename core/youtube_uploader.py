@@ -486,7 +486,8 @@ def _update_job_youtube(
     job_id: int, video_id: str, url: str, status: str, seo_description: str = ""
 ) -> None:
     try:
-        conn = sqlite3.connect(DB_PATH, timeout=15)
+        from core.db_manager import get_connection
+        conn = get_connection(DB_PATH, timeout=30.0)
         now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         conn.execute(
             "UPDATE video_jobs SET youtube_video_id=?, youtube_url=?, uploaded_at=?, upload_status=?, seo_description=? WHERE id=?",
@@ -863,7 +864,8 @@ def upload_video(
             if short_id:
                 shorts_url = f"https://www.youtube.com/shorts/{short_id}"
                 try:
-                    conn = sqlite3.connect(DB_PATH, timeout=15)
+                    from core.db_manager import get_connection
+                    conn = get_connection(DB_PATH, timeout=30.0)
                     conn.execute(
                         "UPDATE video_jobs SET shorts_path=?, shorts_video_id=? WHERE id=?",
                         (shorts_path, short_id, job_id),
@@ -935,7 +937,8 @@ def upload_job_async(
 
 def get_upload_status(job_id: int) -> dict:
     try:
-        conn = sqlite3.connect(DB_PATH, timeout=15)
+        from core.db_manager import get_connection
+        conn = get_connection(DB_PATH, timeout=30.0)
         conn.row_factory = sqlite3.Row
         row = conn.execute(
             "SELECT id, title, youtube_video_id, youtube_url, uploaded_at, upload_status, shorts_video_id FROM video_jobs WHERE id=?",

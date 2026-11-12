@@ -117,8 +117,8 @@ def migrate_db(alias: str) -> int:
         return 0
 
     with _lock:
-        conn = sqlite3.connect(db_path)
-        conn.execute("PRAGMA journal_mode=WAL")
+        from core.db_manager import get_connection
+        conn = get_connection(db_path, timeout=30.0)
         try:
             current = _get_current_version(conn)
             pending = _load_pending_migrations(alias, current)
@@ -190,7 +190,8 @@ def get_status() -> Dict[str, dict]:
             status[alias] = {"exists": False, "version": 0, "available": available}
             continue
         try:
-            conn = sqlite3.connect(db_path)
+            from core.db_manager import get_connection
+            conn = get_connection(db_path, timeout=30.0)
             _ensure_version_table(conn)
             version = _get_current_version(conn)
             row = conn.execute(

@@ -89,10 +89,11 @@ def list_video_jobs(limit: int = 5) -> str:
     max_retries = 3
     for attempt in range(max_retries):
         try:
-            with sqlite3.connect(db_path, timeout=10.0) as conn:
+            from core.db_manager import get_connection
+            with get_connection(db_path, timeout=30.0) as conn:
                 cursor = conn.cursor()
-            cursor.execute("SELECT id, topic, status, created_at FROM video_jobs ORDER BY id DESC LIMIT ?", (limit,))
-            rows = cursor.fetchall()
+                cursor.execute("SELECT id, topic, status, created_at FROM video_jobs ORDER BY id DESC LIMIT ?", (limit,))
+                rows = cursor.fetchall()
             if not rows:
                 return "No hay trabajos de video."
             

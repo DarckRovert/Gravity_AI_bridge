@@ -51,6 +51,8 @@ logs/
 *.log
 _audit_log*
 _archivo/
+_basura/
+_game_master_state.json
 
 # Scratch, temporary files and generated content
 scratch/

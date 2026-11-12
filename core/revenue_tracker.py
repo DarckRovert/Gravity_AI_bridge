@@ -253,7 +253,8 @@ def get_summary(days: int = 30) -> Dict[str, Any]:
         if os.path.isfile(DB_PATH):
             for i in range(5):
                 try:
-                    conn = sqlite3.connect(DB_PATH, timeout=30.0)
+                    from core.db_manager import get_connection
+                    conn = get_connection(DB_PATH, timeout=30.0)
                     uploads_total = conn.execute(
                         "SELECT COUNT(*) FROM video_jobs WHERE upload_status='uploaded' AND uploaded_at >= ?",
                         (cutoff,),

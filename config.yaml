@@ -48,7 +48,7 @@ game_servers:
     db_name_auth: realmd
   wow_peru:
     enabled: true
-    display_name: WoW Perú (AzerothCore 3.3.5a)
+    display_name: "WoW Per\xFA (AzerothCore 3.3.5a)"
     type: azerothcore
     use_ssh_tunnel: true
     ssh_host: login.wow-peru.lat

@@ -54,10 +54,9 @@ CAT_OPPORTUNITY = "opportunity"  # Bounties, nuevos ingresos
 
 
 def _get_conn() -> sqlite3.Connection:
-    """Conexión SQLite con WAL mode y timeout robusto."""
-    conn = sqlite3.connect(DB_PATH, timeout=30.0, check_same_thread=False)
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA synchronous=NORMAL")
+    """Conexión SQLite con WAL mode y timeout robusto mediante db_manager."""
+    from core.db_manager import get_connection
+    conn = get_connection(DB_PATH, timeout=30.0, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 

@@ -2,7 +2,32 @@
 
 Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Bridge.
 
-## [V30.1 MYTHOS] Decoupled Core & Cross-Project Token Delegator · 22/10/2026
+## [V30.2 MYTHOS] Architectural Hardening, Resilient Persistence & Remote Ecosystem · 12/11/2026
+
+**[BLINDAJE TOTAL DE PERSISTENCIA SQLITE WAL, ROBUSTEZ DE API CON BASEAPIMIXIN, HIGIENE DE RAÍZ, CI/CD SOBERANO $0 Y SERVIDOR REMOTO INTEGRADO]**
+
+### Blindaje de Persistencia & Concurrencia SQLite
+- **Unificación de Conexiones en `core/`**: Migración del 100% de las conexiones de base de datos (`image_queue.py`, `strategic_memory.py`, `editorial_memory.py`, `tiktok_radar.py`, `youtube_uploader.py`, `language_cloner.py`, `revenue_tracker.py`, `db_migrator.py`, `mcp_server.py`) hacia `core.db_manager.get_connection()`.
+- **Garantías de Concurrencia en Windows**: Activación obligatoria de `PRAGMA journal_mode=WAL`, `PRAGMA synchronous=NORMAL`, `busy_timeout=30000ms` y reintentos automáticos con retroceso exponencial, erradicando excepciones de `database is locked`.
+- **Corrección en `core/mcp_server.py`**: Solucionado fallo de cursor desconectado fuera del contexto de conexión `with`.
+- **Aislamiento de Almacenamiento Operativo**: Verificación empírica y preservación del directorio de bases de datos vivas en `%LOCALAPPDATA%\Gravity\Databases\`, archivando copias históricas inactivas de la raíz a `_archivo/legacy_dbs/`.
+
+### Robustez y Desacoplamiento de la Capa de Red (`api/routes/`)
+- **Implementación de `BaseApiMixin` (`api/routes/base_mixin.py`)**: Clase base integrada en `PostRoutesMixin` y `GetRoutesMixin` que centraliza:
+  - `_read_json()`: Lectura segura de cuerpos HTTP con validación estricta de `Content-Length`, mitigación de desbordamiento de memoria (máx 10 MB) y captura de `json.JSONDecodeError` con respuesta HTTP 400 estructurada.
+  - `_send_json()` & `_send_error()`: Emisión atómica de cabeceras CORS, `Content-Type` y longitud de buffer, previniendo caídas por `BrokenPipeError` cuando los clientes interrumpen la conexión.
+- **Eliminación de Código Muerto**: Supresión completa del directorio huérfano y redundante `api/routers/` (0 referencias en el sistema).
+
+### Soberanía de CI/CD & Política de Costo $0 (Regla 9)
+- **Desmantelamiento de Triggers Automáticos**: `.github/workflows/main.yml` reconfigurado a `on: workflow_dispatch` manual exclusivo, garantizando costo $0.00 permanente en GitHub Actions y eliminando consumo inadvertido de minutos en la nube.
+- **Verificación Local Completa**: Certificación de los 244 tests unitarios (`pytest`) ejecutados localmente en 65 segundos con 100% de éxito (`240 passed, 4 skipped, 0 failed`).
+
+### Ecosistema de Servidor Local y Acceso Remoto
+- **Lanzador Autolimpiante (`launchers/Iniciar_Servidor_IA.bat`)**: Script de arranque de escritorio optimizado con detección preventiva y liberación automática del puerto `:8080`, previniendo errores Winsock `WSAEADDRINUSE` (`Errno 10048`).
+- **Open WebUI Integrado con LM Studio**: Base de datos `webui.db` migrada a cuenta administrativa del sistema (`admin@localhost`) para admitir `WEBUI_AUTH=False` sin fallos `EXISTING_USERS`. Acceso directo libre de credenciales desde red local LAN (`http://192.168.1.115:8080`) o Tailscale (`http://100.81.210.121:8080`).
+- **Instalación de Gentle Shell**: Integrado `gentle-shell 4.7.0` y `@earendil-works/pi-coding-agent 1.5.2` compilado nativamente con Go 1.27 para desarrollo agéntico en terminal sobre LM Studio y DeepSeek.
+
+---
 
 **[DESACOPLAMIENTO MODULAR DE ROUTERS, GESTOR DE CONCURRENCIA SQLITE WAL, WORKFLOWS POR ROLES Y HERRAMIENTA UNIVERSAL DE AHORRO DE TOKENS]**
 

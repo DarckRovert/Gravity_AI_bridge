@@ -1,5 +1,6 @@
 import json
 
+from api.routes.base_mixin import BaseApiMixin
 from api.routes.mixin_post_chat import PostChatMixin
 from api.routes.mixin_post_media import PostMediaMixin
 from api.routes.mixin_post_gameserver import PostGameserverMixin
@@ -9,6 +10,7 @@ from api.routes.mixin_workflow import WorkflowMixin
 
 
 class PostRoutesMixin(
+    BaseApiMixin,
     PostChatMixin, PostMediaMixin, PostGameserverMixin, PostAgentMixin, PostSystemMixin,
     WorkflowMixin
 ):

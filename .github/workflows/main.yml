@@ -1,10 +1,9 @@
 name: Gravity AI Bridge CI
 
+# Trigger automatico desmantelado segun Regla 9 (Soberania de CI/CD & Costo $0)
+# Solo ejecutable manualmente si se requiere de forma explicita.
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   build:
