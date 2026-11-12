@@ -2,7 +2,7 @@
 cd /d "%~dp0"
 setlocal enabledelayedexpansion
 
-REM ── Gravity AI Bridge V16.0 PRO [Omniscient-Tier Edition] - Comando Global ──────────────────────────────
+REM ── Gravity AI Bridge V30.2 MYTHOS [Monolith Edition] - Comando Global ──────────────────────────────
 REM Uso:  gravity "pregunta"          → respuesta directa
 REM       gravity                     → modo interactivo
 REM       gravity --help              → ayuda rápida
@@ -10,12 +10,14 @@ REM       gravity --install           → lanzar instalador TUI
 REM       gravity --start             → Iniciar TODO el ecosistema (Dashboard, Chat, Fooocus, Vision UI)
 REM       gravity --server            → Iniciar solo bridge server web
 REM       gravity --studio            → Iniciar solo Fooocus AI Vision UI
+REM       gravity --dashboard         → Abrir dashboard (http://localhost:7860)
+REM       gravity --landing           → Abrir Landing Page Oficial (http://localhost:7860/landing)
 REM       gravity --status            → estado de los motores de IA
 REM ────────────────────────────────────────────────────────────────────────────
 
 if "%~1"=="--help" (
     echo.
-    echo  GRAVITY AI BRIDGE V16.0 PRO [Omniscient-Tier Edition] - Ayuda Rápida
+    echo  GRAVITY AI BRIDGE V30.2 MYTHOS [Monolith Edition] - Ayuda Rápida
     echo  ─────────────────────────────────────────
     echo  gravity                  Modo interactivo (CLI)
     echo  gravity "pregunta"       Respuesta directa rápida
@@ -24,6 +26,7 @@ if "%~1"=="--help" (
     echo  gravity --server         Iniciar solo Bridge Server backend
     echo  gravity --studio         Iniciar motor completo de Vision UI
     echo  gravity --dashboard      Abrir dashboard ^(http://localhost:7860^)
+    echo  gravity --landing        Abrir Landing Page Oficial ^(http://localhost:7860/landing^)
     echo  gravity --status         Estado de los motores de IA
     echo  gravity --version        Versión actual
     echo.
@@ -31,7 +34,7 @@ if "%~1"=="--help" (
 )
 
 if "%~1"=="--version" (
-    echo Gravity AI Bridge V16.0 PRO [Omniscient-Tier Edition]
+    echo Gravity AI Bridge V30.2 MYTHOS [Monolith Edition]
     echo https://github.com/DarckRovert/Gravity_AI_bridge
     exit /b 0
 )
@@ -63,6 +66,11 @@ if "%~1"=="--studio" (
 
 if "%~1"=="--dashboard" (
     start "" "http://localhost:7860"
+    exit /b 0
+)
+
+if "%~1"=="--landing" (
+    start "" "http://localhost:7860/landing"
     exit /b 0
 )
 

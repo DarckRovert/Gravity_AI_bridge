@@ -205,8 +205,11 @@ class GetRoutesMixin(
     # ── Landing Page Oficial Mythos Monolith ───────────────────────────────────
     def _redirect_landing(self):
         """Redirige /landing a /landing/ para resolucion correcta de assets relativos."""
+        query = self.path.split("?", 1)[1] if "?" in self.path else ""
+        location = f"/landing/?{query}" if query else "/landing/"
         self.send_response(301)
-        self.send_header("Location", "/landing/")
+        self.send_header("Location", location)
+        self.send_header("Content-Length", "0")
         self._send_cors()
         self.end_headers()
 

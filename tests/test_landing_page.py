@@ -37,6 +37,26 @@ def test_landing_redirect(local_test_server):
 
     assert status == 301
     assert headers.get("Location") == "/landing/"
+    assert headers.get("Content-Length") == "0"
+
+
+def test_landing_redirect_query_preserved(local_test_server):
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            return None
+
+    opener = urllib.request.build_opener(NoRedirect)
+    try:
+        res = opener.open(f"{local_test_server}/landing?ref=github")
+        status = res.status
+        headers = res.headers
+    except urllib.error.HTTPError as e:
+        status = e.code
+        headers = e.headers
+
+    assert status == 301
+    assert headers.get("Location") == "/landing/?ref=github"
+    assert headers.get("Content-Length") == "0"
 
 
 def test_landing_html(local_test_server):
