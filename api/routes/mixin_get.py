@@ -44,6 +44,9 @@ class GetRoutesMixin(
         routes = {
             "/": self._serve_dashboard,
             "/dashboard": self._serve_dashboard,
+            "/landing": self._redirect_landing,
+            "/landing/": self._serve_landing_page,
+            "/landing/index.html": self._serve_landing_page,
             "/health": self._serve_health,
             "/v1/models": self._serve_models,
             "/v1/status": self._serve_status,
@@ -191,11 +194,99 @@ class GetRoutesMixin(
             self._serve_factory_download()
         elif self.path.startswith("/images/"):
             self._serve_journalist_images()
+        elif path_clean.startswith("/landing/"):
+            self._serve_landing_static()
         else:
             # Intentar servir desde el frontend/dist (JS, CSS, Assets)
             self._serve_frontend_static()
 
     # Rutas manejadas de forma nativa por los modulos Mixins incorporados
+
+    # ── Landing Page Oficial Mythos Monolith ───────────────────────────────────
+    def _redirect_landing(self):
+        """Redirige /landing a /landing/ para resolucion correcta de assets relativos."""
+        self.send_response(301)
+        self.send_header("Location", "/landing/")
+        self._send_cors()
+        self.end_headers()
+
+    def _serve_landing_page(self):
+        """Sirve el index.html de la Landing Page Oficial Mythos Monolith."""
+        BASE = os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        )
+        if getattr(sys, "frozen", False):
+            BASE = (
+                sys._MEIPASS
+                if hasattr(sys, "_MEIPASS")
+                else os.path.dirname(os.path.abspath(sys.executable))
+            )
+
+        landing_index = os.path.join(BASE, "landing_page", "index.html")
+        if os.path.isfile(landing_index):
+            try:
+                with open(landing_index, "rb") as f:
+                    body = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+                self.send_header("Pragma", "no-cache")
+                self.send_header("Expires", "0")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception:
+                self.send_response(500)
+                self.end_headers()
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def _serve_landing_static(self):
+        """Sirve archivos estaticos (.js, .css, etc.) de landing_page con proteccion Path Traversal."""
+        import urllib.parse
+
+        path_clean = urllib.parse.unquote(self.path.split("?")[0])
+        rel_path = path_clean[len("/landing/") :].lstrip("/\\")
+
+        BASE = os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        )
+        if getattr(sys, "frozen", False):
+            BASE = (
+                sys._MEIPASS
+                if hasattr(sys, "_MEIPASS")
+                else os.path.dirname(os.path.abspath(sys.executable))
+            )
+
+        landing_dir = os.path.realpath(os.path.join(BASE, "landing_page"))
+        filepath = os.path.realpath(os.path.join(landing_dir, rel_path))
+
+        # Seguridad Ring 0: verificar que el path resuelto esté dentro del directorio permitido
+        if not filepath.startswith(landing_dir + os.sep) and filepath != landing_dir:
+            self.send_response(403)
+            self.end_headers()
+            return
+
+        if os.path.isfile(filepath):
+            mime, _ = mimetypes.guess_type(filepath)
+            mime = mime or "application/octet-stream"
+            try:
+                with open(filepath, "rb") as f:
+                    body = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", mime)
+                self.send_header("Content-Length", str(len(body)))
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception:
+                self.send_response(500)
+                self.end_headers()
+        else:
+            self.send_response(404)
+            self.end_headers()
 
     # ── Dashboard SPA ─────────────────────────────────────────────────────────
     def _serve_dashboard(self):

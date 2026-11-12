@@ -197,7 +197,8 @@ cd frontend && npm install && npm run build && cd ..
 python bridge_server.py
 ```
 
-Dashboard disponible en: `http://localhost:7860`
+Dashboard SPA: `http://localhost:7860` (o `/dashboard`)
+Landing Page Oficial: `http://localhost:7860/landing`
 
 ### Instalación con Installer (Windows)
 Descargar `Gravity_AI_Bridge_V30.0_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
@@ -233,6 +234,7 @@ Ver [`SECURITY.md`](SECURITY.md) para política de vulnerabilidades y reporte re
 | Documento | Contenido |
 |---|---|
 | [Wiki Principal](./wiki/Home.md) | Índice general |
+| [Landing Page Oficial](./landing_page/index.html) | Presentación interactiva y terminal interactiva (`/landing`) |
 | [Arquitectura](./wiki/Architecture-Deep-Dive.md) | Diagrama de módulos y flujos |
 | [Guía API](./wiki/API-Reference.md) | Todos los endpoints REST |
 | [Troubleshooting](./wiki/Troubleshooting-and-FAQ.md) | Guía de soluciones y FAQ |
@@ -243,11 +245,11 @@ Ver [`SECURITY.md`](SECURITY.md) para política de vulnerabilidades y reporte re
 ---
 
 > [!NOTE]
-> Ecosistema local privado V30.0 MYTHOS Edition.
+> Ecosistema local privado V30.2 MYTHOS Edition.
 > [**📖 WIKI CORPORATIVA**](./wiki/Home.md) | [📜 CONTRIBUCIÓN](./CONTRIBUTING.md) | [🔒 SEGURIDAD](./SECURITY.md)
 
 <br>
 
 <div align="center">
-  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V30.0 MYTHOS Edition — Motor Cinematic PBR. All architectural assets belong to their proprietary author.</i></sub>
+  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V30.2 MYTHOS Edition — Motor Cinematic PBR. All architectural assets belong to their proprietary author.</i></sub>
 </div>

@@ -1,9 +1,10 @@
 # Wiki de Gravity AI Bridge 📚
 
-Bienvenido a la Wiki Oficial del ecosistema **Gravity AI Bridge V30.0 MYTHOS**.
+Bienvenido a la Wiki Oficial del ecosistema **Gravity AI Bridge V30.2 MYTHOS**.
 
 ## Índice de Contenidos
 
+- [Landing Page Oficial](../landing_page/index.html) - Presentación interactiva y terminal interactiva (`/landing`)
 - [Arquitectura Profunda (Deep Dive)](Architecture-Deep-Dive.md)
 - [Referencia de API y Módulos](API-Reference.md)
 - [Troubleshooting y FAQs](Troubleshooting-and-FAQ.md)
