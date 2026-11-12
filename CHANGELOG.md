@@ -27,11 +27,13 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
 - **Open WebUI Integrado con LM Studio**: Base de datos `webui.db` migrada a cuenta administrativa del sistema (`admin@localhost`) para admitir `WEBUI_AUTH=False` sin fallos `EXISTING_USERS`. Acceso directo libre de credenciales desde red local LAN (`http://192.168.1.115:8080`) o Tailscale (`http://100.81.210.121:8080`).
 - **Instalación de Gentle Shell**: Integrado `gentle-shell 4.7.0` y `@earendil-works/pi-coding-agent 1.5.2` compilado nativamente con Go 1.27 para desarrollo agéntico en terminal sobre LM Studio y DeepSeek.
 
-### Landing Page Oficial Mythos Monolith Integrada
-- **Enrutamiento y Servicio Nativo (`api/routes/mixin_get.py`)**:
-  - Endpoint `/landing`: Redirección 301 canónica a `/landing/` para preservación de rutas relativas de assets.
+### Landing Page Oficial Mythos Monolith Integrada & Publicada
+- **Despliegue Público Soberano en GitHub Pages**: Rama huérfana `gh-pages` generada vía sub-árbol limpio con `.nojekyll` para despliegue estático de costo $0 sin runners en la nube. Acceso público en vivo en: `https://darckrovert.github.io/Gravity_AI_bridge/`.
+- **Enrutamiento y Servicio Nativo Local (`api/routes/mixin_get.py`)**:
+  - Endpoint `/landing`: Redirección 301 canónica a `/landing/` con `Content-Length: 0` y preservación de parámetros query.
   - Endpoint `/landing/` & `/landing/index.html`: Servicio de `landing_page/index.html` con cabeceras `Cache-Control: no-cache` y CORS.
   - Sub-rutas `/landing/*`: Servicio estático (`style.css`, `script.js`) con verificación Ring 0 de mitigación de Path Traversal y deducción MIME type automática.
+- **Navegación Bidireccional**: Integrados accesos directos al Dashboard SPA desde la Landing Page oficial en versión escritorio y móvil.
 - **Sincronización de Versión V30.2**: Actualización de todas las marcas de versión en la landing page oficial a V30.2 Mythos Monolith.
 
 ---

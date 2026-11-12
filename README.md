@@ -6,6 +6,7 @@
   [![Licencia](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
   [![Arquitectura](https://img.shields.io/badge/Architecture-Mythos--Tier-c69c6d.svg?style=flat-square)]()
   [![Release](https://img.shields.io/badge/Release-V30.2_MYTHOS-6366f1.svg?style=flat-square)]()
+  [![Landing Page](https://img.shields.io/badge/Landing_Page-Live_Online-22c55e.svg?style=flat-square&logo=githubpages)](https://darckrovert.github.io/Gravity_AI_bridge/)
   [![Security Audit](https://img.shields.io/badge/Security-Audited_100%25-success?style=flat-square&logo=shield)]()
   [![Twitch](https://img.shields.io/badge/Twitch-DarckRovert-9146ff.svg?style=flat-square&logo=twitch)](https://twitch.tv/darckrovert)
 
@@ -198,7 +199,8 @@ python bridge_server.py
 ```
 
 Dashboard SPA: `http://localhost:7860` (o `/dashboard`)
-Landing Page Oficial: `http://localhost:7860/landing`
+Landing Page Local: `http://localhost:7860/landing`
+Landing Page Online (GitHub Pages): [https://darckrovert.github.io/Gravity_AI_bridge/](https://darckrovert.github.io/Gravity_AI_bridge/)
 
 ### Instalación con Installer (Windows)
 Descargar `Gravity_AI_Bridge_V30.0_Setup.exe` desde [Releases](https://github.com/DarckRovert/Gravity_AI_bridge/releases) y ejecutar como administrador.
