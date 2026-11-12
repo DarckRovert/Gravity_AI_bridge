@@ -324,6 +324,28 @@ h1, h2, h3, h4 {
     box-shadow: 0 0 15px var(--accent-purple-glow);
 }
 
+.dashboard-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%);
+    border: 1px solid var(--accent-purple);
+    padding: 8px 16px;
+    border-radius: var(--border-radius-sm);
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: var(--transition-smooth);
+}
+
+.dashboard-btn:hover {
+    background: linear-gradient(135deg, var(--accent-purple) 0%, #7c3aed 100%);
+    color: #ffffff;
+    box-shadow: 0 0 15px var(--accent-purple-glow);
+    transform: translateY(-1px);
+}
+
 .svg-icon {
     width: 18px;
     height: 18px;
@@ -1940,6 +1962,27 @@ input:checked + .slider:before {
     vertical-align: middle;
 }
 
+.mobile-dashboard-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(99, 102, 241, 0.25) 100%);
+    border: 1px solid var(--accent-purple);
+    padding: 14px;
+    border-radius: var(--border-radius-sm);
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition-smooth);
+    margin-bottom: 10px;
+}
+
+.mobile-dashboard-btn:hover {
+    background: linear-gradient(135deg, var(--accent-purple) 0%, #7c3aed 100%);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
 .mobile-github-btn {
     display: flex;
     align-items: center;
@@ -2731,7 +2774,8 @@ input:checked + .slider:before {
     .hamburger-btn {
         display: flex; /* Show menu toggle */
     }
-    .github-btn {
+    .github-btn,
+    .dashboard-btn {
         display: none; /* Hide on mobile to save space, shown in drawer */
     }
     
