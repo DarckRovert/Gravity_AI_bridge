@@ -5,9 +5,10 @@
   [![Autor](https://img.shields.io/badge/Author-DarckRovert-818cf8.svg?style=flat-square)](https://github.com/DarckRovert)
   [![Licencia](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
   [![Arquitectura](https://img.shields.io/badge/Architecture-Mythos--Tier-c69c6d.svg?style=flat-square)]()
-  [![Release](https://img.shields.io/badge/Release-V30.2_MYTHOS-6366f1.svg?style=flat-square)]()
+  [![Release](https://img.shields.io/badge/Release-V30.3_OPENCODE-6366f1.svg?style=flat-square)]()
   [![Landing Page](https://img.shields.io/badge/Landing_Page-Live_Online-22c55e.svg?style=flat-square&logo=githubpages)](https://darckrovert.github.io/Gravity_AI_bridge/)
   [![Security Audit](https://img.shields.io/badge/Security-Audited_100%25-success?style=flat-square&logo=shield)]()
+  [![Tests](https://img.shields.io/badge/Tests-270_Passed_100%25-brightgreen.svg?style=flat-square&logo=pytest)]()
   [![Twitch](https://img.shields.io/badge/Twitch-DarckRovert-9146ff.svg?style=flat-square&logo=twitch)](https://twitch.tv/darckrovert)
 
   <p align="center">
@@ -58,6 +59,19 @@ En el desarrollo tradicional, orquestar clústeres de IA locales (Ollama, LM Stu
 - **Voting Consensuado / Paralelo / Debate**: 2, 3 o 5 modelos votan la respuesta óptima o debaten un resultado mediante controles de UI nativos.
 - **Reasoning Stripper**: Filtra tokens `<think>` de modelos como DeepSeek-R1 via Regex antes de mostrarlos.
 - **Agent Routing**: Selección dinámica de modelo/proveedor según `--role` (auditor, planner, coder, researcher, executor).
+
+### 🤖 Subagentes Declarativos & Shared Contract Protocol V30.3 (`core/subagent_loader.py` & `core/parallel_orchestrator.py`)
+Inspirado en la arquitectura agéntica de OpenCode 2.3 para fan-out de tareas especializadas en segundo plano:
+- **Definiciones Declarativas (`.agents/agents/*.md`)**: Roles y especialistas definidos en Markdown con YAML frontmatter (`name`, `description`, `mode`, `model`, `provider`, `permissions`).
+- **Shared Contract Protocol**: Generación automática de zonas de responsabilidad disjuntas y reglas de colaboración para prevenir colisiones de archivos entre subagentes simultáneos.
+- **Despacho No Bloqueante**: Coordinación asíncrona mediante hilos daemon y `ThreadPoolExecutor` con sincronización de estado granular (un lock `RLock` por cada `AgentResult`).
+- **Limpieza Automática (TTL 3600s)**: Poda periódica de orquestaciones finalizadas para prevenir fugas de memoria.
+- **Activity Folding en UI (`MultiAgent.tsx`)**: Tarjetas de progreso colapsables con insignias animadas de estado (`pending`, `running`, `done`, `failed`) y previsualización de resultados.
+- **Nuevos Endpoints REST**:
+  - `POST /v1/agents/dispatch` → Retorna HTTP `202 Accepted` de inmediato con `orchestration_id`.
+  - `GET /v1/agents/list` → Catálogo de agentes declarativos descubiertos.
+  - `GET /v1/agents/status/<orch_id>` → Estado en tiempo real del progreso por subagente.
+- **CLI Universal Fan-out (`tools/gravity_delegate.py`)**: Nuevas banderas `--agents` y `--parallel` con sondeo interactivo en consola.
 
 ### 🖥️ Dashboard V16.1 PRO React SPA (`frontend/dist`)
 Panel de control unificado con 25 componentes orquestados en tiempo real:
@@ -247,11 +261,11 @@ Ver [`SECURITY.md`](SECURITY.md) para política de vulnerabilidades y reporte re
 ---
 
 > [!NOTE]
-> Ecosistema local privado V30.2 MYTHOS Edition.
+> Ecosistema local privado V30.3 OPENCODE Edition.
 > [**📖 WIKI CORPORATIVA**](./wiki/Home.md) | [📜 CONTRIBUCIÓN](./CONTRIBUTING.md) | [🔒 SEGURIDAD](./SECURITY.md)
 
 <br>
 
 <div align="center">
-  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V30.2 MYTHOS Edition — Motor Cinematic PBR. All architectural assets belong to their proprietary author.</i></sub>
+  <sub><i>© 2026 DarckRovert · Gravity AI Bridge V30.3 OPENCODE Edition — Subagentes Declarativos & Shared Contract Protocol. All architectural assets belong to their proprietary author.</i></sub>
 </div>
