@@ -109,15 +109,27 @@ def _prune_stale() -> None:
 
 def _build_shared_contract(goal: str, agents: List[AgentDefinition]) -> str:
     """Genera el Contrato Compartido que todos los agentes reciben como contexto previo."""
-    zones = "\n".join(f"- **{a.name}**: {a.description[:150]}" for a in agents)
+    zone_lines = []
+    for a in agents:
+        desc = a.description.strip().replace("\n", " ")
+        perms = []
+        if isinstance(a.permissions, dict):
+            if a.permissions.get("write_dirs"):
+                perms.append(f"Escritura: {a.permissions['write_dirs']}")
+            if a.permissions.get("forbidden_dirs"):
+                perms.append(f"PROHIBIDO: {a.permissions['forbidden_dirs']}")
+        perm_str = f" [{'; '.join(perms)}]" if perms else ""
+        zone_lines.append(f"- **{a.name}** ({a.mode}): {desc[:150]}{perm_str}")
+
+    zones = "\n".join(zone_lines)
     return (
         f"# 📋 CONTRATO COMPARTIDO DE ORQUESTACIÓN\n\n"
         f"**Objetivo Global:** {goal}\n\n"
-        f"## Zonas de Responsabilidad (DISJUNTAS — no solapar)\n\n{zones}\n\n"
-        f"## Reglas de Colaboración\n"
-        f"1. NO modifiques archivos fuera de tu zona asignada.\n"
-        f"2. Describe interfaces hacia otras zonas como comentarios, no las implementes.\n"
-        f"3. Finaliza siempre con un resumen de cambios realizados.\n"
+        f"## Zonas de Responsabilidad y Permisos (DISJUNTAS — no solapar)\n\n{zones}\n\n"
+        f"## Reglas de Colaboración Estricta\n"
+        f"1. NO modifiques archivos fuera de tu zona asignada ni toques rutas PROHIBIDAS.\n"
+        f"2. Describe interfaces hacia otras zonas como comentarios o contratos de tipos.\n"
+        f"3. Finaliza siempre con un resumen explícito de los cambios realizados.\n"
     )
 
 
@@ -162,7 +174,7 @@ def _run_agent(agent: AgentDefinition, task: str, contract: str, result: AgentRe
 
 def dispatch(
     goal: str,
-    agent_names: List[str],
+    agent_names: Optional[List[str]] = None,
     task_per_agent: Optional[Dict[str, str]] = None,
     max_workers: int = 6,
     on_complete: Optional[Callable[["OrchestrationHandle"], None]] = None,
@@ -170,6 +182,7 @@ def dispatch(
     """
     Despacha subagentes en paralelo de forma NO BLOQUEANTE.
     Retorna el handle inmediatamente. Los resultados se completan en background.
+    Soporta extracción automática de menciones @agente en el objetivo (OpenCode 2.3).
 
     Args:
         goal: Objetivo global (usado para el Contrato Compartido y como prompt default).
@@ -181,6 +194,15 @@ def dispatch(
     _prune_stale()
 
     all_agents = discover_agents()
+
+    # Extracción automática de @mention estilo OpenCode 2.3
+    if not agent_names and goal:
+        import re
+        extracted = [m for m in re.findall(r"@([a-zA-Z0-9_\-]+)", goal) if m in all_agents]
+        if extracted:
+            agent_names = extracted
+
+    agent_names = agent_names or []
     selected = [all_agents[n] for n in agent_names if n in all_agents]
 
     if task_per_agent:

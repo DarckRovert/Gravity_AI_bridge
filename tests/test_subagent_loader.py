@@ -114,11 +114,17 @@ Prompt inicial
 
 
 def test_discover_agents_and_get_agent():
-    # Verifica que descubre al menos los 3 agentes creados en .agents/agents/
+    # Verifica que descubre los agentes primarios y subagentes en .agents/agents/
     agents = discover_agents()
+    assert "build" in agents
+    assert "plan" in agents
     assert "backend_specialist" in agents
     assert "frontend_specialist" in agents
     assert "qa_tester" in agents
+
+    build_agent = get_agent("build")
+    assert build_agent is not None
+    assert build_agent.mode == "primary"
 
     qa = get_agent("qa_tester")
     assert qa is not None

@@ -64,11 +64,28 @@ def test_orchestration_handle_to_dict():
 
 
 def test_build_shared_contract(dummy_agent):
+    dummy_agent.permissions = {"write_dirs": ["core/"], "forbidden_dirs": ["secrets/"]}
     contract = _build_shared_contract("Construir API", [dummy_agent])
     assert "CONTRATO COMPARTIDO DE ORQUESTACIÓN" in contract
     assert "Construir API" in contract
     assert "test_worker" in contract
-    assert "Zonas de Responsabilidad" in contract
+    assert "Escritura: ['core/']" in contract
+    assert "PROHIBIDO: ['secrets/']" in contract
+    assert "Zonas de Responsabilidad y Permisos" in contract
+
+
+def test_dispatch_mention_extraction():
+    with patch("tools.gravity_delegate.delegate_task") as mock_del:
+        mock_del.return_value = {"success": True, "text": "OK"}
+        handle = dispatch(goal="Por favor @backend_specialist y @qa_tester resuelvan esto")
+        assert "backend_specialist" in handle.agent_results
+        assert "qa_tester" in handle.agent_results
+
+        start = time.time()
+        while time.time() - start < 5:
+            if handle.status in ("done", "failed"):
+                break
+            time.sleep(0.05)
 
 
 def test_run_agent_success(dummy_agent):

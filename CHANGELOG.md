@@ -48,7 +48,7 @@ Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Brid
   - `tests/test_subagent_loader.py`: 9 pruebas unitarias cubriendo parsing, CRLF, BOM, cache y validaciones.
   - `tests/test_parallel_orchestrator.py`: 8 pruebas unitarias validando locks, contrato compartido, TTL cleanup y ciclo E2E simulado.
 - **Regresión Completa Exitosa**:
-  - 264 pruebas pasadas al 100% (0 fallos) en 53.33s.
+  - 272 pruebas pasadas al 100% (0 fallos) en 52.26s.
 
 ---
 

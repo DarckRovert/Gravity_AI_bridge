@@ -165,6 +165,16 @@ def main():
         print("Error: Se requiere un prompt o archivo (--file).", file=sys.stderr)
         sys.exit(1)
 
+    # Detección automática de menciones @agente estilo OpenCode 2.3
+    if not args.agents and content:
+        import re
+        from core.subagent_loader import discover_agents
+        all_avail = discover_agents()
+        extracted = [m for m in re.findall(r"@([a-zA-Z0-9_\-]+)", content) if m in all_avail]
+        if extracted:
+            args.agents = extracted
+            args.parallel = True
+
     if args.parallel and args.agents:
         from core.parallel_orchestrator import dispatch, get_orchestration
         import time

@@ -135,3 +135,26 @@ def test_api_post_agents_dispatch_success():
             agent_names=["backend_specialist", "qa_tester"],
             task_per_agent=None,
         )
+
+
+def test_api_post_agents_dispatch_auto_mention():
+    mock_handle = OrchestrationHandle(
+        orchestration_id="mock_orch_auto",
+        goal="Ejecutar con @backend_specialist y @qa_tester",
+        status="running",
+    )
+    with patch("core.parallel_orchestrator.dispatch", return_value=mock_handle) as mock_disp:
+        handler = DummyPostHandler(
+            "/v1/agents/dispatch",
+            {"goal": "Ejecutar con @backend_specialist y @qa_tester"},
+        )
+        res = handler._handle_post_agent()
+        assert res is True
+        assert handler.response_status == 202
+        data = json.loads(handler.wfile.getvalue().decode("utf-8"))
+        assert data["ok"] is True
+        mock_disp.assert_called_once_with(
+            goal="Ejecutar con @backend_specialist y @qa_tester",
+            agent_names=["backend_specialist", "qa_tester"],
+            task_per_agent=None,
+        )

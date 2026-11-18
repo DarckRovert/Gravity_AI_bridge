@@ -900,8 +900,19 @@ class PostAgentMixin:
                 if not goal:
                     self._send_json({"ok": False, "error": "El campo 'goal' es obligatorio"}, 400)
                     return True
+
+                # Extracción automática de @mention estilo OpenCode 2.3 si no se especifican agentes
+                if not agent_names:
+                    import re
+                    from core.subagent_loader import discover_agents
+                    all_avail = discover_agents()
+                    agent_names = [m for m in re.findall(r"@([a-zA-Z0-9_\-]+)", goal) if m in all_avail]
+
                 if not agent_names or not isinstance(agent_names, list):
-                    self._send_json({"ok": False, "error": "El campo 'agents' debe ser una lista no vacía"}, 400)
+                    self._send_json(
+                        {"ok": False, "error": "El campo 'agents' debe ser una lista no vacía o contener menciones @agente en 'goal'"},
+                        400
+                    )
                     return True
 
                 from core.parallel_orchestrator import dispatch
