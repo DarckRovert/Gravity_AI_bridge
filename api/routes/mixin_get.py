@@ -22,6 +22,7 @@ from api.routes.mixin_get_gameserver import GetGameserverMixin
 from api.routes.mixin_get_intelligence import GetIntelligenceMixin
 from api.routes.mixin_get_autonomy import GetAutonomyMixin
 from api.routes.mixin_get_media import GetMediaMixin
+from api.routes.mixin_get_agents import GetAgentsMixin
 
 
 class GetRoutesMixin(
@@ -30,6 +31,7 @@ class GetRoutesMixin(
     GetIntelligenceMixin,
     GetAutonomyMixin,
     GetMediaMixin,
+    GetAgentsMixin,
 ):
     def do_OPTIONS(self):
         if not self._check_rate():
@@ -166,6 +168,8 @@ class GetRoutesMixin(
             "/v1/workflow/list": getattr(self, "_serve_workflow_list", lambda: None),
             "/v1/workflow/nodes": getattr(self, "_serve_workflow_nodes", lambda: None),
             "/v1/workflow/jobs": getattr(self, "_serve_workflow_jobs", lambda: None),
+            # ── Subagentes Declarativos V30.3 (OpenCode 2.3) ───────────────────
+            "/v1/agents/list": self._serve_agents_list,
         }
 
         # Rutas con query string (?server=&lines=)
@@ -184,6 +188,8 @@ class GetRoutesMixin(
             else:
                 self.send_response(404)
                 self.end_headers()
+        elif self.path.startswith("/v1/agents/status/"):
+            self._serve_agents_status()
         elif self.path.startswith("/static/output/"):
             self._serve_static_output()
         elif self.path.startswith("/static/imagelab/"):

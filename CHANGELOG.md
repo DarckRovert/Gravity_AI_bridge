@@ -2,6 +2,56 @@
 
 Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Bridge.
 
+## [V30.3 OPENCODE] Declarative Parallel Subagent Architecture & Shared Contract Protocol · 18/11/2026
+
+**[INTEGRACIÓN DE CONCEPTOS OPENCODE 2.3: SUBAGENTES DECLARATIVOS .MD, FAN-OUT PARALELO ASÍNCRONO, CONTRATO COMPARTIDO, ACTIVITY FOLDING EN UI Y CERO REGRESIONES]**
+
+### Arquitectura de Subagentes Declarativos (`.agents/agents/`)
+- **Cargador Declarativo y Validador (`core/subagent_loader.py`)**:
+  - Parser robusto de frontmatter YAML y system prompts para archivos `.agents/agents/*.md`.
+  - Normalización Ring 0 para Windows: eliminación automática de UTF-8 BOM (`\ufeff`) y normalización estricta de saltos de línea CRLF (`\r\n` a `\n`), resolviendo fallos de parsing silenciosos.
+  - Caching atómico por `mtime` del archivo para minimizar lecturas de disco repetitivas en disco.
+- **Roles Especializados Iniciales**:
+  - `backend_specialist.md`: Restringido a APIs REST, concurrencia, backend Python y persistencia en `api/` y `core/`.
+  - `frontend_specialist.md`: Especialista en React 18, TypeScript y Tailwind CSS sobre `frontend/src/`.
+  - `qa_tester.md`: Especialista en pruebas unitarias e integración sobre `tests/` con Pytest y Groq.
+
+### Orquestador Paralelo Asíncrono (`core/parallel_orchestrator.py`)
+- **Protocolo de Contrato Compartido (Shared Contract Protocol)**:
+  - Generación de contexto previo estructurado con objetivos globales y zonas de responsabilidad disjuntas asignadas a cada subagente antes de iniciar la inferencia paralela.
+- **Concurrencia Thread-Safe y Despacho No Bloqueante**:
+  - Hilo coordinador daemon con `ThreadPoolExecutor` para fan-out de tareas diferenciadas a través de `tools.gravity_delegate.delegate_task()`.
+  - Granularidad de sincronización: cada `AgentResult` posee su propio `threading.RLock` aislado, erradicando race conditions durante lecturas concurrentes de estado.
+  - Prevención de Fugas de Memoria: Algoritmo `_prune_stale()` con TTL de 3600s para descarte de orquestaciones históricas finalizadas.
+
+### Endpoints REST API de Agentes (`api/routes/`)
+- **Nuevo Mixin GET (`api/routes/mixin_get_agents.py`)**:
+  - `GET /v1/agents/list`: Catálogo dinámico de subagentes declarativos disponibles.
+  - `GET /v1/agents/status/<orch_id>`: Estado en tiempo real de la orquestación y sus subagentes.
+  - Integrado de forma limpia en `api/routes/mixin_get.py` dentro de la tabla de enrutamiento estático y bloque dinámico `elif`.
+- **Despacho POST (`api/routes/mixin_post_agent.py`)**:
+  - `POST /v1/agents/dispatch`: Despacho asíncrono con retorno inmediato HTTP `202 Accepted` y `orchestration_id`.
+
+### Herramienta Universal de Delegación (`tools/gravity_delegate.py`)
+- **Soporte CLI Declarativo**:
+  - Incorporadas banderas `--agents` y `--parallel` para ejecutar fan-out multi-agente desde terminal o scripts de automatización con polling interactivo en consola.
+
+### Frontend SPA con Activity Folding (`frontend/src/components/MultiAgent.tsx`)
+- **Panel de Orquestación Paralela en Tiempo Real**:
+  - Selector interactivo de subagentes participantes poblado dinámicamente desde `/v1/agents/list`.
+  - Formulario de Objetivo Global (Shared Contract) con despacho asíncrono.
+  - Sondeo inteligente cada 2 segundos a `/v1/agents/status/<id>`.
+  - **Activity Folding**: Tarjetas colapsables por agente con insignias de estado animadas (`pending`, `running`, `done`, `failed`) y previsualización de resultados.
+
+### Cobertura de Calidad y Pruebas Unitarias
+- **17 Nuevas Pruebas Unitarias Automatizadas**:
+  - `tests/test_subagent_loader.py`: 9 pruebas unitarias cubriendo parsing, CRLF, BOM, cache y validaciones.
+  - `tests/test_parallel_orchestrator.py`: 8 pruebas unitarias validando locks, contrato compartido, TTL cleanup y ciclo E2E simulado.
+- **Regresión Completa Exitosa**:
+  - 264 pruebas pasadas al 100% (0 fallos) en 53.33s.
+
+---
+
 ## [V30.2 MYTHOS] Architectural Hardening, Resilient Persistence & Remote Ecosystem · 12/11/2026
 
 **[BLINDAJE TOTAL DE PERSISTENCIA SQLITE WAL, ROBUSTEZ DE API CON BASEAPIMIXIN, HIGIENE DE RAÍZ, CI/CD SOBERANO $0 Y SERVIDOR REMOTO INTEGRADO]**

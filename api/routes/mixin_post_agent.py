@@ -888,4 +888,43 @@ class PostAgentMixin:
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return True
 
+        # POST /v1/agents/dispatch — Orquestación paralela con Shared Contract Protocol (V30.3)
+        if self.path == "/v1/agents/dispatch":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                body = json.loads(self.rfile.read(length)) if length else {}
+                goal = body.get("goal", "").strip()
+                agent_names = body.get("agents", [])
+                task_per_agent = body.get("task_per_agent", None)
+
+                if not goal:
+                    self._send_json({"ok": False, "error": "El campo 'goal' es obligatorio"}, 400)
+                    return True
+                if not agent_names or not isinstance(agent_names, list):
+                    self._send_json({"ok": False, "error": "El campo 'agents' debe ser una lista no vacía"}, 400)
+                    return True
+
+                from core.parallel_orchestrator import dispatch
+                handle = dispatch(
+                    goal=goal,
+                    agent_names=agent_names,
+                    task_per_agent=task_per_agent,
+                )
+                payload = {
+                    "ok": True,
+                    "orchestration_id": handle.orchestration_id,
+                    "message": (
+                        f"Orquestación {handle.orchestration_id} lanzada. "
+                        f"Consulta status en /v1/agents/status/{handle.orchestration_id}"
+                    ),
+                }
+                self._send_json(payload, 202)
+            except ValueError as e:
+                self._send_json({"ok": False, "error": str(e)}, 400)
+            except Exception as e:
+                import logging
+                logging.getLogger("gravity.api").error(f"[dispatch] Error interno: {e}")
+                self._send_json({"ok": False, "error": "Error interno del servidor"}, 500)
+            return True
+
         return False

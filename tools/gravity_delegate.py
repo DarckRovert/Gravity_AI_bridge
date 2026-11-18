@@ -139,6 +139,20 @@ def main():
     parser.add_argument("--temp", "-t", type=float, default=0.2, help="Temperatura")
     parser.add_argument("--max-tokens", type=int, default=2048, help="Máximo de tokens de salida")
     parser.add_argument("--json-out", action="store_true", help="Salida en formato JSON estructurado")
+    parser.add_argument(
+        "--agents",
+        nargs="+",
+        help="Lista de nombres de subagentes declarativos (.agents/agents/*.md) a invocar.",
+    )
+    parser.add_argument(
+        "--parallel",
+        action="store_true",
+        help=(
+            "Ejecuta los agentes en paralelo con Contrato Compartido. "
+            "NOTA: El CLI espera hasta 300s. Para tareas largas (>5 min), "
+            "prefiere el endpoint HTTP /v1/agents/dispatch."
+        ),
+    )
 
     args = parser.parse_args()
 
@@ -150,6 +164,46 @@ def main():
     if not content:
         print("Error: Se requiere un prompt o archivo (--file).", file=sys.stderr)
         sys.exit(1)
+
+    if args.parallel and args.agents:
+        from core.parallel_orchestrator import dispatch, get_orchestration
+        import time
+
+        print(f"\n[Parallel] Despachando {len(args.agents)} agentes: {args.agents}...")
+        log.info(
+            "[Delegate] Modo paralelo CLI activo. Los hilos son daemon: "
+            "el CLI esperará un máximo de 300s hasta la conclusión."
+        )
+        handle = dispatch(goal=content, agent_names=args.agents)
+        print(f"[Parallel] Orquestación iniciada con ID: {handle.orchestration_id}")
+
+        start_wait = time.time()
+        last_status = ""
+        while time.time() - start_wait < 300:
+            h = get_orchestration(handle.orchestration_id)
+            if not h:
+                break
+            statuses = [f"{a}: {r.status}" for a, r in h.agent_results.items()]
+            curr_status = " | ".join(statuses)
+            if curr_status != last_status:
+                print(f"[{int(time.time() - start_wait)}s] {curr_status}")
+                last_status = curr_status
+            if h.status in ("done", "failed"):
+                break
+            time.sleep(2)
+
+        final_h = get_orchestration(handle.orchestration_id) or handle
+        if args.json_out:
+            print(json.dumps(final_h.to_dict(), indent=2, ensure_ascii=False))
+        else:
+            print(f"\n=== RESULTADOS ORQUESTACIÓN {final_h.orchestration_id} ({final_h.status.upper()}) ===")
+            for name, res in final_h.agent_results.items():
+                print(f"\n[{name}] -> {res.status.upper()} (Modelo: {res.model_used or 'N/A'})")
+                if res.output:
+                    print(res.output[:500] + ("..." if len(res.output) > 500 else ""))
+                if res.error:
+                    print(f"ERROR: {res.error}")
+        sys.exit(0 if final_h.status == "done" else 1)
 
     res = delegate_task(
         prompt=content,
