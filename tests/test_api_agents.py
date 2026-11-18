@@ -6,8 +6,7 @@ tests/test_api_agents.py — Pruebas unitarias para los endpoints REST de agente
 """
 import io
 import json
-import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from api.routes.base_mixin import BaseApiMixin
 from api.routes.mixin_get_agents import GetAgentsMixin
 from api.routes.mixin_post_agent import PostAgentMixin

@@ -4,7 +4,7 @@ Mixin GET para los endpoints de gestión de agentes paralelos.
 Se hereda en GetRoutesMixin (mixin_get.py).
 """
 from http import HTTPStatus
-from core.parallel_orchestrator import get_orchestration, list_orchestrations
+from core.parallel_orchestrator import get_orchestration
 from core.subagent_loader import discover_agents
 
 

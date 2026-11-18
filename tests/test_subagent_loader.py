@@ -2,7 +2,6 @@
 tests/test_subagent_loader.py — Suite de pruebas unitarias para core/subagent_loader.py
 Prueba parsing declarativo, manejo de CRLF, validaciones y caching.
 """
-import os
 import time
 import pytest
 from core.subagent_loader import (
@@ -11,9 +10,7 @@ from core.subagent_loader import (
     get_agent,
     _parse_frontmatter,
     _validate_meta,
-    AgentDefinition,
     _CACHE,
-    _CACHE_MTIME,
 )
 
 
