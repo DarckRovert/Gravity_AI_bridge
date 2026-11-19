@@ -1,6 +1,6 @@
 # Wiki de Gravity AI Bridge 📚
 
-Bienvenido a la Wiki Oficial del ecosistema **Gravity AI Bridge V30.3 OPENCODE Edition**.
+Bienvenido a la Wiki Oficial del ecosistema **Gravity AI Bridge V30.4 MYTHOS Edition**.
 
 ## Índice de Contenidos
 
@@ -10,5 +10,6 @@ Bienvenido a la Wiki Oficial del ecosistema **Gravity AI Bridge V30.3 OPENCODE E
 - [Referencia de API y Módulos](API-Reference.md)
 - [Troubleshooting y FAQs](Troubleshooting-and-FAQ.md)
 - [Ecosistema de Subagentes Declarativos (.agents/agents/)](../.agents/agents/)
+- [Strategic Memory & Knowledge Graph](Architecture-Deep-Dive.md#strategic-memory--knowledge-graph)
 
-Gravity es un puente de software que vincula sistemas de inteligencia artificial local con integraciones de nube híbrida, formando un sistema completamente autogestionable con orquestación paralela de subagentes declarativos, Contrato Compartido y ejecución local-first.
+Gravity es un puente de software que vincula sistemas de inteligencia artificial local con integraciones de nube híbrida, formando un sistema completamente autogestionable con orquestación paralela de subagentes declarativos, Contrato Compartido, Knowledge Graph in-memory (NetworkX PageRank), 312 pruebas unitarias y ejecución local-first.

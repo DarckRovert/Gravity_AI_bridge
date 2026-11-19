@@ -1,4 +1,39 @@
-# Referencia de API & Módulos V30.3
+# Referencia de API & Módulos V30.4 MYTHOS
+
+## Nuevos Endpoints V30.4 MYTHOS
+
+### `GET /v1/memory/graph`
+Retorna la topología completa del Knowledge Graph en memoria construido por NetworkX a partir de `strategic_decisions` y `system_patterns` de `gravity_brain.db`.
+- **Respuesta (200 OK)**:
+  ```json
+  {
+    "nodes_count": 55,
+    "edges_count": 90,
+    "most_central_nodes": [{"node": "system", "score": 0.1804}, ...],
+    "nodes": [{"id": "dec_1", "label": "Ciclo OODA...", "type": "decision", "score": 0.0121, "hits": 1}],
+    "edges": [{"source": "dec_1", "target": "system", "relation": "belongs_to", "weight": 1}]
+  }
+  ```
+
+### `POST /v1/sessions/delete`
+Elimina de forma segura y permanente una sesión guardada del disco (`_saves/<session_id>.json`).
+- **Payload**: `{"session_id": "session_12345"}`
+- **Respuesta (200 OK)**: `{"ok": true, "session_id": "session_12345", "deleted": true}`
+
+### `POST /v1/multi_agent/ask` (Debate & Consenso)
+Orquesta votaciones y debates multi-modelo entre agentes concurrentes.
+- **Payload**: `{"prompt": str, "models": list[str], "mode": "parallel" | "consensus" | "debate"}`
+- **Respuesta (200 OK)**: `{"ok": true, "mode": "debate", "response": str, "debates": list}`
+
+### `POST /v1/tools/scrape` (Firecrawl + RAG Indexer)
+Extrae contenido de URLs y lo indexa vectorialmente de forma automática en la memoria RAG.
+- **Payload**: `{"url": "https://...", "index_to_rag": true}`
+- **Respuesta (200 OK)**: `{"ok": true, "markdown": str, "rag_indexed": true, "chunks": int}`
+
+### `GET /v1/deploy/status` & `POST /v1/deploy/package`
+Inspecciona herramientas del sistema (usando `shutil.which` resistente a codificaciones de consola de Windows) y permite compilar y desplegar carpetas de proyectos arbitrarias.
+
+---
 
 ## `core/subagent_loader.py` (V30.3 Declarative Subagents)
 Carga y valida dinámicamente definiciones declarativas de subagentes desde `.agents/agents/*.md`.
