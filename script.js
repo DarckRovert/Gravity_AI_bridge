@@ -1,5 +1,5 @@
 /* ==========================================================================
-   GRAVITY AI BRIDGE V30.2 MYTHOS - Interactive Scripts
+   GRAVITY AI BRIDGE V30.4 MYTHOS - Interactive Scripts
    Particle Canvas, Command Line Simulator, Multi-Agent Arena, Watchdog, HITL
    ========================================================================== */
 
@@ -246,6 +246,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     { text: '  gravity status  - Check real-time engine, CPU, VRAM, and models latency' },
                     { text: '  gravity spawn   - Instantiates a multi-session asynchronous worker (coder)' },
                     { text: '  gravity vote    - Simulates parallel multi-agent voting debate' },
+                    { text: '  gravity graph   - Inspects NetworkX Knowledge Graph & PageRank centralities' },
+                    { text: '  gravity agents  - Discovers active declarative subagents (.agents/agents/*.md)' },
                     { text: '  gravity spark   - Dynamically inject overlays HTML into OBS Studio' },
                     { text: '  gravity deploy  - Simulates the packaging and deployment pipeline to Netlify' },
                     { text: '  gravity audit vector - Escanear bloqueos Mutex y salud del Garbage Collector' },
@@ -302,12 +304,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 writeToTerminal([
                     { text: '[DEPLOY PIPELINE] Initializing packaging daemon...', type: 'system-msg' },
                     { text: '  Scanning: f:\\Gravity_AI_bridge\\frontend\\dist... Found 26 modules.', type: 'system-msg' },
-                    { text: '  Verifying bundle integrity... hash matched [V30.2-MYTHOS]', type: 'success-msg' },
+                    { text: '  Verifying bundle integrity... hash matched [V30.4-MYTHOS]', type: 'success-msg' },
                     { text: '  Invoking Netlify API deployment bridge...', type: 'system-msg' },
                     { text: '  [Netlify] Uploading static assets stream... 100%', type: 'success-msg' },
                     { text: '  [Netlify] Assigning dynamic subdomain... gravity-bridge.netlify.app', type: 'highlight' },
                     { text: '  [Netlify] SSL/DNS propagation checks - OK', type: 'success-msg' },
                     { text: '[SUCCESS] Landing page uploaded. Live URL: https://gravity-bridge.netlify.app', type: 'success-msg' }
+                ]);
+            } else if (cleanCmd === 'gravity graph') {
+                writeToTerminal([
+                    { text: '[STRATEGIC MEMORY] Inspecting in-memory Knowledge Graph (NetworkX)...', type: 'system-msg' },
+                    { text: '  Topology: 55 active nodes | 90 semantic edges', type: 'highlight' },
+                    { text: '  Centrality Algorithm: PageRank (damping 0.85, max_iter 100)', type: 'system-msg' },
+                    { text: '  Top Central Hubs: [system: 0.1804, success: 0.1702, tiktok: 0.0767, autonomy: 0.0265]', type: 'success-msg' },
+                    { text: '  Vector Storage: SQLite-VSS with cosine metric embeddings', type: 'success-msg' },
+                    { text: '[OK] Knowledge Graph fully synchronized with /v1/memory/graph endpoint.', type: 'success-msg' }
+                ]);
+            } else if (cleanCmd === 'gravity agents') {
+                writeToTerminal([
+                    { text: '[SUBAGENTS] Scanning declarative roles (.agents/agents/*.md)...', type: 'system-msg' },
+                    { text: '  Discovered: backend_specialist, frontend_specialist, qa_tester, build, plan', type: 'highlight' },
+                    { text: '  Protocol: Shared Contract Protocol V30.3 (Zero-Collision File Ownership)', type: 'system-msg' },
+                    { text: '  Orchestration: Parallel Async Worker Threads (TTL 3600s Auto-Prune)', type: 'success-msg' },
+                    { text: '  UI State: Real-time Activity Folding connected at /v1/agents/status', type: 'success-msg' },
+                    { text: '[OK] Multi-agent fan-out daemon online and ready for dispatch.', type: 'success-msg' }
                 ]);
             } else if (cleanCmd === 'gravity audit vector') {
                 writeToTerminal([
