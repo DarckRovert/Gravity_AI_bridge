@@ -1,13 +1,13 @@
 @echo off
 chcp 65001 >nul
-title Gravity AI Bridge V16.7 PRO -- Arranque Completo
+title Gravity AI Bridge V30.4 MYTHOS -- Arranque Completo
 setlocal enabledelayedexpansion
 color 0B
 cls
 
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|          GRAVITY AI BRIDGE V16.7 PRO [Vision-Tier]                      ^|
+echo  ^|          GRAVITY AI BRIDGE V30.4 MYTHOS [Monolith Edition]              ^|
 echo  ^|          J.A.R.V.I.S Sensory Net ^& Motor MAI L0/1/2 habilitados         ^|
 echo  +--------------------------------------------------------------------------+
 echo.
@@ -145,7 +145,7 @@ echo  [INFO] Esto ahorra recursos y evita multiples consolas.
 :launch_done
 echo.
 echo  +--------------------------------------------------------------------------+
-echo  ^|          GRAVITY AI BRIDGE V16.7 PRO — Vision-Tier Ecosistema           ^|
+echo  ^|          GRAVITY AI BRIDGE V30.4 MYTHOS — Vision-Tier Ecosistema         ^|
 echo  +--------------------------------------------------------------------------+
 echo  ^|   Dashboard Web:    http://localhost:7860  (Chat, V2V, Video Studio)    ^|
 echo  ^|   Fooocus Motor:    http://127.0.0.1:7861  (API generacion imagenes)    ^|
@@ -181,5 +181,5 @@ start http://127.0.0.1:7860/
 
 :launch_done_final
 echo.
-echo  [LISTO] Ecosistema Gravity AI V16.7 PRO (J.A.R.V.I.S) iniciado. Esta ventana puede cerrarse.
+echo  [LISTO] Ecosistema Gravity AI V30.4 MYTHOS (J.A.R.V.I.S) iniciado. Esta ventana puede cerrarse.
 pause
