@@ -57,7 +57,7 @@ export function V2VStudio() {
     // ── Polling del proceso externo (cada 5s) ──────────────────────────────
     useEffect(() => {
         const fetchStatus = () => {
-            fetch(`${window.location.protocol}//${window.location.hostname}:7861/status`)
+            fetch('/v1/v2v/status')
                 .then(r => {
                     if (!r.ok) throw new Error('Status fallback');
                     return r.json();
@@ -76,8 +76,8 @@ export function V2VStudio() {
     useEffect(() => {
         if (status?.online && !wsRef.current) {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            // Nos conectamos al servidor V2V en el puerto 7861 (v2v_server.py)
-            const socket = new WebSocket(`${protocol}//${window.location.hostname}:7861/ws/v2v`);
+            const v2vPort = status?.port || 7863;
+            const socket = new WebSocket(`${protocol}//${window.location.hostname}:${v2vPort}/ws/v2v`);
             socket.onopen = () => {
                 setWsConnected(true);
                 socket.send(JSON.stringify({ command: "get_status" }));

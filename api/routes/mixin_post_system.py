@@ -602,7 +602,7 @@ class PostSystemMixin:
             handle_course_generate(self)
             return True
 
-        # /v1/video/preview_voice — TTS preview de voz seleccionada
+        # /v1/security/kill — Terminar proceso sospechoso o de alto impacto
         if self.path == "/v1/security/kill":
             try:
                 length = int(self.headers.get("Content-Length", 0))
@@ -610,45 +610,102 @@ class PostSystemMixin:
                 pid = int(data.get("pid", 0))
                 if not pid:
                     self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
                     self._send_cors()
                     self.end_headers()
-                    self.wfile.write(json.dumps({"error": "pid requerido"}).encode())
+                    self.wfile.write(
+                        json.dumps({"ok": False, "error": "pid requerido"}).encode()
+                    )
                     return True
+
+                # Protección contra auto-aniquilación del servidor
+                current_pid = os.getpid()
+                if pid == current_pid:
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(
+                        json.dumps(
+                            {
+                                "ok": False,
+                                "error": f"Acción denegada: el PID {pid} corresponde al proceso del servidor Gravity AI.",
+                            }
+                        ).encode()
+                    )
+                    return True
+
+                pname = f"PID {pid}"
+                status_code = 200
                 try:
-                    # psutil ya importado
                     p = psutil.Process(pid)
                     pname = p.name()
                     p.terminate()
+                    try:
+                        p.wait(timeout=1.5)
+                    except (psutil.TimeoutExpired, Exception):
+                        p.kill()
                     body = json.dumps(
                         {
                             "ok": True,
-                            "message": f"Proceso {pname} (PID {pid}) terminado.",
+                            "message": f"Proceso {pname} (PID {pid}) terminado con éxito.",
                             "pid": pid,
                         }
                     ).encode()
-                except ImportError:
-                    # subprocess ya importado
+                except psutil.NoSuchProcess:
+                    status_code = 404
+                    body = json.dumps(
+                        {
+                            "ok": False,
+                            "error": f"El proceso con PID {pid} ya no existe o finalizó previamente.",
+                            "pid": pid,
+                        }
+                    ).encode()
+                except (psutil.AccessDenied, PermissionError):
+                    # Intento de fallback forzado con taskkill en Windows
+                    killed = False
                     if sys.platform == "win32":
-                        subprocess.run(
-                            ["taskkill", "/PID", str(pid), "/F"], capture_output=True
-                        )
-                    body = json.dumps(
-                        {
-                            "ok": True,
-                            "message": f"Kill enviado a PID {pid}.",
-                            "pid": pid,
-                        }
-                    ).encode()
-                self.send_response(200)
+                        try:
+                            res = subprocess.run(
+                                ["taskkill", "/PID", str(pid), "/F"],
+                                capture_output=True,
+                                text=True,
+                                timeout=3,
+                            )
+                            if res.returncode == 0:
+                                killed = True
+                        except Exception:
+                            pass
+                    if killed:
+                        status_code = 200
+                        body = json.dumps(
+                            {
+                                "ok": True,
+                                "message": f"Proceso {pname} (PID {pid}) terminado forzosamente con taskkill.",
+                                "pid": pid,
+                            }
+                        ).encode()
+                    else:
+                        status_code = 403
+                        body = json.dumps(
+                            {
+                                "ok": False,
+                                "error": f"Acceso denegado: el proceso {pname} (PID {pid}) está protegido por el sistema operativo.",
+                                "pid": pid,
+                            }
+                        ).encode()
+
+                self.send_response(status_code)
                 self.send_header("Content-Type", "application/json")
                 self._send_cors()
                 self.end_headers()
                 self.wfile.write(body)
             except Exception as e:
                 self.send_response(500)
+                self.send_header("Content-Type", "application/json")
                 self._send_cors()
                 self.end_headers()
-                self.wfile.write(json.dumps({"error": str(e)}).encode())
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
             return True
 
         # /v1/gameserver/backup — Backup server DB
@@ -710,6 +767,62 @@ class PostSystemMixin:
                 self._send_cors()
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return True
+
+        # /v1/sessions/delete — Elimina una sesión guardada de _saves/ y libera su worker si está activo
+        if self.path == "/v1/sessions/delete":
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                data = json.loads(self.rfile.read(length)) if length else {}
+                s_id = (data.get("session_id") or data.get("name") or "").strip()
+                if not s_id:
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(
+                        json.dumps({"ok": False, "error": "session_id requerido"}).encode()
+                    )
+                    return True
+
+                # Terminar worker activo en memoria si existe
+                try:
+                    from core.session_runner import terminate_session
+
+                    terminate_session(s_id)
+                except Exception:
+                    pass
+
+                # Sanitización segura y eliminación en disco (_saves/)
+                safe_name = os.path.basename(s_id)
+                if not safe_name.endswith(".json"):
+                    safe_name += ".json"
+
+                BASE_DIR = os.path.dirname(
+                    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                )
+                fpath = os.path.join(BASE_DIR, "_saves", safe_name)
+                deleted = False
+                if os.path.isfile(fpath):
+                    os.remove(fpath)
+                    deleted = True
+
+                self.send_response(200 if deleted else 404)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                msg = (
+                    f"Sesión {s_id} eliminada permanentemente del disco."
+                    if deleted
+                    else f"Archivo de sesión {s_id} no encontrado en _saves/."
+                )
+                self.wfile.write(json.dumps({"ok": deleted, "message": msg}).encode())
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
+                self.end_headers()
+                self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
             return True
 
         if self.path == "/v1/v2v/start":

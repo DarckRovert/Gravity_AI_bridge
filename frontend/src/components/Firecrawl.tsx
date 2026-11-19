@@ -1,37 +1,64 @@
 import { useEffect, useState } from 'react';
-import { Flame, Globe, Database, Code, ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
+import { Flame, Globe, Database, Code, ShieldCheck, AlertCircle, RefreshCw, Copy, Check, CheckCircle2 } from 'lucide-react';
 import { showToast } from './Toast';
+
+interface ScrapeResult {
+  ok: boolean;
+  url: string;
+  title?: string;
+  content?: string;
+  source?: string;
+  indexed_chunks?: number;
+  memory_ingested?: boolean;
+  error?: string;
+}
 
 export const Firecrawl = () => {
   const [health, setHealth] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [url, setUrl] = useState('');
   const [crawling, setCrawling] = useState(false);
+  const [autoIndex, setAutoIndex] = useState(true);
+  const [result, setResult] = useState<ScrapeResult | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleCrawl = async () => {
     if (!url.trim()) return;
     setCrawling(true);
+    setResult(null);
     try {
       const res = await fetch('/v1/tools/scrape', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: url.trim() })
+        body: JSON.stringify({ url: url.trim(), ingest_memory: autoIndex })
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(data.error || 'Servidor remoto rechazó la operación de scraping');
       }
+      setResult(data);
       if (data.ok) {
-        showToast('success', `Extracción completada para: ${url}\n\nContenido enviado a memoria semántica.\nTokens aprox: ${Math.round((data.content?.length || 0) / 4)}`);
+        const tokenEstimate = Math.round((data.content?.length || 0) / 4);
+        const memMsg = data.memory_ingested 
+          ? `✓ ${data.indexed_chunks} fragmentos indexados en RAG.` 
+          : 'Extracción lista (sin indexar).';
+        showToast('success', `Extracción completada (${tokenEstimate} tokens). ${memMsg}`);
       } else {
         showToast('error', `Error en crawl: ${data.error || 'Sin contenido extraído'}`);
       }
-      setUrl('');
     } catch (e: any) {
       showToast('error', `Fallo de conexión o extracción: ${e.message}`);
     } finally {
       setCrawling(false);
     }
+  };
+
+  const copyContent = () => {
+    if (!result?.content) return;
+    navigator.clipboard.writeText(result.content);
+    setCopied(true);
+    showToast('success', 'Contenido copiado al portapapeles');
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const fetchHealth = async () => {
@@ -94,8 +121,8 @@ export const Firecrawl = () => {
                  </div>
               </div>
 
-              <div className="glass-panel p-6 rounded-2xl border border-border-subtle">
-                 <h3 className="text-sm font-black text-text-primary uppercase tracking-widest mb-6">Test de Extracción</h3>
+              <div className="glass-panel p-6 rounded-2xl border border-border-subtle space-y-4">
+                 <h3 className="text-sm font-black text-text-primary uppercase tracking-widest">Test de Extracción</h3>
                  <div className="flex gap-2">
                     <input 
                       type="text" 
@@ -113,6 +140,53 @@ export const Firecrawl = () => {
                        {crawling ? 'EXTRAYENDO...' : 'CRAWL'}
                     </button>
                  </div>
+                 
+                 <div className="flex items-center justify-between pt-1">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs text-text-secondary select-none">
+                       <input 
+                         type="checkbox" 
+                         checked={autoIndex} 
+                         onChange={(e) => setAutoIndex(e.target.checked)}
+                         className="rounded border-border-subtle accent-orange-500 cursor-pointer"
+                       />
+                       <span>Indexar automáticamente en Memoria Semántica (RAG)</span>
+                    </label>
+                 </div>
+
+                 {/* Visor interactivo de resultados */}
+                 {result && (
+                   <div className="mt-4 pt-4 border-t border-border-subtle space-y-3 animate-in fade-in duration-300">
+                     <div className="flex items-center justify-between">
+                       <div className="flex items-center gap-2">
+                         <span className="text-xs font-bold text-text-primary truncate max-w-sm">
+                           {result.title || result.url}
+                         </span>
+                         <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded bg-surface border border-border-subtle text-orange-400">
+                           {result.source || 'scraper'}
+                         </span>
+                         {result.memory_ingested && (
+                           <span className="flex items-center gap-1 text-[10px] font-bold text-status-success bg-status-success/10 px-2 py-0.5 rounded border border-status-success/20">
+                             <CheckCircle2 size={11} /> {result.indexed_chunks} chunks RAG
+                           </span>
+                         )}
+                       </div>
+                       <button
+                         onClick={copyContent}
+                         className="flex items-center gap-1 px-3 py-1 bg-surface border border-border-subtle hover:border-orange-500/50 rounded-lg text-xs font-medium text-text-secondary transition-all"
+                       >
+                         {copied ? <Check size={14} className="text-status-success" /> : <Copy size={14} />}
+                         <span>{copied ? 'Copiado' : 'Copiar'}</span>
+                       </button>
+                     </div>
+                     <div className="text-[11px] text-text-muted font-mono flex gap-4">
+                       <span>Caracteres: {result.content?.length || 0}</span>
+                       <span>Tokens aprox: {Math.round((result.content?.length || 0) / 4)}</span>
+                     </div>
+                     <pre className="p-4 rounded-xl bg-black/50 border border-border-subtle font-mono text-xs text-text-secondary max-h-72 overflow-y-auto whitespace-pre-wrap select-text leading-relaxed">
+                       {result.content || (result.error ? `Error: ${result.error}` : 'Sin contenido de texto extraído.')}
+                     </pre>
+                   </div>
+                 )}
               </div>
            </div>
 

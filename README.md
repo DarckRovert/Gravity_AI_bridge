@@ -5,10 +5,10 @@
   [![Autor](https://img.shields.io/badge/Author-DarckRovert-818cf8.svg?style=flat-square)](https://github.com/DarckRovert)
   [![Licencia](https://img.shields.io/badge/License-Proprietary-red.svg?style=flat-square)](LICENSE)
   [![Arquitectura](https://img.shields.io/badge/Architecture-Mythos--Tier-c69c6d.svg?style=flat-square)]()
-  [![Release](https://img.shields.io/badge/Release-V30.3_OPENCODE-6366f1.svg?style=flat-square)]()
+  [![Release](https://img.shields.io/badge/Release-V30.4_MYTHOS-6366f1.svg?style=flat-square)]()
   [![Landing Page](https://img.shields.io/badge/Landing_Page-Live_Online-22c55e.svg?style=flat-square&logo=githubpages)](https://darckrovert.github.io/Gravity_AI_bridge/)
   [![Security Audit](https://img.shields.io/badge/Security-Audited_100%25-success?style=flat-square&logo=shield)]()
-  [![Tests](https://img.shields.io/badge/Tests-272_Passed_100%25-brightgreen.svg?style=flat-square&logo=pytest)]()
+  [![Tests](https://img.shields.io/badge/Tests-312_Passed_100%25-brightgreen.svg?style=flat-square&logo=pytest)]()
   [![Twitch](https://img.shields.io/badge/Twitch-DarckRovert-9146ff.svg?style=flat-square&logo=twitch)](https://twitch.tv/darckrovert)
 
   <p align="center">
@@ -100,7 +100,12 @@ Panel de control unificado con 25 componentes orquestados en tiempo real:
 | 🕷️ Firecrawl | Scraping de URLs en Markdown (Firecrawl API o fallback HTML) |
 | 🛡️ HITL Approval | Intercepción y aprobación humana de tools de alto riesgo |
 | 📡 System Status | Estado completo de backends, latencias, modelos |
-| 🔒 Security | Monitor de proceso### 🔄 Multi-Session Bridge V30.0 MYTHOS (`core/session_runner.py`)
+| 🔒 Security | Monitor de procesos, puertos y geolocalización |
+| 🧠 Memory Studio | Knowledge Graph interactivo SVG (NetworkX PageRank) y RAG Vectorial |
+
+---
+
+### 🔄 Multi-Session Bridge V30.0 MYTHOS (`core/session_runner.py`)
 - `CapacityWake` + `SessionSpawner`: hasta 32 subprocesos de agente aislados simultáneos.
 - Spawn vía UI con selector de **rol** (auditor/planner/coder/researcher/executor).
 - Kill de workers activos con estado PID en tiempo real.

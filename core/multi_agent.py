@@ -7,7 +7,6 @@
 """
 
 import time
-import threading
 from typing import Optional, List, Dict, Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from core.provider_manager import get_plugin, get_all_model_names
@@ -58,7 +57,6 @@ def compare(
         return []
 
     results: List[Dict[str, Any]] = []
-    threading.Lock()
 
     def _query(provider_name: str) -> Dict[str, Any]:
         plugin = get_plugin(provider_name)
@@ -214,6 +212,113 @@ def vote(
         "candidates": len(results),
         "method": method,
     }
+
+
+# ── Debate: multi-model adversarial collaboration ─────────────────────────────
+
+
+def debate(
+    messages: List[Dict[str, Any]],
+    providers: Optional[List[str]] = None,
+    n_models: int = 3,
+    rounds: int = 2,
+    timeout: float = 120.0,
+    options: Optional[Dict[str, Any]] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Ejecuta un debate adversarial y colaborativo entre múltiples modelos.
+    - Ronda 1: Postura inicial independiente de cada modelo.
+    - Ronda 2+: Réplica cruzada donde cada modelo analiza y rebate la postura de sus pares.
+    - Cierre: Veredicto sintetizado por un árbitro unificador.
+    """
+    options = options or {}
+    messages = _inject_master_plan(messages)
+
+    if not providers:
+        all_models = get_all_model_names()
+        providers = list(all_models.keys())[:n_models]
+
+    if not providers:
+        return []
+
+    # Ronda 1: Posturas iniciales
+    round1_results = compare(messages, providers=providers, n_models=n_models, timeout=timeout, options=options)
+    if len(round1_results) <= 1:
+        return round1_results
+
+    # Ronda 2: Réplica cruzada
+    rebuttal_results: List[Dict[str, Any]] = []
+    original_prompt = messages[-1].get("content", "")
+
+    def _rebuttal(item: Dict[str, Any]) -> Dict[str, Any]:
+        p_name = item["provider"]
+        peers_arguments = "\n\n".join(
+            f"--- Postura de {r['provider']} ({r['model']}) ---\n{r['response'][:1200]}"
+            for r in round1_results if r["provider"] != p_name
+        )
+        rebuttal_prompt = (
+            f"PREGUNTA ORIGINAL:\n{original_prompt}\n\n"
+            f"TU POSTURA INICIAL:\n{item['response']}\n\n"
+            f"POSTURAS DE LOS OTROS AGENTES:\n{peers_arguments}\n\n"
+            "INSTRUCCIÓN DE DEBATE: Analiza las posturas de los otros agentes. "
+            "Señala errores, falacias o puntos débiles en sus argumentos, reconoce aciertos válidos "
+            "y entrega tu conclusión final defendiendo o refinando tu tesis con rigor."
+        )
+        plugin = get_plugin(p_name)
+        if not plugin:
+            return item
+        t0 = time.time()
+        try:
+            chunks = list(plugin.chat_stream([{"role": "user", "content": rebuttal_prompt}], item["model"], options))
+            rebuttal_text = "".join(chunks)
+        except Exception as e:
+            rebuttal_text = f"{item['response']}\n\n[Fallo en réplica: {e}]"
+
+        return {
+            "provider": p_name,
+            "model": item["model"],
+            "response": rebuttal_text,
+            "elapsed": round(time.time() - t0, 2),
+            "phase": "rebuttal",
+        }
+
+    ex = ThreadPoolExecutor(max_workers=min(len(round1_results), 6))
+    futures = [ex.submit(_rebuttal, r) for r in round1_results]
+    for f in as_completed(futures):
+        try:
+            rebuttal_results.append(f.result())
+        except Exception:
+            pass
+    ex.shutdown(wait=False)
+
+    # Veredicto de síntesis final por árbitro
+    from core.provider_manager import complete as pm_complete
+
+    debate_transcript = "\n\n".join(
+        f"[{r['provider']} ({r['model']})]:\n{r['response']}"
+        for r in rebuttal_results
+    )
+    arbiter_prompt = (
+        "Eres un árbitro de debate de élite. Analiza las siguientes intervenciones finales "
+        "de múltiples modelos de IA sobre la consulta original. Determina los puntos de consenso, "
+        "resuelve los desacuerdos y entrega el veredicto definitivo más preciso y completo.\n\n"
+        f"CONSULTA ORIGINAL:\n{original_prompt}\n\n"
+        f"DEBATE:\n{debate_transcript}"
+    )
+    try:
+        verdict = pm_complete([{"role": "user", "content": arbiter_prompt}])
+        if verdict:
+            rebuttal_results.insert(0, {
+                "provider": "ARBITER (Veredicto)",
+                "model": "consenso-debate",
+                "response": verdict,
+                "elapsed": 0,
+                "phase": "verdict",
+            })
+    except Exception:
+        pass
+
+    return rebuttal_results
 
 
 # ── Sequential pipeline ───────────────────────────────────────────────────────

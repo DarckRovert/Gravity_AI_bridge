@@ -32,7 +32,7 @@ async def startup_event():
     logger.info("Inicializando V2V Pipeline (ONNX DirectML)...")
     try:
         pipeline = V2VPipeline()
-        # Start the camera capture and engine loop in background
+        pipeline.loop = asyncio.get_running_loop()
         pipeline.start()
         logger.info("V2V Pipeline iniciado correctamente.")
     except Exception as e:
@@ -40,19 +40,18 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    global pipeline
     logger.info("Apagando V2V Pipeline...")
     if pipeline:
         pipeline.stop()
 
 @app.get("/status")
 async def get_status():
-    global pipeline
     return {
         "online": True,
         "active": pipeline.running if pipeline else False,
-        "fps": 0,
-        "bg_ready": True
+        "fps": pipeline.current_fps if pipeline else 0.0,
+        "bg_ready": True,
+        "port": 7863,
     }
 
 @app.websocket("/ws/v2v")
@@ -105,4 +104,4 @@ async def websocket_endpoint(websocket: WebSocket):
         pipeline.remove_client(websocket)
 
 if __name__ == "__main__":
-    uvicorn.run("v2v_server:app", host="0.0.0.0", port=7861, log_level="info")
+    uvicorn.run("v2v_server:app", host="0.0.0.0", port=7863, log_level="info")

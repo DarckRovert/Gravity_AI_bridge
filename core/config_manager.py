@@ -143,3 +143,9 @@ class ConfigManager:
 
 # Global instance
 config = ConfigManager()
+
+
+def load_config() -> dict:
+    """Retorna el diccionario de configuración activo de forma thread-safe."""
+    return config.config
+

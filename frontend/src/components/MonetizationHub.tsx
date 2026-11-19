@@ -98,6 +98,8 @@ export const MonetizationHub = () => {
   const [loading, setLoading]     = useState(true);
   const [open, setOpen]           = useState<string>('youtube');
   const [authUrl, setAuthUrl]     = useState('');
+  const [authCode, setAuthCode]   = useState('');
+  const [exchanging, setExchanging] = useState(false);
   const [msg, setMsg]             = useState('');
   const [cloneJobId, setCloneJobId] = useState('');
   const [cloneLangs, setCloneLangs] = useState('en');
@@ -153,13 +155,36 @@ export const MonetizationHub = () => {
   };
 
   const getAuthUrl = async () => {
-    const d = await post('/v1/youtube/auth/exchange', {});
-    if (!d.ok) {
-      try {
-        const r = await fetch(`${API}/v1/youtube/auth/url`);
-        const j = await r.json().catch(() => ({}));
-        if (j.ok) setAuthUrl(j.auth_url);
-      } catch (e) {}
+    try {
+      const r = await fetch(`${API}/v1/youtube/auth/url`);
+      const j = await r.json().catch(() => ({}));
+      if (j.ok && j.auth_url) {
+        setAuthUrl(j.auth_url);
+        setMsg('🔗 URL generada. Abre el enlace, autoriza la app y pega el código abajo.');
+      } else {
+        setMsg(`❌ ${j.error || 'No se pudo obtener URL de autenticación'}`);
+      }
+    } catch (e: any) {
+      setMsg(`❌ Error: ${e.message}`);
+    }
+  };
+
+  const exchangeCode = async () => {
+    if (!authCode.trim()) return;
+    setExchanging(true);
+    setMsg('Vinculando código OAuth con YouTube...');
+    try {
+      const d = await post('/v1/youtube/auth/exchange', { code: authCode.trim() });
+      if (d.ok) {
+        setMsg('✅ YouTube OAuth 2.0 vinculado exitosamente');
+        setAuthCode('');
+        setAuthUrl('');
+        fetchAll();
+      } else {
+        setMsg(`❌ Error al vincular: ${d.error || d.message || 'Código inválido o expirado'}`);
+      }
+    } finally {
+      setExchanging(false);
     }
   };
 
@@ -300,16 +325,34 @@ export const MonetizationHub = () => {
           <Row2 label="Sistema"     value={<Badge ok={yt?.ready??false} yes="Listo" no="Configurar"/>}/>
         </div>
         {!yt?.oauth_configured && (
-          <div className="space-y-2">
+          <div className="space-y-3 p-3 bg-surface rounded-xl border border-border-subtle">
             <button onClick={getAuthUrl}
               className="w-full py-2 px-4 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors flex items-center justify-center gap-2">
               <Video size={12}/> Obtener URL de Autorización OAuth
             </button>
             {authUrl && (
-              <a href={authUrl} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs text-accent-primary hover:underline break-all">
-                <ExternalLink size={10}/>{authUrl.slice(0, 80)}…
-              </a>
+              <div className="space-y-2 pt-1 border-t border-border-subtle">
+                <a href={authUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-xs text-accent-primary hover:underline break-all">
+                  <ExternalLink size={10}/> Paso 1: Abrir enlace y autorizar en Google
+                </a>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={authCode}
+                    onChange={(e) => setAuthCode(e.target.value)}
+                    placeholder="Paso 2: Pega el código de autorización aquí (ej: 4/0A...)"
+                    className="flex-1 bg-card border border-border-subtle rounded-lg px-3 py-1.5 text-xs text-text-primary outline-none focus:border-red-500"
+                  />
+                  <button
+                    onClick={exchangeCode}
+                    disabled={exchanging || !authCode.trim()}
+                    className="px-3 py-1.5 bg-accent-primary hover:bg-accent-secondary disabled:opacity-50 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1"
+                  >
+                    <Send size={12}/> {exchanging ? 'Vinculando...' : 'Vincular'}
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         )}

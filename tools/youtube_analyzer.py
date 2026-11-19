@@ -22,33 +22,71 @@ class YouTubeAnalyzer:
         ydl_opts = {
             "quiet": True,
             "skip_download": True,
+            "writesubtitles": True,
             "writeautomaticsub": True,
             "subtitleslangs": ["es", "en"],
             "outtmpl": os.path.join(self.tmp_dir, "%(id)s.%(ext)s"),
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
+            try:
+                info = ydl.extract_info(url, download=False)
+            except Exception as e:
+                raise ValueError(
+                    f"No se pudo extraer información del video de YouTube: {e}"
+                )
 
-            # Intentar extraer subtítulos directamente de los metadatos si es posible
+            if not info:
+                raise ValueError("No se pudieron obtener los metadatos del video.")
+
+            # Extraer subtítulos directamente de los metadatos (manuales o automáticos)
             transcript = ""
-            subs = info.get("requested_subtitles")
-            if subs and ("es" in subs or "en" in subs):
-                sub_lang = "es" if "es" in subs else "en"
-                # En este nivel yt-dlp solo da la url del vtt/json3
-                sub_url = subs[sub_lang].get("url")
-                if sub_url:
-                    import requests
+            all_subs = info.get("subtitles") or {}
+            all_auto = info.get("automatic_captions") or {}
 
-                    try:
-                        r = requests.get(sub_url, timeout=15)
-                        if r.status_code == 200:
-                            transcript = self._clean_vtt(r.text)
-                    except Exception as e:
-                        log.error(f"[YT Analyzer] Error bajando subtítulos: {e}")
+            # Prioridad de idiomas: español ('es*') > inglés ('en*') > otros disponibles
+            target_langs = []
+            for pool in (all_subs, all_auto):
+                for lang in pool.keys():
+                    if lang.startswith("es") and lang not in target_langs:
+                        target_langs.append(lang)
+                for lang in pool.keys():
+                    if lang.startswith("en") and lang not in target_langs:
+                        target_langs.append(lang)
+
+            for pool in (all_subs, all_auto):
+                if transcript:
+                    break
+                for lang in target_langs:
+                    formats = pool.get(lang, [])
+                    if not isinstance(formats, list):
+                        continue
+                    vtt_fmt = next((f for f in formats if f.get("ext") == "vtt"), None)
+                    chosen_fmt = vtt_fmt or (formats[0] if formats else None)
+                    sub_url = chosen_fmt.get("url") if chosen_fmt else None
+                    if sub_url:
+                        import requests
+
+                        try:
+                            r = requests.get(
+                                sub_url,
+                                headers={"User-Agent": "Mozilla/5.0"},
+                                timeout=15,
+                            )
+                            if r.status_code == 200 and r.text.strip():
+                                transcript = self._clean_vtt(r.text)
+                                if transcript:
+                                    log.info(
+                                        f"[YT Analyzer] Subtítulos extraídos exitosamente ({lang}, {len(transcript)} chars)."
+                                    )
+                                    break
+                        except Exception as e:
+                            log.warning(
+                                f"[YT Analyzer] Error descargando subtítulos para idioma {lang}: {e}"
+                            )
 
             if not transcript:
                 log.info(
-                    "[YT Analyzer] No hay subtítulos automáticos. Pasando a Fallback Whisper."
+                    "[YT Analyzer] No hay subtítulos disponibles en metadatos. Pasando a Fallback Whisper."
                 )
                 transcript = self._fallback_whisper(url, info.get("id", "temp"))
 
@@ -97,15 +135,8 @@ class YouTubeAnalyzer:
         try:
             from faster_whisper import WhisperModel
         except ImportError:
-            log.warning(
-                "faster-whisper no está instalado. Instalándolo automáticamente..."
-            )
-            import subprocess
-
-            subprocess.run(
-                [sys.executable, "-m", "pip", "install", "faster-whisper"], check=True
-            )
-            from faster_whisper import WhisperModel
+            log.warning("[YT Analyzer] faster-whisper no está instalado en este entorno.")
+            return "[Transcripción no disponible: no hay subtítulos y faster-whisper no está instalado]"
 
         audio_file = os.path.join(self.tmp_dir, f"{video_id}.mp3")
         ydl_opts = {

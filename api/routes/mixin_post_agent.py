@@ -1,7 +1,7 @@
 import json
 import os
 import sys
-import yaml
+from core.logger import log
 
 
 class PostAgentMixin:
@@ -205,7 +205,6 @@ class PostAgentMixin:
                 import os as _os
                 import zipfile as _zipfile
                 import datetime as _datetime
-                from core import provider_manager as _fpm, config_manager as _fcm
 
                 system_prompt = (
                     "Eres un Ingeniero de Software Senior Autónomo.\n"
@@ -224,16 +223,33 @@ class PostAgentMixin:
                     {"role": "user", "content": prompt},
                 ]
 
-                config = _fcm.load_config()
-                provider_name = config.get("model.default_provider", "LM Studio")
-                plugin = _fpm.get_plugin(provider_name)
-                if not plugin:
-                    raise Exception(
-                        f"No hay proveedor de IA disponible ({provider_name})."
-                    )
+                from core.config_manager import config as _fcm_config
+                from core import provider_manager as _fpm
 
-                chunks = list(plugin.chat_stream(messages, "auto", {}))
-                response_text = "".join(chunks)
+                provider_name = _fcm_config.get("model.default_provider", "LM Studio")
+                plugin = _fpm.get_plugin(provider_name)
+
+                response_text = ""
+                # 1. Intento primario con el proveedor configurado
+                if plugin:
+                    health = plugin.check_health()
+                    if health.is_healthy and health.models:
+                        model = health.active_model or health.models[0]["name"]
+                        try:
+                            chunks = list(plugin.chat_stream(messages, model, {}))
+                            response_text = "".join(chunks)
+                        except Exception as ex_stream:
+                            log.warning(f"[Factory] Falló chat_stream con {provider_name}/{model}: {ex_stream}")
+
+                # 2. Fallback resiliente automático a través del orquestador global
+                if not response_text:
+                    try:
+                        response_text = _fpm.complete(messages)
+                    except Exception as ex_comp:
+                        log.error(f"[Factory] Fallback global falló: {ex_comp}")
+
+                if not response_text:
+                    raise Exception("No se pudo obtener respuesta de ningún motor de IA disponible.")
 
                 response_text = _re.sub(
                     r"<think>.*?</think>", "", response_text, flags=_re.DOTALL
@@ -266,10 +282,6 @@ class PostAgentMixin:
                 entregables_dir = _os.path.join(_BASE_DIR, "_entregables")
                 _os.makedirs(entregables_dir, exist_ok=True)
 
-                # Encontrar bloques: **Archivo:** nombre \n ```lang \n codigo \n ```
-                pattern = r"\*\*Archivo:\*\*\s*([^\n`]+).*?```\w*\n(.*?)```"
-                matches = list(_re.finditer(pattern, response_text, _re.DOTALL))
-
                 folder_name = "entregable_" + _datetime.datetime.now().strftime(
                     "%Y%m%d_%H%M%S"
                 )
@@ -277,6 +289,9 @@ class PostAgentMixin:
                 _os.makedirs(project_path, exist_ok=True)
 
                 files_created = 0
+                pattern = r"\*\*Archivo:\*\*\s*([^\n`]+).*?```\w*\n(.*?)```"
+                matches = list(_re.finditer(pattern, response_text, _re.DOTALL))
+
                 for match in matches:
                     filename = match.group(1).strip()
                     code = match.group(2)
@@ -285,6 +300,23 @@ class PostAgentMixin:
                     with open(file_path, "w", encoding="utf-8") as f:
                         f.write(code)
                     files_created += 1
+
+                # Fallback heurístico si no usó **Archivo:** pero sí bloques de código markdown
+                if files_created == 0:
+                    code_blocks = list(_re.finditer(r"```([a-zA-Z0-9_-]+)?\n(.*?)```", response_text, _re.DOTALL))
+                    ext_map = {
+                        "python": "py", "py": "py", "javascript": "js", "js": "js",
+                        "typescript": "ts", "ts": "ts", "html": "html", "css": "css",
+                        "json": "json", "sh": "sh", "bash": "sh"
+                    }
+                    for idx, cb in enumerate(code_blocks):
+                        lang = (cb.group(1) or "").lower().strip()
+                        ext = ext_map.get(lang, "txt")
+                        fallback_name = "main." + ext if idx == 0 else f"module_{idx}.{ext}"
+                        file_path = _os.path.join(project_path, fallback_name)
+                        with open(file_path, "w", encoding="utf-8") as f:
+                            f.write(cb.group(2))
+                        files_created += 1
 
                 with open(
                     _os.path.join(project_path, "RAW_RESPONSE.md"),
@@ -322,57 +354,85 @@ class PostAgentMixin:
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return True
 
-        # /v1/scheduler/trigger — Encolar un video ahora (override manual del scheduler)
+        # /v1/rag/ingest — Subida y vectorización de documentos multipart en RAG (Python 3.13+)
         if self.path == "/v1/rag/ingest":
             try:
-                import cgi
-                import io
+                from email.parser import BytesParser
+                from email.policy import default
 
                 content_type = self.headers.get("Content-Type", "")
                 length = int(self.headers.get("Content-Length", 0))
-                body = self.rfile.read(length)
-                # Parse multipart/form-data
-                environ = {
-                    "REQUEST_METHOD": "POST",
-                    "CONTENT_TYPE": content_type,
-                    "CONTENT_LENGTH": str(length),
-                }
-                form = cgi.FieldStorage(
-                    fp=io.BytesIO(body), environ=environ, keep_blank_values=True
+                body = self.rfile.read(length) if length else b""
+
+                if not body or "multipart/form-data" not in content_type:
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
+                    self._send_cors()
+                    self.end_headers()
+                    self.wfile.write(
+                        json.dumps(
+                            {
+                                "ok": False,
+                                "error": "Cuerpo multipart/form-data requerido",
+                            }
+                        ).encode()
+                    )
+                    return True
+
+                # Parser estándar nativo compatible con Python 3.13+ (reemplazo de cgi.FieldStorage)
+                raw_mime = (
+                    b"Content-Type: "
+                    + content_type.encode("latin-1")
+                    + b"\r\n\r\n"
+                    + body
                 )
+                msg = BytesParser(policy=default).parsebytes(raw_mime)
+
                 BASE_DIR = os.path.dirname(
                     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
                 )
                 sources_dir = os.path.join(BASE_DIR, "_rag_sources")
                 os.makedirs(sources_dir, exist_ok=True)
-                indexed = 0
-                for field_name in form.keys():
-                    items = form[field_name]
-                    if not isinstance(items, list):
-                        items = [items]
-                    for item in items:
-                        if item.filename:
-                            safe_name = os.path.basename(item.filename)
-                            dest = os.path.join(sources_dir, safe_name)
-                            with open(dest, "wb") as f:
-                                f.write(item.file.read())
-                            indexed += 1
-                # Trigger background re-indexing if rag_engine is available
-                try:
-                    from core.rag_engine import ingest_directory
-                    import threading
 
-                    t = threading.Thread(
-                        target=ingest_directory, args=(sources_dir,), daemon=True
-                    )
-                    t.start()
-                except Exception:
-                    pass
+                saved_files = []
+                for part in msg.iter_parts():
+                    filename = part.get_filename()
+                    if filename:
+                        safe_name = os.path.basename(filename)
+                        dest = os.path.join(sources_dir, safe_name)
+                        file_bytes = part.get_payload(decode=True)
+                        if file_bytes is not None:
+                            with open(dest, "wb") as f:
+                                f.write(file_bytes)
+                            saved_files.append(dest)
+
+                indexed = len(saved_files)
+                if indexed > 0:
+                    try:
+                        from rag.retriever import RAGIndexer
+                        import threading
+
+                        def _index_files():
+                            for fpath in saved_files:
+                                try:
+                                    RAGIndexer.index_file(fpath)
+                                except Exception as err:
+                                    log.warning(
+                                        f"[RAG Ingest] Error indexando {fpath}: {err}"
+                                    )
+
+                        t = threading.Thread(target=_index_files, daemon=True)
+                        t.start()
+                    except Exception as e:
+                        log.warning(
+                            f"[RAG Ingest] No se pudo iniciar el hilo de indexación: {e}"
+                        )
+
                 body_resp = json.dumps(
                     {
                         "ok": True,
                         "indexed": indexed,
-                        "message": f"{indexed} archivo(s) guardados. Re-indexación iniciada.",
+                        "message": f"{indexed} archivo(s) recibidos. Indexación RAG iniciada.",
                     }
                 ).encode("utf-8")
                 self.send_response(200)
@@ -382,6 +442,7 @@ class PostAgentMixin:
                 self.wfile.write(body_resp)
             except Exception as e:
                 self.send_response(500)
+                self.send_header("Content-Type", "application/json")
                 self._send_cors()
                 self.end_headers()
                 self.wfile.write(json.dumps({"ok": False, "error": str(e)}).encode())
@@ -431,8 +492,13 @@ class PostAgentMixin:
                 mode = data.get("mode", "parallel")
                 from core import multi_agent
 
-                if mode in ("vote", "consensus"):
-                    result = multi_agent.vote(messages, n_models=n_models)
+                if mode == "debate":
+                    results = multi_agent.debate(messages, n_models=n_models)
+                elif mode == "consensus":
+                    result = multi_agent.vote(messages, n_models=n_models, mode="synthesize")
+                    results = [result]
+                elif mode == "vote":
+                    result = multi_agent.vote(messages, n_models=n_models, mode="vote")
                     results = [result]
                 else:
                     results = multi_agent.compare(messages, n_models=n_models)
@@ -744,7 +810,7 @@ class PostAgentMixin:
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return True
 
-        # /v1/tools/scrape — Firecrawl / Fallback HTML scraper
+        # /v1/tools/scrape — Firecrawl / Fallback HTML scraper con Ingesta RAG
         if self.path == "/v1/tools/scrape":
             try:
                 length = int(self.headers.get("Content-Length", 0))
@@ -756,23 +822,51 @@ class PostAgentMixin:
                     self.end_headers()
                     self.wfile.write(json.dumps({"error": "url requerida"}).encode())
                     return True
-                # Leer api_key desde config.yaml
-                api_key = ""
-                try:
-                    BASE_DIR = os.path.dirname(
-                        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                    )
-                    # BASE_DIR ya calculado
-                    with open(
-                        os.path.join(BASE_DIR, "config.yaml"), "r", encoding="utf-8"
-                    ) as f:
-                        cfg = yaml.safe_load(f)
-                    api_key = cfg.get("firecrawl_api_key", "") or ""
-                except Exception:
-                    pass
+
+                api_key = data.get("api_key", "").strip()
+                if not api_key:
+                    try:
+                        from core.key_manager import KeyManager
+
+                        api_key = KeyManager.get_key("firecrawl") or ""
+                    except Exception:
+                        pass
+                if not api_key:
+                    try:
+                        from core.config_manager import ConfigManager
+
+                        api_key = ConfigManager.get("firecrawl_api_key", "") or ""
+                    except Exception:
+                        pass
+
                 from core.firecrawl_scraper import scrape_url
 
                 result = scrape_url(url, api_key)
+
+                # Ingesta en Memoria Semántica RAG si fue solicitada (por defecto True)
+                should_ingest = data.get("ingest_memory", True)
+                if result.get("ok") and should_ingest and result.get("content"):
+                    try:
+                        from rag.retriever import RAGIndexer
+
+                        chunks_indexed = RAGIndexer.index_text(
+                            result["content"],
+                            source=url,
+                            metadata={
+                                "title": result.get("title", ""),
+                                "source_engine": result.get("source", "web"),
+                            },
+                        )
+                        result["indexed_chunks"] = chunks_indexed
+                        result["memory_ingested"] = True
+                    except Exception as mem_err:
+                        result["memory_ingested"] = False
+                        result["memory_error"] = str(mem_err)
+                        result["indexed_chunks"] = 0
+                else:
+                    result["memory_ingested"] = False
+                    result["indexed_chunks"] = 0
+
                 body = json.dumps(result, ensure_ascii=False, indent=2).encode("utf-8")
                 self.send_response(200 if result.get("ok") else 400)
                 self.send_header("Content-Type", "application/json")

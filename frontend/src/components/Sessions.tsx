@@ -48,21 +48,40 @@ export const Sessions = () => {
   };
 
   const deleteSession = async (id: string) => {
-    if (!confirm(`¿Eliminar la sesión ${id} permanentemente?`)) return;
+    if (!confirm(`¿Eliminar la sesión guardada "${id}" permanentemente de disco?`)) return;
+    try {
+      const res = await fetch('/v1/sessions/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: id })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || 'El sistema rechazó la eliminación');
+      }
+      showToast('success', data.message || `Sesión ${id} eliminada permanentemente`);
+      fetchData();
+    } catch (e: any) {
+      showToast('error', `Error al borrar sesión: ${e.message}`);
+    }
+  };
+
+  const killWorker = async (id: string) => {
+    if (!confirm(`¿Detener el worker activo para la sesión "${id}"?`)) return;
     try {
       const res = await fetch('/v1/sessions/kill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session_id: id })
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'El sistema rechazó la eliminación');
+        throw new Error(data.error || 'No se pudo detener el worker');
       }
-      showToast('success', `Sesión ${id} eliminada permanentemente`);
+      showToast('success', data.message || `Worker ${id} detenido con éxito`);
       fetchData();
     } catch (e: any) {
-      showToast('error', `Error al borrar sesión: ${e.message}`);
+      showToast('error', `Error al detener worker: ${e.message}`);
     }
   };
 
@@ -139,7 +158,16 @@ export const Sessions = () => {
                         <div className="w-2 h-2 rounded-full bg-status-success animate-pulse"></div>
                         <div className="text-xs font-bold text-text-primary">{s.id}</div>
                      </div>
-                     <div className="text-[10px] font-black text-text-muted">PID: {s.pid}</div>
+                     <div className="flex items-center gap-3">
+                       <span className="text-[10px] font-black text-text-muted font-mono">PID {s.pid}</span>
+                       <button 
+                         onClick={() => killWorker(s.id)}
+                         className="p-1.5 rounded-lg bg-status-error/10 hover:bg-status-error/20 border border-status-error/30 text-status-error transition-all"
+                         title="Detener worker activo"
+                       >
+                         <Trash2 size={13} />
+                       </button>
+                     </div>
                   </div>
                 ))}
                 {active.length === 0 && (

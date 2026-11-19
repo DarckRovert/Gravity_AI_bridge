@@ -2,6 +2,77 @@
 
 Registro maestro de evolución de la arquitectura del ecosistema Gravity AI Bridge.
 
+## [V30.4 MYTHOS] Deep Logical Hardening, Zero-Mockup Unification & System Resilience · 18/11/2026
+
+**[DEPURACIÓN LÓGICA PROFUNDA END-TO-END: RESOLUCIÓN QUIRÚRGICA DE 11 INCONSISTENCIAS Y MAQUETAS CRÍTICAS, CONECTIVIDAD TOTAL FRONTEND-BACKEND Y EXPANSIÓN DE TEST SUITE A 312 PRUEBAS PASADAS AL 100%]**
+
+### 1. MultiAgent Debate & Síntesis Cruzada (`core/multi_agent.py`, `api/routes/mixin_post_agent.py`)
+- Implementada la función `debate()` en el motor orquestador multi-agente con dos rondas iterativas: argumentación inicial cruzada y síntesis estructurada.
+- Conectados los modos `debate` y `consensus` en el handler `/v1/multi_agent/ask` que previamente descartaba la selección y forzaba el modo paralelo genérico.
+
+### 2. Flujo Completo OAuth 2.0 YouTube & Sincronización de Credenciales (`core/youtube_uploader.py`, `frontend/src/components/MonetizationHub.tsx`)
+- Resuelto truncamiento del flujo OAuth donde el usuario no podía ingresar el código de autorización generado por Google Cloud.
+- Unificada la ruta de persistencia del token OAuth hacia `_integrations/youtube_oauth.json` tanto en subidas como en verificación de estado (`/v1/youtube/status`).
+
+### 3. Software Factory: Dinamismo de Configuración & Parsing Resiliente (`core/config_manager.py`, `api/routes/mixin_post_agent.py`)
+- Corregido `AttributeError` al agregar `load_config() -> dict` con caching atómico en `ConfigManager`.
+- Resuelto bloqueo al enviar modelo `"auto"` sustituyéndolo dinámicamente por el modelo prioritario del sistema (`openai/gpt-oss-120b`).
+- Agregado extractor regex de bloques de código Markdown (````python...````) como fallback tolerante ante respuestas no estrictamente JSON de LLMs locales.
+
+### 4. Aislamiento de Puerto V2V Studio & Threading Asíncrono (`_integrations/v2v_engine/`, `frontend/src/components/V2VStudio.tsx`)
+- Migrado el servidor LivePortrait a puerto `7863` eliminando la colisión con Fooocus Studio UI en el puerto `7862`.
+- Corregida discrepancia de firmas en `V2VPipeline` y desacoplada su ejecución a un worker thread no bloqueante.
+- Conectado sondeo reactivo en `V2VStudio.tsx` actualizando el estado de la pipeline cada 2 segundos.
+
+### 5. Firecrawl Tool: Previsualización Interactiva & Auto-Indexación RAG (`frontend/src/components/Firecrawl.tsx`, `api/routes/mixin_post_agent.py`)
+- Reemplazado descarte silencioso del contenido extraído por visor interactivo con soporte de copiado a portapapeles y conteo de caracteres.
+- Conectado el endpoint `/v1/tools/scrape` con el motor semántico `RAGIndexer.index_text`, convirtiendo la promesa de memoria RAG en indexación real vectorizada.
+
+### 6. Hardware Monitor: Blindaje Anti-Suicidio (`os.getpid()`) & Terminación Segura (`api/routes/mixin_post_system.py`, `frontend/src/components/HardwareMonitor.tsx`)
+- Bloqueada la auto-terminación accidental del proceso núcleo (`os.getpid()`) retornando HTTP 400.
+- Manejo granular de excepciones `psutil.NoSuchProcess` (HTTP 404) y `psutil.AccessDenied` (HTTP 403) con fallback a `taskkill /F`.
+- En el frontend, añadido badge visual `GRAVITY CORE` y deshabilitado el botón de terminación para el propio puente.
+
+### 7. YouTube Analyzer: Extracción Robusta de Subtítulos & Erradicación de Inyecciones CLI (`tools/youtube_analyzer.py`, `api/routes/mixin_post_media.py`)
+- Soporte dual para diccionarios y listas en `subtitles` y `automatic_captions` de `yt-dlp`.
+- Eliminado llamado inseguro a `subprocess.run([pip install])` en tiempo de ejecución.
+- Añadidos headers CORS completos y `Content-Type: application/json` en todas las ramas de error HTTP de `/v1/youtube/analyzer/process`.
+
+### 8. Ingestión RAG: Compatibilidad Nativa con Python 3.13 (`api/routes/mixin_post_agent.py`)
+- Reemplazado el módulo extinto `cgi.FieldStorage` por el parser estándar `email.parser.BytesParser(policy=default)`.
+- Eliminada referencia inexistente a `core.rag_engine`, conectando directamente con `rag.retriever.RAGIndexer.index_file` persistiendo en `_rag_sources/`.
+
+### 9. DeployManager: Inmunidad a Errores de Codificación Windows & Live Logs (`core/deploy_manager.py`, `frontend/src/components/DeployManager.tsx`)
+- Reemplazado `subprocess.run(["where", ...])` con `shutil.which` del estándar library, erradicando fallos de `UnicodeDecodeError` causados por páginas de código OEM en Windows.
+- Habilitada selección de ruta de proyecto personalizada (`projectPath`), serialización de `last_log` en tiempo real y enlace directo al URL de Netlify generado.
+
+### 10. Gestor de Sesiones: Eliminación Real de Archivos & Desacoplamiento de Workers (`api/routes/mixin_post_system.py`, `frontend/src/components/Sessions.tsx`)
+- Implementado endpoint `POST /v1/sessions/delete` para purgar con seguridad los archivos de guardado en `_saves/`.
+- Conectado el botón de papelera en `Sessions.tsx` a `/v1/sessions/delete` y añadido botón de detención individual para workers activos en `/v1/sessions/kill`.
+
+### 11. MemoryStudio: Knowledge Graph Real con NetworkX & Visor SVG Dinámico (`core/strategic_memory.py`, `api/routes/mixin_get.py`, `frontend/src/components/MemoryStudio.tsx`)
+- Implementado endpoint `GET /v1/memory/graph` serializando topología completa (`nodes`, `edges`) y métricas de centralidad PageRank calculadas por NetworkX.
+- Reemplazada maqueta estática pulsante por visualizador interactivo SVG con distribución radial por capas, selección de nodos e inspector contextual.
+- Habilitada descarga de respaldos JSON (`gravity_knowledge_graph_<fecha>.json`) y búsqueda en tiempo real sobre la base de conocimiento SQLite-VSS.
+
+### Cobertura de Calidad y Pruebas Unitarias
+- **11 Nuevos Módulos de Test Automatizados**:
+  - `tests/test_multi_agent.py` (5 tests)
+  - `tests/test_youtube_oauth.py` (4 tests)
+  - `tests/test_software_factory.py` (4 tests)
+  - `tests/test_v2v_engine.py` (2 tests)
+  - `tests/test_firecrawl.py` (4 tests)
+  - `tests/test_hardware_monitor.py` (5 tests)
+  - `tests/test_youtube_analyzer.py` (5 tests)
+  - `tests/test_rag_ingest.py` (2 tests)
+  - `tests/test_deploy_manager.py` (3 tests)
+  - `tests/test_sessions_manager.py` (4 tests)
+  - `tests/test_memory_studio.py` (2 tests)
+- **Suite Completa de Pruebas**: 312 pruebas pasando al 100% (4 omitidas condicionalmente por dependencias externas) en 68 segundos.
+- **Frontend SPA**: Compilación limpia en Vite 8.1.0 y TypeScript 5 (`tsc -b && vite build`) en 417ms sin advertencias.
+
+---
+
 ## [V30.3 OPENCODE] Declarative Parallel Subagent Architecture & Shared Contract Protocol · 18/11/2026
 
 **[INTEGRACIÓN DE CONCEPTOS OPENCODE 2.3: SUBAGENTES DECLARATIVOS .MD, FAN-OUT PARALELO ASÍNCRONO, CONTRATO COMPARTIDO, ACTIVITY FOLDING EN UI Y CERO REGRESIONES]**

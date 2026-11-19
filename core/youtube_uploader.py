@@ -171,16 +171,28 @@ def get_quota_status() -> Dict[str, Any]:
 # ── OAuth Token Management ────────────────────────────────────────────────────
 
 
+def _get_oauth_filepath() -> str:
+    """Retorna la ruta válida de credenciales OAuth (AppData o _integrations)."""
+    if os.path.isfile(OAUTH_PATH):
+        return OAUTH_PATH
+    alt_path = os.path.join(BASE_DIR, "_integrations", "youtube_oauth.json")
+    if os.path.isfile(alt_path):
+        return alt_path
+    return OAUTH_PATH
+
+
 def _load_oauth() -> Dict[str, Any]:
     """
     Carga credenciales OAuth de forma thread-safe con soporte de reintentos.
+    Verifica OAUTH_PATH en AppData y fallback a _integrations/youtube_oauth.json.
     """
     with _yt_io_lock:
-        if not os.path.isfile(OAUTH_PATH):
+        path = _get_oauth_filepath()
+        if not os.path.isfile(path):
             return {}
         for attempt in range(5):
             try:
-                with open(OAUTH_PATH, "r", encoding="utf-8") as f:
+                with open(path, "r", encoding="utf-8") as f:
                     return json.load(f)
             except (PermissionError, json.JSONDecodeError):
                 if attempt == 4:
@@ -194,25 +206,32 @@ def _load_oauth() -> Dict[str, Any]:
 def _save_oauth(data: Dict[str, Any]) -> None:
     """
     Guarda credenciales OAuth de forma atómica y thread-safe.
+    Guarda en OAUTH_PATH y sincroniza con _integrations/youtube_oauth.json si existe.
     """
     with _yt_io_lock:
-        for attempt in range(5):
-            try:
-                os.makedirs(os.path.dirname(OAUTH_PATH), exist_ok=True)
-                tmp_path: str = OAUTH_PATH + ".tmp"
-                with open(tmp_path, "w", encoding="utf-8") as f:
-                    json.dump(data, f, indent=2, ensure_ascii=False)
-                os.replace(tmp_path, OAUTH_PATH)
-                return
-            except (PermissionError, IOError) as e:
-                if attempt == 4:
-                    log.error(
-                        f"[YouTube] Error crítico guardando OAuth tras múltiples reintentos: {e}"
-                    )
-                time.sleep(0.05 * (2**attempt))
-            except Exception as e:
-                log.error(f"[YouTube] Falló guardando credenciales OAuth: {e}")
-                return
+        targets = [OAUTH_PATH]
+        alt_path = os.path.join(BASE_DIR, "_integrations", "youtube_oauth.json")
+        if os.path.isfile(alt_path) and alt_path not in targets:
+            targets.append(alt_path)
+
+        for target in targets:
+            for attempt in range(5):
+                try:
+                    os.makedirs(os.path.dirname(target), exist_ok=True)
+                    tmp_path: str = target + ".tmp"
+                    with open(tmp_path, "w", encoding="utf-8") as f:
+                        json.dump(data, f, indent=2, ensure_ascii=False)
+                    os.replace(tmp_path, target)
+                    break
+                except (PermissionError, IOError) as e:
+                    if attempt == 4:
+                        log.error(
+                            f"[YouTube] Error crítico guardando OAuth en {target}: {e}"
+                        )
+                    time.sleep(0.05 * (2**attempt))
+                except Exception as e:
+                    log.error(f"[YouTube] Falló guardando credenciales OAuth: {e}")
+                    break
 
 
 def _refresh_access_token(oauth: Dict[str, Any]) -> Optional[str]:

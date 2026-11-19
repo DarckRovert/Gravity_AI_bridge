@@ -15,6 +15,7 @@ Endpoints integrados en bridge_server:
 
 import os
 import json
+import shutil
 import subprocess
 import threading
 import time
@@ -43,24 +44,17 @@ _running: bool = False
 
 def _which(cmd: str) -> Optional[str]:
     """
-    Busca un ejecutable en el PATH del sistema de forma portable y segura.
+    Busca un ejecutable en el PATH del sistema usando shutil.which (nativo y seguro).
     """
     try:
-        args: Dict[str, Any] = {"capture_output": True, "text": True, "timeout": 5}
-        if os.name == "nt":
-            args["creationflags"] = subprocess.CREATE_NO_WINDOW
-
-        result = subprocess.run(["where" if os.name == "nt" else "which", cmd], **args)
-        if result.returncode == 0:
-            return result.stdout.strip().splitlines()[0]
+        return shutil.which(cmd)
     except Exception:
-        pass
-    return None
+        return None
 
 
 def check_tools() -> Dict[str, bool]:
     """
-    Verifica la disponibilidad de npm, netlify CLI y node en el entorno.
+    Verifica la disponibilidad de npm, netlify CLI y node en el entorno sin subprocesos.
     """
     return {
         "npm": _which("npm") is not None,

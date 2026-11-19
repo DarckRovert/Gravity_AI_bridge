@@ -36,11 +36,11 @@ export const HardwareMonitor = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pid })
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         throw new Error(data.error || 'Acceso denegado o proceso protegido por el sistema');
       }
-      showToast('success', `Proceso ${name} aniquilado con éxito (PID: ${pid})`);
+      showToast('success', data.message || `Proceso ${name} finalizado con éxito (PID: ${pid})`);
       await fetchData();
     } catch (e: any) {
       showToast('error', `Error al finalizar proceso: ${e.message}`);
@@ -125,11 +125,16 @@ export const HardwareMonitor = () => {
                  </thead>
                  <tbody className="divide-y divide-border-subtle/30">
                     {processes.slice(0, 12).map((p) => (
-                      <tr key={p.pid} className="hover:bg-white/5 transition-colors group">
+                      <tr key={p.pid} className={`hover:bg-white/5 transition-colors group ${p.is_self ? 'bg-accent-primary/5' : ''}`}>
                         <td className="px-6 py-4">
                            <div className="font-bold text-text-primary flex items-center gap-2">
                               {p.name}
                               <span className="text-[9px] text-text-muted font-mono bg-black/20 px-1.5 py-0.5 rounded">PID {p.pid}</span>
+                              {p.is_self && (
+                                <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-accent-primary/20 text-accent-primary border border-accent-primary/30">
+                                  GRAVITY CORE
+                                </span>
+                              )}
                            </div>
                         </td>
                         <td className="px-6 py-4 font-mono text-accent-secondary font-black">{p.ram} MB</td>
@@ -143,9 +148,10 @@ export const HardwareMonitor = () => {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <button 
+                            disabled={p.is_self || loading}
                             onClick={() => killProcess(p.pid, p.name)}
-                            className="p-2 rounded-lg bg-status-error/20 text-status-error hover:bg-status-error hover:text-white transition-all shadow-sm border border-status-error/30"
-                            title="Matar proceso"
+                            className="p-2 rounded-lg bg-status-error/20 text-status-error hover:bg-status-error hover:text-white transition-all shadow-sm border border-status-error/30 disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-status-error/20 disabled:hover:text-status-error"
+                            title={p.is_self ? "Proceso principal de Gravity AI protegido" : "Finalizar proceso"}
                           >
                             <Trash2 size={14} />
                           </button>

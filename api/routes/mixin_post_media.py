@@ -32,11 +32,13 @@ class PostMediaMixin:
                 self.wfile.write(json.dumps(result).encode())
             except Exception as e:
                 self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self._send_cors()
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return True
 
-        # /v1/bounties/action — Marcar trabajo como aplicado o descartado
+        # /v1/youtube/auth/exchange — Canje de código OAuth para YouTube
         if self.path == "/v1/youtube/auth/exchange":
             from api.routes.handlers.revenue_handler import handle_youtube_auth_exchange
 

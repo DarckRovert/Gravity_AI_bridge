@@ -422,9 +422,31 @@ def get_knowledge_graph() -> Dict[str, Any]:
             conn.close()
 
             # Análisis de centralidad (PageRank)
-            pagerank = nx.pagerank(G, weight="weight")
-            central_nodes = sorted(pagerank.items(), key=lambda x: x[1], reverse=True)[
-                :5
+            pagerank = (
+                nx.pagerank(G, weight="weight") if G.number_of_nodes() > 0 else {}
+            )
+            central_nodes = sorted(
+                pagerank.items(), key=lambda x: x[1], reverse=True
+            )[:10]
+
+            nodes_data = [
+                {
+                    "id": str(n),
+                    "label": G.nodes[n].get("title", str(n)),
+                    "type": G.nodes[n].get("type", "entity"),
+                    "score": round(pagerank.get(n, 0.0), 4),
+                    "hits": G.nodes[n].get("hits", 1),
+                }
+                for n in G.nodes()
+            ]
+            edges_data = [
+                {
+                    "source": str(u),
+                    "target": str(v),
+                    "relation": G.edges[u, v].get("relation", "connected_to"),
+                    "weight": G.edges[u, v].get("weight", 1),
+                }
+                for u, v in G.edges()
             ]
 
             return {
@@ -434,6 +456,8 @@ def get_knowledge_graph() -> Dict[str, Any]:
                     {"node": str(node), "score": round(score, 4)}
                     for node, score in central_nodes
                 ],
+                "nodes": nodes_data,
+                "edges": edges_data,
             }
         except Exception as e:
             log.error(f"[StrategicMemory] Error en Knowledge Graph: {e}")

@@ -77,6 +77,7 @@ class GetRoutesMixin(
             "/v1/events/stream": self._serve_events_stream,
             "/v1/rag/status": self._serve_rag_status,
             "/v1/rag/search": self._serve_rag_search,
+            "/v1/memory/graph": self._serve_memory_graph,
             # ── V16.0 PRO New Endpoints ─────────────────────────────────────────────
             "/v1/queue/stream": self._serve_queue_stream,
             "/v1/fabricaweb/status": self._serve_fabricaweb_status,
@@ -770,9 +771,13 @@ class GetRoutesMixin(
 
             fabricaweb_path = os.path.join(BASE, "_integrations", "FabricaWeb")
             status = deploy_manager.get_status()
-            # Inyectar info del proyecto
+            # Inyectar info del proyecto y log serializado
             status["fabricaweb_path"] = fabricaweb_path
             status["fabricaweb_exists"] = os.path.isdir(fabricaweb_path)
+            raw_log = status.get("log", [])
+            status["last_log"] = (
+                "\n".join(raw_log) if isinstance(raw_log, list) else str(raw_log)
+            )
             pkg_path = os.path.join(fabricaweb_path, "package.json")
             if os.path.isfile(pkg_path):
                 try:
@@ -860,6 +865,7 @@ class GetRoutesMixin(
             "fps": 0.0,
             "prompt": "",
             "process_running": is_running,
+            "port": 7863,
         }
 
         body = json.dumps(status, indent=2).encode("utf-8")
@@ -1132,6 +1138,27 @@ class GetRoutesMixin(
             self.wfile.write(body)
         except Exception as e:
             self.send_response(500)
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode())
+
+    def _serve_memory_graph(self):
+        """GET /v1/memory/graph — Retorna topología y métricas del Knowledge Graph."""
+        try:
+            from core.strategic_memory import get_knowledge_graph
+
+            graph_data = get_knowledge_graph()
+            body = json.dumps(
+                graph_data, indent=2, ensure_ascii=False, default=str
+            ).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self._send_cors()
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_response(500)
+            self._send_cors()
             self.end_headers()
             self.wfile.write(json.dumps({"error": str(e)}).encode())
 
@@ -1839,6 +1866,7 @@ class GetRoutesMixin(
             import psutil
 
             processes = []
+            current_pid = os.getpid()
             # psutil.process_iter can be slow, we fetch only needed fields
             for proc in psutil.process_iter(
                 ["pid", "name", "cpu_percent", "memory_info", "username"]
@@ -1875,6 +1903,7 @@ class GetRoutesMixin(
                                     2,
                                 ),
                                 "user": proc.info.get("username", "system"),
+                                "is_self": proc.info["pid"] == current_pid,
                             }
                         )
                 except (psutil.NoSuchProcess, psutil.AccessDenied):
@@ -1955,6 +1984,10 @@ class GetRoutesMixin(
                 "Databases"
             )
             oauth_path = os.path.join(_app_data, "youtube_oauth.json")
+            if not os.path.isfile(oauth_path):
+                alt_path = os.path.join(BASE_DIR, "_integrations", "youtube_oauth.json")
+                if os.path.isfile(alt_path):
+                    oauth_path = alt_path
             oauth_ok = os.path.isfile(oauth_path)
             has_refresh = False
             if oauth_ok:
