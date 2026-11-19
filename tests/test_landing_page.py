@@ -64,7 +64,7 @@ def test_landing_html(local_test_server):
     assert res.status == 200
     assert "text/html" in res.headers.get("Content-Type", "")
     content = res.read().decode("utf-8")
-    assert "Gravity AI Bridge V30.3" in content
+    assert "Gravity AI Bridge V30.4" in content
     assert '<canvas id="gravity-bg"></canvas>' in content
 
 
